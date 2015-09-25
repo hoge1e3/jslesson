@@ -1,0 +1,99 @@
+native setTimeout;
+native $;
+native window;
+native console;
+
+\Math {
+    return window.Math;
+}
+\document {
+    return window.document;
+}
+
+\addText(elem,val){
+    //document.getElementById(elem).innerHTML+=val;
+    $("[name="+elem+"]").append(val);
+}
+\setText(elem,val){
+    //document.getElementById(elem).innerHTML=val;
+    $("[name="+elem+"]").text(val);
+}
+\onClick(elem,func){
+    //document.getElementsByName(elem)[0].onclick=func;
+    $("[name="+elem+"]").click(func);
+}
+\onTouch(elem,func){
+    /*$("[name="+elem+"]").on("touchestart",function(e){
+        func(e.pageX,e.pageY);
+    });*/
+    
+}
+\setCanvas(canv){
+    //canvas=document.getElementsByName(canv)[0];
+    canvas=$("[name="+canv+"]")[0];
+}
+\setColor(r,g,b){
+    if(canvas){
+        ctx=canvas.getContext("2d");
+        ctx.fillStyle="rgb("+r+","+g+","+b+")";
+        ctx.strokeStyle="rgb("+r+","+g+","+b+")";
+    }
+}
+\fillRect(x,y,w,h){
+    if(canvas){
+        ctx=canvas.getContext("2d");
+        ctx.fillRect(x,y,w,h);
+    }
+}
+\getNumber(elem){
+    //val=document.getElementsByName(elem)[0].value;
+    val=$("[name="+elem+"]").val();
+    return val-0;
+}
+\getText(elem){
+    //val=document.getElementsByName(elem)[0].value;
+    val=$("[name="+elem+"]").val();
+    return val;
+}
+\setNumber(elem,num){
+    //document.getElementsByName(elem)[0].innerHTML=num;
+    $("[name="+elem+"]").text(num);
+}
+
+\move(elem,x,y){
+    $("[name="+elem+"]").css({
+        position:"absolute",
+    left:x,top:y});
+}
+\transform(elem,angle,scaleX,scaleY){
+    console.log(scaleX,scaleY);
+    if(!scaleX){
+        scaleX=1;
+        scaleY=1;
+    }else if(!scaleY){
+        scaleY=scaleX;
+    }
+    console.log(scaleX,scaleY);
+    $("[name="+elem+"]").css({
+        position:"absolute",
+    transform:"rotate("+angle+"deg) scale("+scaleX+","+scaleY+")"});
+}
+\rotate(elem,angle){
+    $("[name="+elem+"]").css({
+        position:"absolute",
+    transform:"rotate("+angle+"deg)"});
+}
+\resize(elem,w,h){
+    $("[name="+elem+"]").css({
+        position:"absolute",
+    transform:"scale("+w+","+h+")"});
+}
+
+\wait(time) {
+    time=time||100;
+    var t=_thread;
+    t.suspend();
+    setTimeout(\(){
+        t.steps();
+    },time);
+}

@@ -1,0 +1,10 @@
+{
+  "name": "JSLesson",
+  "main": "index.html",
+  "single-instance": false,
+  "window": {
+    "width": 1024,
+    "height": 768,
+	"toolbar"	: true
+  }
+}

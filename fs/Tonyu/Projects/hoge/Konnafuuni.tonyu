@@ -1,0 +1,23 @@
+//こんなふうにしたいなー
+
+addText("message", "Hello");// HTML要素の名前、追加する値
+onClick("calc",calc);//HTML要素の名前、処理
+onTouch("c",rect);
+function rect(x,y){
+    fillRect(100,20,50,50);
+    addText("message",x);
+}
+function calc() {
+    a=getNumber("a");//HTML要素の名前から数値を取得
+    b=getNumber("b");
+    result=a+b;
+    setNumber("c",result);//書き込み
+}
+
+setCanvas("mycanvas"); //描画対象のキャンバスを指定 
+//(普通は<canvas>は一個しかないので省略可能？)
+setColor(255,0,0);
+fillRect(10,20,30,50);
+
+setColor(0,255,0);
+fillRect(100,100,20,30);

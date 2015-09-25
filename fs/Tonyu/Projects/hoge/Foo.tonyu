@@ -1,0 +1,11 @@
+native $;
+native Math;
+native setTimeout;
+
+ra=$("#runArea");
+ra.empty();
+x=3;
+y=5;
+$("<div>").text(x+y).appendTo(ra);
+cv=$("<canvas>").attr{width:300, height:300}.appendTo(ra);
+c=cv[0].getContext("2d");

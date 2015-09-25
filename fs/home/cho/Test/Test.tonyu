@@ -1,0 +1,6 @@
+native alert;
+alert(a());
+
+function a() {
+    return "abc";
+}
