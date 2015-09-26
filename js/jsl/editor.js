@@ -51,7 +51,8 @@ requirejs(["ace"],function (){
                   ],
                   ["div",{id:"progs"}]
               ],
-              ["div",{id:"runArea","class":"col-xs-5"}
+              ["div",{id:"runArea","class":"col-xs-5"},
+               ["iframe",{id:"ifrm",width:465,height:465}]
               ]
         );
     }
@@ -265,7 +266,8 @@ requirejs(["ace"],function (){
         //curPrj.stop();
         displayMode("edit");
     }
-    function run() {
+    var curName;
+    function run() {//run!!
         var inf=getCurrentEditorInfo();
         if (!inf) {
             alert("実行したいファイルを開いてください。");
@@ -282,10 +284,12 @@ requirejs(["ace"],function (){
         save();
         displayMode("run");
         if (typeof SplashScreen!="undefined") SplashScreen.show();
-        if (curHTMLFile.exists()) $("#runArea")[0].innerHTML=curHTMLFile.text();
-        //var o=curPrj.getOptions();
+        //if (curHTMLFile.exists()) $("#runArea")[0].innerHTML=curHTMLFile.text();
         curPrj.loadClasses().then(DU.throwF(function() {
-            A(Tonyu.classes);
+            curName=name;
+            $("#ifrm").attr("src","run.html");
+
+            /*A(Tonyu.classes);
             var bootClass=Tonyu.getClass(name);
             if (!bootClass) throw TError( name+" というクラスはありません", "不明" ,0);
             Tonyu.runMode=true;
@@ -294,7 +298,7 @@ requirejs(["ace"],function (){
             th.apply(boot,"main");
             $LASTPOS=0;
             if (typeof SplashScreen!="undefined") SplashScreen.hide();
-            th.steps();
+            th.steps();*/
         }), function (e) {
             if (typeof SplashScreen!="undefined") SplashScreen.hide();
             if (e.isTError) {
@@ -306,6 +310,19 @@ requirejs(["ace"],function (){
             }
         });
     }
+    window.setupFrame=function (r) {
+        var inf=getCurrentEditorInfo();
+        var ht="";
+        var curFile=inf.file;
+        var curFiles=fileSet(curFile);
+        var curHTMLFile=curFiles[0];
+        var curJSFile=curFiles[1];
+        var ht=curHTMLFile.text();
+        var f=curPrj.getOutputFile();
+        var js=f.text();
+        r(ht,js, curName);
+        if (typeof SplashScreen!="undefined") SplashScreen.hide();
+    };
     var alertOnce;
     alertOnce=function (e) {
         alert(e);

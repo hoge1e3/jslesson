@@ -1,5 +1,5 @@
 // Javascript
 native $;
-wait(100);
+wait(1000);
 $("h1").append("llo");
 

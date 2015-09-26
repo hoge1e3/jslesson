@@ -120,8 +120,8 @@ Tonyu.klass.define({
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
       $LASTPOS=3000024;//user.Toste:24
-      _this.wait(100);
-      $LASTPOS=3000035;//user.Toste:35
+      _this.wait(1000);
+      $LASTPOS=3000036;//user.Toste:36
       $("h1").append("llo");
     },
     fiber$main :function _trc_Toste_f_main(_thread) {
@@ -136,11 +136,11 @@ Tonyu.klass.define({
           switch (__pc) {
           case 0:
             $LASTPOS=3000024;//user.Toste:24
-            _this.fiber$wait(_thread, 100);
+            _this.fiber$wait(_thread, 1000);
             __pc=1;return;
           case 1:
             
-            $LASTPOS=3000035;//user.Toste:35
+            $LASTPOS=3000036;//user.Toste:36
             $("h1").append("llo");
             _thread.exit(_this);return;
           }

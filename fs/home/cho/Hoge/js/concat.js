@@ -9,6 +9,8 @@ Tonyu.klass.define({
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
       $LASTPOS=1000024;//user.Neko:24
+      _this.wait(500);
+      $LASTPOS=1000035;//user.Neko:35
       $("#ne").append("ねこ");
     },
     fiber$main :function _trc_Neko_f_main(_thread) {
@@ -16,10 +18,23 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1000024;//user.Neko:24
-      $("#ne").append("ねこ");
       
-      _thread.retVal=_this;return;
+      _thread.enter(function _trc_Neko_ent_main(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1000024;//user.Neko:24
+            _this.fiber$wait(_thread, 500);
+            __pc=1;return;
+          case 1:
+            
+            $LASTPOS=1000035;//user.Neko:35
+            $("#ne").append("ねこ");
+            _thread.exit(_this);return;
+          }
+        }
+      });
     },
     __dummy: false
   },
