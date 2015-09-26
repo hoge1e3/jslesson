@@ -1,85 +1,10 @@
-//"var reqConf="+JSON.stringify( getReq.genConf({base:"http://localhost:3002/js/", baseUrl:"js"})+";"
-var reqConf={
-        "shim": {
-            TextEditor: {
-                exports: "TextEditor"
-            },
-            difflib: {
-                exports: "difflib"
-            },
-            diffview: {
-                exports: "diffview"
-            },
-            timbre: {
-                exports: "T"
-            },
-            "disp": {
-                "deps": ["IndentBuffer"],
-                "exports": "disp"
-            },
-            "Util": {
-                "exports": "Util"
-            },
-            "Profiler": {
-                "exports": "Profiler"
-            },
-            "TextUtil": {
-                "exports": "TextUtil"
-            },
-            "Arrow": {
-                "exports": "Arrow"
-            },
-            "fixIndent": {
-                "deps": ["TonyuLang", "Visitor", "Grammar"],
-                "exports": "fixIndent"
-            },
-            "Key": {
-                "exports": "Key"
-            },
-            "TError": {
-                "exports": "TError"
-            },
-            "fs/ROMk": {
-                "deps": ["FS","WebSite"]
-            },
-            "fs/ROMd": {
-                "deps": ["FS","WebSite"]
-            },
-            "fs/ROMs": {
-                "deps": ["FS","WebSite"]
-            },
-            "FileList": {
-                "deps": ["FS"],
-                "exports": "FileList"
-            },
-            "HttpHelper": {
-                "exports": "HttpHelper"
-            },
-            "ace": {
-                "exports": "ace"
-            },
-            "fs/import": {
-                deps: ["FS"]
-            },
-            "fs/export": {
-                deps: ["Shell","FS"]
-            },
-            T2MediaLib: {
-                exports: "T2MediaLib"
-            },
-            JSZip: {
-                exports:"JSZip"
-            },
-            Encoding: {
-                exports:"Encoding"
-            },
-            Base64: {
-                exports:"Base64"
-            }
-        },
-        "paths": {
-            selPrj_concat: 'gen/selPrj_concat',
-            edit_concat: 'gen/edit_concat',
+({
+    //name: 'jsl_edit',
+    //out: 'gen/edit_concat.js',
+    name: 'jsl_selProject',
+    out: 'gen/selPrj_concat.js',
+    baseUrl: ".",
+    paths: {
             Sync: "fs/sync",
             TT: "lang/tonyu2_token",
             Auth: "jsl/auth",
@@ -197,7 +122,82 @@ var reqConf={
             DeferredUtil:"lib/DeferredUtil",
             "compiledProject":"lang/compiledProject",
             "foo":"bar"
-        },
-        "baseUrl": "js"
-};
-if (typeof exports!=="undefined") exports.conf=reqConf;
+     },
+    "shim": {
+            TextEditor: {
+                exports: "TextEditor"
+            },
+            difflib: {
+                exports: "difflib"
+            },
+            diffview: {
+                exports: "diffview"
+            },
+            timbre: {
+                exports: "T"
+            },
+            "disp": {
+                "deps": ["IndentBuffer"],
+                "exports": "disp"
+            },
+            "Util": {
+                "exports": "Util"
+            },
+            "Profiler": {
+                "exports": "Profiler"
+            },
+            "TextUtil": {
+                "exports": "TextUtil"
+            },
+            "Arrow": {
+                "exports": "Arrow"
+            },
+            "fixIndent": {
+                "deps": ["TonyuLang", "Visitor", "Grammar"],
+                "exports": "fixIndent"
+            },
+            "Key": {
+                "exports": "Key"
+            },
+            "TError": {
+                "exports": "TError"
+            },
+            "fs/ROMk": {
+                "deps": ["FS","WebSite"]
+            },
+            "fs/ROMd": {
+                "deps": ["FS","WebSite"]
+            },
+            "fs/ROMs": {
+                "deps": ["FS","WebSite"]
+            },
+            "FileList": {
+                "deps": ["FS"],
+                "exports": "FileList"
+            },
+            "HttpHelper": {
+                "exports": "HttpHelper"
+            },
+            "ace": {
+                "exports": "ace"
+            },
+            "fs/import": {
+                deps: ["FS"]
+            },
+            "fs/export": {
+                deps: ["Shell","FS"]
+            },
+            T2MediaLib: {
+                exports: "T2MediaLib"
+            },
+            JSZip: {
+                exports:"JSZip"
+            },
+            Encoding: {
+                exports:"Encoding"
+            },
+            Base64: {
+                exports:"Base64"
+            }
+     }
+})
