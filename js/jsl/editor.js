@@ -3,16 +3,18 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "Shell","Shell2","KeyEventChecker",
            "runtime", "searchDialog","StackTrace",
            "UI","WebSite","exceptionCatcher","Tonyu.TraceTbl",
-           "Columns","assert","Menu","ace","TError","DeferredUtil"
+           "Columns","assert","Menu","TError","DeferredUtil"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
           sh,sh2,  KeyEventChecker,
           rt, searchDialog,StackTrace,
           UI,WebSite,EC,TTB,
-          Columns,A,Menu,ace,TError,DU
+          Columns,A,Menu,TError,DU
           ) {
 $(function () {
+requirejs(["ace"],function (){
+    console.log("ace loaded:",ace);
     var F=EC.f;
     $LASTPOS=0;
     var home=FS.resolve("${tonyuHome}");
@@ -129,10 +131,16 @@ $(function () {
     FM.on.ls=ls;
     FM.on.validateName=fixName;
     FM.on.createContent=function (f) {
-        if (f.ext()==EXT) {
-            f.text("// Javascript\n");
-        } else if (f.ext()==HEXT) {
-            f.text("<html>\n\n</html>");
+        if (f.ext()==EXT || f.ext()==HEXT) {
+            fileSet(f).forEach(function (e) {
+                if (e.ext()==EXT && !e.exists()) {
+                    e.text("// Javascript\n");
+                } else if (e.ext()==HEXT  && !e.exists()) {
+                    e.text("<html>\n\n</html>");
+                } else {
+                    e.text("");
+                }
+            });
         } else {
             f.text("");
         }
@@ -400,7 +408,10 @@ $(function () {
         //$(".selTab").removeClass("selected");
         //$(this).addClass("selected");
         var c=fl.curFile();
-        if (!c) return;
+        if (!c) {
+            alert("まず、メニュー→新規でファイルを作るから、左のファイル一覧からファイルを選んでください。");
+            return;
+        }
         var n=c.truncExt();
         var f=c.up().rel(n+ext);
         if (!f.exists()) {
@@ -506,4 +517,5 @@ $(function () {
     FM.onMenuStart=save;
     SplashScreen.hide();
 });
+});// of load ace
 });

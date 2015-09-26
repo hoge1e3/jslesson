@@ -34,6 +34,14 @@ SplashScreen.show();
 requirejs(["Util"],function (Util){
     var run=Util.getQueryString("r");
     if (!run) run="jsl_selProject";
+    var noconcat=Util.getQueryString("noconcat","emp");
+    if (noconcat=="emp" ) noconcat=!!(typeof process=="object" && process.__node_webkit);
+    console.log("noconcat",noconcat);
+    if (noconcat+""!="true") {
+        if (reqConf.paths[run+"_concat"]) {
+            run+="_concat";
+        }
+    }
     requirejs([run], function(){
     });
 });

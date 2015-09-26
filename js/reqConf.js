@@ -78,8 +78,10 @@ var reqConf={
             }
         },
         "paths": {
-            selPrj_concat: 'gen/selPrj_concat',
-            edit_concat: 'gen/edit_concat',
+            jsl_selProject: "jsl/selProject",
+            jsl_selProject_concat: 'gen/selPrj_concat',
+            jsl_edit: "jsl/editor",
+            jsl_edit_concat: 'gen/edit_concat',
             Sync: "fs/sync",
             TT: "lang/tonyu2_token",
             Auth: "jsl/auth",
@@ -155,8 +157,6 @@ var reqConf={
             "wikiFullScreen": "help/wikiFullScreen",
             "wikiExporter": "help/wikiExporter",
             "ace": "lib/ace-noconflict/ace",
-            "jsl_selProject": "jsl/selProject",
-            "jsl_edit": "jsl/editor",
             PatternParser:"graphics/PatternParser",
             copyToKernel: "fs/copyToKernel",
             JSONCol: "lib/JSONCol",
