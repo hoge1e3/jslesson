@@ -73,7 +73,7 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","SFile","assert"],
             var data=info.data;
             for (var rel in data) {
                 var file=base.rel(rel);
-                var lcm=file.exists() ? file.metaInfo() : null;
+                var lcm=file.exists({includeTrashed:true}) ? file.metaInfo() : null;
                 var rmm=data[rel];
                 cmp(file,rel,lcm,rmm);
             }
@@ -127,22 +127,26 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","SFile","assert"],
             return res={msg:res,uploads:upds,downloads: downloads};
         });
         function cmp(f,rel,lcm,rmm) {
+            if (options.v) console.log("compare",f.path(), rel,lcm,rmm);
             if (visited[rel]) return ;
             visited[rel]=1;
             if (rmm && (!lcm || lcm.lastUpdate<rmm.lastUpdate-5000)) {
                 downloads.push(rel);
                 if (options.v)
-                    sh.echo((!lcm?"New":"")+
-                            "Download "+f+
+                    sh.echo((!lcm?"New ":"")+
+                            "mtime(l-r) "+( (lcm?lcm.lastUpdate:0)-rmm.lastUpdate)+
+                            " Download "+f+
                             " trash="+!!rmm.trashed);
             } else if (lcm && (!rmm || lcm.lastUpdate>rmm.lastUpdate+5000)) {
-                var o={text:f.text()};
+                var o={};
+                if (f.exists()) o.text=f.text();
                 var m=f.metaInfo();
                 for (var i in m) o[i]=m[i];
                 uploads[rel]=o;
                 if (options.v)
                     sh.echo((!rmm?"New":"")+
-                            "Upload "+f+
+                            "mtime(l-r) "+(lcm.lastUpdate-(rmm?rmm.lastUpdate:0))+
+                            " Upload "+f+
                             " trash="+!!lcm.trashed);
             }
 

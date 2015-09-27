@@ -17,6 +17,10 @@ class NativeFS {
 	   fclose($handle);
 	   return $contents;
    }
+   function rm($path) {
+        $rp=$this->resolve($path);
+        unlink($rp);
+   }
    function mkdir($path) {
         if ($this->exists($path)) return;
         if (!mkdir($this->resolve($path), 0777, true)) {

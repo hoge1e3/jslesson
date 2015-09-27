@@ -135,7 +135,7 @@ define(["FS2","PathUtil","extend","assert"], function(FS,P,extend,assert) {
             this.touch(path);
         },
         getMetaInfo: function(path, options) {
-            this.assertExist(path);
+            this.assertExist(path, {includeTrashed:true});
             assert.is(arguments,[Absolute]);
             if (path==P.SEP) {
                 return {};

@@ -107,7 +107,7 @@ SFile.prototype={
     },
     metaInfo: function () {
         if (arguments.length==0) {
-            return this.getMetaInfo(this,arguments);
+            return this.getMetaInfo.apply(this,arguments);
         } else {
             return this.setMetaInfo.apply(this,arguments);
         }

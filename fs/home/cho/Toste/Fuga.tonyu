@@ -1,6 +1,0 @@
-extends Parent;
-
-native $;
-wait(1000);
-$("h1").append("は");
-

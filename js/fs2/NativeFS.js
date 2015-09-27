@@ -76,7 +76,7 @@ define(["FS2","assert","PathUtil","extend","MIMETypes","DataURL"],
             }
         },
         getMetaInfo: function(path, options) {
-            this.assertExist(path);
+            this.assertExist(path, options);
             var s=this.stat(path);
             s.lastUpdate=s.mtime.getTime();
             return s;

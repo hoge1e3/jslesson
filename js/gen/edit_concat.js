@@ -1351,7 +1351,7 @@ SFile.prototype={
     },
     metaInfo: function () {
         if (arguments.length==0) {
-            return this.getMetaInfo(this,arguments);
+            return this.getMetaInfo.apply(this,arguments);
         } else {
             return this.setMetaInfo.apply(this,arguments);
         }
@@ -1882,7 +1882,7 @@ define('NativeFS',["FS2","assert","PathUtil","extend","MIMETypes","DataURL"],
             }
         },
         getMetaInfo: function(path, options) {
-            this.assertExist(path);
+            this.assertExist(path, options);
             var s=this.stat(path);
             s.lastUpdate=s.mtime.getTime();
             return s;
@@ -2098,7 +2098,7 @@ define('LSFS',["FS2","PathUtil","extend","assert"], function(FS,P,extend,assert)
             this.touch(path);
         },
         getMetaInfo: function(path, options) {
-            this.assertExist(path);
+            this.assertExist(path, {includeTrashed:true});
             assert.is(arguments,[Absolute]);
             if (path==P.SEP) {
                 return {};

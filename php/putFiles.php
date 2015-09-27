@@ -17,8 +17,12 @@ $data=$json->decode($_POST["data"]);
 foreach ($data as $path=>$cont) {
 //print "cont $cont";
     $fp=PathUtil::rel($base, $path);
-    $fs->setContent($fp,$cont["text"]);
-    $fs->setMetaInfo($fp,array(lastUpdate=>$cont["lastUpdate"]) );
+    if (isset($cont["trashed"])) {
+        $fs->rm($fp);
+    } else {
+        $fs->setContent($fp,$cont["text"]);
+        $fs->setMetaInfo($fp,array(lastUpdate=>$cont["lastUpdate"]) );
+    }
 }
 header("Content-type: text/plain");
 print "OK";
