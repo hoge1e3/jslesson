@@ -82,7 +82,7 @@ var reqConf={
             jsl_selProject_concat: 'gen/selPrj_concat',
             jsl_edit: "jsl/editor",
             jsl_edit_concat: 'gen/edit_concat',
-            Sync: "fs/sync",
+            Sync: "fs/sync2",
             TT: "lang/tonyu2_token",
             Auth: "jsl/auth",
             Encoding:"lib/encoding.min",

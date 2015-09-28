@@ -25,7 +25,7 @@ foreach ($data as $path=>$cont) {
         $fs->setMetaInfo($fp,array(lastUpdate=>$cont["lastUpdate"]) );
     }
 }
-header("Content-type: text/plain");
+//header("Content-type: text/plain");
 //print "OK";
 require_once "getDirInfoLib.php";
 print $json->encode( getDirInfo($base, $base) );

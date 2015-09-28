@@ -189,7 +189,7 @@ SFile.prototype={
             if (!t) return null;
             return JSON.parse(t);
         } else {
-            file.text(JSON.stringify(arguments[0]));
+            file.text(JSON.stringify(A.is(arguments[0],Object) ));
         }
     },
     copyFrom: function (src, options) {

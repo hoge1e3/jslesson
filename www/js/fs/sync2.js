@@ -94,14 +94,14 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","SFile","assert"],
         if (!options) options={};
         if (options.test) options.v=1;
         var syncInfoDir=local.rel(".sync/");
+        options.excludes=options.excludes||[];
+        options.excludes=options.excludes.concat(syncInfoDir.name());
         var localDirInfoFile=syncInfoDir.rel("local.json");
         var remoteDirInfoFile=syncInfoDir.rel("remote.json");
         var lastLocalDirInfo=localDirInfoFile.exists()?localDirInfoFile.obj():{};
         var lastRemoteDirInfo=remoteDirInfoFile.exists()?remoteDirInfoFile.obj():{};
         var curLocalDirInfo=getLocalDirInfo();
         var localDelta=getDelta(lastLocalDirInfo, curLocalDirInfo);
-        options.excludes=options.excludes||[];
-        options.excludes=options.excludes.concat(syncInfoDir.name());
         var uploads={},downloads=[],visited={};
         function status(name, param) {
             sh.echo("Status: "+name+" param:",param);
@@ -140,7 +140,7 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","SFile","assert"],
                  if (f.exists()) o.text=f.text();
                  m=dd.local[key];
                  for (var i in m) o[i]=m[i];
-                 uploads[rel]=o;
+                 uploads[key]=o;
                  if (options.v)
                         sh.echo("Upload",m);
             }
@@ -188,10 +188,10 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","SFile","assert"],
             });
         }).then(function n3(res){
             var newRemoteDirInfo=res.data;
+            if (options.v) sh.echo("putFiles res=",res);
             var newLocalDirInfo=getLocalDirInfo();
             localDirInfoFile.obj(newLocalDirInfo);
             remoteDirInfoFile.obj(newRemoteDirInfo);
-            if (options.v) sh.echo("putFiles res=",res);
 
             var upds=[];
             for (var i in uploads) upds.push(i);
