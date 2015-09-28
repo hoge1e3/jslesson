@@ -19,7 +19,7 @@ foreach ($data as $path=>$cont) {
 //print "cont $cont";
     $fp=PathUtil::rel($base, $path);
     if (isset($cont["trashed"])) {
-        $fs->rm($fp);
+        if ($fs->exists($fp)) $fs->rm($fp);
     } else {
         $fs->setContent($fp,$cont["text"]);
         $fs->setMetaInfo($fp,array(lastUpdate=>$cont["lastUpdate"]) );

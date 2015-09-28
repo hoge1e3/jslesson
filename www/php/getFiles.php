@@ -17,9 +17,13 @@ $paths=$json->decode($_POST["paths"]);
 $data=array();
 foreach ($paths as $path) {
     $fp=PathUtil::rel($base, $path);
-    $c=$fs->getContent($fp);
-    $info=$fs->getMetaInfo($fp);
-    $info["text"]=$c;
+    if ($fs->exists($fp)) {
+        $c=$fs->getContent($fp);
+        $info=$fs->getMetaInfo($fp);
+        $info["text"]=$c;
+    } else {
+        $info=array(trashed=>true);
+    }
     $data[$path]=$info;
 }
 header("Content-type: text/json");

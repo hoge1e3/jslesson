@@ -42,10 +42,12 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","SFile","assert"],
             return keys;
         }
         function getDelta(before,after) {
+            //console.log("getDelta",before,after);
             var keys=unionKeys(before,after);
             var res={};
             for (var key in keys) {
                 var inb=(key in before),ina=(key in after);
+                //console.log("Compare", before[key], after[key], ina, inb);
                 if (inb && !ina) {
                     // DELETED
                     res[key]={lastUpdate:-1, trashed:true};
@@ -58,6 +60,7 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","SFile","assert"],
                             lastUpdate: after[key].lastUpdate,
                             modified:true
                     };
+                    //console.log("Added", key, before[key].lastUpdate , after[key].lastUpdate)
                 }
             }
             return res;
@@ -102,7 +105,9 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","SFile","assert"],
         var lastRemoteDirInfo=remoteDirInfoFile.exists()?remoteDirInfoFile.obj():{};
         var curLocalDirInfo=getLocalDirInfo();
         var localDelta=getDelta(lastLocalDirInfo, curLocalDirInfo);
+        if (options.v) sh.echo("localDelta",localDelta);
         var uploads={},downloads=[],visited={};
+        var user;
         function status(name, param) {
             sh.echo("Status: "+name+" param:",param);
             if (options.onstatus) {
@@ -130,8 +135,10 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","SFile","assert"],
                 }, 0);
                 return d.promise();
             }
+            user=curRemoteDirInfo.user;
             var base=local;//FS.get(curRemoteDirInfo.base);
-            var remoteDelta=(lastRemoteDirInfo, curRemoteDirInfo.data);
+            var remoteDelta=getDelta(lastRemoteDirInfo, curRemoteDirInfo.data);
+            if (options.v) sh.echo("remoteDelta",remoteDelta);
             var dd=getDeltaDelta(localDelta,remoteDelta);
             var o,f,m;
             for (var key in dd.local) {
@@ -142,12 +149,12 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","SFile","assert"],
                  for (var i in m) o[i]=m[i];
                  uploads[key]=o;
                  if (options.v)
-                        sh.echo("Upload",m);
+                        sh.echo("Upload",key,m);
             }
             for (var key in dd.remote) {
                 downloads.push(key);
                 if (options.v)
-                    sh.echo("Upload",dd.remote[key]);
+                    sh.echo("Download",key,dd.remote[key]);
             }
             if (options.v) {
                 sh.echo("uploads:",uploads);
@@ -195,7 +202,7 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","SFile","assert"],
 
             var upds=[];
             for (var i in uploads) upds.push(i);
-            return res={msg:res,uploads:upds,downloads: downloads};
+            return res={msg:res,uploads:upds,downloads: downloads,user:user};
         });
     };
     sh.rsh=function () {

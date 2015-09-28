@@ -33,6 +33,7 @@ $(function () {
             var name=f.name();
 
             if (!f.isDir()) return;
+            if (!f.rel("options.json").exists()) return;
             var u=UI("div", {"class":"project"},
                     ["a", {href:"?r=jsl_edit&dir="+f.path()},
                      ["img",{$var:"t",src:FS.expandPath("${sampleImg}/nowprint.png")}],
@@ -62,7 +63,8 @@ $(function () {
             $("#syncMesg").append("完了");
             ls();
             setTimeout(function () {
-                $("#syncMesg").empty();
+                $("#syncMesg").text(e.user+"でログインしています。");
+                $("#syncMesg").append(UI("a",{href:"php/login.php"},"他ユーザでログイン"));
             },1000);
         }).fail(function (e) {
             if (e==Sync.NOT_LOGGED_IN) {
