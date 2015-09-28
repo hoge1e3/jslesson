@@ -5,6 +5,7 @@ require_once "NativeFS.php";
 require_once "auth.php";
 $fs=Auth::getFS(); //new NativeFS("../fs");
 $json=new Services_JSON;
+header("Content-type: text/json");
 
 if (!isset($_POST["base"])) {
     die("Specify base");
@@ -25,7 +26,10 @@ foreach ($data as $path=>$cont) {
     }
 }
 header("Content-type: text/plain");
-print "OK";
+//print "OK";
+require_once "getDirInfoLib.php";
+print $json->encode( getDirInfo($base, $base) );
+
 //print $_POST["data"];
 
 ?>
