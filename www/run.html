@@ -27,6 +27,17 @@ $(function (){
         //console.log(jsCont[0]);
         new Function(jsCont)();
         $("html").html(htmlCont);
+        $("a").each(function () {
+            var href=$(this).attr("href");
+            if (href.match(/^([a-zA-Z0-9_]+)\.html$/)) {
+                if (user && prj && klass) {
+                    href="run.html?usr="+user+"&prj="+prj+"&class="+RegExp.$1;
+                } else {
+                    href="javascript:parent.moveFromFrame('"+href+"')";
+                }
+                $(this).attr("href",href);
+            }
+        });
         var bootClass=Tonyu.getClass(klass);
         if (!bootClass) throw TError( klass+" というクラスはありません", "不明" ,0);
         Tonyu.runMode=true;

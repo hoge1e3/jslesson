@@ -310,6 +310,13 @@ requirejs(["ace"],function (){
             }
         });
     }
+    window.moveFromFrame=function (name) {
+        var f=curProjectDir.rel(name);
+        if (f.exists()) {
+            fl.select(f);
+            run();
+        }
+    };
     window.setupFrame=function (r) {
         var inf=getCurrentEditorInfo();
         var ht="";

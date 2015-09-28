@@ -7,7 +7,7 @@ native $;
 y=0;
 vy=0;
 setText("mesg","Hello");
-for (i=0;i<500;i++) {
+for (i=0;i<50;i++) {
     // 用意するもの(仮)
     // move(name,x,y);
     // transform(name,angle,scaleX,scaleY);

@@ -68,30 +68,30 @@ Tonyu.klass.define({
       $LASTPOS=2000145;//user.HTMLTest:145
       $LASTPOS=2000150;//user.HTMLTest:150
       _this.i=0;
-      while(_this.i<500) {
+      while(_this.i<50) {
         {
-          $LASTPOS=2000260;//user.HTMLTest:260
+          $LASTPOS=2000259;//user.HTMLTest:259
           _this.move("image",_this.i,_this.y);
-          $LASTPOS=2000283;//user.HTMLTest:283
+          $LASTPOS=2000282;//user.HTMLTest:282
           _this.transform("image",_this.i*3);
-          $LASTPOS=2000437;//user.HTMLTest:437
+          $LASTPOS=2000436;//user.HTMLTest:436
           _this.y+=_this.vy;
-          $LASTPOS=2000448;//user.HTMLTest:448
+          $LASTPOS=2000447;//user.HTMLTest:447
           if (_this.i%100==0) {
-            $LASTPOS=2000470;//user.HTMLTest:470
+            $LASTPOS=2000469;//user.HTMLTest:469
             _this.vy=- _this.vy;
-            $LASTPOS=2000486;//user.HTMLTest:486
+            $LASTPOS=2000485;//user.HTMLTest:485
             _this.addText("mesg","!");
             
           }
-          $LASTPOS=2000517;//user.HTMLTest:517
+          $LASTPOS=2000516;//user.HTMLTest:516
           _this.vy+=0.1;
-          $LASTPOS=2000530;//user.HTMLTest:530
+          $LASTPOS=2000529;//user.HTMLTest:529
           _this.wait(20);
         }
         _this.i++;
       }
-      $LASTPOS=2000542;//user.HTMLTest:542
+      $LASTPOS=2000541;//user.HTMLTest:541
       _this.setText("mesg","fin");
     },
     fiber$main :function _trc_HTMLTest_f_main(_thread) {
@@ -118,33 +118,33 @@ Tonyu.klass.define({
             $LASTPOS=2000150;//user.HTMLTest:150
             _this.i=0;;
           case 2:
-            if (!(_this.i<500)) { __pc=8; break; }
-            $LASTPOS=2000260;//user.HTMLTest:260
+            if (!(_this.i<50)) { __pc=8; break; }
+            $LASTPOS=2000259;//user.HTMLTest:259
             _this.fiber$move(_thread, "image", _this.i, _this.y);
             __pc=3;return;
           case 3:
             
-            $LASTPOS=2000283;//user.HTMLTest:283
+            $LASTPOS=2000282;//user.HTMLTest:282
             _this.fiber$transform(_thread, "image", _this.i*3);
             __pc=4;return;
           case 4:
             
-            $LASTPOS=2000437;//user.HTMLTest:437
+            $LASTPOS=2000436;//user.HTMLTest:436
             _this.y+=_this.vy;
-            $LASTPOS=2000448;//user.HTMLTest:448
+            $LASTPOS=2000447;//user.HTMLTest:447
             if (!(_this.i%100==0)) { __pc=6; break; }
-            $LASTPOS=2000470;//user.HTMLTest:470
+            $LASTPOS=2000469;//user.HTMLTest:469
             _this.vy=- _this.vy;
-            $LASTPOS=2000486;//user.HTMLTest:486
+            $LASTPOS=2000485;//user.HTMLTest:485
             _this.fiber$addText(_thread, "mesg", "!");
             __pc=5;return;
           case 5:
             
           case 6:
             
-            $LASTPOS=2000517;//user.HTMLTest:517
+            $LASTPOS=2000516;//user.HTMLTest:516
             _this.vy+=0.1;
-            $LASTPOS=2000530;//user.HTMLTest:530
+            $LASTPOS=2000529;//user.HTMLTest:529
             _this.fiber$wait(_thread, 20);
             __pc=7;return;
           case 7:
@@ -153,7 +153,7 @@ Tonyu.klass.define({
             __pc=2;break;
           case 8:
             
-            $LASTPOS=2000542;//user.HTMLTest:542
+            $LASTPOS=2000541;//user.HTMLTest:541
             _this.fiber$setText(_thread, "mesg", "fin");
             __pc=9;return;
           case 9:
