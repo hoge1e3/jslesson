@@ -7949,7 +7949,11 @@ requirejs(["ace"],function (){
         //if (curHTMLFile.exists()) $("#runArea")[0].innerHTML=curHTMLFile.text();
         curPrj.loadClasses().then(DU.throwF(function() {
             curName=name;
-            $("#ifrm").attr("src","run.html");
+            if (curFrameRun) {
+                window.setupFrame(curFrameRun);
+            } else {
+                $("#ifrm").attr("src","run.html");
+            }
 
             /*A(Tonyu.classes);
             var bootClass=Tonyu.getClass(name);
@@ -7979,7 +7983,9 @@ requirejs(["ace"],function (){
             run();
         }
     };
+    var curFrameRun;
     window.setupFrame=function (r) {
+        curFrameRun=r;
         var inf=getCurrentEditorInfo();
         var ht="";
         var curFile=inf.file;

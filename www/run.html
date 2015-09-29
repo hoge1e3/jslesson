@@ -47,6 +47,8 @@ $(function (){
         $LASTPOS=0;
         if (typeof SplashScreen!="undefined") SplashScreen.hide();
         th.steps();
+        if (window.curTh) window.curTh.kill();
+        window.curTh=th;
     }
 });
 </script>
