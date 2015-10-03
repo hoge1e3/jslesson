@@ -62,15 +62,18 @@ $(function () {
     });*/
     function ren(f) {
         return function () {
-            /*NPD.show(projects, function (prjDir) {
-                f.moveTo(prjDir);
+            NPD.show(projects, function (prjDir) {
+                prjDir.moveFrom(f);
                 ls();
-            },{ren:true, defName:f.name()});*/
+            },{ren:true, defName:f.name().replace("/","")});
         };
     }
     function del(f) {
         return function () {
-
+            if (confirm(f+"を削除しますか？")) {
+                f.rm({r:true});
+                ls();
+            }
         };
     }
     if (!WebSite.isNW) {

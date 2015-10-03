@@ -691,16 +691,13 @@ SFile.prototype={
     /*copyTo: function (dst, options) {
         this.fs.cp(this.path(),getPath(dst),options);
     },*/
-    moveFrom: function (src, options) {
-        return this.fs.mv(getPath(src),this.path(),options);
-    },
     rm: function (options) {
         options=options||{};
         if (!this.exists({noFollowLink:true})) {
             var l=this.resolveLink();
             if (!this.equals(l)) return l.rm(options);
         }
-        if (this.isDir() && options.recursive) {
+        if (this.isDir() && (options.recursive||options.r)) {
             this.each(function (f) {
                 f.rm(options);
             });
@@ -747,9 +744,39 @@ SFile.prototype={
         }
     },
     copyFrom: function (src, options) {
-        var file=this;
-        file.text(src.text());
-        if (options.a) file.metaInfo(src.metaInfo());
+        var dst=this;
+        var options=options||{};
+        var srcIsDir=src.isDir();
+        var dstIsDir=dst.isDir();
+        if (!srcIsDir && dstIsDir) {
+            dst=dst.rel(src.name());
+            assert(!dst.isDir(), dst+" exists as an directory.");
+            dstIsDir=false;
+        }
+        if (srcIsDir && !dstIsDir) {
+           this.err("Cannot move dir to file");
+        } else if (!srcIsDir && !dstIsDir) {
+            //this.fs.cp(A.is(src.path(), P.Absolute), this.path(),options);
+            var srcc=src.getText(); // TODO
+            var res=dst.setText(srcc);
+            if (options.a) {
+                dst.setMetaInfo(src.getMetaInfo());
+            }
+            return res;
+        } else {
+            A(srcIsDir && dstIsDir);
+            var t=this;
+            src.each(function (s) {
+                dst.rel(s.name()).copyFrom(s, options);
+            });
+        }
+        //file.text(src.text());
+        //if (options.a) file.metaInfo(src.metaInfo());
+    },
+    moveFrom: function (src, options) {
+        var res=this.copyFrom(src,options);
+        src.rm({recursive:true});
+        return res;//this.fs.mv(getPath(src),this.path(),options);
     },
     // Dir
     assertDir:function () {
@@ -851,6 +878,7 @@ define('FS2',["extend","PathUtil","MIMETypes","assert","SFile"],function (extend
         err: function (path, mesg) {
             throw new Error(path+": "+mesg);
         },
+        // mounting
         fstab: function () {
             return this._fstab=this._fstab||[{fs:this, path:P.SEP}];
         },
@@ -866,7 +894,7 @@ define('FS2',["extend","PathUtil","MIMETypes","assert","SFile"],function (extend
             if (!res) this.err(path,"Cannot resolve");
             return assert.is(res,FS);
         },
-        isReadOnly: function (path, options) {
+        isReadOnly: function (path, options) {// mainly for check ENTIRELY read only
             stub("isReadOnly");
         },
         mounted: function (parentFS, mountPoint ) {
@@ -891,23 +919,19 @@ define('FS2',["extend","PathUtil","MIMETypes","assert","SFile"],function (extend
             });
             return res;
         },
-        /*getPathFromRootFS: function (path, options) {
-            assert.is(arguments,[P.Absolute]);
-            if (!this.parentFS) return path;
-            assert.is(this.parentFS,FS);
-            var mountedOn=assert.is(this.pathInParent, P.AbsDir);
-            return P.truncSEP(this.parentFS.getPathFromRootFS(mountedOn))+path;
-        },*/
         getRootFS: function () {
             var res;
             for (var r=this;r;r=r.parentFS){res=r;}
             return assert.is(res,FS);
         },
+        //-------- end of mouting
+        //-------- spec
         getReturnTypes: function (path, options) {
             //{getContent:String|DataURL|ArrayBuffer|OutputStream|Writer
             //   ,opendir:Array|...}
             stub("");
         },
+        //-------  for file
         getContent: function (path, options) {
             // options:{type:String|DataURL|ArrayBuffer|OutputStream|Writer}
             // succ : [type],
@@ -937,14 +961,26 @@ define('FS2',["extend","PathUtil","MIMETypes","assert","SFile"],function (extend
             //ret: [String] || Stream<string> // https://nodejs.org/api/stream.html#stream_class_stream_readable
             stub("opendir");
         },
-        cp: function(path, to, options) {
+        cp: function(path, dst, options) {
             assert.is(arguments,[P.Absolute,P.Absolute]);
-            var src=this.getContent(path,{type:String}); // TODO
-            return this.resolveFS(to).setContent(to,src);
+            options=options||{};
+            var srcIsDir=this.isDir(path);
+            var dstIsDir=this.resolveFS(dst).isDir(dst);
+            if (!srcIsDir && !dstIsDir) {
+                var src=this.getContent(path,{type:String}); // TODO
+                var res=this.resolveFS(dst).setContent(dst,src);
+                if (options.a) {
+                    //console.log("-a", this.getMetaInfo(path));
+                    this.setMetaInfo(dst, this.getMetaInfo(path));
+                }
+                return res;
+            } else {
+                throw "only file to file supports";
+            }
         },
         mv: function (path,to,options) {
             this.cp(path,to,options);
-            return this.rm(path,options);
+            return this.rm(path,{r:true});
         },
         rm:function (path, options) {
             stub("");
@@ -1198,6 +1234,9 @@ define('NativeFS',["FS2","assert","PathUtil","extend","MIMETypes","DataURL"],
             return s;
         },
         setMetaInfo: function(path, info, options) {
+
+            //options.lastUpdate
+
             //TODO:
         },
         isReadOnly: function (path) {
@@ -1488,7 +1527,11 @@ define('LSFS',["FS2","PathUtil","extend","assert"], function(FS,P,extend,assert)
             var pinfo=this.getDirInfo(parent);
             var res=pinfo[name];
             if (res && res.trashed && this.itemExists(path)) {
-                assert.fail("Inconsistent "+path+": trashed, but remains in storage");
+                if (this.isDir(path)) {
+
+                } else {
+                    assert.fail("Inconsistent "+path+": trashed, but remains in storage");
+                }
             }
             if (!res && this.itemExists(path)) {
                 assert.fail("Inconsistent "+path+": not exists in metadata, but remains in storage");
@@ -1789,6 +1832,11 @@ define('Shell',["FS","Util","WebSite"],function (FS,Util,WebSite) {
     	else dir=resolve(dir, true);
         return dir.ls();
     };
+    Shell.mv=function (from ,to ,options) {
+        var f=resolve(from, true);
+        var t=resolve(to);
+        t.moveFrom(f);
+    };
     Shell.cp=function (from ,to ,options) {
         if (!options) options={};
         if (options.v) {
@@ -1796,6 +1844,8 @@ define('Shell',["FS","Util","WebSite"],function (FS,Util,WebSite) {
         }
         var f=resolve(from, true);
         var t=resolve(to);
+        return t.copyFrom(f,options);
+        /*
         if (f.isDir() && t.isDir()) {
             var sum=0;
             f.recursive(function (src) {
@@ -1818,7 +1868,7 @@ define('Shell',["FS","Util","WebSite"],function (FS,Util,WebSite) {
             return 1;
         } else {
             throw "Cannot copy directory "+f+" to file "+t;
-        }
+        }*/
     };
     Shell.rm=function (file, options) {
         if (!options) options={};
@@ -1828,7 +1878,8 @@ define('Shell',["FS","Util","WebSite"],function (FS,Util,WebSite) {
             return 1;
         }
         file=resolve(file, true);
-        if (file.isDir() && options.r) {
+        file.rm(options);
+        /*if (file.isDir() && options.r) {
             var dir=file;
             var sum=0;
             dir.each(function (f) {
@@ -1841,7 +1892,7 @@ define('Shell',["FS","Util","WebSite"],function (FS,Util,WebSite) {
         } else {
             file.rm();
             return 1;
-        }
+        }*/
     };
     Shell.cat=function (file,options) {
         file=resolve(file, true);
@@ -7043,7 +7094,7 @@ define('NewProjectDialog',["UI"], function (UI) {
                     },
                     toVal: function (v){ return v ? v.path() : "";}
             };
-        	res.d=UI("div",{title:"新規プロジェクト"},
+        	res.d=UI("div",{title:(options.ren?"プロジェクト名の変更":"新規プロジェクト")},
         			["div",
         			 ["span","プロジェクト名"],
         			 ["input",{$edit:"name",value:options.defName||"",
@@ -7070,15 +7121,19 @@ define('NewProjectDialog',["UI"], function (UI) {
     		if (model.name=="") {
     			this.addError("name","名前を入力してください");
     			return;
-    		} else {
-    			this.allOK();
     		}
     		model.dstDir=model.parentDir.rel(model.name+"/");
+            if (model.dstDir.exists()) {
+                this.addError("name","このフォルダはすでに存在します");
+                return;
+            }
+    		this.allOK();
     		d.$vars.dstDir.text(model.dstDir+"");
     	};
     	d.done=function () {
     	    if (d.$edits.validator.isValid()) {
                 onOK(model.dstDir);
+                d.dialog("close");
     	    }
     	};
     	return d;
@@ -7402,17 +7457,20 @@ $(function () {
             if (!f.rel("options.json").exists()) return;
             var u=UI("div", {"class":"project"},
                     ["a", {href:"?r=jsl_edit&dir="+f.path()},
-                     ["img",{$var:"t",src:FS.expandPath("${sampleImg}/nowprint.png")}],
-                     ["div", name]
-                     ]);
+                     ["img",{$var:"t",src:FS.expandPath("${sampleImg}/tonyu.png")}],
+                     ["div", name]],
+                     ["div",
+                      ["a",{on:{click:ren(f)}},"名前変更"], ["span"," "],
+                      ["a",{on:{click:del(f)}},"削除"]]
+                  );
             u.appendTo("#prjItemList");
-            setTimeout(function () {
+            /*setTimeout(function () {
                 var tn=f.rel("images/").rel("icon_thumbnail.png");
                 //console.log(tn.path());
                 if (tn.exists()) {
                     u.$vars.t.attr("src",tn.text());
                 }
-            },10);
+            },10);*/
         });
     }
     /*Auth.currentUser(function (r){
@@ -7423,6 +7481,22 @@ $(function () {
             $(".while-logged-in").hide();
         }
     });*/
+    function ren(f) {
+        return function () {
+            NPD.show(projects, function (prjDir) {
+                prjDir.moveFrom(f);
+                ls();
+            },{ren:true, defName:f.name().replace("/","")});
+        };
+    }
+    function del(f) {
+        return function () {
+            if (confirm(f+"を削除しますか？")) {
+                f.rm({r:true});
+                ls();
+            }
+        };
+    }
     if (!WebSite.isNW) {
         $("#syncMesg").text("同期しています....");
         Sync.sync(projects, FS.get("/"),{v:true}).then(function (e) {

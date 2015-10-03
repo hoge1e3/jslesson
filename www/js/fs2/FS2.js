@@ -93,28 +93,19 @@ define(["extend","PathUtil","MIMETypes","assert","SFile"],function (extend, P, M
         },
         cp: function(path, dst, options) {
             assert.is(arguments,[P.Absolute,P.Absolute]);
+            options=options||{};
             var srcIsDir=this.isDir(path);
-            var dstIsDir=this.resolveFS().isDir(dst);
-            if (!srcIsDir && dstIsDir) {
-                dst=P.rel(dst, P.name(path));
-                assert(!this.resolveFS().isDir(dst), dst+" exists as an directory.");
-                dstIsDir=false;
-            }
-            if (srcIsDir && !dstIsDir) {
-               this.err("Cannot move dir to file");
-            } else if (!srcIsDir && !dstIsDir) {
+            var dstIsDir=this.resolveFS(dst).isDir(dst);
+            if (!srcIsDir && !dstIsDir) {
                 var src=this.getContent(path,{type:String}); // TODO
                 var res=this.resolveFS(dst).setContent(dst,src);
                 if (options.a) {
+                    //console.log("-a", this.getMetaInfo(path));
                     this.setMetaInfo(dst, this.getMetaInfo(path));
                 }
                 return res;
             } else {
-                assert(srcIsDir && dstIsDir);
-                var srcFiles=opendir(srcIsDir);
-                srcFiles.forEach(function (n) {
-                    this.cp(P.rel(path,n) , P.rel(dst,n),options);
-                });
+                throw "only file to file supports";
             }
         },
         mv: function (path,to,options) {

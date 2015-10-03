@@ -137,16 +137,13 @@ SFile.prototype={
     /*copyTo: function (dst, options) {
         this.fs.cp(this.path(),getPath(dst),options);
     },*/
-    moveFrom: function (src, options) {
-        return this.fs.mv(getPath(src),this.path(),options);
-    },
     rm: function (options) {
         options=options||{};
         if (!this.exists({noFollowLink:true})) {
             var l=this.resolveLink();
             if (!this.equals(l)) return l.rm(options);
         }
-        if (this.isDir() && options.recursive) {
+        if (this.isDir() && (options.recursive||options.r)) {
             this.each(function (f) {
                 f.rm(options);
             });
@@ -193,10 +190,39 @@ SFile.prototype={
         }
     },
     copyFrom: function (src, options) {
-        var file=this;
-        this.fs.cp(src.path(), this.path(),options);
+        var dst=this;
+        var options=options||{};
+        var srcIsDir=src.isDir();
+        var dstIsDir=dst.isDir();
+        if (!srcIsDir && dstIsDir) {
+            dst=dst.rel(src.name());
+            assert(!dst.isDir(), dst+" exists as an directory.");
+            dstIsDir=false;
+        }
+        if (srcIsDir && !dstIsDir) {
+           this.err("Cannot move dir to file");
+        } else if (!srcIsDir && !dstIsDir) {
+            //this.fs.cp(A.is(src.path(), P.Absolute), this.path(),options);
+            var srcc=src.getText(); // TODO
+            var res=dst.setText(srcc);
+            if (options.a) {
+                dst.setMetaInfo(src.getMetaInfo());
+            }
+            return res;
+        } else {
+            A(srcIsDir && dstIsDir);
+            var t=this;
+            src.each(function (s) {
+                dst.rel(s.name()).copyFrom(s, options);
+            });
+        }
         //file.text(src.text());
         //if (options.a) file.metaInfo(src.metaInfo());
+    },
+    moveFrom: function (src, options) {
+        var res=this.copyFrom(src,options);
+        src.rm({recursive:true});
+        return res;//this.fs.mv(getPath(src),this.path(),options);
     },
     // Dir
     assertDir:function () {

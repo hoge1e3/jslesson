@@ -40,6 +40,8 @@ define(["FS","Util","WebSite"],function (FS,Util,WebSite) {
         }
         var f=resolve(from, true);
         var t=resolve(to);
+        return t.copyFrom(f,options);
+        /*
         if (f.isDir() && t.isDir()) {
             var sum=0;
             f.recursive(function (src) {
@@ -62,7 +64,7 @@ define(["FS","Util","WebSite"],function (FS,Util,WebSite) {
             return 1;
         } else {
             throw "Cannot copy directory "+f+" to file "+t;
-        }
+        }*/
     };
     Shell.rm=function (file, options) {
         if (!options) options={};
@@ -72,7 +74,8 @@ define(["FS","Util","WebSite"],function (FS,Util,WebSite) {
             return 1;
         }
         file=resolve(file, true);
-        if (file.isDir() && options.r) {
+        file.rm(options);
+        /*if (file.isDir() && options.r) {
             var dir=file;
             var sum=0;
             dir.each(function (f) {
@@ -85,7 +88,7 @@ define(["FS","Util","WebSite"],function (FS,Util,WebSite) {
         } else {
             file.rm();
             return 1;
-        }
+        }*/
     };
     Shell.cat=function (file,options) {
         file=resolve(file, true);

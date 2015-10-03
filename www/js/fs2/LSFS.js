@@ -190,11 +190,7 @@ define(["FS2","PathUtil","extend","assert"], function(FS,P,extend,assert) {
             this.assertExist(path,{includeTrashed:options.noTrash });
             if (P.isDir(path)) {
                 var lis=this.opendir(path);
-                if (options.r) {
-                    lis.forEach(function (s) {
-                        this.rm(P.rel(s),options);
-                    });
-                } else if (lis.length>0) {
+                if (lis.length>0) {
                     this.err(path,"Directory not empty");
                 }
                 if (options.noTrash) {
@@ -219,7 +215,11 @@ define(["FS2","PathUtil","extend","assert"], function(FS,P,extend,assert) {
             var pinfo=this.getDirInfo(parent);
             var res=pinfo[name];
             if (res && res.trashed && this.itemExists(path)) {
-                assert.fail("Inconsistent "+path+": trashed, but remains in storage");
+                if (this.isDir(path)) {
+
+                } else {
+                    assert.fail("Inconsistent "+path+": trashed, but remains in storage");
+                }
             }
             if (!res && this.itemExists(path)) {
                 assert.fail("Inconsistent "+path+": not exists in metadata, but remains in storage");

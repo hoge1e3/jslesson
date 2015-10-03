@@ -1,4 +1,0 @@
-native $;
-
-wait(1000);
-$("h1").text("nyan");

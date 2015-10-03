@@ -82,6 +82,9 @@ define(["FS2","assert","PathUtil","extend","MIMETypes","DataURL"],
             return s;
         },
         setMetaInfo: function(path, info, options) {
+
+            //options.lastUpdate
+
             //TODO:
         },
         isReadOnly: function (path) {

@@ -52,6 +52,7 @@ define(["UI"], function (UI) {
     	d.done=function () {
     	    if (d.$edits.validator.isValid()) {
                 onOK(model.dstDir);
+                d.dialog("close");
     	    }
     	};
     	return d;

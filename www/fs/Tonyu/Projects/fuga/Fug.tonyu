@@ -1,6 +1,0 @@
-// Javascript
-move("fuga",200,200);
-for (i=0;i<200;i++) {
-    transform("fuga",i,2,1);
-    wait(20);
-}
