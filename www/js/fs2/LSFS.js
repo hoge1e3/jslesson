@@ -190,7 +190,11 @@ define(["FS2","PathUtil","extend","assert"], function(FS,P,extend,assert) {
             this.assertExist(path,{includeTrashed:options.noTrash });
             if (P.isDir(path)) {
                 var lis=this.opendir(path);
-                if (lis.length>0) {
+                if (options.r) {
+                    lis.forEach(function (s) {
+                        this.rm(P.rel(s),options);
+                    });
+                } else if (lis.length>0) {
                     this.err(path,"Directory not empty");
                 }
                 if (options.noTrash) {

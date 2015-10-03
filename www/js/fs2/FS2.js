@@ -8,6 +8,7 @@ define(["extend","PathUtil","MIMETypes","assert","SFile"],function (extend, P, M
         err: function (path, mesg) {
             throw new Error(path+": "+mesg);
         },
+        // mounting
         fstab: function () {
             return this._fstab=this._fstab||[{fs:this, path:P.SEP}];
         },
@@ -23,7 +24,7 @@ define(["extend","PathUtil","MIMETypes","assert","SFile"],function (extend, P, M
             if (!res) this.err(path,"Cannot resolve");
             return assert.is(res,FS);
         },
-        isReadOnly: function (path, options) {
+        isReadOnly: function (path, options) {// mainly for check ENTIRELY read only
             stub("isReadOnly");
         },
         mounted: function (parentFS, mountPoint ) {
@@ -48,23 +49,19 @@ define(["extend","PathUtil","MIMETypes","assert","SFile"],function (extend, P, M
             });
             return res;
         },
-        /*getPathFromRootFS: function (path, options) {
-            assert.is(arguments,[P.Absolute]);
-            if (!this.parentFS) return path;
-            assert.is(this.parentFS,FS);
-            var mountedOn=assert.is(this.pathInParent, P.AbsDir);
-            return P.truncSEP(this.parentFS.getPathFromRootFS(mountedOn))+path;
-        },*/
         getRootFS: function () {
             var res;
             for (var r=this;r;r=r.parentFS){res=r;}
             return assert.is(res,FS);
         },
+        //-------- end of mouting
+        //-------- spec
         getReturnTypes: function (path, options) {
             //{getContent:String|DataURL|ArrayBuffer|OutputStream|Writer
             //   ,opendir:Array|...}
             stub("");
         },
+        //-------  for file
         getContent: function (path, options) {
             // options:{type:String|DataURL|ArrayBuffer|OutputStream|Writer}
             // succ : [type],
@@ -94,14 +91,31 @@ define(["extend","PathUtil","MIMETypes","assert","SFile"],function (extend, P, M
             //ret: [String] || Stream<string> // https://nodejs.org/api/stream.html#stream_class_stream_readable
             stub("opendir");
         },
-        cp: function(path, to, options) {
+        cp: function(path, dst, options) {
             assert.is(arguments,[P.Absolute,P.Absolute]);
-            var src=this.getContent(path,{type:String}); // TODO
-            return this.resolveFS(to).setContent(to,src);
+            var srcIsDir=this.isDir(path);
+            var dstIsDir=this.resolveFS().isDir(dst);
+            if (!srcIsDir && dstIsDir) {
+                dst=P.rel(dst, P.name(path));
+                assert(!this.resolveFS().isDir(dst), dst+" exists as an directory.");
+                dstIsDir=false;
+            }
+            if (srcIsDir && !dstIsDir) {
+               this.err("Cannot move dir to file");
+            } else if (!srcIsDir && !dstIsDir) {
+                var src=this.getContent(path,{type:String}); // TODO
+                return this.resolveFS(dst).setContent(dst,src);
+            } else {
+                assert(srcIsDir && dstIsDir);
+                var srcFiles=opendir(srcIsDir);
+                srcFiles.forEach(function (n) {
+                    this.cp(P.rel(path,n) , P.rel(dst,n),options);
+                });
+            }
         },
         mv: function (path,to,options) {
             this.cp(path,to,options);
-            return this.rm(path,options);
+            return this.rm(path,{r:true});
         },
         rm:function (path, options) {
             stub("");

@@ -36,17 +36,20 @@ $(function () {
             if (!f.rel("options.json").exists()) return;
             var u=UI("div", {"class":"project"},
                     ["a", {href:"?r=jsl_edit&dir="+f.path()},
-                     ["img",{$var:"t",src:FS.expandPath("${sampleImg}/nowprint.png")}],
-                     ["div", name]
-                     ]);
+                     ["img",{$var:"t",src:FS.expandPath("${sampleImg}/tonyu.png")}],
+                     ["div", name]],
+                     ["div",
+                      ["a",{on:{click:ren(f)}},"名前変更"], ["span"," "],
+                      ["a",{on:{click:del(f)}},"削除"]]
+                  );
             u.appendTo("#prjItemList");
-            setTimeout(function () {
+            /*setTimeout(function () {
                 var tn=f.rel("images/").rel("icon_thumbnail.png");
                 //console.log(tn.path());
                 if (tn.exists()) {
                     u.$vars.t.attr("src",tn.text());
                 }
-            },10);
+            },10);*/
         });
     }
     /*Auth.currentUser(function (r){
@@ -57,6 +60,19 @@ $(function () {
             $(".while-logged-in").hide();
         }
     });*/
+    function ren(f) {
+        return function () {
+            /*NPD.show(projects, function (prjDir) {
+                f.moveTo(prjDir);
+                ls();
+            },{ren:true, defName:f.name()});*/
+        };
+    }
+    function del(f) {
+        return function () {
+
+        };
+    }
     if (!WebSite.isNW) {
         $("#syncMesg").text("同期しています....");
         Sync.sync(projects, FS.get("/"),{v:true}).then(function (e) {
