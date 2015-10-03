@@ -1,0 +1,9 @@
+{"compiler":{
+"defaultSuperClass":"jslker.Parent",
+"namespace":"user",
+"outputFile":"js/concat.js",
+"diagnose":false,
+"dependingProjects":[
+   {"namespace":"jslker", "compiledURL":"${JSLKer}/js/concat.js"}
+]}
+}

@@ -1,0 +1,71 @@
+native $;
+native Math;
+native setTimeout;
+\new(){
+    ra=$("#runArea");
+    ra.empty();
+    x=3;
+    y=5;
+    $("<div>").text(x+y).appendTo(ra);
+    $cv=$("<canvas>").attr{width:300, height:300}.appendTo(ra);
+}
+\fillRect(x,y,rectW,rectH){
+    c=$cv[0].getContext("2d");
+    c.fillStyle=fillStyle;
+    c.fillRect(x,y,rectW,rectH);
+}
+\strokeRect(x,y,rectW,rectH){
+    c=$cv[0].getContext("2d");
+    c.strokeStyle=strokeStyle;
+    c.strokeRect(x,y,rectW,rectH);
+}
+\clearRect(x,y,rectW,rectH){
+    c=$cv[0].getContext("2d");
+    c.clearRect(x,y,rectW,rectH);
+}
+\beginPath(){
+    c=$cv[0].getContext("2d");
+    c.beginPath();
+}
+\closePath(){
+    c=$cv[0].getContext("2d");
+    c.closePath();
+}
+\moveTo(x,y){
+    c=$cv[0].getContext("2d");
+    c.moveTo(x,y);
+}
+\lineTo(x,y){
+    c=$cv[0].getContext("2d");
+    c.lineTo(x,y);
+}
+\stroke(){
+    c=$cv[0].getContext("2d");
+    c.stroke();
+}
+\fill(){
+    c=$cv[0].getContext("2d");
+    c.fill();
+}
+\arc(x,y,r,startA,endA){
+    c=$cv[0].getContext("2d");
+    c.arc(x,y,r,startA,endA);
+}
+\fillText(t,x,y){
+    c=$cv[0].getContext("2d");
+    c.font=font;
+    c.fillText(t,x,y);
+}
+\strokeText(t,x,y){
+    c=$cv[0].getContext("2d");
+    c.font=font;
+    c.strokeText(t,x,y);
+}
+\wait(time) {
+    time=time||100;
+    var t=_thread;
+    t.suspend();
+    setTimeout(\(){
+        t.steps();
+    },time);
+}

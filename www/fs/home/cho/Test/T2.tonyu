@@ -1,0 +1,5 @@
+// Javascript
+for(i=0;i<10;i++){
+    setText("s",i);
+    wait(20);
+}
