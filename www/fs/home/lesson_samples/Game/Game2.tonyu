@@ -1,0 +1,18 @@
+// Javascript
+// 左右移動
+
+x=100;
+y=300;
+onClick("right",right);
+onClick("left",left);
+while(true) {
+    move("neko",x,y);
+    wait(50);
+}
+
+function left() {
+    x-=10;
+}
+function right() {
+    x+=10;
+}

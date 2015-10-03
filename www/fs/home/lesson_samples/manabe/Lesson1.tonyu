@@ -1,0 +1,20 @@
+// Javascript
+
+addText("head","あいうえお");
+
+x=100;
+onClick("left", left);
+onClick("right", right);
+while(true) {
+    move("head",x,50);
+    wait(50);
+}
+
+
+function left(){
+    x-=10;
+}
+function right(){
+    x+=10;
+}
+
