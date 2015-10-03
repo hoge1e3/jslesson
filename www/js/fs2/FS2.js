@@ -104,7 +104,11 @@ define(["extend","PathUtil","MIMETypes","assert","SFile"],function (extend, P, M
                this.err("Cannot move dir to file");
             } else if (!srcIsDir && !dstIsDir) {
                 var src=this.getContent(path,{type:String}); // TODO
-                return this.resolveFS(dst).setContent(dst,src);
+                var res=this.resolveFS(dst).setContent(dst,src);
+                if (options.a) {
+                    this.setMetaInfo(dst, this.getMetaInfo(path));
+                }
+                return res;
             } else {
                 assert(srcIsDir && dstIsDir);
                 var srcFiles=opendir(srcIsDir);

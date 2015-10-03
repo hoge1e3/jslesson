@@ -28,6 +28,11 @@ define(["FS","Util","WebSite"],function (FS,Util,WebSite) {
     	else dir=resolve(dir, true);
         return dir.ls();
     };
+    Shell.mv=function (from ,to ,options) {
+        var f=resolve(from, true);
+        var t=resolve(to);
+        t.moveFrom(f);
+    };
     Shell.cp=function (from ,to ,options) {
         if (!options) options={};
         if (options.v) {

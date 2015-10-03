@@ -194,8 +194,9 @@ SFile.prototype={
     },
     copyFrom: function (src, options) {
         var file=this;
-        file.text(src.text());
-        if (options.a) file.metaInfo(src.metaInfo());
+        this.fs.cp(src.path(), this.path(),options);
+        //file.text(src.text());
+        //if (options.a) file.metaInfo(src.metaInfo());
     },
     // Dir
     assertDir:function () {
