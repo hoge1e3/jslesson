@@ -7777,6 +7777,7 @@ requirejs(["ace"],function (){
                   {label:"ファイル",sub:[
                       {label:"新規",id:"newFile"},
                       {label:"名前変更",id:"mvFile"},
+                      {label:"コピー",id:"cpFile"},
                       {label:"削除", id:"rmFile"}
                   ]},
                   {label:"実行",sub:[
@@ -7832,6 +7833,33 @@ requirejs(["ace"],function (){
         FM.create();
     }));
     $("#mvFile").click(F(FM.mv));
+    $("#cpFile").click(F(function () {
+        var inf=getCurrentEditorInfo();
+        if (!inf) {
+            alert("コピーしたいファイルを開いてください。");
+            return;
+        }
+        var old=inf.file;
+        var oldName=old.truncExt();
+        FM.dialogOpt({title:"コピー", name:oldName, action:"cp", onend:function (_new) {
+            if (!_new) return;
+            var olds=fileSet(old);
+            var news=fileSet(_new);
+            A(olds.length==news.length,"olds.length==news.length");
+            var ci;
+            for (var i=0;i<olds.length;i++) {
+                if (olds[i].equals(old)) ci=i;
+                if (olds[i].exists() && !news[i].exists()) {
+                    news[i].copyFrom(olds[i]);
+                }
+            }
+            A.is(ci,Number);
+            ls();
+            fl.select(news[ci]);
+            //fl.select(nf);
+        }});
+    }));
+
     $("#rmFile").click(F(FM.rm));
     FM.on.close=function (f) {
         var s=fileSet(f);
