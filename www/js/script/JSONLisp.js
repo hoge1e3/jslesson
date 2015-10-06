@@ -132,6 +132,9 @@ JSONLisp = (function() {
         lt: function(a, b) {
             return a < b;
         },
+        "<": function(a, b) {
+            return a < b;
+        },
         "do": function() {
             return arguments[arguments.length - 1];
         },
