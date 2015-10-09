@@ -1,5 +1,6 @@
 //"var reqConf="+JSON.stringify( getReq.genConf({base:"http://localhost:3002/js/", baseUrl:"js"})+";"
 var reqConf={
+        waitSeconds:0,
         "shim": {
             TextEditor: {
                 exports: "TextEditor"

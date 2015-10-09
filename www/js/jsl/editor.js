@@ -13,8 +13,11 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           Columns,A,Menu,TError,DU
           ) {
 $(function () {
-requirejs(["ace"],function (){
-    console.log("ace loaded:",ace);
+    if (typeof SplashScreen!="undefined") SplashScreen.show();
+    requirejs(["ace"],function (){
+        console.log("ace loaded:",ace);
+        if (typeof SplashScreen!="undefined") SplashScreen.hide();
+    });
     var F=EC.f;
     $LASTPOS=0;
     var home=FS.resolve("${tonyuHome}");
@@ -29,8 +32,6 @@ requirejs(["ace"],function (){
     Tonyu.currentProject=curPrj;
     var EXT=A(curPrj.EXT);
     var HEXT=".html";
-    var desktopEnv=loadDesktopEnv();
-    var runMenuOrd=desktopEnv.runMenuOrd;
 
     function makeUI(){
         Columns.make(
@@ -90,6 +91,8 @@ requirejs(["ace"],function (){
         $("#fileItemList").height(h);
     }
     onResize();
+    var desktopEnv=loadDesktopEnv();
+    var runMenuOrd=desktopEnv.runMenuOrd;
     var editors={};
 
     KeyEventChecker.down(document,"F9",F(run));
@@ -573,7 +576,7 @@ requirejs(["ace"],function (){
         return fl.curFile();
     };
     FM.onMenuStart=save;
-    SplashScreen.hide();
+//    SplashScreen.hide();
 });
-});// of load ace
+//});// of load ace
 });
