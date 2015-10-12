@@ -394,16 +394,21 @@ return Tonyu=function () {
         var prot=defunct(methods);
         var init=prot.initialize;
         delete prot.initialize;
-        var res=(init?
+        var res;
+        res=(init?
             (parent? function () {
+                if (!(this instanceof res)) useNew();
                 if (Tonyu.runMode) init.apply(this,arguments);
                 else parent.apply(this,arguments);
             }:function () {
+                if (!(this instanceof res)) useNew();
                 if (Tonyu.runMode) init.apply(this,arguments);
             }):
             (parent? function () {
+                if (!(this instanceof res)) useNew();
                 parent.apply(this,arguments);
             }:function (){
+                if (!(this instanceof res)) useNew();
             })
         );
         nso[shortName]=res;
@@ -522,9 +527,12 @@ return Tonyu=function () {
         }
         return res;
     }
+    function useNew() {
+        throw new Error("クラス名はnewをつけて呼び出して下さい。");
+    }
     function not_a_tonyu_object(o) {
         console.log("Not a tonyu object: ",o);
-        throw o+" is not a tonyu object";
+        throw new Error(o+" is not a tonyu object");
     }
     function hasKey(k, obj) {
         return k in obj;
@@ -533,7 +541,7 @@ return Tonyu=function () {
             globals:globals, classes:classes, setGlobal:setGlobal, getGlobal:getGlobal, getClass:getClass,
             timeout:timeout,asyncResult:asyncResult,bindFunc:bindFunc,not_a_tonyu_object:not_a_tonyu_object,
             hasKey:hasKey,invokeMethod:invokeMethod, callFunc:callFunc,checkNonNull:checkNonNull,
-            VERSION:1438132805290,//EMBED_VERSION
+            VERSION:1444552907324,//EMBED_VERSION
             A:A};
 }();
 });
