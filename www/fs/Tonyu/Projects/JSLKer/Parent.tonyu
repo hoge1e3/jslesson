@@ -6,6 +6,7 @@ native console;
 \Math {
     return window.Math;
 }
+
 \document {
     return window.document;
 }

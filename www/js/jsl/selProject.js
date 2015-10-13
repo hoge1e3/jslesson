@@ -83,11 +83,11 @@ $(function () {
             ls();
             setTimeout(function () {
                 $("#syncMesg").text(e.user+"でログインしています。");
-                $("#syncMesg").append(UI("a",{href:"php/login.php"},"他ユーザでログイン"));
+                $("#syncMesg").append(UI("a",{href:"login.php"},"他ユーザでログイン"));
             },1000);
         }).fail(function (e) {
             if (e==Sync.NOT_LOGGED_IN) {
-                $("#syncMesg").empty().append(UI("a",{href:"php/login.php"},"ログイン"));
+                $("#syncMesg").empty().append(UI("a",{href:"login.php"},"ログイン"));
             } else {
                 $("#syncMesg").text("エラー!"+e);
                 console.log(e);
