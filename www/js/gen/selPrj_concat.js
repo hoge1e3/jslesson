@@ -7333,7 +7333,7 @@ define('Sync',["FS","Shell",/*"requestFragment",*/"WebSite","SFile","assert"],
                 options.onerror.apply(this, arguments);
             }
         }
-        var req={base:remote.path(),excludes:JSON.stringify(options.excludes)};
+        var req={base:remote.path(),excludes:JSON.stringify(options.excludes),token:""+Math.random()};
         status("getDirInfo", req);
         return $.ajax({
             type:"get",
@@ -7374,7 +7374,7 @@ define('Sync',["FS","Shell",/*"requestFragment",*/"WebSite","SFile","assert"],
                 sh.echo("uploads:",uploads);
                 sh.echo("downloads:",downloads);
             }
-            var req={base:remote.path(),paths:JSON.stringify(downloads)};
+            var req={base:remote.path(),paths:JSON.stringify(downloads),token:""+Math.random()};
             status("getFiles", req);
             return $.ajax({
                 type:"post",
@@ -7399,7 +7399,7 @@ define('Sync',["FS","Shell",/*"requestFragment",*/"WebSite","SFile","assert"],
                 delete d.text;
                 dlf.metaInfo(d);
             }
-            var req={base:remote.path(),data:JSON.stringify(uploads)};
+            var req={base:remote.path(),data:JSON.stringify(uploads),token:""+Math.random()};
             req.pathInfo=A(WebSite.url.putFiles);
             status("putFiles", req);
             return $.ajax({  // TODO:requestFragment
