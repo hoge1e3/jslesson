@@ -240,11 +240,29 @@ Tonyu.klass.define({
       
       _thread.retVal=_this;return;
     },
+    changeImage :function _trc_Parent_changeImage(elem,newsrc) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      
+      $LASTPOS=1001461;//jslker.Parent:1461
+      $("[name="+elem+"]").attr("src",newsrc);
+    },
+    fiber$changeImage :function _trc_Parent_f_changeImage(_thread,elem,newsrc) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=1001461;//jslker.Parent:1461
+      $("[name="+elem+"]").attr("src",newsrc);
+      
+      _thread.retVal=_this;return;
+    },
     move :function _trc_Parent_move(elem,x,y) {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1001451;//jslker.Parent:1451
+      $LASTPOS=1001530;//jslker.Parent:1530
       $("[name="+elem+"]").css({position: "absolute",left: x,top: y});
     },
     fiber$move :function _trc_Parent_f_move(_thread,elem,x,y) {
@@ -253,7 +271,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1001451;//jslker.Parent:1451
+      $LASTPOS=1001530;//jslker.Parent:1530
       $("[name="+elem+"]").css({position: "absolute",left: x,top: y});
       
       _thread.retVal=_this;return;
@@ -262,26 +280,26 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1001576;//jslker.Parent:1576
+      $LASTPOS=1001655;//jslker.Parent:1655
       console.log(scaleX,scaleY);
-      $LASTPOS=1001609;//jslker.Parent:1609
+      $LASTPOS=1001688;//jslker.Parent:1688
       if (! scaleX) {
-        $LASTPOS=1001631;//jslker.Parent:1631
+        $LASTPOS=1001710;//jslker.Parent:1710
         scaleX=1;
-        $LASTPOS=1001650;//jslker.Parent:1650
+        $LASTPOS=1001729;//jslker.Parent:1729
         scaleY=1;
         
       } else {
-        $LASTPOS=1001671;//jslker.Parent:1671
+        $LASTPOS=1001750;//jslker.Parent:1750
         if (! scaleY) {
-          $LASTPOS=1001693;//jslker.Parent:1693
+          $LASTPOS=1001772;//jslker.Parent:1772
           scaleY=scaleX;
           
         }
       }
-      $LASTPOS=1001720;//jslker.Parent:1720
+      $LASTPOS=1001799;//jslker.Parent:1799
       console.log(scaleX,scaleY);
-      $LASTPOS=1001753;//jslker.Parent:1753
+      $LASTPOS=1001832;//jslker.Parent:1832
       $("[name="+elem+"]").css({position: "absolute",transform: "rotate("+angle+"deg) scale("+scaleX+","+scaleY+")"});
     },
     fiber$transform :function _trc_Parent_f_transform(_thread,elem,angle,scaleX,scaleY) {
@@ -290,26 +308,26 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1001576;//jslker.Parent:1576
+      $LASTPOS=1001655;//jslker.Parent:1655
       console.log(scaleX,scaleY);
-      $LASTPOS=1001609;//jslker.Parent:1609
+      $LASTPOS=1001688;//jslker.Parent:1688
       if (! scaleX) {
-        $LASTPOS=1001631;//jslker.Parent:1631
+        $LASTPOS=1001710;//jslker.Parent:1710
         scaleX=1;
-        $LASTPOS=1001650;//jslker.Parent:1650
+        $LASTPOS=1001729;//jslker.Parent:1729
         scaleY=1;
         
       } else {
-        $LASTPOS=1001671;//jslker.Parent:1671
+        $LASTPOS=1001750;//jslker.Parent:1750
         if (! scaleY) {
-          $LASTPOS=1001693;//jslker.Parent:1693
+          $LASTPOS=1001772;//jslker.Parent:1772
           scaleY=scaleX;
           
         }
       }
-      $LASTPOS=1001720;//jslker.Parent:1720
+      $LASTPOS=1001799;//jslker.Parent:1799
       console.log(scaleX,scaleY);
-      $LASTPOS=1001753;//jslker.Parent:1753
+      $LASTPOS=1001832;//jslker.Parent:1832
       $("[name="+elem+"]").css({position: "absolute",transform: "rotate("+angle+"deg) scale("+scaleX+","+scaleY+")"});
       
       _thread.retVal=_this;return;
@@ -318,7 +336,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1001910;//jslker.Parent:1910
+      $LASTPOS=1001989;//jslker.Parent:1989
       $("[name="+elem+"]").css({position: "absolute",transform: "rotate("+angle+"deg)"});
     },
     fiber$rotate :function _trc_Parent_f_rotate(_thread,elem,angle) {
@@ -327,7 +345,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1001910;//jslker.Parent:1910
+      $LASTPOS=1001989;//jslker.Parent:1989
       $("[name="+elem+"]").css({position: "absolute",transform: "rotate("+angle+"deg)"});
       
       _thread.retVal=_this;return;
@@ -336,7 +354,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1002036;//jslker.Parent:2036
+      $LASTPOS=1002115;//jslker.Parent:2115
       $("[name="+elem+"]").css({position: "absolute",transform: "scale("+w+","+h+")"});
     },
     fiber$resize :function _trc_Parent_f_resize(_thread,elem,w,h) {
@@ -345,7 +363,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1002036;//jslker.Parent:2036
+      $LASTPOS=1002115;//jslker.Parent:2115
       $("[name="+elem+"]").css({position: "absolute",transform: "scale("+w+","+h+")"});
       
       _thread.retVal=_this;return;
@@ -355,16 +373,16 @@ Tonyu.klass.define({
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       var t;
       
-      $LASTPOS=1002157;//jslker.Parent:2157
+      $LASTPOS=1002236;//jslker.Parent:2236
       time=time||100;
-      $LASTPOS=1002178;//jslker.Parent:2178
+      $LASTPOS=1002257;//jslker.Parent:2257
       t = null;
-      $LASTPOS=1002198;//jslker.Parent:2198
+      $LASTPOS=1002277;//jslker.Parent:2277
       t.suspend();
-      $LASTPOS=1002216;//jslker.Parent:2216
-      setTimeout((function anonymous_2227() {
+      $LASTPOS=1002295;//jslker.Parent:2295
+      setTimeout((function anonymous_2306() {
         
-        $LASTPOS=1002241;//jslker.Parent:2241
+        $LASTPOS=1002320;//jslker.Parent:2320
         t.steps();
       }),time);
     },
@@ -375,16 +393,16 @@ Tonyu.klass.define({
       var __pc=0;
       var t;
       
-      $LASTPOS=1002157;//jslker.Parent:2157
+      $LASTPOS=1002236;//jslker.Parent:2236
       time=time||100;
-      $LASTPOS=1002178;//jslker.Parent:2178
+      $LASTPOS=1002257;//jslker.Parent:2257
       t = _thread;
-      $LASTPOS=1002198;//jslker.Parent:2198
+      $LASTPOS=1002277;//jslker.Parent:2277
       t.suspend();
-      $LASTPOS=1002216;//jslker.Parent:2216
-      setTimeout((function anonymous_2227() {
+      $LASTPOS=1002295;//jslker.Parent:2295
+      setTimeout((function anonymous_2306() {
         
-        $LASTPOS=1002241;//jslker.Parent:2241
+        $LASTPOS=1002320;//jslker.Parent:2320
         t.steps();
       }),time);
       
@@ -392,5 +410,5 @@ Tonyu.klass.define({
     },
     __dummy: false
   },
-  decls: {"methods":{"main":{"nowait":false},"__getter__Math":{"nowait":true},"__getter__document":{"nowait":true},"addText":{"nowait":false},"setText":{"nowait":false},"onClick":{"nowait":false},"onTouch":{"nowait":false},"setCanvas":{"nowait":false},"setColor":{"nowait":false},"fillRect":{"nowait":false},"getNumber":{"nowait":false},"getText":{"nowait":false},"setNumber":{"nowait":false},"move":{"nowait":false},"transform":{"nowait":false},"rotate":{"nowait":false},"resize":{"nowait":false},"wait":{"nowait":false}}}
+  decls: {"methods":{"main":{"nowait":false},"__getter__Math":{"nowait":true},"__getter__document":{"nowait":true},"addText":{"nowait":false},"setText":{"nowait":false},"onClick":{"nowait":false},"onTouch":{"nowait":false},"setCanvas":{"nowait":false},"setColor":{"nowait":false},"fillRect":{"nowait":false},"getNumber":{"nowait":false},"getText":{"nowait":false},"setNumber":{"nowait":false},"changeImage":{"nowait":false},"move":{"nowait":false},"transform":{"nowait":false},"rotate":{"nowait":false},"resize":{"nowait":false},"wait":{"nowait":false}}}
 });

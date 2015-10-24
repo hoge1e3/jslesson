@@ -61,6 +61,10 @@ native console;
     $("[name="+elem+"]").text(num);
 }
 
+\changeImage(elem,newsrc){
+    $("[name="+elem+"]").attr("src",newsrc);
+}
+
 \move(elem,x,y){
     $("[name="+elem+"]").css({
         position:"absolute",

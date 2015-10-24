@@ -1,0 +1,40 @@
+// Javascript
+// 左右移動
+// 学習項目
+// 配列とfor文
+
+
+x=100;
+y=300;
+bx=[0,100,200,300,400];
+by=[0,10,20,30,40];
+score=0;
+onClick("right",right);
+onClick("left",left);
+while(true) {
+    move("neko",x,y);
+    // ボール5個を動かす
+    for (i=0 ; i<5; i++) {
+        move("ball"+i,bx[i],by[i]);
+        by[i]+=10;
+        if (by[i]>400) {
+            bx[i]=Math.random()*400;
+            by[i]=0;
+            score+=10;
+            setText("score",score);
+        }
+        if (x>bx[i]-30 && x<bx[i]+30 && 
+        y>by[i]-30 && y<by[i]+30 ) {
+            y=-100;
+        }
+        
+    }
+    wait(50);
+}
+
+function left() {
+    x-=10;
+}
+function right() {
+    x+=10;
+}
