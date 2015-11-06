@@ -1,0 +1,5 @@
+// Javascript
+setCanvas("cv");
+fillRect(20,30,50,50);
+moveTo(50,50);
+lineTo(100,120);

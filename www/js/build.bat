@@ -1,3 +1,4 @@
-r_js -o build_edit.js
-r_js -o build_selPrj.js
+cd /d %~dp0
+call r_js -o build_edit.js
+call r_js -o build_selPrj.js
 pause

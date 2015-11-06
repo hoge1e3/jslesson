@@ -6,14 +6,16 @@ Tonyu.klass.define({
   includes: [],
   methods: {
     main :function _trc_Neko_main() {
+      "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
       $LASTPOS=1000024;//user.Neko:24
       _this.wait(500);
-      $LASTPOS=1000035;//user.Neko:35
+      $LASTPOS=1000036;//user.Neko:36
       $("#ne").append("ねこ");
     },
     fiber$main :function _trc_Neko_f_main(_thread) {
+      "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
@@ -29,7 +31,7 @@ Tonyu.klass.define({
             __pc=1;return;
           case 1:
             
-            $LASTPOS=1000035;//user.Neko:35
+            $LASTPOS=1000036;//user.Neko:36
             $("#ne").append("ねこ");
             _thread.exit(_this);return;
           }
@@ -48,10 +50,12 @@ Tonyu.klass.define({
   includes: [],
   methods: {
     main :function _trc_Inu_main() {
+      "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
     },
     fiber$main :function _trc_Inu_f_main(_thread) {
+      "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;

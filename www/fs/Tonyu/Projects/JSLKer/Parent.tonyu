@@ -2,6 +2,7 @@ native setTimeout;
 native $;
 native window;
 native console;
+native Tonyu;
 
 \Math {
     return window.Math;
@@ -10,7 +11,15 @@ native console;
 \document {
     return window.document;
 }
-
+\ex(f) {
+    return function () {
+        try {
+            return f.apply(this,arguments);
+        } catch (e) {
+            Tonyu.onRuntimeError(e);
+        }
+    };
+}
 \addText(elem,val){
     //document.getElementById(elem).innerHTML+=val;
     $("[name="+elem+"]").append(val);
@@ -21,7 +30,7 @@ native console;
 }
 \onClick(elem,func){
     //document.getElementsByName(elem)[0].onclick=func;
-    $("[name="+elem+"]").click(func);
+    $("[name="+elem+"]").click(ex(func));
 }
 \onTouch(elem,func){
     /*$("[name="+elem+"]").on("touchestart",function(e){
@@ -101,4 +110,15 @@ native console;
     setTimeout(\(){
         t.steps();
     },time);
+}
+\rnd(max) {
+    return Math.floor(Math.random()*max);
+}
+\setBGColor(c) {
+    $("body").attr("bgcolor",c);
+}
+
+// --- TODO
+\getkey() {
+    
 }

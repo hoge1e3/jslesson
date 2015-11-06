@@ -3,16 +3,21 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "Shell","Shell2","KeyEventChecker",
            "runtime", "searchDialog","StackTrace",
            "UI","WebSite","exceptionCatcher","Tonyu.TraceTbl",
-           "Columns","assert","Menu","TError","DeferredUtil"
+           "Columns","assert","Menu","TError","DeferredUtil","Sync"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
           sh,sh2,  KeyEventChecker,
           rt, searchDialog,StackTrace,
           UI,WebSite,EC,TTB,
-          Columns,A,Menu,TError,DU
+          Columns,A,Menu,TError,DU,Sync
           ) {
 $(function () {
+    var curUser;
+    $.get("login.php?curuser="+Math.random()).then(function (r) {
+        console.log(r);
+        curUser=r;
+    });
     if (typeof SplashScreen!="undefined") SplashScreen.show();
     requirejs(["ace"],function (){
         console.log("ace loaded:",ace);
@@ -53,6 +58,7 @@ $(function () {
                   ["div",{id:"progs"}]
               ],
               ["div",{id:"runArea","class":"col-xs-5"},
+               ["div","実行結果：",["a",{id:"fullScr",href:"javascript:;"}]],
                ["iframe",{id:"ifrm",width:465,height:465}]
               ]
         );
@@ -297,7 +303,23 @@ $(function () {
         //curPrj.stop();
         displayMode("edit");
     }
-    var curName;
+    var curName,runURL;
+    function sync() {
+        var projects=FS.resolve("${tonyuHome}/Projects/");
+        return Sync.sync(projects, FS.get("/"),{v:true});
+    }
+    $("#fullScr").click(function () {
+        if (runURL) {
+            var cv=$("<div>");
+            cv.dialog();
+            sync().then(function () {
+                cv.append($("<div>").append(
+                        $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
+                ));
+                cv.append($("<div>").qrcode(runURL));
+            });
+        }
+    });
     function run() {//run!!
         var inf=getCurrentEditorInfo();
         if (!inf) {
@@ -315,6 +337,14 @@ $(function () {
         save();
         displayMode("run");
         if (typeof SplashScreen!="undefined") SplashScreen.show();
+
+        runURL=location.href.replace(/\/[^\/]*\?.*$/,
+                "/run.html?usr="+curUser+
+                "&prj="+curProjectDir.name().replace("/","")+
+                "&class="+name.replace("user.","")
+        );
+        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+        $("#qr").text("QR");
         //if (curHTMLFile.exists()) $("#runArea")[0].innerHTML=curHTMLFile.text();
         curPrj.loadClasses().then(DU.throwF(function() {
             curName=name;
@@ -470,7 +500,7 @@ $(function () {
         //$(this).addClass("selected");
         var c=fl.curFile();
         if (!c) {
-            alert("まず、メニュー→新規でファイルを作るから、左のファイル一覧からファイルを選んでください。");
+            alert("まず、メニューの「ファイル」→「新規」でファイルを作るか、左のファイル一覧からファイルを選んでください。");
             return;
         }
         var n=c.truncExt();
@@ -496,6 +526,7 @@ $(function () {
             var progDOM=$("<pre>").css("height", screenH+"px").text(f.text()).appendTo("#progs");
             var prog=ace.edit(progDOM[0]);
             if (typeof desktopEnv.editorFontSize=="number") prog.setFontSize(desktopEnv.editorFontSize);
+            prog.setFontSize(20);
             prog.setTheme("ace/theme/eclipse");
             if (f.ext()==EXT) {
                 prog.getSession().setMode("ace/mode/tonyu");

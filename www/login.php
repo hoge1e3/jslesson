@@ -1,7 +1,10 @@
 <?php
 require("php/auth.php");
 $showForm=true;
-if (isset($_GET["user"])) {
+if (isset($_GET["curuser"])) {
+	$showForm=false;
+	print Auth::curUser();
+} else if (isset($_GET["user"])) {
 	$user=$_GET["user"];
 	$mesg=Auth::login($user);
 	if ($mesg===true) {

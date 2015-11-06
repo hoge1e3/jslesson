@@ -1,0 +1,7 @@
+// Javascript
+x=100;
+while(true){
+    move("moji",x,100);
+    wait(1000);
+    x+=10;
+}

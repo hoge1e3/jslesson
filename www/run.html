@@ -10,13 +10,13 @@ $(function (){
         requirejs(["fs/Tonyu/Projects/JSLKer/js/concat.js"], function (){
             if (user && prj && klass) {
                 $.when(
-                        $.get("fs/home/"+user+"/"+prj+"/"+klass+".html"),
-                        $.get("fs/home/"+user+"/"+prj+"/js/concat.js")
+                        $.get("fs/home/"+user+"/"+prj+"/"+klass+".html?"+Math.random()),
+                        $.get("fs/home/"+user+"/"+prj+"/js/concat.js?"+Math.random())
                 ).then(function (html,js) {
                     run(html[0], js[0],klass);
                 });
             } else if (window.parent && window.parent.setupFrame) {
-                Tonyu.onRuntimeError=function (e) {
+                window.onerror=Tonyu.onRuntimeError=function (e) {
                     window.parent.Tonyu.onRuntimeError(e);
                 };
                 window.parent.setupFrame(run);
