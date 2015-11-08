@@ -101,6 +101,14 @@ $(function () {
     var runMenuOrd=desktopEnv.runMenuOrd;
     var editors={};
 
+    KeyEventChecker.down(document,"bs",F(function (e) {
+        if (confirm("一つ前のページに戻ります。よろしいですか？")) {
+        } else {
+            e.stopPropagation();
+            e.preventDefault();
+            return false;
+        }
+    }));
     KeyEventChecker.down(document,"F9",F(run));
     KeyEventChecker.down(document,"F2",F(stop));
     KeyEventChecker.down(document,"ctrl+s",F(function (e) {
@@ -526,7 +534,7 @@ $(function () {
             var progDOM=$("<pre>").css("height", screenH+"px").text(f.text()).appendTo("#progs");
             var prog=ace.edit(progDOM[0]);
             if (typeof desktopEnv.editorFontSize=="number") prog.setFontSize(desktopEnv.editorFontSize);
-            prog.setFontSize(20);
+            //prog.setFontSize(20);
             prog.setTheme("ace/theme/eclipse");
             if (f.ext()==EXT) {
                 prog.getSession().setMode("ace/mode/tonyu");

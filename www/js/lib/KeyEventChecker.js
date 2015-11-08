@@ -8,6 +8,7 @@ define([],function () {
 			}
 		});
 	};
+	var codes={8:"bs",13:"enter",37:"left",38:"up",39:"right",40:"down"};
 	KEC.is=function (e,name) {
 		name=name.toLowerCase();
 		e = e.originalEvent || e;
@@ -23,11 +24,12 @@ define([],function () {
 		}
 		if (e.keyCode>=112 && e.keyCode<=123) {
 			s+="f"+(e.keyCode-111);
+        } else if (codes[e.keyCode]){
+            s+=codes[e.keyCode];
 		} else {
 			s+=String.fromCharCode(e.keyCode);
 		}
 		s=s.toLowerCase();
-		//console.log(s);
 		return name==s;
 	};
 	return KEC;

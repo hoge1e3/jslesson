@@ -7578,6 +7578,7 @@ define('KeyEventChecker',[],function () {
 			}
 		});
 	};
+	var codes={8:"bs",13:"enter",37:"left",38:"up",39:"right",40:"down"};
 	KEC.is=function (e,name) {
 		name=name.toLowerCase();
 		e = e.originalEvent || e;
@@ -7593,11 +7594,12 @@ define('KeyEventChecker',[],function () {
 		}
 		if (e.keyCode>=112 && e.keyCode<=123) {
 			s+="f"+(e.keyCode-111);
+        } else if (codes[e.keyCode]){
+            s+=codes[e.keyCode];
 		} else {
 			s+=String.fromCharCode(e.keyCode);
 		}
 		s=s.toLowerCase();
-		//console.log(s);
 		return name==s;
 	};
 	return KEC;
@@ -8046,6 +8048,14 @@ $(function () {
     var runMenuOrd=desktopEnv.runMenuOrd;
     var editors={};
 
+    KeyEventChecker.down(document,"bs",F(function (e) {
+        if (confirm("一つ前のページに戻ります。よろしいですか？")) {
+        } else {
+            e.stopPropagation();
+            e.preventDefault();
+            return false;
+        }
+    }));
     KeyEventChecker.down(document,"F9",F(run));
     KeyEventChecker.down(document,"F2",F(stop));
     KeyEventChecker.down(document,"ctrl+s",F(function (e) {
@@ -8471,6 +8481,7 @@ $(function () {
             var progDOM=$("<pre>").css("height", screenH+"px").text(f.text()).appendTo("#progs");
             var prog=ace.edit(progDOM[0]);
             if (typeof desktopEnv.editorFontSize=="number") prog.setFontSize(desktopEnv.editorFontSize);
+            //prog.setFontSize(20);
             prog.setTheme("ace/theme/eclipse");
             if (f.ext()==EXT) {
                 prog.getSession().setMode("ace/mode/tonyu");
