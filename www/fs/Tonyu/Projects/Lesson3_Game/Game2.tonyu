@@ -1,0 +1,47 @@
+// Javascript
+// 左右移動
+// 学習項目
+// 猫だけでなくボールを動かす
+// if文
+// random
+
+
+x=100;
+y=300;
+bx=10;
+by=0;
+score=0;
+move("left",50,400);
+move("right",100,400);
+onClick("right",right);
+onClick("left",left);
+while(true) {
+    // 猫をうごかす
+    move("neko",x,y);
+    moveBall();
+    wait(50);
+}
+
+function left() {
+    x-=10;
+}
+function right() {
+    x+=10;
+}
+function moveBall() {
+    // ボールを動かす
+    move("ball",bx,by);
+    by+=10;
+    // 画面にはみ出たら上に戻す
+    if (by>400) {
+        bx=Math.random()*400;
+        by=0;
+        score+=10;
+        setText("score",score);
+    }
+    // 当たり判定
+    if (x>bx-30 && x<bx+30 && y>by-30 && y<by+30 ) {
+        //y=-100;
+        changeImage("neko","https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png");
+    }
+}

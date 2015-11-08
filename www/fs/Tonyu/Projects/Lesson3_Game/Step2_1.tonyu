@@ -1,0 +1,21 @@
+// Javascript
+x=100;
+y=300;
+bx=100;
+by=0;
+
+onClick("right",right);
+onClick("left",left);
+while(true){
+    move("neko",x,y);
+    move("ball",bx,by);
+    by+=10;
+    wait(50);
+}
+
+function left() {
+    x-=10;
+}
+function right() {
+    x+=10;
+}

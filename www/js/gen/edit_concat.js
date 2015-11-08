@@ -7656,6 +7656,20 @@ define('searchDialog',["UI","Shell"], function (UI,sh) {
     return res;
 });
 
+define('UIDiag',["UI"],function (UI) {
+    var UIDiag={};
+    UIDiag.confirm=function (mesg) {
+        var di=UI("div",{title:"確認"},["div",mesg],
+                ["button",{on:{click:sendF(true)}},"OK"],
+                ["button",{on:{click:sendF(false)}},"キャンセル"]).dialog({close:sendF(false)});
+        var d=$.Deferred();
+        function sendF(r) {
+            return function () { d.resolve(r); di.dialog("close"); };
+        }
+        return d.promise();
+    };
+    return UIDiag;
+});
 define('Columns',["UI"],function (UI) {
     var Columns={};
     Columns.make=function () {
@@ -7949,14 +7963,14 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "showErrorPos", "fixIndent",  "ProjectCompiler",
            "Shell","Shell2","KeyEventChecker",
            "runtime", "searchDialog","StackTrace",
-           "UI","WebSite","exceptionCatcher","Tonyu.TraceTbl",
+           "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
           sh,sh2,  KeyEventChecker,
           rt, searchDialog,StackTrace,
-          UI,WebSite,EC,TTB,
+          UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync
           ) {
 $(function () {
@@ -8049,12 +8063,14 @@ $(function () {
     var editors={};
 
     KeyEventChecker.down(document,"bs",F(function (e) {
-        if (confirm("一つ前のページに戻ります。よろしいですか？")) {
-        } else {
-            e.stopPropagation();
-            e.preventDefault();
-            return false;
-        }
+        UIDiag.confirm("一つ前のページに戻ります。よろしいですか？").then(function (r) {
+            if (r) {
+                history.back();
+            }
+        });
+        e.stopPropagation();
+        e.preventDefault();
+        return false;
     }));
     KeyEventChecker.down(document,"F9",F(run));
     KeyEventChecker.down(document,"F2",F(stop));
@@ -8382,7 +8398,7 @@ $(function () {
             }
             stop();
         } else {
-            UI("div",{title:"Error"},e,["pre",e.stack]).dialog({width:800});
+            UI("div",{title:"Error"},"["+e+"]",["pre",e.stack]).dialog({width:800});
             stop();
         }
     };
