@@ -77,6 +77,9 @@ $(function () {
                   {label:"実行",sub:[
                       {label:"実行(F9)",id:"runMenu",action:run},
                       {label:"停止(F2)",id:"stopMenu",action:stop},
+                  ]},
+                  {label:"設定",sub:[
+                      {label:"エディタの文字の大きさ",id:"textsize",action:textSize}
                   ]}
                 ]
         );
@@ -606,13 +609,13 @@ $(function () {
         sh.rm(curProjectDir,{r:1});
         document.location.href="project.html?dir="+npd;
     }));
-    $("#editorEditor").click(F(function () {
+    function textSize() {
         var prog=getCurrentEditor();
         var s=prompt("エディタの文字の大きさ", desktopEnv.editorFontSize||12);
         desktopEnv.editorFontSize=parseInt(s);
         if (prog) prog.setFontSize(desktopEnv.editorFontSize||12);
         saveDesktopEnv();
-    }));
+    }
     sh.curFile=function () {
         return fl.curFile();
     };

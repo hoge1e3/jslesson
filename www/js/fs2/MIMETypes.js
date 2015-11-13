@@ -13,6 +13,7 @@ define([], function () {
       ".css":"text/css",
       ".js":"text/javascript",
       ".json":"text/json",
+      ".desktop":"text/json",
       ".zip":"application/zip",
       ".swf":"application/x-shockwave-flash",
       ".pdf":"application/pdf",

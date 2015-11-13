@@ -335,408 +335,130 @@ Tonyu.klass.define({
   decls: {"methods":{"main":{"nowait":false},"left":{"nowait":false},"right":{"nowait":false},"moveBall":{"nowait":false}}}
 });
 Tonyu.klass.define({
-  fullName: 'user.Game3',
-  shortName: 'Game3',
+  fullName: 'user.Game2_1',
+  shortName: 'Game2_1',
   namespace: 'user',
   superclass: Tonyu.classes.jslker.Parent,
   includes: [],
   methods: {
-    main :function _trc_Game3_main() {
+    main :function _trc_Game2_1_main() {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=3000043;//user.Game3:43
+      $LASTPOS=3000080;//user.Game2_1:80
       _this.x=100;
-      $LASTPOS=3000050;//user.Game3:50
+      $LASTPOS=3000087;//user.Game2_1:87
       _this.y=300;
-      $LASTPOS=3000057;//user.Game3:57
-      _this.bx=[0,100,200,300,400];
-      $LASTPOS=3000081;//user.Game3:81
-      _this.by=[0,10,20,30,40];
-      $LASTPOS=3000101;//user.Game3:101
-      _this.score=0;
-      $LASTPOS=3000110;//user.Game3:110
-      _this.move("left",50,400);
-      $LASTPOS=3000131;//user.Game3:131
-      _this.move("right",100,400);
-      $LASTPOS=3000155;//user.Game3:155
-      _this.onClick("right",Tonyu.bindFunc(_this,_this.right));
-      $LASTPOS=3000179;//user.Game3:179
-      _this.onClick("left",Tonyu.bindFunc(_this,_this.left));
-      $LASTPOS=3000201;//user.Game3:201
-      while (true) {
-        $LASTPOS=3000219;//user.Game3:219
-        _this.move("neko",_this.x,_this.y);
-        $LASTPOS=3000258;//user.Game3:258
-        _this.moveBall(0);
-        $LASTPOS=3000275;//user.Game3:275
-        _this.moveBall(1);
-        $LASTPOS=3000292;//user.Game3:292
-        _this.moveBall(2);
-        $LASTPOS=3000309;//user.Game3:309
-        _this.moveBall(3);
-        $LASTPOS=3000326;//user.Game3:326
-        _this.moveBall(4);
-        $LASTPOS=3000343;//user.Game3:343
-        _this.wait(50);
-        
-      }
-    },
-    fiber$main :function _trc_Game3_f_main(_thread) {
-      "use strict";
-      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
-      //var _arguments=Tonyu.A(arguments);
-      var __pc=0;
-      
-      $LASTPOS=3000043;//user.Game3:43
-      _this.x=100;
-      $LASTPOS=3000050;//user.Game3:50
-      _this.y=300;
-      $LASTPOS=3000057;//user.Game3:57
-      _this.bx=[0,100,200,300,400];
-      $LASTPOS=3000081;//user.Game3:81
-      _this.by=[0,10,20,30,40];
-      $LASTPOS=3000101;//user.Game3:101
-      _this.score=0;
-      
-      _thread.enter(function _trc_Game3_ent_main(_thread) {
-        if (_thread.lastEx) __pc=_thread.catchPC;
-        for(var __cnt=100 ; __cnt--;) {
-          switch (__pc) {
-          case 0:
-            $LASTPOS=3000110;//user.Game3:110
-            _this.fiber$move(_thread, "left", 50, 400);
-            __pc=1;return;
-          case 1:
-            
-            $LASTPOS=3000131;//user.Game3:131
-            _this.fiber$move(_thread, "right", 100, 400);
-            __pc=2;return;
-          case 2:
-            
-            $LASTPOS=3000155;//user.Game3:155
-            _this.fiber$onClick(_thread, "right", Tonyu.bindFunc(_this,_this.right));
-            __pc=3;return;
-          case 3:
-            
-            $LASTPOS=3000179;//user.Game3:179
-            _this.fiber$onClick(_thread, "left", Tonyu.bindFunc(_this,_this.left));
-            __pc=4;return;
-          case 4:
-            
-            $LASTPOS=3000201;//user.Game3:201
-          case 5:
-            $LASTPOS=3000219;//user.Game3:219
-            _this.fiber$move(_thread, "neko", _this.x, _this.y);
-            __pc=6;return;
-          case 6:
-            
-            $LASTPOS=3000258;//user.Game3:258
-            _this.fiber$moveBall(_thread, 0);
-            __pc=7;return;
-          case 7:
-            
-            $LASTPOS=3000275;//user.Game3:275
-            _this.fiber$moveBall(_thread, 1);
-            __pc=8;return;
-          case 8:
-            
-            $LASTPOS=3000292;//user.Game3:292
-            _this.fiber$moveBall(_thread, 2);
-            __pc=9;return;
-          case 9:
-            
-            $LASTPOS=3000309;//user.Game3:309
-            _this.fiber$moveBall(_thread, 3);
-            __pc=10;return;
-          case 10:
-            
-            $LASTPOS=3000326;//user.Game3:326
-            _this.fiber$moveBall(_thread, 4);
-            __pc=11;return;
-          case 11:
-            
-            $LASTPOS=3000343;//user.Game3:343
-            _this.fiber$wait(_thread, 50);
-            __pc=12;return;
-          case 12:
-            
-            __pc=5;break;
-          case 13:
-            
-            _thread.exit(_this);return;
-          }
-        }
-      });
-    },
-    left :function _trc_Game3_left() {
-      "use strict";
-      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
-      
-      $LASTPOS=3000378;//user.Game3:378
-      _this.x-=20;
-    },
-    fiber$left :function _trc_Game3_f_left(_thread) {
-      "use strict";
-      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
-      //var _arguments=Tonyu.A(arguments);
-      var __pc=0;
-      
-      $LASTPOS=3000378;//user.Game3:378
-      _this.x-=20;
-      
-      _thread.retVal=_this;return;
-    },
-    right :function _trc_Game3_right() {
-      "use strict";
-      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
-      
-      $LASTPOS=3000410;//user.Game3:410
-      _this.x+=20;
-    },
-    fiber$right :function _trc_Game3_f_right(_thread) {
-      "use strict";
-      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
-      //var _arguments=Tonyu.A(arguments);
-      var __pc=0;
-      
-      $LASTPOS=3000410;//user.Game3:410
-      _this.x+=20;
-      
-      _thread.retVal=_this;return;
-    },
-    moveBall :function _trc_Game3_moveBall(i) {
-      "use strict";
-      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
-      
-      $LASTPOS=3000446;//user.Game3:446
-      _this.move("ball"+i,_this.bx[i],_this.by[i]);
-      $LASTPOS=3000478;//user.Game3:478
-      _this.by[i]+=5;
-      $LASTPOS=3000492;//user.Game3:492
-      if (_this.by[i]>400) {
-        $LASTPOS=3000517;//user.Game3:517
-        _this.bx[i]=_this.Math.random()*400;
-        $LASTPOS=3000550;//user.Game3:550
-        _this.by[i]=0;
-        $LASTPOS=3000567;//user.Game3:567
-        _this.score+=1;
-        $LASTPOS=3000585;//user.Game3:585
-        _this.setText("score",_this.score);
-        
-      }
-      $LASTPOS=3000619;//user.Game3:619
-      if (_this.x>_this.bx[i]-30&&_this.x<_this.bx[i]+30&&_this.y>_this.by[i]-30&&_this.y<_this.by[i]+30) {
-        $LASTPOS=3000693;//user.Game3:693
-        _this.y=- 100;
-        
-      }
-    },
-    fiber$moveBall :function _trc_Game3_f_moveBall(_thread,i) {
-      "use strict";
-      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
-      //var _arguments=Tonyu.A(arguments);
-      var __pc=0;
-      
-      
-      _thread.enter(function _trc_Game3_ent_moveBall(_thread) {
-        if (_thread.lastEx) __pc=_thread.catchPC;
-        for(var __cnt=100 ; __cnt--;) {
-          switch (__pc) {
-          case 0:
-            $LASTPOS=3000446;//user.Game3:446
-            _this.fiber$move(_thread, "ball"+i, _this.bx[i], _this.by[i]);
-            __pc=1;return;
-          case 1:
-            
-            $LASTPOS=3000478;//user.Game3:478
-            _this.by[i]+=5;
-            $LASTPOS=3000492;//user.Game3:492
-            if (!(_this.by[i]>400)) { __pc=3; break; }
-            $LASTPOS=3000517;//user.Game3:517
-            _this.bx[i]=_this.Math.random()*400;
-            $LASTPOS=3000550;//user.Game3:550
-            _this.by[i]=0;
-            $LASTPOS=3000567;//user.Game3:567
-            _this.score+=1;
-            $LASTPOS=3000585;//user.Game3:585
-            _this.fiber$setText(_thread, "score", _this.score);
-            __pc=2;return;
-          case 2:
-            
-          case 3:
-            
-            $LASTPOS=3000619;//user.Game3:619
-            if (_this.x>_this.bx[i]-30&&_this.x<_this.bx[i]+30&&_this.y>_this.by[i]-30&&_this.y<_this.by[i]+30) {
-              $LASTPOS=3000693;//user.Game3:693
-              _this.y=- 100;
-              
-            }
-            _thread.exit(_this);return;
-          }
-        }
-      });
-    },
-    __dummy: false
-  },
-  decls: {"methods":{"main":{"nowait":false},"left":{"nowait":false},"right":{"nowait":false},"moveBall":{"nowait":false}}}
-});
-Tonyu.klass.define({
-  fullName: 'user.Game2_3',
-  shortName: 'Game2_3',
-  namespace: 'user',
-  superclass: Tonyu.classes.jslker.Parent,
-  includes: [],
-  methods: {
-    main :function _trc_Game2_3_main() {
-      "use strict";
-      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
-      
-      $LASTPOS=4000091;//user.Game2_3:91
-      _this.x=100;
-      $LASTPOS=4000098;//user.Game2_3:98
-      _this.y=300;
-      $LASTPOS=4000115;//user.Game2_3:115
+      $LASTPOS=3000104;//user.Game2_1:104
       _this.bx=100;
-      $LASTPOS=4000123;//user.Game2_3:123
+      $LASTPOS=3000112;//user.Game2_1:112
       _this.by=0;
-      $LASTPOS=4000140;//user.Game2_3:140
-      _this.score=0;
-      $LASTPOS=4000149;//user.Game2_3:149
+      $LASTPOS=3000118;//user.Game2_1:118
       _this.onClick("right",Tonyu.bindFunc(_this,_this.right));
-      $LASTPOS=4000173;//user.Game2_3:173
+      $LASTPOS=3000142;//user.Game2_1:142
       _this.onClick("left",Tonyu.bindFunc(_this,_this.left));
-      $LASTPOS=4000195;//user.Game2_3:195
+      $LASTPOS=3000164;//user.Game2_1:164
       while (true) {
-        $LASTPOS=4000227;//user.Game2_3:227
+        $LASTPOS=3000196;//user.Game2_1:196
         _this.move("neko",_this.x,_this.y);
-        $LASTPOS=4000264;//user.Game2_3:264
+        $LASTPOS=3000233;//user.Game2_1:233
         _this.move("ball",_this.bx,_this.by);
-        $LASTPOS=4000288;//user.Game2_3:288
+        $LASTPOS=3000257;//user.Game2_1:257
         _this.by+=10;
-        $LASTPOS=4000325;//user.Game2_3:325
-        if (_this.by>400) {
-          $LASTPOS=4000379;//user.Game2_3:379
-          _this.bx=_this.Math.random()*400;
-          $LASTPOS=4000427;//user.Game2_3:427
-          _this.by=0;
-          $LASTPOS=4000441;//user.Game2_3:441
-          _this.score+=10;
-          $LASTPOS=4000460;//user.Game2_3:460
-          _this.setText("score",_this.score);
-          
-        }
-        $LASTPOS=4000494;//user.Game2_3:494
+        $LASTPOS=3000269;//user.Game2_1:269
         _this.wait(50);
         
       }
     },
-    fiber$main :function _trc_Game2_3_f_main(_thread) {
+    fiber$main :function _trc_Game2_1_f_main(_thread) {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=4000091;//user.Game2_3:91
+      $LASTPOS=3000080;//user.Game2_1:80
       _this.x=100;
-      $LASTPOS=4000098;//user.Game2_3:98
+      $LASTPOS=3000087;//user.Game2_1:87
       _this.y=300;
-      $LASTPOS=4000115;//user.Game2_3:115
+      $LASTPOS=3000104;//user.Game2_1:104
       _this.bx=100;
-      $LASTPOS=4000123;//user.Game2_3:123
+      $LASTPOS=3000112;//user.Game2_1:112
       _this.by=0;
-      $LASTPOS=4000140;//user.Game2_3:140
-      _this.score=0;
       
-      _thread.enter(function _trc_Game2_3_ent_main(_thread) {
+      _thread.enter(function _trc_Game2_1_ent_main(_thread) {
         if (_thread.lastEx) __pc=_thread.catchPC;
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=4000149;//user.Game2_3:149
+            $LASTPOS=3000118;//user.Game2_1:118
             _this.fiber$onClick(_thread, "right", Tonyu.bindFunc(_this,_this.right));
             __pc=1;return;
           case 1:
             
-            $LASTPOS=4000173;//user.Game2_3:173
+            $LASTPOS=3000142;//user.Game2_1:142
             _this.fiber$onClick(_thread, "left", Tonyu.bindFunc(_this,_this.left));
             __pc=2;return;
           case 2:
             
-            $LASTPOS=4000195;//user.Game2_3:195
+            $LASTPOS=3000164;//user.Game2_1:164
           case 3:
-            $LASTPOS=4000227;//user.Game2_3:227
+            $LASTPOS=3000196;//user.Game2_1:196
             _this.fiber$move(_thread, "neko", _this.x, _this.y);
             __pc=4;return;
           case 4:
             
-            $LASTPOS=4000264;//user.Game2_3:264
+            $LASTPOS=3000233;//user.Game2_1:233
             _this.fiber$move(_thread, "ball", _this.bx, _this.by);
             __pc=5;return;
           case 5:
             
-            $LASTPOS=4000288;//user.Game2_3:288
+            $LASTPOS=3000257;//user.Game2_1:257
             _this.by+=10;
-            $LASTPOS=4000325;//user.Game2_3:325
-            if (!(_this.by>400)) { __pc=7; break; }
-            $LASTPOS=4000379;//user.Game2_3:379
-            _this.bx=_this.Math.random()*400;
-            $LASTPOS=4000427;//user.Game2_3:427
-            _this.by=0;
-            $LASTPOS=4000441;//user.Game2_3:441
-            _this.score+=10;
-            $LASTPOS=4000460;//user.Game2_3:460
-            _this.fiber$setText(_thread, "score", _this.score);
+            $LASTPOS=3000269;//user.Game2_1:269
+            _this.fiber$wait(_thread, 50);
             __pc=6;return;
           case 6:
             
-          case 7:
-            
-            $LASTPOS=4000494;//user.Game2_3:494
-            _this.fiber$wait(_thread, 50);
-            __pc=8;return;
-          case 8:
-            
             __pc=3;break;
-          case 9:
+          case 7:
             
             _thread.exit(_this);return;
           }
         }
       });
     },
-    left :function _trc_Game2_3_left() {
+    left :function _trc_Game2_1_left() {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=4000529;//user.Game2_3:529
+      $LASTPOS=3000304;//user.Game2_1:304
       _this.x-=10;
     },
-    fiber$left :function _trc_Game2_3_f_left(_thread) {
+    fiber$left :function _trc_Game2_1_f_left(_thread) {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=4000529;//user.Game2_3:529
+      $LASTPOS=3000304;//user.Game2_1:304
       _this.x-=10;
       
       _thread.retVal=_this;return;
     },
-    right :function _trc_Game2_3_right() {
+    right :function _trc_Game2_1_right() {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=4000561;//user.Game2_3:561
+      $LASTPOS=3000336;//user.Game2_1:336
       _this.x+=10;
     },
-    fiber$right :function _trc_Game2_3_f_right(_thread) {
+    fiber$right :function _trc_Game2_1_f_right(_thread) {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=4000561;//user.Game2_3:561
+      $LASTPOS=3000336;//user.Game2_1:336
       _this.x+=10;
       
       _thread.retVal=_this;return;
@@ -756,39 +478,39 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=5000080;//user.Game2_2:80
+      $LASTPOS=4000080;//user.Game2_2:80
       _this.x=100;
-      $LASTPOS=5000087;//user.Game2_2:87
+      $LASTPOS=4000087;//user.Game2_2:87
       _this.y=300;
-      $LASTPOS=5000104;//user.Game2_2:104
+      $LASTPOS=4000104;//user.Game2_2:104
       _this.bx=100;
-      $LASTPOS=5000112;//user.Game2_2:112
+      $LASTPOS=4000112;//user.Game2_2:112
       _this.by=0;
-      $LASTPOS=5000129;//user.Game2_2:129
+      $LASTPOS=4000129;//user.Game2_2:129
       _this.score=0;
-      $LASTPOS=5000138;//user.Game2_2:138
+      $LASTPOS=4000138;//user.Game2_2:138
       _this.onClick("right",Tonyu.bindFunc(_this,_this.right));
-      $LASTPOS=5000162;//user.Game2_2:162
+      $LASTPOS=4000162;//user.Game2_2:162
       _this.onClick("left",Tonyu.bindFunc(_this,_this.left));
-      $LASTPOS=5000184;//user.Game2_2:184
+      $LASTPOS=4000184;//user.Game2_2:184
       while (true) {
-        $LASTPOS=5000216;//user.Game2_2:216
+        $LASTPOS=4000216;//user.Game2_2:216
         _this.move("neko",_this.x,_this.y);
-        $LASTPOS=5000253;//user.Game2_2:253
+        $LASTPOS=4000253;//user.Game2_2:253
         _this.move("ball",_this.bx,_this.by);
-        $LASTPOS=5000277;//user.Game2_2:277
+        $LASTPOS=4000277;//user.Game2_2:277
         _this.by+=10;
-        $LASTPOS=5000314;//user.Game2_2:314
+        $LASTPOS=4000314;//user.Game2_2:314
         if (_this.by>400) {
-          $LASTPOS=5000354;//user.Game2_2:354
+          $LASTPOS=4000354;//user.Game2_2:354
           _this.by=0;
-          $LASTPOS=5000368;//user.Game2_2:368
+          $LASTPOS=4000368;//user.Game2_2:368
           _this.score+=10;
-          $LASTPOS=5000387;//user.Game2_2:387
+          $LASTPOS=4000387;//user.Game2_2:387
           _this.setText("score",_this.score);
           
         }
-        $LASTPOS=5000421;//user.Game2_2:421
+        $LASTPOS=4000421;//user.Game2_2:421
         _this.wait(50);
         
       }
@@ -799,15 +521,15 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=5000080;//user.Game2_2:80
+      $LASTPOS=4000080;//user.Game2_2:80
       _this.x=100;
-      $LASTPOS=5000087;//user.Game2_2:87
+      $LASTPOS=4000087;//user.Game2_2:87
       _this.y=300;
-      $LASTPOS=5000104;//user.Game2_2:104
+      $LASTPOS=4000104;//user.Game2_2:104
       _this.bx=100;
-      $LASTPOS=5000112;//user.Game2_2:112
+      $LASTPOS=4000112;//user.Game2_2:112
       _this.by=0;
-      $LASTPOS=5000129;//user.Game2_2:129
+      $LASTPOS=4000129;//user.Game2_2:129
       _this.score=0;
       
       _thread.enter(function _trc_Game2_2_ent_main(_thread) {
@@ -815,44 +537,44 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=5000138;//user.Game2_2:138
+            $LASTPOS=4000138;//user.Game2_2:138
             _this.fiber$onClick(_thread, "right", Tonyu.bindFunc(_this,_this.right));
             __pc=1;return;
           case 1:
             
-            $LASTPOS=5000162;//user.Game2_2:162
+            $LASTPOS=4000162;//user.Game2_2:162
             _this.fiber$onClick(_thread, "left", Tonyu.bindFunc(_this,_this.left));
             __pc=2;return;
           case 2:
             
-            $LASTPOS=5000184;//user.Game2_2:184
+            $LASTPOS=4000184;//user.Game2_2:184
           case 3:
-            $LASTPOS=5000216;//user.Game2_2:216
+            $LASTPOS=4000216;//user.Game2_2:216
             _this.fiber$move(_thread, "neko", _this.x, _this.y);
             __pc=4;return;
           case 4:
             
-            $LASTPOS=5000253;//user.Game2_2:253
+            $LASTPOS=4000253;//user.Game2_2:253
             _this.fiber$move(_thread, "ball", _this.bx, _this.by);
             __pc=5;return;
           case 5:
             
-            $LASTPOS=5000277;//user.Game2_2:277
+            $LASTPOS=4000277;//user.Game2_2:277
             _this.by+=10;
-            $LASTPOS=5000314;//user.Game2_2:314
+            $LASTPOS=4000314;//user.Game2_2:314
             if (!(_this.by>400)) { __pc=7; break; }
-            $LASTPOS=5000354;//user.Game2_2:354
+            $LASTPOS=4000354;//user.Game2_2:354
             _this.by=0;
-            $LASTPOS=5000368;//user.Game2_2:368
+            $LASTPOS=4000368;//user.Game2_2:368
             _this.score+=10;
-            $LASTPOS=5000387;//user.Game2_2:387
+            $LASTPOS=4000387;//user.Game2_2:387
             _this.fiber$setText(_thread, "score", _this.score);
             __pc=6;return;
           case 6:
             
           case 7:
             
-            $LASTPOS=5000421;//user.Game2_2:421
+            $LASTPOS=4000421;//user.Game2_2:421
             _this.fiber$wait(_thread, 50);
             __pc=8;return;
           case 8:
@@ -869,7 +591,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=5000456;//user.Game2_2:456
+      $LASTPOS=4000456;//user.Game2_2:456
       _this.x-=10;
     },
     fiber$left :function _trc_Game2_2_f_left(_thread) {
@@ -878,7 +600,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=5000456;//user.Game2_2:456
+      $LASTPOS=4000456;//user.Game2_2:456
       _this.x-=10;
       
       _thread.retVal=_this;return;
@@ -887,7 +609,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=5000488;//user.Game2_2:488
+      $LASTPOS=4000488;//user.Game2_2:488
       _this.x+=10;
     },
     fiber$right :function _trc_Game2_2_f_right(_thread) {
@@ -896,7 +618,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=5000488;//user.Game2_2:488
+      $LASTPOS=4000488;//user.Game2_2:488
       _this.x+=10;
       
       _thread.retVal=_this;return;
@@ -906,130 +628,161 @@ Tonyu.klass.define({
   decls: {"methods":{"main":{"nowait":false},"left":{"nowait":false},"right":{"nowait":false}}}
 });
 Tonyu.klass.define({
-  fullName: 'user.Game2_1',
-  shortName: 'Game2_1',
+  fullName: 'user.Game2_3',
+  shortName: 'Game2_3',
   namespace: 'user',
   superclass: Tonyu.classes.jslker.Parent,
   includes: [],
   methods: {
-    main :function _trc_Game2_1_main() {
+    main :function _trc_Game2_3_main() {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=6000080;//user.Game2_1:80
+      $LASTPOS=5000091;//user.Game2_3:91
       _this.x=100;
-      $LASTPOS=6000087;//user.Game2_1:87
+      $LASTPOS=5000098;//user.Game2_3:98
       _this.y=300;
-      $LASTPOS=6000104;//user.Game2_1:104
+      $LASTPOS=5000115;//user.Game2_3:115
       _this.bx=100;
-      $LASTPOS=6000112;//user.Game2_1:112
+      $LASTPOS=5000123;//user.Game2_3:123
       _this.by=0;
-      $LASTPOS=6000118;//user.Game2_1:118
+      $LASTPOS=5000140;//user.Game2_3:140
+      _this.score=0;
+      $LASTPOS=5000149;//user.Game2_3:149
       _this.onClick("right",Tonyu.bindFunc(_this,_this.right));
-      $LASTPOS=6000142;//user.Game2_1:142
+      $LASTPOS=5000173;//user.Game2_3:173
       _this.onClick("left",Tonyu.bindFunc(_this,_this.left));
-      $LASTPOS=6000164;//user.Game2_1:164
+      $LASTPOS=5000195;//user.Game2_3:195
       while (true) {
-        $LASTPOS=6000196;//user.Game2_1:196
+        $LASTPOS=5000227;//user.Game2_3:227
         _this.move("neko",_this.x,_this.y);
-        $LASTPOS=6000233;//user.Game2_1:233
+        $LASTPOS=5000264;//user.Game2_3:264
         _this.move("ball",_this.bx,_this.by);
-        $LASTPOS=6000257;//user.Game2_1:257
+        $LASTPOS=5000288;//user.Game2_3:288
         _this.by+=10;
-        $LASTPOS=6000269;//user.Game2_1:269
+        $LASTPOS=5000325;//user.Game2_3:325
+        if (_this.by>400) {
+          $LASTPOS=5000379;//user.Game2_3:379
+          _this.bx=_this.Math.random()*400;
+          $LASTPOS=5000427;//user.Game2_3:427
+          _this.by=0;
+          $LASTPOS=5000441;//user.Game2_3:441
+          _this.score+=10;
+          $LASTPOS=5000460;//user.Game2_3:460
+          _this.setText("score",_this.score);
+          
+        }
+        $LASTPOS=5000494;//user.Game2_3:494
         _this.wait(50);
         
       }
     },
-    fiber$main :function _trc_Game2_1_f_main(_thread) {
+    fiber$main :function _trc_Game2_3_f_main(_thread) {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=6000080;//user.Game2_1:80
+      $LASTPOS=5000091;//user.Game2_3:91
       _this.x=100;
-      $LASTPOS=6000087;//user.Game2_1:87
+      $LASTPOS=5000098;//user.Game2_3:98
       _this.y=300;
-      $LASTPOS=6000104;//user.Game2_1:104
+      $LASTPOS=5000115;//user.Game2_3:115
       _this.bx=100;
-      $LASTPOS=6000112;//user.Game2_1:112
+      $LASTPOS=5000123;//user.Game2_3:123
       _this.by=0;
+      $LASTPOS=5000140;//user.Game2_3:140
+      _this.score=0;
       
-      _thread.enter(function _trc_Game2_1_ent_main(_thread) {
+      _thread.enter(function _trc_Game2_3_ent_main(_thread) {
         if (_thread.lastEx) __pc=_thread.catchPC;
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=6000118;//user.Game2_1:118
+            $LASTPOS=5000149;//user.Game2_3:149
             _this.fiber$onClick(_thread, "right", Tonyu.bindFunc(_this,_this.right));
             __pc=1;return;
           case 1:
             
-            $LASTPOS=6000142;//user.Game2_1:142
+            $LASTPOS=5000173;//user.Game2_3:173
             _this.fiber$onClick(_thread, "left", Tonyu.bindFunc(_this,_this.left));
             __pc=2;return;
           case 2:
             
-            $LASTPOS=6000164;//user.Game2_1:164
+            $LASTPOS=5000195;//user.Game2_3:195
           case 3:
-            $LASTPOS=6000196;//user.Game2_1:196
+            $LASTPOS=5000227;//user.Game2_3:227
             _this.fiber$move(_thread, "neko", _this.x, _this.y);
             __pc=4;return;
           case 4:
             
-            $LASTPOS=6000233;//user.Game2_1:233
+            $LASTPOS=5000264;//user.Game2_3:264
             _this.fiber$move(_thread, "ball", _this.bx, _this.by);
             __pc=5;return;
           case 5:
             
-            $LASTPOS=6000257;//user.Game2_1:257
+            $LASTPOS=5000288;//user.Game2_3:288
             _this.by+=10;
-            $LASTPOS=6000269;//user.Game2_1:269
-            _this.fiber$wait(_thread, 50);
+            $LASTPOS=5000325;//user.Game2_3:325
+            if (!(_this.by>400)) { __pc=7; break; }
+            $LASTPOS=5000379;//user.Game2_3:379
+            _this.bx=_this.Math.random()*400;
+            $LASTPOS=5000427;//user.Game2_3:427
+            _this.by=0;
+            $LASTPOS=5000441;//user.Game2_3:441
+            _this.score+=10;
+            $LASTPOS=5000460;//user.Game2_3:460
+            _this.fiber$setText(_thread, "score", _this.score);
             __pc=6;return;
           case 6:
             
-            __pc=3;break;
           case 7:
+            
+            $LASTPOS=5000494;//user.Game2_3:494
+            _this.fiber$wait(_thread, 50);
+            __pc=8;return;
+          case 8:
+            
+            __pc=3;break;
+          case 9:
             
             _thread.exit(_this);return;
           }
         }
       });
     },
-    left :function _trc_Game2_1_left() {
+    left :function _trc_Game2_3_left() {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=6000304;//user.Game2_1:304
+      $LASTPOS=5000529;//user.Game2_3:529
       _this.x-=10;
     },
-    fiber$left :function _trc_Game2_1_f_left(_thread) {
+    fiber$left :function _trc_Game2_3_f_left(_thread) {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=6000304;//user.Game2_1:304
+      $LASTPOS=5000529;//user.Game2_3:529
       _this.x-=10;
       
       _thread.retVal=_this;return;
     },
-    right :function _trc_Game2_1_right() {
+    right :function _trc_Game2_3_right() {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=6000336;//user.Game2_1:336
+      $LASTPOS=5000561;//user.Game2_3:561
       _this.x+=10;
     },
-    fiber$right :function _trc_Game2_1_f_right(_thread) {
+    fiber$right :function _trc_Game2_3_f_right(_thread) {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=6000336;//user.Game2_1:336
+      $LASTPOS=5000561;//user.Game2_3:561
       _this.x+=10;
       
       _thread.retVal=_this;return;
@@ -1049,41 +802,41 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=7000066;//user.Game2_NoCat:66
+      $LASTPOS=6000066;//user.Game2_NoCat:66
       _this.bx=50;
-      $LASTPOS=7000073;//user.Game2_NoCat:73
+      $LASTPOS=6000073;//user.Game2_NoCat:73
       _this.by=0;
-      $LASTPOS=7000079;//user.Game2_NoCat:79
+      $LASTPOS=6000079;//user.Game2_NoCat:79
       while (true) {
-        $LASTPOS=7000112;//user.Game2_NoCat:112
+        $LASTPOS=6000112;//user.Game2_NoCat:112
         _this.move("ball",_this.bx,_this.by);
-        $LASTPOS=7000136;//user.Game2_NoCat:136
+        $LASTPOS=6000136;//user.Game2_NoCat:136
         _this.by+=20;
-        $LASTPOS=7000168;//user.Game2_NoCat:168
+        $LASTPOS=6000168;//user.Game2_NoCat:168
         if (_this.by>400) {
-          $LASTPOS=7000190;//user.Game2_NoCat:190
+          $LASTPOS=6000190;//user.Game2_NoCat:190
           _this.bx=_this.Math.random()*400;
-          $LASTPOS=7000220;//user.Game2_NoCat:220
+          $LASTPOS=6000220;//user.Game2_NoCat:220
           _this.by=0;
           
         }
-        $LASTPOS=7000291;//user.Game2_NoCat:291
+        $LASTPOS=6000291;//user.Game2_NoCat:291
         _this.wait(50);
         
       }
-      $LASTPOS=7000304;//user.Game2_NoCat:304
+      $LASTPOS=6000304;//user.Game2_NoCat:304
       _this.x=100;
-      $LASTPOS=7000311;//user.Game2_NoCat:311
+      $LASTPOS=6000311;//user.Game2_NoCat:311
       _this.y=300;
-      $LASTPOS=7000318;//user.Game2_NoCat:318
+      $LASTPOS=6000318;//user.Game2_NoCat:318
       _this.onClick("right",Tonyu.bindFunc(_this,_this.right));
-      $LASTPOS=7000342;//user.Game2_NoCat:342
+      $LASTPOS=6000342;//user.Game2_NoCat:342
       _this.onClick("left",Tonyu.bindFunc(_this,_this.left));
-      $LASTPOS=7000364;//user.Game2_NoCat:364
+      $LASTPOS=6000364;//user.Game2_NoCat:364
       while (true) {
-        $LASTPOS=7000382;//user.Game2_NoCat:382
+        $LASTPOS=6000382;//user.Game2_NoCat:382
         _this.move("neko",_this.x,_this.y);
-        $LASTPOS=7000404;//user.Game2_NoCat:404
+        $LASTPOS=6000404;//user.Game2_NoCat:404
         _this.wait(50);
         
       }
@@ -1094,9 +847,9 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=7000066;//user.Game2_NoCat:66
+      $LASTPOS=6000066;//user.Game2_NoCat:66
       _this.bx=50;
-      $LASTPOS=7000073;//user.Game2_NoCat:73
+      $LASTPOS=6000073;//user.Game2_NoCat:73
       _this.by=0;
       
       _thread.enter(function _trc_Game2_NoCat_ent_main(_thread) {
@@ -1104,24 +857,24 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=7000079;//user.Game2_NoCat:79
+            $LASTPOS=6000079;//user.Game2_NoCat:79
           case 1:
-            $LASTPOS=7000112;//user.Game2_NoCat:112
+            $LASTPOS=6000112;//user.Game2_NoCat:112
             _this.fiber$move(_thread, "ball", _this.bx, _this.by);
             __pc=2;return;
           case 2:
             
-            $LASTPOS=7000136;//user.Game2_NoCat:136
+            $LASTPOS=6000136;//user.Game2_NoCat:136
             _this.by+=20;
-            $LASTPOS=7000168;//user.Game2_NoCat:168
+            $LASTPOS=6000168;//user.Game2_NoCat:168
             if (_this.by>400) {
-              $LASTPOS=7000190;//user.Game2_NoCat:190
+              $LASTPOS=6000190;//user.Game2_NoCat:190
               _this.bx=_this.Math.random()*400;
-              $LASTPOS=7000220;//user.Game2_NoCat:220
+              $LASTPOS=6000220;//user.Game2_NoCat:220
               _this.by=0;
               
             }
-            $LASTPOS=7000291;//user.Game2_NoCat:291
+            $LASTPOS=6000291;//user.Game2_NoCat:291
             _this.fiber$wait(_thread, 50);
             __pc=3;return;
           case 3:
@@ -1129,28 +882,28 @@ Tonyu.klass.define({
             __pc=1;break;
           case 4:
             
-            $LASTPOS=7000304;//user.Game2_NoCat:304
+            $LASTPOS=6000304;//user.Game2_NoCat:304
             _this.x=100;
-            $LASTPOS=7000311;//user.Game2_NoCat:311
+            $LASTPOS=6000311;//user.Game2_NoCat:311
             _this.y=300;
-            $LASTPOS=7000318;//user.Game2_NoCat:318
+            $LASTPOS=6000318;//user.Game2_NoCat:318
             _this.fiber$onClick(_thread, "right", Tonyu.bindFunc(_this,_this.right));
             __pc=5;return;
           case 5:
             
-            $LASTPOS=7000342;//user.Game2_NoCat:342
+            $LASTPOS=6000342;//user.Game2_NoCat:342
             _this.fiber$onClick(_thread, "left", Tonyu.bindFunc(_this,_this.left));
             __pc=6;return;
           case 6:
             
-            $LASTPOS=7000364;//user.Game2_NoCat:364
+            $LASTPOS=6000364;//user.Game2_NoCat:364
           case 7:
-            $LASTPOS=7000382;//user.Game2_NoCat:382
+            $LASTPOS=6000382;//user.Game2_NoCat:382
             _this.fiber$move(_thread, "neko", _this.x, _this.y);
             __pc=8;return;
           case 8:
             
-            $LASTPOS=7000404;//user.Game2_NoCat:404
+            $LASTPOS=6000404;//user.Game2_NoCat:404
             _this.fiber$wait(_thread, 50);
             __pc=9;return;
           case 9:
@@ -1167,7 +920,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=7000439;//user.Game2_NoCat:439
+      $LASTPOS=6000439;//user.Game2_NoCat:439
       _this.x-=10;
     },
     fiber$left :function _trc_Game2_NoCat_f_left(_thread) {
@@ -1176,7 +929,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=7000439;//user.Game2_NoCat:439
+      $LASTPOS=6000439;//user.Game2_NoCat:439
       _this.x-=10;
       
       _thread.retVal=_this;return;
@@ -1185,7 +938,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=7000471;//user.Game2_NoCat:471
+      $LASTPOS=6000471;//user.Game2_NoCat:471
       _this.x+=10;
     },
     fiber$right :function _trc_Game2_NoCat_f_right(_thread) {
@@ -1194,7 +947,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=7000471;//user.Game2_NoCat:471
+      $LASTPOS=6000471;//user.Game2_NoCat:471
       _this.x+=10;
       
       _thread.retVal=_this;return;
@@ -1204,118 +957,251 @@ Tonyu.klass.define({
   decls: {"methods":{"main":{"nowait":false},"left":{"nowait":false},"right":{"nowait":false}}}
 });
 Tonyu.klass.define({
-  fullName: 'user.Step1_3',
-  shortName: 'Step1_3',
+  fullName: 'user.Game3',
+  shortName: 'Game3',
   namespace: 'user',
   superclass: Tonyu.classes.jslker.Parent,
   includes: [],
   methods: {
-    main :function _trc_Step1_3_main() {
+    main :function _trc_Game3_main() {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=8000014;//user.Step1_3:14
+      $LASTPOS=7000043;//user.Game3:43
       _this.x=100;
-      $LASTPOS=8000021;//user.Step1_3:21
+      $LASTPOS=7000050;//user.Game3:50
       _this.y=300;
-      $LASTPOS=8000029;//user.Step1_3:29
+      $LASTPOS=7000057;//user.Game3:57
+      _this.bx=[0,100,200,300,400];
+      $LASTPOS=7000081;//user.Game3:81
+      _this.by=[0,10,20,30,40];
+      $LASTPOS=7000101;//user.Game3:101
+      _this.score=0;
+      $LASTPOS=7000110;//user.Game3:110
+      _this.move("left",50,400);
+      $LASTPOS=7000131;//user.Game3:131
+      _this.move("right",100,400);
+      $LASTPOS=7000155;//user.Game3:155
       _this.onClick("right",Tonyu.bindFunc(_this,_this.right));
-      $LASTPOS=8000053;//user.Step1_3:53
+      $LASTPOS=7000179;//user.Game3:179
       _this.onClick("left",Tonyu.bindFunc(_this,_this.left));
-      $LASTPOS=8000075;//user.Step1_3:75
+      $LASTPOS=7000201;//user.Game3:201
       while (true) {
-        $LASTPOS=8000092;//user.Step1_3:92
+        $LASTPOS=7000219;//user.Game3:219
         _this.move("neko",_this.x,_this.y);
-        $LASTPOS=8000114;//user.Step1_3:114
+        $LASTPOS=7000258;//user.Game3:258
+        _this.moveBall(0);
+        $LASTPOS=7000275;//user.Game3:275
+        _this.moveBall(1);
+        $LASTPOS=7000292;//user.Game3:292
+        _this.moveBall(2);
+        $LASTPOS=7000309;//user.Game3:309
+        _this.moveBall(3);
+        $LASTPOS=7000326;//user.Game3:326
+        _this.moveBall(4);
+        $LASTPOS=7000343;//user.Game3:343
         _this.wait(50);
         
       }
     },
-    fiber$main :function _trc_Step1_3_f_main(_thread) {
+    fiber$main :function _trc_Game3_f_main(_thread) {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=8000014;//user.Step1_3:14
+      $LASTPOS=7000043;//user.Game3:43
       _this.x=100;
-      $LASTPOS=8000021;//user.Step1_3:21
+      $LASTPOS=7000050;//user.Game3:50
       _this.y=300;
+      $LASTPOS=7000057;//user.Game3:57
+      _this.bx=[0,100,200,300,400];
+      $LASTPOS=7000081;//user.Game3:81
+      _this.by=[0,10,20,30,40];
+      $LASTPOS=7000101;//user.Game3:101
+      _this.score=0;
       
-      _thread.enter(function _trc_Step1_3_ent_main(_thread) {
+      _thread.enter(function _trc_Game3_ent_main(_thread) {
         if (_thread.lastEx) __pc=_thread.catchPC;
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=8000029;//user.Step1_3:29
-            _this.fiber$onClick(_thread, "right", Tonyu.bindFunc(_this,_this.right));
+            $LASTPOS=7000110;//user.Game3:110
+            _this.fiber$move(_thread, "left", 50, 400);
             __pc=1;return;
           case 1:
             
-            $LASTPOS=8000053;//user.Step1_3:53
-            _this.fiber$onClick(_thread, "left", Tonyu.bindFunc(_this,_this.left));
+            $LASTPOS=7000131;//user.Game3:131
+            _this.fiber$move(_thread, "right", 100, 400);
             __pc=2;return;
           case 2:
             
-            $LASTPOS=8000075;//user.Step1_3:75
+            $LASTPOS=7000155;//user.Game3:155
+            _this.fiber$onClick(_thread, "right", Tonyu.bindFunc(_this,_this.right));
+            __pc=3;return;
           case 3:
-            $LASTPOS=8000092;//user.Step1_3:92
-            _this.fiber$move(_thread, "neko", _this.x, _this.y);
+            
+            $LASTPOS=7000179;//user.Game3:179
+            _this.fiber$onClick(_thread, "left", Tonyu.bindFunc(_this,_this.left));
             __pc=4;return;
           case 4:
             
-            $LASTPOS=8000114;//user.Step1_3:114
-            _this.fiber$wait(_thread, 50);
-            __pc=5;return;
+            $LASTPOS=7000201;//user.Game3:201
           case 5:
-            
-            __pc=3;break;
+            $LASTPOS=7000219;//user.Game3:219
+            _this.fiber$move(_thread, "neko", _this.x, _this.y);
+            __pc=6;return;
           case 6:
+            
+            $LASTPOS=7000258;//user.Game3:258
+            _this.fiber$moveBall(_thread, 0);
+            __pc=7;return;
+          case 7:
+            
+            $LASTPOS=7000275;//user.Game3:275
+            _this.fiber$moveBall(_thread, 1);
+            __pc=8;return;
+          case 8:
+            
+            $LASTPOS=7000292;//user.Game3:292
+            _this.fiber$moveBall(_thread, 2);
+            __pc=9;return;
+          case 9:
+            
+            $LASTPOS=7000309;//user.Game3:309
+            _this.fiber$moveBall(_thread, 3);
+            __pc=10;return;
+          case 10:
+            
+            $LASTPOS=7000326;//user.Game3:326
+            _this.fiber$moveBall(_thread, 4);
+            __pc=11;return;
+          case 11:
+            
+            $LASTPOS=7000343;//user.Game3:343
+            _this.fiber$wait(_thread, 50);
+            __pc=12;return;
+          case 12:
+            
+            __pc=5;break;
+          case 13:
             
             _thread.exit(_this);return;
           }
         }
       });
     },
-    left :function _trc_Step1_3_left() {
+    left :function _trc_Game3_left() {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=8000149;//user.Step1_3:149
-      _this.x-=10;
+      $LASTPOS=7000378;//user.Game3:378
+      _this.x-=20;
     },
-    fiber$left :function _trc_Step1_3_f_left(_thread) {
+    fiber$left :function _trc_Game3_f_left(_thread) {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=8000149;//user.Step1_3:149
-      _this.x-=10;
+      $LASTPOS=7000378;//user.Game3:378
+      _this.x-=20;
       
       _thread.retVal=_this;return;
     },
-    right :function _trc_Step1_3_right() {
+    right :function _trc_Game3_right() {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=8000181;//user.Step1_3:181
-      _this.x+=10;
+      $LASTPOS=7000410;//user.Game3:410
+      _this.x+=20;
     },
-    fiber$right :function _trc_Step1_3_f_right(_thread) {
+    fiber$right :function _trc_Game3_f_right(_thread) {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=8000181;//user.Step1_3:181
-      _this.x+=10;
+      $LASTPOS=7000410;//user.Game3:410
+      _this.x+=20;
       
       _thread.retVal=_this;return;
+    },
+    moveBall :function _trc_Game3_moveBall(i) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      
+      $LASTPOS=7000446;//user.Game3:446
+      _this.move("ball"+i,_this.bx[i],_this.by[i]);
+      $LASTPOS=7000478;//user.Game3:478
+      _this.by[i]+=5;
+      $LASTPOS=7000492;//user.Game3:492
+      if (_this.by[i]>400) {
+        $LASTPOS=7000517;//user.Game3:517
+        _this.bx[i]=_this.Math.random()*400;
+        $LASTPOS=7000550;//user.Game3:550
+        _this.by[i]=0;
+        $LASTPOS=7000567;//user.Game3:567
+        _this.score+=1;
+        $LASTPOS=7000585;//user.Game3:585
+        _this.setText("score",_this.score);
+        
+      }
+      $LASTPOS=7000619;//user.Game3:619
+      if (_this.x>_this.bx[i]-30&&_this.x<_this.bx[i]+30&&_this.y>_this.by[i]-30&&_this.y<_this.by[i]+30) {
+        $LASTPOS=7000693;//user.Game3:693
+        _this.y=- 100;
+        
+      }
+    },
+    fiber$moveBall :function _trc_Game3_f_moveBall(_thread,i) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      
+      _thread.enter(function _trc_Game3_ent_moveBall(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=7000446;//user.Game3:446
+            _this.fiber$move(_thread, "ball"+i, _this.bx[i], _this.by[i]);
+            __pc=1;return;
+          case 1:
+            
+            $LASTPOS=7000478;//user.Game3:478
+            _this.by[i]+=5;
+            $LASTPOS=7000492;//user.Game3:492
+            if (!(_this.by[i]>400)) { __pc=3; break; }
+            $LASTPOS=7000517;//user.Game3:517
+            _this.bx[i]=_this.Math.random()*400;
+            $LASTPOS=7000550;//user.Game3:550
+            _this.by[i]=0;
+            $LASTPOS=7000567;//user.Game3:567
+            _this.score+=1;
+            $LASTPOS=7000585;//user.Game3:585
+            _this.fiber$setText(_thread, "score", _this.score);
+            __pc=2;return;
+          case 2:
+            
+          case 3:
+            
+            $LASTPOS=7000619;//user.Game3:619
+            if (_this.x>_this.bx[i]-30&&_this.x<_this.bx[i]+30&&_this.y>_this.by[i]-30&&_this.y<_this.by[i]+30) {
+              $LASTPOS=7000693;//user.Game3:693
+              _this.y=- 100;
+              
+            }
+            _thread.exit(_this);return;
+          }
+        }
+      });
     },
     __dummy: false
   },
-  decls: {"methods":{"main":{"nowait":false},"left":{"nowait":false},"right":{"nowait":false}}}
+  decls: {"methods":{"main":{"nowait":false},"left":{"nowait":false},"right":{"nowait":false},"moveBall":{"nowait":false}}}
 });
 Tonyu.klass.define({
   fullName: 'user.Lesson2',
@@ -1378,17 +1264,17 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=9000014;//user.Step1_2:14
+      $LASTPOS=8000014;//user.Step1_2:14
       _this.x=100;
-      $LASTPOS=9000021;//user.Step1_2:21
+      $LASTPOS=8000021;//user.Step1_2:21
       _this.y=300;
-      $LASTPOS=9000028;//user.Step1_2:28
+      $LASTPOS=8000028;//user.Step1_2:28
       while (true) {
-        $LASTPOS=9000045;//user.Step1_2:45
+        $LASTPOS=8000045;//user.Step1_2:45
         _this.move("neko",_this.x,_this.y);
-        $LASTPOS=9000067;//user.Step1_2:67
+        $LASTPOS=8000067;//user.Step1_2:67
         _this.x+=10;
-        $LASTPOS=9000078;//user.Step1_2:78
+        $LASTPOS=8000078;//user.Step1_2:78
         _this.wait(50);
         
       }
@@ -1399,9 +1285,9 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=9000014;//user.Step1_2:14
+      $LASTPOS=8000014;//user.Step1_2:14
       _this.x=100;
-      $LASTPOS=9000021;//user.Step1_2:21
+      $LASTPOS=8000021;//user.Step1_2:21
       _this.y=300;
       
       _thread.enter(function _trc_Step1_2_ent_main(_thread) {
@@ -1409,16 +1295,16 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=9000028;//user.Step1_2:28
+            $LASTPOS=8000028;//user.Step1_2:28
           case 1:
-            $LASTPOS=9000045;//user.Step1_2:45
+            $LASTPOS=8000045;//user.Step1_2:45
             _this.fiber$move(_thread, "neko", _this.x, _this.y);
             __pc=2;return;
           case 2:
             
-            $LASTPOS=9000067;//user.Step1_2:67
+            $LASTPOS=8000067;//user.Step1_2:67
             _this.x+=10;
-            $LASTPOS=9000078;//user.Step1_2:78
+            $LASTPOS=8000078;//user.Step1_2:78
             _this.fiber$wait(_thread, 50);
             __pc=3;return;
           case 3:
@@ -1434,6 +1320,120 @@ Tonyu.klass.define({
     __dummy: false
   },
   decls: {"methods":{"main":{"nowait":false}}}
+});
+Tonyu.klass.define({
+  fullName: 'user.Step1_3',
+  shortName: 'Step1_3',
+  namespace: 'user',
+  superclass: Tonyu.classes.jslker.Parent,
+  includes: [],
+  methods: {
+    main :function _trc_Step1_3_main() {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      
+      $LASTPOS=9000014;//user.Step1_3:14
+      _this.x=100;
+      $LASTPOS=9000021;//user.Step1_3:21
+      _this.y=300;
+      $LASTPOS=9000029;//user.Step1_3:29
+      _this.onClick("right",Tonyu.bindFunc(_this,_this.right));
+      $LASTPOS=9000053;//user.Step1_3:53
+      _this.onClick("left",Tonyu.bindFunc(_this,_this.left));
+      $LASTPOS=9000075;//user.Step1_3:75
+      while (true) {
+        $LASTPOS=9000092;//user.Step1_3:92
+        _this.move("neko",_this.x,_this.y);
+        $LASTPOS=9000114;//user.Step1_3:114
+        _this.wait(50);
+        
+      }
+    },
+    fiber$main :function _trc_Step1_3_f_main(_thread) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=9000014;//user.Step1_3:14
+      _this.x=100;
+      $LASTPOS=9000021;//user.Step1_3:21
+      _this.y=300;
+      
+      _thread.enter(function _trc_Step1_3_ent_main(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=9000029;//user.Step1_3:29
+            _this.fiber$onClick(_thread, "right", Tonyu.bindFunc(_this,_this.right));
+            __pc=1;return;
+          case 1:
+            
+            $LASTPOS=9000053;//user.Step1_3:53
+            _this.fiber$onClick(_thread, "left", Tonyu.bindFunc(_this,_this.left));
+            __pc=2;return;
+          case 2:
+            
+            $LASTPOS=9000075;//user.Step1_3:75
+          case 3:
+            $LASTPOS=9000092;//user.Step1_3:92
+            _this.fiber$move(_thread, "neko", _this.x, _this.y);
+            __pc=4;return;
+          case 4:
+            
+            $LASTPOS=9000114;//user.Step1_3:114
+            _this.fiber$wait(_thread, 50);
+            __pc=5;return;
+          case 5:
+            
+            __pc=3;break;
+          case 6:
+            
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    left :function _trc_Step1_3_left() {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      
+      $LASTPOS=9000149;//user.Step1_3:149
+      _this.x-=10;
+    },
+    fiber$left :function _trc_Step1_3_f_left(_thread) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=9000149;//user.Step1_3:149
+      _this.x-=10;
+      
+      _thread.retVal=_this;return;
+    },
+    right :function _trc_Step1_3_right() {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      
+      $LASTPOS=9000181;//user.Step1_3:181
+      _this.x+=10;
+    },
+    fiber$right :function _trc_Step1_3_f_right(_thread) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=9000181;//user.Step1_3:181
+      _this.x+=10;
+      
+      _thread.retVal=_this;return;
+    },
+    __dummy: false
+  },
+  decls: {"methods":{"main":{"nowait":false},"left":{"nowait":false},"right":{"nowait":false}}}
 });
 Tonyu.klass.define({
   fullName: 'user.Step2_1',

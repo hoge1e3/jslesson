@@ -29,6 +29,9 @@ native Tonyu;
     $("[name="+elem+"]").text(val);
 }
 \onClick(elem,func){
+    if(typeof func != 'function'){
+        throw new Error("onClickの二つ目の引数には 関数名 を \" \"をつけずに書いてください");
+    }
     //document.getElementsByName(elem)[0].onclick=func;
     $("[name="+elem+"]").click(ex(func));
 }
