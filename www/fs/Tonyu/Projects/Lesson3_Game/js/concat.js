@@ -1568,3 +1568,79 @@ Tonyu.klass.define({
   },
   decls: {"methods":{"main":{"nowait":false},"left":{"nowait":false},"right":{"nowait":false}}}
 });
+Tonyu.klass.define({
+  fullName: 'user.Test',
+  shortName: 'Test',
+  namespace: 'user',
+  superclass: Tonyu.classes.jslker.Parent,
+  includes: [],
+  methods: {
+    main :function _trc_Test_main() {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      
+      $LASTPOS=11000014;//user.Test:14
+      _this.onTouch(Tonyu.bindFunc(_this,_this.touch1));
+      $LASTPOS=11000031;//user.Test:31
+      _this.setCanvas("canvas");
+    },
+    fiber$main :function _trc_Test_f_main(_thread) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      
+      _thread.enter(function _trc_Test_ent_main(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=11000014;//user.Test:14
+            _this.fiber$onTouch(_thread, Tonyu.bindFunc(_this,_this.touch1));
+            __pc=1;return;
+          case 1:
+            
+            $LASTPOS=11000031;//user.Test:31
+            _this.fiber$setCanvas(_thread, "canvas");
+            __pc=2;return;
+          case 2:
+            
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    touch1 :function _trc_Test_touch1(x,y) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      
+      $LASTPOS=11000078;//user.Test:78
+      _this.fillRect(x,y,10,10);
+    },
+    fiber$touch1 :function _trc_Test_f_touch1(_thread,x,y) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      
+      _thread.enter(function _trc_Test_ent_touch1(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=11000078;//user.Test:78
+            _this.fiber$fillRect(_thread, x, y, 10, 10);
+            __pc=1;return;
+          case 1:
+            
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    __dummy: false
+  },
+  decls: {"methods":{"main":{"nowait":false},"touch1":{"nowait":false}}}
+});

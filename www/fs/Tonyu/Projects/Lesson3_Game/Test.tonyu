@@ -1,0 +1,6 @@
+// Javascript
+onTouch(touch1);
+setCanvas("canvas");
+function touch1(x,y){
+    fillRect(x,y,10,10);
+}
