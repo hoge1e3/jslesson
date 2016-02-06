@@ -1,0 +1,8 @@
+// Javascript
+onTouch(touch);
+
+
+\touch(x,y,state) {
+    move("label",x,y);
+    setText("label",state);
+}

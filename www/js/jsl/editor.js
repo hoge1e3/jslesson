@@ -377,6 +377,7 @@ $(function () {
             $LASTPOS=0;
             if (typeof SplashScreen!="undefined") SplashScreen.hide();
             th.steps();*/
+            return sync();
         }), function (e) {
             if (typeof SplashScreen!="undefined") SplashScreen.hide();
             if (e.isTError) {
