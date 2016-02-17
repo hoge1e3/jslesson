@@ -82,7 +82,7 @@ $(function () {
             $("#syncMesg").append("完了");
             ls();
             setTimeout(function () {
-                $("#syncMesg").text(e.user+"でログインしています。");
+                $("#syncMesg").text(e.classid+" クラスの"+e.user+"でログインしています。");
                 $("#syncMesg").append(UI("a",{href:"login.php"},"他ユーザでログイン"));
             },1000);
         }).fail(function (e) {

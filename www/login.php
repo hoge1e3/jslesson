@@ -1,12 +1,17 @@
 <?php
 require("php/auth.php");
 $showForm=true;
+if (isset($_GET["curclass"])){
+	$showForm=false;
+	print Auth::curClass();
+}
 if (isset($_GET["curuser"])) {
 	$showForm=false;
 	print Auth::curUser();
-} else if (isset($_GET["user"])) {
+} else if (isset($_GET["class"]) && isset($_GET["user"])) {
+	$class=$_GET["class"];
 	$user=$_GET["user"];
-	$mesg=Auth::login($user);
+	$mesg=Auth::login($class,$user);
 	if ($mesg===true) {
 	    $showForm=false;
 	    header("Location: .");
@@ -16,7 +21,8 @@ if (isset($_GET["curuser"])) {
 if ($showForm) { 
            setcookie("user","", time()-18000);
 ?>
-	<form action="login.php">   
+	<form action="login.php">
+	  クラスID<input name="class">
 	  ユーザ名<input name="user">
 	  <font color=red><?php print $mesg; ?></font>
 	  <br/>

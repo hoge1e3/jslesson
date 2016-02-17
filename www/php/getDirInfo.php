@@ -20,6 +20,7 @@ require_once "getDirInfoLib.php";
 //print $json->encode( $fs->ls("Tonyu/Projects/") );
 $inf=getDirInfo($base, $base);
 $inf["user"]=Auth::curUser();
+$inf["class"]=Auth::curClass();
 print $json->encode( $inf );
 
 ?>

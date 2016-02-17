@@ -7852,6 +7852,7 @@ define('Sync',["FS","Shell",/*"requestFragment",*/"WebSite","SFile","assert"],
         if (options.v) sh.echo("localDelta",localDelta);
         var uploads={},downloads=[],visited={};
         var user;
+	var classid;
         function status(name, param) {
             sh.echo("Status: "+name+" param:",param);
             if (options.onstatus) {
@@ -7880,6 +7881,7 @@ define('Sync',["FS","Shell",/*"requestFragment",*/"WebSite","SFile","assert"],
                 return d.promise();
             }
             user=curRemoteDirInfo.user;
+	    classid=curRemoteDirInfo["class"];
             var base=local;//FS.get(curRemoteDirInfo.base);
             var remoteDelta=getDelta(lastRemoteDirInfo, curRemoteDirInfo.data);
             if (options.v) sh.echo("remoteDelta",remoteDelta);
@@ -7946,7 +7948,7 @@ define('Sync',["FS","Shell",/*"requestFragment",*/"WebSite","SFile","assert"],
 
             var upds=[];
             for (var i in uploads) upds.push(i);
-            return res={msg:res,uploads:upds,downloads: downloads,user:user};
+            return res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};
         });
     };
     sh.rsh=function () {
