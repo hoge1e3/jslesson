@@ -13,6 +13,11 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           Columns,A,Menu,TError,DU,Sync
           ) {
 $(function () {
+    var curClassroom;
+    $.get("login.php?curclass="+Math.random()).then(function (r){
+        console.log(r);
+        curClassroom=r;
+    });
     var curUser;
     $.get("login.php?curuser="+Math.random()).then(function (r) {
         console.log(r);
@@ -352,7 +357,7 @@ $(function () {
         if (typeof SplashScreen!="undefined") SplashScreen.show();
 
         runURL=location.href.replace(/\/[^\/]*\?.*$/,
-                "/run.html?usr="+curUser+
+                "/run.html?classroom="+curClassroom+"&usr="+curUser+
                 "&prj="+curProjectDir.name().replace("/","")+
                 "&class="+name.replace("user.","")
         );
