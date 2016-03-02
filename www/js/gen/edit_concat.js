@@ -8283,6 +8283,9 @@ $(function () {
     }
     function stop() {
         //curPrj.stop();
+        if(curth){
+            curth.kill();
+        }
         displayMode("edit");
     }
     var curName,runURL;
@@ -8366,6 +8369,7 @@ $(function () {
         }
     };
     var curFrameRun;
+    var curth;
     window.setupFrame=function (r) {
         curFrameRun=r;
         var inf=getCurrentEditorInfo();
@@ -8377,7 +8381,7 @@ $(function () {
         var ht=curHTMLFile.text();
         var f=curPrj.getOutputFile();
         var js=f.text();
-        r(ht,js, curName);
+        curth=r(ht,js, curName);
         if (typeof SplashScreen!="undefined") SplashScreen.hide();
     };
     var alertOnce;

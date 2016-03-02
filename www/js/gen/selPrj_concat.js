@@ -7443,6 +7443,11 @@ requirejs(["FS","Shell","Shell2","ProjectCompiler",
 $(function () {
     $("body").append(UI("div",
             ["h1","プロジェクト一覧"],
+            ["div",
+	        ["a",{href:"https://docs.google.com/document/d/1TqO4SCzWyCggfRZ8onqcAmiIpHPQygeSuVtO0atbZVs/pub",target:"apiTab"},"JSLessonで使える命令"],"  ",
+	        ["a",{href:"https://docs.google.com/document/d/17_RcWbezzXf4ShnTUcS2IRYxgO03QB9--sFN4xC9Ts0/pub",target:"manTab"},"入門テキスト"],"  ",
+	        ["a",{href:"https://docs.google.com/document/d/1VzrUiHj6IBIgnN4GY2AFs92wGwjlreG6DmByg3VkROA/pub",target:"gamTab"},"ゲーム制作のテキスト"]
+            ],
             ["button", {id:"newPrj", "class":"btn btn-primary"}, "新規プロジェクト"],
             ["span",{id:"syncMesg"}],
             ["div",{id:"prjItemList"}]

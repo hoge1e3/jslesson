@@ -22,7 +22,7 @@ if ($showForm) {
            setcookie("user","", time()-18000);
 ?>
 	<form action="login.php">
-	  クラスID<input name="class">
+	  クラスID<input name="class"></br>
 	  ユーザ名<input name="user">
 	  <font color=red><?php print $mesg; ?></font>
 	  <br/>
