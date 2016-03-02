@@ -1,0 +1,8 @@
+// Javascript
+
+x=0;y=0;
+while(true) {
+    move("n",x,y);
+    x++;
+    wait();
+}
