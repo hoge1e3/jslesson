@@ -9,3 +9,6 @@
 //  print (false).".<BR>";
   
 ?>
+
+test <?= 2+3 ?>
+

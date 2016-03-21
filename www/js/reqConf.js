@@ -80,6 +80,7 @@ var reqConf={
         },
         "paths": {
             jsl_selProject: "jsl/selProject",
+            jsl_selUser: "jsl/selUser",
             jsl_selProject_concat: 'gen/selPrj_concat',
             jsl_edit: "jsl/editor",
             jsl_edit_concat: 'gen/edit_concat',

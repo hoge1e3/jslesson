@@ -1,0 +1,31 @@
+﻿<html>
+<script src="jquery-2.1.0.js"></script>
+<script src="parser.js"></script>
+<script src="ExpressionParser2.js"></script>
+<script src="ctrans.js"></script>
+<script src="beautify.js"></script>
+<script src="lib.js"></script>
+<script src="require.js"></script><!--add-->
+
+<script>
+requirejs(["FS"],function (FS) {//add
+	$(function () {
+	  var testFile=FS.get("/test.c");  //add
+	  if (testFile.exists()) $("#prog").val(testFile.text());  //add
+	  $("#parse").click(function () {
+	    var res=js_beautify("var globals={};"+MinimalParser.parse($("#prog").val())+"main();");
+			$("#res").val(res);
+	    testFile.text($("#prog").val());//add
+	  });
+		$("#run").click(function(){(new Function($("#res").val()))();});
+	});
+});//add
+</script>
+
+<textarea id=prog rows=10 cols=40>a=a;
+int main(void){a=a;}</textarea>
+<button id=parse>Parse</button>
+<button id=run>Run</button>
+<pre id=console></pre>
+<form name="form"><textarea id=res rows=10 cols=40></textarea></form>
+</html>
