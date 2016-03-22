@@ -112,12 +112,6 @@ var TPRC=function (dir) {
          //var classes=ctx.classes||{};
          if (visited[TPR.path()]) return DU.directPromise();
          visited[TPR.path()]=true;
-         /*TPR.getDependingProjects().forEach(function (p) {
-             if (p.getNamespace()==myNsp) return;
-             task=task.then(function () {
-                 return p.loadClasses(ctx);
-             });
-         });*/
          return TPR.loadDependingClasses(ctx).then(function () {
              return TPR.shouldCompile();
          }).then(function (sc) {
@@ -159,17 +153,7 @@ var TPRC=function (dir) {
          Tonyu.runMode=false;
          console.log("Compile: "+dir.path());
          ctx=initCtx(ctx);
-         //var dp=TPR.getDependingProjects();
          var myNsp=TPR.getNamespace();
-         /*var task=DU.directPromise();
-         dp.forEach(function (dprj) {
-             var nsp=dprj.getNamespace();
-             if (nsp!=myNsp) {
-                 task=task.then(F(function () {
-                     dprj.loadClasses(ctx);
-                 }));
-             }
-         });*/
          return TPR.loadDependingClasses(ctx).then(F(function () {
              var baseClasses=ctx.classes;
              console.log("baseClasses", baseClasses);
@@ -235,7 +219,6 @@ var TPRC=function (dir) {
      TPR.dir=dir;
      TPR.path=function () {return dir.path();};
      TPR.sourceFiles=function (nsp) {// nsp==null => all
-         //nsp=nsp || TPR.getNamespace();//DELJSL
          var dirs=TPR.sourceDirs(nsp);// ADDJSL
          var res={};
          for (var i=dirs.length-1; i>=0 ; i--) {
@@ -254,7 +237,6 @@ var TPRC=function (dir) {
      };
      TPR.sourceDirs=function (myNsp) {//ADDJSL  myNsp==null => All
          var dp=TPR.getDependingProjects();
-         //var myNsp||TPR.getNamespace();//DELJSL
          var dirs=[dir];
          dp.forEach(function (dprj) {
              var nsp=dprj.getNamespace();
@@ -280,12 +262,6 @@ var TPRC=function (dir) {
                 if (added[n]) continue;
                 var c=classes[n];/*ENVC*/
                 var deps=dep1(c);
-                //var ready=true;
-                /*deps.forEach(function (cl) {
-                    ready=ready && (
-                       !cl || !classes[cl.fullName] || cl.builtin || added[cl.fullName]
-                    );
-                });*/
                 if (deps.length==0) {
                     res.push(c);
                     added[n]=true;

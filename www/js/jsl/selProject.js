@@ -59,23 +59,8 @@ $(function () {
                       ["a",{on:{click:del(f)}},"削除"]]
                   );
             u.appendTo("#prjItemList");
-            /*setTimeout(function () {
-                var tn=f.rel("images/").rel("icon_thumbnail.png");
-                //console.log(tn.path());
-                if (tn.exists()) {
-                    u.$vars.t.attr("src",tn.text());
-                }
-            },10);*/
         });
     }
-    /*Auth.currentUser(function (r){
-        if (r) {
-            $(".while-logged-out").hide();
-            $("#login").text(r);
-        } else {
-            $(".while-logged-in").hide();
-        }
-    });*/
     function ren(f) {
         return function () {
             NPD.show(projects, function (prjDir) {

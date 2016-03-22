@@ -93,15 +93,12 @@ $(function () {
 
     var screenH;
     function onResize() {
-        //console.log($(window).height(), $("#navBar").height());
         var h=$(window).height()-$("#navBar").height()-$("#tabTop").height();
         h-=20;
         screenH=h;
         var rw=$("#runArea").width();
         $("#progs pre").css("height",h+"px");
         console.log("canvas size",rw,h);
-        //$("#cv").attr("height", h).attr("width", rw);
-        //cv=$("#cv")[0].getContext("2d");
         $("#fileItemList").height(h);
     }
     onResize();
@@ -209,10 +206,6 @@ $(function () {
         return f.name();
     };
     var refactorUI;
-    /*FM.on.mvExtraUI=function (d) {
-        refactorUI=UI("div",["input",{type:"checkbox",$var:"chk",checked:"true",value:"chked"}],"プログラム中のクラス名も変更する");
-        d.append(refactorUI);
-    };*/
     FM.on.rm=function (f) {
         var fs=fileSet(f);
         for (var i=0;i<fs.length;i++) {
@@ -238,30 +231,11 @@ $(function () {
         ls();
         fl.select(news[ci]);
         return false;
-        /*if (!refactorUI) return;
-        var oldCN=old.truncExt(EXT);
-        var newCN=_new.truncExt(EXT);
-        if (refactorUI.$vars.chk.prop("checked")) {
-            //alert(oldCN+"=>"+newCN);
-            save();
-            try {
-                curPrj.renameClassName(oldCN,newCN);
-            } catch (e) {
-                alert("プログラム内にエラーがあります．エラーを修正するか，「プログラム中のクラス名も変更する」のチェックを外してもう一度やり直してください．");
-                console.log(e);
-                return false;
-            }
-        }
-        //close(old);  does in FileMenu
-        */
-        //reloadFromFiles();
-        //refactorUI=null;
     };
     F(FM.on);
     fl.ls(curProjectDir);
     function ls(){
         fl.ls(curProjectDir);
-//        refreshRunMenu();
     }
     function dispName(f) {
         var name=f.name();
@@ -271,7 +245,6 @@ $(function () {
     }
     function fixName(name, options) {
         var upcased=false;
-        //if (name=="aaaa") throw new Error("iikagen name error "+EC.enter);
         if (name.match(/^[a-z]/)) {
             name= name.substring(0,1).toUpperCase()+name.substring(1);
             upcased=true;
@@ -508,8 +481,6 @@ $(function () {
     }
     $(".selTab").click(function () {
         var ext=A.is($(this).attr("data-ext"),String);
-        //$(".selTab").removeClass("selected");
-        //$(this).addClass("selected");
         var c=fl.curFile();
         if (!c) {
             alert("まず、メニューの「ファイル」→「新規」でファイルを作るか、左のファイル一覧からファイルを選んでください。");
