@@ -600,7 +600,8 @@ SFile.prototype={
         if (!this.isDir()) return false;
         return P.startsWith( file.path(), this.path());
     },
-    // Path from Root
+    // パス・名前・相対ファイル取得メソッド
+    // このファイルのフルパスを取得
     path: function () {
         return this._path;//this.fs.getPathFromRootFS(this.pathT);
     },
@@ -608,15 +609,19 @@ SFile.prototype={
     /*pathInThisFS: function () {
         return this.pathT;
     },*/
+    // このファイルの名前のみを取得
     name: function () {
         return P.name(this.path());
     },
+    // このファイルの拡張子を除いた名前を取得（extは省略可能）
     truncExt: function (ext) {
         return P.truncExt(this.path(),ext);
     },
+    // このファイルの拡張子を取得
     ext: function () {
         return P.ext(this.path());
     },
+    // このファイルのbaseを基準とした相対パスを取得
     relPath: function (base) {
         // base should be SFile or Path from rootFS
         var bp=(base.path ?
@@ -624,34 +629,42 @@ SFile.prototype={
                 base );
         return P.relPath(this.path(), A.is(bp,P.Absolute) );
     },
+    // このファイルの親ファイルのファイルオブジェクトを取得
     up:function () {
         var pathR=this.path();
         var pa=P.up(pathR);
         if (pa==null) return null;
         return this._resolve(pa);
     },
+    // このフォルダを基準に相対パスrelPathで指定されたファイルのファイルオブジェクトを取得
+    // 注意：フォルダを指定する場合、relPathは必ず/ で終わること
     rel: function (relPath) {
         A.is(relPath, P.Relative);
         this.assertDir();
         var pathR=this.path();
         return this._resolve(P.rel(pathR, relPath));
     },
+    // このファイルのファイル名がpreで始まっているか？
     startsWith: function (pre) {
         return P.startsWith(this.name(),pre);
     },
+    // このファイルのファイル名がpostで終わっているか？
     endsWith: function (post) {
         return P.endsWith(this.name(),post);
     },
+    // このファイルオブジェクトとoが同じファイルを指すファイルオブジェクトか？
     equals:function (o) {
         return (o && typeof o.path=="function" && o.path()==this.path());
     },
     toString:function (){
         return this.path();
     },
-    //Common
+    //属性など
+    // このファイルのタイムスタンプを更新
     touch: function () {
         this.fs.touch(this.path());
     },
+    // このファイルが読み取り専用か？
     isReadOnly: function () {
         this.fs.isReadOnly(this.path());
     },
@@ -673,6 +686,7 @@ SFile.prototype={
     setMetaInfo: function (info, options) {
         return this.fs.setMetaInfo(this.path(),info, options);
     },
+    //最終更新時刻を数値(ミリ秒)で返す
     lastUpdate:function () {
         A(this.exists());
         return this.metaInfo().lastUpdate;
@@ -680,6 +694,7 @@ SFile.prototype={
     /*rootFS: function () {
         return this.fs.getRootFS();
     },*/
+    // ファイルが存在するか？
     exists: function (options) {
         options=options||{};
         var p=this.fs.exists(this.path(),options);
@@ -692,6 +707,7 @@ SFile.prototype={
     /*copyTo: function (dst, options) {
         this.fs.cp(this.path(),getPath(dst),options);
     },*/
+    // ファイルを削除する
     rm: function (options) {
         options=options||{};
         if (!this.exists({noFollowLink:true})) {
@@ -711,10 +727,12 @@ SFile.prototype={
         options.noTrash=true;
         this.rm(options);
     },
+    // フォルダか？
     isDir: function () {
         return this.fs.isDir(this.path());
     },
-    // File
+    // 引数なし：ファイルをテキストとして呼び出す
+    // 引数1個： ファイルに引数に指定した文字列を書き込む
     text:function () {
         var l=this.resolveLink();
         if (!this.equals(l)) return l.text.apply(l,arguments);
@@ -731,9 +749,12 @@ SFile.prototype={
     getText:function (t) {
         return this.fs.getContent(this.path(), {type:String});
     },
+    // ファイルを読みだし、行ごとの配列を返す
     lines:function () {
         return this.text().split("\n");
     },
+    // 引数なし：ファイルの内容をJSONとして解釈しオブジェクトを返す
+    // 引数あり：引数のオブジェクトをJSONに変換して書き込む
     obj: function () {
         var file=this;
         if (arguments.length==0) {
@@ -744,6 +765,7 @@ SFile.prototype={
             file.text(JSON.stringify(A.is(arguments[0],Object) ));
         }
     },
+    // src（ファイルオブジェクト）からファイルをコピー
     copyFrom: function (src, options) {
         var dst=this;
         var options=options||{};
@@ -774,6 +796,7 @@ SFile.prototype={
         //file.text(src.text());
         //if (options.a) file.metaInfo(src.metaInfo());
     },
+    // src（ファイルオブジェクト）からここにファイルを移動
     moveFrom: function (src, options) {
         var res=this.copyFrom(src,options);
         src.rm({recursive:true});
@@ -792,10 +815,12 @@ SFile.prototype={
         },options);
         return res;
     },*/
+    // このフォルダ直下の各ファイルオブジェクトeについて、関数f(e)を繰り返し呼び出す
     each:function (f,options) {
         var dir=this.assertDir();
         dir.listFiles(options).forEach(f);
     },
+    // このフォルダとそのサブフォルダ内の各ファイルオブジェクトeについて、関数f(e)を繰り返し呼び出す
     recursive:function (fun,options) {
         var dir=this.assertDir();
         dir.each(function (f) {
@@ -803,6 +828,7 @@ SFile.prototype={
             else fun(f);
         },options);
     },
+    // このフォルダ直下の各ファイルeを配列で返す
     listFiles:function (options) {
         A(options==null || typeof options=="object");
         var dir=this.assertDir();
@@ -824,6 +850,7 @@ SFile.prototype={
         if (typeof ord=="function" && res.sort) res.sort(ord);
         return res;
     },
+    // このフォルダ内の各ファイルのファイル名を配列で返す
     ls:function (options) {
         A(options==null || typeof options=="object");
         var dir=this.assertDir();
@@ -850,6 +877,7 @@ SFile.prototype={
         }
         return A.is(options,{excludes:{}});
     },
+    // このディレクトリを作成する
     mkdir: function () {
         this.touch();
     },

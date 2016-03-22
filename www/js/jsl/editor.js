@@ -374,17 +374,6 @@ $(function () {
             } else {
                 $("#ifrm").attr("src","run.html");
             }
-
-            /*A(Tonyu.classes);
-            var bootClass=Tonyu.getClass(name);
-            if (!bootClass) throw TError( name+" というクラスはありません", "不明" ,0);
-            Tonyu.runMode=true;
-            var boot=new bootClass();
-            var th=Tonyu.thread();
-            th.apply(boot,"main");
-            $LASTPOS=0;
-            if (typeof SplashScreen!="undefined") SplashScreen.hide();
-            th.steps();*/
             return sync();
         }), function (e) {
             if (typeof SplashScreen!="undefined") SplashScreen.hide();

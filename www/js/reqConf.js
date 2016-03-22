@@ -74,6 +74,9 @@ var reqConf={
             Encoding: {
                 exports:"Encoding"
             },
+            ctrans: {
+                exports:"MinimalParser"
+            },
             Base64: {
                 exports:"Base64"
             }
@@ -199,6 +202,7 @@ var reqConf={
             Menu:"ui/Menu",
             DeferredUtil:"lib/DeferredUtil",
             "compiledProject":"lang/compiledProject",
+            "ctrans": "ctrans/ctrans",
             "foo":"bar"
         },
         "baseUrl": "js"
