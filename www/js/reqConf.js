@@ -74,11 +74,21 @@ var reqConf={
             Encoding: {
                 exports:"Encoding"
             },
-            ctrans: {
-                exports:"MinimalParser"
-            },
             Base64: {
                 exports:"Base64"
+            },
+            "ctrans/ctrans": {
+                deps:["Parser"],
+                exports:"MinimalParser"
+            },
+            cCompiler: {
+                deps: [
+                    "ctrans/beautify",
+                    "ctrans/compiler",
+                    "ctrans/ctrans",
+                    "ctrans/lib"
+                ],
+                exports:"compile"
             }
         },
         "paths": {
@@ -202,7 +212,8 @@ var reqConf={
             Menu:"ui/Menu",
             DeferredUtil:"lib/DeferredUtil",
             "compiledProject":"lang/compiledProject",
-            "ctrans": "ctrans/ctrans",
+            "selectbox":"jsl/selectbox",
+            cCompiler:"ctrans/compiler",
             "foo":"bar"
         },
         "baseUrl": "js"

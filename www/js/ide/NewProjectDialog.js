@@ -20,6 +20,10 @@ define(["UI"], function (UI) {
         			     on:{enterkey:function () {
                 		     res.d.done();
 				 }}}]],
+				["div",
+        			 ["span","プログラミング言語"],
+        			 ["select",{$edit:"lang"},["option",{selected:true,value:"js"},"JS"],["option",{value:"c"},"C"]]
+				],
          			["div",
         			 ["span","親フォルダ"],
         			 ["input",{$edit:{name:"parentDir",type:FType}}]],
@@ -34,7 +38,7 @@ define(["UI"], function (UI) {
             );
         }
         var d=res.d;
-        var model={name:options.defName||"", parentDir:prjDir};
+        var model={name:options.defName||"",lang:"js", parentDir:prjDir};
         d.$edits.load(model);
     	d.$edits.validator.on.validate=function (model) {
     		if (model.name=="") {
@@ -51,7 +55,7 @@ define(["UI"], function (UI) {
     	};
     	d.done=function () {
     	    if (d.$edits.validator.isValid()) {
-                onOK(model.dstDir);
+                onOK(model);
                 d.dialog("close");
     	    }
     	};

@@ -1,7 +1,6 @@
 MinimalParser= function () {
 	var parser={};
 	var sp=Parser.StringParser; // 文字列を解析するパーサ
-	
 	//    ↓ 空白またはコメントを解析するパーサ
 	var space=sp.reg(/^(\s*(\/\*([^\/]|[^*]\/|\r|\n)*\*\/)*(\/\/.*\n)*)*/);
 	// トークナイザ： 空白またはコメントを読み飛ばし，次に rで指定されたトークンがあれば解析が成功．
@@ -48,12 +47,19 @@ MinimalParser= function () {
 		var name=token(/^[a-zA-Z_][a-zA-Z0-9_]*/).ret(function(name){return name;});
 		var ptr_name=token("&").and(name).ret(function(and,name){return "pointer(locals,\""+name+"\")"});
 		var var_name=name.ret(function(name){return name;});
-		var global_name=name.ret(function(name){return "globals."+name;});
-		var local_name=name.ret(function(name){return ((localVars[name.text])?"locals.":"globals.")+name;});
+		var global_name=name.ret(function(name){
+			if(!globalVars[name.text])throw("変数"+name+"は宣言されていません。");
+			return "globals."+name;
+		});
+		var local_name=name.ret(function(name){
+			console.log(globalVars);
+			if((!localVars[name.text])&&(!globalVars[name.text]))throw("変数"+name+"は宣言されていません。");
+			return ((localVars[name.text])?"locals.":"globals.")+name;
+		});
 		var nomal_name=name.ret(function(name){return name;});
 		var var_decl=var_type.and(name).ret(function(){return name;});
-		var global_decl=var_type.and(name).ret(function(type,name){globalVars[name.text]=type.text;return "globals."+name;});
-		var local_decl=var_type.and(name).ret(function(type,name){console.log(type);localVars[name.text]=type;return "locals."+name;});
+		var global_decl=var_type.and(name).ret(function(type,name){globalVars[name.text]=type;return "globals."+name;});
+		var local_decl=var_type.and(name).ret(function(type,name){localVars[name.text]=type;return "locals."+name;});
 		var nomal_decl=var_type.and(name).ret(function(type,name){return name;});
 		if(mode=="global"){var_name=global_name;var_decl=global_decl;}
 		else if(mode=="local"){var_name=local_name;var_decl=local_decl;}
@@ -61,11 +67,9 @@ MinimalParser= function () {
 	
 		var expression = ExpressionParser();
 		expression.element(func_call_lazy);
-		expression.element(token("true"));
-		expression.element(token("false"));
-		expression.element(var_decl);
 		expression.element(var_name);
 		expression.element(ptr_name);
+		expression.element(var_decl);
 		expression.element(str);
 		expression.element(num);
 		expression.element(paren_expr_lazy);
@@ -125,6 +129,7 @@ MinimalParser= function () {
 		var while_state=token("while").and(token("(")).and(assign).and(token(")")).and(token("{")).and(terms).and(token("}")).ret(function(while_t,lp,assign,rp,lcb,terms,rcb){return "while("+assign+"){"+terms+"}"});
 		var do_while_state=token("do").and(token("{")).and(terms).and(token("}")).and(token("while")).and(token("(")).and(assign).and(token(")")).and(token(";")).ret(function(do_t,lcb,terms,rcb,while_t,lp,assign,rp){return "do{"+terms+"}while("+assign+");";});
 		control_syntax=if_state.or(for_state).or(while_state).or(do_while_state);
+
 		var call_param=assign;
 		var call_param=call_param.sep0(token(","),true).ret(function(param){return (Array.isArray(param))?param.join(","):((param=="void")?"":param);});
 		//call_params=call_params.opt().ret(function(param){return (param)?param:"";});
@@ -157,6 +162,7 @@ MinimalParser= function () {
 				input=input.slice(result.src.maxPos);
 				if(!input)break;
 			}else{
+			throw("プログラムに誤りがあります。\n行番号の取得は後ほど実装します。");
 				console.log(input);
 				console.log(result);
 				document.form.res.value+="faild\n";

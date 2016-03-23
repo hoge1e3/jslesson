@@ -85,7 +85,6 @@
 */
 
 (function() {
-
     var acorn = {};
     (function (exports) {
       // This section of code is taken from acorn.
@@ -2092,6 +2091,7 @@
 
     }
 
+        window.js_beautify = js_beautify;
 
     if (typeof define === "function" && define.amd) {
         // Add support for AMD ( https://github.com/amdjs/amdjs-api/wiki/AMD#defineamd-property- )

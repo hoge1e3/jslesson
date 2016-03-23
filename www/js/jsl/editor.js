@@ -40,9 +40,20 @@ $(function () {
     var curPrj=TPRC(curProjectDir);
     Tonyu.globals.$currentProject=curPrj;
     Tonyu.currentProject=curPrj;
-    var EXT=A(curPrj.EXT);
+    //var EXT=A(curPrj.EXT);
+    var EXT=curPrj.getEXT();
     var HEXT=".html";
-
+    var opt=curPrj.getOptions();
+    var lang=opt.language || "js";
+    var langList={
+	"js":"JavaScript",
+	"c":"C"
+    }
+    if(lang=="c"){
+	requirejs(["cCompiler"],function(){
+	    alert("cCom requirejsed");
+	});
+    }
     function makeUI(){
         Columns.make(
               ["div",{id:"fileViewer","class":"col-xs-2"},
@@ -56,7 +67,7 @@ $(function () {
                      },"HTML"],
                      ["button",{
                          "class":"selTab","data-ext":EXT
-                     },"JavaScript"],
+                     },langList[lang]],
                      ["span",{id:"curFileLabel"}],
                      ["span",{id:"modLabel"}]
                   ],
@@ -167,7 +178,6 @@ $(function () {
             A.is(ci,Number);
             ls();
             fl.select(news[ci]);
-            //fl.select(nf);
         }});
     }));
 
@@ -187,7 +197,7 @@ $(function () {
         if (f.ext()==EXT || f.ext()==HEXT) {
             fileSet(f).forEach(function (e) {
                 if (e.ext()==EXT && !e.exists()) {
-                    e.text("// Javascript\n");
+                    e.text("// "+langList[lang]+"\n");
                 } else if (e.ext()==HEXT  && !e.exists()) {
                     e.text("<html>\n\n</html>");
                 } else {
@@ -325,39 +335,50 @@ $(function () {
         var curHTMLFile=curFiles[0];
         var curJSFile=curFiles[1];
 
-        var name=curPrj.getClassName(curJSFile);
-        A.is(name,String);
         stop();
         save();
         displayMode("run");
-        if (typeof SplashScreen!="undefined") SplashScreen.show();
+	if(lang=="js"){
+	        if (typeof SplashScreen!="undefined") SplashScreen.show();
 
-        runURL=location.href.replace(/\/[^\/]*\?.*$/,
-                "/run.html?classroom="+curClassroom+"&usr="+curUser+
-                "&prj="+curProjectDir.name().replace("/","")+
-                "&class="+name.replace("user.","")
-        );
-        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
-        $("#qr").text("QR");
-        //if (curHTMLFile.exists()) $("#runArea")[0].innerHTML=curHTMLFile.text();
-        curPrj.loadClasses().then(DU.throwF(function() {
-            curName=name;
-            if (curFrameRun) {
-                window.setupFrame(curFrameRun);
-            } else {
-                $("#ifrm").attr("src","run.html");
-            }
-            return sync();
-        }), function (e) {
-            if (typeof SplashScreen!="undefined") SplashScreen.hide();
-            if (e.isTError) {
-                console.log("showErr: run");
-                showErrorPos($("#errorPos"),e);
-                displayMode("compile_error");
-            }else{
-                Tonyu.onRuntimeError(e);
-            }
-        });
+	        var name=curPrj.getClassName(curJSFile);
+	        A.is(name,String);
+	        runURL=location.href.replace(/\/[^\/]*\?.*$/,
+	                "/run.html?classroom="+curClassroom+"&usr="+curUser+
+	                "&prj="+curProjectDir.name().replace("/","")+
+	                "&class="+name.replace("user.","")
+	        );
+	        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+	        $("#qr").text("QR");
+	        curPrj.loadClasses().then(DU.throwF(function() {
+	            curName=name;
+	            if (curFrameRun) {
+	                window.setupFrame(curFrameRun);
+	            } else {
+	                $("#ifrm").attr("src","run.html");
+	            }
+	            return sync();
+	        }), function (e) {
+	            if (typeof SplashScreen!="undefined") SplashScreen.hide();
+	            if (e.isTError) {
+	                console.log("showErr: run");
+	                showErrorPos($("#errorPos"),e);
+	                displayMode("compile_error");
+	            }else{
+	                Tonyu.onRuntimeError(e);
+	            }
+	        });
+	}else if(lang=="c"){
+		var compiledFile=curPrj.getOutputFile();
+		compile(curJSFile,compiledFile);
+	        runURL=location.href.replace(/\/[^\/]*\?.*$/,
+	                "/js/ctrans/runc.html?file="+compiledFile.path()
+	        );
+		$("#ifrm").attr("src",runURL);
+
+	        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+	        $("#qr").text("QR");
+	}
     }
     window.moveFromFrame=function (name) {
         var f=curProjectDir.rel(name);

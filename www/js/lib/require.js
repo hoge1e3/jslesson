@@ -1869,8 +1869,8 @@ var requirejs, require, define;
                 node.addEventListener('error', context.onScriptError, false);
             }
             node.src = url;
-            if (typeof window=="object" && window.location.href.match(/^http/)) {
-                //node.src += "?"+Math.random();
+            if (typeof window=="object" && window.location.href.match(/localhost/)) {
+                node.src += "?"+Math.random();
             }
 
             //For some cache cases in IE 6-8, the script executes before the end

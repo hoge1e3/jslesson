@@ -96,7 +96,9 @@ $(function () {
         });
     }
     $("#newPrj").click(function (){
-    	NPD.show(projects, function (prjDir) {
+    	NPD.show(projects, function (model) {
+	    console.log(model);
+	    prjDir=model.dstDir;
             prjDir.mkdir();
             TPRC(prjDir).setOptions({
                 compiler:{
@@ -106,7 +108,8 @@ $(function () {
                     dependingProjects:[
                          {"namespace":"jslker", "compiledURL":"${JSLKer}/js/concat.js"}
                     ]
-                }
+                },
+		language:model.lang
             });
             document.location.href="?r=jsl_edit&dir="+prjDir.path();
     	});
