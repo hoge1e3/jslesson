@@ -1298,7 +1298,8 @@ SFile.prototype={
         if (!this.isDir()) return false;
         return P.startsWith( file.path(), this.path());
     },
-    // Path from Root
+    // パス・名前・相対ファイル取得メソッド
+    // このファイルのフルパスを取得
     path: function () {
         return this._path;//this.fs.getPathFromRootFS(this.pathT);
     },
@@ -1306,15 +1307,19 @@ SFile.prototype={
     /*pathInThisFS: function () {
         return this.pathT;
     },*/
+    // このファイルの名前のみを取得
     name: function () {
         return P.name(this.path());
     },
+    // このファイルの拡張子を除いた名前を取得（extは省略可能）
     truncExt: function (ext) {
         return P.truncExt(this.path(),ext);
     },
+    // このファイルの拡張子を取得
     ext: function () {
         return P.ext(this.path());
     },
+    // このファイルのbaseを基準とした相対パスを取得
     relPath: function (base) {
         // base should be SFile or Path from rootFS
         var bp=(base.path ?
@@ -1322,34 +1327,42 @@ SFile.prototype={
                 base );
         return P.relPath(this.path(), A.is(bp,P.Absolute) );
     },
+    // このファイルの親ファイルのファイルオブジェクトを取得
     up:function () {
         var pathR=this.path();
         var pa=P.up(pathR);
         if (pa==null) return null;
         return this._resolve(pa);
     },
+    // このフォルダを基準に相対パスrelPathで指定されたファイルのファイルオブジェクトを取得
+    // 注意：フォルダを指定する場合、relPathは必ず/ で終わること
     rel: function (relPath) {
         A.is(relPath, P.Relative);
         this.assertDir();
         var pathR=this.path();
         return this._resolve(P.rel(pathR, relPath));
     },
+    // このファイルのファイル名がpreで始まっているか？
     startsWith: function (pre) {
         return P.startsWith(this.name(),pre);
     },
+    // このファイルのファイル名がpostで終わっているか？
     endsWith: function (post) {
         return P.endsWith(this.name(),post);
     },
+    // このファイルオブジェクトとoが同じファイルを指すファイルオブジェクトか？
     equals:function (o) {
         return (o && typeof o.path=="function" && o.path()==this.path());
     },
     toString:function (){
         return this.path();
     },
-    //Common
+    //属性など
+    // このファイルのタイムスタンプを更新
     touch: function () {
         this.fs.touch(this.path());
     },
+    // このファイルが読み取り専用か？
     isReadOnly: function () {
         this.fs.isReadOnly(this.path());
     },
@@ -1371,6 +1384,7 @@ SFile.prototype={
     setMetaInfo: function (info, options) {
         return this.fs.setMetaInfo(this.path(),info, options);
     },
+    //最終更新時刻を数値(ミリ秒)で返す
     lastUpdate:function () {
         A(this.exists());
         return this.metaInfo().lastUpdate;
@@ -1378,6 +1392,7 @@ SFile.prototype={
     /*rootFS: function () {
         return this.fs.getRootFS();
     },*/
+    // ファイルが存在するか？
     exists: function (options) {
         options=options||{};
         var p=this.fs.exists(this.path(),options);
@@ -1390,6 +1405,7 @@ SFile.prototype={
     /*copyTo: function (dst, options) {
         this.fs.cp(this.path(),getPath(dst),options);
     },*/
+    // ファイルを削除する
     rm: function (options) {
         options=options||{};
         if (!this.exists({noFollowLink:true})) {
@@ -1409,10 +1425,12 @@ SFile.prototype={
         options.noTrash=true;
         this.rm(options);
     },
+    // フォルダか？
     isDir: function () {
         return this.fs.isDir(this.path());
     },
-    // File
+    // 引数なし：ファイルをテキストとして呼び出す
+    // 引数1個： ファイルに引数に指定した文字列を書き込む
     text:function () {
         var l=this.resolveLink();
         if (!this.equals(l)) return l.text.apply(l,arguments);
@@ -1429,9 +1447,12 @@ SFile.prototype={
     getText:function (t) {
         return this.fs.getContent(this.path(), {type:String});
     },
+    // ファイルを読みだし、行ごとの配列を返す
     lines:function () {
         return this.text().split("\n");
     },
+    // 引数なし：ファイルの内容をJSONとして解釈しオブジェクトを返す
+    // 引数あり：引数のオブジェクトをJSONに変換して書き込む
     obj: function () {
         var file=this;
         if (arguments.length==0) {
@@ -1442,6 +1463,7 @@ SFile.prototype={
             file.text(JSON.stringify(A.is(arguments[0],Object) ));
         }
     },
+    // src（ファイルオブジェクト）からファイルをコピー
     copyFrom: function (src, options) {
         var dst=this;
         var options=options||{};
@@ -1472,6 +1494,7 @@ SFile.prototype={
         //file.text(src.text());
         //if (options.a) file.metaInfo(src.metaInfo());
     },
+    // src（ファイルオブジェクト）からここにファイルを移動
     moveFrom: function (src, options) {
         var res=this.copyFrom(src,options);
         src.rm({recursive:true});
@@ -1490,10 +1513,12 @@ SFile.prototype={
         },options);
         return res;
     },*/
+    // このフォルダ直下の各ファイルオブジェクトeについて、関数f(e)を繰り返し呼び出す
     each:function (f,options) {
         var dir=this.assertDir();
         dir.listFiles(options).forEach(f);
     },
+    // このフォルダとそのサブフォルダ内の各ファイルオブジェクトeについて、関数f(e)を繰り返し呼び出す
     recursive:function (fun,options) {
         var dir=this.assertDir();
         dir.each(function (f) {
@@ -1501,6 +1526,7 @@ SFile.prototype={
             else fun(f);
         },options);
     },
+    // このフォルダ直下の各ファイルeを配列で返す
     listFiles:function (options) {
         A(options==null || typeof options=="object");
         var dir=this.assertDir();
@@ -1522,6 +1548,7 @@ SFile.prototype={
         if (typeof ord=="function" && res.sort) res.sort(ord);
         return res;
     },
+    // このフォルダ内の各ファイルのファイル名を配列で返す
     ls:function (options) {
         A(options==null || typeof options=="object");
         var dir=this.assertDir();
@@ -1548,6 +1575,7 @@ SFile.prototype={
         }
         return A.is(options,{excludes:{}});
     },
+    // このディレクトリを作成する
     mkdir: function () {
         this.touch();
     },
@@ -6921,6 +6949,12 @@ var TPRC=function (dir) {
          TPR.fixOptions(env.options);
          return env.options;
      };
+     TPR.getEXT=function(){
+	 var opt=TPR.getOptions();
+	 if(!opt.language) TPR.EXT=".tonyu";
+	 else TPR.EXT="."+opt.language;
+	 return TPR.EXT;
+     }
      TPR.setOptions=function (opt) {
          TPR.getOptionsFile().obj(opt);
      }; // ADDJSL
@@ -7012,12 +7046,6 @@ var TPRC=function (dir) {
          //var classes=ctx.classes||{};
          if (visited[TPR.path()]) return DU.directPromise();
          visited[TPR.path()]=true;
-         /*TPR.getDependingProjects().forEach(function (p) {
-             if (p.getNamespace()==myNsp) return;
-             task=task.then(function () {
-                 return p.loadClasses(ctx);
-             });
-         });*/
          return TPR.loadDependingClasses(ctx).then(function () {
              return TPR.shouldCompile();
          }).then(function (sc) {
@@ -7059,17 +7087,7 @@ var TPRC=function (dir) {
          Tonyu.runMode=false;
          console.log("Compile: "+dir.path());
          ctx=initCtx(ctx);
-         //var dp=TPR.getDependingProjects();
          var myNsp=TPR.getNamespace();
-         /*var task=DU.directPromise();
-         dp.forEach(function (dprj) {
-             var nsp=dprj.getNamespace();
-             if (nsp!=myNsp) {
-                 task=task.then(F(function () {
-                     dprj.loadClasses(ctx);
-                 }));
-             }
-         });*/
          return TPR.loadDependingClasses(ctx).then(F(function () {
              var baseClasses=ctx.classes;
              console.log("baseClasses", baseClasses);
@@ -7135,7 +7153,6 @@ var TPRC=function (dir) {
      TPR.dir=dir;
      TPR.path=function () {return dir.path();};
      TPR.sourceFiles=function (nsp) {// nsp==null => all
-         //nsp=nsp || TPR.getNamespace();//DELJSL
          var dirs=TPR.sourceDirs(nsp);// ADDJSL
          var res={};
          for (var i=dirs.length-1; i>=0 ; i--) {
@@ -7154,7 +7171,6 @@ var TPRC=function (dir) {
      };
      TPR.sourceDirs=function (myNsp) {//ADDJSL  myNsp==null => All
          var dp=TPR.getDependingProjects();
-         //var myNsp||TPR.getNamespace();//DELJSL
          var dirs=[dir];
          dp.forEach(function (dprj) {
              var nsp=dprj.getNamespace();
@@ -7180,12 +7196,6 @@ var TPRC=function (dir) {
                 if (added[n]) continue;
                 var c=classes[n];/*ENVC*/
                 var deps=dep1(c);
-                //var ready=true;
-                /*deps.forEach(function (cl) {
-                    ready=ready && (
-                       !cl || !classes[cl.fullName] || cl.builtin || added[cl.fullName]
-                    );
-                });*/
                 if (deps.length==0) {
                     res.push(c);
                     added[n]=true;
@@ -8004,9 +8014,20 @@ $(function () {
     var curPrj=TPRC(curProjectDir);
     Tonyu.globals.$currentProject=curPrj;
     Tonyu.currentProject=curPrj;
-    var EXT=A(curPrj.EXT);
+    //var EXT=A(curPrj.EXT);
+    var EXT=curPrj.getEXT();
     var HEXT=".html";
-
+    var opt=curPrj.getOptions();
+    var lang=opt.language || "js";
+    var langList={
+	"js":"JavaScript",
+	"c":"C"
+    }
+    if(lang=="c"){
+	requirejs(["cCompiler"],function(){
+	    alert("cCom requirejsed");
+	});
+    }
     function makeUI(){
         Columns.make(
               ["div",{id:"fileViewer","class":"col-xs-2"},
@@ -8020,7 +8041,7 @@ $(function () {
                      },"HTML"],
                      ["button",{
                          "class":"selTab","data-ext":EXT
-                     },"JavaScript"],
+                     },langList[lang]],
                      ["span",{id:"curFileLabel"}],
                      ["span",{id:"modLabel"}]
                   ],
@@ -8057,15 +8078,12 @@ $(function () {
 
     var screenH;
     function onResize() {
-        //console.log($(window).height(), $("#navBar").height());
         var h=$(window).height()-$("#navBar").height()-$("#tabTop").height();
         h-=20;
         screenH=h;
         var rw=$("#runArea").width();
         $("#progs pre").css("height",h+"px");
         console.log("canvas size",rw,h);
-        //$("#cv").attr("height", h).attr("width", rw);
-        //cv=$("#cv")[0].getContext("2d");
         $("#fileItemList").height(h);
     }
     onResize();
@@ -8134,7 +8152,6 @@ $(function () {
             A.is(ci,Number);
             ls();
             fl.select(news[ci]);
-            //fl.select(nf);
         }});
     }));
 
@@ -8154,7 +8171,7 @@ $(function () {
         if (f.ext()==EXT || f.ext()==HEXT) {
             fileSet(f).forEach(function (e) {
                 if (e.ext()==EXT && !e.exists()) {
-                    e.text("// Javascript\n");
+                    e.text("// "+langList[lang]+"\n");
                 } else if (e.ext()==HEXT  && !e.exists()) {
                     e.text("<html>\n\n</html>");
                 } else {
@@ -8173,10 +8190,6 @@ $(function () {
         return f.name();
     };
     var refactorUI;
-    /*FM.on.mvExtraUI=function (d) {
-        refactorUI=UI("div",["input",{type:"checkbox",$var:"chk",checked:"true",value:"chked"}],"プログラム中のクラス名も変更する");
-        d.append(refactorUI);
-    };*/
     FM.on.rm=function (f) {
         var fs=fileSet(f);
         for (var i=0;i<fs.length;i++) {
@@ -8202,30 +8215,11 @@ $(function () {
         ls();
         fl.select(news[ci]);
         return false;
-        /*if (!refactorUI) return;
-        var oldCN=old.truncExt(EXT);
-        var newCN=_new.truncExt(EXT);
-        if (refactorUI.$vars.chk.prop("checked")) {
-            //alert(oldCN+"=>"+newCN);
-            save();
-            try {
-                curPrj.renameClassName(oldCN,newCN);
-            } catch (e) {
-                alert("プログラム内にエラーがあります．エラーを修正するか，「プログラム中のクラス名も変更する」のチェックを外してもう一度やり直してください．");
-                console.log(e);
-                return false;
-            }
-        }
-        //close(old);  does in FileMenu
-        */
-        //reloadFromFiles();
-        //refactorUI=null;
     };
     F(FM.on);
     fl.ls(curProjectDir);
     function ls(){
         fl.ls(curProjectDir);
-//        refreshRunMenu();
     }
     function dispName(f) {
         var name=f.name();
@@ -8235,7 +8229,6 @@ $(function () {
     }
     function fixName(name, options) {
         var upcased=false;
-        //if (name=="aaaa") throw new Error("iikagen name error "+EC.enter);
         if (name.match(/^[a-z]/)) {
             name= name.substring(0,1).toUpperCase()+name.substring(1);
             upcased=true;
@@ -8316,50 +8309,50 @@ $(function () {
         var curHTMLFile=curFiles[0];
         var curJSFile=curFiles[1];
 
-        var name=curPrj.getClassName(curJSFile);
-        A.is(name,String);
         stop();
         save();
         displayMode("run");
-        if (typeof SplashScreen!="undefined") SplashScreen.show();
+	if(lang=="js"){
+	        if (typeof SplashScreen!="undefined") SplashScreen.show();
 
-        runURL=location.href.replace(/\/[^\/]*\?.*$/,
-                "/run.html?classroom="+curClassroom+"&usr="+curUser+
-                "&prj="+curProjectDir.name().replace("/","")+
-                "&class="+name.replace("user.","")
-        );
-        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
-        $("#qr").text("QR");
-        //if (curHTMLFile.exists()) $("#runArea")[0].innerHTML=curHTMLFile.text();
-        curPrj.loadClasses().then(DU.throwF(function() {
-            curName=name;
-            if (curFrameRun) {
-                window.setupFrame(curFrameRun);
-            } else {
-                $("#ifrm").attr("src","run.html");
-            }
+	        var name=curPrj.getClassName(curJSFile);
+	        A.is(name,String);
+	        runURL=location.href.replace(/\/[^\/]*\?.*$/,
+	                "/run.html?classroom="+curClassroom+"&usr="+curUser+
+	                "&prj="+curProjectDir.name().replace("/","")+
+	                "&class="+name.replace("user.","")
+	        );
+	        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+	        $("#qr").text("QR");
+	        curPrj.loadClasses().then(DU.throwF(function() {
+	            curName=name;
+	            if (curFrameRun) {
+	                window.setupFrame(curFrameRun);
+	            } else {
+	                $("#ifrm").attr("src","run.html");
+	            }
+	            return sync();
+	        }), function (e) {
+	            if (typeof SplashScreen!="undefined") SplashScreen.hide();
+	            if (e.isTError) {
+	                console.log("showErr: run");
+	                showErrorPos($("#errorPos"),e);
+	                displayMode("compile_error");
+	            }else{
+	                Tonyu.onRuntimeError(e);
+	            }
+	        });
+	}else if(lang=="c"){
+		var compiledFile=curPrj.getOutputFile();
+		compile(curJSFile,compiledFile);
+	        runURL=location.href.replace(/\/[^\/]*\?.*$/,
+	                "/js/ctrans/runc.html?file="+compiledFile.path()
+	        );
+		$("#ifrm").attr("src",runURL);
 
-            /*A(Tonyu.classes);
-            var bootClass=Tonyu.getClass(name);
-            if (!bootClass) throw TError( name+" というクラスはありません", "不明" ,0);
-            Tonyu.runMode=true;
-            var boot=new bootClass();
-            var th=Tonyu.thread();
-            th.apply(boot,"main");
-            $LASTPOS=0;
-            if (typeof SplashScreen!="undefined") SplashScreen.hide();
-            th.steps();*/
-            return sync();
-        }), function (e) {
-            if (typeof SplashScreen!="undefined") SplashScreen.hide();
-            if (e.isTError) {
-                console.log("showErr: run");
-                showErrorPos($("#errorPos"),e);
-                displayMode("compile_error");
-            }else{
-                Tonyu.onRuntimeError(e);
-            }
-        });
+	        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+	        $("#qr").text("QR");
+	}
     }
     window.moveFromFrame=function (name) {
         var f=curProjectDir.rel(name);
@@ -8483,8 +8476,6 @@ $(function () {
     }
     $(".selTab").click(function () {
         var ext=A.is($(this).attr("data-ext"),String);
-        //$(".selTab").removeClass("selected");
-        //$(this).addClass("selected");
         var c=fl.curFile();
         if (!c) {
             alert("まず、メニューの「ファイル」→「新規」でファイルを作るか、左のファイル一覧からファイルを選んでください。");

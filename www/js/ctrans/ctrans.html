@@ -11,13 +11,19 @@
 <script>
 requirejs(["FS"],function (FS) {
 	$(function () {
+		var userid="???";
+		var classid="???";
 	  var cFile=FS.get("/main.c");
 		var jsFile=FS.get("/main.js");
+		//var logFile=FS.get("/userid.log");
 	  if (cFile.exists()) $("#prog").val(cFile.text());
+		//if (logFile.exists()) logFile.text("classid\tuserid\ttime\terr\terrcode\tprogram\n");
 	  $("#parse").click(function () {
+			var log={userid:userid,classid:classid,time:(new Date).toLocaleString()}
 			cFile.text($("#prog").val());
-			compile(cFile,jsFile);
+			compile(cFile,jsFile,log);
 	   	$("#res").val(jsFile.text());
+			console.log(/*logFile.text()+*/log.classid+"\t"+log.userid+"\t"+log.time+"\t"+log.err+"\t"+log.errcode+"\t"+log.program+"\n");
 	  });
 		$("#run").click(function(){$("#iframe").attr("src","./runc.html?file=/main.js");;});
 	});

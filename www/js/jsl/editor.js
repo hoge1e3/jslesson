@@ -51,7 +51,7 @@ $(function () {
     }
     if(lang=="c"){
 	requirejs(["cCompiler"],function(){
-	    alert("cCom requirejsed");
+	    console.log("cCom requirejsed");
 	});
     }
     function makeUI(){
@@ -370,7 +370,8 @@ $(function () {
 	        });
 	}else if(lang=="c"){
 		var compiledFile=curPrj.getOutputFile();
-		compile(curJSFile,compiledFile);
+		var log={};
+		compile(curJSFile,compiledFile,log);
 	        runURL=location.href.replace(/\/[^\/]*\?.*$/,
 	                "/js/ctrans/runc.html?file="+compiledFile.path()
 	        );

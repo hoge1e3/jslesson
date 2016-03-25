@@ -21,6 +21,7 @@ if (isset($_GET["curuser"])) {
 if ($showForm) { 
            setcookie("user","", time()-18000);
 ?>
+	<meta charset="UTF-8">
 	<form action="login.php">
 	  クラスID<input name="class"></br>
 	  ユーザ名<input name="user">
