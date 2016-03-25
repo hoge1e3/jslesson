@@ -1069,7 +1069,8 @@ define('MIMETypes',[], function () {
       '.ppsx':'application/vnd.openxmlformats-officedocument.presentationml.slideshow',
       '.ppsm':'application/vnd.ms-powerpoint.slideshow.macroEnabled.12',
       '.ppam':'application/vnd.ms-powerpoint.addin.macroEnabled.12',
-      ".tonyu":"text/tonyu"
+      ".tonyu":"text/tonyu",
+      ".log":"text/plain"
    };
 });
 define('DataURL',["extend","assert"],function (extend,assert) {
@@ -8025,7 +8026,7 @@ $(function () {
     }
     if(lang=="c"){
 	requirejs(["cCompiler"],function(){
-	    alert("cCom requirejsed");
+	    console.log("cCom requirejsed");
 	});
     }
     function makeUI(){
@@ -8344,7 +8345,8 @@ $(function () {
 	        });
 	}else if(lang=="c"){
 		var compiledFile=curPrj.getOutputFile();
-		compile(curJSFile,compiledFile);
+		var log={};
+		compile(curJSFile,compiledFile,log);
 	        runURL=location.href.replace(/\/[^\/]*\?.*$/,
 	                "/js/ctrans/runc.html?file="+compiledFile.path()
 	        );

@@ -371,7 +371,8 @@ define('MIMETypes',[], function () {
       '.ppsx':'application/vnd.openxmlformats-officedocument.presentationml.slideshow',
       '.ppsm':'application/vnd.ms-powerpoint.slideshow.macroEnabled.12',
       '.ppam':'application/vnd.ms-powerpoint.addin.macroEnabled.12',
-      ".tonyu":"text/tonyu"
+      ".tonyu":"text/tonyu",
+      ".log":"text/plain"
    };
 });
 define('DataURL',["extend","assert"],function (extend,assert) {
