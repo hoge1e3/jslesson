@@ -13,7 +13,6 @@ define([], function () {
       ".css":"text/css",
       ".js":"text/javascript",
       ".json":"text/json",
-      ".desktop":"text/json",
       ".zip":"application/zip",
       ".swf":"application/x-shockwave-flash",
       ".pdf":"application/pdf",
@@ -37,7 +36,6 @@ define([], function () {
       '.ppsx':'application/vnd.openxmlformats-officedocument.presentationml.slideshow',
       '.ppsm':'application/vnd.ms-powerpoint.slideshow.macroEnabled.12',
       '.ppam':'application/vnd.ms-powerpoint.addin.macroEnabled.12',
-      ".tonyu":"text/tonyu",
-      ".log":"text/plain"
+      ".tonyu":"text/tonyu"
    };
 });
