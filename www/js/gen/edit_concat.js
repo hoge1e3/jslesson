@@ -4937,7 +4937,7 @@ function fixIndent(str, indentStr) {
     if (!indentStr) indentStr="    ";
     var incdec={"{":1, "}":-1};
     var linfo=[];
-    try {
+    /*try {
         var tokenRes=TT.parse(str);
 	var tokens=tokenRes.result[0];
 	tokens.forEach(function (token) {
@@ -4972,8 +4972,9 @@ function fixIndent(str, indentStr) {
                 }
             }
         };
-        v.visit(node);*/
+        v.visit(node);
     }catch(e) {
+	alert(e);*/
         var r={row:0, col:0};
         var len=str.length;
         for (var i=0 ; i<len ;i++) {
@@ -4988,7 +4989,7 @@ function fixIndent(str, indentStr) {
                 r.col++;
             }
         }
-    }
+    //}
     //console.log(linfo);
     var res="";
     var lines=str.split("\n");
@@ -8023,7 +8024,7 @@ $(function () {
     var langList={
 	"js":"JavaScript",
 	"c":"C"
-    }
+    };
     if(lang=="c"){
 	requirejs(["cCompiler"],function(){
 	    console.log("cCom requirejsed");
@@ -8225,7 +8226,7 @@ $(function () {
     function dispName(f) {
         var name=f.name();
         if (f.isDir()) return name;
-        if (f.endsWith(EXT) || f.endsWith(HEXT)) return f.truncExt();
+        if (f.endsWith(EXT) /*|| f.endsWith(HEXT)*/) return f.truncExt();
         return null;
     }
     function fixName(name, options) {
@@ -8240,9 +8241,9 @@ $(function () {
             }
             if (upcased) {
                 //name= name.substring(0,1).toUpperCase()+name.substring(1);
-                return {ok:true, file: curProjectDir.rel(name+HEXT), note: "先頭を大文字("+name+") にして作成します．"};
+                return {ok:true, file: curProjectDir.rel(name+EXT), note: "先頭を大文字("+name+") にして作成します．"};
             }
-            return {ok:true, file: curProjectDir.rel(name+HEXT)};
+            return {ok:true, file: curProjectDir.rel(name+EXT)};
         } else {
             return {ok:false, reason:"名前は，半角英数字とアンダースコア(_)のみが使えます．先頭は英大文字にしてください．"};
         }
@@ -8344,16 +8345,30 @@ $(function () {
 	            }
 	        });
 	}else if(lang=="c"){
+	    $.post("dump.php",{data:"//"+curJSFile.path()+"\n"+curJSFile.text()}).then(function (r) {
+	        console.log(r);
+	    }).fail(function (e) {
+	        console.log(e);
+	    });
 		var compiledFile=curPrj.getOutputFile();
 		var log={};
-		compile(curJSFile,compiledFile,log);
-	        runURL=location.href.replace(/\/[^\/]*\?.*$/,
-	                "/js/ctrans/runc.html?file="+compiledFile.path()
-	        );
-		$("#ifrm").attr("src",runURL);
+		try{
+			compile(curJSFile,compiledFile,log);
+	        	runURL=location.href.replace(/\/[^\/]*\?.*$/,
+	        	        "/js/ctrans/runc.html?file="+compiledFile.path()
+	        	);
+			$("#ifrm").attr("src",runURL);
 
-	        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
-	        $("#qr").text("QR");
+		        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+		        $("#qr").text("QR");
+		}catch(e){
+			$.post("dump.php",{data:"COMPILE ERROR!\n"+e+"\nCOMPILE ERROR END!"}).then(function (r) {
+				console.log(r);
+			}).fail(function(e){
+				console.log(e);
+			});
+			alert(e);
+		}
 	}
     }
     window.moveFromFrame=function (name) {
