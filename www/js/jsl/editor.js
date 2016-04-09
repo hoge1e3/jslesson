@@ -371,14 +371,18 @@ $(function () {
 	}else if(lang=="c"){
 		var compiledFile=curPrj.getOutputFile();
 		var log={};
-		compile(curJSFile,compiledFile,log);
-	        runURL=location.href.replace(/\/[^\/]*\?.*$/,
-	                "/js/ctrans/runc.html?file="+compiledFile.path()
-	        );
-		$("#ifrm").attr("src",runURL);
+		try{
+			compile(curJSFile,compiledFile,log);
+	        	runURL=location.href.replace(/\/[^\/]*\?.*$/,
+	        	        "/js/ctrans/runc.html?file="+compiledFile.path()
+	        	);
+			$("#ifrm").attr("src",runURL);
 
-	        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
-	        $("#qr").text("QR");
+		        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+		        $("#qr").text("QR");
+		}catch(e){
+			alert(e);
+		}
 	}
     }
     window.moveFromFrame=function (name) {

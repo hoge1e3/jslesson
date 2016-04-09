@@ -2,7 +2,7 @@ function fixIndent(str, indentStr) {
     if (!indentStr) indentStr="    ";
     var incdec={"{":1, "}":-1};
     var linfo=[];
-    try {
+    /*try {
         var tokenRes=TT.parse(str);
 	var tokens=tokenRes.result[0];
 	tokens.forEach(function (token) {
@@ -37,8 +37,9 @@ function fixIndent(str, indentStr) {
                 }
             }
         };
-        v.visit(node);*/
+        v.visit(node);
     }catch(e) {
+	alert(e);*/
         var r={row:0, col:0};
         var len=str.length;
         for (var i=0 ; i<len ;i++) {
@@ -53,7 +54,7 @@ function fixIndent(str, indentStr) {
                 r.col++;
             }
         }
-    }
+    //}
     //console.log(linfo);
     var res="";
     var lines=str.split("\n");

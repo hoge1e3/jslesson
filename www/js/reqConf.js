@@ -86,6 +86,7 @@ var reqConf={
                     "ctrans/beautify",
                     "ctrans/compiler",
                     "ctrans/ctrans",
+                    "ctrans/jsgen",
                     "ctrans/lib"
                 ],
                 exports:"compile"
