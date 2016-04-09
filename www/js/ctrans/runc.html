@@ -12,7 +12,21 @@ requirejs(["FS"],function(FS){
 			var tmp=this.split("=");
 			param[tmp[0]]=tmp[1];
 		});
-		new Function(FS.get(param.file).text())();
+		try{
+			new Function(FS.get(param.file).text())();
+			$.post("../../dump.php",{data:"RUN!\n"+$("#console").text()+"\nRUN END!"}).then(function (r) {
+				console.log(r);
+			}).fail(function(e){
+				console.log(e);
+			});
+		}catch(e){
+			alert(e);
+			$.post("../../dump.php",{data:"RUNTIME ERROR!\n"+e+"\nRUNTIME ERROR END!"}).then(function (r) {
+				console.log(r);
+			}).fail(function(e){
+				console.log(e);
+			});
+		}
 	});
 });
 </script>

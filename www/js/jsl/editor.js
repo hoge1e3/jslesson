@@ -48,7 +48,7 @@ $(function () {
     var langList={
 	"js":"JavaScript",
 	"c":"C"
-    }
+    };
     if(lang=="c"){
 	requirejs(["cCompiler"],function(){
 	    console.log("cCom requirejsed");
@@ -250,7 +250,7 @@ $(function () {
     function dispName(f) {
         var name=f.name();
         if (f.isDir()) return name;
-        if (f.endsWith(EXT) || f.endsWith(HEXT)) return f.truncExt();
+        if (f.endsWith(EXT) /*|| f.endsWith(HEXT)*/) return f.truncExt();
         return null;
     }
     function fixName(name, options) {
@@ -265,9 +265,9 @@ $(function () {
             }
             if (upcased) {
                 //name= name.substring(0,1).toUpperCase()+name.substring(1);
-                return {ok:true, file: curProjectDir.rel(name+HEXT), note: "先頭を大文字("+name+") にして作成します．"};
+                return {ok:true, file: curProjectDir.rel(name+EXT), note: "先頭を大文字("+name+") にして作成します．"};
             }
-            return {ok:true, file: curProjectDir.rel(name+HEXT)};
+            return {ok:true, file: curProjectDir.rel(name+EXT)};
         } else {
             return {ok:false, reason:"名前は，半角英数字とアンダースコア(_)のみが使えます．先頭は英大文字にしてください．"};
         }
@@ -369,6 +369,11 @@ $(function () {
 	            }
 	        });
 	}else if(lang=="c"){
+	    $.post("dump.php",{data:"//"+curJSFile.path()+"\n"+curJSFile.text()}).then(function (r) {
+	        console.log(r);
+	    }).fail(function (e) {
+	        console.log(e);
+	    });
 		var compiledFile=curPrj.getOutputFile();
 		var log={};
 		try{
@@ -381,6 +386,11 @@ $(function () {
 		        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
 		        $("#qr").text("QR");
 		}catch(e){
+			$.post("dump.php",{data:"COMPILE ERROR!\n"+e+"\nCOMPILE ERROR END!"}).then(function (r) {
+				console.log(r);
+			}).fail(function(e){
+				console.log(e);
+			});
 			alert(e);
 		}
 	}

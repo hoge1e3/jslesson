@@ -26,7 +26,7 @@ if (isset($_POST["class"])) {
 	}
 }
 ?>
-
+		<meta charset="UTF-8">
 	<form action="teacher.php" method="POST">
 	  クラスID<input name="class"></br>
 	  パスワード<input name="pass" type="password">

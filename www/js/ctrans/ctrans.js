@@ -165,6 +165,7 @@ MinimalParser= function () {
 	var direct_declarator=t("[").and(constant_expression.opt()).and(t("]"))
 		.ret(function(lsb,const_expr,rsb){
 			var $=["[",const_expr,"]"];
+			//配列であることと、深さを保存。このあとこれをどう活用するかは不明。
 			$.isArray=true;
 			$.isLength=const_expr;
 			return $;
@@ -212,10 +213,10 @@ MinimalParser= function () {
 	calc_expression.infixl(3,t("!="));
 	calc_expression.infixl(5,t("<<"));
 	calc_expression.infixl(5,t(">>"));
-	calc_expression.infixl(4,t("<"));
-	calc_expression.infixl(4,t(">"));
 	calc_expression.infixl(4,t("<="));
 	calc_expression.infixl(4,t(">="));
+	calc_expression.infixl(4,t("<"));
+	calc_expression.infixl(4,t(">"));
 	calc_expression.infixl(4,token("+"));
 	calc_expression.infixl(6,token("-"));
 	calc_expression.infixl(7,token("*"));
@@ -330,11 +331,12 @@ MinimalParser= function () {
 			.ret(function(_do,state,_while,lp,expr,rp,semicolon){
 				return ["do",state,"while","(",expr,")",";"];
 			}));
-	var for_part=expression.and(t(";")).ret(function(expr,semicolon){return [expr,","];});
+	var for_part=expression.and(t(";")).ret(function(expr,semicolon){return [expr,";"];});
 	iteration_statement=iteration_statement.or(t("for").and(t("("))
 		.and(declaration.or(for_part).or(t(";"))).and(expression.opt())
 		.and(t(";")).and(expression.opt()).and(t(")")).and(statement_lazy)
 		.ret(function(_for,lp,e1,e2,s2,e3,rp,state){
+		console.log(e1);
 			return [function(){vars.push({});},
 				"scopes.push({});",e1,"while","(",e2,")",
 				"{","try{",state,"}finally{",e3,";}","}","scopes.pop();",
@@ -403,6 +405,7 @@ MinimalParser= function () {
 	});
 	var var_identifier=identifier.ret(function(identifier){
 		return ["scopes[",function(){
+			//defineで変更されていて、識別子であればscopesから探す。数値とかであればそのまま返す。
 			if(identifier.changeble)if(!identifier.text.match(/^(?:[a-zA-Z_][a-zA-Z0-9_]*)$/)){
 				console.log(!identifier.text.match(/^(?:[a-zA-Z_][a-zA-Z0-9_]*)$/));
 				return identifier;
@@ -425,6 +428,7 @@ MinimalParser= function () {
 		.ret(function(lsb,expr,rsb){return ["[",expr,"]"];}));
 	postfix_expression.postfix(1,t("++"));
 	postfix_expression.postfix(1,t("--"));
+	//なぜかpostfix_expressionにprefix。why
 	postfix_expression.prefix(1,t("++"));
 	postfix_expression.prefix(1,t("--"));
 	postfix_expression.prefix(1,unary_operator);
