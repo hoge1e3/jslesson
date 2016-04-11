@@ -233,3 +233,181 @@ hello world!!
 konnichiwa sekai
 3
 RUN END!
+--TIME--
+2016-04-11T10:15:20+09:00
+--USER--
+lesson_samples
+--CLASS--
+0123
+--DATA--
+///Tonyu/Projects/TestC/Main4.c
+// C
+int main(void){
+    printf("hello world!!\n");
+    printf("konnichiwa sekai\n");
+    printf("%d",3);
+}
+--TIME--
+2016-04-11T10:15:20+09:00
+--USER--
+lesson_samples
+--CLASS--
+0123
+--DATA--
+RUN!
+hello world!!
+konnichiwa sekai
+3
+RUN END!
+--TIME--
+2016-04-11T10:15:24+09:00
+--USER--
+lesson_samples
+--CLASS--
+0123
+--DATA--
+///Tonyu/Projects/TestC/Main4.c
+// C
+int main(void){
+    printf("hello world!!\n");
+    printf("konnichiwa sekai\n");
+    printf("%d",3+2);
+}
+--TIME--
+2016-04-11T10:15:24+09:00
+--USER--
+lesson_samples
+--CLASS--
+0123
+--DATA--
+RUN!
+hello world!!
+konnichiwa sekai
+5
+RUN END!
+--TIME--
+2016-04-11T10:18:48+09:00
+--USER--
+lesson_samples
+--CLASS--
+0123
+--DATA--
+///Tonyu/Projects/TestC/Main4.c
+// C
+int main(void){
+    printf("hello world!!\n");
+    printf("konnichiwa sekai\n");
+    printf("%d",3+2);
+}
+--TIME--
+2016-04-11T10:18:49+09:00
+--USER--
+lesson_samples
+--CLASS--
+0123
+--DATA--
+RUN!
+hello world!!
+konnichiwa sekai
+5
+RUN END!
+--TIME--
+2016-04-11T10:23:12+09:00
+--USER--
+lesson_samples
+--CLASS--
+0123
+--DATA--
+///Tonyu/Projects/TestC/Main4.c
+// C
+int main(void){
+    printf("hello world!!\n");
+    printf("konnichiwa せかい\n");
+    printf("%d",3+2);
+}
+--TIME--
+2016-04-11T10:23:12+09:00
+--USER--
+lesson_samples
+--CLASS--
+0123
+--DATA--
+RUN!
+hello world!!
+konnichiwa せかい
+5
+RUN END!
+--TIME--
+2016-04-11T10:23:48+09:00
+--USER--
+lesson_samples
+--CLASS--
+0123
+--DATA--
+///Tonyu/Projects/TestC/Main4.c
+// C
+int main(void){
+    printf("hello world!!\n");
+    printf("konnichiwa せかい?\n");
+    printf("%d",3+2);
+}
+--TIME--
+2016-04-11T10:23:49+09:00
+--USER--
+lesson_samples
+--CLASS--
+0123
+--DATA--
+RUN!
+hello world!!
+konnichiwa せかい?
+5
+RUN END!
+--TIME--
+2016-04-11T10:24:00+09:00
+--USER--
+lesson_samples
+--CLASS--
+0123
+--DATA--
+///Tonyu/Projects/TestC/Main4.c
+// C
+int main(void){
+    printf("hello world!!\n");
+    printf("konnichiwa 世界\n");
+    printf("%d",3+2);
+}
+--TIME--
+2016-04-11T10:24:01+09:00
+--USER--
+lesson_samples
+--CLASS--
+0123
+--DATA--
+RUN!
+hello world!!
+konnichiwa 世界
+5
+RUN END!
+--TIME--
+2016-04-11T10:33:31+09:00
+--USER--
+lesson_samples
+--CLASS--
+0123
+--DATA--
+///Tonyu/Projects/TestC/Main3.c
+// Javascript
+int main() {
+    printf("Main3");
+}
+--TIME--
+2016-04-11T10:33:32+09:00
+--USER--
+lesson_samples
+--CLASS--
+0123
+--DATA--
+RUN!
+Main3
+RUN END!
