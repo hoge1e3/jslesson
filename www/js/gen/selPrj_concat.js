@@ -87,12 +87,6 @@ define('assert',[],function () {
             this.fail(action,"should throw an error",err);
         }
     };
-    /*var assert=function () {
-      var a=assert.a(arguments);
-      var t=a.shift();
-      if (!t) assert.fail(a);
-      return true;
-   };*/
     $a=function (args) {
         var a=[];
         for (var i=0; i<args.length ;i++) a.push(args[i]);
@@ -128,48 +122,6 @@ define('assert',[],function () {
         }
     };
     assert.fail=top.fail.bind(top);
-    /*
-   assert.fail=function () {
-      var a=assert.a(arguments);
-      a=flatten(a);
-      a.unshift("Assertion failed: ");
-      console.log.apply(console,a);
-      throw new Error(a.join(" "));
-   };
-   assert.is=function (value, type, mesg) {
-      var t=type,v=value;
-      mesg=mesg||[];
-      if (t==null) return true;
-      assert(value!=null,mesg.concat([value, "should not be null/undef"]));
-      if (t instanceof Array) {
-          if (!value || typeof value.length!="number") {
-              assert.fail(mesg.concat([value, "should be array:", type]));
-          }
-          t.forEach(function (te,i) {
-              assert.is(value[i],te,mesg.concat(["failed at ",value,"[",i,"]: "]));
-          });
-          return;
-      }
-      if (t===String || t=="string") {
-          return assert(typeof(v)=="string",
-          mesg.concat([v,"should be string "]));
-      }
-      if (t===Number || t=="number") {
-          return assert(typeof(v)=="number",
-          mesg.concat([v,"should be number"]));
-      }
-      if (t instanceof Object) {
-          for (var k in t) {
-              assert.is(value[k],t[k],mesg.concat(["failed at ",value,".",k,":"]));
-          }
-          return true;
-      }
-      if (t._assert_func) {
-          return t._assert_func(v,mesg);
-      }
-      return assert(v instanceof t,
-      mesg.concat([v, "should be ",t]));
-   };*/
     assert.f=function (f) {
         return {
             _assert_func: f
@@ -346,6 +298,7 @@ define('MIMETypes',[], function () {
       ".htm":"text/html",
       ".css":"text/css",
       ".js":"text/javascript",
+      ".c":"text/c",
       ".json":"text/json",
       ".desktop":"text/json",
       ".zip":"application/zip",
