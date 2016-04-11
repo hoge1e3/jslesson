@@ -189,10 +189,11 @@ MinimalParser= function () {
 		.ret(function(identifier,direct_decl){
 			var $=[identifier,direct_decl];
 			if(direct_decl.isArray)$.isArray=true;
+			console.log($);
 			return $;
 		});
 
-	declarator=direct_declarator;
+	declarator=direct_declarator.ret(function(e){return e;});
 
 	var parameter_declaration=declaration_specifiers.and(declarator)
 		.ret(function(declaration_specifiers,declarator){return [declaration_specifiers,declarator];});
@@ -269,7 +270,7 @@ MinimalParser= function () {
 	var init_declarator=declarator.and(t("=").and(initializer).opt())
 		.ret(function(declarator,eq,initializer){
 			var identifier=(searchIdentifier(declarator));
-			return (!eq)?[declarator]:[declarator,"=",function(){
+			var $= (!eq)?[declarator]:[declarator,"=",function(){
 				return ["cast(",function(){
 					var i=vars.length-1;
 					for(;i>=-1;i--){if(vars[i][identifier])break;}
@@ -277,6 +278,12 @@ MinimalParser= function () {
 				}];
 			}
 			,",",initializer,")"];
+			if(declarator.isArray){
+				$.isArray=declarator.isArray;
+				$.isLength=declarator.isLength;
+			}
+			console.log(declarator);
+			return $;
 		});
 
 	//init_declarator=init_declarator.or(declarator);
