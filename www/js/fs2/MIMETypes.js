@@ -12,6 +12,7 @@ define([], function () {
       ".htm":"text/html",
       ".css":"text/css",
       ".js":"text/javascript",
+      ".c":"text/c",
       ".json":"text/json",
       ".desktop":"text/json",
       ".zip":"application/zip",

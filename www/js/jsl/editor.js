@@ -393,6 +393,7 @@ $(function () {
 			});
 			alert(e);
 		}
+        return sync();
 	}
     }
     window.moveFromFrame=function (name) {

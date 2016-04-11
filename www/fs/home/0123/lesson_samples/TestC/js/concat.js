@@ -1,9 +1,14 @@
-globals = {};
+scopes = [];
+scopes.push({});
 
 function main() {
-    var locals = {};
-    printf("hello world!!\n");
-    printf("konnichiwa sekai\n");
-    printf("%d", 3);
+    try {
+        scopes.push({});
+        printf("hello world!!\n");
+        printf("konnichiwa sekai\n");
+        printf("%d", (3 + 2));
+    } finally {
+        scopes.pop();
+    }
 }
 main();
