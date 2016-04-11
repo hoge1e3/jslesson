@@ -49,6 +49,7 @@ var FileMenu=function () {
         if (!FM.d) FM.d=UI(["div"], {title: title},
              "ファイル名を入力してください",["br"],
              ["input", {
+		 id:"inputDialog",
                  $var: "name",
                  on:{
                 	 enterkey:function () {
