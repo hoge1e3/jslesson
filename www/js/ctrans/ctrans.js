@@ -293,7 +293,7 @@ MinimalParser= function () {
 				for(var i=0;i<init_decl_list.length;i++){
 					var $=init_decl_list[i];
 					var identifier=searchIdentifier($);
-					console.log(identifier);
+					console.log(identifier,$);
 					/*
 					var flag=false;
 					while(Array.isArray($)){
@@ -303,8 +303,8 @@ MinimalParser= function () {
 							flag=true;
 							break;
 						}else $=$[0];
-					}*/
-					//if(!flag)return;
+					}
+					if(!flag)return;*/
 				/*	if($.length>1){
 						
 						for(var i=0;i<$[$.length-1].isLength;i++)
