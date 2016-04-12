@@ -117,8 +117,11 @@ MinimalParser= function () {
 	var var_type=t("unsigned").opt().and(int.or(float).or(char).or(double))
 		.ret(function(u,type){return [((u)?u+" ":""),type];});
 	var func_type=int.or(float).or(char).or(double).or(_void);
-	var reg_str = RegExp("^[^\"^\”]*");//文字列の正規表現
-	var string = t(/^\"[^\"]*\"/).ret(function(str){return str;});
+	var reg_str = RegExp("^[^\"^\”]*");
+	//文字列の正規表現
+	var string = t(/^\"[^\"]*\"/).ret(function(str){
+		return ["[",'\''+(str+"").substr(1,(str+"").length-2).split('').join('\',\'')+'\'',"]"];
+	});
 	var integer_constant=t(/^0[xX][0-9a-fA-F]+/).or(t(/^[0-9]+/));
 	var character_constant=t(/^\'[^\'\"]\'/);
 	var floating_constant=t(/^[0-9]+\.[0-9]*/);
@@ -267,8 +270,9 @@ MinimalParser= function () {
 				//[]の数
 				var indexNum=cntIndex(unary_expr);
 				var i=vars.length-1;
-				console.log(vars[identifier]);
-				for(;i>=-1;i--){if(vars[i][identifier][indexNum])break;}
+				for(;i>=-1;i--){if(vars[i][identifier])break;}
+
+				console.log(vars[i][identifier]);
 				return "\""+vars[i][identifier][indexNum]+"\"";
 			},",",calc_expr,")"];
 		}).or(calc_expression);
