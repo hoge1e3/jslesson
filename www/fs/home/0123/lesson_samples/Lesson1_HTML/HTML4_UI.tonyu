@@ -1,9 +1,0 @@
-// ここはJavascriptを書く
-
-onClick("ok", add);
-function add() {
-    var x=getNumber("x");
-    var y=getNumber("y");
-    var result=x+y;
-    setText("result",result);
-}

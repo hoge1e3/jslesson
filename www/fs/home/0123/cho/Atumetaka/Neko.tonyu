@@ -1,4 +1,0 @@
-// Javascript
-native $;
-wait(500); 
-$("#ne").append("ねこ");
