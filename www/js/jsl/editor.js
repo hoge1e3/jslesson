@@ -118,6 +118,7 @@ $(function () {
     var editors={};
 
     KeyEventChecker.down(document,"bs",F(function (e) {
+	if($(":focus").attr("id")!="inputDialog"){
         UIDiag.confirm("一つ前のページに戻ります。よろしいですか？").then(function (r) {
             if (r) {
                 history.back();
@@ -126,6 +127,7 @@ $(function () {
         e.stopPropagation();
         e.preventDefault();
         return false;
+	}
     }));
     KeyEventChecker.down(document,"F9",F(run));
     KeyEventChecker.down(document,"F2",F(stop));

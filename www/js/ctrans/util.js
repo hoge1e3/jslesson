@@ -1,3 +1,15 @@
+function arrInit(){
+	var res=[];
+	for(var i=arguments.length-1;i>=0;i--){
+		var tmp=res;
+		res=[];
+		for(var n=0;n<arguments[i];n++){
+			res.push(tmp);
+		}
+	}
+	return res;
+}
+
 function cast(type,data){
 	var type=type.replace(/ /g,"_");
 	type=type.charAt(0).toUpperCase()+type.slice(1);
@@ -45,4 +57,5 @@ var casts={
 	toUnsigned_float(param){return param;},
 	toDouble:function(param){return param;},
 	toUnsigned_double(param){return param;},
+	toArray:function(param){return param;},
 }

@@ -27,7 +27,28 @@ MinimalParser= function () {
 	var t=token;
 	var vars=[{}];
 	var defines={};
-	
+	var searchIdentifier=function($){
+		if($.ofIdentifier)return $.text;
+		else if(Array.isArray($)){
+			for(var i=0;i<$.length;i++){	
+				var e=$[i];
+				var res=(searchIdentifier(e));
+				if(res)return res;
+			}
+		}
+		else return 0;
+	};
+	//[]の添字がいくつあるか数える
+	var cntIndex=function(tree){
+		var cnt=0;
+		
+		if(tree.isIndex)cnt++;
+		else if(Array.isArray(tree)){
+			tree.forEach(function(e){cnt+=cntIndex(e);});
+		}
+		return cnt;
+	}
+
 
 
 
@@ -177,12 +198,11 @@ MinimalParser= function () {
 	direct_declarator=direct_declarator_part.and(direct_declarator.rep0())
 		.ret(function(identifier,direct_decl){
 			var $=[identifier,direct_decl];
-			console.log(direct_decl);
 			if(direct_decl.isArray)$.isArray=true;
 			return $;
 		});
 
-	declarator=direct_declarator;
+	declarator=direct_declarator.ret(function(e){return e;});
 
 	var parameter_declaration=declaration_specifiers.and(declarator)
 		.ret(function(declaration_specifiers,declarator){return [declaration_specifiers,declarator];});
@@ -209,8 +229,8 @@ MinimalParser= function () {
 	calc_expression.infixl(2,t("|"));
 	calc_expression.infixl(2,t("^"));
 	calc_expression.infixl(2,t("&"));
-	calc_expression.infixl(3,t("=="));
-	calc_expression.infixl(3,t("!="));
+	calc_expression.infixl(3,t("==").ret(function(ee){return "===";}));
+	calc_expression.infixl(3,t("!=").ret(function(ne){return "!==";}));
 	calc_expression.infixl(5,t("<<"));
 	calc_expression.infixl(5,t(">>"));
 	calc_expression.infixl(4,t("<="));
@@ -230,7 +250,8 @@ MinimalParser= function () {
 
 	assign=unary_expression_lazy.and(assignment_operator)
 		.and(calc_expression).ret(function(unary_expr,op,calc_expr){
-			var searchIdentifier=function($){
+			/*var searchIdentifier=function($){
+
 				if($.ofIdentifier)return $.text;
 				else if(Array.isArray($)){
 					for(var i=0;i<$.length;i++){	
@@ -240,44 +261,41 @@ MinimalParser= function () {
 					}
 				}
 				else return 0;
-			}
+			}*/
 			var identifier=(searchIdentifier(unary_expr));
 			return [unary_expr,op,"cast(",function(){
+				//[]の数
+				var indexNum=cntIndex(unary_expr);
 				var i=vars.length-1;
-				for(;i>=-1;i--){if(vars[i][identifier])break;}
-				return "\""+vars[i][identifier]+"\"";
+				console.log(vars[identifier]);
+				for(;i>=-1;i--){if(vars[i][identifier][indexNum])break;}
+				return "\""+vars[i][identifier][indexNum]+"\"";
 			},",",calc_expr,")"];
 		}).or(calc_expression);
 
 	expression=assign;
 	var initializer_part=t(",").and(assign).ret(function(comma,assign){return [",",assign];});
 	initializer_part=assign.and(initializer_part.rep0())
-		.ret(function(assign,assigns){return ["[",assign,assigns,"]"];});
+		.ret(function(assign,assigns){return [assign,assigns];});
 	initializer=assign.or(t("{").and(initializer_part.opt()).and(t("}"))
-		.ret(function(lcb,initializer_part,rcb){return ["{",initializer_part,"}"];})); 
+		.ret(function(lcb,initializer_part,rcb){return ["[",initializer_part,"]"];})); 
 	
 	var init_declarator=declarator.and(t("=").and(initializer).opt())
 		.ret(function(declarator,eq,initializer){
-			return (!eq)?[declarator]:[declarator,"=",function(){
-				var searchIdentifier=function($){
-					if($.ofIdentifier)return $.text;
-					else if(Array.isArray($)){
-						for(var i=0;i<$.length;i++){	
-							var e=$[i];
-							var res=(searchIdentifier(e));
-							if(res)return res;
-						}
-					}
-					else return 0;
-				}
-				var identifier=(searchIdentifier(declarator));
+			var identifier=(searchIdentifier(declarator));
+			var $= (!eq)?[declarator]:[declarator,"=",function(){
 				return ["cast(",function(){
 					var i=vars.length-1;
 					for(;i>=-1;i--){if(vars[i][identifier])break;}
-					return "\""+vars[i][identifier]+"\"";
+					return "\""+vars[i][identifier][0]+"\"";
 				}];
 			}
 			,",",initializer,")"];
+			if(declarator.isArray){
+				$.isArray=declarator.isArray;
+				$.isLength=declarator.isLength;
+			}
+			return $;
 		});
 
 	//init_declarator=init_declarator.or(declarator);
@@ -290,29 +308,35 @@ MinimalParser= function () {
 			var identifier_list=[];
 			init_decl_list.forEach(function(e){});
 			return function(){
-				var tmp=[];
+				var $=[];
 				for(var i=0;i<init_decl_list.length;i++){
-					var $=init_decl_list[i];
-					var identifier="";
-					var flag=false;
-					while(Array.isArray($)){
-						if($[0].ofIdentifier){
-							identifier=$[0];
-							flag=true;
-							break;
-						}else $=$[0];
+					var $$=init_decl_list[i];
+					var identifier=searchIdentifier($$);
+					var type=[];
+					var tmp=[];
+
+					for(var n=0;n<$$[0][1].length;n++){
+						type.push("array");
+						tmp.push($$[0][1][n][1]);
+						$$[0][1][n]=[];
 					}
-					if(!flag)return;
-				/*	if($.length>1){
-						
-						for(var i=0;i<$[$.length-1].isLength;i++)
-					}*/
-					vars[vars.length-1][identifier+""]=decl_specifiers;
-					tmp.push("scopes[scopes.length-1].");
-					tmp.push(init_decl_list[i]);
-					tmp.push(";");
+					type.push(decl_specifiers);
+					
+					if(tmp.length){
+						$.push("scopes[scopes.length-1].");
+						$.push(identifier);
+						$.push("=");
+						$.push("arrInit("+tmp.join(",")+")");
+						$.push(";");
+					}
+
+					vars[vars.length-1][identifier+""]=type;
+					console.log(vars[vars.length-1]);
+					$.push("scopes[scopes.length-1].");
+					$.push(init_decl_list[i]);
+					$.push(";");
 				}
-				return tmp;
+				return $;
 			}
 			;
 		});
@@ -425,7 +449,11 @@ MinimalParser= function () {
 	postfix_expression.element(primary_expression);
 	postfix_expression.element(ptr_identifier);
 	postfix_expression.postfix(1,t("[").and(expression).and(t("]"))
-		.ret(function(lsb,expr,rsb){return ["[",expr,"]"];}));
+		.ret(function(lsb,expr,rsb){
+			var $=["[",expr,"]"];
+			$.isIndex=true;
+			return $;
+		}));
 	postfix_expression.postfix(1,t("++"));
 	postfix_expression.postfix(1,t("--"));
 	//なぜかpostfix_expressionにprefix。why
@@ -470,9 +498,10 @@ MinimalParser= function () {
 	cast_expression=unary_expression;
 	cast_expression=cast_expression.or(t("(").and(type_name).and(t(")")).and(cast_expression_lazy)
 		.ret(function(lp,type_name,rp,cast_expr){return ["(",type_name,")",cast_expr];}));
-	var func_param=var_type.and(identifier).ret(function(type,identifier){return identifier;});
+	//var func_param=var_type.and(identifier).ret(function(type,identifier){return identifier;});
+	var func_param=declaration;
 	var func_params=_void.or(func_param.sep0(t(","),true))
-		.ret(function(param){return (Array.isArray(param))?param.join(","):((param=="void")?"":param);});
+		.ret(function(param){return (Array.isArray(param))?param:((param=="void")?"":param);});
 	func_params=t("(").and(func_params.opt()).and(t(")"))
 		.ret(function(lp,param,rp){return  ["(",((param)?param:""),")"];})
 	var func_source=t("{").and(statements).and(t("}"))
@@ -489,19 +518,21 @@ MinimalParser= function () {
 	control_line=t("#").and(t("include")).and(t("<")).and(filename).and(t(">")).ret(function(){return null;}).or(control_line);
 
 
-	expr = func.or(declaration).or(control_line);
+	expr = func.or(declaration);
 	program=expr.rep0();
 	
 	//preprocess
 	var preprocess=function(str){
 		var lines = str.split("\n");
-		for(var i in lines.length){
-			var res=control_line.parseStr(i);
+		for(var i in lines){
+			lines[i]=lines[i].replace(/\/\/.*/," ");
+			var res=(lines[i])?control_line.parseStr(lines[i]):"";
 			if(res.success){
-				i="";
-				res();
+				lines[i]="";
+				//res();
 			}	
 		}
+		console.log(lines.join("\n"));
 		return lines.join("\n");
 	}
 
