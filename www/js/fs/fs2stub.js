@@ -16,6 +16,9 @@ define(["FS2","WebSite","NativeFS","LSFS", "PathUtil","Env","assert","SFile"],
     FS.expandPath=function () {
         return env.expandPath.apply(env,arguments);
     };
+    FS.isFile=function (f) {
+        return SFile.is(f);
+    };
     FS.resolve=function (path, base) {
         if (SFile.is(path)) return path;
         path=env.expandPath(path);

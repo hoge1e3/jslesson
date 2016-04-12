@@ -1,9 +1,9 @@
 define(["Tonyu","Tonyu.Compiler.JSGenerator","Tonyu.Compiler.Semantics",
-        "Tonyu.TraceTbl","FS","assert","SFile","DeferredUtil","compiledProject"],
+        "Tonyu.TraceTbl","FS","assert","DeferredUtil","compiledProject"],
         function (Tonyu,JSGenerator,Semantics,
-                ttb,FS,A,SFile,DU,CPR) {
+                ttb,FS,A,DU,CPR) {
 var TPRC=function (dir) {
-     A(SFile.is(dir) && dir.isDir(), "projectCompiler: "+dir+" is not dir obj");
+     A(FS.isFile(dir) && dir.isDir(), "projectCompiler: "+dir+" is not dir obj");
      var TPR={env:{}};
      var traceTbl=Tonyu.TraceTbl;//();
      var F=DU.throwF;
@@ -76,7 +76,7 @@ var TPRC=function (dir) {
          return false;
      };
      TPR.getClassName=function (file) {//ADDJSL
-         A(SFile.is(file));
+         A(FS.isFile(file));
          if (dir.contains(file)) {
              return TPR.getNamespace()+"."+file.truncExt(TPR.EXT);
          }
