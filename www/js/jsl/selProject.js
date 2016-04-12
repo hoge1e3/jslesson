@@ -64,7 +64,8 @@ $(function () {
     function ren(f) {
         return function () {
             NPD.show(projects, function (prjDir) {
-                prjDir.moveFrom(f);
+                //console.log(prjDir);
+                prjDir.dstDir.moveFrom(f);
                 ls();
             },{ren:true, defName:f.name().replace("/","")});
         };
