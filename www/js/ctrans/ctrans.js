@@ -120,7 +120,7 @@ MinimalParser= function () {
 	var reg_str = RegExp("^[^\"^\”]*");
 	//文字列の正規表現
 	var string = t(/^\"[^\"]*\"/).ret(function(str){
-		return ["[",'\''+(str+"").substr(1,(str+"").length-2).split('').join('\',\'')+'\'',"]"];
+		return "str_to_ch_arr("+str+")";
 	});
 	var integer_constant=t(/^0[xX][0-9a-fA-F]+/).or(t(/^[0-9]+/));
 	var character_constant=t(/^\'[^\'\"]\'/);
@@ -330,7 +330,13 @@ MinimalParser= function () {
 						$.push("scopes[scopes.length-1].");
 						$.push(identifier);
 						$.push("=");
-						$.push("arrInit("+tmp.join(",")+")");
+						$.push("arrInit(");
+						for(var n=0;n<tmp.length;n++){
+							$.push((tmp[n])?tmp[n]:"1");
+							$.push(",");
+						}
+						$.pop();
+						$.push(")");
 						$.push(";");
 					}
 

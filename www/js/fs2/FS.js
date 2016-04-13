@@ -2188,7 +2188,7 @@ define('FS',["FS2","NativeFS","LSFS", "PathUtil","Env","assert","SFile","RootFS"
     var FS={};
     if (typeof window=="object") window.FS=FS;
     var rootFS;
-    var envVar;
+    var envVar={};
     var env=new Env(envVar);
     FS.setEnv=function (key, value) {
         if (typeof key=="object") {
@@ -2235,6 +2235,10 @@ define('FS',["FS2","NativeFS","LSFS", "PathUtil","Env","assert","SFile","RootFS"
     FS.unmount=function () {
         FS.init();
         return rootFS.unmount.apply(rootFS,arguments);
+    };
+    FS.SFile=SFile;
+    FS.isFile=function (f) {
+        return SFile.is(f);
     };
     return FS;
 });

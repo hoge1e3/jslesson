@@ -1,3 +1,10 @@
+function str_to_ch_arr(str){
+	var $=[];
+	for(var i=0;i<str.length;i++){$.push(str.charCodeAt(i)&0xff);}
+	console.log($);
+	return $;
+}
+
 function arrInit(){
 	var res=[];
 	for(var i=arguments.length-1;i>=0;i--){

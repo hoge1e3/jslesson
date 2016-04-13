@@ -1,6 +1,6 @@
 lineBuf=[];
 function log(){
-console.log(arguments);
+	console.log(arguments);
 };
 function pointer(obj,key) {
    return {
@@ -16,11 +16,14 @@ function scanf(format, dest) {
 }
 function printf(line) {
     //var line=format.replace(/%d/,value);
+		var tmp=line;
+		line="";
+		for(var i=0;i<tmp.length;i++){line+=(String.fromCharCode(tmp[i]));}
+		console.log(line);
 		var args=Array.prototype.slice.call(arguments);
 		args.shift();
 		while(true){
 			var format=line.match(/%d|%c|%x|%#x|%u|%lf|%f/);
-			console.log(format);
 			if(!format)break;
 			switch(format+""){
 			case "%d":

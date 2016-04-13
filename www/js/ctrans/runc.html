@@ -1,10 +1,15 @@
+<head>
+    <!--文字コード-->
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <script src="jquery-2.1.0.js"></script>
 <script src="lib.js"></script>
 <script src="util.js"></script>
 <script src="require.js"></script>
+</head>
+もじ
 <pre id="console"></pre>
 <script>
-requirejs(["FS"],function(FS){
+requirejs(["../fs2/FS"],function(FS){
 	$(function(){
 		var args=location.search.slice(1).split("&");
 		var param={};
