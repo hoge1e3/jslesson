@@ -44,4 +44,5 @@ Temporary Items
 www/user/list.txt
 www/fs/home
 www/log/data.txt
-www/js/ctrans/.ctrans.js.swp
+*.swp
+www/js/ctrans/a.out

@@ -1,5 +1,5 @@
-define(["FS","Shell",/*"requestFragment",*/"WebSite","SFile","assert"],
-        function (FS,sh,/*rf,*/WebSite,SFile,A) {
+define(["FS","Shell",/*"requestFragment",*/"WebSite","assert"],
+        function (FS,sh,/*rf,*/WebSite,A) {
     var Sync={};
     sh.sync=function () {
         // sync options:o      local=remote=cwd
@@ -7,10 +7,10 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","SFile","assert"],
         // sync local:s|file remote:s|file options:o
         var local,remote,options,onend=function(){};
         var i=0;
-        if (typeof arguments[i]=="string" || SFile.is(arguments[i])) {
+        if (typeof arguments[i]=="string" || FS.isFile(arguments[i])) {
             local=sh.resolve(arguments[i], true);
             i++;
-            if (typeof arguments[i]=="string" || SFile.is(arguments[i])) {
+            if (typeof arguments[i]=="string" || FS.isFile(arguments[i])) {
                 remote=sh.resolve(arguments[i], false);
                 i++;
             }
@@ -83,10 +83,10 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","SFile","assert"],
             return res;
         }
         var i=0;
-        if (SFile.is(arguments[i])) {
+        if (FS.isFile(arguments[i])) {
             local=arguments[i];
             i++;
-            if (SFile.is(arguments[i])) {
+            if (FS.isFile(arguments[i])) {
                 remote=arguments[i];
                 i++;
             }
