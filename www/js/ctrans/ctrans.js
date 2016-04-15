@@ -120,7 +120,7 @@ MinimalParser= function () {
 	var reg_str = RegExp("^[^\"^\”]*");
 	//文字列の正規表現
 	var string = t(/^\"[^\"]*\"/).ret(function(str){
-		return "str_to_ch_arr("+str+")";
+		return "str_to_ch_arr("+str+"+\"\\0\")";
 	});
 	var integer_constant=t(/^0[xX][0-9a-fA-F]+/).or(t(/^[0-9]+/));
 	var character_constant=t(/^\'[^\'\"]\'/);
@@ -307,8 +307,8 @@ MinimalParser= function () {
 	//	.ret(function(comma,init_decl){return [",",init_decl];});
 	var init_declarator_list=init_declarator.sep0(t(","),true);
 		//.ret(function(init_decl,init_decls){return [init_decl,init_decls];});
-	var declaration=declaration_specifiers.and(init_declarator_list).and(t(";"))
-		.ret(function(decl_specifiers,init_decl_list,semicolon){
+	var declaration=declaration_specifiers.and(init_declarator_list)
+		.ret(function(decl_specifiers,init_decl_list){
 			var identifier_list=[];
 			init_decl_list.forEach(function(e){});
 			return function(){
@@ -342,6 +342,7 @@ MinimalParser= function () {
 
 					vars[vars.length-1][identifier+""]=type;
 					console.log(vars[vars.length-1]);
+					console.log(vars);
 					$.push("scopes[scopes.length-1].");
 					$.push(init_decl_list[i]);
 					$.push(";");
@@ -367,9 +368,9 @@ MinimalParser= function () {
 			}));
 	var for_part=expression.and(t(";")).ret(function(expr,semicolon){return [expr,";"];});
 	iteration_statement=iteration_statement.or(t("for").and(t("("))
-		.and(declaration.or(for_part).or(t(";"))).and(expression.opt())
+		.and(declaration.or(expression).opt()).and(t(";")).and(expression.opt())
 		.and(t(";")).and(expression.opt()).and(t(")")).and(statement_lazy)
-		.ret(function(_for,lp,e1,e2,s2,e3,rp,state){
+		.ret(function(_for,lp,e1,s1,e2,s2,e3,rp,state){
 		console.log(e1);
 			return [function(){vars.push({});},
 				"scopes.push({});",e1,"while","(",e2,")",
@@ -388,7 +389,8 @@ MinimalParser= function () {
 			return ["try{scopes.push({});","switch","(",expr,")",state,"}finally{scopes.pop();}"];
 		}));
 
-	var compound_statement_part=declaration.or(statement_lazy).rep0();
+	var compound_statement_part=declaration.and(t(";")).ret(function(decl,semicolon){return decl;});
+	compound_statement_part=compound_statement_part.or(statement_lazy).rep0();
 	var compound_statement=t("{").and(compound_statement_part).and(t("}"))
 		.ret(function(lcb,states,rcb){
 			return [function(){vars.push({});},"{","try{scopes.push({});",
@@ -432,9 +434,9 @@ MinimalParser= function () {
 	var ptr_identifier=t("&").and(identifier).ret(function(and,identifier){
 		return function(){
 			var i=vars.length-1;
-			for(;i>=0;i--)if(vars[i][identifier.text])break;
+			for(;i>=0;i--)if(vars[i][identifier+''])break;
 			if(i==-1)throw(identifier+"は未定義です。");
-			return ["pointer(scopes["+i+"],\""+identifier+"\")"];
+			return ["pointer(scopes["+i+"],\""+identifier+"\",","\""+vars[i][identifier+'']+"\"",")"];
 		};
 	});
 	var var_identifier=identifier.ret(function(identifier){
@@ -516,9 +518,18 @@ MinimalParser= function () {
 		.ret(function(lp,param,rp){return  ["(",((param)?param:""),")"];})
 	var func_source=t("{").and(statements).and(t("}"))
 		.ret(function(lcb,source,rcb){return ["{scopes.push({});",source,"scopes.pop();}"];});
+/*
+	var func_part=t("(").and(func_params.opt()).and(t(")")).and(t("{")).and(compound_statement_part).and(t("}"))
+		.ret(function(lp,params,rp,lcb,states,rcb){
+			return [function(){vars.push({});},"(){",
+				"try{scopes.push({});",params,
+				states,"}","finally{scopes.pop();}","}",function(){vars.pop();}
+			];
+		});*/
+	//var func=func_type.and(identifier).and(func_part).ret(function(type,identifier,part){return ["function ",identifier,part];});
 	var func=func_type.and(identifier).and(func_params).and(compound_statement)
 		.ret(function(type,identifier,param,source){
-			return ["function ",identifier,param,source,function(){vars.pop();return "";}];
+			return ["function ",identifier,param,source];
 		});
 
 
@@ -528,7 +539,8 @@ MinimalParser= function () {
 	control_line=t("#").and(t("include")).and(t("<")).and(filename).and(t(">")).ret(function(){return null;}).or(control_line);
 
 
-	expr = func.or(declaration);
+	expr = func;
+	expr=expr.or(declaration.and(t(";")).ret(function(decl,semicolon){return decl;}));
 	program=expr.rep0();
 	
 	//preprocess

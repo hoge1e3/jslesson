@@ -20,6 +20,10 @@ function endsWith(str,postfix) {
 function startsWith(str,prefix) {
     return str.substring(0, prefix.length)===prefix;
 }
+function extend(d,s) {
+    for (var i in (s||{})) {d[i]=s[i];} 
+    return d;
+}
 // From http://hakuhin.jp/js/base64.html#BASE64_DECODE_ARRAY_BUFFER
 function Base64_To_ArrayBuffer(base64){
     base64=base64.replace(/[\n=]/g,"");
@@ -148,6 +152,7 @@ function privatize(o){
     }
     return res;
 }
+/*
 function hasNodeBuffer() {
     return typeof Buffer!="undefined";
 }
@@ -183,17 +188,18 @@ function str2utf8bytes(str, binType) {
     }
     return (typeof Buffer!="undefined" && binType===Buffer ? new Buffer(a) : new Uint8Array(a).buffer);
 }
-
+*/
 return {
     getQueryString:getQueryString,
     endsWith: endsWith, startsWith: startsWith,
     Base64_To_ArrayBuffer:Base64_To_ArrayBuffer,
     Base64_From_ArrayBuffer:Base64_From_ArrayBuffer,
-    utf8bytes2str: utf8bytes2str,
-    str2utf8bytes: str2utf8bytes,
+    //utf8bytes2str: utf8bytes2str,
+    //str2utf8bytes: str2utf8bytes,
     privatize: privatize,
-    hasNodeBuffer:hasNodeBuffer,
+    extend:extend
+    /*hasNodeBuffer:hasNodeBuffer,
     isNodeBuffer: isNodeBuffer,
-    isBuffer: isBuffer
+    isBuffer: isBuffer*/
 };
 })();

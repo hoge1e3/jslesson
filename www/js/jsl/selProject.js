@@ -83,6 +83,7 @@ $(function () {
         Sync.sync(projects, FS.get("/"),{v:true}).then(function (e) {
             $("#syncMesg").append("完了");
             ls();
+	    alert(e.classid+" クラスの "+e.user+" と同期しました。");
             setTimeout(function () {
                 $("#syncMesg").text(e.classid+" クラスの"+e.user+"でログインしています。");
                 $("#syncMesg").append(UI("a",{href:"login.php"},"他ユーザでログイン"));

@@ -1,8 +1,14 @@
 function str_to_ch_arr(str){
 	var $=[];
-	for(var i=0;i<str.length;i++){$.push(str.charCodeAt(i)&0xff);}
+	for(var i=0;i<str.length;i++){$.push(cast("char",str.charCodeAt(i)));}
 	console.log($);
 	return $;
+}
+function ch_arr_to_str(arr){
+	var line="";
+	for(var i=0;i<arr.length;i++){line+=(String.fromCharCode(arr[i]));}
+	return line;
+
 }
 
 function arrInit(){
@@ -46,16 +52,17 @@ var casts={
 	
 	toChar:function(param){
 		var res=0;
-		param&=0x000000ff;
+		param&=0xffffffff;
 	
-		if(param&0x80)res=param|0xffffff00;
-		else res=param;
-		
+		//if(param&0x80)res=param|0xffffff00;
+		//else res=param;
+		res=param;
+
 		return res;
 	},
 	toUnsigned_char:function(param){
 		var res=0;
-		param&=0x000000ff;
+		param&=0xffffffff;
 
 		res=param;
 		return res;

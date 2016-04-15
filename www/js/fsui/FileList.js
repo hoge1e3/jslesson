@@ -84,7 +84,7 @@ function FileList(elem, options) {
             _curFile=null;
         }
         var disped={};
-        _curDir.each(function (f) {
+        _curDir.eachrev(function (f) {
             var n=displayName(f);
             //console.log(f.name(),n);
             if (!n) return;

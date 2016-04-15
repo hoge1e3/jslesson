@@ -1239,10 +1239,10 @@ requirejs(["Content"], function (C) {
 */;
 define('NativeFS',["FS2","assert","PathUtil","extend","MIMETypes","DataURL","Content"],
         function (FS,A,P,extend,MIME,DataURL,Content) {
-    var available=(typeof process=="object" && process.__node_webkit);
+    var available=(typeof process=="object"/* && process.__node_webkit*/);
     if (!available) {
         return function () {
-            throw new Error("This system not suppert native FS");
+            throw new Error("This system not support native FS");
         };
     }
     var assert=A;
@@ -2050,10 +2050,6 @@ SFile.prototype={
     each:function (f,options) {
         var dir=this.assertDir();
         dir.listFiles(options).forEach(f);
-    },
-    eachrev:function (f,options) {
-        var dir=this.assertDir();
-        dir.listFiles(options).reverse().forEach(f);
     },
     recursive:function (fun,options) {
         var dir=this.assertDir();

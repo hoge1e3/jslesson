@@ -548,6 +548,7 @@ $(function () {
             var progDOM=$("<pre>").css("height", screenH+"px").text(f.text()).appendTo("#progs");
             var prog=ace.edit(progDOM[0]);
             if (typeof desktopEnv.editorFontSize=="number") prog.setFontSize(desktopEnv.editorFontSize);
+	    else prog.setFontSize(18);
             //prog.setFontSize(20);
             prog.setTheme("ace/theme/eclipse");
             if (f.ext()==EXT) {
@@ -620,9 +621,9 @@ $(function () {
     }));
     function textSize() {
         var prog=getCurrentEditor();
-        var s=prompt("エディタの文字の大きさ", desktopEnv.editorFontSize||12);
+        var s=prompt("エディタの文字の大きさ", desktopEnv.editorFontSize||18);
         desktopEnv.editorFontSize=parseInt(s);
-        if (prog) prog.setFontSize(desktopEnv.editorFontSize||12);
+        if (prog) prog.setFontSize(desktopEnv.editorFontSize||18);
         saveDesktopEnv();
     }
     sh.curFile=function () {

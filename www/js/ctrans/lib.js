@@ -2,24 +2,38 @@ lineBuf=[];
 function log(){
 	console.log(arguments);
 };
-function pointer(obj,key) {
-   return {
-      read: function () { return obj[key];},
-      write: function (v) { return obj[key]=v;}
-   };
+function pointer(obj,key,type) {
+  return {
+    read: function () { return obj[key];},
+    write: function (v) { return obj[key]=v;},
+		type: type,
+  };
 }
-function scanf(format, dest) {
-    var line=prompt(lineBuf.join(""),"");
-    var val=parseInt(line);
-    printf(val+"\n");
-    dest.write(val);
+function scanf(line, dest) {
+	var val;
+	line=ch_arr_to_str(line);
+  var input=prompt(lineBuf.join(""),"");
+  printf(str_to_ch_arr(input+"\n"));
+	var format=line.match(/%d|%c|%x|%#x|%lf|%f/);
+	switch(format+""){
+	case "%d":
+		val=parseInt(input);
+	break;
+	case "%f":case "%lf":
+		val=parseFloat(input);
+	break;
+	case "%c":
+		val=input.charCodeAt(0);
+	break;
+	}
+
+  dest.write(cast(dest.type,val));
 }
 function printf(line) {
     //var line=format.replace(/%d/,value);
 		var tmp=line;
 		line="";
 		for(var i=0;i<tmp.length;i++){line+=(String.fromCharCode(tmp[i]));}
-		console.log(line);
 		var args=Array.prototype.slice.call(arguments);
 		args.shift();
 		while(true){
