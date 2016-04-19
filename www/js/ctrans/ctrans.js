@@ -287,7 +287,7 @@ MinimalParser= function () {
 	var init_declarator=declarator.and(t("=").and(initializer).opt())
 		.ret(function(declarator,eq,initializer){
 			var identifier=(searchIdentifier(declarator));
-			var $= (!eq)?[declarator]:[declarator,"=",function(){
+			var $= (!eq)?[declarator,"=","0"]:[declarator,"=",function(){
 				return ["cast(",function(){
 					var i=vars.length-1;
 					for(;i>=-1;i--){if(vars[i][identifier])break;}
@@ -307,8 +307,8 @@ MinimalParser= function () {
 	//	.ret(function(comma,init_decl){return [",",init_decl];});
 	var init_declarator_list=init_declarator.sep0(t(","),true);
 		//.ret(function(init_decl,init_decls){return [init_decl,init_decls];});
-	var declaration=declaration_specifiers.and(init_declarator_list)
-		.ret(function(decl_specifiers,init_decl_list){
+	var declaration=declaration_specifiers.and(init_declarator_list).and(t(";"))
+		.ret(function(decl_specifiers,init_decl_list,semicolon){
 			var identifier_list=[];
 			init_decl_list.forEach(function(e){});
 			return function(){
@@ -360,21 +360,25 @@ MinimalParser= function () {
 		.ret(function(_return,expr,semicolon){return ["return",expr,";"];}));
 
 	var iteration_statement=t("while").and(t("(")).and(expression).and(t(")")).and(statement_lazy)
-		.ret(function(_while,rp,expr,rp,state){return ["while","(",expr,")",state];});
+		.ret(function(_while,rp,expr,rp,state){return [
+			"var start=loop_start();","while","(",expr,"){try{",state,
+			"}finally{loop_chk(start);}}"];});
 	iteration_statement=iteration_statement.or(t("do").and(statement_lazy)
 		.and(t("while")).and(t("(")).and(expression).and(t(")")).and(t(";"))
 			.ret(function(_do,state,_while,lp,expr,rp,semicolon){
-				return ["do",state,"while","(",expr,")",";"];
+				return ["var start=loop_start();","do{try{",state,
+					"}finally{loop_chk(start);}}","while","(",expr,")",";"
+				];
 			}));
-	var for_part=expression.and(t(";")).ret(function(expr,semicolon){return [expr,";"];});
+	var for_part=expression.and(t(";"))
+		.ret(function(expr,semicolon){return [expr,";"];});
 	iteration_statement=iteration_statement.or(t("for").and(t("("))
-		.and(declaration.or(expression).opt()).and(t(";")).and(expression.opt())
+		.and(declaration.or(for_part).or(t(";"))).and(expression.opt())
 		.and(t(";")).and(expression.opt()).and(t(")")).and(statement_lazy)
-		.ret(function(_for,lp,e1,s1,e2,s2,e3,rp,state){
-		console.log(e1);
+		.ret(function(_for,lp,e1,e2,s2,e3,rp,state){
 			return [function(){vars.push({});},
-				"scopes.push({});",e1,"while","(",e2,")",
-				"{","try{",state,"}finally{",e3,";}","}","scopes.pop();",
+				"scopes.push({});","var start=loop_start();",e1,"while","(",((e2)?e2:"true"),")",
+				"{","try{",state,"}finally{",e3,";","loop_chk(start);","}","}","scopes.pop();",
 				function(){vars.pop();}
 			];
 		}));
@@ -389,7 +393,7 @@ MinimalParser= function () {
 			return ["try{scopes.push({});","switch","(",expr,")",state,"}finally{scopes.pop();}"];
 		}));
 
-	var compound_statement_part=declaration.and(t(";")).ret(function(decl,semicolon){return decl;});
+	var compound_statement_part=declaration;
 	compound_statement_part=compound_statement_part.or(statement_lazy).rep0();
 	var compound_statement=t("{").and(compound_statement_part).and(t("}"))
 		.ret(function(lcb,states,rcb){
@@ -436,7 +440,10 @@ MinimalParser= function () {
 			var i=vars.length-1;
 			for(;i>=0;i--)if(vars[i][identifier+''])break;
 			if(i==-1)throw(identifier+"は未定義です。");
-			return ["pointer(scopes["+i+"],\""+identifier+"\",","\""+vars[i][identifier+'']+"\"",")"];
+			return ["pointer(scopes["+
+				"search_scope_level(\""+identifier+"\")],\""+
+				identifier+"\",","\""+vars[i][identifier+'']+"\"",")"
+			];
 		};
 	});
 	var var_identifier=identifier.ret(function(identifier){
@@ -449,7 +456,8 @@ MinimalParser= function () {
 			var i=vars.length-1;
 			for(;i>=0;i--)if(vars[i][identifier.text])break;
 			if(i==-1)throw(identifier+"は未定義です。");
-			return i;
+			//return i;
+			return "search_scope_level(\""+identifier+"\")";
 		},"].",identifier];
 	});
 
@@ -509,29 +517,106 @@ MinimalParser= function () {
 
 	cast_expression=unary_expression;
 	cast_expression=cast_expression.or(t("(").and(type_name).and(t(")")).and(cast_expression_lazy)
-		.ret(function(lp,type_name,rp,cast_expr){return ["(",type_name,")",cast_expr];}));
+	.ret(function(lp,type_name,rp,cast_expr){return ["(",type_name,")",cast_expr];}));
+
+
+	var init_param=declarator.and(t("=").and(initializer).opt())
+		.ret(function(declarator,eq,initializer){
+			return function(n){
+				var identifier=(searchIdentifier(declarator));
+				var $=[declarator,"=",function(){
+					return ["cast(",function(){
+						var i=vars.length-1;
+						for(;i>=-1;i--){if(vars[i][identifier])break;}
+						return "\""+vars[i][identifier][0]+"\"";
+					}];
+				}
+				,",param_init(","arguments["+n+"]",",",
+					((initializer)?initializer:"null"),"))"];
+				if(declarator.isArray){
+					$.isArray=declarator.isArray;
+					$.isLength=declarator.isLength;
+				}
+				return $;
+			};
+		});
+	
+
+
+
+	var func_param=declaration_specifiers.and(init_param)
+		.ret(function(decl_specifiers,init_param){
+			return function(n){
+					var $=[];
+					var $$=init_param(n);
+					var identifier=searchIdentifier($$);
+					var type=[];
+					var tmp=[];
+	
+					for(var n=0;n<$$[0][1].length;n++){
+						type.push("array");
+						tmp.push($$[0][1][n][1]);
+						$$[0][1][n]=[];
+					}
+					type.push(decl_specifiers);
+					
+					if(tmp.length){
+						$.push("scopes[scopes.length-1].");
+						$.push(identifier);
+						$.push("=");
+						$.push("arrInit(");
+						for(var n=0;n<tmp.length;n++){
+							$.push((tmp[n])?tmp[n]:"1");
+							$.push(",");
+						}
+						$.pop();
+						$.push(")");
+						$.push(";");
+					}	
+						vars[vars.length-1][identifier+""]=type;
+						//console.log(vars[vars.length-1]);
+						//console.log(vars);
+						$.push("scopes[scopes.length-1].");
+						$.push($$);
+						$.push(";");
+					
+					console.log($);
+					return $;
+			};
+		});
+
+	
 	//var func_param=var_type.and(identifier).ret(function(type,identifier){return identifier;});
-	var func_param=declaration;
-	var func_params=_void.or(func_param.sep0(t(","),true))
-		.ret(function(param){return (Array.isArray(param))?param:((param=="void")?"":param);});
-	func_params=t("(").and(func_params.opt()).and(t(")"))
+	//var func_param=declaration;
+	var func_param_list=_void.or(func_param.sep0(t(","),true))
+		.ret(function(param){
+			if(!Array.isArray(param))return "";
+			else{
+				return function(){
+					var tmp=[];
+					for(var i=0;i<param.length;i++){tmp.push(param[i](i));}
+					return tmp;
+				}
+			}
+		});
+	var func_params=t("(").and(func_param_list.opt()).and(t(")"))
 		.ret(function(lp,param,rp){return  ["(",((param)?param:""),")"];})
 	var func_source=t("{").and(statements).and(t("}"))
 		.ret(function(lcb,source,rcb){return ["{scopes.push({});",source,"scopes.pop();}"];});
-/*
-	var func_part=t("(").and(func_params.opt()).and(t(")")).and(t("{")).and(compound_statement_part).and(t("}"))
+
+	var func_part=t("(").and(func_param_list.opt()).and(t(")")).and(t("{")).and(compound_statement_part).and(t("}"))
 		.ret(function(lp,params,rp,lcb,states,rcb){
 			return [function(){vars.push({});},"(){",
 				"try{scopes.push({});",params,
 				states,"}","finally{scopes.pop();}","}",function(){vars.pop();}
 			];
-		});*/
-	//var func=func_type.and(identifier).and(func_part).ret(function(type,identifier,part){return ["function ",identifier,part];});
-	var func=func_type.and(identifier).and(func_params).and(compound_statement)
+		});
+	var func=func_type.and(identifier).and(func_part).ret(function(type,identifier,part){return ["function ",identifier,part];});
+	/*//var func=func_type.and(identifier).and(func_params).and(compound_statement)
 		.ret(function(type,identifier,param,source){
 			return ["function ",identifier,param,source];
 		});
-
+*/
 
 	//control
 	var filename=t(/^[a-zA-Z][a-zA-Z0-9]*\.?[a-zA-Z0-9]+/);
@@ -539,8 +624,7 @@ MinimalParser= function () {
 	control_line=t("#").and(t("include")).and(t("<")).and(filename).and(t(">")).ret(function(){return null;}).or(control_line);
 
 
-	expr = func;
-	expr=expr.or(declaration.and(t(";")).ret(function(decl,semicolon){return decl;}));
+	expr = func.or(declaration);
 	program=expr.rep0();
 	
 	//preprocess

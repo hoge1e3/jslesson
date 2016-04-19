@@ -31,9 +31,8 @@ function scanf(line, dest) {
 }
 function printf(line) {
     //var line=format.replace(/%d/,value);
-		var tmp=line;
-		line="";
-		for(var i=0;i<tmp.length;i++){line+=(String.fromCharCode(tmp[i]));}
+		if(Array.isArray(line))line=ch_arr_to_str(line);
+		else line=""+line;
 		var args=Array.prototype.slice.call(arguments);
 		args.shift();
 		while(true){
@@ -87,4 +86,5 @@ function printf(line) {
     lineBuf.push(line);
     if (lineBuf.length>5) lineBuf.shift();
     $("#console").append(line);
+
 }

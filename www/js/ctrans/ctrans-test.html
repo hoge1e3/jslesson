@@ -1,0 +1,49 @@
+﻿<html>
+<script src="jquery-2.1.0.js"></script>
+<script src="parser.js"></script>
+<script src="ExpressionParser2.js"></script>
+<script src="ctrans.js"></script>
+<script src="compiler.js"></script>
+<script src="beautify.js"></script>
+<script src="lib.js"></script>
+<script src="util.js"></script>
+<script src="jsgen.js"></script>
+<script src="require.js"></script>
+<script src="tester.js"></script>
+
+<script>
+var util=require("util");
+var print=util.print;
+/*var fs=require("fs");
+var t=new tester("/Users/y_honda/Dropbox/klab16/honda/ctrans/workspace/c_text");
+t.recursive(function(f){
+	try{
+		MinimalParser.parse(f.text());
+	}catch(e){
+		util.print(f.path()+"\n");
+		util.print(e+"\n");
+		util.print(f.text()+"\n");
+	}
+});*/
+requirejs(["FS"],function (FS) {
+	//util.print("hhhh");
+  //  ここは、自分のテストしたいC言語ファイルのあるディレクトリを指定
+
+	var d=FS.get("/Users/y_honda/Dropbox/klab16/honda/ctrans/workspace/c_text/");
+
+  d.recursive(function (f) {// ディレクトリ内の全ファイルをサブフォルダを含めて繰り返し
+		if(f.ext()!=".c")return;
+		try{
+			MinimalParser.parse(f.text());
+		}catch(e){
+			//util.print(f.name());//名前表示
+			// f.ext()  拡張子を取得
+			// f.path() フルパスを取得
+			// f.text() ファイルの内容を文字列で取得
+			print(f.path()+"\n");
+			print(e)+"\n";
+			print(f.text()+"\n");
+		}
+  });
+});
+</script>

@@ -12,8 +12,8 @@ class PathUtil {
   }
   function splitPath($path) {
         $res=explode(self::SEP,$path);
-        if ($res[res.length-1]=="") {
-            $res[res.length-2].=self::SEP;
+        if ($res[count($res)-1]=="") {
+            $res[count($res)-2].=self::SEP;
             array_pop($res);
         }
         return $res;

@@ -108,7 +108,7 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","assert"],
         if (options.v) sh.echo("localDelta",localDelta);
         var uploads={},downloads=[],visited={};
         var user;
-	var classid;
+        var classid;
         function status(name, param) {
             sh.echo("Status: "+name+" param:",param);
             if (options.onstatus) {
@@ -137,7 +137,7 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","assert"],
                 return d.promise();
             }
             user=curRemoteDirInfo.user;
-	    classid=curRemoteDirInfo["class"];
+            classid=curRemoteDirInfo["class"];
             var base=local;//FS.get(curRemoteDirInfo.base);
             var remoteDelta=getDelta(lastRemoteDirInfo, curRemoteDirInfo.data);
             if (options.v) sh.echo("remoteDelta",remoteDelta);
@@ -150,8 +150,7 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","assert"],
                  m=dd.local[key];
                  for (var i in m) o[i]=m[i];
                  uploads[key]=o;
-                 if (options.v)
-                        sh.echo("Upload",key,m);
+                 if (options.v) sh.echo("Upload",key,m);
             }
             for (var key in dd.remote) {
                 downloads.push(key);
