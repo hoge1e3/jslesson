@@ -26,8 +26,10 @@ function scanf(line, dest) {
 		val=input.charCodeAt(0);
 	break;
 	}
-
-  dest.write(cast(dest.type,val));
+	
+	if(typeof dest.write=="function")
+		dest.write(cast(dest.type,val));
+	else dest=val;
 }
 function printf(line) {
     //var line=format.replace(/%d/,value);

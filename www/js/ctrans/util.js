@@ -9,12 +9,12 @@ console.log(scopes);
 }
 
 function loop_start(){
-	return {time:(new Date().getTime())}
+	return {time:(new Date().getTime()),count:0}
 }
 
 function loop_chk(start){
 	var now=new Date().getTime();
-	if(now-start.time>5000){
+	start.count++;
 		var b=confirm("ループが５秒以上続いています。\n実行を停止しますか？");
 
 		if(b){setTimeout(function(){exit;},10);throw("実行を停止しました。");}
