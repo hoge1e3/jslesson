@@ -124,16 +124,15 @@ var casts={
 		var res=0;
 		param&=0xffff;
 
-		res=param;
+		if(param&0x8000)res=param|0xffff0000;
+		else res=param;
 		return res;
 	},
 	toUnsigned_short:function(param){
 		var res=0;
 		param&=0xffff;
 
-		if(param&0x8000)res=param|0xffff0000;
-		else res=param;
-
+		res=param;
 		return res;
 	},
 }
