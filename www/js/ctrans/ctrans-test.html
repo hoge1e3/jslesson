@@ -25,6 +25,16 @@ t.recursive(function(f){
 		util.print(f.text()+"\n");
 	}
 });*/
+try {
+    //Macでコピペができるようにするためのおまじない
+    var gui = require('nw.gui');
+    win = gui.Window.get();
+    var nativeMenuBar = new gui.Menu({ type: "menubar" });
+    nativeMenuBar.createMacBuiltin("My App");
+    win.menu = nativeMenuBar;
+} catch (ex) {
+    console.log(ex.message);
+}
 requirejs(["FS"],function (FS) {
 	//util.print("hhhh");
   //  ここは、自分のテストしたいC言語ファイルのあるディレクトリを指定

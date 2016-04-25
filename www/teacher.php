@@ -11,17 +11,22 @@ if (isset($_POST["class"])) {
             //echo "login successful";
 	    $handle=opendir("fs/home/$class/");
 	    $files=array();
+	    $sortedKeys=array();
 	    $i=0;
 	    while(($tmp=readdir($handle)) !== false){
 		//print $files[$i];
 		if($tmp!="." && $tmp!=".."){
 		    $files[$i]=$tmp;
-?>
-	<a href="login.php?class=<?=$class?>&user=<?=$files[$i]?>" target="stutab"><?php print $files[$i]; ?></a>
-	  <br/>
-<?php 
 		    $i++;
 		}
+	    }
+	    natcasesort($files);
+	    $sortedKeys=array_keys($files);
+	    for($i=0;$i<count($files);$i++){
+?>
+	<a href="login.php?class=<?=$class?>&user=<?=$files[$sortedKeys[$i]]?>" target="stutab"><?php print $files[$sortedKeys[$i]]; ?></a>
+	  <br/>
+<?php 
 	    }
 	}
 }

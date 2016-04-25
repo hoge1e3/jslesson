@@ -46,3 +46,4 @@ www/fs/home
 www/log/data.txt
 *.swp
 www/js/ctrans/a.out
+www/js/ctrans/runtimeerrors.txt

@@ -49,6 +49,8 @@ $(function () {
 	"js":"JavaScript",
 	"c":"C"
     };
+    var unsaved=false;
+    var unsynced=false;
     if(lang=="c"){
 	requirejs(["cCompiler"],function(){
 	    console.log("cCom requirejsed");
@@ -75,7 +77,8 @@ $(function () {
               ],
               ["div",{id:"runArea","class":"col-xs-5"},
                ["div","実行結果：",["a",{id:"fullScr",href:"javascript:;"}]],
-               ["iframe",{id:"ifrm",width:465,height:465}]
+               ["iframe",{id:"ifrm",width:465,height:465}],
+	       ["div",{id:"toastArea"}]
               ]
         );
     }
@@ -83,7 +86,7 @@ $(function () {
     function makeMenu() {
         Menu.make("JS Lesson",
                 [
-                  {label:"Home",href:"index.html"},
+                  {label:"Home"/*,href:"index.html"*/,id:"home"},
                   {label:"ファイル",sub:[
                       {label:"新規",id:"newFile"},
                       {label:"名前変更",id:"mvFile"},
@@ -312,6 +315,9 @@ $(function () {
     var curName,runURL;
     function sync() {
         var projects=FS.resolve("${tonyuHome}/Projects/");
+	unsaved=false;
+	unsynced=false;
+	showToast("保存しました");
         return Sync.sync(projects, FS.get("/"),{v:true});
     }
     $("#fullScr").click(function () {
@@ -512,7 +518,13 @@ $(function () {
     	var prog=inf.editor;//getCurrentEditor();
     	var mod=(curFile.exists()?curFile.text():"")!=prog.getValue();
     	fl.setModified(mod);
-    	$("#modLabel").text(mod?"(変更あり)":"");
+	$("#modLabel").text(mod?"(変更あり)":"");
+	if(mod){
+	    unsaved=true;
+	    unsynced=true;
+	}else{
+	    unsaved=false;
+	}
     }
     function fileSet(c) {
         var n=c.truncExt();
@@ -626,9 +638,29 @@ $(function () {
         if (prog) prog.setFontSize(desktopEnv.editorFontSize||18);
         saveDesktopEnv();
     }
+    function showToast(msg){
+	$("#toastArea").text(msg);
+	setInterval(function(){
+		$("#toastArea").text("");
+	    },5000);
+    }
+    $("#home").click(F(function () {
+	goHome();
+    }));
+    function goHome(){
+	console.log("goHome");
+	unsynced=false;
+	location.href="index.html";
+    }
     sh.curFile=function () {
         return fl.curFile();
     };
+    $(window).on("beforeunload",function(e){
+	if(unsynced || unsaved){
+	    return "保存されていないデータがあります。\nこれまでの作業を保存するためには一度実行してください。";
+	}
+    });
+
     FM.onMenuStart=save;
 //    SplashScreen.hide();
 });

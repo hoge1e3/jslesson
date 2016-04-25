@@ -104,9 +104,9 @@ var casts={
 		return res;
 	},
 	toFloat:function(param){return param;},
-	toUnsigned_float(param){return param;},
+	toUnsigned_float:function(param){return param;},
 	toDouble:function(param){return param;},
-	toUnsigned_double(param){return param;},
+	toUnsigned_double:function(param){return param;},
 	toArray:function(param){return param;},
 	toLong:function(param){
 		var res=0;

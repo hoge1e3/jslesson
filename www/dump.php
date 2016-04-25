@@ -5,7 +5,7 @@ date_default_timezone_set('Asia/Tokyo');
 $user=Auth::curUser();
 $class=Auth::curClass();
 $data=$_POST["data"];
-$fp=fopen("log/data.txt","a");
+$fp=fopen("log/$class-$user-data.txt","a");
 $time=date(DATE_ATOM);
 fwrite($fp, "--TIME--\n$time\n");
 fwrite($fp, "--USER--\n$user\n");
