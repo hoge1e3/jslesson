@@ -90,3 +90,4 @@ function printf(line) {
     $("#console").append(line);
 
 }
+window.print=function() {throw new Error("print関数はありません。printfの間違いではないですか？");}
