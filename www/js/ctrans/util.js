@@ -1,5 +1,4 @@
 function search_scope_level(key){
-console.log(scopes);
 	var i=scopes.length-1;
 	for(;i>=0;i--)
 		if(scopes[i][key]!==undefined)break;

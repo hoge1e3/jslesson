@@ -23,7 +23,7 @@ var TPRC=function (dir) {
      };
      TPR.getEXT=function(){
 	 var opt=TPR.getOptions();
-	 if(!opt.language) TPR.EXT=".tonyu";
+	 if(!opt.language || opt.language=="js") TPR.EXT=".tonyu";
 	 else TPR.EXT="."+opt.language;
 	 return TPR.EXT;
      }
