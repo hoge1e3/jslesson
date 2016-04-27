@@ -97,6 +97,7 @@ $(function () {
                       {label:"実行(F9)",id:"runMenu",action:run},
                       {label:"停止(F2)",id:"stopMenu",action:stop},
                   ]},
+                  {label:"保存",id:"save"},
                   {label:"設定",sub:[
                       {label:"エディタの文字の大きさ",id:"textsize",action:textSize}
                   ]}
@@ -316,9 +317,8 @@ $(function () {
     function sync() {
         var projects=FS.resolve("${tonyuHome}/Projects/");
 	unsaved=false;
-	unsynced=false;
-	showToast("保存しました");
-        return Sync.sync(projects, FS.get("/"),{v:true});
+	//unsynced=false;
+        return Sync.sync(projects, FS.get("/"),{v:true}).then(function(){unsynced=false;showToast("保存しました");});
     }
     $("#fullScr").click(function () {
         if (runURL) {
@@ -640,7 +640,7 @@ $(function () {
     }
     function showToast(msg){
 	$("#toastArea").text(msg);
-	setInterval(function(){
+	setTimeout(function(){
 		$("#toastArea").text("");
 	    },5000);
     }
@@ -660,7 +660,10 @@ $(function () {
 	    return "保存されていないデータがあります。\nこれまでの作業を保存するためには一度実行してください。";
 	}
     });
-
+    $("#save").click(F(function () {
+	save();
+	sync();
+    }));
     FM.onMenuStart=save;
 //    SplashScreen.hide();
 });
