@@ -611,7 +611,9 @@ MinimalParser= function () {
 				states,"}","finally{scopes.pop();}","}",function(){vars.pop();}
 			];
 		});
-	var func=func_type.and(identifier).and(func_part).ret(function(type,identifier,part){return ["function ",identifier,part];});
+	var func_with_type=func_type.and(identifier).and(func_part).ret(function(type,identifier,part){return ["function ",identifier,part];});
+	var func_no_type=identifier.and(func_part).ret(function(identifier,part){return ["function ",identifier,part];});
+	var func=func_with_type.or(func_no_type);
 	/*//var func=func_type.and(identifier).and(func_params).and(compound_statement)
 		.ret(function(type,identifier,param,source){
 			return ["function ",identifier,param,source];
@@ -621,7 +623,7 @@ MinimalParser= function () {
 	//control
 	var filename=t(/^[a-zA-Z][a-zA-Z0-9]*\.?[a-zA-Z0-9]+/);
 	var control_line=t("#").and(t("define")).and(identifier).and(t(/^.+/)).ret(function(s,def,befor,after){defines[befor]=after;});
-	control_line=t("#").and(t("include")).and(t("<")).and(filename).and(t(">")).ret(function(){return null;}).or(control_line);
+	control_line=t("#").and(t("include")).and(t("<").or(t("\""))).and(filename).and(t(">").or(t("\""))).ret(function(){return null;}).or(control_line);
 
 
 	expr = func.or(declaration);
@@ -638,7 +640,7 @@ MinimalParser= function () {
 				//res();
 			}	
 		}
-		console.log(lines.join("\n"));
+		//console.log(lines.join("\n"));
 		return lines.join("\n");
 	}
 
@@ -652,7 +654,7 @@ MinimalParser= function () {
 		output=result.result[0];
 		if(result.src.maxPos<processed.length){
 			var max=processed.substr(0,result.src.maxPos);
-			console.log(max);
+			//console.log(max);
 			var line=max.match(/\n/g);
 			line=(line)?line.length:0;
 			throw("プログラムに誤りがあります。\n"+(line+1)+"行目付近を確認してください。");
