@@ -338,14 +338,21 @@ MinimalParser= function () {
 						$.pop();
 						$.push(")");
 						$.push(";");
+						if(init_decl_list[i]){
+							$.push("scopes[scopes.length-1].");
+							$.push(init_decl_list[i]);
+							$.push(";");
+						}
+					}else{
+						$.push("scopes[scopes.length-1].");
+						$.push(init_decl_list[i]);
+						$.push(";");
 					}
 
 					vars[vars.length-1][identifier+""]=type;
-					console.log(vars[vars.length-1]);
-					console.log(vars);
-					$.push("scopes[scopes.length-1].");
-					$.push(init_decl_list[i]);
-					$.push(";");
+					//console.log(vars[vars.length-1]);
+					//console.log(vars);
+					
 				}
 				return $;
 			}
@@ -573,12 +580,12 @@ MinimalParser= function () {
 						$.push(")");
 						$.push(";");
 					}	
-						vars[vars.length-1][identifier+""]=type;
-						//console.log(vars[vars.length-1]);
-						//console.log(vars);
-						$.push("scopes[scopes.length-1].");
-						$.push($$);
-						$.push(";");
+					vars[vars.length-1][identifier+""]=type;
+					//console.log(vars[vars.length-1]);
+					//console.log(vars);
+					$.push("scopes[scopes.length-1].");
+					$.push($$);
+					$.push(";");
 					
 					console.log($);
 					return $;

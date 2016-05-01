@@ -73,6 +73,7 @@ function cast(type,data){
 var casts={
 	toInt:function(param){
 		var res=0;
+		param+=0;//bool to int
 		param&=0xffffffff;
 		res=param;
 
@@ -80,6 +81,7 @@ var casts={
 	},
 	toUnsigned_int:function(param){
 		var res=0;
+		param+=0;//bool to int
 		param&=0xffffffff;
 		res=param;
 
@@ -88,6 +90,7 @@ var casts={
 	
 	toChar:function(param){
 		var res=0;
+		param+=0;//bool to int
 		param&=0xffffffff;
 	
 		//if(param&0x80)res=param|0xffffff00;
@@ -98,6 +101,7 @@ var casts={
 	},
 	toUnsigned_char:function(param){
 		var res=0;
+		param+=0;//bool to int
 		param&=0xffffffff;
 
 		res=param;
@@ -110,18 +114,21 @@ var casts={
 	toArray:function(param){return param;},
 	toLong:function(param){
 		var res=0;
+		param+=0;//bool to int
 		param&=0xffffffff;
 		res=param;
 		return param;
 	},
 	toUnsigned_long:function(param){
 		var res=0;
+		param+=0;//bool to int
 		param&=0xffffffff;
 		res=param;
 		return res;
 	},
 	toShort:function(param){
 		var res=0;
+		param+=0;//bool to int
 		param&=0xffff;
 
 		if(param&0x8000)res=param|0xffff0000;
@@ -130,6 +137,7 @@ var casts={
 	},
 	toUnsigned_short:function(param){
 		var res=0;
+		param+=0;//bool to int
 		param&=0xffff;
 
 		res=param;

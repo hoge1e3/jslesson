@@ -1,0 +1,126 @@
+// * はrep0、  ?はopt
+// . sep(t(","))  カンマ区切り
+
+translation-unit:
+	external-declaration*
+
+external-declaration:
+	function-definition
+	declaration
+
+function-definition:
+	declaration-specifiers? declarator declaration-list? compound-statement
+//           int                main(void)  ここは使わない※  {   ......   }
+//※昔はこうやって関数定義してた:
+int a(x,y) 
+int x,y  //<- ここ！
+{  return x+y; }
+//---------------
+
+declaration:
+	declaration-specifiers init-declarator-list?  ;
+//      static   const  int    *x=NULL,   y,    a[5]  ;  // 変数宣言
+//                int          func(int x)            ;  // プロトタイプ宣言
+//                int          func(int)              ;  // プロトタイプ宣言(引数の型のみ)
+//                int      foo(int), bar(int)         ;  // ←こんな書き方もできる（知らなかった...)
+
+declaration-list:
+	declaration*
+
+declaration-specifiers:
+	declaration-specifier*
+
+declaration-specifier:
+	storage-class-specifier
+	type-specifier
+	type-qualifier
+
+storage-class-specifier: one of
+	auto register static extern typedef
+type-specifier: one of
+	void char short int long float double signed
+	unsigned struct-or-union-specifler enum-specifier typedef-name
+type-qualifier: one of
+	const volatile
+
+// struct省略	
+
+init-declarator-list:
+	init-declarator .sep(t(","))
+
+init-declarator:
+	declarator = initializer
+	declarator
+//	    x      =    5
+//         *y
+//      func(int x) ←この括弧の部分まで含めてdeclarator
+
+// struct enum 関連省略
+
+declarator:
+	pointer? direct-declarator
+
+direct-declarator:
+	identifier
+	( declarator )
+	direct-declarator [ constant-expression? ]
+	direct-declarator ( parameter-type-list )
+	direct-declarator ( identifier-list? ) 
+	// ↑最後のは先程の旧式の宣言用だけど、 main() のときには使う
+
+pointer:
+	* type-qualifier-list?   (の繰り返し)
+//      ↑ これは繰り返し記号じゃなくて本当のアスタリスク（ポインタのアレ）
+//      * の後ろにconstやらvolatileやらをつけていいんだって。見たこと無い。
+//      単に  * の繰り返しでいいと思う  char **a;
+	
+type-qualifier-list:
+	type-qualifier*  (の繰り返し)
+	
+parameter-type-list:
+	parameter-list , ....  // 可変長引数用。いらない？
+	parameter-list
+
+parameter-list:
+	parameter-declaration .sep(t(","))
+
+parameter-declaration:
+	declaration-specifiers declarator
+//             int                 x               <- func(int x,int y) の int x の部分
+	declaration-specifiers abstract-declarator?    <- func(int)  プロトタイプ宣言では変数名省略可能
+	// abstract-declはまだ調べていない
+
+identifier-list:
+	identifier . sep(t(","))
+
+initializer:
+	assignment-expression
+	{ initializer-list  }
+	{ initializer-list , } // ←最後にカンマが来てもいい？？ これいるかな？
+
+initializer-list:
+	initializer .sep(t(","))
+	
+type-name:
+	specifier-qualifier-list abstract-declarator*   // これどこで使われているの？
+	
+abstract-declarator:
+	pointer 
+	pointer? direct-abstract-declarator
+
+direct-abstract-declarator:
+	( abstract-declarator )
+	direct-abstract-declarator? [ constant-expression? ]
+	direct-abstract-declarator? ( parameter-type-list? )
+
+typedef-name:
+	identifier  
+
+statement:
+	labeled -statement
+	expression-statement
+	compound -statement
+	selection-statement
+	iteration-statement....
+
+

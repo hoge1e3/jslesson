@@ -3,6 +3,21 @@ function log(){
 	console.log(arguments);
 };
 function pointer(obj,key,type) {
+	if(Array.isArray(obj[key])){
+		var tmp=[];
+		for(var i=0;i<obj[key].length;i++){
+			var $={
+				read:function(){return obj[key][i];},
+				write:function(v){return obj[key][i]=v;},
+				type:type.split(",")[1],
+			};
+			tmp.push($);
+			//if(tmp[2])console.log(tmp[2].read());
+		}
+//console.log(tmp[1].read());
+for(var i=0;i<tmp.length;i++)console.log(tmp[i].read());
+		return tmp;
+	}
   return {
     read: function () { return obj[key];},
     write: function (v) { return obj[key]=v;},
@@ -10,6 +25,7 @@ function pointer(obj,key,type) {
   };
 }
 function scanf(line, dest) {
+console.log(dest);
 	var val;
 	line=ch_arr_to_str(line);
   var input=prompt(lineBuf.join(""),"");
@@ -43,12 +59,17 @@ function printf(line) {
 			switch(format+""){
 			case "%d":
 				var res="0";
-				if(typeof args[0]=="number")res=cast("int",args[0]);
+				switch(typeof args[0]){
+				case "number": case "boolean":
+					res=cast("int",args[0]);
+					break;
+				}
 				line=line.replace(/%d/,res);
 			break;
 			case "%c":
 				var res=" ";
 				if(typeof args[0]=="number")res=String.fromCharCode(args[0]);
+				else if(typeof args[0]=="string")res=args[0]+"";
 				line=line.replace(/%c/,res);
 			break;
 			case "%x":
