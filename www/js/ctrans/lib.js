@@ -104,11 +104,12 @@ function printf() {
 	if (lineBuf.length>5) lineBuf.shift();
 	(printf.STDOUT||$("#console")).append(line);
 }
-for (var k in Math) {
+["abs","acos","asin","atan","atan2","ceil","cos","exp","floor",
+"log","max","min","pow","random","round","sin","sqrt","tan"].forEach(function (k) {
     var f=Math[k];
     if (typeof f=="function") {
         window[k]=f.bind(Math);
     }
-}
+});
 
 window.print=function() {throw new Error("print関数はありません。printfの間違いではないですか？");}

@@ -123,7 +123,18 @@ MinimalParser= function () {
 		return "str_to_ch_arr("+str+"+\"\\0\")";
 	});
 	var integer_constant=t(/^0[xX][0-9a-fA-F]+/).or(t(/^0[bB][01]+/)).or(t(/^[0-9]+/));
-	var character_constant=t(/^\'[^\'\"]\'/);
+	var character_constant=t(/^\'[^\'\\]\'/).ret(function (s) {
+    	return parse_char_const(s.text);
+	}).or(t(/^\'\\.\'/).ret(function (s) {
+    	return parse_char_const(s.text);
+	})).or(t(/^\'\\[0-9]+\'/).ret(function (s) {
+    	return parse_char_const(s.text);
+	})).or(t(/^\'\\x[0-9a-fA-F]+\'/).ret(function (s) {
+    	return parse_char_const(s.text);
+	}));
+	function parse_char_const(s) {
+	    return eval(s).charCodeAt(0);
+	}
 	var floating_constant=t(/^[0-9]+\.[0-9]*/);
 	var constant=floating_constant.or(character_constant).or(integer_constant)/*.or(enumeration_constant)*/;
 	var identifier=t(/^[a-zA-Z_][a-zA-Z0-9_]*/).except(function(identifier){

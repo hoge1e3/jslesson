@@ -30,6 +30,8 @@ requirejs(["FS"],function (FS) {
 	while (!d.exists()) {
 	    d=FS.get(prompt("not found. input other:", d.path()) );
 	}
+	var summary=d.rel("summary.txt");
+	var sumbuf=["file\tresult"];
     d.recursive(function (f) {// ディレクトリ内の全ファイルをサブフォルダを含めて繰り返し
 		if(f.ext()!=".c")return;
 		var program;
@@ -44,27 +46,27 @@ requirejs(["FS"],function (FS) {
 			var func=new Function(program);
 			func();
 			var expect=f.up().rel(f.truncExt()+".expect");
-			var expectxt=expect.text().replace(/[\s\r\n]*$/,"");
-			buf=buf.replace(/[\s\r\n]*$/,"");
+			var expectxt=expect.text().replace(/[\s\r\n]*$/,"").replace(/\r/g,"");
+			buf=buf.replace(/[\s\r\n]*$/,"").replace(/\r/g,"");
 			if (buf===expectxt) {
 			    console.log("Pass:", f.path());
+			    sumbuf.push(f.relPath(d)+"\tPass");
 			} else {
     			console.log("Fail:", f.path());
-    			/*var bufc=[];
-    			for (var i=0;i<buf.length; i++) {
-    			    bufc.push(buf.charCodeAt(i));
-    			}*/
-    			console.log("Output:",buf);//,bufc);
-    			console.log("Expected:",expectxt);
+    			console.log("Output:",buf);//,str_to_ch_arr(buf));
+    			console.log("Expected:",expectxt);// ,str_to_ch_arr(expectxt));
+			    sumbuf.push(f.relPath(d)+"\tFail");
 			}
 		}catch(e){
 			//print(f.path()+"\n");
 			//print(e)+"\n";
 			console.log("Err", f.path());
 			if ((typeof (e.lineNo))=="number") {
+    		    sumbuf.push(f.relPath(d)+"\tCompErr");
     			console.log(e);
     			console.log(HERE(f.text(),e.lineNo));
 			} else {
+    		    sumbuf.push(f.relPath(d)+"\tRunErr");
     			console.log("Src",f.text());
     			console.log("JS",program);
     			console.log(e);
@@ -72,6 +74,7 @@ requirejs(["FS"],function (FS) {
 			}
 		}
     });
+    summary.text(sumbuf.join("\r\n"));
     function HERE(src,ln) {
         var a=src.split("\n");
         a.splice(ln-1,0,"↓!!!HERE!!!↓");

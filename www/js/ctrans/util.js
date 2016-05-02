@@ -51,15 +51,21 @@ function param_init(arg,init){
 }
 
 function arrInit(){
+    var a=Array.prototype.slice.call(arguments);
+    var n=a.shift();
 	var res=[];
-	for(var i=arguments.length-1;i>=0;i--){
+    for (var i=0;i<n;i++) {
+        res.push(arrInit.apply(this,a));
+    }
+    return res;
+	/*for(var i=arguments.length-1;i>=0;i--){
 		var tmp=res;
 		res=[];
 		for(var n=0;n<arguments[i];n++){
 			res.push(tmp);
 		}
 	}
-	return res;
+	return res;*/
 }
 
 function cast(type,data){
