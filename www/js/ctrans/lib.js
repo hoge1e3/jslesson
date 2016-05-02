@@ -47,68 +47,62 @@ console.log(dest);
 		dest.write(cast(dest.type,val));
 	else dest=val;
 }
-function printf(line) {
+function printf() {
     //var line=format.replace(/%d/,value);
-		if(Array.isArray(line))line=ch_arr_to_str(line);
-		else line=""+line;
-		var args=Array.prototype.slice.call(arguments);
-		args.shift();
-		while(true){
-			var format=line.match(/%d|%c|%x|%#x|%u|%lf|%f/);
-			if(!format)break;
-			switch(format+""){
-			case "%d":
-				var res="0";
-				switch(typeof args[0]){
-				case "number": case "boolean":
-					res=cast("int",args[0]);
-					break;
-				}
-				line=line.replace(/%d/,res);
-			break;
-			case "%c":
-				var res=" ";
-				if(typeof args[0]=="number")res=String.fromCharCode(args[0]);
-				else if(typeof args[0]=="string")res=args[0]+"";
-				line=line.replace(/%c/,res);
-			break;
-			case "%x":
-				var res="0";
-				if(typeof args[0]=="number")res=(args[0]>>>0).toString(16);
-				line=line.replace(/%x/,res);
-			break;
-			case "%#x":
-				var res="0";
-				if(typeof args[0]=="number")res="0x"+(args[0]>>>0).toString(16);
-				line=line.replace(/%#x/,res);
-			break;
-			case "%u":
-				var res="0";
-				if(typeof args[0]=="number")res=args[0]>>>0;
-				line=line.replace(/%u/,res);
-			break;
-			case "%f":
-			  var res="0.000000";
-				if(typeof args[0]=="number")res=args[0];
-				line=line.replace(/%f/,res);
-			break;
-			case "%lf":
-				var res="0.000000";
-				if(typeof args[0]=="number")res=args[0];
-				line=line.replace(/%lf/,res);
-			break;
-			default:line=line.replace(RegExp(format),"ERR");
+	var args=Array.prototype.slice.call(arguments);
+	var line=args.shift();
+	if(Array.isArray(line))line=ch_arr_to_str(line);
+	else line=""+line;
+	line=line.replace(/%d|%c|%x|%#x|%u|%lf|%f|%s/g,function (fmt) {
+        var arg=args.shift();
+		switch(fmt){
+		case "%d":
+			var res="0";
+			switch(typeof arg){
+			case "number": case "boolean":
+				res=cast("int",arg);
+				break;
 			}
-			if(args.length>0)args.shift();
+			return res;
+		case "%c":
+			var res=" ";
+			if(typeof arg=="number")res=String.fromCharCode(arg);
+			else if(typeof arg=="string")res=arg+"";
+			return res;
+		case "%x":
+			var res="0";
+			if(typeof arg=="number")res=(arg>>>0).toString(16);
+			return res;
+		case "%#x":
+			var res="0";
+			if(typeof arg=="number")res="0x"+(arg>>>0).toString(16);
+			return res;
+		case "%u":
+			var res="0";
+			if(typeof arg=="number")res=arg>>>0;
+			return res;
+		case "%f":
+			var res="0.000000";
+			if(typeof arg=="number")res=arg;
+			return res;
+		case "%lf":
+			var res="0.000000";
+			if(typeof arg=="number")res=arg;
+			return res;
+		case "%s":
+		    var res="";
+		    if (typeof arg=="string") res=arg;
+		    else if (arg instanceof Array) {
+		        res=ch_arr_to_str(arg);       
+		    }
+		    return res;
+		default:
+		    return "ERR";
 		}
-		/*for(var i=1;i<arguments.length;i++){
-			console.log(line.match(/%./)+"");
-			line=line.replace(/%d/,arguments[i]);
-		}
-		*/
-    lineBuf.push(line);
-    if (lineBuf.length>5) lineBuf.shift();
-    (printf.STDOUT||$("#console")).append(line);
+	});
+	lineBuf.push(line);
+	if (lineBuf.length>5) lineBuf.shift();
+	(printf.STDOUT||$("#console")).append(line);
 }
 
 window.print=function() {throw new Error("print関数はありません。printfの間違いではないですか？");}

@@ -183,27 +183,33 @@ MinimalParser= function () {
 	identifier_list=identifier.and(identifier_list.rep0())
 		.ret(function(identifier,identifiers){return [identifier,identifiers];});
 
-	var direct_declarator_part=identifier;
-	direct_declarator_part=direct_declarator_part.or(t("(").and(declarator_lazy).and(t(")"))
-		.ret(function(lp,declarator,rp){return ["(",declarator,")"];}));
-	var direct_declarator=t("[").and(constant_expression.opt()).and(t("]"))
-		.ret(function(lsb,const_expr,rsb){
+	var direct_declarator_head=identifier.or(
+	    t("(").and(declarator_lazy).and(t(")")).ret(
+	        function(lp,declarator,rp){return ["(",declarator,")"];}
+	    ));
+	var direct_declarator_tail=t("[").and(constant_expression.opt()).and(t("]")).ret(
+	    function(lsb,const_expr,rsb){
 			var $=["[",const_expr,"]"];
 			//配列であることと、深さを保存。このあとこれをどう活用するかは不明。
 			$.isArray=true;
 			$.isLength=const_expr;
 			return $;
-		});
-	direct_declarator=direct_declarator.or(t("(").and(parameter_type_list_lazy).and(t(")"))
-		.ret(function(lp,param_type_list,rp){return ["(",param_type_list,")"];}));
-	direct_declarator=direct_declarator.or(t("(").and(identifier_list.opt()).and(t(")"))
-		.ret(function(lp,identifier_list,rp){return ["(",identifier_list,")"];}));
-	direct_declarator=direct_declarator_part.and(direct_declarator.rep0())
-		.ret(function(identifier,direct_decl){
-			var $=[identifier,direct_decl];
-			if(direct_decl.isArray)$.isArray=true;
-			return $;
-		});
+		}).or(t("(").and(parameter_type_list_lazy).and(t(")")).ret(
+		    function(lp,param_type_list,rp){
+		        return ["(",param_type_list,")"];
+		    }
+		)).or(t("(").and(identifier_list.opt()).and(t(")")).ret(
+		    function(lp,identifier_list,rp){
+		        return ["(",identifier_list,")"];
+		    }
+		));
+    direct_declarator=direct_declarator_head.and(direct_declarator_tail.rep0()).ret(
+        function(identifier,direct_decl){
+    		var $=[identifier,direct_decl];
+    		if(direct_decl.isArray)$.isArray=true;
+    		return $;
+	    }
+	);
 
 	declarator=direct_declarator.ret(function(e){return e;});
 
@@ -318,11 +324,13 @@ MinimalParser= function () {
 					var identifier=searchIdentifier($$);
 					var type=[];
 					var tmp=[];
-
-					for(var n=0;n<$$[0][1].length;n++){
+                    //$$01  = init_decl's  decl's  decltails   int x[2][3] の [2][3]
+                    //	init_declarator= declarator =  initializer
+                    var declarator_tails=$$[0][1];
+					for(var n=0;n<declarator_tails.length;n++){
 						type.push("array");
-						tmp.push($$[0][1][n][1]);
-						$$[0][1][n]=[];
+						tmp.push(declarator_tails[n][1]);//添字
+						declarator_tails[n]=[];
 					}
 					type.push(decl_specifiers);
 					
@@ -338,11 +346,11 @@ MinimalParser= function () {
 						$.pop();
 						$.push(")");
 						$.push(";");
-						if(init_decl_list[i]){
+						/*if(init_decl_list[i]){
 							$.push("scopes[scopes.length-1].");
 							$.push(init_decl_list[i]);
 							$.push(";");
-						}
+						}*/
 					}else{
 						$.push("scopes[scopes.length-1].");
 						$.push(init_decl_list[i]);
