@@ -108,7 +108,7 @@ function printf(line) {
 		*/
     lineBuf.push(line);
     if (lineBuf.length>5) lineBuf.shift();
-    $("#console").append(line);
-
+    (printf.STDOUT||$("#console")).append(line);
 }
+
 window.print=function() {throw new Error("print関数はありません。printfの間違いではないですか？");}

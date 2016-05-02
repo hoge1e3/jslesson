@@ -39,7 +39,10 @@ requirejs(["FS"],function (FS) {
 	//util.print("hhhh");
   //  ここは、自分のテストしたいC言語ファイルのあるディレクトリを指定
 
-	var d=FS.get("C:/Users/kazu/Dropbox/tuat/c_text");
+	var d=FS.get("C:/Users/kazu/Dropbox/tuat/c_text/");
+	while (!d.exists()) {
+	    d=FS.get(prompt("not found. input other:", d.path()) );
+	}
 
   d.recursive(function (f) {// ディレクトリ内の全ファイルをサブフォルダを含めて繰り返し
 		if(f.ext()!=".c")return;

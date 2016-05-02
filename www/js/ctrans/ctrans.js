@@ -272,7 +272,7 @@ MinimalParser= function () {
 				var i=vars.length-1;
 				for(;i>=-1;i--){if(vars[i][identifier])break;}
 
-				console.log(vars[i][identifier]);
+				//console.log(vars[i][identifier]);
 				return "\""+vars[i][identifier][indexNum]+"\"";
 			},",",calc_expr,")"];
 		}).or(calc_expression);
@@ -618,9 +618,9 @@ MinimalParser= function () {
 				states,"}","finally{scopes.pop();}","}",function(){vars.pop();}
 			];
 		});
-	var func_with_type=func_type.and(identifier).and(func_part).ret(function(type,identifier,part){return ["function ",identifier,part];});
-	var func_no_type=identifier.and(func_part).ret(function(identifier,part){return ["function ",identifier,part];});
-	var func=func_with_type.or(func_no_type);
+	var func=(func_type.opt()).and(identifier).and(func_part).ret(function(type,identifier,part){return ["function ",identifier,part];});
+	//var func_no_type=identifier.and(func_part).ret(function(identifier,part){return ["function ",identifier,part];});
+	//var func=func_with_type.or(func_no_type);
 	/*//var func=func_type.and(identifier).and(func_params).and(compound_statement)
 		.ret(function(type,identifier,param,source){
 			return ["function ",identifier,param,source];

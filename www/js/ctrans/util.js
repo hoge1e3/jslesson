@@ -22,10 +22,10 @@ function loop_chk(start){
 	}
 }
 
-function eval(){
+/*function eval(){
   var str =prompt();
 	new Function(str)();
-}
+}*/
 
 function str_to_ch_arr(str){
 	var $=[];
@@ -34,7 +34,10 @@ function str_to_ch_arr(str){
 }
 function ch_arr_to_str(arr){
 	var line="";
-	for(var i=0;i<arr.length;i++){line+=(String.fromCharCode(arr[i]));}
+	for(var i=0;i<arr.length;i++){
+	    if (arr[i]==0) break;
+	    line+=(String.fromCharCode(arr[i]));
+	}
 	return line;
 
 }
