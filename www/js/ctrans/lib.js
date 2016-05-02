@@ -1,4 +1,5 @@
 lineBuf=[];
+NULL=0;
 function log(){
 	console.log(arguments);
 };
@@ -111,5 +112,80 @@ function printf() {
         window[k]=f.bind(Math);
     }
 });
-
+// -------- 文字列関数はchr_arrayを想定していたが、本当はpointerが通じるようにしないといかん
+function strlen(str) {
+    var len=0;
+    while (str[len++]);
+    return len;
+}
+function strcpy(dst,src) {
+    return strncpy(dst,src,strlen(src)+1);
+}
+function fillStr(str,n) {
+    //  "ABC", 5 ->   "ABC\0\0"
+    var z;
+    var dst=[];
+    for (var i=0;i<n;i++) {
+        if (src[i]==0) {
+            z=true;        
+        }
+        if (z) {
+            dst[i]=0;
+        } else {
+            dst[i]=src[i];
+        }
+    }
+    return dst;
+}
+function strncpy(dst, src,n) {
+    src=fillStr(src,n);    
+    for (var i=0;i<n;i++) {
+        dst[i]=src[i];
+    }
+    return pointer(dst,0);
+}
+function strncmp(s1,s2,n) {
+    for (var i=0;i<n;i++) {
+        if (s1[i]==0 && s2[i]==0) return 0;
+        var s=s1[i]>s2[i]?1:s1[i]<s2[i]?-1:0;
+        if (s!=0) return s;
+    }
+    return 0;
+}
+function strcmp(s1,s2) {
+    var len=Math.max(strlen(s1),strlen(s2));
+    return strncmp( fillStr(s1,len),fillStr(s2,len) ,len);
+}
+function strcat(dst,src) {
+    return strncat(dst,src,strlen(src));
+}
+function strncat(dst,src,n) {
+    var p=strlen(dst);
+    var i;
+    for (i=0;i<n;i++) {
+        dst[p+i]=src[i];
+        if (src[i]==0) break;
+    }
+    if (i>=n) src[i]=0;
+    return pointer(dst,0);
+}
+function index(str,c) {
+    for (var i=0; str[i] ; i++) {
+        if (str[i]==c) return i;
+    }
+    return NULL;
+}
+function rindex(str,c) {
+    for (var i=strlen(str)-1; i>=0 ; i--) {
+        if (str[i]==c) return i;
+    }
+    return NULL;
+}
+function memcmp(s1,s2,n) {
+    for (var i=0;i<n;i++) {
+        var s=s1[i]>s2[i]?1:s1[i]<s2[i]?-1:0;
+        if (s!=0) return s;
+    }
+    return 0;
+}
 window.print=function() {throw new Error("print関数はありません。printfの間違いではないですか？");}

@@ -48,7 +48,10 @@ MinimalParser= function () {
 		}
 		return cnt;
 	}
-
+    function extend(arr,obj) {
+        for (var k in obj) arr[k]=obj[k];
+        return arr;
+    }
 
 
 
@@ -120,7 +123,7 @@ MinimalParser= function () {
 	var reg_str = RegExp("^[^\"^\”]*");
 	//文字列の正規表現
 	var string = t(/^\"[^\"]*\"/).ret(function(str){
-		return "str_to_ch_arr("+str+"+\"\\0\")";
+		return extend(["str_to_ch_arr(",str,")"],{type:"string"});
 	});
 	var integer_constant=t(/^0[xX][0-9a-fA-F]+/).or(t(/^0[bB][01]+/)).or(t(/^[0-9]+/));
 	var character_constant=t(/^\'[^\'\\]\'/).ret(function (s) {
@@ -202,16 +205,17 @@ MinimalParser= function () {
 	    function(lsb,const_expr,rsb){
 			var $=["[",const_expr,"]"];
 			//配列であることと、深さを保存。このあとこれをどう活用するかは不明。
+			$.type="decl_array";
 			$.isArray=true;
 			$.isLength=const_expr;
 			return $;
 		}).or(t("(").and(parameter_type_list_lazy).and(t(")")).ret(
 		    function(lp,param_type_list,rp){
-		        return ["(",param_type_list,")"];
+		        return extend( ["(",param_type_list,")"] ,{type:"decl_params"});
 		    }
 		)).or(t("(").and(identifier_list.opt()).and(t(")")).ret(
 		    function(lp,identifier_list,rp){
-		        return ["(",identifier_list,")"];
+		        return extend( ["(",identifier_list,")"], {type:"decl_idents"});
 		    }
 		));
     direct_declarator=direct_declarator_head.and(direct_declarator_tail.rep0()).ret(
@@ -337,26 +341,41 @@ MinimalParser= function () {
 					var type=[];
 					var tmp=[];
                     //$$01  = init_decl's  decl's  decltails   int x[2][3] の [2][3]
-                    //	init_declarator= declarator =  initializer
+                    //	init_declarator:= declarator = initializer
                     var declarator_tails=$$[0][1];
+                    var initializer=$$[4]; // why?   x  = cast("int"  ,  10 )
+                                           //        0  1      2      3   4
+                    var hasParams=false;
 					for(var n=0;n<declarator_tails.length;n++){
-						type.push("array");
-						tmp.push(declarator_tails[n][1]);//添字
-						declarator_tails[n]=[];
+						if (declarator_tails[n].type=="decl_array") {
+    						type.push("array");
+    						tmp.push(declarator_tails[n][1]);//添字
+    						declarator_tails[n]=[];//???
+						} else if (declarator_tails[n].type=="decl_params" || 
+						declarator_tails[n].type=="decl_idents" ) {
+						    hasParams=true;    
+                        }
 					}
 					type.push(decl_specifiers);
 					
-					if(tmp.length){
+					if (hasParams) {
+					    // prototype宣言はコードを生成しない
+					} else if(tmp.length){
 						$.push("scopes[scopes.length-1].");
 						$.push(identifier);
 						$.push("=");
-						$.push("arrInit(");
-						for(var n=0;n<tmp.length;n++){
-							$.push((tmp[n])?tmp[n]:"1");
-							$.push(",");
-						}
-						$.pop();
-						$.push(")");
+						//console.log("Initor", initializer);
+                        if (initializer&&initializer.type=="string") {
+                            $.push(initializer);                            
+                        } else {						
+    						$.push("arrInit(");
+    						for(var n=0;n<tmp.length;n++){
+    							$.push((tmp[n])?tmp[n]:"1");
+    							$.push(",");
+    						}
+    						$.pop();
+    						$.push(")");
+                        }
 						$.push(";");
 						/*if(init_decl_list[i]){
 							$.push("scopes[scopes.length-1].");
@@ -692,293 +711,3 @@ MinimalParser= function () {
 	};
 	return parser;
 }();
-/*
-var reserved_word=/^void|char|short|int|long|float|double|auto|static|const|signed|unsigned|extern|volatile|register|return|goto|if|else|switch|case|default|break|for|while|do|continue|typeof|struct|enum|union|sizeof$/;
-	var identifier=token(/^[a-zA-Z_][a-zA-Z0-9_]* /).except(function(name){return (name.text.match(reserved_word));}).ret(function(){alert("hoge");});
-	var text;
-	var text_lazy=Parser.lazy(function(){return text;});
-	var constant_expression;
-	var constant_expression_lazy=Parser.lazy(function(){return constant_expression;});
-	var token_sequence;
-	var token_sequence_lazy=Parser.lazy(function(){return token_sequence;});
-	var filename=t(/^[0-9a-zA-Z_-]+[\.a-zA-Z]/);
-	var constant;
-	var constant_lazy=Parser.lazy(function(){return constant;});
-
-	var else_line=t("#").and(t("else"));
-	var else_part=else_line.and(text_lazy);
-	var elif_line=t("#").and(t("elif")).and(constant_expression_lazy);
-	var elif_parts=elif_line.and(text_lazy);
-	elif_parts=elif_parts.or(elif_parts.opt());
-	var if_line=t("#").and(t("if")).and(constant_expression_lazy);
-	if_line=if_line.or(t("#").and(t("ifdef")).and(identifier));
-	if_line=if_line.or(t("#").and(t("ifndef")).and(identifier));
-	var preprocessor_conditional=if_line.and(text_lazy).and(elif_parts).and(else_part.opt()).and(t("#")).and(t("endif"));
-	var control_line=t("#").and(t("define")).and(identifier).and(token_sequence_lazy);
-	control_line=control_line.or(t("#").and(t("define")).and(identifier).and(t("(").and(identifier.sep0(t(","),true)).and(t(")"))).and(token_sequence_lazy));
-	control_line=control_line.or(t("#").and(t("undef")).and(identifier));
-	control_line=control_line.or(t("#").and(t("include")).and(t("<").and(filename).and(t(">"))));
-	control_line=control_line.or(t("#").and(t("include")).and(t("\"").and(filename).and(t("\""))));
-	control_line=control_line.or(t("#").and(t("include")).and(token_sequence_lazy));
-	control_line=control_line.or(t("#").and(t("line")).and(constant_lazy).and(t("\"").and(filename).and(t("\""))));
-	control_line=control_line.or(t("#").and(t("line")).and(constant_lazy));
-	control_line=control_line.or(t("#").and(t("error")).and(token_sequence_lazy.opt()));
-	control_line=control_line.or(t("#").and(t("pragma")).and(token_sequence_lazy.opt()));
-	control_line=control_line.or(t("#"));
-	control_line=control_line.or(preprocessor_conditional);
-
-	var integer_constant=t(/^(?:[0-9]+])|(?:0[xX][0-9a-fA-F])/);
-	var character_constant=t(/^\'.?\'/);
-	var floating_constant=t(/^[0-9]+\.[0-9]* /);
-	var enumeration_specifier;
-	var enumeration_specifier_lazy=Parser.lazy(function(){return enumeration_specifier;});
-	var enumeration_constant=enumeration_specifier_lazy;
-	var assignment_expression;
-	var assignment_expression_lazy=Parser.lazy(function(){return assignment_expression;});
-	var string;
-	var string_lazy=Parser.lazy(function(){return string;});
-	var expression;
-	var expression_lazy=Parser.lazy(function(){return expression;});
-	var cast_expression;
-	var cast_expression_lazy=Parser.lazy(function(){return cast_expression_lazy;});
-	var type_name;
-	var type_name_lazy=Parser.lazy(function(){return type_name;});
-	var conditional_expression;
-	var conditional_expression_lazy=Parser.lazy(function(){return conditional_expression;});
-	var statement;
-	var statement_lazy=Parser.lazy(function(){return statement;});
-	var parameter_type_list;
-	var parameter_type_list_lazy=Parser.lazy(function(){return parameter_type_list;});
-	var specifier_qualifier_list;
-	var specifier_qualifier_list_lazy=Parser.lazy(function(){return specifier_qualifier_list;});
-	var initializer;
-	var initializer_lazy=Parser.lazy(function(){return initializer;});
-	var declaration_specifiers;
-	var declaration_specifiers_lazy=Parser.lazy(function(){return declaration_specifiers;});
-	var declarator;
-	var declarator_lazy=Parser.lazy(function(){return declarator;});
-	var type_qualifier;
-	var type_qualifier_lazy=Parser.lazy(function(){return type_qualifier;});
-	var pointer;
-	var pointer_lazy=Parser.lazy(function(){return pointer;});
-	var declaration_list;
-	var declaration_list_lazy=Parser.lazy(function(){return declaration_list;});
-	var abstract_declarator;
-	var abstract_declarator_lazy=Parser.lazy(function(){return abstract_declarator;});
-	var type_specifier;
-	var type_specifier_lazy=Parser.lazy(function(){return type_specifier;});
-	var declaration;
-	var declaration_lazy=Parser.lazy(function(){return declaration;});
-	
-	constant=integer_constant.or(character_constant).or(floating_constant).or(enumeration_constant);
-	var argument_expression_list=assignment_expression_lazy;
-	argument_expression_list=argument_expression_list.or(argument_expression_list.and(t(",")).and(assignment_expression_lazy));
-	var primary_expression=identifier.or(constant).or(string_lazy).or(t("(").and(expression_lazy).and(t(")")));
-	var postfix_expression=primary_expression;
-	postfix_expression=postfix_expression.or(postfix_expression.and(t("[")).and(expression_lazy).and(t("]")));
-	postfix_expression=postfix_expression.or(postfix_expression.and(t("(")).and(argument_expression_list.opt()).and(t(")")));
-	postfix_expression=postfix_expression.or(postfix_expression.and(t(".")).and(identifier));
-	postfix_expression=postfix_expression.or(postfix_expression.and(t("->")).and(identifier));
-	postfix_expression=postfix_expression.or(postfix_expression.and(t("++")));
-	postfix_expression=postfix_expression.or(postfix_expression.and(t("--")));
-
-	var unary_operator=t("&").or(t("*")).or(t("+")).or(t("-")).or(t("~")).or(t("!"));
-	var unary_expression=postfix_expression;
-	unary_expression=unary_expression.or(t("++").and(unary_expression));
-	unary_expression=unary_expression.or(t("--").and(unary_expression));
-	unary_expression=unary_expression.or(unary_operator.and(cast_expression_lazy));
-	unary_expression=unary_expression.or(t("sizeof").and(unary_expression));
-	unary_expression=unary_expression.or(t("sizeof").and(t("(").and(type_name_lazy).and(t(")"))));
-
-	cast_expression=unary_expression;
-	cast_expression=cast_expression.or(t("(").and(type_name_lazy).and(t(")")).and(cast_expression));
-
-	/*var multiplicative_expression=cast_expression;
-	multiplicative_expression=multiplicative_expression.or(multiplicative_expression.and(t("*")).and(cast_expression));
-	multiplicative_expression=multiplicative_expression.or(multiplicative_expression.and(t("/")).and(cast_expression));
-	multiplicative_expression=multiplicative_expression.or(multiplicative_expression.and(t("%")).and(cast_expression));
-	var additive_expression=multiplicative_expression;
-	additive_expression=additive_expression.or(additive_expression.and(t("+")).and(multiplicative_expression));
-	additive_expression=additive_expression.or(additive_expression.and(t("-")).and(multiplicative_expression));
-	var shift_expression=additive_expression;
-	shift_expression=shift_expression.or(shift_expression.and(t("<<")).and(additive_expression));
-	shift_expression=shift_expression.or(shift_expression.and(t(">>")).and(additive_expression));
-	var relational_expression=shift_expression;
-	relational_expresson=relational_expression.or(relational_expression.and(t("<")).and(shift_expression));
-	relational_expresson=relational_expression.or(relational_expression.and(t(">")).and(shift_expression));
-	relational_expresson=relational_expression.or(relational_expression.and(t("<=")).and(shift_expression));
-	relational_expresson=relational_expression.or(relational_expression.and(t(">=")).and(shift_expression));
-	var equality_expression=relational_expression;
-	equality_expression=equality_expression.or(equality_expression.and(t("==")).and(relational_expression));
-	equality_expression=equality_expression.or(equality_expression.and(t("!=")).and(relational_expression));
-	var AND_expression=equality_expression;
-	AND_expression=AND_expression.or(AND_expression.and(t("&")).and(equality_expression));
-	var exclusive_OR_expression=AND_expression;
-	exclusive_OR_expression=exclusive_OR_expression.or(exclusive_OR_expression.and(t("^")).and(AND_expression));
-	var inclusive_OR_expression=exclusive_OR_expression;
-	inclusive_OR_expression=inclusive_OR_expression.or(inclusive_OR_expression.and(t("|")).and(exclusive_OR_expression));
-	var logical_AND_expression=inclusive_OR_expression;
-	logical_AND_expression=logical_AND_expression.or(logical_AND_expression.and(t("&&")).and(inclusive_OR_expression));
-	var logical_OR_expression=logical_AND_expression;
-	logical_OR_expression=logical+OR+expression.or(logical_OR_expression.and(t("||")).and(logical_AND_expression));
-	* /
-	calc_expression=ExpressionParser();
-	calc_expression.element(cast_expression);
-	calc_expression.infixl(1,t("||"))
-	calc_expression.infixl(1,t("&&"));
-	calc_expression.infixl(2,t("|"));
-	calc_expression.infixl(2,t("^"));
-	calc_expression.infixl(2,t("&"));
-	calc_expression.infixl(3,t("=="));
-	calc_expression.infixl(3,t("!="));
-	calc_expression.infixl(4,t("<"));
-	calc_expression.infixl(4,t(">"));
-	calc_expression.infixl(4,t("<="));
-	calc_expression.infixl(4,t(">="));
-	calc_expression.infixl(5,t("<<"));
-	calc_expression.infixl(5,t(">>"));
-	calc_expression.infixl(6,token("+"));
-	calc_expression.infixl(6,token("-"));
-	calc_expression.infixl(7,token("*"));
-	calc_expression.infixl(7,token("/"));
-	calc_expression.infixl(7,token("%"));
-	calc_expression.mkInfixl(mk);
-	function mk(left,op,right){return ["(",left,op,right,")"];}
-	calc_expression = calc_expression.build();
-
-	constant_expression=conditional_expression_lazy;
-
-	conditional_expression=calc_expression;
-	conditional_expression=conditional_expression.or(calc_expression.and(t("?")).and(expression_lazy).and(t(":")).and(conditional_expression));
-
-	var assignment_operator=t("=").or(t("*=")).or(t("/=")).or(t("%=")).or(t("+=")).or(t("-=")).or(t("<<=")).or(t(">>=")).or(t("&=")).or(t("^=")).or(t("|="));
-	assignment_expression=conditional_expression;
-	assignment_expression=assignment_expression.or(unary_expression.and(assignment_operator).and(assignment_expression));
-	
-	expression=assignment_expression;
-	expression=expression.or(expression.and(t(",")).and(assignment_expression));
-	
-	var jump_statement=t("goto").and(identifier).and(t(";"));
-	jump_statement=jump_statement.or(t("continue").and(t(";")));
-	jump_statement=jump_statement.or(t("break").and(t(";")));
-	jump_statement=jump_statement.or(t("return").and(expression.opt()));
-
-	var iteration_statement=t("while").and(t("(")).and(expression).and(statement_lazy);
-	iteration_statement=iteration_statement.or(t("do").and(statement_lazy).and(t("while")).and(t("(")).and(expression).and(t(")")).and(t(";")));
-	iteration_statement=iteration_statement.or(t("for").and(t("(")).and(expression.opt()).and(t(";")).and(expression.opt()).and(t(";")).and(expression.opt()).and(statement_lazy));
-
-	var selection_statement=t("if").and(t("(")).and(expression).and(t(")")).and(statement_lazy);
-	selection_statement=selection_statement.or(t("if").and(t("(")).and(expression).and(t(")")).and(statement_lazy).and(t("else")).and(statement_lazy));
-	selection_statement=selection_statement.or(t("switch").and(t("(")).and(expression).and(t(")")).and(statement_lazy));
-
-	var statement_list=statement_lazy;
-	statement_list=statement_list.or(statement_list.and(statement_lazy));
-
-	var compound_statement=t("{").and(declaration_list_lazy.opt()).and(statement_list.opt()).and(t("}"));
-	var expression_statement=expression.opt().and(t(";"));
-	var labeled_statement=identifier.and(t(":")).and(statement_lazy);
-	labeled_statement=labeled_statement.or(t("case").and(constant_expression).and(t(":")).and(statement_lazy));
-	labeled_statement=labeled_statement.or(t("default").and(t(":")).and(statement_lazy));
-
-	statement=labeled_statement;
-	statement=statement.or(expression_statement);
-	statement=statement.or(compound_statement);
-	statement=statement.or(selection_statement);
-	statement=statement.or(iteration_statement);
-	statement=statement.or(jump_statement);
-
-	var typedef_name=identifier;
-
-	var direct_abstract_declarator=t("(").and(abstract_declarator_lazy).and(t(")"));
-	direct_abstract_declarator=direct_abstract_declarator.or(direct_abstract_declarator.opt().and(t("[")).and(constant_expression.opt()).and(t("]")));
-	direct_abstract_declarator=direct_abstract_declarator.or(direct_abstract_declarator.opt().and(t("(")).and(parameter_type_list_lazy.opt()).and(t(")")));
-
-	abstract_declarator=pointer_lazy;
-	abstract_declarator=abstract_declarator.or(pointer_lazy.opt().and(direct_abstract_declarator));
-
-	var type_name=specifier_qualifier_list_lazy.and(abstract_declarator.opt());
-	var initializer_list=initializer_lazy;
-	initializer_list=initializer_list.or(initializer_list.and(t(",")).and(initializer_lazy));
-
-	initializer=assignment_expression;
-	initializer=initializer.or(t("{").and(initializer_list).and(t("}")));
-	initializer=initializer.or(t("{").and(initializer_list).and(t(",")).and(t("}")));
-
-	var identifier_list=identifier;
-	identifier_list=identifier_list.or(identifier_list.and(t(",")).and(identifier));
-
-	var parameter_declaration=declaration_specifiers_lazy.and(declarator_lazy);
-	parameter_declaration=parameter_declaration.or(declaration_specifiers_lazy.and(abstract_declarator.opt()));
-
-	var parameter_list=parameter_declaration;
-	parameter_list=parameter_list.or(parameter_list.and(t(",")).and(parameter_declaration));
-
-	parameter_type_list=parameter_list;
-	parameter_type_list=parameter_type_list.or(parameter_list.sep1(t(","),true));
-
-	var type_qualifier_list=type_qualifier_lazy;
-	type_qualifier_list=type_qualifier_list.or(type_qualifier_list.and(type_qualifier_lazy));
-
-	pointer=t("*").and(type_qualifier_list.opt());
-	pointer=pointer.or(t("*").and(type_qualifier_list.opt()).and(pointer));
-
-	var direct_declarator=identifier;
-	direct_declarator=direct_declarator.or(t("(").and(declarator_lazy).and(t(")")));
-	direct_declarator=direct_declarator.or(direct_declarator.and(t("[")).and(constant_expression.opt()).and(t("]")));
-	direct_declarator=direct_declarator.or(direct_declarator.and(t("(")).and(parameter_type_list).and(t(")")))
-	direct_declarator=direct_declarator.or(direct_declarator.and(t(("(")).and(identifier_list.opt()).and(t(")"))));
-
-	declarator=pointer.opt().and(direct_declarator);
-	var enumerator=identifier;
-	enumerator=enumerator.or(identifier.and(t("=")).and(constant_expression));
-	
-	var enumerator_list=enumerator;
-	enumerator_list=enumerator.or(enumerator_list.and(t(",")).and(enumerator));
-
-	var enum_specifier=t("enum").and(identifier.opt()).and(t("{")).and(enumerator_list).and(t("}"));
-	enum_specifier=enum_specifier.or(t("enum").and(identifier));
-
-	var struct_declarator=declarator;
-	struct_declarator=struct_declarator.or(declarator.opt().and(t(":")).and(constant_expression));
-
-	var struct_declarator_list=struct_declarator;
-	struct_declarator_list=struct_declarator_list.or(struct_declarator_list.and(t(",")).and(struct_declarator));
-
-	specifier_qualifier_list=type_specifier_lazy.and(specifier_qualifier_list_lazy.opt());
-	specifier_qualifier_list=specifier_qualifier_list.or(type_qualifier_lazy.and(specifier_qualifier_list.opt()));
-
-	var struct_declaration=specifier_qualifier_list.and(struct_declarator_list);
-
-	var init_declarator=declarator_lazy;
-	init_declarator=init_declarator.or(declarator_lazy.and(t("="))).and(initializer);
-
-	var init_declarator_list=init_declarator;
-	init_declarator_list=init_declarator_list.or(init_declarator_list.and(t(",")).and(init_declarator));
-
-	var struct_declaration_list=struct_declaration;
-	struct_declaration_list=struct_declaration_list.or(struct_declaration_list.and(struct_declaration));
-
-	var struct_or_union=t("struct").or(t("union"));
-
-	var struct_or_union_specifier=struct_or_union.and(identifier.opt()).and(t("{")).and(struct_declaration_list).and(t("}"));
-	struct_or_union_specifier=struct_or_union_specifier.or(struct_or_union.and(identifier));
-
-	var type_qualifier=t("const").or(t("volatile"));
-	type_specifier=t("void").or(t("char")).or(t("short")).or(t("int")).or(t("long")).or(t("float")).or(t("double"))
-		.or(t("signed")).or(t("unsigned")).or(struct_or_union_specifier).or(enum_specifier).or(typedef_name);
-	var storage_class_specifier=t("auto").or(t("register")).or(t("static")).or(t("extern")).or(t("typedef"));
-
-	declaration_specifiers=storage_class_specifier.and(declaration_specifiers_lazy.opt());
-	declaration_specifiers=declaration_specifiers.or(type_specifier.and(declaration_specifiers_lazy.opt()));
-	declaration_specifiers=declaration_specifiers.or(type_qualifier.and(declaration_specifiers_lazy.opt()));
-
-	declaration_list=declaration_lazy.rep0();
-
-	declaration=declaration_specifiers.and(init_declarator_list.opt());
-	
-	var function_definition=declaration_specifiers.opt().and(declarator).and(declaration_list.opt()).and(compound_statement);
-
-	var external_declaration=function_definition.or(declaration);
-
-	var translation_unit=external_declaration.rep0();
-*/

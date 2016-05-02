@@ -30,6 +30,7 @@ function loop_chk(start){
 function str_to_ch_arr(str){
 	var $=[];
 	for(var i=0;i<str.length;i++){$.push(cast("char",str.charCodeAt(i)));}
+	$.push(0);
 	return $;
 }
 function ch_arr_to_str(arr){
