@@ -14,9 +14,8 @@
 
    });
  */
-if (typeof define!=="function") {
-   define=require("requirejs").define;
-}
+(function () {
+var define=window.define||function (r,f) {window.context=f();};
 define([],function () {
 return context=function () {
     var c={};
@@ -45,3 +44,4 @@ return context=function () {
     }
 };
 });
+})();

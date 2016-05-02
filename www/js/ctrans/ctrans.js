@@ -1,5 +1,6 @@
 MinimalParser= function () {
 	var parser={};
+	var ctx=context();
 	var sp=Parser.StringParser; // 文字列を解析するパーサ
 	//    ↓ 空白またはコメントを解析するパーサ
 	var space=sp.reg(/^(\s*(\/\*([^\/]|[^*]\/|\r|\n)*\*\/)*(\/\/.*\n)*)*/);
@@ -38,6 +39,15 @@ MinimalParser= function () {
 		}
 		else return 0;
 	};
+	function ent(entf, parser) {
+	    return Parser.create(function (st) {
+	        var res;
+	        ctx.enter(entf(), function () {
+    	        res=parser.parse(st);
+	        });
+	        return res;
+	    });
+	}
 	//[]の添字がいくつあるか数える
 	var cntIndex=function(tree){
 		var cnt=0;
@@ -443,10 +453,13 @@ MinimalParser= function () {
 	compound_statement_part=compound_statement_part.or(statement_lazy).rep0();
 	var compound_statement=t("{").and(compound_statement_part).and(t("}"))
 		.ret(function(lcb,states,rcb){
-			return [function(){vars.push({});},"{","try{scopes.push({});",
+		    return [function(){vars.push({});},"{","/*"+ctx.depth+"*/","try{ scopes.push({});",
 				states,"}","finally{scopes.pop();}","}",function(){vars.pop();}
 			];
 		});
+	compound_statement=ent(function () {
+	    return {depth:(ctx.depth||0)+1};
+	},compound_statement);
 	var switch_compound_statement=t("{").and(compound_statement_part).and(t("}"))
 		.ret(function(lcb,states,rcb){return ["{",states,"}"];});
 	var expression_statement=expression.opt().and(t(";"))
