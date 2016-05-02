@@ -104,5 +104,11 @@ function printf() {
 	if (lineBuf.length>5) lineBuf.shift();
 	(printf.STDOUT||$("#console")).append(line);
 }
+for (var k in Math) {
+    var f=Math[k];
+    if (typeof f=="function") {
+        window[k]=f.bind(Math);
+    }
+}
 
 window.print=function() {throw new Error("print関数はありません。printfの間違いではないですか？");}

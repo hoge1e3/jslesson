@@ -122,7 +122,7 @@ MinimalParser= function () {
 	var string = t(/^\"[^\"]*\"/).ret(function(str){
 		return "str_to_ch_arr("+str+"+\"\\0\")";
 	});
-	var integer_constant=t(/^0[xX][0-9a-fA-F]+/).or(t(/^[0-9]+/));
+	var integer_constant=t(/^0[xX][0-9a-fA-F]+/).or(t(/^0[bB][01]+/)).or(t(/^[0-9]+/));
 	var character_constant=t(/^\'[^\'\"]\'/);
 	var floating_constant=t(/^[0-9]+\.[0-9]*/);
 	var constant=floating_constant.or(character_constant).or(integer_constant)/*.or(enumeration_constant)*/;
@@ -233,24 +233,25 @@ MinimalParser= function () {
 
 	calc_expression=ExpressionParser();
 	calc_expression.element(cast_expression_lazy);
-	calc_expression.infixl(1,t("||"))
-	calc_expression.infixl(1,t("&&"));
-	calc_expression.infixl(2,t("|"));
-	calc_expression.infixl(2,t("^"));
-	calc_expression.infixl(2,t("&"));
-	calc_expression.infixl(3,t("==").ret(function(ee){return "===";}));
-	calc_expression.infixl(3,t("!=").ret(function(ne){return "!==";}));
-	calc_expression.infixl(5,t("<<"));
-	calc_expression.infixl(5,t(">>"));
-	calc_expression.infixl(4,t("<="));
-	calc_expression.infixl(4,t(">="));
-	calc_expression.infixl(4,t("<"));
-	calc_expression.infixl(4,t(">"));
-	calc_expression.infixl(4,token("+"));
-	calc_expression.infixl(6,token("-"));
-	calc_expression.infixl(7,token("*"));
-	calc_expression.infixl(7,token("/"));
-	calc_expression.infixl(7,token("%"));
+	// See https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
+	calc_expression.infixl(5,t("||"))
+	calc_expression.infixl(6,t("&&"));
+	calc_expression.infixl(7,t("|"));
+	calc_expression.infixl(8,t("^"));
+	calc_expression.infixl(9,t("&"));
+	calc_expression.infixl(10,t("==").ret(function(ee){return "===";}));
+	calc_expression.infixl(10,t("!=").ret(function(ne){return "!==";}));
+	calc_expression.infixl(11,t("<="));
+	calc_expression.infixl(11,t(">="));
+	calc_expression.infixl(11,t("<").noFollow(t("<")));
+	calc_expression.infixl(11,t(">").noFollow(t(">")));
+	calc_expression.infixl(12,t("<<"));
+	calc_expression.infixl(12,t(">>"));
+	calc_expression.infixl(13,token("+"));
+	calc_expression.infixl(13,token("-"));
+	calc_expression.infixl(14,token("*"));
+	calc_expression.infixl(14,token("/"));
+	calc_expression.infixl(14,token("%"));
 	calc_expression.mkInfixl(mk);
 	function mk(left,op,right){return ["(",left,op,right,")"];}
 	function mkpost(left,op){return [left,op];}
@@ -672,7 +673,9 @@ MinimalParser= function () {
 			//console.log(max);
 			var line=max.match(/\n/g);
 			line=(line)?line.length:0;
-			throw("プログラムに誤りがあります。\n"+(line+1)+"行目付近を確認してください。");
+			var parseErr=new Error("プログラムに誤りがあります。\n"+(line+1)+"行目付近を確認してください。");
+			parseErr.lineNo=line+1;
+			throw parseErr;
 		}
 	return output;
 	};

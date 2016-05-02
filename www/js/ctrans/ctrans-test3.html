@@ -32,12 +32,13 @@ requirejs(["FS"],function (FS) {
 	}
     d.recursive(function (f) {// ディレクトリ内の全ファイルをサブフォルダを含めて繰り返し
 		if(f.ext()!=".c")return;
+		var program;
 		try{
 		    //console.log("Test:", f.path());
         	var buf="";
         	printf.STDOUT={append:function (s) {buf+=s;}};
 			var tree=MinimalParser.parse(f.text());
-			var program=js_beautify("scopes=[];scopes.push({});"+js_gen(tree)+"main();");
+			program=js_beautify("scopes=[];scopes.push({});"+js_gen(tree)+"main();");
 			var output=f.up().rel(f.truncExt()+".js");
 			output.text(program);
 			var func=new Function(program);
@@ -59,10 +60,22 @@ requirejs(["FS"],function (FS) {
 		}catch(e){
 			//print(f.path()+"\n");
 			//print(e)+"\n";
-			console.log(f.text());
-			console.log(e);
-			console.log(e.stack);
+			console.log("Err", f.path());
+			if ((typeof (e.lineNo))=="number") {
+    			console.log(e);
+    			console.log(HERE(f.text(),e.lineNo));
+			} else {
+    			console.log("Src",f.text());
+    			console.log("JS",program);
+    			console.log(e);
+	    		console.log(e.stack);
+			}
 		}
     });
+    function HERE(src,ln) {
+        var a=src.split("\n");
+        a.splice(ln-1,0,"↓!!!HERE!!!↓");
+        return a.join("\n");        
+    }
 });
 </script>
