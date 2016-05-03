@@ -477,9 +477,9 @@ MinimalParser= function () {
 	var ptr_identifier=t("&").and(identifier).ret(function(and,identifier){
 		return (function(){
 			var s=findVariable(identifier);
-			return ["pointer(",
+			return extend(["pointer(",
 			    ["scopes_"+s.depth, lit(identifier), lit(s.vtype)].join(","),
-			")"]; 
+			")"],{vtype:["array",s.vtype]} ); 
 		})();
 	});
 	var var_identifier=identifier.ret(function(identifier){
@@ -643,6 +643,7 @@ MinimalParser= function () {
 		defines={};
 		var output="";
 		var processed=preprocess(str);
+		ctx.clear();
 		var result=program.parseStr(processed);
 		output=result.result[0];
 		if(result.src.maxPos<processed.length){
