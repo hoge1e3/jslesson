@@ -137,7 +137,7 @@ $(function () {
     KeyEventChecker.down(document,"F2",F(function(){
         stop();
         //$("#progs").focus();
-        console.log("F2 pushed");
+        console.log("F2 pressed");
     }));
     KeyEventChecker.down(document,"ctrl+s",F(function (e) {
     	save();
