@@ -48,6 +48,15 @@ MinimalParser= function () {
 	        return res;
 	    });
 	}
+	function newScope(parser) {
+	    // ctx.scope: {varname : {type:string?, depth:number }}
+	    return ent(function () {
+	        var depth=0;
+	        if ((typeof (ctx.depth))=="number") depth=ctx.depth+1;
+	        //console.log("entering",depth);
+	        return {scope: Object.create(ctx.scope||{}) ,depth:depth };
+	    },parser);
+	}
 	//[]の添字がいくつあるか数える
 	var cntIndex=function(tree){
 		var cnt=0;
@@ -157,7 +166,7 @@ MinimalParser= function () {
 			identifier.ofIdentifier=true;
 			return identifier;
 		});
-	var struct_or_union=t(/^struct|union/);
+	var struct_or_union=t(/^struct\b|union\b/);
 
 	var constant_expression=calc_expression_lazy;
 
@@ -381,7 +390,7 @@ MinimalParser= function () {
 						$.push(init_decl_list[i]);
 						$.push(";");
 					}
-
+                    ctx.scope[identifier+""]={type:type, depth: ctx.depth};
 					vars[vars.length-1][identifier+""]=type;
 					//console.log(vars[vars.length-1]);
 					//console.log(vars);
@@ -436,17 +445,16 @@ MinimalParser= function () {
 			return ["try{scopes.push({});","switch","(",expr,")",state,"}finally{scopes.pop();}"];
 		}));
 
-	var compound_statement_part=declaration;
-	compound_statement_part=compound_statement_part.or(statement_lazy).rep0();
+	var compound_statement_part=declaration.or(statement_lazy).rep0().ret(function (pts) {
+	    return ["var scopes_"+ctx.depth,"={};"].concat(pts)
+	});
 	var compound_statement=t("{").and(compound_statement_part).and(t("}"))
 		.ret(function(lcb,states,rcb){
-		    return [function(){vars.push({});},"{","/*"+ctx.depth+"*/","try{ scopes.push({});",
+		    return [function(){vars.push({});},"{","try{ scopes.push({});",
 				states,"}","finally{scopes.pop();}","}",function(){vars.pop();}
 			];
 		});
-	compound_statement=ent(function () {
-	    return {depth:(ctx.depth||0)+1};
-	},compound_statement);
+	compound_statement=newScope(compound_statement);
 	var switch_compound_statement=t("{").and(compound_statement_part).and(t("}"))
 		.ret(function(lcb,states,rcb){return ["{",states,"}"];});
 	var expression_statement=expression.opt().and(t(";"))
@@ -493,6 +501,7 @@ MinimalParser= function () {
 		};
 	});
 	var var_identifier=identifier.ret(function(identifier){
+	    var d=ctx.depth;
 		return ["scopes[",function(){
 			//defineで変更されていて、識別子であればscopesから探す。数値とかであればそのまま返す。
 			if(identifier.changeble)if(!identifier.text.match(/^(?:[a-zA-Z_][a-zA-Z0-9_]*)$/)){
@@ -633,6 +642,7 @@ MinimalParser= function () {
 			];
 		});
 	var func=(func_type.opt()).and(identifier).and(func_part).ret(function(type,identifier,part){return ["function ",identifier,part];});
+	func=newScope(func);
 	//control
 	var filename=t(/^[a-zA-Z][a-zA-Z0-9]*\.?[a-zA-Z0-9]+/);
 	var control_line=t("#").and(t("define")).and(identifier).and(t(/^.+/)).ret(function(s,def,befor,after){defines[befor]=after;});
@@ -640,7 +650,7 @@ MinimalParser= function () {
 
 
 	expr = func.or(declaration);
-	program=expr.rep0();
+	program=newScope(expr.rep0());
 	
 	//preprocess
 	var preprocess=function(str){

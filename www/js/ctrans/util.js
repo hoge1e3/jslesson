@@ -1,8 +1,8 @@
-function search_scope_level(key){
+function search_scope_level(key,chk){
 	var i=scopes.length-1;
 	for(;i>=0;i--)
 		if(scopes[i][key]!==undefined)break;
-	
+	//if (i!=chk) console.log("Noteq",i,chk);
 	if(i>=0) return i;
 	else throw("変数"+key+"は定義されていません。");
 }
