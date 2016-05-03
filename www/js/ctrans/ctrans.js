@@ -122,7 +122,7 @@ MinimalParser= function () {
 	var _void=t("void");
 	var reserved_word=/^(?:void|char|short|int|long|float|double|auto|static|const|signed|unsigned|extern|volatile|register|return|goto|if|else|switch|case|default|break|for|while|do|continue|typeof|struct|enum|union|sizeof)$/;
 	var storage_class_specifier=t(/^(?:auto|register|static|extern|typedef)/);
-	var type_specifier=t(/^(?:void|char|short|int|long|float|double|signed|unsigned)/)/*.or(struct_or_union_specifier_lazy).or(enum_specifier_lazy).or(typedef_name_lazy)*/;
+	var type_specifier=t(/^(?:void|char|short|int|long|float|double|signed|unsigned)\b/)/*.or(struct_or_union_specifier_lazy).or(enum_specifier_lazy).or(typedef_name_lazy)*/;
 	var type_qualifier=t(/^(?:const|volatile)/);
 	var type_qualifiers=type_qualifier.rep1();
 	var unary_operator=t(/^(?:\*|\+|\-|\~|\!)/);//&
@@ -533,30 +533,7 @@ MinimalParser= function () {
 	postfix_expression=identifier.and(t("(")).and(argument_expressions.opt()).and(t(")"))
 		.ret(function(identifier,lp,args,rp){return [identifier,"(",args,")"];}).or(postfix_expression);
 
-	//unary_expression=ExpressionParser();
-	//unary_expression.element(postfix_expression);
-	//unary_expression.element(ptr_identifier);
-	/*unary_expression.element(t("sizeof").and(t("(")).and(type_name).and(t(")"))
-		.ret(function(_sizeof,lp,type_name,rp){
-			var $=["sizeof","(",type_name,")"];$.data_type="int";return $;
-		}));*/
-	//unary_expression.prefix(1,t("++"));
-	//unary_expression.prefix(1,t("--"));
-	//unary_expression.prefix(1,t("siseof"));
-	//unary_expression.mkPrefix(mkpre);
-	//unary_expression=unary_expression.build();
 	unary_expression=postfix_expression;
-	//unary_expression=unary_expression.or(t("++").and(unary_expression)
-	//	.ret(function(inc,unary_expr){return [inc,unary_expr];}));
-	//unary_expression=unary_expression.or(t("--").and(unary_expression)
-	//	.ret(function(dec,unary_expr){return [dec,unary_expr];}));
-	//unary_expression=ptr_identifier.or(unary_expression);
-	//unary_expression=unary_expression.or(unary_operator.and(cast_expression_lazy)
-	//	.ret(function(op,cast_expr){return [op,cast_expr];}));
-	//unary_expresison=unary_expression.or(t("sizeof").and(unary_expression)
-	//	.ret(function(_sizeof,unary_expr){return ["sizeof",unary_expr];}));
-	//unary_expression=t("sizeof").and(t("(")).and(type_name).and(t(")"))
-	  //.ret(function(_sizeof,lp,type_name,rp){return ["sizeof","(",type_name,")"];}).or(unary_expression);
 
 	cast_expression=unary_expression;
 	cast_expression=cast_expression.or(t("(").and(type_name).and(t(")")).and(cast_expression_lazy)
