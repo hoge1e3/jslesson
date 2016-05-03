@@ -25,6 +25,13 @@ return context=function () {
         return to;
     };
     c.enter=enter;
+    var builtins={};
+    c.clear=function () {
+        for (var k in c) {
+            if (!builtins[k]) delete c[k];
+        }
+    };
+    for (var k in c) { builtins[k]=true };
     return c;
     function enter(val, act) {
         var sv={};
