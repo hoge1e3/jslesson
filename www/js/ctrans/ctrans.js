@@ -390,7 +390,7 @@ MinimalParser= function () {
 						$.push(init_decl_list[i]);
 						$.push(";");
 					}
-                    ctx.scope[identifier+""]={type:type, depth: ctx.depth};
+                    //ctx.scope[identifier+""]={type:type, depth: ctx.depth};
 					vars[vars.length-1][identifier+""]=type;
 					//console.log(vars[vars.length-1]);
 					//console.log(vars);
@@ -445,12 +445,12 @@ MinimalParser= function () {
 			return ["try{scopes.push({});","switch","(",expr,")",state,"}finally{scopes.pop();}"];
 		}));
 
-	var compound_statement_part=declaration.or(statement_lazy).rep0().ret(function (pts) {
-	    return ["var scopes_"+ctx.depth,"={};"].concat(pts)
-	});
+	var compound_statement_part=declaration.or(statement_lazy).rep0();
 	var compound_statement=t("{").and(compound_statement_part).and(t("}"))
 		.ret(function(lcb,states,rcb){
-		    return [function(){vars.push({});},"{","try{ scopes.push({});",
+		    return [function(){vars.push({});},"{",
+		    "var scopes_"+ctx.depth,"={};",
+		    "try{ scopes.push({});",
 				states,"}","finally{scopes.pop();}","}",function(){vars.pop();}
 			];
 		});
@@ -637,7 +637,8 @@ MinimalParser= function () {
 	var func_part=t("(").and(func_param_list.opt()).and(t(")")).and(t("{")).and(compound_statement_part).and(t("}"))
 		.ret(function(lp,params,rp,lcb,states,rcb){
 			return [function(){vars.push({});},"(){",
-				"try{scopes.push({});",params,
+				"var scopes_"+ctx.depth,"={};",
+                "try{scopes.push({});",params,
 				states,"}","finally{scopes.pop();}","}",function(){vars.pop();}
 			];
 		});
