@@ -41,7 +41,7 @@ requirejs(["FS"],function (FS) {
         	var buf="";
         	printf.STDOUT={append:function (s) {buf+=s;}};
 			var tree=MinimalParser.parse(f.text());
-			program=js_beautify("scopes=[];scopes.push({});"+js_gen(tree)+"main();");
+			program=js_beautify(js_gen(tree));
 			var output=f.up().rel(f.truncExt()+".js");
 			output.text(program);
 			var func=new Function(program);

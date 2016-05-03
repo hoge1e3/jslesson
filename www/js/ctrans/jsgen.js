@@ -6,5 +6,5 @@ var js_gen=function(p){
 		else result+=((e)?e:"")+" ";
 	};
 	gen(p);
-	return result;
+	return "scopes_0={};scopes=[];scopes.push({});"+result+"main();";
 };

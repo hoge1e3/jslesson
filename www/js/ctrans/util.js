@@ -75,7 +75,9 @@ function cast(type,data){
 
 	if(typeof data == "string")data=data.charCodeAt(0);
 
-	var res=casts["to"+type](data);
+    var castf=casts["to"+type];
+    if (!castf) return data;
+	var res=castf(data);
 
 	return res;
 }
