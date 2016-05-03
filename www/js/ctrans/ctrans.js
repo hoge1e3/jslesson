@@ -28,21 +28,6 @@ MinimalParser= function () {
 	var t=token;
 	var vars=[{}];
 	var defines={};
-	var searchIdentifier=function($){
-		if($.ofIdentifier)return $.text;
-		else if(Array.isArray($)){
-			for(var i=0;i<$.length;i++){	
-				var e=$[i];
-				var res=(searchIdentifier(e));
-				if(res)return res;
-			}
-		}
-		else {
-		    console.log($);
-		    throw new Error("Not found!");
-		    
-		}
-	};
 	function ent(entf, parser) {
 	    return Parser.create(function (st) {
 	        var res;
@@ -216,8 +201,9 @@ MinimalParser= function () {
 
 	var abstract_declarator=direct_abstract_declarator;
     var last_decl_type;
-	declaration_specifiers=storage_class_specifier.or(type_specifier).or(type_qualifier);
-	declaration_specifiers=declaration_specifiers.rep1().ret(function(types){
+	// \declaration_specifiers
+	var declaration_specifier=storage_class_specifier.or(type_specifier).or(type_qualifier);
+	declaration_specifiers=declaration_specifier.rep1().ret(function(types){
 	    last_decl_type=types;
 	    return types.join(" ");
 	});
@@ -301,9 +287,22 @@ MinimalParser= function () {
 	calc_expression.infixl(14,token("/"));
 	calc_expression.infixl(14,token("%"));
 	calc_expression.mkInfixl(mk);
-	function mk(left,op,right){return ["(",left,op,right,")"];}
-	function mkpost(left,op){return [left,op];}
-	function mkpre(op,right){return [op,right];}
+	function mk(left,op,right){
+	    return extend(["(",left,op,right,")"],{vtype:left.vtype});
+	}
+	function mkpost(left,op){
+	    var t=left.vtype;
+	    if (op.isIndex) {
+	        if (t[0]=="array") {
+	            t=t.slice();
+	            t.shift();
+	        }
+	    }
+	    return extend([left,op],{vtype:t});
+	}
+	function mkpre(op,right){
+	    return extend([op,right],{vtype:right.vtype} );
+	}
 	calc_expression = calc_expression.build();
 
 	assign=unary_expression_lazy.and(assignment_operator)
@@ -337,12 +336,13 @@ MinimalParser= function () {
 				var $=[];
 				for(var i=0;i<init_decl_list.length;i++){
 					var $$=init_decl_list[i];
-					var identifier=searchIdentifier($$);
+					var declarator=$$[0];
+					var identifier=declarator.vname;
 					var type=[];
 					var tmp=[];
                     //$$01  = init_decl's  decl's  decltails   int x[2][3] の [2][3]
                     //	init_declarator:= declarator = initializer
-                    var declarator_tails=$$[0][1];
+                    var declarator_tails=declarator[1];
                     var initializer=$$[4]; // why?   x  = cast("int"  ,  10 )
                                            //        0  1      2      3   4
                     var hasParams=false;
@@ -536,13 +536,16 @@ MinimalParser= function () {
 	.ret(function(lp,type_name,rp,cast_expr){return ["(",type_name,")",cast_expr];}));
 
 
-	var init_param=declarator.and(t("=").and(initializer).opt());
-	var func_param=declaration_specifiers.and(init_param);
+	var init_param=declarator.and(t("=").and(initializer).opt()).ret(function () {
+	    return Array.prototype.slice.call(arguments);
+	});;
+	var func_param=declaration_specifiers.and(init_param).ret(function () {
+	    return Array.prototype.slice.call(arguments);
+	});
 	var func_param_list=_void.or(func_param.sep0(t(","),true))
 		.ret(function(params){
 		    if (!(params instanceof Array)) return "";//void
 		    function genparam(n,declarator, initializer){
-				var identifier=(searchIdentifier(declarator));
 				var $=[declarator,"=",
 				["cast(",lit(declarator.vtype),",param_init(","arguments["+n+"]",",",
 					(initializer||"null"),"))"]];
@@ -553,22 +556,26 @@ MinimalParser= function () {
 				return $;
 			}
 			return params.map(function(param,n){
-			        var decl_spec=param[0];
+			        var decl_specifiers=param[0];
 			        var init_param=param[1];
 			        var declarator=init_param[0];
 			        var initializer=init_param[2];
 		    		var $=[];
 					var $$=genparam(n,declarator, initializer);
+					var declarator_tails=declarator[1];
+					if (!declarator_tails) {
+					    console.log("ERR",declarator);
+					}
 					var identifier=declarator.vname;
 					var type=[];
 					var tmp=[];
                     //$$01  = init_decl's  decl's  decltails   int x[2][3] の [2][3]
                     //	init_declarator:= declarator = initializer
 
-					for(var n=0;n<$$[0][1].length;n++){
+					for(var n=0;n<declarator_tails.length;n++){
 						type.push("array");
-						tmp.push($$[0][1][n][1]);
-						$$[0][1][n]=[];
+						tmp.push(declarator_tails[n][1]);
+						declarator_tails[n]=[];
 					}
 					type.push(decl_specifiers);
                     ctx.scope[identifier+""]={vtype:type, depth: ctx.depth};
