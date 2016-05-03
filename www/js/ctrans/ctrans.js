@@ -285,18 +285,6 @@ MinimalParser= function () {
 
 	assign=unary_expression_lazy.and(assignment_operator)
 		.and(calc_expression).ret(function(unary_expr,op,calc_expr){
-			/*var searchIdentifier=function($){
-
-				if($.ofIdentifier)return $.text;
-				else if(Array.isArray($)){
-					for(var i=0;i<$.length;i++){	
-						var e=$[i];
-						var res=(searchIdentifier(e));
-						if(res)return res;
-					}
-				}
-				else return 0;
-			}*/
 			var identifier=(searchIdentifier(unary_expr));
 			return [unary_expr,op,"cast(",function(){
 				//[]の数
@@ -334,11 +322,7 @@ MinimalParser= function () {
 			return $;
 		});
 
-	//init_declarator=init_declarator.or(declarator);
-	//var init_declarator_list=t(",").and(init_declarator)
-	//	.ret(function(comma,init_decl){return [",",init_decl];});
 	var init_declarator_list=init_declarator.sep0(t(","),true);
-		//.ret(function(init_decl,init_decls){return [init_decl,init_decls];});
 	var declaration=declaration_specifiers.and(init_declarator_list).and(t(";"))
 		.ret(function(decl_specifiers,init_decl_list,semicolon){
 			var identifier_list=[];
@@ -645,8 +629,6 @@ MinimalParser= function () {
 		});
 
 	
-	//var func_param=var_type.and(identifier).ret(function(type,identifier){return identifier;});
-	//var func_param=declaration;
 	var func_param_list=_void.or(func_param.sep0(t(","),true))
 		.ret(function(param){
 			if(!Array.isArray(param))return "";
@@ -671,14 +653,6 @@ MinimalParser= function () {
 			];
 		});
 	var func=(func_type.opt()).and(identifier).and(func_part).ret(function(type,identifier,part){return ["function ",identifier,part];});
-	//var func_no_type=identifier.and(func_part).ret(function(identifier,part){return ["function ",identifier,part];});
-	//var func=func_with_type.or(func_no_type);
-	/*//var func=func_type.and(identifier).and(func_params).and(compound_statement)
-		.ret(function(type,identifier,param,source){
-			return ["function ",identifier,param,source];
-		});
-*/
-
 	//control
 	var filename=t(/^[a-zA-Z][a-zA-Z0-9]*\.?[a-zA-Z0-9]+/);
 	var control_line=t("#").and(t("define")).and(identifier).and(t(/^.+/)).ret(function(s,def,befor,after){defines[befor]=after;});
@@ -713,7 +687,6 @@ MinimalParser= function () {
 		output=result.result[0];
 		if(result.src.maxPos<processed.length){
 			var max=processed.substr(0,result.src.maxPos);
-			//console.log(max);
 			var line=max.match(/\n/g);
 			line=(line)?line.length:0;
 			var parseErr=new Error("プログラムに誤りがあります。\n"+(line+1)+"行目付近を確認してください。");
