@@ -134,7 +134,11 @@ $(function () {
 	}
     }));
     KeyEventChecker.down(document,"F9",F(run));
-    KeyEventChecker.down(document,"F2",F(stop));
+    KeyEventChecker.down(document,"F2",F(function(){
+        stop();
+        //$("#progs").focus();
+        console.log("F2 pushed");
+    }));
     KeyEventChecker.down(document,"ctrl+s",F(function (e) {
     	save();
     	e.stopPropagation();
