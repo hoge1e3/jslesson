@@ -417,8 +417,11 @@ MinimalParser= function () {
 		.and(t(";")).and(expression.opt()).and(t(")")).and(statement_lazy)
 		.ret(function(_for,lp,e1,e2,s2,e3,rp,state){
 			return [function(){vars.push({});},
-				"scopes.push({});","var start=loop_start();",e1,"while","(",((e2)?e2:"true"),")",
-				"{","try{",state,"}finally{",e3,";","loop_chk(start);","}","}","scopes.pop();",
+				"scopes.push({});","var start=loop_start();",
+				"for","(",e1,e2,";",e3,")",
+				"{","try{",state,"}finally{loop_chk(start);}","}","scopes.pop();",
+//				"scopes.push({});","var start=loop_start();",e1,"while","(",((e2)?e2:"true"),")",
+//				"{","try{",state,"}finally{",e3,";","loop_chk(start);","}","}","scopes.pop();",
 				function(){vars.pop();}
 			];
 		}));
