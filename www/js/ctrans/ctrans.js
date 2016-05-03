@@ -37,7 +37,11 @@ MinimalParser= function () {
 				if(res)return res;
 			}
 		}
-		else return 0;
+		else {
+		    console.log($);
+		    throw new Error("Not found!");
+		    
+		}
 	};
 	function ent(entf, parser) {
 	    return Parser.create(function (st) {
@@ -49,7 +53,7 @@ MinimalParser= function () {
 	    });
 	}
 	function newScope(parser) {
-	    // ctx.scope: {varname : {type:string?, depth:number }}
+	    // ctx.scope: {varname : {vtype:string?, depth:number }}
 	    return ent(function () {
 	        var depth=0;
 	        if ((typeof (ctx.depth))=="number") depth=ctx.depth+1;
@@ -57,21 +61,24 @@ MinimalParser= function () {
 	        return {scope: Object.create(ctx.scope||{}) ,depth:depth };
 	    },parser);
 	}
-	//[]の添字がいくつあるか数える
-	var cntIndex=function(tree){
-		var cnt=0;
-		
-		if(tree.isIndex)cnt++;
-		else if(Array.isArray(tree)){
-			tree.forEach(function(e){cnt+=cntIndex(e);});
-		}
-		return cnt;
+	function lit(s) {
+	    return '"'+s+'"';
 	}
     function extend(arr,obj) {
         for (var k in obj) arr[k]=obj[k];
         return arr;
     }
-
+    function curScopesName() {
+        return "scopes_"+ctx.depth;
+    }
+    function findVariable(n) {
+        var r=ctx.scope[n+""];
+        if (!r) throw new Error(n+"は定義されていません");
+        return r;
+    }
+    function variableName(n) {
+        return "scopes_"+findVariable(n).depth+"."+n;        
+    }
 
 
 	var localVars={};
@@ -208,17 +215,22 @@ MinimalParser= function () {
 	direct_abstract_declarator=direct_abstract_declarator.rep0();
 
 	var abstract_declarator=direct_abstract_declarator;
-
+    var last_decl_type;
 	declaration_specifiers=storage_class_specifier.or(type_specifier).or(type_qualifier);
-	declaration_specifiers=declaration_specifiers.rep1().ret(function(types){return types.join(" ");});
+	declaration_specifiers=declaration_specifiers.rep1().ret(function(types){
+	    last_decl_type=types;
+	    return types.join(" ");
+	});
 
 	var identifier_list=t(",").and(identifier).ret(function(comma,identifier){return [",",identifier];});
 	identifier_list=identifier.and(identifier_list.rep0())
 		.ret(function(identifier,identifiers){return [identifier,identifiers];});
 
-	var direct_declarator_head=identifier.or(
+	var direct_declarator_head=identifier.ret(function (i) {
+	        return extend(i,{vname:i.text});
+	    }).or(
 	    t("(").and(declarator_lazy).and(t(")")).ret(
-	        function(lp,declarator,rp){return ["(",declarator,")"];}
+	        function(lp,declarator,rp){return declarator;}
 	    ));
 	var direct_declarator_tail=t("[").and(constant_expression.opt()).and(t("]")).ret(
 	    function(lsb,const_expr,rsb){
@@ -241,10 +253,12 @@ MinimalParser= function () {
         function(identifier,direct_decl){
     		var $=[identifier,direct_decl];
     		if(direct_decl.isArray)$.isArray=true;
+    		$.vtype=last_decl_type;
+    		$.vname=identifier.vname;
     		return $;
 	    }
 	);
-
+    //\declarator
 	declarator=direct_declarator.ret(function(e){return e;});
 
 	var parameter_declaration=declaration_specifiers.and(declarator)
@@ -294,16 +308,7 @@ MinimalParser= function () {
 
 	assign=unary_expression_lazy.and(assignment_operator)
 		.and(calc_expression).ret(function(unary_expr,op,calc_expr){
-			var identifier=(searchIdentifier(unary_expr));
-			return [unary_expr,op,"cast(",function(){
-				//[]の数
-				var indexNum=cntIndex(unary_expr);
-				var i=vars.length-1;
-				for(;i>=-1;i--){if(vars[i][identifier])break;}
-
-				//console.log(vars[i][identifier]);
-				return "\""+vars[i][identifier][indexNum]+"\"";
-			},",",calc_expr,")"];
+			return [unary_expr,op,"cast(",lit(unary_expr.vtype),",",calc_expr,")"];
 		}).or(calc_expression);
 
 	expression=assign;
@@ -315,15 +320,7 @@ MinimalParser= function () {
 	
 	var init_declarator=declarator.and(t("=").and(initializer).opt())
 		.ret(function(declarator,eq,initializer){
-			var identifier=(searchIdentifier(declarator));
-			var $= (!eq)?[declarator,"=","0"]:[declarator,"=",function(){
-				return ["cast(",function(){
-					var i=vars.length-1;
-					for(;i>=-1;i--){if(vars[i][identifier])break;}
-					return "\""+vars[i][identifier][0]+"\"";
-				}];
-			}
-			,",",initializer,")"];
+			var $=[declarator,["=",eq?["cast(",lit(declarator.vtype),",",initializer,")"]:"0"]];
 			if(declarator.isArray){
 				$.isArray=declarator.isArray;
 				$.isLength=declarator.isLength;
@@ -336,7 +333,7 @@ MinimalParser= function () {
 		.ret(function(decl_specifiers,init_decl_list,semicolon){
 			var identifier_list=[];
 			init_decl_list.forEach(function(e){});
-			return function(){
+			return (function(){
 				var $=[];
 				for(var i=0;i<init_decl_list.length;i++){
 					var $$=init_decl_list[i];
@@ -360,15 +357,12 @@ MinimalParser= function () {
                         }
 					}
 					type.push(decl_specifiers);
-					
+                    ctx.scope[identifier+""]={vtype:type, depth: ctx.depth};
 					if (hasParams) {
 					    // prototype宣言はコードを生成しない
 					} else if(tmp.length){
-						$.push("scopes[scopes.length-1].");
-						$.push(identifier);
-						$.push("=");
-						//console.log("Initor", initializer);
-                        if (initializer&&initializer.type=="string") {
+						$.push(curScopesName()+"."+identifier+"=");
+						if (initializer&&initializer.type=="string") {
                             $.push(initializer);                            
                         } else {						
     						$.push("arrInit(");
@@ -380,25 +374,18 @@ MinimalParser= function () {
     						$.push(")");
                         }
 						$.push(";");
-						/*if(init_decl_list[i]){
-							$.push("scopes[scopes.length-1].");
-							$.push(init_decl_list[i]);
-							$.push(";");
-						}*/
 					}else{
-						$.push("scopes[scopes.length-1].");
+						$.push(curScopesName()+".");
 						$.push(init_decl_list[i]);
 						$.push(";");
 					}
-                    //ctx.scope[identifier+""]={type:type, depth: ctx.depth};
 					vars[vars.length-1][identifier+""]=type;
 					//console.log(vars[vars.length-1]);
 					//console.log(vars);
 					
 				}
 				return $;
-			}
-			;
+			})();
 		});
 
 
@@ -426,11 +413,9 @@ MinimalParser= function () {
 		.and(t(";")).and(expression.opt()).and(t(")")).and(statement_lazy)
 		.ret(function(_for,lp,e1,e2,s2,e3,rp,state){
 			return [function(){vars.push({});},
-				"scopes.push({});","var start=loop_start();",
+				"var start=loop_start();",
 				"for","(",e1,e2,";",e3,")",
-				"{","try{",state,"}finally{loop_chk(start);}","}","scopes.pop();",
-//				"scopes.push({});","var start=loop_start();",e1,"while","(",((e2)?e2:"true"),")",
-//				"{","try{",state,"}finally{",e3,";","loop_chk(start);","}","}","scopes.pop();",
+				"{","loop_chk(start);",state,"}",
 				function(){vars.pop();}
 			];
 		}));
@@ -442,16 +427,16 @@ MinimalParser= function () {
 		});
 	selection_statement=selection_statement.or(t("switch").and(t("(")).and(expression).and(t(")"))
 		.and(switch_compound_statement_lazy).ret(function(_switch,lp,expr,rp,state){
-			return ["try{scopes.push({});","switch","(",expr,")",state,"}finally{scopes.pop();}"];
+			return ["switch","(",expr,")",state];
 		}));
 
 	var compound_statement_part=declaration.or(statement_lazy).rep0();
 	var compound_statement=t("{").and(compound_statement_part).and(t("}"))
 		.ret(function(lcb,states,rcb){
 		    return [function(){vars.push({});},"{",
-		    "var scopes_"+ctx.depth,"={};",
-		    "try{ scopes.push({});",
-				states,"}","finally{scopes.pop();}","}",function(){vars.pop();}
+		        "var ",curScopesName(),"={};",
+				states,
+			"}",function(){vars.pop();}
 			];
 		});
 	compound_statement=newScope(compound_statement);
@@ -490,19 +475,18 @@ MinimalParser= function () {
 		.ret(function(identifier,lsb,expr,rsb){return [identifier,lsb,expr,rsb];});
 
 	var ptr_identifier=t("&").and(identifier).ret(function(and,identifier){
-		return function(){
-			var i=vars.length-1;
-			for(;i>=0;i--)if(vars[i][identifier+''])break;
-			if(i==-1)throw(identifier+"は未定義です。");
-			return ["pointer(scopes["+
-				"search_scope_level(\""+identifier+"\")],\""+
-				identifier+"\",","\""+vars[i][identifier+'']+"\"",")"
-			];
-		};
+		return (function(){
+			var s=findVariable(identifier);
+			return ["pointer(",
+			    ["scopes_"+s.depth, lit(identifier), lit(s.vtype)].join(","),
+			")"]; 
+		})();
 	});
 	var var_identifier=identifier.ret(function(identifier){
-	    var d=ctx.depth;
-		return ["scopes[",function(){
+	    //var d=ctx.depth;
+	    var s=findVariable(identifier);
+	    return extend( [variableName(identifier)], s);
+		/*return ["scopes[",function(){
 			//defineで変更されていて、識別子であればscopesから探す。数値とかであればそのまま返す。
 			if(identifier.changeble)if(!identifier.text.match(/^(?:[a-zA-Z_][a-zA-Z0-9_]*)$/)){
 				console.log(!identifier.text.match(/^(?:[a-zA-Z_][a-zA-Z0-9_]*)$/));
@@ -513,7 +497,7 @@ MinimalParser= function () {
 			if(i==-1)throw(identifier+"は未定義です。");
 			//return i;
 			return "search_scope_level(\""+identifier+"\")";
-		},"].",identifier];
+		},"].",identifier];*/
 	});
 
 	var primary_expression=var_identifier.or(constant).or(string);
@@ -552,50 +536,44 @@ MinimalParser= function () {
 	.ret(function(lp,type_name,rp,cast_expr){return ["(",type_name,")",cast_expr];}));
 
 
-	var init_param=declarator.and(t("=").and(initializer).opt())
-		.ret(function(declarator,eq,initializer){
-			return function(n){
+	var init_param=declarator.and(t("=").and(initializer).opt());
+	var func_param=declaration_specifiers.and(init_param);
+	var func_param_list=_void.or(func_param.sep0(t(","),true))
+		.ret(function(params){
+		    if (!(params instanceof Array)) return "";//void
+		    function genparam(n,declarator, initializer){
 				var identifier=(searchIdentifier(declarator));
-				var $=[declarator,"=",function(){
-					return ["cast(",function(){
-						var i=vars.length-1;
-						for(;i>=-1;i--){if(vars[i][identifier])break;}
-						return "\""+vars[i][identifier][0]+"\"";
-					}];
-				}
-				,",param_init(","arguments["+n+"]",",",
-					((initializer)?initializer:"null"),"))"];
+				var $=[declarator,"=",
+				["cast(",lit(declarator.vtype),",param_init(","arguments["+n+"]",",",
+					(initializer||"null"),"))"]];
 				if(declarator.isArray){
 					$.isArray=declarator.isArray;
 					$.isLength=declarator.isLength;
 				}
 				return $;
-			};
-		});
-	
-
-
-
-	var func_param=declaration_specifiers.and(init_param)
-		.ret(function(decl_specifiers,init_param){
-			return function(n){
-					var $=[];
-					var $$=init_param(n);
-					var identifier=searchIdentifier($$);
+			}
+			return params.map(function(param,n){
+			        var decl_spec=param[0];
+			        var init_param=param[1];
+			        var declarator=init_param[0];
+			        var initializer=init_param[2];
+		    		var $=[];
+					var $$=genparam(n,declarator, initializer);
+					var identifier=declarator.vname;
 					var type=[];
 					var tmp=[];
-	
+                    //$$01  = init_decl's  decl's  decltails   int x[2][3] の [2][3]
+                    //	init_declarator:= declarator = initializer
+
 					for(var n=0;n<$$[0][1].length;n++){
 						type.push("array");
 						tmp.push($$[0][1][n][1]);
 						$$[0][1][n]=[];
 					}
 					type.push(decl_specifiers);
-					
+                    ctx.scope[identifier+""]={vtype:type, depth: ctx.depth};
 					if(tmp.length){
-						$.push("scopes[scopes.length-1].");
-						$.push(identifier);
-						$.push("=");
+						$.push(curScopesName()+"."+identifier+"=");
 						$.push("arrInit(");
 						for(var n=0;n<tmp.length;n++){
 							$.push((tmp[n])?tmp[n]:"1");
@@ -606,43 +584,27 @@ MinimalParser= function () {
 						$.push(";");
 					}	
 					vars[vars.length-1][identifier+""]=type;
-					//console.log(vars[vars.length-1]);
-					//console.log(vars);
-					$.push("scopes[scopes.length-1].");
+					$.push(curScopesName()+".");
 					$.push($$);
 					$.push(";");
 					
 					console.log($);
 					return $;
-			};
+            });
 		});
 
-	
-	var func_param_list=_void.or(func_param.sep0(t(","),true))
-		.ret(function(param){
-			if(!Array.isArray(param))return "";
-			else{
-				return function(){
-					var tmp=[];
-					for(var i=0;i<param.length;i++){tmp.push(param[i](i));}
-					return tmp;
-				}
-			}
-		});
-	var func_params=t("(").and(func_param_list.opt()).and(t(")"))
-		.ret(function(lp,param,rp){return  ["(",((param)?param:""),")"];})
-	var func_source=t("{").and(statements).and(t("}"))
-		.ret(function(lcb,source,rcb){return ["{scopes.push({});",source,"scopes.pop();}"];});
-
-	var func_part=t("(").and(func_param_list.opt()).and(t(")")).and(t("{")).and(compound_statement_part).and(t("}"))
-		.ret(function(lp,params,rp,lcb,states,rcb){
+	var func_part=t("(").and(func_param_list.opt()).and(t(")")).and(t("{")).
+	    and(compound_statement_part).
+	and(t("}")).ret(function(lp,params,rp,lcb,states,rcb){
 			return [function(){vars.push({});},"(){",
-				"var scopes_"+ctx.depth,"={};",
-                "try{scopes.push({});",params,
-				states,"}","finally{scopes.pop();}","}",function(){vars.pop();}
-			];
+				"var ",curScopesName(),"={};",
+                params,
+				states,
+			"}",function(){vars.pop();}];
 		});
-	var func=(func_type.opt()).and(identifier).and(func_part).ret(function(type,identifier,part){return ["function ",identifier,part];});
+	var func=(func_type.opt()).and(identifier).and(func_part).ret(function(type,identifier,part){
+	    return ["function ",identifier,part];
+	});
 	func=newScope(func);
 	//control
 	var filename=t(/^[a-zA-Z][a-zA-Z0-9]*\.?[a-zA-Z0-9]+/);
