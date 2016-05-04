@@ -252,7 +252,7 @@ MinimalParser= function () {
 
 	var parameter_declaration=declaration_specifiers.and(declarator)
 		.ret(function(declaration_specifiers,declarator){return [declaration_specifiers,declarator];});
-
+    //\parameter_type_list
 	parameter_type_list=t(",").and(parameter_declaration)
 		.ret(function(comma,parameter_declaration){return [",",parameter_declaration];});
 	parameter_type_list=parameter_declaration.and(parameter_type_list.rep0())
@@ -636,8 +636,28 @@ MinimalParser= function () {
 	func=newScope(func);
 	//control
 	var filename=t(/^[a-zA-Z][a-zA-Z0-9]*\.?[a-zA-Z0-9]+/);
-	var control_line=t("#").and(t("define")).and(identifier).and(t(/^.+/)).ret(function(s,def,befor,after){defines[befor]=after;});
-	control_line=t("#").and(t("include")).and(t("<").or(t("\""))).and(filename).and(t(">").or(t("\""))).ret(function(){return null;}).or(control_line);
+	var control_line=t("#").and(t("define")).and(identifier).and(t(/^.+/)).ret(function(s,def,befor,after){
+	    defines[befor]=after;
+	});
+	control_line=t("#").and(t("include")).and(t("<").or(t("\""))).and(filename).and(t(">").or(t("\""))).ret(function(){
+	    var filename=arguments[3];
+	    //console.log("filename",filename);
+	    switch (filename.text) {
+	        case "stdio.h":
+	            return ["printf","scanf"].map(function (n) {
+	                return "void "+n+"();\n";
+	            }).join("\n");
+            break;
+	        case "string.h":
+	            return ["strcpy","strncpy","strcmp","strncmp",
+	            "strcat","strncat","memset","index","rindex",
+	            "memcmp","memcpy"].map(function (n) {
+	                return "void "+n+"();";
+	            }).join("\n");
+            break;
+	    }
+	    return null;
+	}).or(control_line);
 
 
 	expr = func.or(declaration);
@@ -650,7 +670,7 @@ MinimalParser= function () {
 			lines[i]=lines[i].replace(/\/\/.*/," ");
 			var res=(lines[i])?control_line.parseStr(lines[i]):"";
 			if(res.success){
-				lines[i]="";
+				lines[i]=res.result[0]||"";
 				//res();
 			} else {
 			    lines[i]=lines[i].replace(/(\'[^\']*\')|(\"[^\"]*\")|(\b[A-Za-z0-9]+\b)/g,function (s) {
@@ -658,7 +678,7 @@ MinimalParser= function () {
 			    });
 			}	
 		}
-		//console.log(lines.join("\n"));
+		//console.log("preproc",lines.join("\n"));
 		return lines.join("\n");
 	}
 
