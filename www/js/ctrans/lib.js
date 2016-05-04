@@ -39,7 +39,7 @@ console.log(dest);
 	line=ch_arr_to_str(line);
   var input=prompt(lineBuf.join(""),"");
   printf(str_to_ch_arr(input+"\n"));
-	var format=line.match(/%d|%c|%x|%#x|%lf|%f/);
+	var format=line.match(/%d|%c|%x|%#x|%lf|%f|%s/);
 	switch(format+""){
 	case "%d":
 		val=parseInt(input);
@@ -50,11 +50,17 @@ console.log(dest);
 	case "%c":
 		val=input.charCodeAt(0);
 	break;
+	case "%s":
+		val=input;
+		var src=str_to_ch_arr(val);
+		strcpy(dest, src);
+		dest=null;
+	break;
 	}
 	
-	if(typeof dest.write=="function")
+	if(dest && typeof dest.write=="function")
 		dest.write(cast(dest.type,val));
-	else dest=val;
+	//else dest=val;
 }
 function printf() {
     //var line=format.replace(/%d/,value);
