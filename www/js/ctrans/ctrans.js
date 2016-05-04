@@ -64,6 +64,9 @@ MinimalParser= function () {
     function variableName(n) {
         return "scopes_"+findVariable(n).depth+"."+n;        
     }
+    function MKARY() {
+	    return Array.prototype.slice.call(arguments);
+	}
 
 
 	var localVars={};
@@ -126,7 +129,7 @@ MinimalParser= function () {
 	var type_specifier=t(/^(?:void|char|short|int|long|float|double|signed|unsigned)\b/)/*.or(struct_or_union_specifier_lazy).or(enum_specifier_lazy).or(typedef_name_lazy)*/;
 	var type_qualifier=t(/^(?:const|volatile)/);
 	var type_qualifiers=type_qualifier.rep1();
-	var unary_operator=t(/^(?:\*|\+|\-|\~|\!)/);//&
+	var unary_operator=t(/^(?:\*|\+|\-|\~|\!|\&)/);//&
 	var assignment_operator=t(/^(?:=|\*\=|\/=|\%\=|\+=|\-\=|<<=|>>=|\&=|\^=|\|=)/);
 	var var_type=t("unsigned").opt().and(int.or(float).or(char).or(double))
 		.ret(function(u,type){return [((u)?u+" ":""),type];});
@@ -307,8 +310,13 @@ MinimalParser= function () {
 	            var last=right[1];
 	            if (last && last.isIndex) {
 	                return extend( ["pointer(",right[0],",",last[1],")"] ,
-	                {vtype: right.type} );
+	                {vtype: ["array",right.type]} );
 	            }
+	        } else if (right.vname) {
+             	var s=findVariable(right.vname);
+    			return extend(["pointer(",
+    			    ["scopes_"+s.depth, lit(identifier), lit(s.vtype)].join(","),
+    			")"],{vtype:["array",s.vtype]} ); 
 	        }
 	    }
 	    return extend([op,right],{vtype:right.vtype} );
@@ -484,14 +492,14 @@ MinimalParser= function () {
 	var arr_expression=identifier.and(t("[")).and(expression).and(t("]"))
 		.ret(function(identifier,lsb,expr,rsb){return [identifier,lsb,expr,rsb];});
     // PTR
-	var ptr_identifier=t("&").and(identifier).ret(function(and,identifier){
+	/*var ptr_identifier=t("&").and(identifier).ret(function(and,identifier){
 		return (function(){
 			var s=findVariable(identifier);
 			return extend(["pointer(",
 			    ["scopes_"+s.depth, lit(identifier), lit(s.vtype)].join(","),
 			")"],{vtype:["array",s.vtype]} ); 
 		})();
-	});
+	});*/
 	var var_identifier=identifier.ret(function(identifier){
 	    //var d=ctx.depth;
 	    var s=findVariable(identifier);
@@ -510,13 +518,15 @@ MinimalParser= function () {
 		},"].",identifier];*/
 	});
 
-	var primary_expression=var_identifier.or(constant).or(string);
-	primary_expression=primary_expression.or(t("(").and(expression).and(t(")"))
-		.ret(function(lp,expr,rp){return ["(",expr,")"];}));
+	primary_expression=var_identifier.or(constant).or(string).or(
+	    t("(").and(expression).and(t(")")).ret(function(lp,expr,rp){
+	        return ["(",expr,")"];
+	    })
+	);
 
 	postfix_expression=ExpressionParser();
 	postfix_expression.element(primary_expression);
-	postfix_expression.element(ptr_identifier);
+	//postfix_expression.element(ptr_identifier);
 	postfix_expression.postfix(5,t("[").and(expression).and(t("]"))
 		.ret(function(lsb,expr,rsb){
 		    // PTR
@@ -524,12 +534,16 @@ MinimalParser= function () {
 			$.isIndex=true;
 			return $;
 		}));
+	postfix_expression.postfix(5,t("(").and(argument_expressions.opt()).and(t(")")).ret(
+	    function(lp,args,rp){
+	        return ["(",args,")"];
+	    }));
 	postfix_expression.postfix(4,t("++"));
 	postfix_expression.postfix(4,t("--"));
 	//なぜかpostfix_expressionにprefix。why
-	postfix_expression.prefix(4,t("++"));
-	postfix_expression.prefix(4,t("--"));
-	postfix_expression.prefix(3,unary_operator);
+	//postfix_expression.prefix(4,t("++"));
+	//postfix_expression.prefix(4,t("--"));
+	//postfix_expression.prefix(3,unary_operator);
 	postfix_expression.postfix(5,t(".").and(identifier)
 		.ret(function(peri,identifier){return [".",identifier];}));
 	postfix_expression.postfix(5,t(/^->/).and(identifier)
@@ -537,21 +551,18 @@ MinimalParser= function () {
 	postfix_expression.mkPostfix(mkpost);
 	postfix_expression.mkPrefix(mkpre);
 	postfix_expression=postfix_expression.build();
-	postfix_expression=identifier.and(t("(")).and(argument_expressions.opt()).and(t(")"))
-		.ret(function(identifier,lp,args,rp){return [identifier,"(",args,")"];}).or(postfix_expression);
 
-	unary_expression=postfix_expression;
+	unary_expression=postfix_expression.or(
+	    t("++").or(t("--")).and(unary_expression_lazy).ret(MKARY)
+	).or(
+	    unary_operator.and(cast_expression_lazy).ret(MKARY)
+	);
 
 	cast_expression=unary_expression.or(t("(").and(type_name).and(t(")")).and(cast_expression_lazy)
 	.ret(function(lp,type_name,rp,cast_expr){return ["(",type_name,")",cast_expr];}));
 
-
-	var init_param=declarator.and(t("=").and(initializer).opt()).ret(function () {
-	    return Array.prototype.slice.call(arguments);
-	});;
-	var func_param=declaration_specifiers.and(init_param).ret(function () {
-	    return Array.prototype.slice.call(arguments);
-	});
+	var init_param=declarator.and(t("=").and(initializer).opt()).ret(MKARY);
+	var func_param=declaration_specifiers.and(init_param).ret(MKARY);
 	var func_param_list=_void.or(func_param.sep0(t(","),true))
 		.ret(function(params){
 		    if (!(params instanceof Array)) return "";//void
