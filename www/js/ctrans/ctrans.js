@@ -301,6 +301,16 @@ MinimalParser= function () {
 	    return extend([left,op],{vtype:t});
 	}
 	function mkpre(op,right){
+	    // PTR
+	    if (op.text=="&") {
+	        if (right instanceof Array) {
+	            var last=right[1];
+	            if (last && last.isIndex) {
+	                return extend( ["pointer(",right[0],",",last[1],")"] ,
+	                {vtype: right.type} );
+	            }
+	        }
+	    }
 	    return extend([op,right],{vtype:right.vtype} );
 	}
 	calc_expression = calc_expression.build();
@@ -473,7 +483,7 @@ MinimalParser= function () {
 		.ret(function(identifier,lp,args,rp){return [identifier,"(",args,")"];});
 	var arr_expression=identifier.and(t("[")).and(expression).and(t("]"))
 		.ret(function(identifier,lsb,expr,rsb){return [identifier,lsb,expr,rsb];});
-
+    // PTR
 	var ptr_identifier=t("&").and(identifier).ret(function(and,identifier){
 		return (function(){
 			var s=findVariable(identifier);
@@ -507,21 +517,22 @@ MinimalParser= function () {
 	postfix_expression=ExpressionParser();
 	postfix_expression.element(primary_expression);
 	postfix_expression.element(ptr_identifier);
-	postfix_expression.postfix(1,t("[").and(expression).and(t("]"))
+	postfix_expression.postfix(5,t("[").and(expression).and(t("]"))
 		.ret(function(lsb,expr,rsb){
+		    // PTR
 			var $=["[",expr,"]"];
 			$.isIndex=true;
 			return $;
 		}));
-	postfix_expression.postfix(1,t("++"));
-	postfix_expression.postfix(1,t("--"));
+	postfix_expression.postfix(4,t("++"));
+	postfix_expression.postfix(4,t("--"));
 	//なぜかpostfix_expressionにprefix。why
-	postfix_expression.prefix(1,t("++"));
-	postfix_expression.prefix(1,t("--"));
-	postfix_expression.prefix(1,unary_operator);
-	postfix_expression.postfix(1,t(".").and(identifier)
+	postfix_expression.prefix(4,t("++"));
+	postfix_expression.prefix(4,t("--"));
+	postfix_expression.prefix(3,unary_operator);
+	postfix_expression.postfix(5,t(".").and(identifier)
 		.ret(function(peri,identifier){return [".",identifier];}));
-	postfix_expression.postfix(1,t(/^->/).and(identifier)
+	postfix_expression.postfix(5,t(/^->/).and(identifier)
 		.ret(function(arrow,identifier){return ["->",identifier];}));
 	postfix_expression.mkPostfix(mkpost);
 	postfix_expression.mkPrefix(mkpre);
@@ -531,8 +542,7 @@ MinimalParser= function () {
 
 	unary_expression=postfix_expression;
 
-	cast_expression=unary_expression;
-	cast_expression=cast_expression.or(t("(").and(type_name).and(t(")")).and(cast_expression_lazy)
+	cast_expression=unary_expression.or(t("(").and(type_name).and(t(")")).and(cast_expression_lazy)
 	.ret(function(lp,type_name,rp,cast_expr){return ["(",type_name,")",cast_expr];}));
 
 
