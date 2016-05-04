@@ -631,6 +631,10 @@ MinimalParser= function () {
 			if(res.success){
 				lines[i]="";
 				//res();
+			} else {
+			    lines[i]=lines[i].replace(/(\'[^\']*\')|(\"[^\"]*\")|(\b[A-Za-z0-9]+\b)/g,function (s) {
+			        return (s in defines ? defines[s] : s );
+			    });
 			}	
 		}
 		//console.log(lines.join("\n"));
@@ -640,10 +644,10 @@ MinimalParser= function () {
 
 	parser.parse=function (str) {
 		vars=[{}];
-		defines={};
+		defines={NULL:0};
 		var output="";
 		var processed=preprocess(str);
-		ctx.clear();
+		ctx=context();
 		var result=program.parseStr(processed);
 		output=result.result[0];
 		if(result.src.maxPos<processed.length){

@@ -1,0 +1,164 @@
+﻿<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html>
+<script src="jquery-2.1.0.js"></script>
+<!--script src="http://code.jquery.com/jquery-1.7.2.js"></script-->
+<!--<script src="http://code.jquery.com/jquery-2.1.0.js"></script>-->
+<!--<script src="Underscore.1.8.3.js"></script>-->
+<!--<script src="http://maps.google.com/maps/api/js?sensor=false" type="text/javascript"></script>-->
+<script src="parser.js"></script>
+<script src="ExpressionParser2.js"></script>
+<script src="minimal.js"></script>
+<script src="beautify.js"></script>
+<script>
+	
+	var insert_char=function(str) {
+		var strOriginal = document.form.prog.value;
+		var posCursole = document.form.prog.selectionStart;
+		var leftPart = strOriginal.substr(0, posCursole);
+		var rightPart = strOriginal.substr(posCursole, strOriginal.length);
+		document.form.prog.value = leftPart + str + rightPart;
+		//var obj = document.; 
+		//obj.focus(); 
+		//obj.value += '';
+	}
+	//var iframe_document = iframe.contentWindow.document;
+	//iframe_document.open();
+	//iframe_document.write("<html>test</html>");
+	/*$.ajax({url:"http://oecu-edu.sakura.ne.jp/honda/setup.ini"}).then(function(data){
+	console.log(data);
+	(new Function(MinimalParser.parse(data)));
+	},function(){alert("setup.iniの読み込みに失敗しました");});*/
+	/*setInterval(function(){
+		document.form.res.value="";
+		if($("#prog").val()){
+			document.form.res.value=js_beautify(MinimalParser.parse($("#prog").val()));
+		}
+	},1000);*/
+	$(function () {
+		/*$("#parse").click(function () {
+			document.form.res.value="";
+			MinimalParser.parse($("#prog").val());
+			(new Function($("#res").val()))();
+		});*/
+		$("#run").click(function(){
+			//var page=window.open();
+			//page.document.open();
+			//page.document.write(trim_html($("#res").val()));
+			localStorage.setItem(('sample'),$("#prog").val());
+			var dtl=MinimalParser.parse($("#prog").val());
+			dtl=js_beautify(dtl);
+			console.log(dtl);
+			(iframe.contentWindow.timer_stopper)?iframe.contentWindow.timer_stopper():null;
+			iframe_document.open();
+			iframe_document.writeln("<html><body>");
+			iframe_document.writeln("<script>function timer_stopper(){timer.allreset();}<\/script>");
+			iframe_document.writeln("<script src=\"jquery-2.1.0.js\"><\/script>");
+			iframe_document.writeln("<canvas id=\"canvas\" width=\"640\" height=\"480\"><\/canvas>");
+			iframe_document.writeln("<script charset='utf-8' src=\"lib.js\"><\/script>");
+			iframe_document.writeln("<script>function timer_reset(){timer.allreset();};<\/script>");
+			iframe_document.writeln("<script charset='utf-8' src=\"canvas.js\"><\/script>");
+			iframe_document.writeln("<script charset='utf-8' src=\"collision.js\"><\/script>");
+			iframe_document.writeln("<script charset='utf-8' src=\"turtle.js\"><\/script>");
+			iframe_document.writeln("<script charset='utf-8' src=\"button.js\"><\/script>");
+			iframe_document.writeln("<script charset='utf-8' src=\"textarea.js\"><\/script>");
+			iframe_document.writeln("<script charset='utf-8' src=\"devicemotion.js\"><\/script>");
+			iframe_document.writeln("<script charset='utf-8' src=\"gps.js\"><\/script>");
+			iframe_document.writeln("<script charset='utf-8'>try{(function(){"+dtl+"})();}catch(e){console.log(e.stack);alert(\"エラーが発生しました\\n\"+e);}<\/script>");
+			iframe_document.writeln("</body></html>");
+			iframe_document.close();
+			//iframe.contentWindow.executer(MinimalParser.parse($("#prog").val()));
+			//(new Function(MinimalParser.parse($("#prog").val())))();
+			//page.document.close();
+		});
+		$("#samples").change(function () {
+			$("#prog").val( $("#prog_"+this.value).val());
+		});
+		if (navigator.userAgent.indexOf('iPhone') > 0 || navigator.userAgent.indexOf('iPad') > 0 || navigator.userAgent.indexOf('iPod') > 0 || navigator.userAgent.indexOf('Android') > 0) {
+			$("#sb").click(function() {insert_char("「」");});
+			$("#paren").click(function() {insert_char("（）");});
+			$("#exc").click(function() {insert_char("！");});
+			$("#ques").click(function() {insert_char("？");});
+			$("#maru").click(function() {insert_char("。");});
+			$("#stick").click(function() {insert_char("｜｜");});
+			$("#equ").click(function() {insert_char("＝");});
+			$("#add").click(function() {insert_char("＋");});
+			$("#sub").click(function() {insert_char("−");});
+			$("#mul").click(function() {insert_char("×");});
+			$("#div").click(function() {insert_char("÷");});
+			$("#dq").click(function() {insert_char("\”\”");});
+			$("#colon").click(function() {insert_char(":");});
+		}
+	});
+
+</script>
+
+<select id=samples name=samples style="font-size:110%">
+	<option value="s0">---</option>
+	<option value="s1">りんご拾いゲーム</option>
+  <option value="s2">タブレットの傾きを使用</option>
+  <option value="s3">タブレットのデジタルコンパスを使用</option>
+</select>
+
+<button id=run style="font-size:110%">実行</button><br>
+
+<script>
+if (navigator.userAgent.indexOf('iPhone') > 0 || navigator.userAgent.indexOf('iPad') > 0 || navigator.userAgent.indexOf('iPod') > 0 || navigator.userAgent.indexOf('Android') > 0) {
+	$("<button id=maru>。</button>").appendTo("body");
+	$("<button id=equ>＝</button>").appendTo("body");
+	$("<button id=exc>！</button>").appendTo("body");
+	$("<button id=add>＋</button>").appendTo("body");
+	$("<button id=sb>「」</button>").appendTo("body");
+	$("<button id=paren>（）</button>").appendTo("body");
+	$("<button id=dq>\”\”</button>").appendTo("body");
+	$("<button id=colon>:</button>").appendTo("body");
+	$("<button id=sub>−</button>").appendTo("body");
+	$("<button id=div>÷</button>").appendTo("body");
+	$("<button id=mul>×</button>").appendTo("body");
+	$("<button id=ques>？</button>").appendTo("body");
+	$("<button id=stick>｜｜</button>").appendTo("body");
+	$("<br>").appendTo("body");
+}
+
+</script>
+<form name="form">
+  <textarea id=prog rows=23 cols=40 style="font-size:110%;"></textarea>
+</form>
+
+
+<div style="display:none;">
+<textarea id=prog_s0>
+</textarea>
+<textarea id=prog_s1>
+かめた＝タートル！作る。
+左ボタン＝ボタン！"左" 作る。
+左ボタン：動作＝「かめた！３０　左回り」。
+右ボタン＝ボタン！"右" 作る。
+右ボタン：動作＝「かめた！３０　右回り」。
+時計＝タイマー！作る。
+時計！「かめた！１０　歩く」実行。
+かめた：衝突＝「｜相手｜相手！消える」。
+タートル！作る　ペンなし　３２０　９０　位置　"apple.png" 変身する。
+</textarea>
+<textarea id=prog_s2>
+かめた＝タートル！作る。
+傾き＝加速度センサ！作る。
+傾き：動作＝「｜x　y｜かめた！（y）（x）移動する」。
+</textarea>
+<textarea id=prog_s3>
+かめた＝タートル！作る。
+方角＝コンパス！作る。
+方角：動作＝「｜d｜かめた！（d）向き」。
+</textarea>
+
+</div>
+
+<script>
+var prog=localStorage.getItem('sample');
+document.form.prog.value=((prog)?prog:"");
+var iframe=document.createElement("iframe");
+iframe.style.cssText="position:absolute;left:450px;top:70px;width:660px;height:500px";
+document.body.appendChild(iframe);
+var iframe_document = iframe.contentWindow.document;
+//iframe_document.src="http://oecu-edu.sakura.ne.jp/honda/executer.html";
+</script>
+</html>

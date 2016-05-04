@@ -24,6 +24,7 @@ requirejs(["../fs2/FS"],function(FS){
 				console.log(e);
 			});
 		}catch(e){
+		    console.log(e.stack);
 			alert(e);
 			$.post("../../dump.php",{data:"RUNTIME ERROR!\n"+e+"\nRUNTIME ERROR END!"}).then(function (r) {
 				console.log(r);

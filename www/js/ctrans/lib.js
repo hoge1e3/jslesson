@@ -3,27 +3,35 @@ NULL=0;
 function log(){
 	console.log(arguments);
 };
-function pointer(obj,key,type) {
+function pointer(obj,key,type,ofs) {
 	if(Array.isArray(obj[key])){
 		var tmp=[];
+		ofs=ofs||0;
 		for(var i=0;i<obj[key].length;i++){
-			var $={
-				read:function(){return obj[key][i];},
-				write:function(v){return obj[key][i]=v;},
-				type:type.split(",")[1],
-			};
-			tmp.push($);
-			//if(tmp[2])console.log(tmp[2].read());
+		    (function (i) {
+    			var $={
+    				read:function(){return obj[key][i+ofs];},
+    				write:function(v){return obj[key][i+ofs]=v;},
+    				offset: function (o) {
+                	    return tmp[i+o];
+                	},
+    				type:type.split(",")[1],
+    			};
+    			tmp.push($);
+		    })(i);
 		}
-//console.log(tmp[1].read());
-for(var i=0;i<tmp.length;i++)console.log(tmp[i].read());
+        //for(var i=0;i<tmp.length;i++)console.log(tmp[i].read());
 		return tmp;
 	}
-  return {
-    read: function () { return obj[key];},
-    write: function (v) { return obj[key]=v;},
-		type: type,
-  };
+    return {
+        read: function () { return obj[key];},
+        write: function (v) { return obj[key]=v;},
+    	type: type,
+    	offset: function (o) {
+    	    if (typeof key!="number") throw new Error(key+": この操作はできません");
+    	    return pointer(obj,key+o,type);
+    	}
+    };
 }
 function scanf(line, dest) {
 console.log(dest);
@@ -93,7 +101,9 @@ function printf() {
 		case "%s":
 		    var res="";
 		    if (typeof arg=="string") res=arg;
-		    else if (arg instanceof Array) {
+		    else if (arg.read && arg.offset) {
+		        res=ch_arr_to_str(fillStr(arg));
+		    } else if (arg instanceof Array) {
 		        res=ch_arr_to_str(arg);       
 		    }
 		    return res;
@@ -113,42 +123,67 @@ function printf() {
     }
 });
 // -------- 文字列関数はchr_arrayを想定していたが、本当はpointerが通じるようにしないといかん
+function pointerize(s) {
+    if (s instanceof Array) return pointer(s,0);
+    if (!s.read || !s.write) throw new Error(s+" is not pointer.");
+    return s;
+}
 function strlen(str) {
+    str=pointerize(str);
     var len=0;
-    while (str[len++]);
+    while (str.read()) {
+        str=str.offset(1);
+        len++;
+    }
     return len;
 }
 function strcpy(dst,src) {
     return strncpy(dst,src,strlen(src)+1);
 }
 function fillStr(str,n) {
+    str=pointerize(str);
     //  "ABC", 5 ->   "ABC\0\0"
     var z;
     var dst=[];
-    for (var i=0;i<n;i++) {
-        if (src[i]==0) {
+    var infty=(typeof n!=="number");
+    for (var i=0;infty || i<n;i++) {
+        /*if (infty) {
+            console.log(str.read());
+            if (i>100) break;
+        }*/
+        if (!str.read()) {
             z=true;        
         }
         if (z) {
             dst[i]=0;
+            if (infty) break;
         } else {
-            dst[i]=src[i];
+            dst[i]=str.read();
         }
+        str=str.offset(1);
     }
     return dst;
 }
 function strncpy(dst, src,n) {
+    dst=pointerize(dst);
+    var r=dst;
     src=fillStr(src,n);    
     for (var i=0;i<n;i++) {
-        dst[i]=src[i];
+        dst.write(src[i]);
+        dst=dst.offset(1);
     }
-    return pointer(dst,0);
+    return r;
 }
 function strncmp(s1,s2,n) {
+    s1=pointerize(s1);
+    s2=pointerize(s2);
     for (var i=0;i<n;i++) {
-        if (s1[i]==0 && s2[i]==0) return 0;
-        var s=s1[i]>s2[i]?1:s1[i]<s2[i]?-1:0;
+        var e1=s1.read(),e2=s2.read();
+        if (e1==0 && e2==0) return 0;
+        var s=e1>e2?1:e1<e2?-1:0;
         if (s!=0) return s;
+        s1=s1.offset(1);
+        s2=s2.offset(1);
     }
     return 0;
 }
@@ -160,32 +195,66 @@ function strcat(dst,src) {
     return strncat(dst,src,strlen(src));
 }
 function strncat(dst,src,n) {
-    var p=strlen(dst);
+    src=pointerize(src);
+    var head=pointerize(dst);
+    var p=strlen(head);
+    dst=head.offset(p);
     var i;
     for (i=0;i<n;i++) {
-        dst[p+i]=src[i];
-        if (src[i]==0) break;
+        dst.write(src.read());
+        if (src.read()==0) break;
+        src=src.offset(1);
+        dst=dst.offset(1);
     }
-    if (i>=n) src[i]=0;
-    return pointer(dst,0);
+    if (i>=n) src.write(0);
+    return head;
+}
+function memset(dst,s,n) {
+    dst=pointerize(dst);
+    while(n--) {
+        dst.write(s);
+        dst=dst.offset(1);
+    }
 }
 function index(str,c) {
-    for (var i=0; str[i] ; i++) {
-        if (str[i]==c) return i;
+    str=pointerize(str);
+    for (var i=0; str.read() ; i++) {
+        if (str.read()==c) return str;
+        str=str.offset(1);
     }
     return NULL;
 }
 function rindex(str,c) {
-    for (var i=strlen(str)-1; i>=0 ; i--) {
-        if (str[i]==c) return i;
+    str=pointerize(str);
+    var ini=strlen(str)-1;
+    str=str.offset(ini);
+    for (var i=ini ; i>=0 ; i--) {
+        if (str.read()==c) return str;
+        str=str.offset(-1);
     }
     return NULL;
 }
 function memcmp(s1,s2,n) {
+    s1=pointerize(s1);
+    s2=pointerize(s2);
     for (var i=0;i<n;i++) {
-        var s=s1[i]>s2[i]?1:s1[i]<s2[i]?-1:0;
+        var e1=s1.read(),e2=s2.read();
+        var s=e1>e2?1:e1<e2?-1:0;
         if (s!=0) return s;
+        s1=s1.offset(1);
+        s2=s2.offset(1);
     }
     return 0;
+}
+function memcpy(dst, src,n) {
+    src=pointerize(src);
+    dst=pointerize(dst);
+    var r=dst;
+    for (var i=0;i<n;i++) {
+        dst.write(src.read());
+        src=src.offset(1);
+        dst=dst.offset(1);
+    }
+    return r;
 }
 window.print=function() {throw new Error("print関数はありません。printfの間違いではないですか？");}

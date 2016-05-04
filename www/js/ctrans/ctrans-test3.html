@@ -54,7 +54,7 @@ requirejs(["FS"],function (FS) {
 			    sumbuf.push(f.relPath(d)+"\tPass");
 			} else {
     			console.log("Fail:", f.path());
-    			console.log("Output:",buf);//,str_to_ch_arr(buf));
+    			console.log("Output:",buf,str_to_ch_arr(buf));
     			console.log("Expected:",expectxt);// ,str_to_ch_arr(expectxt));
 			    sumbuf.push(f.relPath(d)+"\tFail");
 			}

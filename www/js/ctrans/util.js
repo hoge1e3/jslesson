@@ -36,7 +36,7 @@ function str_to_ch_arr(str){
 function ch_arr_to_str(arr){
 	var line="";
 	for(var i=0;i<arr.length;i++){
-	    if (arr[i]==0) break;
+	    if (!arr[i]) break;
 	    line+=(String.fromCharCode(arr[i]));
 	}
 	return line;
@@ -53,6 +53,7 @@ function param_init(arg,init){
 
 function arrInit(){
     var a=Array.prototype.slice.call(arguments);
+    if (a.length==0) return null;
     var n=a.shift();
 	var res=[];
     for (var i=0;i<n;i++) {
