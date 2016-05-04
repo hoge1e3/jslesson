@@ -304,21 +304,7 @@ MinimalParser= function () {
 	    return extend([left,op],{vtype:t});
 	}
 	function mkpre(op,right){
-	    // PTR
-	    if (op.text=="&") {
-	        if (right instanceof Array) {
-	            var last=right[1];
-	            if (last && last.isIndex) {
-	                return extend( ["pointer(",right[0],",",last[1],")"] ,
-	                {vtype: ["array",right.type]} );
-	            }
-	        } else if (right.vname) {
-             	var s=findVariable(right.vname);
-    			return extend(["pointer(",
-    			    ["scopes_"+s.depth, lit(identifier), lit(s.vtype)].join(","),
-    			")"],{vtype:["array",s.vtype]} ); 
-	        }
-	    }
+	    
 	    return extend([op,right],{vtype:right.vtype} );
 	}
 	calc_expression = calc_expression.build();
@@ -334,14 +320,16 @@ MinimalParser= function () {
 		.ret(function(assign,assigns){return [assign,assigns];});
 	initializer=assign.or(t("{").and(initializer_part.opt()).and(t("}"))
 		.ret(function(lcb,initializer_part,rcb){return ["[",initializer_part,"]"];})); 
-	
+	// \init_declarator
 	var init_declarator=declarator.and(t("=").and(initializer).opt())
 		.ret(function(declarator,eq,initializer){
-			var $=[declarator,["=",eq?["cast(",lit(declarator.vtype),",",initializer,")"]:"0"]];
+			var $=[declarator,"=",initializer?["cast(",lit(declarator.vtype),",",initializer,")"]:"0"];
 			if(declarator.isArray){
 				$.isArray=declarator.isArray;
 				$.isLength=declarator.isLength;
 			}
+			$.declarator=declarator;
+			$.initializer=initializer;
 			return $;
 		});
 
@@ -354,15 +342,14 @@ MinimalParser= function () {
 				var $=[];
 				for(var i=0;i<init_decl_list.length;i++){
 					var $$=init_decl_list[i];
-					var declarator=$$[0];
+					var declarator=$$.declarator;
 					var identifier=declarator.vname;
 					var type=[];
 					var tmp=[];
                     //$$01  = init_decl's  decl's  decltails   int x[2][3] の [2][3]
                     //	init_declarator:= declarator = initializer
                     var declarator_tails=declarator[1];
-                    var initializer=$$[4]; // why?   x  = cast("int"  ,  10 )
-                                           //        0  1      2      3   4
+                    var initializer=$$.initializer;
                     var hasParams=false;
 					for(var n=0;n<declarator_tails.length;n++){
 						if (declarator_tails[n].type=="decl_array") {
@@ -380,6 +367,7 @@ MinimalParser= function () {
 					    // prototype宣言はコードを生成しない
 					} else if(tmp.length){
 						$.push(curScopesName()+"."+identifier+"=");
+						//console.log("init",initializer);
 						if (initializer&&initializer.type=="string") {
                             $.push(initializer);                            
                         } else {						
@@ -500,10 +488,11 @@ MinimalParser= function () {
 			")"],{vtype:["array",s.vtype]} ); 
 		})();
 	});*/
+	// \var_identifier
 	var var_identifier=identifier.ret(function(identifier){
 	    //var d=ctx.depth;
 	    var s=findVariable(identifier);
-	    return extend( [variableName(identifier)], s);
+	    return extend( [variableName(identifier)], extend(s,{vname:identifier+""}));
 		/*return ["scopes[",function(){
 			//defineで変更されていて、識別子であればscopesから探す。数値とかであればそのまま返す。
 			if(identifier.changeble)if(!identifier.text.match(/^(?:[a-zA-Z_][a-zA-Z0-9_]*)$/)){
@@ -555,7 +544,25 @@ MinimalParser= function () {
 	unary_expression=postfix_expression.or(
 	    t("++").or(t("--")).and(unary_expression_lazy).ret(MKARY)
 	).or(
-	    unary_operator.and(cast_expression_lazy).ret(MKARY)
+	    unary_operator.and(cast_expression_lazy).ret(function (op,right) {
+	        // PTR
+    	    if (op.text=="&") {
+    	        //console.log("OP",right,right.vname);
+    	        if (right instanceof Array && 
+    	            right.length==2 &&
+    	            right[1] && right[1].isIndex) {
+    	                // right[1]  : [ "[", expr, "]" ]
+	                return extend( ["pointer(",right[0],",",right[1][1],")"] ,
+	                {vtype: ["array",right.vtype]} );
+    	        } else if (right.vname) {
+                 	var s=findVariable(right.vname);
+        			return extend(["pointer(",
+        			    ["scopes_"+s.depth, lit(right.vname), lit(s.vtype)].join(","),
+        			")"],{vtype:["array",s.vtype]} ); 
+    	        }
+    	    }
+    	    return extend([op,right], {vtype:right.vtype});
+	    })
 	);
 
 	cast_expression=unary_expression.or(t("(").and(type_name).and(t(")")).and(cast_expression_lazy)
