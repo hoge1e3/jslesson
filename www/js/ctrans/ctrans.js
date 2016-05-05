@@ -29,6 +29,13 @@ MinimalParser= function () {
 	var vars=[{}];
 	var defines={};
 	function ent(entf, parser) {
+        if (typeof parser == "function") {
+	       var res;
+	       ctx.enter(entf(), function () {
+	           res=parser();
+	       });
+	       return res;
+        }
 	    return Parser.create(function (st) {
 	        var res;
 	        ctx.enter(entf(), function () {
@@ -606,7 +613,9 @@ MinimalParser= function () {
 						declarator_tails[n]=[];
 					}
 					type.push(decl_specifiers);
-                    ctx.scope[identifier+""]={vtype:type, depth: ctx.depth};
+					$.ptype=type;
+					$.pname=identifier+"";
+                    //ctx.scope[identifier+""]={vtype:type, depth: ctx.depth};
 					if(tmp.length){
 						$.push(curScopesName()+"."+identifier+"=");
 						$.push("arrInit(");
@@ -619,16 +628,45 @@ MinimalParser= function () {
 						$.push(";");
 					}	
 					vars[vars.length-1][identifier+""]=type;
-					$.push(curScopesName()+".");
+					$.push("scopes_"+(ctx.depth+1)+".");//TODO
 					$.push($$);
 					$.push(";");
 					
-					console.log($);
+					//console.log($);
 					return $;
             });
 		});
 
-	var func_part=t("(").and(func_param_list.opt()).and(t(")")).and(t("{")).
+    var func=(func_type.opt()).and(identifier).and( 
+            t("(").and(func_param_list.opt()).and(t(")")).ret(function (_,r){return r;})
+        ).and(Parser.create(function (st) {
+            var type=st.result[0];
+            var name=st.result[1];
+            var params=st.result[2];
+            //console.log("TNP",type,name,params);
+            ctx.scope[name+""]={vtype:"function", depth: ctx.depth};
+            var depth=ctx.depth;
+            var rst;
+            newScope(function () {
+                if (params) params.forEach(function (param) {
+                    ctx.scope[param.pname+""]={vtype:param.ptype, depth: ctx.depth};
+                });
+                rst=t("{").and(compound_statement_part).and(t("}")).ret(function (_,states) {
+                    return ["scopes_"+depth,".",name,"=function ",name,"(){",
+        				"var ",curScopesName(),"={};",
+                        params,
+				        states,
+            			"};"
+                    ];
+                }).parse(st);
+            });
+            return rst;
+        })).ret(function (_,_,_,r) {
+            //console.log(JSON.stringify( r) ); 
+            return r;
+        });
+
+	/*var func_part=t("(").and(func_param_list.opt()).and(t(")")).and(t("{")).
 	    and(compound_statement_part).
 	and(t("}")).ret(function(lp,params,rp,lcb,states,rcb){
 			return [function(){vars.push({});},"(){",
@@ -638,9 +676,10 @@ MinimalParser= function () {
 			"}",function(){vars.pop();}];
 		});
 	var func=(func_type.opt()).and(identifier).and(func_part).ret(function(type,identifier,part){
+	    ctx.scope[identifier+""]={vtype:"function", depth: ctx.depth};
 	    return ["function ",identifier,part];
 	});
-	func=newScope(func);
+	func=newScope(func);*/
 	//control
 	var filename=t(/^[a-zA-Z][a-zA-Z0-9]*\.?[a-zA-Z0-9]+/);
 	var control_line=t("#").and(t("define")).and(identifier).and(t(/^.+/)).ret(function(s,def,befor,after){
@@ -656,7 +695,7 @@ MinimalParser= function () {
 	            }).join("\n");
             break;
 	        case "string.h":
-	            return ["strcpy","strncpy","strcmp","strncmp",
+	            return ["strlen","strcpy","strncpy","strcmp","strncmp",
 	            "strcat","strncat","memset","index","rindex",
 	            "memcmp","memcpy"].map(function (n) {
 	                return "void "+n+"();";
@@ -698,6 +737,10 @@ MinimalParser= function () {
 		ctx=context();
 		var result=program.parseStr(processed);
 		output=result.result[0];
+        /*if (result.success) {
+            console.log("OUT",JSON.stringify( output) ); 
+        }*/
+
 		if(result.src.maxPos<processed.length){
 			var max=processed.substr(0,result.src.maxPos);
 			var line=max.match(/\n/g);
