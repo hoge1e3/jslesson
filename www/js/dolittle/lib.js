@@ -1,9 +1,12 @@
-var root=window;
+(function (){
+var root={window:window,document:document, console:console};
+window.root=root;
 //var ctx=$("canvas").get(0).getContext("2d");
-function localize(obj, map) {
+var localize=function (obj, map) {
     for (var k in map) if (obj[k]) obj[map[k]]=obj[k];
-}
+};
 root.system={
+	localize: localize,
 	gui_posx:10,
 	gui_posy:10,
 	timestamp__question:function(){return new Date().getTime();},
@@ -259,13 +262,8 @@ var _jsroot; (function () {_jsroot=this;})();
 function dtlbind(bound, f) {
     f.bound=bound;
     return f;
-    /*   var res;
-   res=function () {
-       var thiz=(this===res || this===_jsroot) ? bound : this;
-       return f.apply(thiz, arguments);
-   };
-   return res;*/
 };
+window.dtlbind=dtlbind;
 While=function(func){
 	this._self=func;
 	this.execute=function(func){
@@ -341,3 +339,4 @@ Done= function(param){
 };
 root["ブロック"]=Function;
 localize(Function.prototype,{then:"なら", repeat:"繰り返す", "while":"の間"});
+})();

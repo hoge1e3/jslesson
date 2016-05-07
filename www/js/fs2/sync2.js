@@ -104,6 +104,7 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","assert"],
         var lastLocalDirInfo=localDirInfoFile.exists()?localDirInfoFile.obj():{};
         var lastRemoteDirInfo=remoteDirInfoFile.exists()?remoteDirInfoFile.obj():{};
         var curLocalDirInfo=getLocalDirInfo();
+        //if (options.v) sh.echo("last/cur LocalDirInfo",lastLocalDirInfo, curLocalDirInfo);
         var localDelta=getDelta(lastLocalDirInfo, curLocalDirInfo);
         if (options.v) sh.echo("localDelta",localDelta);
         var uploads={},downloads=[],visited={};

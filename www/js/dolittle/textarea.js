@@ -1,4 +1,5 @@
-textarea = new(function() {
+(function (root) {
+var Textarea=(function() {
 	var id_cnt=0;
   this.posx;
 	this.posy;
@@ -56,13 +57,16 @@ textarea = new(function() {
 	};
   return this;
 });
-
-テキストエリア=textarea;
-テキストエリア.位置=textarea.position;
-テキストエリア.作る=textarea.create;
-テキストエリア.幅=textarea.width;
-テキストエリア.高さ=textarea.height;
-テキストエリア.書く=textarea.write;
-テキストエリア.上書き=textarea.overwrite;
-テキストエリア.クリア=textarea.clear;
-テキストエリア.白紙=textarea.clear;
+if (root!==window) Textarea.prototype=root;
+root.textarea=new Textarea;
+root.テキストエリア=root.textarea;
+var textarea=root.textarea;
+root.textarea.位置=textarea.position;
+root.textarea.作る=textarea.create;
+root.textarea.幅=textarea.width;
+root.textarea.高さ=textarea.height;
+root.textarea.書く=textarea.write;
+root.textarea.上書き=textarea.overwrite;
+root.textarea.クリア=textarea.clear;
+root.textarea.白紙=textarea.clear;
+})(root);

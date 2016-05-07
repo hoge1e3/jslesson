@@ -2,15 +2,25 @@
 class PathUtil {
   const SEP="/";
   public static function rel($path, $rel) {
-    return "$path$rel";
+      $path=self::truncSep($path);
+      return "$path/$rel";
   }
   static function relPath($path, $base) {
      return substr($path, strlen($base));
   }
   public static function startsWith($path, $prefix) {
-
+    return substr($path, 0, strlen($prefix))==$prefix;
   }
-  function splitPath($path) {
+  public static function endsWith($path, $postfix) {
+    return substr($path, strlen($path)-strlen($postfix))==$postfix;
+  }
+  public static function truncSep($path) {
+      if (PathUtil::endsWith($path, self::SEP)) {
+          return substr($path, 0, strlen($path)-1);
+      }
+      return $path;
+  }
+  public static function splitPath($path) {
         $res=explode(self::SEP,$path);
         if ($res[count($res)-1]=="") {
             $res[count($res)-2].=self::SEP;
@@ -18,7 +28,7 @@ class PathUtil {
         }
         return $res;
   }
-  function up($path) {
+  public static function up($path) {
         if ($path==self::SEP) return null;
         $ps=PathUtil::splitPath($path);
         array_pop($ps);

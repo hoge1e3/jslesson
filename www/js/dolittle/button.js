@@ -1,10 +1,11 @@
-button = new(function() {
+(function (root) {
+var Button=(function() {
 	var id_cnt=0;
 	this.label = '';
   this.posx;
 	this.posy;
   this.id;
-
+    var system=root.system;
   this.draw = (function() {
     var btn = document.createElement('button');
     var canvas = document.getElementById('id');
@@ -29,7 +30,11 @@ button = new(function() {
 	  btn.style.left=obj.posx+"px";
 		btn.style.top=obj.posy+"px";
 		//btn.style.font-size=1.9+"em";
-		btn.onclick=function(){var onclick=obj.動作;try{onclick();}catch(e){alert("エラーが発生しました。\n"+e);}};
+		btn.onclick=function(){
+		    //var onclick=obj.動作;
+		    try{obj.動作();}
+		    catch(e){alert("エラーが発生しました。\n"+e);}
+		};
 	  return obj;
 	});
 
@@ -46,7 +51,8 @@ button = new(function() {
 	this.次の行 = (function(){default_posx=50;default_posy+=40;return this;});
   return this;
 });
-
-var ボタン=button;
-ボタン.作る=button.create;
-ボタン.位置=button.position;
+if (root!==window) Button.prototype=root;
+root.button=new Button;
+root.system.localize(root,{button:"ボタン"});
+root.system.localize(root.button,{create:"作る",position:"位置"});
+})(root);

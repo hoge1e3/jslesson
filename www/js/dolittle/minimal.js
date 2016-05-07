@@ -1,7 +1,39 @@
 MinimalParser= function () {
 	var parser={};
 	var sp=Parser.StringParser; // 文字列を解析するパーサ
-	
+	var ctx;
+	function ent(entf, parser) {
+        if (typeof parser == "function") {
+	       var res;
+	       ctx.enter(entf(), function () {
+	           res=parser();
+	       });
+	       return res;
+        }
+	    return Parser.create(function (st) {
+	        var res;
+	        ctx.enter(entf(), function () {
+    	        res=parser.parse(st);
+	        });
+	        return res;
+	    });
+	}
+	function newScope(parser) {
+	    // ctx.scope: {varname : {vtype:string?, depth:number }}
+	    return ent(function () {
+	        var depth=0;
+	        if ((typeof (ctx.depth))=="number") depth=ctx.depth+1;
+	        //console.log("entering",depth);
+	        return {scope: Object.create(ctx.scope||{}) ,depth:depth };
+	    },parser);
+	}
+	function lit(s) {
+	    return '"'+s+'"';
+	}
+    function extend(arr,obj) {
+        for (var k in obj) arr[k]=obj[k];
+        return arr;
+    }
 	//    ↓ 空白またはコメントを解析するパーサ
 	var space=sp.reg(/^(\s*(\/\*([^\/]|[^*]\/|\r|\n)*\*\/)*(\/\/.*\n)*)*/);
 	// トークナイザ： 空白またはコメントを読み飛ばし，次に rで指定されたトークンがあれば解析が成功．
@@ -35,22 +67,25 @@ MinimalParser= function () {
 	var block_trim=function(w){
 		
 	};
-
-	// 単純なパーサ：  this is a <<単語>> <空白><EOF>   を解釈して，<<単語>>を返却する
-	//                                                                正規表現の先頭には ^つける
-	var expr,term,exp,block,paren_expr;
+    // \lazies
+	var expr,term,block,paren_expr,variable,infix_expr,program;
+	var infix_expr_lazy=Parser.lazy(function(){return infix_expr;});
 	var expr_lazy = Parser.lazy(function(){return expr;});
 	var term_lazy = Parser.lazy(function(){return term;});
-	var exp_lazy = Parser.lazy(function(){return exp;});
+	var variable_lazy = Parser.lazy(function(){return variable;});
 	var block_lazy = Parser.lazy(function(){return block;});
+	var meth_call_lazy = Parser.lazy(function(){return meth_call_lazy;});
 	var paren_lazy = Parser.lazy(function(){return paren_expr;});
-	str_name = "[a-zA-Z_$\?？ーぁ-んァ-ヶ々〇〻\u3400-\u9FFF\uF900-\uFAFF\uD840-\uD87F\uDC00-\uDFFF][a-zA-Z_$\?？0-9０-９ーぁ-んァ-ヶ々〇〻\u3400-\u9FFF\uF900-\uFAFF\uD840-\uD87F\uDC00-\uDFFF]*";//名前のＳｔｒｉｎｇ
-	reg_name = RegExp("^"+str_name);// 名前の正規表現
+	var program_lazy=Parser.lazy(function(){return program;});
+	//--------字句要素
+	//名前
+	var str_name = "[a-zA-Z_$\?？ーぁ-んァ-ヶ々〇〻\u3400-\u9FFF\uF900-\uFAFF\uD840-\uD87F\uDC00-\uDFFF][a-zA-Z_$\?？0-9０-９ーぁ-んァ-ヶ々〇〻\u3400-\u9FFF\uF900-\uFAFF\uD840-\uD87F\uDC00-\uDFFF]*";
+	var reg_name = RegExp("^"+str_name);// 名前の正規表現
 	var trim_name=function(name){
 		name=name.replace(/[？?]/,"__question");
 		return name;
 	};
-	var coron=token(/^[:：]/).ret(function(){return ":";});
+	var colon=token(/^[:：]/).ret(function(){return ":";});
 	var lsb=token(/^[\[「]/).ret(function(){return "[";});
 	var rsb=token(/^[\]」]/).ret(function(){return "]";});
 	var stick=token(/^[|｜]/).ret(function(){return "|";});
@@ -58,7 +93,7 @@ MinimalParser= function () {
 	var lp=token(/^[(（]/).ret(function(){return "(";});
 	var rp=token(/^[)）]/).ret(function(){return ")";});
 	var excr=token(/^[!！]/).ret(function(){return "!";});
-	var semicoron=token(/^[;；]/).ret(function(){return ";";});
+	var semicolon=token(/^[;；]/).ret(function(){return ";";});
 	var eq=token(/^[=＝]/).ret(function(){return "=";});
 	var deq=token(/^[=＝][=＝]/).ret(function(){return "==";});
 	var add=token(/^[+＋]/).ret(function(){return "+";});
@@ -73,92 +108,104 @@ MinimalParser= function () {
 	var mod=token(/^[%％]/).ret(function(){return "%";});
 	var dquote=token(/^[\"\”]/).ret(function(){return "\"";});
 
-	token_name = token(reg_name).ret(function(_name){return trim_name(_name.text);});//名前のトークン
-	tok_name = coron.and(token_name).ret(function(_op,_right){return "."+_right;});
-	tok_name = tok_name.or(paren_lazy).rep0().ret(function(_name){return (_name)?(_name.join("")):"";});
-	tok_name = token_name.or(paren_lazy).and(tok_name).ret(function(_left,_right){return _left+_right;});
-	reg_str = RegExp("^[^\"^\”]*");//文字列の正規表現
-	tok_str = dquote.and(token(reg_str)).and(dquote).ret(function(_ldq,_str,_rdq){return _ldq+_str+_rdq;});/*.ret(function(_str){return "new String("+_str.text+")";})*/
+    // \token_name 名前のトークン
+	var token_name = token(reg_name).ret(function(_name){return trim_name(_name.text);});
+	var reg_str = RegExp("^[^\"^\”]*");//文字列の正規表現
+	var tok_str = dquote.and(token(reg_str)).and(dquote).ret(function(_ldq,_str,_rdq){return _ldq+_str+_rdq;});
 	//reg_num = /^[0-9０-９]+(?:[.。・])?(?:[0-9０-９])*/;//数字を表す正規表現
-	reg_num=/^[0-9０-９]+/;
-	tok_num = token(reg_num).ret(function(_num){
+	var reg_num=/^[0-9０-９]+/;
+	var tok_num = token(reg_num).ret(function(_num){
 		return (new String(_num).replace(/[０-９]/g, function(s) {
 			return parseInt(String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
 		}));
 	});
-	var func_exe=token_name.and(paren_lazy).ret(function(_name,_paren){return _name+_paren;});
-	//引数に使用される変数を表す構文
-	paren_expr = lp.and(term_lazy).and(rp).ret(function(_lp,_expr,_rp){return _lp+_expr+_rp;})
-
-	//メソッドコールの引数
-	var param = block_lazy.or(tok_str).or(paren_expr).or(tok_num).ret(function(_param){return _param;});
-	var params = param.rep1().ret(function(_param){return _param.join(",");});
-	var meth_call = params.opt().and(token_name).ret(function(_params,_meth){return "."+_meth+"("+((_params)?_params:"")+")";});
-	meth_call = meth_call.rep1().ret(function(_meth_call){return _meth_call.join("");});
-	meth_call = excr.and(meth_call).ret(function(_exc,_meth){return _meth;});
-	meth_call = tok_name.or(param).opt().and(meth_call).ret(function(_obj,_call){return /*"this."+_obj+_call;*/((_obj)?_obj:"root")+_call;});
-	
-	//式がの構文
-	var expression = ExpressionParser();
-	expression.element(meth_call);
-	expression.element(tok_str);
-	expression.element(tok_name);
-	expression.element(func_exe);
-	expression.element(tok_num);
-	expression.element(paren_expr);
-	expression.element(block_lazy);
-	expression.infixl(2,deq);
-	expression.infixl(2,neg);
-	expression.infixl(3,add);
-	expression.infixl(3,sub);
-	expression.infixl(4,div);
-	expression.infixl(4,mul);
-	expression.infixl(4,mod);
-	expression.infixl(2,le);
-	expression.infixl(2,ge);
-	expression.infixl(2,lt);
-	expression.infixl(2,gt);
-	expression.prefix(5,add);
-	expression.prefix(5,add.and(add));
-	expression.prefix(5,sub);
-	expression.prefix(5,sub.and(sub));
-	expression.postfix(5,add.and(add));
-	expression.postfix(5,sub.and(sub));
-	expression.mkInfixl(mk);
-	expression.mkInfixr(mk);
-	expression.mkPrefix(mkpre);
-	expression.mkPostfix(mkpost);
-	function mk(left,op,right){return "("+left+")"+op+"("+right+")";}
+    //--------------ここから構文	
+	//括弧
+	var paren_expr = lp.and(expr_lazy).and(rp).
+	ret(function(_lp,_expr,_rp){return _lp+_expr+_rp;});
+    //単純式
+	var simple = block_lazy.or(tok_str).or(paren_expr).or(tok_num);
+    // sin(x) なども送信の一種
+	var func_exe=token_name.and(paren_expr).
+	ret(function(_name,_paren){return _paren+"."+name+"()";});
+	//電文
+	var elec = simple.rep0().and(token_name).
+	ret(function(_params,_meth){return "."+_meth+"("+_params.join(",")+")";}).
+	sep1(semicolon.opt(),true);
+	//送信
+	var meth_call = term_lazy.opt().and(excr).and(elec).ret(function (obj,_,elec) {
+	    return (obj||"this")+elec.join("");
+	}).or(func_exe);
+	//式
+	expr = meth_call.or(infix_expr_lazy); // simple includes in infix_expr
+	//中置式
+	var expbuild = ExpressionParser();
+	expbuild.element(term_lazy);
+	expbuild.infixl(2,deq);
+	expbuild.infixl(2,neg);
+	expbuild.infixl(3,add);
+	expbuild.infixl(3,sub);
+	expbuild.infixl(4,div);
+	expbuild.infixl(4,mul);
+	expbuild.infixl(4,mod);
+	expbuild.infixl(2,le);
+	expbuild.infixl(2,ge);
+	expbuild.infixl(2,lt);
+	expbuild.infixl(2,gt);
+	expbuild.prefix(5,add);
+	expbuild.prefix(5,sub);
+	expbuild.mkInfixl(mk);
+	expbuild.mkInfixr(mk);
+	expbuild.mkPrefix(mkpre);
+	expbuild.mkPostfix(mkpost);
+	function mk(left,op,right){return "("+left+op+right+")";}
 	function mkpre(op,right){return op+right;}
 	function mkpost(left,op){return left+op;}
-	expression = expression.build();
-
-	var assign=ExpressionParser();
-	assign.element(expression);
-	assign.infixr(1,eq);
-	assign.infixr(1,add.and(eq));
-	assign.infixr(1,sub.and(eq));
-	assign.infixr(1,mul.and(eq));
-	assign.infixr(1,div.and(eq));
-	assign.infixr(1,mod.and(eq));
-	assign.mkInfixr(mka);
-	function mka(left,op,right){
-		/*if((left+op+right).search(new RegExp("\\(*\\w\\)(?:\\.)*=\\(*function"))!=-1)right=func_trim(right);*/
-		return "( "+left+" "+op+" "+right+" )";
+	infix_expr = expbuild.build();
+	//ブロック
+	var block_param = stick.and(token_name.rep0()).and(semicolon.opt()).and(token_name.rep0()).and(stick).
+	ret(function(_ls,_param,_semicolon,_local_param,_rs){
+	    _param.forEach(regLocal);
+	    _local_param.forEach(regLocal);
+	    return [_param.join(","),local_param_trim(_local_param)];
+	});
+	function regLocal(n) {
+	    ctx.scope[n+""]={type:"local"};
 	}
-	assign=assign.build();
-
-	//ブロックの構文
-	var block_param = stick.and(tok_name.rep0()).and(semicoron.opt()).and(tok_name.rep0()).and(stick).ret(function(_ls,_param,_semicolon,_local_param,_rs){return [_param.join(","),local_param_trim(_local_param)];});
-	var terms = term_lazy.sep0(period,true).and(period.opt()).ret(function(_term,_peri){_term[_term.length-1]="return "+_term[_term.length-1];return _term.join(";\n")+";";});
-	block_param = block_param.opt().ret(function(_param){return (_param)?_param:["",""];});
-	//var block = token("[").and(block_param).and(terms).and(token("]")).ret(function(_lsb,_param,_terms,_rsb){return "(new block(function("+_param[0]+"){"+_param[1]+_terms+"}))";});
-	var block = lsb.and(block_param).and(terms).and(rsb).ret(function(_lsb,_param,_terms,_rsb){return "(function("+_param[0]+"){var self=this;var 自分=self;"+_param[1]+_terms+"})";});
-	term = assign;
-
-	expr = term.and(period).ret(function(_term,_peri){return _term+";";});
-	program = expr.rep0().ret(function(_exprs){return _exprs.join("");});
-
+	var block = lsb.and(block_param.opt()).and(program_lazy).and(rsb).
+	ret(function(_lsb,_param,_progs,_rsb){
+	    _param=_param||["",""]; 
+	    return "dtlbind(this,function("+_param[0]+"){var self=this;var 自分=self;"+_param[1]+_progs+"})";
+	});
+	block=newScope(block);
+	//変数
+    var varbuild=ExpressionParser();
+    varbuild.element(simple.or(token_name.ret(function (n) {
+        if (ctx.scope[n]) {
+            return n;
+        } else {
+            return "this."+n;
+        }
+    })).or(colon.and(token_name).ret(function (_,n) {
+            return "root."+n;  
+        })
+    ));
+    varbuild.postfix(1,colon.and(token_name).ret(function (_,name) {return "."+name;}));
+    varbuild.mkPostfix(mkpost);
+	variable=varbuild.build();
+	//項
+	var term = variable; //simple.or(func_exe).or(variable);
+    //文
+    var statement = variable.and(eq).ret(function (v) {
+        return v+"=";
+    }).opt().and(expr).ret(function (v,e) {return (v||"")+e+";";});
+    //プログラム
+	program = statement.sep0(period,true).and(period.opt()).
+	ret(function(stmts){
+	    var last=stmts.pop();
+	    return stmts.join("")+"return "+last;
+	});
+    program = newScope(program);
 	/* 
 	パーサに適用できるメソッド（いずれも新しいパーサを生成して返す）：
 	メソッド                         新しく生成されるパーサの動作
@@ -180,9 +227,11 @@ MinimalParser= function () {
 		var input=str;
 		var output="";
 		var line=1;
+		ctx=context();
 		var result = program.parseStr(input);
 		if(result.success){
 			output=result.result[0];
+			output="(function(){"+output+"}).apply(root,[]);"
 			if(result.src.maxPos<str.length){
 				var line=(str.substr(0,result.src.maxPos)).match(/\n/g);
 				line=(line)?line.length:0;
@@ -205,7 +254,7 @@ MinimalParser= function () {
 				break;
 			}
 		}*/
-	return output;
+    	return output;
 	};
 	return parser;
 }();

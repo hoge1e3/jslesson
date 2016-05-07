@@ -7,6 +7,7 @@
 <!--<script src="http://maps.google.com/maps/api/js?sensor=false" type="text/javascript"></script>-->
 <script src="parser.js"></script>
 <script src="ExpressionParser2.js"></script>
+<script src="context.js"></script>
 <script src="minimal.js"></script>
 <script src="beautify.js"></script>
 <script>
@@ -51,7 +52,7 @@
 			(iframe.contentWindow.timer_stopper)?iframe.contentWindow.timer_stopper():null;
 			iframe_document.open();
 			iframe_document.writeln("<html><body>");
-			iframe_document.writeln("<script>function timer_stopper(){timer.allreset();}<\/script>");
+			iframe_document.writeln("<script>function timer_stopper(){root.timer.allreset();}<\/script>");
 			iframe_document.writeln("<script src=\"jquery-2.1.0.js\"><\/script>");
 			iframe_document.writeln("<canvas id=\"canvas\" width=\"640\" height=\"480\"><\/canvas>");
 			iframe_document.writeln("<script charset='utf-8' src=\"lib.js\"><\/script>");
@@ -97,6 +98,10 @@
 	<option value="s1">りんご拾いゲーム</option>
   <option value="s2">タブレットの傾きを使用</option>
   <option value="s3">タブレットのデジタルコンパスを使用</option>
+  <option value="s5">インスタンス変数</option>
+  <option value="s6">スコープのテスト1</option>
+  <option value="s7">スコープのテスト2</option>
+  <option value="s8">スコープのテスト3</option>
 </select>
 
 <button id=run style="font-size:110%">実行</button><br>
@@ -149,7 +154,91 @@ if (navigator.userAgent.indexOf('iPhone') > 0 || navigator.userAgent.indexOf('iP
 方角＝コンパス！作る。
 方角：動作＝「｜d｜かめた！（d）向き」。
 </textarea>
-
+<textarea id=prog_s5>
+かめた＝タートル！作る。
+かめた：速度＝１０。
+かめた：動作＝「
+   ！（速度） 歩く。
+   「速度＞１」！なら「
+      速度＝速度-１。
+   」そうでなければ「
+      速度＝１０。
+   」実行。
+   ！ ５ 右回り。
+」 。
+かめじ＝かめた！作る 180 左回り。
+かめじ：速度＝１５。
+時計＝タイマー！作る「
+  かめじ！動作。
+  かめた！動作。
+」実行。
+</textarea>
+<textarea id=prog_s6>
+x = 1.        // 1:(この例がトップレベルならば)ROOTにxを定義
+inst = タートル ! create.  // 2:例としてオブジェクトのインスタンス生成
+inst:x = 3.   // 3:instのインスタンスのプロパティとしてxを定義
+y = 4.        // 4:ROOTにyを定義。1:と同様
+inst: msg =   // 5:instのインスタンスのプロパティとしてmsgを定義
+   [|i| i = x.   // iはローカル変数. xは3:のプロパティを引用
+        y = 5].  //   y はinstのプロパティとして定義 4のルートではない
+[y = x] ! execute. //6: xもyもROOT、つまり、1と4のxとyを引用
+inst2 = inst ! create. //7: instを継承してオブジェクト生成
+inst2 ! msg.   //8: 5のmsgを引用してブロックを評価、ここで5の変数が定義
+inst2: msg2 = [
+    x = 9.   //9: inst2のプロパティとしてxを定義
+    i = y.   // iはinst2のプロパティとして定義
+].           // yはinstのプロパティを引用
+inst2 ! msg2. //10: 上記を評価、ここで実際に変数が定義される
+document ! (x) (y) (inst:x) (inst2:x) (inst2:y) (inst2:i) write.
+</textarea>
+<textarea id=prog_s7>
+p = [x = 1. z = y].
+q = [|i| y = i. j = x].
+x = 3.
+y = 4.
+p ! execute.    // ROOT.x = 1. ROOT.z = 4.
+q ! 5 execute.  // ROOT.y = 5. ROOT.j = 1.
+inst = タートル ! create.
+inst : msg1 = p.
+inst : msg2 = q.
+inst : msg3 = [|;j|
+ j = 9.
+ ! msg1.      // inst.x = 1. inst.z = inst.y
+ ! (j) msg2.  // inst.y = ARG.i = LOCAL.j. inst.j = inst.x
+ [|i| y = i. j = (x + 1).] ! 0 execute.
+        // inst.y = ARG.i = 0. LOCAL.j = (inst.x + 1) = 2.
+ a = j. // inst.a = LOCAL.j = 2.
+].
+inst ! msg1.  // inst.x = 1. inst.z = ROOT.y = 5.
+inst ! 8 msg2.// inst.y = 8. inst.j = inst.x = 1.
+inst ! msg3.  // inst.x = 1. inst.z = inst.y = 8.
+             // inst.y = ARG.i = LOCAL.j = 9. inst.j = inst.x = 1.
+             // inst.y = ARG.i = 0. LOCAL.j = inst.x = 1.
+             // inst.a = LOCAL.j = 2.
+document ! (x) (y) (z) (j)
+  (inst:x) (inst:y) (inst:z) (inst:i) (inst:j) (inst:a) write.  
+//output should be 1541108undefined12
+</textarea>
+<textarea id=prog_s8>
+i = 1.
+x = 2.
+[i > 0] ! then [y = i. i = (x + 1).] execute.
+//↑ ROOT.y=ROOT.i=1  , ROOT.i=3
+p = [|i| [i > 0] ! then [y = i. i = (x + 1)] execute].
+p ! 4 execute.
+//↑ ROOT.y=LOCAL.i=4  , LOCAL.i=3
+inst = タートル ! create.
+inst : msg = [|x|
+ p ! 3 execute. 
+ //↑ ROOT.y=3   local.i=ROOT.x+1=3 
+ [x > 0] ! then [y = i. i = (x + 1)] 
+ //↑ inst.y=ROOT.i=3  , inst.i=4
+ else [y = (i + 1). i = x] execute. 
+].
+inst ! 3 msg.
+document ! (i) (x) (y) (inst:i) (inst:x) (inst:y) write.
+//should be 3   2   3     4        2        3    
+</textarea>
 </div>
 
 <script>
@@ -157,8 +246,12 @@ var prog=localStorage.getItem('sample');
 document.form.prog.value=((prog)?prog:"");
 var iframe=document.createElement("iframe");
 iframe.style.cssText="position:absolute;left:450px;top:70px;width:660px;height:500px";
+var iframe_document;
+$(iframe).on("load",function () {
+    iframe_document = iframe.contentWindow.document;
+    console.log("Ready", iframe_document);
+});
 document.body.appendChild(iframe);
-var iframe_document = iframe.contentWindow.document;
 //iframe_document.src="http://oecu-edu.sakura.ne.jp/honda/executer.html";
 </script>
 </html>

@@ -1,16 +1,5 @@
-/*turtle={
-	create:function(){
-		var obj={};
-		obj=Object.create(new turtle_obj);
-		canvas.push(obj);
-		collision.push(obj);
-		return obj;
-	}
-};
-タートル=turtle;
-タートル.作る=タートル.create;
-*/
-turtle = new(function() {
+(function (root) {
+var Turtle=function() {
 	this.erase_flag=false;
   this.angle=0;
 	this.lineWidth=1;
@@ -150,7 +139,10 @@ turtle = new(function() {
 	this.円形=function(r){
 	};
   return this;
-});
+};
+if (root!==window) Turtle.prototype=root;
+var turtle=root.turtle=new Turtle;
+root.system.localize(root,{turtle:"タートル"});
 var タートル=turtle;
 タートル.作る=turtle.create;
 タートル.歩く=turtle.forward;
@@ -163,74 +155,4 @@ var タートル=turtle;
 タートル.消える=turtle.erase;
 タートル.戻る=turtle.backward;
 
-/*
-turtle.prototype={
-	collision:function(){},
-  draw:(function(ctx) {
-		ctx=ctx;
-		ctx.beginPath();
-		ctx.moveTo(path[0]["x"],path[0]["y"]);
-		for(var i=1;i<path.length;i++){
-			ctx.lineTo(path[i]["x"],path[i]["y"]);
-		}
-		ctx.stroke();
-		ctx.save();
-		ctx.translate((posx),(posy));
-		ctx.rotate(-angle*Math.PI/180);
-		ctx.translate(-posx,-posy);
-		ctx.drawImage(img.img,posx-(img.sizex/2),posy-(img.sizey/2));
-		ctx.restore();
-  }),
-  setshape:(function(param) {
-		img.img.src = param+"?"+(new Date().getTime());
-		return this;
-  }),
- 	create:function(){
-		var obj={};
-		obj = Object.create(turtle);
-		canvas.push(obj);
-		collision.push(obj);
-		return obj;
-	},
-  forward:(function(param) {
-    (posx = (posx) + ((Math.cos(((angle) * (Math.PI)) / (180))) * (param)));
-    (posy = (posy) - ((Math.sin(((angle) * (Math.PI)) / (180))) * (param)));
-		if(pen_flag)path.push({x:posx,y:posy});
-		collision.chk_coll(this);
-		return this;
-  }),
-	erase:function(){
-		collision.erase(this);
-		canvas.erase(this);
-	},
-  leftturn:(function(param) {
-    (angle = (angle) + (param));
-		return this;
-  }),
-	get_coll:function(){
-		return {
-			x:posx,
-			y:posy,
-		};
-	},
-  rightturn:(function(param) {
-	  (angle = (angle) - (param));
-		return this;
-  }),
-	position:function(x,y){
-		posx=x;
-		posy=y;
-		return this;
-	},
-	penup:function(){
-		pen_flag=false;
-		return this;
-	},
-	pendown:function(){
-		pen_flag=true;
-		return this;
-	},
-};
-turtle=new turtle;
-*/
-//turtle=new turtle_obj();
+})(root);
