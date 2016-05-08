@@ -46,7 +46,7 @@ define(["UI"], function (UI) {
     			return;
     		}
     		model.dstDir=model.parentDir.rel(model.name+"/");
-            if (model.dstDir.exists()) {
+            if (model.dstDir.rel("options.json").exists() ) {
                 this.addError("name","このフォルダはすでに存在します");
                 return;
             }

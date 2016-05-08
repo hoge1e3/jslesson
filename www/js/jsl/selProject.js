@@ -1,7 +1,7 @@
 requirejs(["FS","Shell","Shell2","ProjectCompiler",
-           "NewProjectDialog","UI","Auth","zip","Sync"],
+           "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog"],
   function (FS, sh,sh2,TPRC,
-           NPD,           UI, Auth,zip,Sync) {
+           NPD,           UI, Auth,zip,Sync,NSD) {
 $(function () {
     $("body").append(UI("div",
             ["h1","プロジェクト一覧"],
@@ -21,6 +21,7 @@ $(function () {
 	    	["a",{href:"teacher.php",target:"teaTab"},"教員用ログイン"]
             ],
             ["button", {id:"newPrj", "class":"btn btn-primary"}, "新規プロジェクト"],
+            ["button", {id:"newSample", "class":"btn btn-primary"}, "サンプルを見る"],
             ["span",{id:"syncMesg"}],
             ["div",{id:"prjItemList"}]
     ));
@@ -79,8 +80,11 @@ $(function () {
         };
     }
     if (!WebSite.isNW) {
+        sync();
+    }
+    function sync() {
         $("#syncMesg").text("同期しています....");
-        Sync.sync(projects, FS.get("/"),{v:true}).then(function (e) {
+        return Sync.sync(projects, FS.get("/"),{v:true}).then(function (e) {
             $("#syncMesg").append("ファイル保存完了");
             ls();
 	    //alert(e.classid+" クラスの "+e.user+" と同期しました。");
@@ -111,10 +115,15 @@ $(function () {
                          {"namespace":"jslker", "compiledURL":"${JSLKer}/js/concat.js"}
                     ]
                 },
-		language:model.lang
+        		language:model.lang
             });
             document.location.href="?r=jsl_edit&dir="+prjDir.path();
     	});
+    });
+    $("#newSample").click(function (){
+        return NSD.show(projects,function () {
+            sync();
+        });
     });
     ls();
 });

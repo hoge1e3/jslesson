@@ -28,11 +28,11 @@ $srcdir="/".$_GET["src"]."/";
 copyFiles($srcdir, $dstdir); 
 function copyFiles($sd,$dd) {
     global $srcfs,$dstfs;
-    print "copydir $sd $dd<BR>\n";
+    //print "copydir $sd $dd<BR>\n";
     foreach ($srcfs->ls($sd) as $fn) {
         $sfp=PathUtil::rel($sd, $fn);
         $dfp=PathUtil::rel($dd, $fn);
-        print "copy $sfp $dfp<BR>\n";
+        //print "copy $sfp $dfp<BR>\n";
         if ($srcfs->isDir($sfp)) {    
             copyFiles($sfp, $dfp);   
         } else {

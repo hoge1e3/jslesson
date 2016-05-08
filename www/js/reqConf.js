@@ -117,6 +117,7 @@ var reqConf={
             ScriptTagFS:"fs/ScriptTagFS",
             KeyEventChecker: "lib/KeyEventChecker",
             NewProjectDialog: "ide/NewProjectDialog",
+            NewSampleDialog: "ide/NewSampleDialog",
             WebSite: "runtime/WebSite",
             UI:"lib/UI",
             UIDiag:"lib/UIDiag",
