@@ -122,19 +122,25 @@ MinimalParser= function () {
     //--------------ここから構文	
 	//括弧
 	var paren_expr = lp.and(expr_lazy).and(rp).
-	ret(function(_lp,_expr,_rp){return _lp+_expr+_rp;});
+	ret(function(_lp,_expr,_rp){
+	    return extend([_lp,_expr,_rp], {type:"paren",subnodes:arguments});
+	});
     //単純式
 	var simple = block_lazy.or(tok_str).or(paren_expr).or(tok_num);
     // sin(x) なども送信の一種
 	var func_exe=token_name.and(paren_expr).
-	ret(function(_name,_paren){return _paren+"."+name+"()";});
+	ret(function(_name,_paren){
+	    return extend([_paren,".",name,"()"], {type:"func_exec",subnodes:arguments});
+	});
 	//電文
 	var elec = simple.rep0().and(token_name).
-	ret(function(_params,_meth){return "."+_meth+"("+_params.join(",")+")";}).
-	sep1(semicolon.opt(),true);
+	ret(function(_params,_meth){
+	    return extend([".",_meth,"(",joinary(_params,","),")"], 
+	    {type:"elec",subnodes:arguments});
+	}).sep1(semicolon.opt(),true);
 	//送信
 	var meth_call = term_lazy.opt().and(excr).and(elec).ret(function (obj,_,elec) {
-	    return (obj||"this")+elec.join("");
+	    return extend([(obj||"this"),elec], {type:"meth_call",subnodes:arguments});
 	}).or(func_exe);
 	//式
 	expr = meth_call.or(infix_expr_lazy); // simple includes in infix_expr
@@ -158,16 +164,19 @@ MinimalParser= function () {
 	expbuild.mkInfixr(mk);
 	expbuild.mkPrefix(mkpre);
 	expbuild.mkPostfix(mkpost);
-	function mk(left,op,right){return "("+left+op+right+")";}
-	function mkpre(op,right){return op+right;}
-	function mkpost(left,op){return left+op;}
+	function mk(left,op,right){
+	    return extend(["(",left,op,right,")"], {type:"infix",subnodes:arguments});
+	}
+	function mkpre(op,right){return extend([op,right], {type:"prefix",subnodes:arguments});}
+	function mkpost(left,op){return extend([left,op], {type:"postfix",subnodes:arguments});}
 	infix_expr = expbuild.build();
 	//ブロック
 	var block_param = stick.and(token_name.rep0()).and(semicolon.opt()).and(token_name.rep0()).and(stick).
 	ret(function(_ls,_param,_semicolon,_local_param,_rs){
 	    _param.forEach(regLocal);
 	    _local_param.forEach(regLocal);
-	    return [_param.join(","),local_param_trim(_local_param)];
+	    return extend([joinary(_param,","),local_param_trim(_local_param)], 
+	    {type:"block_param",subnodes:arguments});
 	});
 	function regLocal(n) {
 	    ctx.scope[n+""]={type:"local"};
@@ -175,35 +184,41 @@ MinimalParser= function () {
 	var block = lsb.and(block_param.opt()).and(program_lazy).and(rsb).
 	ret(function(_lsb,_param,_progs,_rsb){
 	    _param=_param||["",""]; 
-	    return "dtlbind(this,function("+_param[0]+"){var self=this;var 自分=self;"+_param[1]+_progs+"})";
+	    return extend(["dtlbind(this,function(",_param[0],
+	    "){var self=this;var 自分=self;",_param[1],_progs,"})"], 
+	    {type:"block",subnodes:arguments});
 	});
 	block=newScope(block);
 	//変数
     var varbuild=ExpressionParser();
     varbuild.element(simple.or(token_name.ret(function (n) {
         if (ctx.scope[n]) {
-            return n;
+            return extend([n],{type:"localVar",name:n});
         } else {
-            return "this."+n;
+            return extend(["this."+n],{type:"field",name:n});
         }
     })).or(colon.and(token_name).ret(function (_,n) {
-            return "root."+n;  
+            return extend(["root."+n],{type:"rootVar",name:n});  
         })
     ));
-    varbuild.postfix(1,colon.and(token_name).ret(function (_,name) {return "."+name;}));
+    varbuild.postfix(1,colon.and(token_name).ret(function (_,name) {
+        return extend(["."+name],{type:"memberAccess",name:name});
+    }));
     varbuild.mkPostfix(mkpost);
 	variable=varbuild.build();
 	//項
 	var term = variable; //simple.or(func_exe).or(variable);
     //文
     var statement = variable.and(eq).ret(function (v) {
-        return v+"=";
-    }).opt().and(expr).ret(function (v,e) {return (v||"")+e+";";});
+        return extend([v,"="],{type:"assign",subnodes:arguments});
+    }).opt().and(expr).ret(function (v,e) {
+        return extend([(v||""),e,";"],{type:"statement",subnodes:arguments});
+    });
     //プログラム
 	program = statement.sep0(period,true).and(period.opt()).
 	ret(function(stmts){
 	    var last=stmts.pop();
-	    return stmts.join("")+"return "+last;
+	    return extend([stmts,"return ",last], {type:"program",subnodes:arguments});
 	});
     program = newScope(program);
 	/* 
@@ -220,10 +235,18 @@ MinimalParser= function () {
 	第2引数が true の 場合，  解析結果は 各parserの解析結果の配列になる
 	第2引数が false の 場合，  {head: parser(1回目) , [ {sep: sep(n回目), value: parser(n+1回目) } ] }  
 	*/
-
-	parser.parse=function (str) {
-
-		//var input=str.replace(/\ \\n/g,"");
+	function tap(x) {
+	    console.log("tap",typeof x,x);
+	    return x;
+	}
+	function joinary(a,s) {
+	    if (a.length<2) return a;
+	    //if (a.length>=2) console.log("JO",a);
+	    //a=a.slice();
+	    a.joined=s;
+	    return a;
+	}
+	parser.parseAsNode=function (str) {
 		var input=str;
 		var output="";
 		var line=1;
@@ -231,30 +254,35 @@ MinimalParser= function () {
 		var result = program.parseStr(input);
 		if(result.success){
 			output=result.result[0];
-			output="(function(){"+output+"}).apply(root,[]);"
 			if(result.src.maxPos<str.length){
 				var line=(str.substr(0,result.src.maxPos)).match(/\n/g);
 				line=(line)?line.length:0;
 				alert("エラーが発生しました。\n"+line+"行目付近を確認してください。");
 			}
 		}
-		/*while(true){
-			var result = expr.parseStr(input);
-			if(result.success){
-				line++;
-				output+=result.result[0];
-				//document.form.res.value+=result.result[0]+"\n";
-				input=input.slice(result.src.maxPos);
-				if(!input)break;
-			}else{
-				if(input.length>1)
-				alert("エラーが発生しました。\n"+line+"行目付近を確認してください。");
-				//document.form.res.value+="faild\n";
-				//document.form.res.value+=input;
-				break;
-			}
-		}*/
+        return output;
+    };
+	parser.parse=function (str) {
+		var output=parser.parseAsNode(str);
+		output=parser.node2js(output);
     	return output;
 	};
+	parser.node2js=function (p) {
+    	var gen=function(e){
+    		if(typeof e=="function") return gen(e());
+    		else if(Array.isArray(e)) {
+    		    var f=0;
+            	var result="";
+    		    e.forEach(function (el) {
+    		        if (f++) result+=e.joined||"";
+    		        result+=gen(el);
+    		    });
+    		    return result;
+    		} else return (e||"")+" ";
+    	};
+    	var result=gen(p);
+    	//console.log("dtlgen",p,result);
+    	return "(function(){"+result+"}).apply(root,[]);";
+    };
 	return parser;
 }();

@@ -10,6 +10,8 @@
 <script src="context.js"></script>
 <script src="minimal.js"></script>
 <script src="beautify.js"></script>
+<script src="Visitor.js"></script>
+<script src="dtlvm.js"></script>
 <script>
 	
 	var insert_char=function(str) {
@@ -46,8 +48,10 @@
 			//page.document.open();
 			//page.document.write(trim_html($("#res").val()));
 			localStorage.setItem(('sample'),$("#prog").val());
-			var dtl=MinimalParser.parse($("#prog").val());
-			dtl=js_beautify(dtl);
+			var dtlNode=MinimalParser.parseAsNode($("#prog").val());
+			MinimalParser.node2vm(dtlNode);
+			var dtl=MinimalParser.node2js(dtlNode);
+		    dtl=js_beautify(dtl);
 			console.log(dtl);
 			(iframe.contentWindow.timer_stopper)?iframe.contentWindow.timer_stopper():null;
 			iframe_document.open();

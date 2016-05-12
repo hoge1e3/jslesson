@@ -5536,6 +5536,13 @@ return context=function () {
         return to;
     };
     c.enter=enter;
+    var builtins={};
+    c.clear=function () {
+        for (var k in c) {
+            if (!builtins[k]) delete c[k];
+        }
+    };
+    for (var k in c) { builtins[k]=true };
     return c;
     function enter(val, act) {
         var sv={};
@@ -7904,7 +7911,7 @@ define('NewProjectDialog',["UI"], function (UI) {
     			return;
     		}
     		model.dstDir=model.parentDir.rel(model.name+"/");
-            if (model.dstDir.exists()) {
+            if (model.dstDir.rel("options.json").exists() ) {
                 this.addError("name","このフォルダはすでに存在します");
                 return;
             }
@@ -8088,6 +8095,7 @@ define('Sync',["FS","Shell",/*"requestFragment",*/"WebSite","assert"],
         var lastLocalDirInfo=localDirInfoFile.exists()?localDirInfoFile.obj():{};
         var lastRemoteDirInfo=remoteDirInfoFile.exists()?remoteDirInfoFile.obj():{};
         var curLocalDirInfo=getLocalDirInfo();
+        //if (options.v) sh.echo("last/cur LocalDirInfo",lastLocalDirInfo, curLocalDirInfo);
         var localDelta=getDelta(lastLocalDirInfo, curLocalDirInfo);
         if (options.v) sh.echo("localDelta",localDelta);
         var uploads={},downloads=[],visited={};
@@ -8201,10 +8209,87 @@ define('Sync',["FS","Shell",/*"requestFragment",*/"WebSite","assert"],
     return Sync;
 });
 
+define('NewSampleDialog',["UI"], function (UI) {
+    var res={};
+	res.show=function (prjDir,onOK,options) {
+    	var d=res.embed(prjDir,onOK,options);
+    	d.dialog({width:600});
+	};
+	res.embed=function (prjDir,onOK,options) {
+	    if (!options) options={};
+        if (!res.d) {
+        	res.d=UI("div",{title:("サンプルを見る")},
+				["div",
+        			 ["span","サンプル"],
+        			 ["select",{$edit:"sample"/*,on:{realtimechange:sel}*/},
+        			 ["option",{$var:"loading",selected:true,value:"notsel"},"読込中.."]]
+				],                 
+				["div",
+				    ["span","プロジェクト名"],
+        			 ["input",{$edit:"name",value:options.defName||"",
+        			     on:{enterkey:function () {
+                		     res.d.done();
+				 }}}]],
+                ["div", {$var:"validationMessage", css:{color:"red"}}],
+                ["button", {$var:"OKButton", on:{click: function () {
+                	 res.d.done();
+                 }}}, "OK"]
+            );
+        }
+        var d=res.d;
+        d.$vars.OKButton.attr("disabled", false);
+        d.$vars.OKButton.val("OK");
+        $.get("php/copySample.php").then(function (r) {
+            console.log("res", r);
+            d.$vars.loading.text("選択してください");
+            r.forEach(function (n) {
+                    d.$vars.sample.append(UI("option",{value:n},n)); 
+            });
+        });
+        var model={name:options.defName||"",lang:"js", parentDir:prjDir};
+        d.$edits.load(model);
+    	d.$edits.validator.on.validate=function (model) {
+    		if (model.name=="") {
+    			this.addError("name","名前を入力してください");
+    			return;
+    		}
+    		//console.log(model.parentDir);
+    		model.dstDir=model.parentDir.rel(model.name+"/");
+            if (model.dstDir.rel("options.json").exists() ) {
+                this.addError("name","このフォルダはすでに存在します");
+                return;
+            }
+    		this.allOK();
+    		//d.$vars.dstDir.text(model.dstDir+"");
+    	};
+    	d.done=function () {
+    	    if (d.$edits.validator.isValid()) {
+                d.$vars.OKButton.attr("disabled", true);
+    	        d.$vars.OKButton.text("コピー中...");
+                $.get("php/copySample.php",{src:model.sample,dst:model.name}).then(function (r) {
+                    console.log(r);
+                    onOK(model);
+                    d.dialog("close");
+                }).fail(function (e) {
+                    alert(e);
+                });
+    	    }
+    	};
+    	d.$edits.on.writeToModel=(function (name, value) {
+    	    //console.log(name,value);
+    	    if (name=="sample" && value!="notsel") {
+    	        d.$vars.name.val(value);
+    	    }
+    	});
+    	return d;
+    };
+    return res;
+});
+
 requirejs(["FS","Shell","Shell2","ProjectCompiler",
-           "NewProjectDialog","UI","Auth","zip","Sync"],
+           "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog"],
   function (FS, sh,sh2,TPRC,
-           NPD,           UI, Auth,zip,Sync) {
+           NPD,           UI, Auth,zip,Sync,NSD) {
 $(function () {
     $("body").append(UI("div",
             ["h1","プロジェクト一覧"],
@@ -8224,6 +8309,7 @@ $(function () {
 	    	["a",{href:"teacher.php",target:"teaTab"},"教員用ログイン"]
             ],
             ["button", {id:"newPrj", "class":"btn btn-primary"}, "新規プロジェクト"],
+            ["button", {id:"newSample", "class":"btn btn-primary"}, "サンプルを見る"],
             ["span",{id:"syncMesg"}],
             ["div",{id:"prjItemList"}]
     ));
@@ -8282,8 +8368,11 @@ $(function () {
         };
     }
     if (!WebSite.isNW) {
+        sync();
+    }
+    function sync() {
         $("#syncMesg").text("同期しています....");
-        Sync.sync(projects, FS.get("/"),{v:true}).then(function (e) {
+        return Sync.sync(projects, FS.get("/"),{v:true}).then(function (e) {
             $("#syncMesg").append("ファイル保存完了");
             ls();
 	    //alert(e.classid+" クラスの "+e.user+" と同期しました。");
@@ -8314,10 +8403,15 @@ $(function () {
                          {"namespace":"jslker", "compiledURL":"${JSLKer}/js/concat.js"}
                     ]
                 },
-		language:model.lang
+        		language:model.lang
             });
             document.location.href="?r=jsl_edit&dir="+prjDir.path();
     	});
+    });
+    $("#newSample").click(function (){
+        return NSD.show(projects,function () {
+            sync();
+        });
     });
     ls();
 });

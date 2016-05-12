@@ -5751,6 +5751,13 @@ return context=function () {
         return to;
     };
     c.enter=enter;
+    var builtins={};
+    c.clear=function () {
+        for (var k in c) {
+            if (!builtins[k]) delete c[k];
+        }
+    };
+    for (var k in c) { builtins[k]=true };
     return c;
     function enter(val, act) {
         var sv={};
@@ -8496,8 +8503,8 @@ define('Menu',["UI"], function (UI) {
         var menu=UI("div",{"class":"collapse navbar-collapse"},ul1);
         $("body").append(UI(
           "div",{"class":"navbar navbar-inverse navbar-fixed-top",id:"navBar"},
-                ["div",{"class":"container"},
-                    ["div", {"class":"navbar-header"}
+                ["div",{"class":"container",id:"nav-A"},
+                    ["div", {"class":"navbar-header",id:"nav-B"},
                         ["button",{type:"button", "class":"navbar-toggle",
                             "data-toggle":"collapse",
                             "data-target":".navbar-collapse"},
@@ -8619,6 +8626,7 @@ define('Sync',["FS","Shell",/*"requestFragment",*/"WebSite","assert"],
         var lastLocalDirInfo=localDirInfoFile.exists()?localDirInfoFile.obj():{};
         var lastRemoteDirInfo=remoteDirInfoFile.exists()?remoteDirInfoFile.obj():{};
         var curLocalDirInfo=getLocalDirInfo();
+        //if (options.v) sh.echo("last/cur LocalDirInfo",lastLocalDirInfo, curLocalDirInfo);
         var localDelta=getDelta(lastLocalDirInfo, curLocalDirInfo);
         if (options.v) sh.echo("localDelta",localDelta);
         var uploads={},downloads=[],visited={};
@@ -8868,7 +8876,11 @@ $(function () {
 	}
     }));
     KeyEventChecker.down(document,"F9",F(run));
-    KeyEventChecker.down(document,"F2",F(stop));
+    KeyEventChecker.down(document,"F2",F(function(){
+        stop();
+        //$("#progs").focus();
+        console.log("F2 pressed");
+    }));
     KeyEventChecker.down(document,"ctrl+s",F(function (e) {
     	save();
     	e.stopPropagation();
