@@ -1,6 +1,7 @@
 MinimalParser= function () {
 	var parser={};
 	var ctx=context();
+	var startSeq=0;
 	var sp=Parser.StringParser; // 文字列を解析するパーサ
 	//    ↓ 空白またはコメントを解析するパーサ
 	var space=sp.reg(/^(\s*(\/\*([^\/]|[^*]\/|\r|\n)*\*\/)*(\/\/.*\n)*)*/);
@@ -409,14 +410,17 @@ MinimalParser= function () {
 		.ret(function(_return,expr,semicolon){return ["return",expr,";"];}));
 
 	var iteration_statement=t("while").and(t("(")).and(expression).and(t(")")).and(statement_lazy)
-		.ret(function(_while,rp,expr,rp,state){return [
-			"var start=loop_start();","while","(",expr,"){try{",state,
-			"}finally{loop_chk(start);}}"];});
+		.ret(function(_while,rp,expr,rp,state){
+		    var startName="start"+(startSeq++);
+		    return [
+			"var ",startName,"=loop_start();","while","(",expr,"){try{",state,
+			"}finally{loop_chk(",startName,");}}"];});
 	iteration_statement=iteration_statement.or(t("do").and(statement_lazy)
 		.and(t("while")).and(t("(")).and(expression).and(t(")")).and(t(";"))
 			.ret(function(_do,state,_while,lp,expr,rp,semicolon){
-				return ["var start=loop_start();","do{try{",state,
-					"}finally{loop_chk(start);}}","while","(",expr,")",";"
+				var startName="start"+(startSeq++);
+				return ["var ",startName,"=loop_start();","do{try{",state,
+					"}finally{loop_chk(",startName,");}}","while","(",expr,")",";"
 				];
 			}));
 	var for_part=expression.and(t(";"))
@@ -425,10 +429,11 @@ MinimalParser= function () {
 		.and(declaration.or(for_part).or(t(";"))).and(expression.opt())
 		.and(t(";")).and(expression.opt()).and(t(")")).and(statement_lazy)
 		.ret(function(_for,lp,e1,e2,s2,e3,rp,state){
+			var startName="start"+(startSeq++);
 			return [function(){vars.push({});},
-				"var start=loop_start();",
+				"var ",startName,"=loop_start();",
 				"for","(",e1,e2,";",e3,")",
-				"{","loop_chk(start);",state,"}",
+				"{","loop_chk(",startName,");",state,"}",
 				function(){vars.pop();}
 			];
 		}));
@@ -730,6 +735,7 @@ MinimalParser= function () {
 
 
 	parser.parse=function (str) {
+	    startSeq=0;
 		vars=[{}];
 		defines={NULL:0};
 		var output="";
