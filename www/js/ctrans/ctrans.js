@@ -733,7 +733,9 @@ MinimalParser= function () {
 		vars=[{}];
 		defines={NULL:0};
 		var output="";
+		var preLines=str.split("\n").length;
 		var processed=preprocess(str);
+		var postLines=processed.split("\n").length;
 		ctx=context();
 		var result=program.parseStr(processed);
 		output=result.result[0];
@@ -745,7 +747,7 @@ MinimalParser= function () {
 			var max=processed.substr(0,result.src.maxPos);
 			var line=max.match(/\n/g);
 			line=(line)?line.length:0;
-			var parseErr=new Error("プログラムに誤りがあります。\n"+(line+1)+"行目付近を確認してください。");
+			var parseErr=new Error("プログラムに誤りがあります。\n"+(line+1-(postLines-preLines))+"行目付近を確認してください。");
 			parseErr.lineNo=line+1;
 			throw parseErr;
 		}
