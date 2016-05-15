@@ -111,13 +111,15 @@ MinimalParser= function () {
     // \token_name 名前のトークン
 	var token_name = token(reg_name).ret(function(_name){return trim_name(_name.text);});
 	var reg_str = RegExp("^[^\"^\”]*");//文字列の正規表現
-	var tok_str = dquote.and(token(reg_str)).and(dquote).ret(function(_ldq,_str,_rdq){return _ldq+_str+_rdq;});
+	var tok_str = dquote.and(token(reg_str)).and(dquote).ret(function(_ldq,_str,_rdq){
+	    return extend([_ldq,_str,_rdq],{type:"string",content:_str});
+	});
 	//reg_num = /^[0-9０-９]+(?:[.。・])?(?:[0-9０-９])*/;//数字を表す正規表現
 	var reg_num=/^[0-9０-９]+/;
 	var tok_num = token(reg_num).ret(function(_num){
-		return (new String(_num).replace(/[０-９]/g, function(s) {
+		return extend([(_num+"").replace(/[０-９]/g, function(s) {
 			return parseInt(String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
-		}));
+		})],{type:"number"});
 	});
     //--------------ここから構文	
 	//括弧
@@ -216,7 +218,8 @@ MinimalParser= function () {
     });
     //プログラム
 	program = statement.sep0(period,true).and(period.opt()).
-	ret(function(stmts){
+	ret(function(_stmts){
+	    var stmts=_stmts.slice();
 	    var last=stmts.pop();
 	    return extend([stmts,"return ",last], {type:"program",subnodes:arguments});
 	});

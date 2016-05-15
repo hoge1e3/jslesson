@@ -47,9 +47,25 @@
 			//var page=window.open();
 			//page.document.open();
 			//page.document.write(trim_html($("#res").val()));
-			localStorage.setItem(('sample'),$("#prog").val());
-			var dtlNode=MinimalParser.parseAsNode($("#prog").val());
-			MinimalParser.node2vm(dtlNode);
+			var src=$("#prog").val();
+			localStorage.setItem(('sample'),src);
+			var dtlNode=MinimalParser.parseAsNode(src);
+			if (src.match(/RUN_AT_SERVER/)) {
+	    		var vmc=MinimalParser.node2vm(dtlNode);
+	    		var vmcj=JSON.stringify(vmc);
+    			console.log("VM Code", vmcj);
+    			var svurl="/fsjs/php/dtlfs.php";
+    			$.post(svurl,{script: vmcj}).then(function (res){
+    			    console.log(res);
+	    			(iframe.contentWindow.timer_stopper)?iframe.contentWindow.timer_stopper():null;
+        			iframe_document.open();
+		        	iframe_document.writeln("<html><body>"+res+"</body></html>");
+    			}).fail(function (res) {
+    			    console.log("ERR",res.responseText);
+    			    alert(res.responseText);
+    			});
+    			return;
+			}
 			var dtl=MinimalParser.node2js(dtlNode);
 		    dtl=js_beautify(dtl);
 			console.log(dtl);
@@ -106,6 +122,8 @@
   <option value="s6">スコープのテスト1</option>
   <option value="s7">スコープのテスト2</option>
   <option value="s8">スコープのテスト3</option>
+  <option value="sv9">(server)アクセスカウンタ</option>
+  <option value="sv10">(server)掲示板</option>
 </select>
 
 <button id=run style="font-size:110%">実行</button><br>
@@ -243,6 +261,29 @@ inst ! 3 msg.
 document ! (i) (x) (y) (inst:i) (inst:x) (inst:y) write.
 //should be 3   2   3     4        2        3    
 </textarea>
+<textarea id=prog_sv9>
+// RUN_AT_SERVER
+//相対パス指定でファイル取得
+f = rootDir ! "test.txt" rel. 
+// ファイルのテキストを取得して数値変換
+c = f ! getText toNumber.  
+// 1足してファイルに書き込み
+f ! (c+1) setText. 
+c. //カウンタの値を返す
+</textarea>
+<textarea id=prog_sv10>
+// RUN_AT_SERVER
+//相対パス指定でファイル取得
+f = rootDir ! "log.txt" rel. 
+// 書き込むメッセージ
+message = "Hello". 
+// ファイルのテキストにメッセージを追加
+c = (f ! getText) + message + ", ".  
+// ファイルに書き込み
+f ! (c) setText. 
+c. //メッセージ一覧
+</textarea>
+
 </div>
 
 <script>
