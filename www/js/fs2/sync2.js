@@ -26,7 +26,7 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","assert"],
         // sync dir:file options:o local=remote=dir
         // sync local:file remote:file options:o
         var local,remote,options;
-        function getLocalDirInfo() {
+        function getLocalDirInfo() {// This is slow!
             var res={};
             local.recursive(function (file) {
                 var lcm=file.metaInfo();

@@ -50,7 +50,7 @@ MinimalParser.node2vm=function (node) {
             v.visit(op);            
         },
         number:function (node) {
-            add(["pushi",node[0]+""]);
+            add(["pushi",parseFloat(node[0]+"")]);
         },
         string:function (node) {
             add(["pushi",node.content+""]);
@@ -101,7 +101,7 @@ MinimalParser.node2vm=function (node) {
             switch(left ? left.type : "nolet") {
            	case "localVar":
 	            v.visit(expr);
-	            add(["store1",left.name+""]);
+	            add(["store1",left.name+"", 0]);//TODO
             	break;
            	case "field":
            		add(["push1","self"]);

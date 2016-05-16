@@ -21,7 +21,7 @@ Profiler={
 		if (!prefix) prefix="";
 		for (var k in hash) {
 			if (typeof hash[k] == "function") {
-				hash[k].profile(k);
+				hash[k].profile(prefix+"."+k);
 			}
 		}
 	}
