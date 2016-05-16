@@ -15,9 +15,8 @@ function loop_chk(start){
 	var now=new Date().getTime();
 	start.count++;
 	if(now-start.time>5000 && start.count>10){
-		var b=confirm("ループが５秒以上続いています。\n実行を停止しますか？");
-
-		if(b){setTimeout(function(){exit;},10);throw("実行を停止しました。");}
+	    var b=confirm("ループが５秒以上続いています。\n実行を停止するにはOKを押してください。");
+	    if(b){throw new Error("実行を停止しました。");}
 		else start.time=new Date().getTime();
 	}
 }

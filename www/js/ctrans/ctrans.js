@@ -698,14 +698,21 @@ MinimalParser= function () {
 	            return ["printf","scanf"].map(function (n) {
 	                return "void "+n+"();\n";
 	            }).join("\n");
-            break;
+                break;
 	        case "string.h":
 	            return ["strlen","strcpy","strncpy","strcmp","strncmp",
 	            "strcat","strncat","memset","index","rindex",
 	            "memcmp","memcpy"].map(function (n) {
 	                return "void "+n+"();";
 	            }).join("\n");
-            break;
+                break;
+	        case "math.h":
+	            // also in lib.js
+                return ["abs","acos","asin","atan","atan2","ceil","cos","exp","floor",
+                "log","max","min","pow","random","round","sin","sqrt","tan"].map(function (n) {
+	                return "double "+n+"();";
+	            }).join("\n");
+                break;
 	    }
 	    return null;
 	}).or(control_line);

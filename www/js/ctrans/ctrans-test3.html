@@ -39,7 +39,7 @@ requirejs(["FS"],function (FS) {
 		try{
 		    //console.log("Test:", f.path());
         	var buf="";
-        	printf.STDOUT={append:function (s) {buf+=s;}};
+        	printf.STDOUT={append:function (s) {buf+=s;},text:function(){return buf;}};
 			var tree=MinimalParser.parse(f.text());
 			program=js_beautify(js_gen(tree));
 			var output=f.up().rel(f.truncExt()+".js");

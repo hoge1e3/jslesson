@@ -119,8 +119,11 @@ function printf() {
 	});
 	lineBuf.push(line);
 	if (lineBuf.length>5) lineBuf.shift();
-	(printf.STDOUT||$("#console")).append(line);
+	var con=(printf.STDOUT||$("#console"));
+	con.append(line);
+	if (con.text().length>65536) throw new Error("printfによる出力が多すぎます");
 }
+// also in ctrans.js
 ["abs","acos","asin","atan","atan2","ceil","cos","exp","floor",
 "log","max","min","pow","random","round","sin","sqrt","tan"].forEach(function (k) {
     var f=Math[k];

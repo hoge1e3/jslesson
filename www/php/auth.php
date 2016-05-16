@@ -10,8 +10,8 @@ class Auth {
            return "存在しないクラスIDが入力されています。";
 	}
         if (preg_match('/^[a-zA-Z0-9\\-_]+$/',$user)) {
-	   setcookie("class",$class, time()+60*60*24*30);
-           setcookie("user",$user, time()+60*60*24*30);
+	   setcookie("class",$class, time()+60*60*24*30*6);
+           setcookie("user",$user, time()+60*60*24*30*6);
            return true;
         } else {
            return "ユーザ名は半角英数とハイフン、アンダースコアだけが使えます。";
