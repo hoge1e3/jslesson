@@ -1,6 +1,7 @@
-define(["FS","Shell",/*"requestFragment",*/"WebSite","assert"],
-        function (FS,sh,/*rf,*/WebSite,A) {
+define(["FS","Shell","WebSite","assert"],
+        function (FS,sh,WebSite,A) {
     var Sync={};
+    //var PathUtil=FS.PathUtil; Not avail
     sh.sync=function () {
         // sync options:o      local=remote=cwd
         // sync dir:s|file options:o local=remote=dir
@@ -146,6 +147,7 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","assert"],
             var o,f,m;
             for (var key in dd.local) {
                  f=local.rel(key);
+                 if (f.isDir()) continue;
                  o={};
                  if (f.exists()) o.text=f.text();
                  m=dd.local[key];
@@ -155,6 +157,7 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","assert"],
             }
             for (var key in dd.remote) {
                 downloads.push(key);
+                //if (PathUtil.isDir(key)) continue;  //Not avail
                 if (options.v)
                     sh.echo("Download",key,dd.remote[key]);
             }
@@ -177,6 +180,7 @@ define(["FS","Shell",/*"requestFragment",*/"WebSite","assert"],
             if (options.test) return;
             for (var rel in dlData.data) {
                 var dlf=base.rel(rel);
+                if (dlf.isDir()) continue;
                 var d=dlData.data[rel];
                 //if (options.v) sh.echo(dlf.path(), d);
                 if (d.trashed) {
