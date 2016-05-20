@@ -25,7 +25,11 @@ MinimalParser.node2vm=function (node) {
         meth_call: function (node) {
             var obj=node.subnodes[0];
             var elec=node.subnodes[2];
-			v.visit(obj);
+			if (obj) v.visit(obj);
+			else {
+			    add(["push1","self"]);
+			    add(["push2","root"]);
+			}
 			v.visit(elec);
         },
         infix: function (node) {
@@ -70,7 +74,7 @@ MinimalParser.node2vm=function (node) {
             var param=node.subnodes[1];
             var progs=node.subnodes[2];
             var nc=[];
-            ctx.enter({code:nc},function () {
+            ctx.enter({code:nc,depth:node.depth},function () {
                 v.visit(param);
                 v.visit(progs);
             });
@@ -101,7 +105,7 @@ MinimalParser.node2vm=function (node) {
             switch(left ? left.type : "nolet") {
            	case "localVar":
 	            v.visit(expr);
-	            add(["store1",left.name+"", 0]);//TODO
+	            add(["store1",left.name+"", ctx.depth-left.depth]);//TODO
             	break;
            	case "field":
            		add(["push1","self"]);
@@ -122,8 +126,8 @@ MinimalParser.node2vm=function (node) {
 	            v.visit(expr);
             }
         },
-        program: function (node){
-            console.log("PROG");
+        statement_list: function (node){
+            //console.log("PROG");
             var statements=node.subnodes[0];
             statements.forEach(function (stmt,i) {
                 v.visit(stmt);
@@ -140,7 +144,7 @@ MinimalParser.node2vm=function (node) {
         }
     };
     var nc=[];
-    ctx.enter({code:nc},function () {
+    ctx.enter({code:nc,depth:0},function () {
           v.visit(node);
     });
     function add(c) {

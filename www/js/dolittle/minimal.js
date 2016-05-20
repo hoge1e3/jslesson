@@ -68,7 +68,7 @@ MinimalParser= function () {
 		
 	};
     // \lazies
-	var expr,term,block,paren_expr,variable,infix_expr,program;
+	var expr,term,block,paren_expr,variable,infix_expr,program,statement_list;
 	var infix_expr_lazy=Parser.lazy(function(){return infix_expr;});
 	var expr_lazy = Parser.lazy(function(){return expr;});
 	var term_lazy = Parser.lazy(function(){return term;});
@@ -77,6 +77,7 @@ MinimalParser= function () {
 	var meth_call_lazy = Parser.lazy(function(){return meth_call_lazy;});
 	var paren_lazy = Parser.lazy(function(){return paren_expr;});
 	var program_lazy=Parser.lazy(function(){return program;});
+	var statement_list_lazy=Parser.lazy(function(){return statement_list;});
 	//--------字句要素
 	//名前
 	var str_name = "[a-zA-Z_$\?？ーぁ-んァ-ヶ々〇〻\u3400-\u9FFF\uF900-\uFAFF\uD840-\uD87F\uDC00-\uDFFF][a-zA-Z_$\?？0-9０-９ーぁ-んァ-ヶ々〇〻\u3400-\u9FFF\uF900-\uFAFF\uD840-\uD87F\uDC00-\uDFFF]*";
@@ -181,21 +182,22 @@ MinimalParser= function () {
 	    {type:"block_param",subnodes:arguments});
 	});
 	function regLocal(n) {
-	    ctx.scope[n+""]={type:"local"};
+	    console.log("reglocal",n,ctx.depth);
+	    ctx.scope[n+""]={type:"local",depth:ctx.depth};
 	}
-	var block = lsb.and(block_param.opt()).and(program_lazy).and(rsb).
+	var block = lsb.and(block_param.opt()).and(statement_list_lazy).and(rsb).
 	ret(function(_lsb,_param,_progs,_rsb){
 	    _param=_param||["",""]; 
 	    return extend(["dtlbind(this,function(",_param[0],
 	    "){var self=this;var 自分=self;",_param[1],_progs,"})"], 
-	    {type:"block",subnodes:arguments});
+	    {type:"block",subnodes:arguments,depth:ctx.depth});
 	});
 	block=newScope(block);
 	//変数
     var varbuild=ExpressionParser();
     varbuild.element(simple.or(token_name.ret(function (n) {
         if (ctx.scope[n]) {
-            return extend([n],{type:"localVar",name:n});
+            return extend([n],{type:"localVar",name:n,depth:ctx.scope[n].depth});
         } else {
             return extend(["this."+n],{type:"field",name:n});
         }
@@ -217,13 +219,13 @@ MinimalParser= function () {
         return extend([(v||""),e,";"],{type:"statement",subnodes:arguments});
     });
     //プログラム
-	program = statement.sep0(period,true).and(period.opt()).
+	statement_list = statement.sep0(period,true).and(period.opt()).
 	ret(function(_stmts){
 	    var stmts=_stmts.slice();
 	    var last=stmts.pop();
-	    return extend([stmts,"return ",last], {type:"program",subnodes:arguments});
+	    return extend([stmts,"return ",last], {type:"statement_list",subnodes:arguments});
 	});
-    program = newScope(program);
+    program = newScope(statement_list);
 	/* 
 	パーサに適用できるメソッド（いずれも新しいパーサを生成して返す）：
 	メソッド                         新しく生成されるパーサの動作

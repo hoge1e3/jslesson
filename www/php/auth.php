@@ -10,8 +10,11 @@ class Auth {
            return "存在しないクラスIDが入力されています。";
 	}
         if (preg_match('/^[a-zA-Z0-9\\-_]+$/',$user)) {
-	   setcookie("class",$class, time()+60*60*24*30*6);
-           setcookie("user",$user, time()+60*60*24*30*6);
+	        //setcookie("class",$class, time()+60*60*24*30*6);
+            //setcookie("user",$user, time()+60*60*24*30*6);
+            session_start();
+            $_SESSION['class']=$class;
+            $_SESSION['user']=$user;
            return true;
         } else {
            return "ユーザ名は半角英数とハイフン、アンダースコアだけが使えます。";
@@ -48,10 +51,14 @@ class Auth {
         }
    }
    function curUser() {
-        return $_COOKIE["user"];
+       session_start();
+        //return $_COOKIE["user"];
+        return $_SESSION['user'];
    }
    function curClass() {
-        return $_COOKIE["class"];
+       session_start();
+        //return $_COOKIE["class"];
+        return $_SESSION['class'];
    }
    function getFS() {
 	    $class=self::curClass();

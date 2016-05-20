@@ -1,4 +1,6 @@
-if (typeof define!="function") {useGlobal=true; define=function(_,f){f();}; }
+(function (global) {
+var useGlobal=(typeof global.define!="function");
+var define=(useGlobal ? define=function(_,f){f();} : global.define);
 define([],function () {
     var define,requirejs;
 	var R={};
@@ -636,6 +638,7 @@ define('FS2',["extend","PathUtil","MIMETypes","assert"],function (extend, P, M,a
                     var fs=this.resolveFS(path);
                     //console.log(n, f.fs===this  ,f.fs, this);
                     if (fs!==this) {
+                        console.log("Invoked for other fs",this.mountPoint, fs.mountPoint)
                         //arguments[0]=f.path;
                         return fs[n].apply(fs, arguments);
                     } else {
@@ -652,6 +655,17 @@ define('FS2',["extend","PathUtil","MIMETypes","assert"],function (extend, P, M,a
         getContentType: function (path, options) {
             var e=P.ext(path);
             return M[e] || (options||{}).def || "text/plain";
+        },
+        getBlob: function (path, options) {
+            var c=this.getContent(path);
+            options=options||{};
+            options.blobType=options.blobType||Blob;
+            options.binType=options.binType||ArrayBuffer;
+            if (c.hasPlainText()) {
+                return new options.blobType([c.toPlainText()],this.getContentType(path));
+            } else {
+                return new options.blobType([c.toBin(options.binType)],this.getContentType(path));
+            }
         },
         isText:function (path) {
             var m=this.getContentType(path);
@@ -711,13 +725,29 @@ define('FS2',["extend","PathUtil","MIMETypes","assert"],function (extend, P, M,a
         },
         isLink: function (path) {
             return null;
-        }//,
+        },
+        getDirTree: function (path, dest) {
+            dest=dest||{};
+            assert.is(path, P.AbsDir);
+            var ls=this.opendir(path);
+            var t=this;
+            ls.forEach(function (f) {
+                var p=P.rel(path,f);
+                if (t.isDir(p)) {
+                    t.getDirTree(p,dest);
+                } else {
+                    dest[p]=t.getMetaInfo(p);
+                }
+            });
+            return dest;
+        }
         /*get: function (path) {
             assert.eq(this.resolveFS(path), this);
             return new SFile(this, path);
             //var r=this.resolveFS(path);
             //return new SFile(r.fs, r.path);
         }*/
+        
     });
     return FS;
 });
@@ -1376,6 +1406,7 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
         }
         if (!trashed) delete dinfo[name].trashed;
         dinfo[name].lastUpdate = now();
+        this.getRootFS().notifyChanged(P.rel(path,name), dinfo[name]);
         this.putDirInfo(path, dinfo, trashed);
     };
     LSFS.prototype.removeEntry=function removeEntry(dinfo, path, name) { // path:path of dinfo
@@ -1579,6 +1610,20 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
         },
         getURL: function (path) {
             return this.getContent(path).toURL();
+        },
+        getDirTree: function (path,dest) {
+            assert.is(path,P.AbsDir);
+            dest=dest||{};
+            var d=this.getDirInfo(path);
+            for (var f in d) {
+                var p=P.rel(path,f);
+                if (this.isDir(p)) {// TODO symlink not follow(and no entry in dest)
+                    this.getDirTree(p,dest);
+                } else {
+                    dest[p]=d[f];
+                }
+            }
+            return dest;
         }
     });
     return LSFS;
@@ -1701,7 +1746,7 @@ SFile.prototype={
                 base );
         return P.relPath(this.path(), A.is(bp,P.Absolute) );
     },
-    up:function () {
+    up: function () {
         var pathR=this.path();
         var pa=P.up(pathR);
         if (pa==null) return null;
@@ -1712,6 +1757,9 @@ SFile.prototype={
         this.assertDir();
         var pathR=this.path();
         return this._resolve(P.rel(pathR, relPath));
+    },
+    sibling: function (n) {
+        return this.up().rel(n);  
     },
     startsWith: function (pre) {
         return P.startsWith(this.name(),pre);
@@ -1749,6 +1797,9 @@ SFile.prototype={
     },
     setMetaInfo: function (info, options) {
         return this.act.fs.setMetaInfo(this.act.path,info, options);
+    },
+    getDirTree: function () {
+        return this.act.fs.getDirTree(this.act.path);
     },
     lastUpdate:function () {
         A(this.exists());
@@ -2043,6 +2094,16 @@ define('RootFS',["assert","FS2","PathUtil","SFile"], function (assert,FS,P,SFile
             get: function (path) {
                 assert.is(path,P.Absolute);
                 return new SFile(this.resolveFS(path), path);
+            },   
+            addObserver: function (f) {
+                this.observers=this.observers||[];
+                this.observers.push(f);
+            },
+            notifyChanged: function (path,metaInfo) {
+                if (!this.observers) return;
+                this.observers.forEach(function (f) {
+                    f(path,metaInfo);
+                });
             }
     };
     for (var i in p) {
@@ -2114,6 +2175,7 @@ define('FS',["FS2","NativeFS","LSFS", "PathUtil","Env","assert","SFile","RootFS"
         return rootFS.unmount.apply(rootFS,arguments);
     };
     FS.SFile=SFile;
+    FS.PathUtil=P;
     FS.Content=Content;
     FS.isFile=function (f) {
         return SFile.is(f);
@@ -2125,6 +2187,7 @@ define('FS',["FS2","NativeFS","LSFS", "PathUtil","Env","assert","SFile","RootFS"
 	requirejs(["FS"], function (r) {
 	  resMod=r;
 	});
-	if (typeof useGlobal!="undefined" && useGlobal) window.FS=resMod;
+	if (useGlobal) global.FS=resMod;
 	return resMod;
 });
+})(window);

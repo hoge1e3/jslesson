@@ -37,7 +37,9 @@ function scanf(line, dest) {
 console.log(dest);
 	var val;
 	line=ch_arr_to_str(line);
-  var input=prompt(lineBuf.join(""),"");
+	loop_start2();
+  var input=prompt(lineBuf.join("")+"\n(実行を停止するには^Cを入力)","");
+  if (input.toLowerCase()=="^c") throw new Error("実行を停止しました");
   printf(str_to_ch_arr(input+"\n"));
 	var format=line.match(/%d|%c|%x|%#x|%lf|%f|%s/);
 	switch(format+""){

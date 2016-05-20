@@ -6,6 +6,9 @@ $(function () {
     $("body").append(UI("div",
             ["h1","プロジェクト一覧"],
             ["div",
+	        ["a",{href:"http://klab.eplang.jp/jslesson_wiki/",target:"wikiTab"},"JSLesson説明ページ"],"JSLessonの解説などを掲載しています"
+	    ],
+            ["div",
 	        ["a",{href:"https://docs.google.com/document/d/17_RcWbezzXf4ShnTUcS2IRYxgO03QB9--sFN4xC9Ts0/pub",target:"manTab"},"入門テキスト"],"JSLessonの基本的な使い方を説明します。"
 	    ],
 	    ["div",
@@ -95,6 +98,7 @@ $(function () {
         }).fail(function (e) {
             if (e==Sync.NOT_LOGGED_IN) {
                 $("#syncMesg").empty().append(UI("a",{href:"login.php"},"ログイン"));
+                alert("ファイルの内容を保存するためには、必ずログインをしてください");
             } else {
                 $("#syncMesg").text("エラー!"+e);
                 console.log(e);

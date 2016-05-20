@@ -3,14 +3,14 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "Shell","Shell2","KeyEventChecker",
            "runtime", "searchDialog","StackTrace",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
-           "Columns","assert","Menu","TError","DeferredUtil","Sync"
+           "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
           sh,sh2,  KeyEventChecker,
           rt, searchDialog,StackTrace,
           UI, UIDiag,WebSite,EC,TTB,
-          Columns,A,Menu,TError,DU,Sync
+          Columns,A,Menu,TError,DU,Sync,RunDialog
           ) {
 $(function () {
     var curClassroom;
@@ -61,7 +61,7 @@ $(function () {
               ["div",{id:"fileViewer","class":"col-xs-2"},
                   ["div",{id:"fileItemList"}]
               ],
-              ["div",{id:"mainArea","class":"col-xs-5"},
+              ["div",{id:"mainArea","class":"col-xs-10"},
                   ["div",{id:"errorPos"}],
                   ["div",{id:"tabTop"},
                      ["button",{
@@ -71,15 +71,17 @@ $(function () {
                          "class":"selTab","data-ext":EXT
                      },langList[lang]],
                      ["span",{id:"curFileLabel"}],
-                     ["span",{id:"modLabel"}]
+                     ["span",{id:"modLabel"}],
+                     ["span",{id:"toastArea"}],
+                     ["a",{id:"fullScr",href:"javascript:;"}]
                   ],
                   ["div",{id:"progs"}]
-              ],
+              ]/*,
               ["div",{id:"runArea","class":"col-xs-5"},
                ["div","実行結果：",["a",{id:"fullScr",href:"javascript:;"}]],
                ["iframe",{id:"ifrm",width:465,height:465}],
 	       ["div",{id:"toastArea"}]
-              ]
+              ]*/
         );
     }
     makeUI();
@@ -93,10 +95,10 @@ $(function () {
                       {label:"コピー",id:"cpFile"},
                       {label:"削除", id:"rmFile"}
                   ]},
-                  {label:"実行",sub:[
+                  {label:"実行",id:"runMenu",action:run/*sub:[
                       {label:"実行(F9)",id:"runMenu",action:run},
                       {label:"停止(F2)",id:"stopMenu",action:stop},
-                  ]},
+                  ]*/},
                   {label:"保存",id:"save"},
                   {label:"設定",sub:[
                       {label:"エディタの文字の大きさ",id:"textsize",action:textSize}
@@ -366,8 +368,10 @@ $(function () {
 	            curName=name;
 	            if (curFrameRun) {
 	                window.setupFrame(curFrameRun);
+	                RunDialog.show("src","run.html");
 	            } else {
-	                $("#ifrm").attr("src","run.html");
+	                //$("#ifrm").attr("src","run.html");
+	                RunDialog.show("src","run.html");
 	            }
 	            return sync();
 	        }), function (e) {
@@ -393,8 +397,8 @@ $(function () {
 	        	runURL=location.href.replace(/\/[^\/]*\?.*$/,
 	        	        "/js/ctrans/runc.html?file="+compiledFile.path()
 	        	);
-			$("#ifrm").attr("src",runURL);
-
+			//$("#ifrm").attr("src",runURL);
+			    RunDialog.show("src",runURL);
 		        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
 		        $("#qr").text("QR");
 		}catch(e){
@@ -567,7 +571,10 @@ $(function () {
 	    else prog.setFontSize(18);
             //prog.setFontSize(20);
             prog.setTheme("ace/theme/eclipse");
-            if (f.ext()==EXT) {
+            if (f.ext()==EXT && lang=="c") {
+                prog.getSession().setMode("ace/mode/c_cpp");
+            }
+            else if (f.ext()==EXT) {
                 prog.getSession().setMode("ace/mode/tonyu");
             }
             if (f.ext()==HEXT) {
@@ -651,6 +658,7 @@ $(function () {
     $("#home").click(F(function () {
 	goHome();
     }));
+    $("#runMenu").click(F(run));
     function goHome(){
 	console.log("goHome");
 	unsynced=false;

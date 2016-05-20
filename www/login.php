@@ -20,6 +20,7 @@ if (isset($_GET["curuser"])) {
 } 
 if ($showForm) { 
            setcookie("user","", time()-18000);
+           session_start();
 ?>
 	<meta charset="UTF-8">
 	<form action="login.php">

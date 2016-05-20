@@ -118,6 +118,7 @@ var reqConf={
             KeyEventChecker: "lib/KeyEventChecker",
             NewProjectDialog: "ide/NewProjectDialog",
             NewSampleDialog: "ide/NewSampleDialog",
+            RunDialog: "ide/RunDialog",
             WebSite: "runtime/WebSite",
             UI:"lib/UI",
             UIDiag:"lib/UIDiag",
