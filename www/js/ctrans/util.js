@@ -11,7 +11,7 @@ function loop_start2(){
 }
 function loop_chk2() {
     var now=new Date().getTime();
-    if (now-window.startTime>5) {
+    if (now-window.startTime>5000) {
         var b=confirm("ループが５秒以上続いています。\n実行を停止するにはOKを押してください。");
 	    if(b){throw new Error("実行を停止しました。");}
 		else loop_start2();

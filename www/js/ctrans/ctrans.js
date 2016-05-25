@@ -414,13 +414,13 @@ MinimalParser= function () {
 		    var startName="start"+(startSeq++);
 		    return [
 			"var ",startName,"=loop_start();","while","(",expr,"){try{",state,
-			"}finally{loop_chk(",startName,");}}"];});
+			"}finally{loop_chk2(",startName,");}}"];});
 	iteration_statement=iteration_statement.or(t("do").and(statement_lazy)
 		.and(t("while")).and(t("(")).and(expression).and(t(")")).and(t(";"))
 			.ret(function(_do,state,_while,lp,expr,rp,semicolon){
 				var startName="start"+(startSeq++);
 				return ["var ",startName,"=loop_start();","do{try{",state,
-					"}finally{loop_chk(",startName,");}}","while","(",expr,")",";"
+					"}finally{loop_chk2(",startName,");}}","while","(",expr,")",";"
 				];
 			}));
 	var for_part=expression.and(t(";"))
@@ -433,7 +433,7 @@ MinimalParser= function () {
 			return [function(){vars.push({});},
 				"var ",startName,"=loop_start();",
 				"for","(",e1,e2,";",e3,")",
-				"{","loop_chk(",startName,");",state,"}",
+				"{","loop_chk2(",startName,");",state,"}",
 				function(){vars.pop();}
 			];
 		}));

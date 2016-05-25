@@ -1,8 +1,9 @@
 define(["UI"],function (UI) {
     var res={};
     res.show=function (src, runURL, options) {
+        options=options||{};
         var d=res.embed(src, runURL, options);
-        d.dialog({width:600});
+        d.dialog({width:600});//,height:options.height?options.height-50:400});
     };
     res.embed=function (src, runURL, options) {
         if (!options) options={};
@@ -10,7 +11,7 @@ define(["UI"],function (UI) {
         if (!res.d) {
             res.d=UI("div",{title:"実行画面ダイアログ"},
                     ["div",
-                          ["iframe",{id:"ifrmDlg",width:465,height:465,src:runURL}]
+                          ["iframe",{id:"ifrmDlg",width:465,height:options.height||400,src:runURL}]
                     ]
             );
         }

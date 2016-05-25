@@ -368,10 +368,10 @@ $(function () {
 	            curName=name;
 	            if (curFrameRun) {
 	                window.setupFrame(curFrameRun);
-	                RunDialog.show("src","run.html");
+	                RunDialog.show("src","run.html",{height:screenH-50});
 	            } else {
 	                //$("#ifrm").attr("src","run.html");
-	                RunDialog.show("src","run.html");
+	                RunDialog.show("src","run.html",{height:screenH-50});
 	            }
 	            return sync();
 	        }), function (e) {
@@ -398,7 +398,7 @@ $(function () {
 	        	        "/js/ctrans/runc.html?file="+compiledFile.path()
 	        	);
 			//$("#ifrm").attr("src",runURL);
-			    RunDialog.show("src",runURL);
+			    RunDialog.show("src",runURL,{height:screenH-50});
 		        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
 		        $("#qr").text("QR");
 		}catch(e){
