@@ -7,11 +7,14 @@ function search_scope_level(key,chk){
 	else throw("変数"+key+"は定義されていません。");
 }
 function loop_start2(){
+    //if (window.parent) window.parent.dialogClosed=false;
     window.startTime=new Date().getTime();
 }
 function loop_chk2() {
+    if (window.parent && window.parent.dialogClosed) throw new Error("ダイアログが閉じられたので実行を停止しました");
     var now=new Date().getTime();
     if (now-window.startTime>5000) {
+        //console.log(window.parent, window.opener);
         var b=confirm("ループが５秒以上続いています。\n実行を停止するにはOKを押してください。");
 	    if(b){throw new Error("実行を停止しました。");}
 		else loop_start2();

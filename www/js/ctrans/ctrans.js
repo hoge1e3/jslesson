@@ -327,7 +327,9 @@ MinimalParser= function () {
 	initializer_part=assign.and(initializer_part.rep0())
 		.ret(function(assign,assigns){return [assign,assigns];});
 	initializer=assign.or(t("{").and(initializer_part.opt()).and(t("}"))
-		.ret(function(lcb,initializer_part,rcb){return ["[",initializer_part,"]"];})); 
+		.ret(function(lcb,initializer_part,rcb){
+		    return extend(["[",initializer_part,"]"],{type:"arrayInit"});
+		})); 
 	// \init_declarator
 	var init_declarator=declarator.and(t("=").and(initializer).opt())
 		.ret(function(declarator,eq,initializer){
@@ -376,7 +378,8 @@ MinimalParser= function () {
 					} else if(tmp.length){
 						$.push(curScopesName()+"."+identifier+"=");
 						//console.log("init",initializer);
-						if (initializer&&initializer.type=="string") {
+						if (initializer&&
+						(initializer.type=="string" || initializer.type=="arrayInit")) {
                             $.push(initializer);                            
                         } else {						
     						$.push("arrInit(");

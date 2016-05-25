@@ -2,8 +2,9 @@ define(["UI"],function (UI) {
     var res={};
     res.show=function (src, runURL, options) {
         options=options||{};
+        window.dialogClosed=false;
         var d=res.embed(src, runURL, options);
-        d.dialog({width:600});//,height:options.height?options.height-50:400});
+        d.dialog({width:600,close:function(){window.dialogClosed=true;}});//,height:options.height?options.height-50:400});
     };
     res.embed=function (src, runURL, options) {
         if (!options) options={};
