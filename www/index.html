@@ -50,6 +50,7 @@ requirejs(["Util"],function (Util){
     }
     console.log("noconcat",noconcat);
     if (noconcat+""!="true") {
+        console.log(reqConf.paths[run+"_concat"]);
         if (reqConf.paths[run+"_concat"]) {
             run+="_concat";
         }

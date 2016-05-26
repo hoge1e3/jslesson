@@ -1,7 +1,7 @@
 (function (global) {
 var useGlobal=(typeof global.define!="function");
 var define=(useGlobal ? define=function(_,f){f();} : global.define);
-define([],function () {
+define("FSLib",[],function () {
     var define,requirejs;
 	var R={};
 	var REQJS="REQJS_";
