@@ -1,0 +1,65 @@
+<html>
+<script src="jquery-2.1.0.js"></script>
+<script src="parser.js"></script>
+<script src="ExpressionParser2.js"></script>
+<script src="context.js"></script>
+<script src="ctrans.js"></script>
+<script src="compiler.js"></script>
+<script src="beautify.js"></script>
+<script src="lib.js"></script>
+<script src="util.js"></script>
+<script src="jsgen.js"></script>
+<script src="require.js"></script>
+
+<script>
+requirejs(["FS"],function (FS) {
+	$(function () {
+	    var pass = prompt("please input path","C:/Users/kazu/Dropbox/jslesson/www/fs/home/0123");
+	    var klass = FS.get(pass);
+	    var score = klass.rel("SCORE/");
+	    var res = FS.get(pass+"/main.js");
+	    score.each(function(a){
+	        var an=a.truncExt();
+	        var aobj=a.obj();
+	        klass.each(function(u){
+	            u.recursive(function(f){
+	               if(f.name()==an+".c"){
+	                   for(var i=0;i<a.obj().length;i++){
+	                    scanf.STDIN=aobj[i].input.split("\n");
+                    	var buf="";
+        	            printf.STDOUT={append:function (s) {buf+=s;},text:function(){return buf;}};
+	                    compile(f,res);
+	                    eval(res.text());
+	                    console.log(buf);
+	                    if(a.obj()[i].output == buf[i]){
+	                       alert("correct!");
+	                    }
+	                   }
+	               }
+	            });
+	        });
+	    });
+	        /*
+	  var cFile=FS.get("/main.c");
+		var jsFile=FS.get("/main.js");
+		//var logFile=FS.get("/userid.log");
+	  if (cFile.exists()) $("#prog").val(cFile.text());
+		//if (logFile.exists()) logFile.text("classid\tuserid\ttime\terr\terrcode\tprogram\n");
+	  $("#parse").click(function () {
+			cFile.text($("#prog").val());
+			compile(cFile,jsFile);
+	   	$("#res").val(jsFile.text());
+	  });*/
+		//$("#run").click(function(){$("#iframe").attr("src","./runc.html?file=/main.js");;});
+	});
+});
+</script>
+
+<textarea id=prog rows=10 cols=80>a=a;
+int main(void){a=a;}</textarea><br>
+<button id=parse>Parse</button>
+<button id=run>Run</button>
+<pre id=console></pre>
+<form name="form"><textarea id=res rows=10 cols=80></textarea></form>
+<iframe id="iframe" src="about:blank" width="320" height="480" style="position:absolute;left:600px;top:10px"><iframe>
+</html>

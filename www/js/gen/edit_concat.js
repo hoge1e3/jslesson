@@ -758,8 +758,10 @@ return Tonyu=function () {
             A:A};
 }();
 });
-if (typeof define!="function") {useGlobal=true; define=function(_,f){f();}; }
-define('FSLib',[],function () {
+(function (global) {
+var useGlobal=(typeof global.define!="function");
+var define=(useGlobal ? define=function(_,f){f();} : global.define);
+define([],function () {
     var define,requirejs;
 	var R={};
 	var REQJS="REQJS_";
@@ -1396,6 +1398,7 @@ define('FS2',["extend","PathUtil","MIMETypes","assert"],function (extend, P, M,a
                     var fs=this.resolveFS(path);
                     //console.log(n, f.fs===this  ,f.fs, this);
                     if (fs!==this) {
+                        console.log("Invoked for other fs",this.mountPoint, fs.mountPoint)
                         //arguments[0]=f.path;
                         return fs[n].apply(fs, arguments);
                     } else {
@@ -1412,6 +1415,17 @@ define('FS2',["extend","PathUtil","MIMETypes","assert"],function (extend, P, M,a
         getContentType: function (path, options) {
             var e=P.ext(path);
             return M[e] || (options||{}).def || "text/plain";
+        },
+        getBlob: function (path, options) {
+            var c=this.getContent(path);
+            options=options||{};
+            options.blobType=options.blobType||Blob;
+            options.binType=options.binType||ArrayBuffer;
+            if (c.hasPlainText()) {
+                return new options.blobType([c.toPlainText()],this.getContentType(path));
+            } else {
+                return new options.blobType([c.toBin(options.binType)],this.getContentType(path));
+            }
         },
         isText:function (path) {
             var m=this.getContentType(path);
@@ -1471,13 +1485,29 @@ define('FS2',["extend","PathUtil","MIMETypes","assert"],function (extend, P, M,a
         },
         isLink: function (path) {
             return null;
-        }//,
+        },
+        getDirTree: function (path, dest) {
+            dest=dest||{};
+            assert.is(path, P.AbsDir);
+            var ls=this.opendir(path);
+            var t=this;
+            ls.forEach(function (f) {
+                var p=P.rel(path,f);
+                if (t.isDir(p)) {
+                    t.getDirTree(p,dest);
+                } else {
+                    dest[p]=t.getMetaInfo(p);
+                }
+            });
+            return dest;
+        }
         /*get: function (path) {
             assert.eq(this.resolveFS(path), this);
             return new SFile(this, path);
             //var r=this.resolveFS(path);
             //return new SFile(r.fs, r.path);
         }*/
+        
     });
     return FS;
 });
@@ -2136,6 +2166,7 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
         }
         if (!trashed) delete dinfo[name].trashed;
         dinfo[name].lastUpdate = now();
+        this.getRootFS().notifyChanged(P.rel(path,name), dinfo[name]);
         this.putDirInfo(path, dinfo, trashed);
     };
     LSFS.prototype.removeEntry=function removeEntry(dinfo, path, name) { // path:path of dinfo
@@ -2339,6 +2370,20 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
         },
         getURL: function (path) {
             return this.getContent(path).toURL();
+        },
+        getDirTree: function (path,dest) {
+            assert.is(path,P.AbsDir);
+            dest=dest||{};
+            var d=this.getDirInfo(path);
+            for (var f in d) {
+                var p=P.rel(path,f);
+                if (this.isDir(p)) {// TODO symlink not follow(and no entry in dest)
+                    this.getDirTree(p,dest);
+                } else {
+                    dest[p]=d[f];
+                }
+            }
+            return dest;
         }
     });
     return LSFS;
@@ -2461,7 +2506,7 @@ SFile.prototype={
                 base );
         return P.relPath(this.path(), A.is(bp,P.Absolute) );
     },
-    up:function () {
+    up: function () {
         var pathR=this.path();
         var pa=P.up(pathR);
         if (pa==null) return null;
@@ -2472,6 +2517,9 @@ SFile.prototype={
         this.assertDir();
         var pathR=this.path();
         return this._resolve(P.rel(pathR, relPath));
+    },
+    sibling: function (n) {
+        return this.up().rel(n);  
     },
     startsWith: function (pre) {
         return P.startsWith(this.name(),pre);
@@ -2509,6 +2557,9 @@ SFile.prototype={
     },
     setMetaInfo: function (info, options) {
         return this.act.fs.setMetaInfo(this.act.path,info, options);
+    },
+    getDirTree: function () {
+        return this.act.fs.getDirTree(this.act.path);
     },
     lastUpdate:function () {
         A(this.exists());
@@ -2803,6 +2854,16 @@ define('RootFS',["assert","FS2","PathUtil","SFile"], function (assert,FS,P,SFile
             get: function (path) {
                 assert.is(path,P.Absolute);
                 return new SFile(this.resolveFS(path), path);
+            },   
+            addObserver: function (f) {
+                this.observers=this.observers||[];
+                this.observers.push(f);
+            },
+            notifyChanged: function (path,metaInfo) {
+                if (!this.observers) return;
+                this.observers.forEach(function (f) {
+                    f(path,metaInfo);
+                });
             }
     };
     for (var i in p) {
@@ -2874,6 +2935,7 @@ define('FS',["FS2","NativeFS","LSFS", "PathUtil","Env","assert","SFile","RootFS"
         return rootFS.unmount.apply(rootFS,arguments);
     };
     FS.SFile=SFile;
+    FS.PathUtil=P;
     FS.Content=Content;
     FS.isFile=function (f) {
         return SFile.is(f);
@@ -2885,9 +2947,11 @@ define('FS',["FS2","NativeFS","LSFS", "PathUtil","Env","assert","SFile","RootFS"
 	requirejs(["FS"], function (r) {
 	  resMod=r;
 	});
-	if (typeof useGlobal!="undefined" && useGlobal) window.FS=resMod;
+	if (useGlobal) global.FS=resMod;
 	return resMod;
 });
+})(window);
+define("FSLib", function(){});
 
 define('WebSite',[], function () {
     var loc=document.location.href;
@@ -8520,9 +8584,10 @@ define('Menu',["UI"], function (UI) {
     };
     return Menu;
 });
-define('Sync',["FS","Shell",/*"requestFragment",*/"WebSite","assert"],
-        function (FS,sh,/*rf,*/WebSite,A) {
+define('Sync',["FS","Shell","WebSite","assert"],
+        function (FS,sh,WebSite,A) {
     var Sync={};
+    //var PathUtil=FS.PathUtil; Not avail
     sh.sync=function () {
         // sync options:o      local=remote=cwd
         // sync dir:s|file options:o local=remote=dir
@@ -8548,7 +8613,7 @@ define('Sync',["FS","Shell",/*"requestFragment",*/"WebSite","assert"],
         // sync dir:file options:o local=remote=dir
         // sync local:file remote:file options:o
         var local,remote,options;
-        function getLocalDirInfo() {
+        function getLocalDirInfo() {// This is slow!
             var res={};
             local.recursive(function (file) {
                 var lcm=file.metaInfo();
@@ -8668,6 +8733,7 @@ define('Sync',["FS","Shell",/*"requestFragment",*/"WebSite","assert"],
             var o,f,m;
             for (var key in dd.local) {
                  f=local.rel(key);
+                 if (f.isDir()) continue;
                  o={};
                  if (f.exists()) o.text=f.text();
                  m=dd.local[key];
@@ -8677,6 +8743,7 @@ define('Sync',["FS","Shell",/*"requestFragment",*/"WebSite","assert"],
             }
             for (var key in dd.remote) {
                 downloads.push(key);
+                //if (PathUtil.isDir(key)) continue;  //Not avail
                 if (options.v)
                     sh.echo("Download",key,dd.remote[key]);
             }
@@ -8699,6 +8766,7 @@ define('Sync',["FS","Shell",/*"requestFragment",*/"WebSite","assert"],
             if (options.test) return;
             for (var rel in dlData.data) {
                 var dlf=base.rel(rel);
+                if (dlf.isDir()) continue;
                 var d=dlData.data[rel];
                 //if (options.v) sh.echo(dlf.path(), d);
                 if (d.trashed) {
@@ -8740,19 +8808,51 @@ define('Sync',["FS","Shell",/*"requestFragment",*/"WebSite","assert"],
     return Sync;
 });
 
+define('RunDialog',["UI"],function (UI) {
+    var res={};
+    res.show=function (src, runURL, options) {
+        options=options||{};
+        window.dialogClosed=false;
+        var d=res.embed(src, runURL, options);
+        d.dialog({width:600,close:function(){window.dialogClosed=true;}});//,height:options.height?options.height-50:400});
+    };
+    res.embed=function (src, runURL, options) {
+        if (!options) options={};
+
+        if (!res.d) {
+            res.d=UI("div",{title:"実行画面ダイアログ"},
+                    ["div",
+                          ["iframe",{id:"ifrmDlg",width:465,height:options.height||400,src:runURL}]
+                    ]
+            );
+        }
+        $("#ifrmDlg").attr(src,runURL);
+        var d=res.d;
+        /*d.done=function () {
+            opt.run.mainClass=e.mainClass.val();
+            prj.setOptions(opt);
+        };
+        d.run=function () {
+            d.done();
+            prj.rawRun();
+        };*/
+        return d;
+    };
+    return res;
+});
 requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "showErrorPos", "fixIndent",  "ProjectCompiler",
            "Shell","Shell2","KeyEventChecker",
            "runtime", "searchDialog","StackTrace",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
-           "Columns","assert","Menu","TError","DeferredUtil","Sync"
+           "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
           sh,sh2,  KeyEventChecker,
           rt, searchDialog,StackTrace,
           UI, UIDiag,WebSite,EC,TTB,
-          Columns,A,Menu,TError,DU,Sync
+          Columns,A,Menu,TError,DU,Sync,RunDialog
           ) {
 $(function () {
     var curClassroom;
@@ -8803,7 +8903,7 @@ $(function () {
               ["div",{id:"fileViewer","class":"col-xs-2"},
                   ["div",{id:"fileItemList"}]
               ],
-              ["div",{id:"mainArea","class":"col-xs-5"},
+              ["div",{id:"mainArea","class":"col-xs-10"},
                   ["div",{id:"errorPos"}],
                   ["div",{id:"tabTop"},
                      ["button",{
@@ -8813,15 +8913,17 @@ $(function () {
                          "class":"selTab","data-ext":EXT
                      },langList[lang]],
                      ["span",{id:"curFileLabel"}],
-                     ["span",{id:"modLabel"}]
+                     ["span",{id:"modLabel"}],
+                     ["span",{id:"toastArea"}],
+                     ["a",{id:"fullScr",href:"javascript:;"}]
                   ],
                   ["div",{id:"progs"}]
-              ],
+              ]/*,
               ["div",{id:"runArea","class":"col-xs-5"},
                ["div","実行結果：",["a",{id:"fullScr",href:"javascript:;"}]],
                ["iframe",{id:"ifrm",width:465,height:465}],
 	       ["div",{id:"toastArea"}]
-              ]
+              ]*/
         );
     }
     makeUI();
@@ -8835,10 +8937,10 @@ $(function () {
                       {label:"コピー",id:"cpFile"},
                       {label:"削除", id:"rmFile"}
                   ]},
-                  {label:"実行",sub:[
+                  {label:"実行",id:"runMenu",action:run/*sub:[
                       {label:"実行(F9)",id:"runMenu",action:run},
                       {label:"停止(F2)",id:"stopMenu",action:stop},
-                  ]},
+                  ]*/},
                   {label:"保存",id:"save"},
                   {label:"設定",sub:[
                       {label:"エディタの文字の大きさ",id:"textsize",action:textSize}
@@ -8878,8 +8980,8 @@ $(function () {
     KeyEventChecker.down(document,"F9",F(run));
     KeyEventChecker.down(document,"F2",F(function(){
         stop();
-        //$("#progs").focus();
-        console.log("F2 pressed");
+        if(progs=getCurrentEditor()) progs.focus();
+        //console.log("F2 pressed");
     }));
     KeyEventChecker.down(document,"ctrl+s",F(function (e) {
     	save();
@@ -9108,8 +9210,10 @@ $(function () {
 	            curName=name;
 	            if (curFrameRun) {
 	                window.setupFrame(curFrameRun);
+	                RunDialog.show("src","run.html",{height:screenH-50});
 	            } else {
-	                $("#ifrm").attr("src","run.html");
+	                //$("#ifrm").attr("src","run.html");
+	                RunDialog.show("src","run.html",{height:screenH-50});
 	            }
 	            return sync();
 	        }), function (e) {
@@ -9135,8 +9239,8 @@ $(function () {
 	        	runURL=location.href.replace(/\/[^\/]*\?.*$/,
 	        	        "/js/ctrans/runc.html?file="+compiledFile.path()
 	        	);
-			$("#ifrm").attr("src",runURL);
-
+			//$("#ifrm").attr("src",runURL);
+			    RunDialog.show("src",runURL,{height:screenH-50});
 		        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
 		        $("#qr").text("QR");
 		}catch(e){
@@ -9309,7 +9413,10 @@ $(function () {
 	    else prog.setFontSize(18);
             //prog.setFontSize(20);
             prog.setTheme("ace/theme/eclipse");
-            if (f.ext()==EXT) {
+            if (f.ext()==EXT && lang=="c") {
+                prog.getSession().setMode("ace/mode/c_cpp");
+            }
+            else if (f.ext()==EXT) {
                 prog.getSession().setMode("ace/mode/tonyu");
             }
             if (f.ext()==HEXT) {
@@ -9393,6 +9500,7 @@ $(function () {
     $("#home").click(F(function () {
 	goHome();
     }));
+    $("#runMenu").click(F(run));
     function goHome(){
 	console.log("goHome");
 	unsynced=false;
