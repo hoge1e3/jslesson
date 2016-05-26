@@ -54,6 +54,13 @@ MinimalParser= function () {
 	        return {scope: Object.create(ctx.scope||{}) ,depth:depth };
 	    },parser);
 	}
+	function ajoin(sep,a) {
+	    a=a.slice();
+	    for (var i=a.length-1;i>0 ;i--) {
+	        a.splice(i,0,sep);
+	    }
+	    return a;
+	}
 	function lit(s) {
 	    return '"'+s+'"';
 	}
@@ -323,13 +330,18 @@ MinimalParser= function () {
 		}).or(calc_expression);
 
 	expression=assign;
-	var initializer_part=t(",").and(assign).ret(function(comma,assign){return [",",assign];});
+	/*var initializer_part=t(",").and(assign).ret(function(comma,assign){return [",",assign];});
 	initializer_part=assign.and(initializer_part.rep0())
 		.ret(function(assign,assigns){return [assign,assigns];});
 	initializer=assign.or(t("{").and(initializer_part.opt()).and(t("}"))
 		.ret(function(lcb,initializer_part,rcb){
 		    return extend(["[",initializer_part,"]"],{type:"arrayInit"});
-		})); 
+		}));*/ 
+	var array_initializer=t("{").and(initializer_lazy.sep0(t(","),true)).and(t("}")).
+	ret(function(lcb,initializers,rcb){
+	    return extend(["[",ajoin(",",initializers),"]"],{type:"arrayInit"});
+	});
+	initializer=assign.or(array_initializer);
 	// \init_declarator
 	var init_declarator=declarator.and(t("=").and(initializer).opt())
 		.ret(function(declarator,eq,initializer){
