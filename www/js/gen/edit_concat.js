@@ -758,10 +758,10 @@ return Tonyu=function () {
             A:A};
 }();
 });
-(function (global) {
-var useGlobal=(typeof global.define!="function");
-var define=(useGlobal ? define=function(_,f){f();} : global.define);
-define("FSLib",[],function () {
+//(function (global) {
+//var useGlobal=(typeof global.define!="function");
+//var define=(useGlobal ? define=function(_,f){f();} : global.define);
+define('FSLib',[],function () {
     var define,requirejs;
 	var R={};
 	var REQJS="REQJS_";
@@ -2947,12 +2947,10 @@ define('FS',["FS2","NativeFS","LSFS", "PathUtil","Env","assert","SFile","RootFS"
 	requirejs(["FS"], function (r) {
 	  resMod=r;
 	});
-	if (useGlobal) global.FS=resMod;
+	window.FS=resMod;
 	return resMod;
 });
-})(window);
-//define("FSLib", function(){});
-
+//})(window);
 define('WebSite',[], function () {
     var loc=document.location.href;
     var WS=window.WebSite={};
