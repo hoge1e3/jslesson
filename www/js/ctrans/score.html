@@ -24,33 +24,23 @@ requirejs(["FS"],function (FS) {
 	        klass.each(function(u){
 	            u.recursive(function(f){
 	               if(f.name()==an+".c"){
-	                   for(var i=0;i<a.obj().length;i++){
+	                   for(var i=0;i<aobj.length;i++){
 	                    scanf.STDIN=aobj[i].input.split("\n");
                     	var buf="";
         	            printf.STDOUT={append:function (s) {buf+=s;},text:function(){return buf;}};
 	                    compile(f,res);
 	                    eval(res.text());
-	                    console.log(buf);
-	                    if(a.obj()[i].output == buf[i]){
-	                       alert("correct!");
+	                    var bufdata=buf.split("\n");
+	                    console.log(bufdata[1]+"\n"==aobj[i].output);
+	                    console.log(aobj[i].output);
+	                    if(aobj[i].output == bufdata[1]+"\n"){
+	                       console.log("correct!");
 	                    }
 	                   }
 	               }
 	            });
 	        });
 	    });
-	        /*
-	  var cFile=FS.get("/main.c");
-		var jsFile=FS.get("/main.js");
-		//var logFile=FS.get("/userid.log");
-	  if (cFile.exists()) $("#prog").val(cFile.text());
-		//if (logFile.exists()) logFile.text("classid\tuserid\ttime\terr\terrcode\tprogram\n");
-	  $("#parse").click(function () {
-			cFile.text($("#prog").val());
-			compile(cFile,jsFile);
-	   	$("#res").val(jsFile.text());
-	  });*/
-		//$("#run").click(function(){$("#iframe").attr("src","./runc.html?file=/main.js");;});
 	});
 });
 </script>

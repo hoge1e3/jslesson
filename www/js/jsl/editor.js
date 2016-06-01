@@ -309,6 +309,7 @@ $(function () {
             if (typeof SplashScreen!="undefined") SplashScreen.hide();
             break;
         case "edit":
+            //if(progs=getCurrentEditor()) progs.focus();
             break;
         }
     }
@@ -368,10 +369,10 @@ $(function () {
 	            curName=name;
 	            if (curFrameRun) {
 	                window.setupFrame(curFrameRun);
-	                RunDialog.show("src","run.html",{height:screenH-50});
+	                RunDialog.show("src","run.html",{height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
 	            } else {
 	                //$("#ifrm").attr("src","run.html");
-	                RunDialog.show("src","run.html",{height:screenH-50});
+	                RunDialog.show("src","run.html",{height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
 	            }
 	            return sync();
 	        }), function (e) {
@@ -398,7 +399,7 @@ $(function () {
 	        	        "/js/ctrans/runc.html?file="+compiledFile.path()
 	        	);
 			//$("#ifrm").attr("src",runURL);
-			    RunDialog.show("src",runURL,{height:screenH-50});
+			    RunDialog.show("src",runURL,{height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
 		        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
 		        $("#qr").text("QR");
 		}catch(e){
@@ -526,13 +527,13 @@ $(function () {
     	var prog=inf.editor;//getCurrentEditor();
     	var mod=(curFile.exists()?curFile.text():"")!=prog.getValue();
     	fl.setModified(mod);
-	$("#modLabel").text(mod?"(変更あり)":"");
-	if(mod){
-	    unsaved=true;
-	    unsynced=true;
-	}else{
-	    unsaved=false;
-	}
+	    $("#modLabel").text(mod?"(変更あり)":"");
+	    if(mod){
+	        unsaved=true;
+	        unsynced=true;
+	    }else{
+	        unsaved=false;
+	    }
     }
     function fileSet(c) {
         var n=c.truncExt();
@@ -677,6 +678,9 @@ $(function () {
 	sync();
     }));
     FM.onMenuStart=save;
+    function focusToEditor(){
+        if(prog=getCurrentEditor()) prog.focus();
+    }
 //    SplashScreen.hide();
 });
 //});// of load ace

@@ -1,6 +1,7 @@
 <?php
 require("php/auth.php");
 $showForm=true;
+$class="";
 if (isset($_GET["curclass"])){
 	$showForm=false;
 	print Auth::curClass();
@@ -17,14 +18,16 @@ if (isset($_GET["curuser"])) {
 	    header("Location: .");
 	    //print "$mesg";
 	}
-} 
+} else if (isset($_GET["class"])) {
+    $class=$_GET["class"];
+}
 if ($showForm) { 
            setcookie("user","", time()-18000);
            session_start();
 ?>
 	<meta charset="UTF-8">
 	<form action="login.php">
-	  クラスID<input name="class"></br>
+	  クラスID<input name="class" value="<?php print $class; ?>"></br>
 	  ユーザ名<input name="user">
 	  <font color=red><?php print $mesg; ?></font>
 	  <br/>
