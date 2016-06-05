@@ -1,4 +1,4 @@
-var 加速度センサ = new (function(){
+var Accelo=(function(){
 	this.作る=function(){
 		if ((navigator.userAgent.indexOf('iPhone') > 0 || navigator.userAgent.indexOf('iPad') > 0 || navigator.userAgent.indexOf('iPod') > 0 || navigator.userAgent.indexOf('Android') > 0)==false){
 			alert("タブレット専用のオブジェクトです。");
@@ -23,6 +23,9 @@ var 加速度センサ = new (function(){
 		return obj;
 	};
 });
+Accelo.prototype=root;
+
+var 加速度センサ = new Accelo;
 var 傾きセンサ=加速度センサ;
 
 var コンパス = new (function(){

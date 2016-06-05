@@ -13,13 +13,14 @@ define(["UI"],function (UI) {
                     ["div",
                           ["iframe",{id:"ifrmDlg",width:465,height:options.height||400,src:runURL}]
                     ],
-                    ["button", {$var:"OKButton", on:{click: function () {
+                    ["button", {type:"button",$var:"OKButton", on:{click: function () {
                         res.d.dialog("close");
                     }}}, "OK"]
             );
         }
         $("#ifrmDlg").attr(src,runURL);
-        console.log($("#ifrmDlg"));
+        if($("#ifrmDlg")[0]) console.log($("#ifrmDlg")[0].contentWindow.document.body);
+        if($("#ifrmDlg")[0]) $("#ifrmDlg")[0].contentWindow.document.getElementById("console").style.fontSize=options.font+"px";
         var d=res.d;
         return d;
     };
