@@ -10,7 +10,7 @@ define(["UI"],function (UI) {
         if (!options) options={};
         if (!res.d) {
             res.d=UI("div",{title:"実行画面ダイアログ"},
-                    ["div",
+                    ["div",{id:"browser"},
                           ["iframe",{id:"ifrmDlg",width:465,height:options.height||400,src:runURL}]
                     ],
                     ["button", {type:"button",$var:"OKButton", on:{click: function () {

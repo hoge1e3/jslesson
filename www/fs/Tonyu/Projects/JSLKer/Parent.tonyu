@@ -139,6 +139,8 @@ native Tonyu;
     $("body").attr("bgcolor",c);
 }
 
+// 動的DOM生成
+
 // --- TODO
 \getkey() {
     

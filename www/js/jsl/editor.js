@@ -3,14 +3,16 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "Shell","Shell2","KeyEventChecker",
            "runtime", "searchDialog","StackTrace",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
-           "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog"
+           "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog",
+           "TJSBuilder","LocalBrowser"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
           sh,sh2,  KeyEventChecker,
           rt, searchDialog,StackTrace,
           UI, UIDiag,WebSite,EC,TTB,
-          Columns,A,Menu,TError,DU,Sync,RunDialog
+          Columns,A,Menu,TError,DU,Sync,RunDialog,
+          TJSBuilder,LocalBrowser
           ) {
 $(function () {
     var curClassroom;
@@ -355,7 +357,18 @@ $(function () {
         displayMode("run");
 	if(lang=="js"){
 	        if (typeof SplashScreen!="undefined") SplashScreen.show();
-
+            try {
+                var ram=FS.get("/ram/build/");
+                FS.mount(ram.path(),"ram");
+                var b=new TJSBuilder(curPrj, ram);
+                b.build(curHTMLFile, curJSFile).then(function () {
+                    console.log(ram.ls());
+                }).fail(function (e) {
+                    console.log(e.stack);
+                });
+            }catch(e) {
+                console.log(e.stack);
+            }
 	        var name=curPrj.getClassName(curJSFile);
 	        A.is(name,String);
 	        runURL=location.href.replace(/\/[^\/]*\?.*$/,
