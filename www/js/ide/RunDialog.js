@@ -19,8 +19,11 @@ define(["UI"],function (UI) {
             );
         }
         $("#ifrmDlg").attr(src,runURL);
-        if($("#ifrmDlg")[0]) console.log($("#ifrmDlg")[0].contentWindow.document.body);
-        if($("#ifrmDlg")[0]) $("#ifrmDlg")[0].contentWindow.document.getElementById("console").style.fontSize=options.font+"px";
+        //if($("#ifrmDlg")[0]) console.log($("#ifrmDlg")[0].contentWindow.document.body);
+        if($("#ifrmDlg")[0]) {
+            var cons=$("#ifrmDlg")[0].contentWindow.document.getElementById("console");
+            if (cons) cons.style.fontSize=options.font+"px";
+        }
         var d=res.d;
         return d;
     };

@@ -78,12 +78,12 @@ define(["Shell", "FS","DeferredUtil","UI"],function (sh,FS,DU,UI) {
                         }
                         if (name=="src") {
                             value=iwin.LocalBrowserInfo.convertURL(value);
-                        }
-                        if (n.tagName.toLowerCase()=="script") {
-                            d=new $.Deferred;
-                            nn.onload = nn.onreadystatechange = function() {
-                                d.resolve(i+1);
-                            };
+                            if (n.tagName.toLowerCase()=="script") {
+                                d=new $.Deferred;
+                                nn.onload = nn.onreadystatechange = function() {
+                                    d.resolve(i+1);
+                                };
+                            }
                         }
                         nn.setAttribute(name, value);
                     });
