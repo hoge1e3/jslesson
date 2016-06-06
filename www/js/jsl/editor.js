@@ -3,7 +3,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "Shell","Shell2","KeyEventChecker",
            "runtime", "searchDialog","StackTrace",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
-           "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog",
+           "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
            "TJSBuilder","LocalBrowser"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
@@ -11,7 +11,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           sh,sh2,  KeyEventChecker,
           rt, searchDialog,StackTrace,
           UI, UIDiag,WebSite,EC,TTB,
-          Columns,A,Menu,TError,DU,Sync,RunDialog,
+          Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           TJSBuilder,LocalBrowser
           ) {
 $(function () {
@@ -355,22 +355,29 @@ $(function () {
         stop();
         save();
         displayMode("run");
-	if(lang=="js"){
-	        if (typeof SplashScreen!="undefined") SplashScreen.show();
+        if(lang=="js"){
+            if (typeof SplashScreen!="undefined") SplashScreen.show();
+            /*RunDialog2 (new version)
             try {
                 var ram=FS.get("/ram/build/");
                 FS.mount(ram.path(),"ram");
                 var b=new TJSBuilder(curPrj, ram);
-                b.build(curHTMLFile, curJSFile).then(function () {
-                    console.log(ram.ls());
+                b.build().then(function () {
+                    //console.log(ram.ls());
+                    var indexF=ram.rel(curHTMLFile.name());
+                    RunDialog2.show(indexF,
+                    {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
                 }).fail(function (e) {
                     console.log(e.stack);
+                }).done(function () {
+                    if (typeof SplashScreen!="undefined") SplashScreen.hide();
                 });
             }catch(e) {
                 console.log(e.stack);
-            }
-	        var name=curPrj.getClassName(curJSFile);
-	        A.is(name,String);
+            }*/
+            
+            var name=curPrj.getClassName(curJSFile);
+            A.is(name,String);
 	        runURL=location.href.replace(/\/[^\/]*\?.*$/,
 	                "/run.html?classroom="+curClassroom+"&usr="+curUser+
 	                "&prj="+curProjectDir.name().replace("/","")+

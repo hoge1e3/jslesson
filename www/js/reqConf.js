@@ -119,6 +119,7 @@ var reqConf={
             NewProjectDialog: "ide/NewProjectDialog",
             NewSampleDialog: "ide/NewSampleDialog",
             RunDialog: "ide/RunDialog",
+            RunDialog2: "ide/RunDialog2",
             WebSite: "runtime/WebSite",
             UI:"lib/UI",
             UIDiag:"lib/UIDiag",

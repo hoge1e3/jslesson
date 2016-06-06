@@ -6,6 +6,9 @@ define(["Shell", "FS","DeferredUtil","UI"],function (sh,FS,DU,UI) {
         this.iframeArea=dom;//=UI("iframe");
     };
     p=LocalBrowser.prototype;
+    p.close=function () {
+        $(this.iframeArea).empty();
+    };
     p.open=function (f,options) {    
         options=options||{};
         var onload=options.onload || function () {};
@@ -45,7 +48,7 @@ define(["Shell", "FS","DeferredUtil","UI"],function (sh,FS,DU,UI) {
             })).then(F(function (){
                 return appendTo(src.getElementsByTagName("body")[0], idoc.body);
             })).then(F(function () {
-                onload.apply(i,[]);
+                onload.apply(i[0],[]);
             })).fail(onerror);
         });
         $(this.iframeArea).empty().append(i);

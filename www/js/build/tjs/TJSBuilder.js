@@ -17,32 +17,41 @@ define(["assert","DeferredUtil","wget"], function (A,DU,wget) {
         });
         return $.when.apply($,args);
     };
-    p.build=function (curHTMLFile, curJSFile) {
-        var curPrj=this.prj;
-        var name=curPrj.getClassName(curJSFile);
-        A.is(name,String);
+    p.genHTML=function (name) {
         var dst=this.dst;
+        var d=this.prj.dir;
+        var curHTMLFile=d.rel(name+".html");
+        var dp=new DOMParser;
+        var dom=dp.parseFromString(curHTMLFile.text(),"text/html");
+        var html=dom.getElementsByTagName("html")[0];
+        var head=dom.getElementsByTagName("head")[0];
+        ["lib/jquery-1.12.1.js","lib/require.js","lib/run.js"].forEach(function (src) {
+            var nn=document.createElement("script");
+            nn.setAttribute("charset","utf-8");
+            nn.setAttribute("src",src);
+            head.appendChild(nn);
+        });
+        var nn=document.createElement("script");
+        nn.setAttribute("charset","utf-8");
+        var ns=this.prj.getNamespace();
+        nn.appendChild(document.createTextNode("run('"+ns+"."+name+"');"));
+        head.appendChild(nn);
+        var dstHTMLF=dst.rel(curHTMLFile.name());
+        dstHTMLF.text("<html>"+html.innerHTML+"</html>");
+    };
+    p.build=function () {
+        var curPrj=this.prj;
+        var dst=this.dst;
+        var t=this;
         return this.dlFiles().then(function () {
             return curPrj.loadClasses();            
         }).then(DU.throwF(function() {
             var concat=curPrj.getOutputFile();
             dst.rel("user.js").copyFrom(concat);
-            var dp=new DOMParser;
-            var dom=dp.parseFromString(curHTMLFile.text(),"text/html");
-            var html=dom.getElementsByTagName("html")[0];
-            var head=dom.getElementsByTagName("head")[0];
-            ["lib/jquery-1.12.1.js","lib/require.js","lib/run.js"].forEach(function (src) {
-                var nn=document.createElement("script");
-                nn.setAttribute("charset","utf-8");
-                nn.setAttribute("src",src);
-                head.appendChild(nn);
+            curPrj.dir.each(function (f) {
+                if (f.ext()!=".html")  return;
+                t.genHTML(f.truncExt());
             });
-            var nn=document.createElement("script");
-            nn.setAttribute("charset","utf-8");
-            nn.appendChild(document.createTextNode("run('"+name+"');"));
-            head.appendChild(nn);
-            dst.rel("index.html").text("<html>"+html.innerHTML+"</html>");
-            
         }), function (e) {
             if (typeof SplashScreen!="undefined") SplashScreen.hide();
             if (e.isTError) {
