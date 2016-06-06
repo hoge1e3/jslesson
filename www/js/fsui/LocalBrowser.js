@@ -5,6 +5,7 @@ define(["Shell", "FS","DeferredUtil","UI"],function (sh,FS,DU,UI) {
         this.iframeAttr=options||{};
         this.iframeArea=dom;//=UI("iframe");
     };
+    var singletonTag={body:1,head:1};
     p=LocalBrowser.prototype;
     p.close=function () {
         $(this.iframeArea).empty();
@@ -44,9 +45,11 @@ define(["Shell", "FS","DeferredUtil","UI"],function (sh,FS,DU,UI) {
             };
             idoc=iwin.document;
             return $.when().then(F(function () {
-                return appendTo(src.getElementsByTagName("head")[0], idoc.head);
-            })).then(F(function (){
-                return appendTo(src.getElementsByTagName("body")[0], idoc.body);
+                return appendTo(src.getElementsByTagName("html")[0], 
+                idoc.getElementsByTagName("html")[0]);
+                //return appendTo(src.getElementsByTagName("head")[0], idoc.head);
+            //})).then(F(function (){
+                //return appendTo(src.getElementsByTagName("body")[0], idoc.body);
             })).then(F(function () {
                 onload.apply(i[0],[]);
             })).fail(onerror);
@@ -59,9 +62,12 @@ define(["Shell", "FS","DeferredUtil","UI"],function (sh,FS,DU,UI) {
                 var d;
                 if (!(i<c.length)) return DU.brk();
                 var n=c[i];
-                //console.log(i,n.tagName);
-                if (n.tagName) {
-                    var nn=idoc.createElement(n.tagName);
+                console.log(n,n.nodeType);
+                switch (n.nodeType) {
+                case Node.ELEMENT_NODE:
+                    var nn=singletonTag[n.tagName.toLowerCase()] ?
+                    idoc.getElementsByTagName(n.tagName)[0]:
+                    idoc.createElement(n.tagName);
                     var at=n.attributes;
                     // should charset must be set first than src
                     var names=[];
@@ -96,10 +102,11 @@ define(["Shell", "FS","DeferredUtil","UI"],function (sh,FS,DU,UI) {
                     }).then (function () {
                         return i+1;
                     });
-                } else {
+                case Node.TEXT_NODE:
                     dst.appendChild(idoc.createTextNode(n.textContent));
-                    return i+1;
+                    break;
                 }
+                return i+1;
             },0);
         }
     };
