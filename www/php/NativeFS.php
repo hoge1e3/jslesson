@@ -44,7 +44,8 @@ class NativeFS {
         return is_dir($this->resolve($path));
    }
    function getMetaInfo($path) {
-        return array( lastUpdate=>filemtime($this->resolve($path))*1000 );
+        //if (preg_match("/Ireizu/",$path)) return array(lastUpdate=>FALSE);
+        return array( "lastUpdate"=>filemtime($this->resolve($path))*1000 );
    }
    function setMetaInfo($path, $info) {
         if (isset($info["lastUpdate"])) {

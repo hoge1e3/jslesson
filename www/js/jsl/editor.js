@@ -327,7 +327,12 @@ $(function () {
         var projects=FS.resolve("${tonyuHome}/Projects/");
 	unsaved=false;
 	//unsynced=false;
-        return Sync.sync(projects, FS.get("/"),{v:true}).then(function(){unsynced=false;showToast("保存しました");});
+        return Sync.sync(projects, FS.get("/"),{v:true}).then(
+            function(){unsynced=false;showToast("保存しました");}
+        ).fail(function (e) {
+            console.log(e);
+            alert("保存に失敗しました。");
+        });
     }
     $("#fullScr").click(function () {
         if (runURL) {
@@ -357,7 +362,7 @@ $(function () {
         displayMode("run");
         if(lang=="js"){
             if (typeof SplashScreen!="undefined") SplashScreen.show();
-            /*RunDialog2 (new version)
+            /*//RunDialog2 (new version)
             try {
                 var ram=FS.get("/ram/build/");
                 FS.mount(ram.path(),"ram");
@@ -374,7 +379,10 @@ $(function () {
                 });
             }catch(e) {
                 console.log(e.stack);
-            }*/
+            }
+            QR code
+            sync
+            */
             
             var name=curPrj.getClassName(curJSFile);
             A.is(name,String);

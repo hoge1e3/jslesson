@@ -3,6 +3,8 @@ require_once "json.php";
 require_once "PathUtil.php";
 require_once "NativeFS.php";
 require_once "auth.php";
+require_once "ErrorHandler.php";
+
 $fs=Auth::getFS(); //new NativeFS("../fs");
 header("Content-type: text/json");
 if (!$fs) {

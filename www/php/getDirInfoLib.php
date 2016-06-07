@@ -17,6 +17,6 @@ function getDirInfo2($path, $base) {
 }
 function getDirInfo($path) {
     $data=getDirInfo2($path,$path);
-    return array(base=>$path, data=>$data);
+    return array("base"=>$path, "data"=>$data);
 }
 ?>

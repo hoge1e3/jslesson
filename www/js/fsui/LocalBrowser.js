@@ -62,7 +62,6 @@ define(["Shell", "FS","DeferredUtil","UI"],function (sh,FS,DU,UI) {
                 var d;
                 if (!(i<c.length)) return DU.brk();
                 var n=c[i];
-                console.log(n,n.nodeType);
                 switch (n.nodeType) {
                 case Node.ELEMENT_NODE:
                     var nn=singletonTag[n.tagName.toLowerCase()] ?

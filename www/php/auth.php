@@ -3,7 +3,7 @@ require_once "NativeFS.php";
 require_once "json.php";
 
 class Auth {
-   function login($class,$user) {
+   static function login($class,$user) {
         if (!$class)return "クラス名を入力してください。";
 	if (!$user)return "ユーザ名を入力してください。";
 	if (!file_exists("fs/home/$class")){
@@ -12,7 +12,9 @@ class Auth {
         if (preg_match('/^[a-zA-Z0-9\\-_]+$/',$user)) {
 	        //setcookie("class",$class, time()+60*60*24*30*6);
             //setcookie("user",$user, time()+60*60*24*30*6);
-            session_start();
+            if(session_id() == '') {
+                session_start();
+            }
             $_SESSION['class']=$class;
             $_SESSION['user']=$user;
            return true;
@@ -20,7 +22,7 @@ class Auth {
            return "ユーザ名は半角英数とハイフン、アンダースコアだけが使えます。";
         }
    }
-   function loginTeacher($class,$pass) {
+   static function loginTeacher($class,$pass) {
 	$json = new Services_JSON();
         if (!$class)return "クラス名を入力してください。";
 	if (!$pass)return "パスワードを入力してください。";
@@ -50,17 +52,21 @@ class Auth {
            return "パスワードは半角英数とハイフン、アンダースコアだけが使えます。";
         }
    }
-   function curUser() {
-       session_start();
+   static function curUser() {
+        if(session_id() == '') {
+            session_start();
+        }
         //return $_COOKIE["user"];
         return $_SESSION['user'];
    }
-   function curClass() {
-       session_start();
+   static function curClass() {
+        if(session_id() == '') {
+            session_start();
+        }
         //return $_COOKIE["class"];
         return $_SESSION['class'];
    }
-   function getFS() {
+   static function getFS() {
 	    $class=self::curClass();
    	    $user=self::curUser();
    	    if ($user && $class) {

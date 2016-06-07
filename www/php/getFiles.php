@@ -3,6 +3,8 @@ require_once "json.php";
 require_once "PathUtil.php";
 require_once "NativeFS.php";
 require_once "auth.php";
+require_once "ErrorHandler.php";
+
 $fs=Auth::getFS(); //new NativeFS("../fs");
 $json=new Services_JSON;
 
@@ -22,11 +24,11 @@ foreach ($paths as $path) {
         $info=$fs->getMetaInfo($fp);
         $info["text"]=$c;
     } else {
-        $info=array(trashed=>true);
+        $info=array("trashed"=>true);
     }
     $data[$path]=$info;
 }
 header("Content-type: text/json");
-print $json->encode(array(base=>$base, data=>$data));
+print $json->encode(array("base"=>$base, "data"=>$data));
 
 ?>

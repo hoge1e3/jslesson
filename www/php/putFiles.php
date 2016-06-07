@@ -3,6 +3,8 @@ require_once "json.php";
 require_once "PathUtil.php";
 require_once "NativeFS.php";
 require_once "auth.php";
+require_once "ErrorHandler.php";
+
 $fs=Auth::getFS(); //new NativeFS("../fs");
 $json=new Services_JSON;
 header("Content-type: text/json");
@@ -22,7 +24,7 @@ foreach ($data as $path=>$cont) {
         if ($fs->exists($fp)) $fs->rm($fp);
     } else {
         $fs->setContent($fp,$cont["text"]);
-        $fs->setMetaInfo($fp,array(lastUpdate=>$cont["lastUpdate"]) );
+        $fs->setMetaInfo($fp,array("lastUpdate"=>$cont["lastUpdate"]) );
     }
 }
 //header("Content-type: text/plain");

@@ -100,6 +100,7 @@ $(function () {
                 $("#syncMesg").empty().append(UI("a",{href:"login.php"},"ログイン"));
                 alert("ファイルの内容を保存するためには、必ずログインをしてください");
             } else {
+                alert("保存に失敗しました");
                 $("#syncMesg").text("エラー!"+e);
                 console.log(e);
             }
