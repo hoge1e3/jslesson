@@ -7684,14 +7684,55 @@ define('assert',[],function () {
 
 define('DeferredUtil',[], function () {
     var DU;
+    var DUBRK=function(r){this.res=r;};
     DU={
+            ensureDefer: function (v) {
+                var d=new $.Deferred;
+                var isDeferred;
+                $.when(v).then(function (r) {
+                    if (!isDeferred) {
+                        setTimeout(function () {
+                            d.resolve(r);
+                        },0);
+                    } else {
+                        d.resolve(r);
+                    }
+                }).fail(function (r) {
+                    if (!isDeferred) {
+                        setTimeout(function () {
+                            d.reject(r);
+                        },0);
+                    } else {
+                        d.reject(r);
+                    }
+                });
+                isDeferred=true;
+                return d.promise();
+            },
             directPromise:function (v) {
                 var d=new $.Deferred;
                 setTimeout(function () {d.resolve(v);},0);
                 return d.promise();
             },
+            then: function (f) {
+                return DU.directPromise().then(f);
+            },
+            timeout:function (timeout) {
+                var d=new $.Deferred;
+                setTimeout(function () {d.resolve();},timeout);
+                return d.promise();
+            },
+            funcPromise:function (f) {
+                var d=new $.Deferred;
+                f(function (v) {
+                    d.resolve(v);
+                },function (e) {
+                    d.reject(e);
+                });
+                return d.promise();
+            },
             throwPromise:function (e) {
-                d=new $.Deferred;
+                var d=new $.Deferred;
                 setTimeout(function () {
                     d.reject(e);
                 }, 0);
@@ -7702,11 +7743,59 @@ define('DeferredUtil',[], function () {
                     try {
                         return f.apply(this,arguments);
                     } catch(e) {
+                        console.log(e,e.stack);
                         return DU.throwPromise(e);
                     }
                 };
+            },
+            each: function (set,f) {
+                if (set instanceof Array) {
+                    return DU.loop(function (i) {
+                        if (i>=set.length) return DU.brk();
+                        return $.when(f(set[i],i)).then(function () {
+                            return i+1;
+                        });
+                    },0);
+                } else {
+                    var objs=[];
+                    for (var i in set) {
+                        objs.push({k:i,v:set[i]});
+                    }
+                    return DU.each(objs,function (e) {
+                        return f(e.k, e.v);
+                    });
+                }
+            },
+            loop: function (f,r) {
+                while(true) {
+                    if (r instanceof DUBRK) return r.res;
+                    var deff1=true, deff2=false;
+                    // ★ not deffered  ☆  deferred
+                    var r1=f(r);
+                    var dr=$.when(r1).then(function (r2) {
+                        r=r2;
+                        deff1=false;
+                        if (r instanceof DUBRK) return r.res;
+                        if (deff2) return DU.loop(f,r); //☆
+                    });
+                    deff2=true;
+                    if (deff1) return dr;//☆
+                    //★
+                }
+            },
+            brk: function (res) {
+                return new DUBRK(res);
+            },
+            tryLoop: function (f,r) {
+                return DU.loop(DU.tr(f),r);
+            },
+            tryEach: function (s,f) {
+                return DU.loop(s,DU.tr(f));
             }
     };
+    DU.begin=DU.tr=DU.throwF;
+    DU.callbackToPromise=DU.funcPromise;
+    
     return DU;
 });
 define('compiledProject',[], function () {
@@ -8105,26 +8194,49 @@ return TPRC;
 });
 
 
-define('Shell',["FS","Util","WebSite"],function (FS,Util,WebSite) {
-    var Shell={cwd:FS.get("/")};
+define('Shell',["FS","assert"],
+        function (FS,assert) {
+    var Shell={};
+    var PathUtil=assert(FS.PathUtil);
     Shell.cd=function (dir) {
         Shell.cwd=resolve(dir,true);
         return Shell.pwd();
     };
+    Shell.vars=Object.create(FS.getEnv());
+    Shell.mount=function (options, path) {
+        //var r=resolve(path);
+        if (!options || !options.t) {
+            var fst=[];
+            for (var k in FS.getRootFS().availFSTypes()) {
+                fst.push(k);
+            }
+            sh.err("-t=("+fst.join("|")+") should be specified.");
+            return;
+        }
+        FS.mount(path,options.t, options);
+    };
+    Shell.unmount=function (path) {
+        FS.unmount(path);
+    };
+    Shell.fstab=function () {
+        var rfs=FS.getRootFS();
+        var t=rfs.fstab();
+        var sh=this;
+        //sh.echo(rfs.fstype()+"\t"+"<Root>");
+        t.forEach(function (fs) {
+            sh.echo(fs.fstype()+"\t"+(fs.mountPoint||"<Default>"));
+        });
+    }
+    Shell.resolve=resolve;
     function resolve(v, mustExist) {
         var r=resolve2(v);
         if (mustExist && !r.exists()) throw r+": no such file or directory";
         return r;
     }
-    Shell.resolve=resolve;
     function resolve2(v) {
         if (typeof v!="string") return v;
-        if (Util.startsWith(v,"/")) return FS.get(v);
         var c=Shell.cwd;
-        /*while (Util.startsWith(v,"../")) {
-            c=c.up();
-            v=v.substring(3);
-        }*/
+        if (PathUtil.isAbsolutePath(v)) return FS.resolve(v,c);
         return c.rel(v);
     }
     Shell.pwd=function () {
@@ -8135,43 +8247,26 @@ define('Shell',["FS","Util","WebSite"],function (FS,Util,WebSite) {
     	else dir=resolve(dir, true);
         return dir.ls();
     };
-    Shell.mv=function (from ,to ,options) {
-        var f=resolve(from, true);
-        var t=resolve(to);
-        t.moveFrom(f);
-    };
     Shell.cp=function (from ,to ,options) {
         if (!options) options={};
         if (options.v) {
             Shell.echo("cp", from ,to);
+            options.echo=Shell.echo.bind(Shell);
         }
         var f=resolve(from, true);
         var t=resolve(to);
-        return t.copyFrom(f,options);
-        /*
-        if (f.isDir() && t.isDir()) {
-            var sum=0;
-            f.recursive(function (src) {
-                var rel=src.relPath(f);
-                var dst=t.rel(rel);
-                if (options.test || options.v) {
-                    Shell.echo((dst.exists()?"[ovr]":"[new]")+dst+"<-"+src);
-                }
-                if (!options.test) {
-                    dst.copyFrom(src,options);
-                }
-                sum++;
-            });
-            return sum;
-        } else if (!f.isDir() && !t.isDir()) {
-            t.text(f.text());
-            return 1;
-        } else if (!f.isDir() && t.isDir()) {
-            t.rel(f.name()).text(f.text());
-            return 1;
-        } else {
-            throw "Cannot copy directory "+f+" to file "+t;
-        }*/
+        return f.copyTo(t,options);
+    };
+    Shell.ln=function (to , from ,options) {
+        var f=resolve(from);
+        var t=resolve(to, true);
+        if (f.isDir() && f.exists()) {
+            f=f.rel(t.name());
+        }
+        if (f.exists()) {
+            throw new Error(f+" exists");
+        }
+        return f.link(t,options);
     };
     Shell.rm=function (file, options) {
         if (!options) options={};
@@ -8181,8 +8276,7 @@ define('Shell',["FS","Util","WebSite"],function (FS,Util,WebSite) {
             return 1;
         }
         file=resolve(file, true);
-        file.rm(options);
-        /*if (file.isDir() && options.r) {
+        if (file.isDir() && options.r) {
             var dir=file;
             var sum=0;
             dir.each(function (f) {
@@ -8195,17 +8289,28 @@ define('Shell',["FS","Util","WebSite"],function (FS,Util,WebSite) {
         } else {
             file.rm();
             return 1;
-        }*/
+        }
+    };
+    Shell.mkdir=function (file,options) {
+        file=resolve(file, false);
+        if (file.exists()) throw new Error(file+" : exists");
+        return file.mkdir();
+        
     };
     Shell.cat=function (file,options) {
         file=resolve(file, true);
-        Shell.echo(file.text());
-        //else return file.text();
+        return Shell.echo(file.getContent(function (c) {
+            if (file.isText()) {
+                return c.toPlainText();
+            } else {
+                return c.toURL();
+            }
+        }));
     };
     Shell.resolve=function (file) {
-	if (!file) file=".";
-	file=resolve(file);
-	return file;
+        if (!file) file=".";
+        file=resolve(file);
+        return file;
     };
     Shell.grep=function (pattern, file, options) {
         file=resolve(file, true);
@@ -8242,12 +8347,37 @@ define('Shell',["FS","Util","WebSite"],function (FS,Util,WebSite) {
         Shell.outUI=ui;
     };
     Shell.echo=function () {
-        console.log.apply(console,arguments);
-        if (Shell.outUI && Shell.outUI.log) Shell.outUI.log.apply(Shell.outUI,arguments);
+        return $.when.apply($,arguments).then(function () {
+            console.log.apply(console,arguments);
+            if (Shell.outUI && Shell.outUI.log) Shell.outUI.log.apply(Shell.outUI,arguments);
+        });
     };
-    Shell.err=function () {
+    Shell.err=function (e) {
         console.log.apply(console,arguments);
+        if (e && e.stack) console.log(e.stack);
         if (Shell.outUI && Shell.outUI.err) Shell.outUI.err.apply(Shell.outUI,arguments);
+    };
+    Shell.clone= function () {
+        var r=Object.create(this);
+        r.vars=Object.create(this.vars);
+        return r;
+    };
+    Shell.getvar=function (k) {
+        return this.vars[k];
+    };
+    Shell.get=Shell.getvar;
+    Shell.set=function (k,v) {
+        return this.vars[k]=v;
+    };
+    Shell.strcat=function () {
+        if (arguments.length==1) return arguments[0];
+        var s="";
+        for (var i=0;i<arguments.length;i++) s+=arguments[i];
+        return s;
+    };
+    Shell.exists=function (f) {
+        f=this.resolve(f);
+        return f.exists();
     };
 
     Shell.prompt=function () {};
@@ -8260,15 +8390,222 @@ define('Shell',["FS","Util","WebSite"],function (FS,Util,WebSite) {
             }
         }
     };
-    sh=Shell;
-    if (WebSite.isNW) {
+    if (!window.sh) window.sh=Shell;
+    if (typeof process=="object") {
         sh.devtool=function () { require('nw.gui').Window.get().showDevTools();}
+        sh.cd(process.cwd().replace(/\\/g,"/"));
+    } else {
+        sh.cd("/");
     }
     return Shell;
 });
 
-define('Shell2',["Shell","UI","FS","Util"], function (sh,UI,FS,Util) {
+define('ShellParser',["Shell","DeferredUtil"],function (sh,DU) {
+    var envMulti=/\$\{([^\}]*)\}/;
+    var envSingle=/^\$\{([^\}]*)\}$/;
+    var F=DU.throwF;
+    sh.enterCommand=function (s) {
+        if (!this._history) this._history=[];
+        this._history.push(s);
+        var args=this.parseCommand(s);
+        if (this._skipto) {
+            if (args[0]=="label") {
+                this.label(args[1]);
+            } else {
+                this.echo("Skipping command: "+s);
+            }
+        } else {
+            return this.evalCommand(args);
+        }
+    };
+    sh.label=function (n) {
+        this._labels=this._labels||{};
+        this._labels[n]=this._history.length;
+        if (this._skipto==n) delete this._skipto;
+    };
+    sh["goto"]=function (n,cond) {
+        if (arguments.length==1) cond=true;
+        var t=this;
+        return $.when(cond).then(function (c) {
+            if (!c) return;
+            t._labels=t._labels||{};
+            var pc=t._labels[n];
+            if (pc) {
+                if (!t._pc) {
+                    t._pc=pc;
+                    return t.gotoLoop();
+                } else {
+                    t._pc=pc;
+                }
+            } else {
+                t._skipto=n;
+            }
+        });
+    };
+    sh.gotoLoop=function () {
+        var t=this;
+        var cnt=0;
+        return DU.loop(F(function () {
+            if (cnt++>100) {
+                delete t._pc;
+                throw new Error("Are infinite loops scary?");
+            }
+            if (t._skipto || !t._pc || t._pc>=t._history.length) {
+                delete t._pc;
+                return DU.brk();
+            }
+            var s=t._history[t._pc++];
+            var args=t.parseCommand(s);
+            return t.evalCommand(args);
+        }));
+    };
+    sh.sleep=function (t) {
+        var d=new $.Deferred;
+        t=parseFloat(t);
+        setTimeout(function () {d.resolve();},t*1000);
+        return d.promise();
+    };
+    sh.include=function (f) {
+        f=this.resolve(f,true);
+        var t=this;
+        var ln=f.lines();
+        return DU.each(ln,F(function (l) {
+            return t.enterCommand(l);
+        }));
+    };
+    /*
+    set a 1
+    label loop
+    echo ${a}
+    calc add ${a} 1
+    set a ${_}
+    goto loop ( calc lt ${a} 10 )
+    */
+    sh.parseCommand=function (s) {
+        var space=/^\s*/;
+        var nospace=/^([^\s]*(\\.)*)*/;
+        var dq=/^"([^"]*(\\.)*)*"/;
+        var sq=/^'([^']*(\\.)*)*'/;
+        var lpar=/^\(/;
+        var rpar=/^\)/;
+        function parse() {
+            var a=[];
+            while(s.length) {
+                s=s.replace(space,"");
+                var r;
+                if (r=dq.exec(s)) {
+                    a.push(expand( unesc(r[1]) ));
+                    s=s.substring(r[0].length);
+                } else if (r=sq.exec(s)) {
+                    a.push(unesc(r[1]));
+                    s=s.substring(r[0].length);
+                } else if (r=lpar.exec(s)) {
+                    s=s.substring(r[0].length);
+                    a.push( parse() );
+                } else if (r=rpar.exec(s)) {
+                    s=s.substring(r[0].length);
+                    break;
+                } else if (r=nospace.exec(s)) {
+                    a.push(expand(unesc(r[0])));
+                    s=s.substring(r[0].length);
+                } else {
+                    break;
+                }
+            }
+            var options,args=[];
+            a.forEach(function (ce) {
+                var opt=/^-([A-Za-z_0-9]+)(=(.*))?/.exec(ce);
+                if (opt) {
+                    if (!options) options={};
+                    options[opt[1]]=opt[3]!=null ? opt[3] : true;
+                } else {
+                    if (options) args.push(options);
+                    options=null;
+                    args.push(ce);
+                }
+            });
+            if (options) args.push(options);
+            return args;
+        }
+        var args=parse();
+        return args;
+        /*console.log("parsed:",JSON.stringify(args));
+        var res=this.evalCommand(args);
+        return res;*/
+        function expand(s) {
+            var r;
+            /*if (r=envSingle.exec(s)) {
+                return ["get",r[1]];
+            }
+            if (!(r=envMulti.exec(s))) return s;*/
+            var ex=["strcat"];
+            while(s.length) {
+                r=envMulti.exec(s);
+                if (!r) {
+                    ex.push(s);
+                    break;
+                }
+                if (r.index>0) {
+                    ex.push(s.substring(0,r.index));
+                }
+                ex.push(["get",r[1]]);
+                s=s.substring(r.index+r[0].length);
+            }
+            if (ex.length==2) return ex[1];
+            return ex;
+        }
+        function unesc(s) {
+            return s.replace(/\\(.)/g,function (_,b){
+                return b;
+            });
+        }
+    };
+    sh.evalCommand=function (expr) {
+        var t=this;
+        if (expr instanceof Array) {
+            if (expr.length==0) return;
+            var c=expr.shift();
+            var f=this[c];
+            if (typeof f!="function") throw new Error(c+": Command not found");
+            var a=[];
+            while(expr.length) {
+                var e=expr.shift();
+                a.push( this.evalCommand(e) );
+            }
+            return $.when.apply($,a).then(F(function () {
+                return f.apply(t,arguments);
+            }));
+        } else {
+            return expr;
+        }   
+    };
+    sh.calc=function (op) {
+        var i=1;
+        var r=parseFloat(arguments[i]);
+        for(i=2;i<arguments.length;i++) {
+            var b=arguments[i];
+            switch(op) {
+                case "add":r+=parseFloat(b);break;
+                case "sub":r-=parseFloat(b);break;
+                case "mul":r*=parseFloat(b);break;
+                case "div":r/=parseFloat(b);break;
+                case "lt":r=(r<b);break;
+            }     
+        }
+        this.set("_",r);
+        return r;
+    };
+    sh.history=function () {
+        var t=this;
+        this._history.forEach(function (e) {
+            t.echo(e);    
+        });
+    };
+});
+define('Shell2',["Shell","UI","FS","Util","ShellParser"], 
+function (shParent,UI,FS,Util,shp) {
     var res={};
+    var sh=shParent.clone();
     res.show=function (dir) {
         var d=res.embed(dir);
         d.dialog({width:600,height:500});
@@ -8285,7 +8622,12 @@ define('Shell2',["Shell","UI","FS","Util"], function (sh,UI,FS,Util) {
     sh.cls=function () {
         res.d.$vars.inner.empty();
     };
+    function hitBottom() {
+        res.inner.closest(".ui-dialog-content").scrollTop(res.inner.height());
+    }
+
     sh.prompt=function () {
+        var t=this;
         var line=UI("div",
             ["input",{$var:"cmd",size:40,on:{keydown: kd}}],
             ["pre",{$var:"out","class":"shell out"},["div",{$var:"cand","class":"shell cand"}]]
@@ -8293,22 +8635,27 @@ define('Shell2',["Shell","UI","FS","Util"], function (sh,UI,FS,Util) {
         var cmd=line.$vars.cmd;
         var out=line.$vars.out;
         var cand=line.$vars.cand;
-        sh.setout({log:function () {
-            var a=[];
-            for (var i=0; i<arguments.length; i++) {
-                a.push(arguments[i]);
-            }
-            out.append(a.join(" ")+"\n");
+        line.appendTo(res.inner);
+        hitBottom();
+        cmd.focus();
+        //var d=new $.Deferred;
+        t.setout({log:function () {
+           // return $.when.apply($,arguments).then(function () {
+                var a=[];
+                for (var i=0; i<arguments.length; i++) {
+                    a.push(arguments[i]);
+                }
+                if (a[0] instanceof $) {
+                    out.append(a[0]);
+                } else {
+                    out.append(UI("span",a.join(" ")+"\n"));
+                }
+            //});
         },err:function (e) {
             out.append(UI("div",{"class": "shell error"},e,["br"],["pre",e.stack]));
         }});
-        line.appendTo(res.inner);
-        cmd.focus();
-        res.inner.closest(".ui-dialog-content").scrollTop(res.inner.height());
-        return sh.ASYNC;
+        return;// d.promise();
         function kd(e) {
-            //var eo=e.originalEvent();
-            //console.log(e.which);
             if (e.which==9) {
                 e.stopPropagation();
                 e.preventDefault();
@@ -8321,31 +8668,17 @@ define('Shell2',["Shell","UI","FS","Util"], function (sh,UI,FS,Util) {
             }
         }
         function exec() {
-            var c=cmd.val().replace(/^ */,"").replace(/ *$/,"");
-            if (c.length==0) return;
-            var cs=c.split(/ +/);
-            var cn=cs.shift();
-            var f=sh[cn];
-            if (typeof f!="function") return out.append(cn+": command not found.");
             try {
-                var args=[],options=null;
-                cs.forEach(function (ce) {
-                    var opt=/^-([A-Za-z_0-9]+)(=(.*))?/.exec(ce);
-                    if (opt) {
-                        if (!options) options={};
-                        options[opt[1]]=opt[3]!=null ? opt[3] : 1;
-                    } else args.push(ce);
-                });
-                if (options) args.push(options);
-                var sres=f.apply(sh, args);
-                if (sres===sh.ASYNC) return;
-                $.when(sres).then(function (sres){
+                var sres=t.enterCommand(cmd.val());
+                cmd.blur();
+                return $.when(sres).then(function (sres) {
                     if (typeof sres=="object") {
                         if (sres instanceof Array) {
                             var table=UI("table");
                             var tr=null;
                             var cnt=0;
                             sres.forEach(function (r) {
+                                if (typeof r!="string") return;
                                 if (!tr) tr=UI("tr").appendTo(table);
                                 tr.append(UI("td",r));
                                 cnt++;if(cnt%3==0) tr=null;
@@ -8357,12 +8690,15 @@ define('Shell2',["Shell","UI","FS","Util"], function (sh,UI,FS,Util) {
                     } else {
                         out.append(sres);
                     }
-                    sh.prompt();
+                    t.prompt();
+                }).fail(function (e) {
+                    t.err(e);
+                    t.prompt();
                 });
             } catch(e) {
-                sh.err(e);
+                t.err(e);
                 //out.append(UI("div",{"class": "shell error"},e,["br"],["pre",e.stack]));
-                sh.prompt();
+                t.prompt();
             }
         }
         function comp(){
@@ -8397,16 +8733,41 @@ define('Shell2',["Shell","UI","FS","Util"], function (sh,UI,FS,Util) {
             } else {
                 cand.text(canda.join(", "));
             }
+            hitBottom();
             //console.log(canda);
             //cmd.val(cmd.val()+"hokan");
         }
     };
-    sh.window=function () {
+    sh.edit=function (f) {
+        f=this.resolve(f);
+        var u=UI("div",
+            ["div",["textarea",{rows:10,cols:60,$var:"prog"}]],
+            ["div",["button",{on:{click:save}},"Save"]]
+        );
+        if (f.exists()) u.$vars.prog.val(f.text());
+        return this.echo(u);
+        function save() {
+            f.text( u.$vars.prog.val() );
+        }
+    };
+    sh.window=shParent.window=function () {
         res.show(sh.cwd);
     };
     sh.atest=function (a,b,options) {
         console.log(a,b,options);
     };
+    var oldcat=sh.cat;
+    sh.cat=function (file,options) {
+        file=sh.resolve(file, true);
+        if (file.contentType().match(/^image\//)) {
+            return file.getContent(function (c) {
+                sh.echo(UI("img",{src:c.toURL()}));
+            });
+        } else {
+            return oldcat.apply(sh,arguments);
+        }
+    };
+
     return res;
 });
 define('KeyEventChecker',[],function () {
@@ -8812,45 +9173,326 @@ define('RunDialog',["UI"],function (UI) {
         options=options||{};
         window.dialogClosed=false;
         var d=res.embed(src, runURL, options);
-        d.dialog({width:600,close:function(){window.dialogClosed=true;}});//,height:options.height?options.height-50:400});
+        d.dialog({width:600,close:function(){window.dialogClosed=true;if(typeof options.toEditor == "function")options.toEditor();}});//,height:options.height?options.height-50:400});
     };
     res.embed=function (src, runURL, options) {
         if (!options) options={};
-
         if (!res.d) {
             res.d=UI("div",{title:"実行画面ダイアログ"},
-                    ["div",
+                    ["div",{id:"browser"},
                           ["iframe",{id:"ifrmDlg",width:465,height:options.height||400,src:runURL}]
-                    ]
+                    ],
+                    ["button", {type:"button",$var:"OKButton", on:{click: function () {
+                        res.d.dialog("close");
+                    }}}, "OK"]
             );
         }
         $("#ifrmDlg").attr(src,runURL);
+        //if($("#ifrmDlg")[0]) console.log($("#ifrmDlg")[0].contentWindow.document.body);
+        if($("#ifrmDlg")[0]) {
+            var cons=$("#ifrmDlg")[0].contentWindow.document.getElementById("console");
+            if (cons) cons.style.fontSize=options.font+"px";
+        }
         var d=res.d;
-        /*d.done=function () {
-            opt.run.mainClass=e.mainClass.val();
-            prj.setOptions(opt);
-        };
-        d.run=function () {
-            d.done();
-            prj.rawRun();
-        };*/
         return d;
     };
     return res;
+});
+define('LocalBrowser',["Shell", "FS","DeferredUtil","UI"],function (sh,FS,DU,UI) {
+    var LocalBrowser={};
+    var F=DU.tr;
+    LocalBrowser=function (dom,options) {
+        this.iframeAttr=options||{};
+        this.iframeArea=dom;//=UI("iframe");
+    };
+    var singletonTag={body:1,head:1};
+    p=LocalBrowser.prototype;
+    p.close=function () {
+        $(this.iframeArea).empty();
+    };
+    p.open=function (f,options) {    
+        options=options||{};
+        var onload=options.onload || function () {};
+        var onerror=options.onerror || function () {};
+        delete options.onload;
+        var dp=new DOMParser;
+        var src=dp.parseFromString(f.text(),"text/html");
+        if (options.onparse) {
+            src=options.onparse(src,document);
+        }
+        var i=$("<iframe>");
+        i.attr(this.iframeAttr);
+        var base=f.up();
+        var iwin;
+        var idoc;
+        var thiz=this;
+        window.ifrm=i[0];
+        i.on("load",function () {
+            iwin=i[0].contentWindow;
+            iwin.LocalBrowserInfo={
+                __file__: f,
+                browser: thiz,
+                open: function (url) {
+                    if (FS.PathUtil.isRelativePath(url)) {
+                        thiz.open(f.up().rel(url));
+                    } else {
+                        iwin.location.href=url;
+                    }
+                },
+                convertURL:function (url) {
+                    return LocalBrowser.convertURL(iwin, url, base);
+                }
+            };
+            idoc=iwin.document;
+            return $.when().then(F(function () {
+                return appendTo(src.getElementsByTagName("html")[0], 
+                idoc.getElementsByTagName("html")[0]);
+                //return appendTo(src.getElementsByTagName("head")[0], idoc.head);
+            //})).then(F(function (){
+                //return appendTo(src.getElementsByTagName("body")[0], idoc.body);
+            })).then(F(function () {
+                onload.apply(i[0],[]);
+            })).fail(onerror);
+        });
+        $(this.iframeArea).empty().append(i);
+        return i[0];
+        function appendTo(src,dst) {
+            var c=src.childNodes;
+            return DU.tryLoop(function (i){
+                var d;
+                if (!(i<c.length)) return DU.brk();
+                var n=c[i];
+                switch (n.nodeType) {
+                case Node.ELEMENT_NODE:
+                    var nn=singletonTag[n.tagName.toLowerCase()] ?
+                    idoc.getElementsByTagName(n.tagName)[0]:
+                    idoc.createElement(n.tagName);
+                    var at=n.attributes;
+                    // should charset must be set first than src
+                    var names=[];
+                    for (var j=0;j<at.length;j++) {
+                        names.push(at[j].name);
+                    }
+                    var idx=names.indexOf("charset");
+                    if (idx>=0) { 
+                        names.splice(idx,1); 
+                        names.unshift("charset"); 
+                    }
+                    names.forEach(function (name) {
+                        var value=n.getAttribute(name);
+                        if (n.tagName.toLowerCase()=="a" && name=="href" && 
+                        FS.PathUtil.isRelativePath(value)) {
+                            value="javascript:LocalBrowserInfo.open('"+value+"');";
+                        }
+                        if (name=="src") {
+                            value=iwin.LocalBrowserInfo.convertURL(value);
+                            if (n.tagName.toLowerCase()=="script") {
+                                d=new $.Deferred;
+                                nn.onload = nn.onreadystatechange = function() {
+                                    d.resolve(i+1);
+                                };
+                            }
+                        }
+                        nn.setAttribute(name, value);
+                    });
+                    dst.appendChild(nn);
+                    return $.when(d && d.promise()).then(function () {
+                        return appendTo(n ,nn);
+                    }).then (function () {
+                        return i+1;
+                    });
+                case Node.TEXT_NODE:
+                    dst.appendChild(idoc.createTextNode(n.textContent));
+                    break;
+                }
+                return i+1;
+            },0);
+        }
+    };
+    LocalBrowser.convertURL=function (iwin,url,base) {
+        if (FS.PathUtil.isRelativePath(url)) {
+            var sfile=base.rel(url);
+            url=LocalBrowser.file2blobURL(iwin,sfile);
+        }
+        return url;
+    };
+    LocalBrowser.file2blobURL=function (iwin,sfile) {
+        var blob;
+        if (sfile.isText()) {
+            blob = new iwin.Blob([sfile.text()], {type: sfile.contentType()});
+        } else {
+            blob = new iwin.Blob([sfile.bytes()], {type: sfile.contentType()});
+        }
+        var url = iwin.URL.createObjectURL(blob);
+        return url;
+    };
+    if (typeof sh=="object") sh.browser=function (f,options) {
+        f=this.resolve(f,true);
+        var d=new $.Deferred;
+        var place=$("<div>");
+        this.echo(place);
+        var ifrm=new LocalBrowser(place,options);
+        ifrm.open(f,{onload:function () {
+            d.resolve();            
+        },onerror:function (e) {
+            d.reject(e);
+        }});
+        return d.promise();
+    };
+    return LocalBrowser;
+});
+
+define('RunDialog2',["UI","LocalBrowser"],function (UI, LocalBrowser) {
+    var res={};
+    res.show=function (runFile, options) {
+        options=options||{};
+        window.dialogClosed=false;
+        var d=res.embed(runFile, options);
+        d.dialog({width:600,close:function(){
+            window.dialogClosed=true;
+            if (res.b) res.b.close();
+            if(typeof options.toEditor == "function")options.toEditor();
+        }});//,height:options.height?options.height-50:400});
+    };
+    res.embed=function (runFile, options) {
+        options=options||{};
+        if (!res.d) {
+            res.d=UI("div",{title:"実行画面ダイアログ"},
+                    ["div",{$var:"browser"}],
+                    ["button", {type:"button",$var:"OKButton", on:{click: function () {
+                        res.d.dialog("close");
+                    }}}, "OK"]
+            );
+            res.b=new LocalBrowser(res.d.$vars.browser[0],
+            {id:"ifrmDlg",width:465,height:options.height||400});
+        }
+        res.b.open(runFile,{
+            onload:function () {
+                console.log(this);
+                var cons=this.contentWindow.document.getElementById("console");
+                if (cons) cons.style.fontSize=options.font+"px";
+            }
+        });
+        return res.d;
+    };
+    return res;
+});
+define('wget',["Shell","FS"],function (sh,FS) {
+    /*sh.wget=function (url,options) {
+        var dst=this.resolve(FS.PathUtil.name(url));
+        sh.echo("Getting ",url,"...");
+        return $.get(url).then(function (r) {
+            sh.echo("Save to ",dst.path());
+            dst.text(r);
+        });
+    };*/
+    sh.wget=function (url,options) {
+        options=options||{};
+        var dst=this.resolve(options.o || FS.PathUtil.name(url));
+        this.echo("Getting ",url," -> ",dst);
+        return wget(url,dst,options);
+    };
+    function wget(url,dst,options) {    
+        var oReq = new XMLHttpRequest();
+        oReq.open("GET", url, true);
+        oReq.responseType = "arraybuffer";
+        var d=new $.Deferred;
+        oReq.onload = function (oEvent) {
+            var arrayBuffer = oReq.response; // Note: not oReq.responseText
+            if (arrayBuffer) {
+                dst.bytes(arrayBuffer);
+                d.resolve(arrayBuffer);
+            } else {
+                d.reject();
+            }
+        };
+        oReq.send(null);
+        return d.promise();
+    }
+    return wget;
+});
+define('TJSBuilder',["assert","DeferredUtil","wget"], function (A,DU,wget) {
+    TJSBuilder=function (prj, dst) {
+        this.prj=prj;// TPRC
+        this.dst=dst;// SFile in ramdisk
+    };
+    var p=TJSBuilder.prototype;
+    p.dlFiles=function () {
+        var dst=this.dst;
+        var urls=["lib/TonyuLib.js",
+        "lib/jquery-1.12.1.js","lib/kernel.js",
+        "lib/require.js","lib/run.js",
+        "images/neko1.png","images/ball.png"];
+        var base="fs/runtime/";
+        var args=urls.map(function (url) {
+            var dstf=dst.rel(url);
+            if (!dstf.exists()) return wget(base+url, dstf);
+        });
+        return $.when.apply($,args);
+    };
+    p.genHTML=function (name) {
+        var dst=this.dst;
+        var d=this.prj.dir;
+        var curHTMLFile=d.rel(name+".html");
+        var dp=new DOMParser;
+        var dom=dp.parseFromString(curHTMLFile.text(),"text/html");
+        var html=dom.getElementsByTagName("html")[0];
+        var head=dom.getElementsByTagName("head")[0];
+        ["lib/jquery-1.12.1.js","lib/require.js","lib/run.js"].forEach(function (src) {
+            var nn=document.createElement("script");
+            nn.setAttribute("charset","utf-8");
+            nn.setAttribute("src",src);
+            head.appendChild(nn);
+        });
+        var nn=document.createElement("script");
+        nn.setAttribute("charset","utf-8");
+        var ns=this.prj.getNamespace();
+        nn.appendChild(document.createTextNode("run('"+ns+"."+name+"');"));
+        head.appendChild(nn);
+        var dstHTMLF=dst.rel(curHTMLFile.name());
+        dstHTMLF.text("<html>"+html.innerHTML+"</html>");
+    };
+    p.build=function () {
+        var curPrj=this.prj;
+        var dst=this.dst;
+        var t=this;
+        return this.dlFiles().then(function () {
+            return curPrj.loadClasses();            
+        }).then(DU.throwF(function() {
+            var concat=curPrj.getOutputFile();
+            dst.rel("user.js").copyFrom(concat);
+            curPrj.dir.each(function (f) {
+                if (f.ext()!=".html")  return;
+                t.genHTML(f.truncExt());
+            });
+        }), function (e) {
+            if (typeof SplashScreen!="undefined") SplashScreen.hide();
+            if (e.isTError) {
+                console.log("showErr: run");
+                showErrorPos($("#errorPos"),e);
+                displayMode("compile_error");
+            }else{
+                Tonyu.onRuntimeError(e);
+            }
+        });            
+    };
+    return TJSBuilder;
 });
 requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "showErrorPos", "fixIndent",  "ProjectCompiler",
            "Shell","Shell2","KeyEventChecker",
            "runtime", "searchDialog","StackTrace",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
-           "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog"
+           "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
+           "TJSBuilder","LocalBrowser"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
           sh,sh2,  KeyEventChecker,
           rt, searchDialog,StackTrace,
           UI, UIDiag,WebSite,EC,TTB,
-          Columns,A,Menu,TError,DU,Sync,RunDialog
+          Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
+          TJSBuilder,LocalBrowser
           ) {
 $(function () {
     var curClassroom;
@@ -9149,6 +9791,7 @@ $(function () {
             if (typeof SplashScreen!="undefined") SplashScreen.hide();
             break;
         case "edit":
+            //if(progs=getCurrentEditor()) progs.focus();
             break;
         }
     }
@@ -9164,7 +9807,12 @@ $(function () {
         var projects=FS.resolve("${tonyuHome}/Projects/");
 	unsaved=false;
 	//unsynced=false;
-        return Sync.sync(projects, FS.get("/"),{v:true}).then(function(){unsynced=false;showToast("保存しました");});
+        return Sync.sync(projects, FS.get("/"),{v:true}).then(
+            function(){unsynced=false;showToast("保存しました");}
+        ).fail(function (e) {
+            console.log(e);
+            alert("保存に失敗しました。");
+        });
     }
     $("#fullScr").click(function () {
         if (runURL) {
@@ -9192,11 +9840,32 @@ $(function () {
         stop();
         save();
         displayMode("run");
-	if(lang=="js"){
-	        if (typeof SplashScreen!="undefined") SplashScreen.show();
-
-	        var name=curPrj.getClassName(curJSFile);
-	        A.is(name,String);
+        if(lang=="js"){
+            if (typeof SplashScreen!="undefined") SplashScreen.show();
+            /*//RunDialog2 (new version)
+            try {
+                var ram=FS.get("/ram/build/");
+                FS.mount(ram.path(),"ram");
+                var b=new TJSBuilder(curPrj, ram);
+                b.build().then(function () {
+                    //console.log(ram.ls());
+                    var indexF=ram.rel(curHTMLFile.name());
+                    RunDialog2.show(indexF,
+                    {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+                }).fail(function (e) {
+                    console.log(e.stack);
+                }).done(function () {
+                    if (typeof SplashScreen!="undefined") SplashScreen.hide();
+                });
+            }catch(e) {
+                console.log(e.stack);
+            }
+            QR code
+            sync
+            */
+            
+            var name=curPrj.getClassName(curJSFile);
+            A.is(name,String);
 	        runURL=location.href.replace(/\/[^\/]*\?.*$/,
 	                "/run.html?classroom="+curClassroom+"&usr="+curUser+
 	                "&prj="+curProjectDir.name().replace("/","")+
@@ -9208,10 +9877,10 @@ $(function () {
 	            curName=name;
 	            if (curFrameRun) {
 	                window.setupFrame(curFrameRun);
-	                RunDialog.show("src","run.html",{height:screenH-50});
+	                RunDialog.show("src","run.html",{height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
 	            } else {
 	                //$("#ifrm").attr("src","run.html");
-	                RunDialog.show("src","run.html",{height:screenH-50});
+	                RunDialog.show("src","run.html",{height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
 	            }
 	            return sync();
 	        }), function (e) {
@@ -9238,7 +9907,7 @@ $(function () {
 	        	        "/js/ctrans/runc.html?file="+compiledFile.path()
 	        	);
 			//$("#ifrm").attr("src",runURL);
-			    RunDialog.show("src",runURL,{height:screenH-50});
+			    RunDialog.show("src",runURL,{height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
 		        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
 		        $("#qr").text("QR");
 		}catch(e){
@@ -9366,13 +10035,13 @@ $(function () {
     	var prog=inf.editor;//getCurrentEditor();
     	var mod=(curFile.exists()?curFile.text():"")!=prog.getValue();
     	fl.setModified(mod);
-	$("#modLabel").text(mod?"(変更あり)":"");
-	if(mod){
-	    unsaved=true;
-	    unsynced=true;
-	}else{
-	    unsaved=false;
-	}
+	    $("#modLabel").text(mod?"(変更あり)":"");
+	    if(mod){
+	        unsaved=true;
+	        unsynced=true;
+	    }else{
+	        unsaved=false;
+	    }
     }
     function fileSet(c) {
         var n=c.truncExt();
@@ -9517,6 +10186,9 @@ $(function () {
 	sync();
     }));
     FM.onMenuStart=save;
+    function focusToEditor(){
+        if(prog=getCurrentEditor()) prog.focus();
+    }
 //    SplashScreen.hide();
 });
 //});// of load ace

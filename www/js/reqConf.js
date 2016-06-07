@@ -229,6 +229,7 @@ var reqConf={
             cCompiler:"ctrans/compiler",
             TJSBuilder:"build/tjs/TJSBuilder",
             wget:"fs2/wget",
+            logToServer: "jsl/logToServer",
             "foo":"bar"
         },
         "baseUrl": "js"

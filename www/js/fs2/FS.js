@@ -1,3 +1,5 @@
+// This is kowareta! because r.js does not generate module name:
+//   define("FSLib",[], function () { ... 
 //(function (global) {
 //var useGlobal=(typeof global.define!="function");
 //var define=(useGlobal ? define=function(_,f){f();} : global.define);
@@ -726,19 +728,56 @@ define('FS2',["extend","PathUtil","MIMETypes","assert"],function (extend, P, M,a
         isLink: function (path) {
             return null;
         },
-        getDirTree: function (path, dest) {
-            dest=dest||{};
+        opendirEx: function (path, options) {
             assert.is(path, P.AbsDir);
             var ls=this.opendir(path);
             var t=this;
+            var dest={};
             ls.forEach(function (f) {
                 var p=P.rel(path,f);
-                if (t.isDir(p)) {
-                    t.getDirTree(p,dest);
-                } else {
-                    dest[p]=t.getMetaInfo(p);
-                }
+                dest[f]=t.getMetaInfo(p);
             });
+            return dest;
+        },
+        getDirTree: function (path, options) {
+            options=options||{};
+            var dest=options.dest=options.dest||{};
+            options.style=options.style||"flat-absolute";
+            if (options.style=="flat-relative" && !options.base) {
+                options.base=path;
+            }
+            assert.is(path, P.AbsDir);
+            var tr=this.opendirEx(path);
+            if (options.style=="no-recursive") return tr;
+            var t=this;
+            for (var f in tr) {
+                var meta=tr[f];
+                var p=P.rel(path,f);
+                if (t.isDir(p)) {
+                    switch(options.style) {
+                    case "flat-absolute":
+                    case "flat-relative":
+                        t.getDirTree(p,options);
+                        break;
+                    case "hierarchical":
+                        options.dest={};
+                        dest[f]=t.getDirTree(p,options);
+                        break;
+                    }
+                } else {
+                    switch(options.style) {
+                    case "flat-absolute":
+                        dest[p]=meta;
+                        break;
+                    case "flat-relative":
+                        dest[P.relPath(p,options.base)]=meta;
+                        break;
+                    case "hierarchical":
+                        dest[f]=meta;
+                        break;
+                    }
+                }
+            }
             return dest;
         }
         /*get: function (path) {
@@ -1611,11 +1650,17 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
         getURL: function (path) {
             return this.getContent(path).toURL();
         },
-        getDirTree: function (path,dest) {
+        opendirEx: function (path,options) {
             assert.is(path,P.AbsDir);
-            dest=dest||{};
+            //dest=dest||{};
+            var res={};
             var d=this.getDirInfo(path);
-            for (var f in d) {
+            for (var k in d) {
+                if (d[k].trashed) continue;
+                res[k]=d[k];
+            }
+            return res;
+            /*for (var f in d) {
                 var p=P.rel(path,f);
                 if (this.isDir(p)) {// TODO symlink not follow(and no entry in dest)
                     this.getDirTree(p,dest);
@@ -1623,7 +1668,7 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
                     dest[p]=d[f];
                 }
             }
-            return dest;
+            return dest;*/
         }
     });
     return LSFS;
@@ -1775,7 +1820,7 @@ SFile.prototype={
     },
     //Common
     touch: function () {
-        this.act.fs.touch(this.act.path);
+        return this.act.fs.touch(this.act.path);
     },
     isReadOnly: function () {
         return this.act.fs.isReadOnly(this.act.path);
@@ -1798,8 +1843,8 @@ SFile.prototype={
     setMetaInfo: function (info, options) {
         return this.act.fs.setMetaInfo(this.act.path,info, options);
     },
-    getDirTree: function () {
-        return this.act.fs.getDirTree(this.act.path);
+    getDirTree: function (options) {
+        return this.act.fs.getDirTree(this.act.path, options);
     },
     lastUpdate:function () {
         A(this.exists());
@@ -2022,7 +2067,7 @@ SFile.prototype={
         return A.is(options,{excludes:{}});
     },
     mkdir: function () {
-        this.touch();
+        return this.touch();
     },
     link: function (to,options) {// % ln to path
         if (this.exists()) throw new Error(this.path()+": exists.");
@@ -2187,7 +2232,7 @@ define('FS',["FS2","NativeFS","LSFS", "PathUtil","Env","assert","SFile","RootFS"
 	requirejs(["FS"], function (r) {
 	  resMod=r;
 	});
-	window.FS=resMod;
+	if (window.FS===undefined) window.FS=resMod;
 	return resMod;
 });
 //})(window);

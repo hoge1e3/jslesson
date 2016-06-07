@@ -15,7 +15,7 @@ if (!function_exists('http_response_code'))
 }
 function h_err($errno, $errstr, $errfile, $errline) {
     http_response_code(500);
-    die ("ERR $errno $errstr $errfile:$errline");
+    die ("SERVER ERROR!\n$errno $errstr $errfile:$errline\nSERVER ERROR END!");
     //exit(1);
 }
 set_error_handler("h_err");

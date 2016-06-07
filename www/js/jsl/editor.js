@@ -4,7 +4,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "runtime", "searchDialog","StackTrace",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
-           "TJSBuilder","LocalBrowser"
+           "TJSBuilder","LocalBrowser","logToServer"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -12,7 +12,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           rt, searchDialog,StackTrace,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
-          TJSBuilder,LocalBrowser
+          TJSBuilder,LocalBrowser,logToServer
           ) {
 $(function () {
     var curClassroom;
@@ -257,7 +257,9 @@ $(function () {
         return false;
     };
     F(FM.on);
+    console.log("listing", curProjectDir.path());
     fl.ls(curProjectDir);
+    console.log("listing", curProjectDir.path(),"done");
     function ls(){
         fl.ls(curProjectDir);
     }
@@ -325,11 +327,12 @@ $(function () {
     var curName,runURL;
     function sync() {
         var projects=FS.resolve("${tonyuHome}/Projects/");
-	unsaved=false;
-	//unsynced=false;
+    	unsaved=false;
+	    //unsynced=false;
         return Sync.sync(projects, FS.get("/"),{v:true}).then(
             function(){unsynced=false;showToast("保存しました");}
         ).fail(function (e) {
+            logToServer(e.stack || e.responseText || e);
             console.log(e);
             alert("保存に失敗しました。");
         });
@@ -414,11 +417,7 @@ $(function () {
 	            }
 	        });
 	}else if(lang=="c"){
-	    $.post("dump.php",{data:"//"+curJSFile.path()+"\n"+curJSFile.text()}).then(function (r) {
-	        console.log(r);
-	    }).fail(function (e) {
-	        console.log(e);
-	    });
+	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text());
 		var compiledFile=curPrj.getOutputFile();
 		var log={};
 		try{
@@ -431,11 +430,7 @@ $(function () {
 		        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
 		        $("#qr").text("QR");
 		}catch(e){
-			$.post("dump.php",{data:"COMPILE ERROR!\n"+e+"\nCOMPILE ERROR END!"}).then(function (r) {
-				console.log(r);
-			}).fail(function(e){
-				console.log(e);
-			});
+			logToServer("COMPILE ERROR!\n"+e+"\nCOMPILE ERROR END!");
 			alert(e);
 		}
         return sync();
@@ -470,6 +465,7 @@ $(function () {
         alertOnce=function(){};
     };
     window.onerror=EC.handleException=Tonyu.onRuntimeError=function (e) {
+        logToServer(e.stack || e);
         Tonyu.globals.$lastError=e;
         var t=curPrj.env.traceTbl;
         var te;

@@ -105,13 +105,13 @@ function FileList(elem, options) {
                 });
             }
         },{order:function(a,b){
-		if(a.lastUpdate()>b.lastUpdate()){
-			return -1;
-		}else if(a.lastUpdate()<b.lastUpdate()){
-			return 1;
-		}
-		return 0;
-	}});
+    		if(a.lastUpdate()>b.lastUpdate()){
+    			return -1;
+    		}else if(a.lastUpdate()<b.lastUpdate()){
+    			return 1;
+    		}
+    		return 0;
+	    }});
     }
     function itemText(f, mod) {
     	return (mod?"*":"")+(f.isReadOnly()?"[RO]":"")+displayName(f);

@@ -56,6 +56,7 @@ class Auth {
         if(session_id() == '') {
             session_start();
         }
+        if (!isset($_SESSION['user'])) return null;
         //return $_COOKIE["user"];
         return $_SESSION['user'];
    }
@@ -64,6 +65,7 @@ class Auth {
             session_start();
         }
         //return $_COOKIE["class"];
+        if (!isset($_SESSION['class'])) return null;
         return $_SESSION['class'];
    }
    static function getFS() {

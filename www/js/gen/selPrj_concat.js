@@ -2246,6 +2246,401 @@ define('FS',["FSLib","WebSite"],
     FS.setEnv(WebSite);
     return FS;
 });
+define('assert',[],function () {
+    var Assertion=function(failMesg) {
+        this.failMesg=flatten(failMesg || "Assertion failed: ");
+    };
+    var $a;
+    Assertion.prototype={
+        fail:function () {
+            var a=$a(arguments);
+            a=flatten(a);
+            a=this.failMesg.concat(a);
+            console.log.apply(console,a);
+            throw new Error(a.join(" "));
+        },
+        subAssertion: function () {
+            var a=$a(arguments);
+            a=flatten(a);
+            return new Assertion(this.failMesg.concat(a));
+        },
+        assert: function (t,failMesg) {
+            if (!t) this.fail(failMesg);
+            return t;
+        },
+        eq: function (a,b) {
+            if (a!==b) this.fail(a,"!==",b);
+            return a;
+        },
+        ne: function (a,b) {
+            if (a===b) this.fail(a,"===",b);
+            return a;
+        },
+        isset: function (a, n) {
+            if (a==null) this.fail((n||"")+" is null/undef");
+            return a;
+        },
+        is: function (value,type) {
+            var t=type,v=value;
+            if (t==null) {
+                this.fail("assert.is: type must be set");
+                // return t; Why!!!!???? because is(args,[String,Number])
+            }
+            if (t._assert_func) {
+                t._assert_func.apply(this,[v]);
+                return value;
+            }
+            this.assert(value!=null,[value, "should be ",t]);
+            if (t instanceof Array || (typeof global=="object" && typeof global.Array=="function" && t instanceof global.Array) ) {
+                if (!value || typeof value.length!="number") {
+                    this.fail(value, "should be array:");
+                }
+                var self=this;
+                for (var i=0 ;i<t.length; i++) {
+                    var na=self.subAssertion("failed at ",value,"[",i,"]: ");
+                    if (t[i]==null) {
+                        console.log("WOW!7", v[i],t[i])
+                    }
+                    na.is(v[i],t[i]);
+                }
+                return value;
+            }
+            if (t===String || t=="string") {
+                this.assert(typeof(v)=="string",[v,"should be a string "]);
+                return value;
+            }
+            if (t===Number || t=="number") {
+                this.assert(typeof(v)=="number",[v,"should be a number"]);
+                return value;
+            }
+            if (t instanceof RegExp || (typeof global=="object" && typeof global.RegExp=="function" && t instanceof global.RegExp)) {
+                this.is(v,String);
+                this.assert(t.exec(v),[v,"does not match to",t]);
+                return value;
+            }
+            if (typeof t=="function") {
+                this.assert((v instanceof t),[v, "should be ",t]);
+                return value;
+            }
+            if (t && typeof t=="object") {
+                for (var k in t) {
+                    var na=this.subAssertion("failed at ",value,".",k,":");
+                    na.is(value[k],t[k]);
+                }
+                return value;
+            }
+            this.fail("Invaild type: ",t);
+        },
+        ensureError: function (action, err) {
+            try {
+                action();
+            } catch(e) {
+                if(typeof err=="string") {
+                    assert(e+""===err,action+" thrown an error "+e+" but expected:"+err);
+                }
+                console.log("Error thrown successfully: ",e.message);
+                return;
+            }
+            this.fail(action,"should throw an error",err);
+        }
+    };
+    $a=function (args) {
+        var a=[];
+        for (var i=0; i<args.length ;i++) a.push(args[i]);
+        return a;
+    };
+    var top=new Assertion;
+    var assert=function () {
+        try {
+            return top.assert.apply(top,arguments);
+        } catch(e) {
+            throw new Error(e.message);
+        }
+    };
+    ["is","isset","ne","eq","ensureError"].forEach(function (m) {
+        assert[m]=function () {
+            try {
+                return top[m].apply(top,arguments);
+            } catch(e) {
+                console.log(e.stack);
+                throw new Error(e.message);
+            }
+        };
+    });
+    /*assert.is=function () {
+        try {
+            return top.is.apply(top,arguments);
+        } catch(e) {
+            console.log(e.stack);
+            throw new Error(e.message);
+        }
+    };
+    assert.isset=function () {
+        try {
+            return top.isset.apply(top,arguments);
+        } catch(e) {
+            throw new Error(e.message);
+        }
+    };
+    assert.ne=function () {
+        try {
+            return top.ne.apply(top,arguments);
+        } catch(e) {
+            throw new Error(e.message);
+        }
+    };
+    assert.eq=function () {
+        try {
+            return top.eq.apply(top,arguments);
+        } catch(e) {
+            throw new Error(e.message);
+        }
+    };
+    assert.ensureError=function () {
+        try {
+            return top.ensureError.apply(top,arguments);
+        } catch(e) {
+            throw new Error(e.message);
+        }
+    };*/
+    assert.fail=top.fail.bind(top);
+    assert.f=function (f) {
+        return {
+            _assert_func: f
+        };
+    };
+    assert.and=function () {
+        var types=$a(arguments);
+        assert(types instanceof Array);
+        return assert.f(function (value) {
+            var t=this;
+            for (var i=0; i<types.length; i++) {
+                t.is(value,types[i]);
+            }
+        });
+    };
+    function flatten(a) {
+        if (a instanceof Array) {
+            var res=[];
+            a.forEach(function (e) {
+                res=res.concat(flatten(e));
+            });
+            return res;
+        }
+        return [a];
+    }
+    function isArg(a) {
+        return "length" in a && "caller" in a && "callee" in a;
+    };
+    return assert;
+});
+
+define('Shell',["FS","assert"],
+        function (FS,assert) {
+    var Shell={};
+    var PathUtil=assert(FS.PathUtil);
+    Shell.cd=function (dir) {
+        Shell.cwd=resolve(dir,true);
+        return Shell.pwd();
+    };
+    Shell.vars=Object.create(FS.getEnv());
+    Shell.mount=function (options, path) {
+        //var r=resolve(path);
+        if (!options || !options.t) {
+            var fst=[];
+            for (var k in FS.getRootFS().availFSTypes()) {
+                fst.push(k);
+            }
+            sh.err("-t=("+fst.join("|")+") should be specified.");
+            return;
+        }
+        FS.mount(path,options.t, options);
+    };
+    Shell.unmount=function (path) {
+        FS.unmount(path);
+    };
+    Shell.fstab=function () {
+        var rfs=FS.getRootFS();
+        var t=rfs.fstab();
+        var sh=this;
+        //sh.echo(rfs.fstype()+"\t"+"<Root>");
+        t.forEach(function (fs) {
+            sh.echo(fs.fstype()+"\t"+(fs.mountPoint||"<Default>"));
+        });
+    }
+    Shell.resolve=resolve;
+    function resolve(v, mustExist) {
+        var r=resolve2(v);
+        if (mustExist && !r.exists()) throw r+": no such file or directory";
+        return r;
+    }
+    function resolve2(v) {
+        if (typeof v!="string") return v;
+        var c=Shell.cwd;
+        if (PathUtil.isAbsolutePath(v)) return FS.resolve(v,c);
+        return c.rel(v);
+    }
+    Shell.pwd=function () {
+        return Shell.cwd+"";
+    };
+    Shell.ls=function (dir){
+    	if (!dir) dir=Shell.cwd;
+    	else dir=resolve(dir, true);
+        return dir.ls();
+    };
+    Shell.cp=function (from ,to ,options) {
+        if (!options) options={};
+        if (options.v) {
+            Shell.echo("cp", from ,to);
+            options.echo=Shell.echo.bind(Shell);
+        }
+        var f=resolve(from, true);
+        var t=resolve(to);
+        return f.copyTo(t,options);
+    };
+    Shell.ln=function (to , from ,options) {
+        var f=resolve(from);
+        var t=resolve(to, true);
+        if (f.isDir() && f.exists()) {
+            f=f.rel(t.name());
+        }
+        if (f.exists()) {
+            throw new Error(f+" exists");
+        }
+        return f.link(t,options);
+    };
+    Shell.rm=function (file, options) {
+        if (!options) options={};
+        if (options.notrash) {
+            file=resolve(file, false);
+            file.removeWithoutTrash();
+            return 1;
+        }
+        file=resolve(file, true);
+        if (file.isDir() && options.r) {
+            var dir=file;
+            var sum=0;
+            dir.each(function (f) {
+                if (f.exists()) {
+                    sum+=Shell.rm(f, options);
+                }
+            });
+            dir.rm();
+            return sum+1;
+        } else {
+            file.rm();
+            return 1;
+        }
+    };
+    Shell.mkdir=function (file,options) {
+        file=resolve(file, false);
+        if (file.exists()) throw new Error(file+" : exists");
+        return file.mkdir();
+        
+    };
+    Shell.cat=function (file,options) {
+        file=resolve(file, true);
+        return Shell.echo(file.getContent(function (c) {
+            if (file.isText()) {
+                return c.toPlainText();
+            } else {
+                return c.toURL();
+            }
+        }));
+    };
+    Shell.resolve=function (file) {
+        if (!file) file=".";
+        file=resolve(file);
+        return file;
+    };
+    Shell.grep=function (pattern, file, options) {
+        file=resolve(file, true);
+        if (!options) options={};
+        if (!options.res) options.res=[];
+        if (file.isDir()) {
+            file.each(function (e) {
+                Shell.grep(pattern, e, options);
+            });
+        } else {
+            if (typeof pattern=="string") {
+                file.lines().forEach(function (line, i) {
+                    if (line.indexOf(pattern)>=0) {
+                        report(file, i+1, line);
+                    }
+                });
+            }
+        }
+        return options.res;
+        function report(file, lineNo, line) {
+            if (options.res) {
+                options.res.push({file:file, lineNo:lineNo,line:line});
+            }
+            Shell.echo(file+"("+lineNo+"): "+line);
+
+        }
+    };
+    Shell.touch=function (f) {
+    	f=resolve(f);
+    	f.text(f.exists() ? f.text() : "");
+    	return 1;
+    };
+    Shell.setout=function (ui) {
+        Shell.outUI=ui;
+    };
+    Shell.echo=function () {
+        return $.when.apply($,arguments).then(function () {
+            console.log.apply(console,arguments);
+            if (Shell.outUI && Shell.outUI.log) Shell.outUI.log.apply(Shell.outUI,arguments);
+        });
+    };
+    Shell.err=function (e) {
+        console.log.apply(console,arguments);
+        if (e && e.stack) console.log(e.stack);
+        if (Shell.outUI && Shell.outUI.err) Shell.outUI.err.apply(Shell.outUI,arguments);
+    };
+    Shell.clone= function () {
+        var r=Object.create(this);
+        r.vars=Object.create(this.vars);
+        return r;
+    };
+    Shell.getvar=function (k) {
+        return this.vars[k];
+    };
+    Shell.get=Shell.getvar;
+    Shell.set=function (k,v) {
+        return this.vars[k]=v;
+    };
+    Shell.strcat=function () {
+        if (arguments.length==1) return arguments[0];
+        var s="";
+        for (var i=0;i<arguments.length;i++) s+=arguments[i];
+        return s;
+    };
+    Shell.exists=function (f) {
+        f=this.resolve(f);
+        return f.exists();
+    };
+
+    Shell.prompt=function () {};
+    Shell.ASYNC={r:"SH_ASYNC"};
+    Shell.help=function () {
+        for (var k in Shell) {
+            var c=Shell[k];
+            if (typeof c=="function") {
+                Shell.echo(k+(c.description?" - "+c.description:""));
+            }
+        }
+    };
+    if (!window.sh) window.sh=Shell;
+    if (typeof process=="object") {
+        sh.devtool=function () { require('nw.gui').Window.get().showDevTools();}
+        sh.cd(process.cwd().replace(/\\/g,"/"));
+    } else {
+        sh.cd("/");
+    }
+    return Shell;
+});
+
 Util=(function () {
 
 function getQueryString(key, default_)
@@ -2458,168 +2853,6 @@ define("Util", (function (global) {
         return ret || global.Util;
     };
 }(this)));
-
-define('Shell',["FS","Util","WebSite"],function (FS,Util,WebSite) {
-    var Shell={cwd:FS.get("/")};
-    Shell.cd=function (dir) {
-        Shell.cwd=resolve(dir,true);
-        return Shell.pwd();
-    };
-    function resolve(v, mustExist) {
-        var r=resolve2(v);
-        if (mustExist && !r.exists()) throw r+": no such file or directory";
-        return r;
-    }
-    Shell.resolve=resolve;
-    function resolve2(v) {
-        if (typeof v!="string") return v;
-        if (Util.startsWith(v,"/")) return FS.get(v);
-        var c=Shell.cwd;
-        /*while (Util.startsWith(v,"../")) {
-            c=c.up();
-            v=v.substring(3);
-        }*/
-        return c.rel(v);
-    }
-    Shell.pwd=function () {
-        return Shell.cwd+"";
-    };
-    Shell.ls=function (dir){
-    	if (!dir) dir=Shell.cwd;
-    	else dir=resolve(dir, true);
-        return dir.ls();
-    };
-    Shell.mv=function (from ,to ,options) {
-        var f=resolve(from, true);
-        var t=resolve(to);
-        t.moveFrom(f);
-    };
-    Shell.cp=function (from ,to ,options) {
-        if (!options) options={};
-        if (options.v) {
-            Shell.echo("cp", from ,to);
-        }
-        var f=resolve(from, true);
-        var t=resolve(to);
-        return t.copyFrom(f,options);
-        /*
-        if (f.isDir() && t.isDir()) {
-            var sum=0;
-            f.recursive(function (src) {
-                var rel=src.relPath(f);
-                var dst=t.rel(rel);
-                if (options.test || options.v) {
-                    Shell.echo((dst.exists()?"[ovr]":"[new]")+dst+"<-"+src);
-                }
-                if (!options.test) {
-                    dst.copyFrom(src,options);
-                }
-                sum++;
-            });
-            return sum;
-        } else if (!f.isDir() && !t.isDir()) {
-            t.text(f.text());
-            return 1;
-        } else if (!f.isDir() && t.isDir()) {
-            t.rel(f.name()).text(f.text());
-            return 1;
-        } else {
-            throw "Cannot copy directory "+f+" to file "+t;
-        }*/
-    };
-    Shell.rm=function (file, options) {
-        if (!options) options={};
-        if (options.notrash) {
-            file=resolve(file, false);
-            file.removeWithoutTrash();
-            return 1;
-        }
-        file=resolve(file, true);
-        file.rm(options);
-        /*if (file.isDir() && options.r) {
-            var dir=file;
-            var sum=0;
-            dir.each(function (f) {
-                if (f.exists()) {
-                    sum+=Shell.rm(f, options);
-                }
-            });
-            dir.rm();
-            return sum+1;
-        } else {
-            file.rm();
-            return 1;
-        }*/
-    };
-    Shell.cat=function (file,options) {
-        file=resolve(file, true);
-        Shell.echo(file.text());
-        //else return file.text();
-    };
-    Shell.resolve=function (file) {
-	if (!file) file=".";
-	file=resolve(file);
-	return file;
-    };
-    Shell.grep=function (pattern, file, options) {
-        file=resolve(file, true);
-        if (!options) options={};
-        if (!options.res) options.res=[];
-        if (file.isDir()) {
-            file.each(function (e) {
-                Shell.grep(pattern, e, options);
-            });
-        } else {
-            if (typeof pattern=="string") {
-                file.lines().forEach(function (line, i) {
-                    if (line.indexOf(pattern)>=0) {
-                        report(file, i+1, line);
-                    }
-                });
-            }
-        }
-        return options.res;
-        function report(file, lineNo, line) {
-            if (options.res) {
-                options.res.push({file:file, lineNo:lineNo,line:line});
-            }
-            Shell.echo(file+"("+lineNo+"): "+line);
-
-        }
-    };
-    Shell.touch=function (f) {
-    	f=resolve(f);
-    	f.text(f.exists() ? f.text() : "");
-    	return 1;
-    };
-    Shell.setout=function (ui) {
-        Shell.outUI=ui;
-    };
-    Shell.echo=function () {
-        console.log.apply(console,arguments);
-        if (Shell.outUI && Shell.outUI.log) Shell.outUI.log.apply(Shell.outUI,arguments);
-    };
-    Shell.err=function () {
-        console.log.apply(console,arguments);
-        if (Shell.outUI && Shell.outUI.err) Shell.outUI.err.apply(Shell.outUI,arguments);
-    };
-
-    Shell.prompt=function () {};
-    Shell.ASYNC={r:"SH_ASYNC"};
-    Shell.help=function () {
-        for (var k in Shell) {
-            var c=Shell[k];
-            if (typeof c=="function") {
-                Shell.echo(k+(c.description?" - "+c.description:""));
-            }
-        }
-    };
-    sh=Shell;
-    if (WebSite.isNW) {
-        sh.devtool=function () { require('nw.gui').Window.get().showDevTools();}
-    }
-    return Shell;
-});
 
 define('exceptionCatcher',[], function () {
     var res={};
@@ -2866,8 +3099,328 @@ define('UI',["Util","exceptionCatcher"],function (Util, EC) {
     return UI;
 });
 
-define('Shell2',["Shell","UI","FS","Util"], function (sh,UI,FS,Util) {
+define('DeferredUtil',[], function () {
+    var DU;
+    var DUBRK=function(r){this.res=r;};
+    DU={
+            ensureDefer: function (v) {
+                var d=new $.Deferred;
+                var isDeferred;
+                $.when(v).then(function (r) {
+                    if (!isDeferred) {
+                        setTimeout(function () {
+                            d.resolve(r);
+                        },0);
+                    } else {
+                        d.resolve(r);
+                    }
+                }).fail(function (r) {
+                    if (!isDeferred) {
+                        setTimeout(function () {
+                            d.reject(r);
+                        },0);
+                    } else {
+                        d.reject(r);
+                    }
+                });
+                isDeferred=true;
+                return d.promise();
+            },
+            directPromise:function (v) {
+                var d=new $.Deferred;
+                setTimeout(function () {d.resolve(v);},0);
+                return d.promise();
+            },
+            then: function (f) {
+                return DU.directPromise().then(f);
+            },
+            timeout:function (timeout) {
+                var d=new $.Deferred;
+                setTimeout(function () {d.resolve();},timeout);
+                return d.promise();
+            },
+            funcPromise:function (f) {
+                var d=new $.Deferred;
+                f(function (v) {
+                    d.resolve(v);
+                },function (e) {
+                    d.reject(e);
+                });
+                return d.promise();
+            },
+            throwPromise:function (e) {
+                var d=new $.Deferred;
+                setTimeout(function () {
+                    d.reject(e);
+                }, 0);
+                return d.promise();
+            },
+            throwF: function (f) {
+                return function () {
+                    try {
+                        return f.apply(this,arguments);
+                    } catch(e) {
+                        console.log(e,e.stack);
+                        return DU.throwPromise(e);
+                    }
+                };
+            },
+            each: function (set,f) {
+                if (set instanceof Array) {
+                    return DU.loop(function (i) {
+                        if (i>=set.length) return DU.brk();
+                        return $.when(f(set[i],i)).then(function () {
+                            return i+1;
+                        });
+                    },0);
+                } else {
+                    var objs=[];
+                    for (var i in set) {
+                        objs.push({k:i,v:set[i]});
+                    }
+                    return DU.each(objs,function (e) {
+                        return f(e.k, e.v);
+                    });
+                }
+            },
+            loop: function (f,r) {
+                while(true) {
+                    if (r instanceof DUBRK) return r.res;
+                    var deff1=true, deff2=false;
+                    // ★ not deffered  ☆  deferred
+                    var r1=f(r);
+                    var dr=$.when(r1).then(function (r2) {
+                        r=r2;
+                        deff1=false;
+                        if (r instanceof DUBRK) return r.res;
+                        if (deff2) return DU.loop(f,r); //☆
+                    });
+                    deff2=true;
+                    if (deff1) return dr;//☆
+                    //★
+                }
+            },
+            brk: function (res) {
+                return new DUBRK(res);
+            },
+            tryLoop: function (f,r) {
+                return DU.loop(DU.tr(f),r);
+            },
+            tryEach: function (s,f) {
+                return DU.loop(s,DU.tr(f));
+            }
+    };
+    DU.begin=DU.tr=DU.throwF;
+    DU.callbackToPromise=DU.funcPromise;
+    
+    return DU;
+});
+define('ShellParser',["Shell","DeferredUtil"],function (sh,DU) {
+    var envMulti=/\$\{([^\}]*)\}/;
+    var envSingle=/^\$\{([^\}]*)\}$/;
+    var F=DU.throwF;
+    sh.enterCommand=function (s) {
+        if (!this._history) this._history=[];
+        this._history.push(s);
+        var args=this.parseCommand(s);
+        if (this._skipto) {
+            if (args[0]=="label") {
+                this.label(args[1]);
+            } else {
+                this.echo("Skipping command: "+s);
+            }
+        } else {
+            return this.evalCommand(args);
+        }
+    };
+    sh.label=function (n) {
+        this._labels=this._labels||{};
+        this._labels[n]=this._history.length;
+        if (this._skipto==n) delete this._skipto;
+    };
+    sh["goto"]=function (n,cond) {
+        if (arguments.length==1) cond=true;
+        var t=this;
+        return $.when(cond).then(function (c) {
+            if (!c) return;
+            t._labels=t._labels||{};
+            var pc=t._labels[n];
+            if (pc) {
+                if (!t._pc) {
+                    t._pc=pc;
+                    return t.gotoLoop();
+                } else {
+                    t._pc=pc;
+                }
+            } else {
+                t._skipto=n;
+            }
+        });
+    };
+    sh.gotoLoop=function () {
+        var t=this;
+        var cnt=0;
+        return DU.loop(F(function () {
+            if (cnt++>100) {
+                delete t._pc;
+                throw new Error("Are infinite loops scary?");
+            }
+            if (t._skipto || !t._pc || t._pc>=t._history.length) {
+                delete t._pc;
+                return DU.brk();
+            }
+            var s=t._history[t._pc++];
+            var args=t.parseCommand(s);
+            return t.evalCommand(args);
+        }));
+    };
+    sh.sleep=function (t) {
+        var d=new $.Deferred;
+        t=parseFloat(t);
+        setTimeout(function () {d.resolve();},t*1000);
+        return d.promise();
+    };
+    sh.include=function (f) {
+        f=this.resolve(f,true);
+        var t=this;
+        var ln=f.lines();
+        return DU.each(ln,F(function (l) {
+            return t.enterCommand(l);
+        }));
+    };
+    /*
+    set a 1
+    label loop
+    echo ${a}
+    calc add ${a} 1
+    set a ${_}
+    goto loop ( calc lt ${a} 10 )
+    */
+    sh.parseCommand=function (s) {
+        var space=/^\s*/;
+        var nospace=/^([^\s]*(\\.)*)*/;
+        var dq=/^"([^"]*(\\.)*)*"/;
+        var sq=/^'([^']*(\\.)*)*'/;
+        var lpar=/^\(/;
+        var rpar=/^\)/;
+        function parse() {
+            var a=[];
+            while(s.length) {
+                s=s.replace(space,"");
+                var r;
+                if (r=dq.exec(s)) {
+                    a.push(expand( unesc(r[1]) ));
+                    s=s.substring(r[0].length);
+                } else if (r=sq.exec(s)) {
+                    a.push(unesc(r[1]));
+                    s=s.substring(r[0].length);
+                } else if (r=lpar.exec(s)) {
+                    s=s.substring(r[0].length);
+                    a.push( parse() );
+                } else if (r=rpar.exec(s)) {
+                    s=s.substring(r[0].length);
+                    break;
+                } else if (r=nospace.exec(s)) {
+                    a.push(expand(unesc(r[0])));
+                    s=s.substring(r[0].length);
+                } else {
+                    break;
+                }
+            }
+            var options,args=[];
+            a.forEach(function (ce) {
+                var opt=/^-([A-Za-z_0-9]+)(=(.*))?/.exec(ce);
+                if (opt) {
+                    if (!options) options={};
+                    options[opt[1]]=opt[3]!=null ? opt[3] : true;
+                } else {
+                    if (options) args.push(options);
+                    options=null;
+                    args.push(ce);
+                }
+            });
+            if (options) args.push(options);
+            return args;
+        }
+        var args=parse();
+        return args;
+        /*console.log("parsed:",JSON.stringify(args));
+        var res=this.evalCommand(args);
+        return res;*/
+        function expand(s) {
+            var r;
+            /*if (r=envSingle.exec(s)) {
+                return ["get",r[1]];
+            }
+            if (!(r=envMulti.exec(s))) return s;*/
+            var ex=["strcat"];
+            while(s.length) {
+                r=envMulti.exec(s);
+                if (!r) {
+                    ex.push(s);
+                    break;
+                }
+                if (r.index>0) {
+                    ex.push(s.substring(0,r.index));
+                }
+                ex.push(["get",r[1]]);
+                s=s.substring(r.index+r[0].length);
+            }
+            if (ex.length==2) return ex[1];
+            return ex;
+        }
+        function unesc(s) {
+            return s.replace(/\\(.)/g,function (_,b){
+                return b;
+            });
+        }
+    };
+    sh.evalCommand=function (expr) {
+        var t=this;
+        if (expr instanceof Array) {
+            if (expr.length==0) return;
+            var c=expr.shift();
+            var f=this[c];
+            if (typeof f!="function") throw new Error(c+": Command not found");
+            var a=[];
+            while(expr.length) {
+                var e=expr.shift();
+                a.push( this.evalCommand(e) );
+            }
+            return $.when.apply($,a).then(F(function () {
+                return f.apply(t,arguments);
+            }));
+        } else {
+            return expr;
+        }   
+    };
+    sh.calc=function (op) {
+        var i=1;
+        var r=parseFloat(arguments[i]);
+        for(i=2;i<arguments.length;i++) {
+            var b=arguments[i];
+            switch(op) {
+                case "add":r+=parseFloat(b);break;
+                case "sub":r-=parseFloat(b);break;
+                case "mul":r*=parseFloat(b);break;
+                case "div":r/=parseFloat(b);break;
+                case "lt":r=(r<b);break;
+            }     
+        }
+        this.set("_",r);
+        return r;
+    };
+    sh.history=function () {
+        var t=this;
+        this._history.forEach(function (e) {
+            t.echo(e);    
+        });
+    };
+});
+define('Shell2',["Shell","UI","FS","Util","ShellParser"], 
+function (shParent,UI,FS,Util,shp) {
     var res={};
+    var sh=shParent.clone();
     res.show=function (dir) {
         var d=res.embed(dir);
         d.dialog({width:600,height:500});
@@ -2884,7 +3437,12 @@ define('Shell2',["Shell","UI","FS","Util"], function (sh,UI,FS,Util) {
     sh.cls=function () {
         res.d.$vars.inner.empty();
     };
+    function hitBottom() {
+        res.inner.closest(".ui-dialog-content").scrollTop(res.inner.height());
+    }
+
     sh.prompt=function () {
+        var t=this;
         var line=UI("div",
             ["input",{$var:"cmd",size:40,on:{keydown: kd}}],
             ["pre",{$var:"out","class":"shell out"},["div",{$var:"cand","class":"shell cand"}]]
@@ -2892,22 +3450,27 @@ define('Shell2',["Shell","UI","FS","Util"], function (sh,UI,FS,Util) {
         var cmd=line.$vars.cmd;
         var out=line.$vars.out;
         var cand=line.$vars.cand;
-        sh.setout({log:function () {
-            var a=[];
-            for (var i=0; i<arguments.length; i++) {
-                a.push(arguments[i]);
-            }
-            out.append(a.join(" ")+"\n");
+        line.appendTo(res.inner);
+        hitBottom();
+        cmd.focus();
+        //var d=new $.Deferred;
+        t.setout({log:function () {
+           // return $.when.apply($,arguments).then(function () {
+                var a=[];
+                for (var i=0; i<arguments.length; i++) {
+                    a.push(arguments[i]);
+                }
+                if (a[0] instanceof $) {
+                    out.append(a[0]);
+                } else {
+                    out.append(UI("span",a.join(" ")+"\n"));
+                }
+            //});
         },err:function (e) {
             out.append(UI("div",{"class": "shell error"},e,["br"],["pre",e.stack]));
         }});
-        line.appendTo(res.inner);
-        cmd.focus();
-        res.inner.closest(".ui-dialog-content").scrollTop(res.inner.height());
-        return sh.ASYNC;
+        return;// d.promise();
         function kd(e) {
-            //var eo=e.originalEvent();
-            //console.log(e.which);
             if (e.which==9) {
                 e.stopPropagation();
                 e.preventDefault();
@@ -2920,31 +3483,17 @@ define('Shell2',["Shell","UI","FS","Util"], function (sh,UI,FS,Util) {
             }
         }
         function exec() {
-            var c=cmd.val().replace(/^ */,"").replace(/ *$/,"");
-            if (c.length==0) return;
-            var cs=c.split(/ +/);
-            var cn=cs.shift();
-            var f=sh[cn];
-            if (typeof f!="function") return out.append(cn+": command not found.");
             try {
-                var args=[],options=null;
-                cs.forEach(function (ce) {
-                    var opt=/^-([A-Za-z_0-9]+)(=(.*))?/.exec(ce);
-                    if (opt) {
-                        if (!options) options={};
-                        options[opt[1]]=opt[3]!=null ? opt[3] : 1;
-                    } else args.push(ce);
-                });
-                if (options) args.push(options);
-                var sres=f.apply(sh, args);
-                if (sres===sh.ASYNC) return;
-                $.when(sres).then(function (sres){
+                var sres=t.enterCommand(cmd.val());
+                cmd.blur();
+                return $.when(sres).then(function (sres) {
                     if (typeof sres=="object") {
                         if (sres instanceof Array) {
                             var table=UI("table");
                             var tr=null;
                             var cnt=0;
                             sres.forEach(function (r) {
+                                if (typeof r!="string") return;
                                 if (!tr) tr=UI("tr").appendTo(table);
                                 tr.append(UI("td",r));
                                 cnt++;if(cnt%3==0) tr=null;
@@ -2956,12 +3505,15 @@ define('Shell2',["Shell","UI","FS","Util"], function (sh,UI,FS,Util) {
                     } else {
                         out.append(sres);
                     }
-                    sh.prompt();
+                    t.prompt();
+                }).fail(function (e) {
+                    t.err(e);
+                    t.prompt();
                 });
             } catch(e) {
-                sh.err(e);
+                t.err(e);
                 //out.append(UI("div",{"class": "shell error"},e,["br"],["pre",e.stack]));
-                sh.prompt();
+                t.prompt();
             }
         }
         function comp(){
@@ -2996,16 +3548,41 @@ define('Shell2',["Shell","UI","FS","Util"], function (sh,UI,FS,Util) {
             } else {
                 cand.text(canda.join(", "));
             }
+            hitBottom();
             //console.log(canda);
             //cmd.val(cmd.val()+"hokan");
         }
     };
-    sh.window=function () {
+    sh.edit=function (f) {
+        f=this.resolve(f);
+        var u=UI("div",
+            ["div",["textarea",{rows:10,cols:60,$var:"prog"}]],
+            ["div",["button",{on:{click:save}},"Save"]]
+        );
+        if (f.exists()) u.$vars.prog.val(f.text());
+        return this.echo(u);
+        function save() {
+            f.text( u.$vars.prog.val() );
+        }
+    };
+    sh.window=shParent.window=function () {
         res.show(sh.cwd);
     };
     sh.atest=function (a,b,options) {
         console.log(a,b,options);
     };
+    var oldcat=sh.cat;
+    sh.cat=function (file,options) {
+        file=sh.resolve(file, true);
+        if (file.contentType().match(/^image\//)) {
+            return file.getContent(function (c) {
+                sh.echo(UI("img",{src:c.toURL()}));
+            });
+        } else {
+            return oldcat.apply(sh,arguments);
+        }
+    };
+
     return res;
 });
 if (typeof define!=="function") {
@@ -7313,222 +7890,6 @@ return Tonyu.TraceTbl=(function () {
 })();
 //if (typeof getReq=="function") getReq.exports("Tonyu.TraceTbl");
 });
-define('assert',[],function () {
-    var Assertion=function(failMesg) {
-        this.failMesg=flatten(failMesg || "Assertion failed: ");
-    };
-    var $a;
-    Assertion.prototype={
-        fail:function () {
-            var a=$a(arguments);
-            a=flatten(a);
-            a=this.failMesg.concat(a);
-            console.log.apply(console,a);
-            throw new Error(a.join(" "));
-        },
-        subAssertion: function () {
-            var a=$a(arguments);
-            a=flatten(a);
-            return new Assertion(this.failMesg.concat(a));
-        },
-        assert: function (t,failMesg) {
-            if (!t) this.fail(failMesg);
-            return t;
-        },
-        eq: function (a,b) {
-            if (a!==b) this.fail(a,"!==",b);
-            return a;
-        },
-        ne: function (a,b) {
-            if (a===b) this.fail(a,"===",b);
-            return a;
-        },
-        isset: function (a, n) {
-            if (a==null) this.fail((n||"")+" is null/undef");
-            return a;
-        },
-        is: function (value,type) {
-            var t=type,v=value;
-            if (t==null) {
-                this.fail("assert.is: type must be set");
-                // return t; Why!!!!???? because is(args,[String,Number])
-            }
-            if (t._assert_func) {
-                t._assert_func.apply(this,[v]);
-                return value;
-            }
-            this.assert(value!=null,[value, "should be ",t]);
-            if (t instanceof Array || (typeof global=="object" && typeof global.Array=="function" && t instanceof global.Array) ) {
-                if (!value || typeof value.length!="number") {
-                    this.fail(value, "should be array:");
-                }
-                var self=this;
-                for (var i=0 ;i<t.length; i++) {
-                    var na=self.subAssertion("failed at ",value,"[",i,"]: ");
-                    if (t[i]==null) {
-                        console.log("WOW!7", v[i],t[i])
-                    }
-                    na.is(v[i],t[i]);
-                }
-                return value;
-            }
-            if (t===String || t=="string") {
-                this.assert(typeof(v)=="string",[v,"should be a string "]);
-                return value;
-            }
-            if (t===Number || t=="number") {
-                this.assert(typeof(v)=="number",[v,"should be a number"]);
-                return value;
-            }
-            if (t instanceof RegExp || (typeof global=="object" && typeof global.RegExp=="function" && t instanceof global.RegExp)) {
-                this.is(v,String);
-                this.assert(t.exec(v),[v,"does not match to",t]);
-                return value;
-            }
-            if (typeof t=="function") {
-                this.assert((v instanceof t),[v, "should be ",t]);
-                return value;
-            }
-            if (t && typeof t=="object") {
-                for (var k in t) {
-                    var na=this.subAssertion("failed at ",value,".",k,":");
-                    na.is(value[k],t[k]);
-                }
-                return value;
-            }
-            this.fail("Invaild type: ",t);
-        },
-        ensureError: function (action, err) {
-            try {
-                action();
-            } catch(e) {
-                if(typeof err=="string") {
-                    assert(e+""===err,action+" thrown an error "+e+" but expected:"+err);
-                }
-                console.log("Error thrown successfully: ",e.message);
-                return;
-            }
-            this.fail(action,"should throw an error",err);
-        }
-    };
-    $a=function (args) {
-        var a=[];
-        for (var i=0; i<args.length ;i++) a.push(args[i]);
-        return a;
-    };
-    var top=new Assertion;
-    var assert=function () {
-        try {
-            return top.assert.apply(top,arguments);
-        } catch(e) {
-            throw new Error(e.message);
-        }
-    };
-    ["is","isset","ne","eq","ensureError"].forEach(function (m) {
-        assert[m]=function () {
-            try {
-                return top[m].apply(top,arguments);
-            } catch(e) {
-                console.log(e.stack);
-                throw new Error(e.message);
-            }
-        };
-    });
-    /*assert.is=function () {
-        try {
-            return top.is.apply(top,arguments);
-        } catch(e) {
-            console.log(e.stack);
-            throw new Error(e.message);
-        }
-    };
-    assert.isset=function () {
-        try {
-            return top.isset.apply(top,arguments);
-        } catch(e) {
-            throw new Error(e.message);
-        }
-    };
-    assert.ne=function () {
-        try {
-            return top.ne.apply(top,arguments);
-        } catch(e) {
-            throw new Error(e.message);
-        }
-    };
-    assert.eq=function () {
-        try {
-            return top.eq.apply(top,arguments);
-        } catch(e) {
-            throw new Error(e.message);
-        }
-    };
-    assert.ensureError=function () {
-        try {
-            return top.ensureError.apply(top,arguments);
-        } catch(e) {
-            throw new Error(e.message);
-        }
-    };*/
-    assert.fail=top.fail.bind(top);
-    assert.f=function (f) {
-        return {
-            _assert_func: f
-        };
-    };
-    assert.and=function () {
-        var types=$a(arguments);
-        assert(types instanceof Array);
-        return assert.f(function (value) {
-            var t=this;
-            for (var i=0; i<types.length; i++) {
-                t.is(value,types[i]);
-            }
-        });
-    };
-    function flatten(a) {
-        if (a instanceof Array) {
-            var res=[];
-            a.forEach(function (e) {
-                res=res.concat(flatten(e));
-            });
-            return res;
-        }
-        return [a];
-    }
-    function isArg(a) {
-        return "length" in a && "caller" in a && "callee" in a;
-    };
-    return assert;
-});
-
-define('DeferredUtil',[], function () {
-    var DU;
-    DU={
-            directPromise:function (v) {
-                var d=new $.Deferred;
-                setTimeout(function () {d.resolve(v);},0);
-                return d.promise();
-            },
-            throwPromise:function (e) {
-                d=new $.Deferred;
-                setTimeout(function () {
-                    d.reject(e);
-                }, 0);
-                return d.promise();
-            },
-            throwF: function (f) {
-                return function () {
-                    try {
-                        return f.apply(this,arguments);
-                    } catch(e) {
-                        return DU.throwPromise(e);
-                    }
-                };
-            }
-    };
-    return DU;
-});
 define('compiledProject',[], function () {
     var CPR=function (ns, url) {
         return {
@@ -8454,6 +8815,7 @@ $(function () {
                 $("#syncMesg").empty().append(UI("a",{href:"login.php"},"ログイン"));
                 alert("ファイルの内容を保存するためには、必ずログインをしてください");
             } else {
+                alert("保存に失敗しました");
                 $("#syncMesg").text("エラー!"+e);
                 console.log(e);
             }
