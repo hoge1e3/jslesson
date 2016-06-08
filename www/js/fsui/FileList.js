@@ -47,7 +47,7 @@ function FileList(elem, options) {
     function setModified(m) {
     	if (!_curFile) return;
     	_mod=m;
-       	item(_curFile).text(itemText(_curFile,m));
+       	item(_curFile).text(itemText(_curFile.name(),m));
     }
     function isModified() {
     	return _mod;
@@ -84,41 +84,48 @@ function FileList(elem, options) {
             _curFile=null;
         }
         var disped={};
-        _curDir.each(function (f) {
-            var n=displayName(f);
+        var tr=_curDir.getDirTree({style:"no-recursive"});
+        var tra=[];
+        for (var k in tr) { tra.push({name:k,lastUpdate:tr[k].lastUpdate}); }
+        tra=tra.sort(function (a,b) {
+    		if(a.lastUpdate>b.lastUpdate){
+    			return -1;
+    		}else if(a.lastUpdate<b.lastUpdate){
+    			return 1;
+    		}
+    		return 0;
+        });
+        var dirPath=_curDir.path();
+        var P=FS.PathUtil;
+        tra.forEach(function (e) {
+            var n=displayName(e.name);
+            var path=P.rel(dirPath,e.name);
             //console.log(f.name(),n);
             if (!n) return;
             if (disped[n]) return;
             disped[n]=true;
-            var isCur=_curFile && _curFile.path()==f.path();
+            var isCur=_curFile && _curFile.path()==path;
             if (selbox) {
                 elem.append($("<option>").
-                        attr("value",f.path()).
-                        text(itemText(f))
+                        attr("value",path).
+                        text(itemText(e.name))
                 );
             } else {
-                var s=$("<span>").addClass("fileItem").text(itemText(f)).data("filename",f.path());
+                var s=$("<span>").addClass("fileItem").text(itemText(e.name)).data("filename",path);
                 if (isCur) { s.addClass("selected");}
-                //console.log("Add file item ",f,selbox);
                 $("<li>").append(s).appendTo(items).click(function () {
-                    select(f);
+                    var ff=FS.get(path);
+                    select(ff);
                 });
             }
-        },{order:function(a,b){
-    		if(a.lastUpdate()>b.lastUpdate()){
-    			return -1;
-    		}else if(a.lastUpdate()<b.lastUpdate()){
-    			return 1;
-    		}
-    		return 0;
-	    }});
+        });
     }
-    function itemText(f, mod) {
-    	return (mod?"*":"")+(f.isReadOnly()?"[RO]":"")+displayName(f);
+    function itemText(fname, mod) {
+    	return (mod?"*":"")+/*(f.isReadOnly()?"[RO]":"")+*/displayName(fname);
     }
-    function displayName(f) {
+    function displayName(fname) {
         if (FL.on.displayName) return FL.on.displayName.apply(FL, arguments );
-        return f.name();
+        return f;
     }
     function curFile() {
         return _curFile;

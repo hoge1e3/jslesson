@@ -15,6 +15,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           TJSBuilder,LocalBrowser,logToServer
           ) {
 $(function () {
+    var P=FS.PathUtil;
     var curClassroom;
     $.get("login.php?curclass="+Math.random()).then(function (r){
         console.log(r);
@@ -263,10 +264,10 @@ $(function () {
     function ls(){
         fl.ls(curProjectDir);
     }
-    function dispName(f) {
-        var name=f.name();
-        if (f.isDir()) return name;
-        if (f.endsWith(EXT) /*|| f.endsWith(HEXT)*/) return f.truncExt();
+    function dispName(name) {
+        //var name=f.name();
+        if (P.isDir(name)) return name;
+        if (P.endsWith(name,EXT) /*|| f.endsWith(HEXT)*/) return P.truncExt(name);
         return null;
     }
     function fixName(name, options) {
