@@ -1,6 +1,6 @@
 function run(className) {
-   requirejs(["lib/TonyuLib.js"], function () {
-        requirejs(["lib/kernel.js"],function (){
+   requirejs(["lib/tjs/TonyuLib.js"], function () {
+        requirejs(["lib/tjs/kernel.js"],function (){
             requirejs(["user.js"],_run);
         });
    });

@@ -28,13 +28,27 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
         // sync dir:file options:o local=remote=dir
         // sync local:file remote:file options:o
         var local,remote,options;
+        function diffTree(a,b) {
+            console.log("diff",a,b);
+            for (var k in unionKeys(a,b)) {
+                if (!k in a) console.log(k," is not in a",k[b]);
+                if (!k in b) console.log(k," is not in b",k[a]);
+                if (typeof k[a]=="object" && typeof k[b]=="object") {
+                    diffTree(k[a],k[b]);   
+                } else {
+                    if (k[a]!=k[b]) console.log(k," is differ",k[a],k[b]);
+                }            
+            }
+        }
         function getLocalDirInfo() {// This is slow!
-            var res={};
+            /*var res={};
             local.recursive(function (file) {
                 var lcm=file.metaInfo();
                 res[file.relPath(local)]=lcm;
-            },{excludes:options.excludes});
-            return res;
+            },{excludes:options.excludes});*/
+            var res2=local.getDirTree({style:"flat-relative"});
+            //diffTree(res,res2);
+            return res2;
         }
         function unionKeys() {
             var keys={};

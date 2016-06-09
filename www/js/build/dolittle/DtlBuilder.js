@@ -1,15 +1,14 @@
 define(["assert","DeferredUtil","wget"], function (A,DU,wget) {
-    TJSBuilder=function (prj, dst) {
+    DTLBuilder=function (prj, dst) {
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
     };
-    var p=TJSBuilder.prototype;
+    var p=DTLBuilder.prototype;
     p.dlFiles=function () {
         var dst=this.dst;
-        var urls=["lib/tjs/TonyuLib.js",
-        "lib/jquery-1.12.1.js","lib/tjs/kernel.js",
-        "lib/require.js","lib/tjs/run.js",
-        "images/neko1.png","images/ball.png"];
+        var urls=["lib/jquery-1.12.1.js",
+        "lib/require.js","lib/dtl/lib.js",
+        "images/ayumi.gif","images/tulip.png","images/apple.png"];
         var base="runtime/";
         var args=urls.map(function (url) {
             var dstf=dst.rel(url);
@@ -25,7 +24,7 @@ define(["assert","DeferredUtil","wget"], function (A,DU,wget) {
         var dom=dp.parseFromString(curHTMLFile.text(),"text/html");
         var html=dom.getElementsByTagName("html")[0];
         var head=dom.getElementsByTagName("head")[0];
-        ["lib/jquery-1.12.1.js","lib/require.js","lib/tjs/run.js"].forEach(function (src) {
+        ["lib/jquery-1.12.1.js","lib/require.js","lib/dtl/lib.js"].forEach(function (src) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
             nn.setAttribute("src",src);
@@ -39,7 +38,7 @@ define(["assert","DeferredUtil","wget"], function (A,DU,wget) {
         var dstHTMLF=dst.rel(curHTMLFile.name());
         dstHTMLF.text("<html>"+html.innerHTML+"</html>");
     };
-    p.build=function () {
+    p.build=function (curHTMLFile, curJSFile) {
         var curPrj=this.prj;
         var dst=this.dst;
         var t=this;

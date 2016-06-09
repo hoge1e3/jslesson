@@ -81,6 +81,10 @@ var reqConf={
                 deps:["Parser"],
                 exports:"MinimalParser"
             },
+            "dolittle/minimal": {
+                deps:["Parser"],
+                exports:"MinimalParser"
+            },
             cCompiler: {
                 deps: [
                     "ctrans/beautify",
@@ -228,6 +232,7 @@ var reqConf={
             "selectbox":"jsl/selectbox",
             cCompiler:"ctrans/compiler",
             TJSBuilder:"build/tjs/TJSBuilder",
+            DTLBuilder:"build/dolittle/DTLBuilder",
             wget:"fs2/wget",
             logToServer: "jsl/logToServer",
             "foo":"bar"

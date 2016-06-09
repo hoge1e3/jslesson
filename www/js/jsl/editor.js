@@ -50,7 +50,8 @@ $(function () {
     var lang=opt.language || "js";
     var langList={
 	"js":"JavaScript",
-	"c":"C"
+	"c":"C",
+	"dtl":"Dolittle"
     };
     var unsaved=false;
     var unsynced=false;
@@ -365,6 +366,7 @@ $(function () {
         save();
         displayMode("run");
         if(lang=="js"){
+    	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
             if (typeof SplashScreen!="undefined") SplashScreen.show();
             /*//RunDialog2 (new version)
             try {
@@ -410,32 +412,51 @@ $(function () {
 	        }), function (e) {
 	            if (typeof SplashScreen!="undefined") SplashScreen.hide();
 	            if (e.isTError) {
-	                console.log("showErr: run");
+	                console.log("showErr: run",e);
 	                showErrorPos($("#errorPos"),e);
 	                displayMode("compile_error");
+                    logToServer("JS Compile Error!\n"+e.src+":"+e.pos+"\n"+e.mesg+"\nJS Compile Error End!");
 	            }else{
 	                Tonyu.onRuntimeError(e);
 	            }
 	        });
-	}else if(lang=="c"){
-	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text());
-		var compiledFile=curPrj.getOutputFile();
-		var log={};
-		try{
-			compile(curJSFile,compiledFile,log);
-	        	runURL=location.href.replace(/\/[^\/]*\?.*$/,
-	        	        "/js/ctrans/runc.html?file="+compiledFile.path()
-	        	);
-			//$("#ifrm").attr("src",runURL);
-			    RunDialog.show("src",runURL,{height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
-		        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
-		        $("#qr").text("QR");
-		}catch(e){
-			logToServer("COMPILE ERROR!\n"+e+"\nCOMPILE ERROR END!");
-			alert(e);
-		}
-        return sync();
-	}
+    	}else if(lang=="c"){
+    	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text());
+    		var compiledFile=curPrj.getOutputFile();
+    		var log={};
+    		try{
+    			compile(curJSFile,compiledFile,log);
+    	        	runURL=location.href.replace(/\/[^\/]*\?.*$/,
+    	        	        "/js/ctrans/runc.html?file="+compiledFile.path()
+    	        	);
+    			//$("#ifrm").attr("src",runURL);
+    			    RunDialog.show("src",runURL,{height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+    		        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+    		        $("#qr").text("QR");
+    		}catch(e){
+    			logToServer("COMPILE ERROR!\n"+e+"\nCOMPILE ERROR END!");
+    			alert(e);
+    		}
+            return sync();
+    	}else if(lang=="dtl"){
+    	    try {
+                var ram=FS.get("/ram/build/");
+                if (!ram.exists()) FS.mount(ram.path(),"ram");
+                var b=new DtlBuilder(curPrj, ram);
+                b.build(curHTMLFile,curJSFile).then(function () {
+                    //console.log(ram.ls());
+                    var indexF=ram.rel("index.html");
+                    RunDialog2.show(indexF,
+                    {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+                }).fail(function (e) {
+                    console.log(e.stack);
+                }).done(function () {
+                    if (typeof SplashScreen!="undefined") SplashScreen.hide();
+                });
+            }catch(e) {
+                console.log(e.stack);
+            }
+    	}
     }
     window.moveFromFrame=function (name) {
         var f=curProjectDir.rel(name);
@@ -466,7 +487,6 @@ $(function () {
         alertOnce=function(){};
     };
     window.onerror=EC.handleException=Tonyu.onRuntimeError=function (e) {
-        logToServer(e.stack || e);
         Tonyu.globals.$lastError=e;
         var t=curPrj.env.traceTbl;
         var te;
@@ -490,9 +510,11 @@ $(function () {
                         }}},"診断モードで実行しなおす"));
             }
             stop();
+            logToServer("JS Runtime Error!\n"+te.src+":"+te.pos+"\n"+te.mesg+"\nJS Runtime Error End!");
         } else {
             UI("div",{title:"Error"},"["+e+"]",["pre",e.stack]).dialog({width:800});
             stop();
+            logToServer(e.stack || e);
         }
     };
     $("#search").click(F(function () {
