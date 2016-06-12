@@ -4,7 +4,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "runtime", "searchDialog","StackTrace",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
-           "TJSBuilder","LocalBrowser","logToServer"
+           "LocalBrowser","logToServer"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -12,7 +12,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           rt, searchDialog,StackTrace,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
-          TJSBuilder,LocalBrowser,logToServer
+          LocalBrowser,logToServer
           ) {
 $(function () {
     var P=FS.PathUtil;
@@ -55,10 +55,25 @@ $(function () {
     };
     var unsaved=false;
     var unsynced=false;
-    if(lang=="c"){
-	requirejs(["cCompiler"],function(){
-	    console.log("cCom requirejsed");
-	});
+    var Builder;
+    switch (lang){
+    case "c":
+    	requirejs(["cCompiler"],function(){
+    	    console.log("cCom requirejsed");
+    	});
+    	break;
+    case "js":
+    	requirejs(["TJSBuilder"],function(_){
+    	    Builder=_;
+    	    console.log("tjsb requirejsed");
+    	});
+    	break;
+    case "dtl":
+    	requirejs(["DtlBuilder"],function(_){
+    	    Builder=_;
+    	    console.log("dtlb requirejsed");
+    	});
+    	break;
     }
     function makeUI(){
         Columns.make(
@@ -372,7 +387,7 @@ $(function () {
             try {
                 var ram=FS.get("/ram/build/");
                 FS.mount(ram.path(),"ram");
-                var b=new TJSBuilder(curPrj, ram);
+                var b=new Builder(curPrj, ram);
                 b.build().then(function () {
                     //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
@@ -442,7 +457,7 @@ $(function () {
     	    try {
                 var ram=FS.get("/ram/build/");
                 if (!ram.exists()) FS.mount(ram.path(),"ram");
-                var b=new DtlBuilder(curPrj, ram);
+                var b=new Builder(curPrj, ram);
                 b.build(curHTMLFile,curJSFile).then(function () {
                     //console.log(ram.ls());
                     var indexF=ram.rel("index.html");

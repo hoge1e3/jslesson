@@ -283,7 +283,7 @@ MinimalParser= function () {
     		        result+=gen(el);
     		    });
     		    return result;
-    		} else return (e||"")+" ";
+    		} else return (e||"")+"";
     	};
     	var result=gen(p);
     	//console.log("dtlgen",p,result);

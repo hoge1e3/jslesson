@@ -26,7 +26,7 @@ root.system={
 	},
 	log:function(param){return console.log(param.valueOf());},
 	use:function(lib){
-		$.ajax({url:"http://oecu-edu.sakura.ne.jp/honda/"+lib}).then(function(data){
+		return $.ajax({url:"http://oecu-edu.sakura.ne.jp/honda/"+lib}).then(function(data){
 			console.log(data);
 			(new Function(window.parent.MinimalParser.parse(data)))();
 		},function(){alert("setup.iniの読み込みに失敗しました");});

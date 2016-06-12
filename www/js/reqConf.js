@@ -232,7 +232,7 @@ var reqConf={
             "selectbox":"jsl/selectbox",
             cCompiler:"ctrans/compiler",
             TJSBuilder:"build/tjs/TJSBuilder",
-            DTLBuilder:"build/dolittle/DTLBuilder",
+            DtlBuilder:"build/dolittle/DtlBuilder",
             wget:"fs2/wget",
             logToServer: "jsl/logToServer",
             "foo":"bar"

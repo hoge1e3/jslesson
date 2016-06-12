@@ -1,6 +1,6 @@
 function fixIndent(str, indentStr) {
     if (!indentStr) indentStr="    ";
-    var incdec={"{":1, "}":-1};
+    var incdec={"{":1, "}":-1,"[":1,"]":-1,"(":1,")":-1,"「":1,"」":-1};
     var linfo=[];
     /*try {
         var tokenRes=TT.parse(str);
@@ -64,11 +64,13 @@ function fixIndent(str, indentStr) {
 	var opens=0, closes=0;
         line=line.replace(/^\s*/,"");
         if (linfo[row]!=null) {
-            linfo[row].match(/^(\}*)/);
+            linfo[row].match(/^([\]\}\)」]*)/);
+            //console.log(linfo[row],RegExp.$1);
             closes=RegExp.$1.length;
-            linfo[row].match(/(\{*)$/);
+            linfo[row].match(/([\[\{\(「]*)$/);
+            //console.log(linfo[row],RegExp.$1);
             opens=RegExp.$1.length;
-	}
+    	}
         curDepth-=closes;
         line=indStr()+line;
         curDepth+=opens;
