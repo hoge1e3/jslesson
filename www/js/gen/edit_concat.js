@@ -758,6 +758,8 @@ return Tonyu=function () {
             A:A};
 }();
 });
+// This is kowareta! because r.js does not generate module name:
+//   define("FSLib",[], function () { ... 
 //(function (global) {
 //var useGlobal=(typeof global.define!="function");
 //var define=(useGlobal ? define=function(_,f){f();} : global.define);
@@ -1486,19 +1488,56 @@ define('FS2',["extend","PathUtil","MIMETypes","assert"],function (extend, P, M,a
         isLink: function (path) {
             return null;
         },
-        getDirTree: function (path, dest) {
-            dest=dest||{};
+        opendirEx: function (path, options) {
             assert.is(path, P.AbsDir);
             var ls=this.opendir(path);
             var t=this;
+            var dest={};
             ls.forEach(function (f) {
                 var p=P.rel(path,f);
-                if (t.isDir(p)) {
-                    t.getDirTree(p,dest);
-                } else {
-                    dest[p]=t.getMetaInfo(p);
-                }
+                dest[f]=t.getMetaInfo(p);
             });
+            return dest;
+        },
+        getDirTree: function (path, options) {
+            options=options||{};
+            var dest=options.dest=options.dest||{};
+            options.style=options.style||"flat-absolute";
+            if (options.style=="flat-relative" && !options.base) {
+                options.base=path;
+            }
+            assert.is(path, P.AbsDir);
+            var tr=this.opendirEx(path);
+            if (options.style=="no-recursive") return tr;
+            var t=this;
+            for (var f in tr) {
+                var meta=tr[f];
+                var p=P.rel(path,f);
+                if (t.isDir(p)) {
+                    switch(options.style) {
+                    case "flat-absolute":
+                    case "flat-relative":
+                        t.getDirTree(p,options);
+                        break;
+                    case "hierarchical":
+                        options.dest={};
+                        dest[f]=t.getDirTree(p,options);
+                        break;
+                    }
+                } else {
+                    switch(options.style) {
+                    case "flat-absolute":
+                        dest[p]=meta;
+                        break;
+                    case "flat-relative":
+                        dest[P.relPath(p,options.base)]=meta;
+                        break;
+                    case "hierarchical":
+                        dest[f]=meta;
+                        break;
+                    }
+                }
+            }
             return dest;
         }
         /*get: function (path) {
@@ -2061,6 +2100,7 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
         assert(storage," new LSFS fail: no storage");
     	this.storage=storage;
     	this.options=options||{};
+    	this.dirCache={};
     };
     var isDir = P.isDir.bind(P);
     var up = P.up.bind(P);
@@ -2129,7 +2169,8 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
         if (path == null) throw new Error("getDir: Null path");
         if (!endsWith(path, SEP)) path += SEP;
         assert(this.inMyFS(path));
-        var dinfo = {};
+        if (this.dirCache[path]) return this.dirCache[path];         
+        var dinfo =  {};
         try {
             var dinfos = this.getItem(path);
             if (dinfos) {
@@ -2138,12 +2179,13 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
         } catch (e) {
             console.log("dinfo err : " , path , dinfos);
         }
-        return dinfo;
+        return this.dirCache[path]=dinfo;
     };
     LSFS.prototype.putDirInfo=function putDirInfo(path, dinfo, trashed) {
   	    assert.is(arguments,[P.AbsDir, Object]);
   	    if (!isDir(path)) throw new Error("Not a directory : " + path);
   	    assert(this.inMyFS(path));
+  	    this.dirCache[path] = dinfo;
   	    this.setItem(path, JSON.stringify(dinfo));
         var ppath = up(path);
         if (ppath == null) return;
@@ -2352,6 +2394,7 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
             this.assertWriteable(path);
             if (!this.itemExists(path)) {
                 if (P.isDir(path)) {
+                    this.dirCache[path]={};
                     this.setItem(path,"{}");
                 } else {
                     this.setItem(path,"");
@@ -2371,11 +2414,17 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
         getURL: function (path) {
             return this.getContent(path).toURL();
         },
-        getDirTree: function (path,dest) {
+        opendirEx: function (path,options) {
             assert.is(path,P.AbsDir);
-            dest=dest||{};
+            //dest=dest||{};
+            var res={};
             var d=this.getDirInfo(path);
-            for (var f in d) {
+            for (var k in d) {
+                if (d[k].trashed) continue;
+                res[k]=d[k];
+            }
+            return res;
+            /*for (var f in d) {
                 var p=P.rel(path,f);
                 if (this.isDir(p)) {// TODO symlink not follow(and no entry in dest)
                     this.getDirTree(p,dest);
@@ -2383,7 +2432,7 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
                     dest[p]=d[f];
                 }
             }
-            return dest;
+            return dest;*/
         }
     });
     return LSFS;
@@ -2535,7 +2584,7 @@ SFile.prototype={
     },
     //Common
     touch: function () {
-        this.act.fs.touch(this.act.path);
+        return this.act.fs.touch(this.act.path);
     },
     isReadOnly: function () {
         return this.act.fs.isReadOnly(this.act.path);
@@ -2558,8 +2607,8 @@ SFile.prototype={
     setMetaInfo: function (info, options) {
         return this.act.fs.setMetaInfo(this.act.path,info, options);
     },
-    getDirTree: function () {
-        return this.act.fs.getDirTree(this.act.path);
+    getDirTree: function (options) {
+        return this.act.fs.getDirTree(this.act.path, options);
     },
     lastUpdate:function () {
         A(this.exists());
@@ -2782,7 +2831,7 @@ SFile.prototype={
         return A.is(options,{excludes:{}});
     },
     mkdir: function () {
-        this.touch();
+        return this.touch();
     },
     link: function (to,options) {// % ln to path
         if (this.exists()) throw new Error(this.path()+": exists.");
@@ -2947,7 +2996,7 @@ define('FS',["FS2","NativeFS","LSFS", "PathUtil","Env","assert","SFile","RootFS"
 	requirejs(["FS"], function (r) {
 	  resMod=r;
 	});
-	window.FS=resMod;
+	if (window.FS===undefined) window.FS=resMod;
 	return resMod;
 });
 //})(window);
@@ -3055,7 +3104,7 @@ function FileList(elem, options) {
     function setModified(m) {
     	if (!_curFile) return;
     	_mod=m;
-       	item(_curFile).text(itemText(_curFile,m));
+       	item(_curFile).text(itemText(_curFile.name(),m));
     }
     function isModified() {
     	return _mod;
@@ -3092,41 +3141,48 @@ function FileList(elem, options) {
             _curFile=null;
         }
         var disped={};
-        _curDir.each(function (f) {
-            var n=displayName(f);
+        var tr=_curDir.getDirTree({style:"no-recursive"});
+        var tra=[];
+        for (var k in tr) { tra.push({name:k,lastUpdate:tr[k].lastUpdate}); }
+        tra=tra.sort(function (a,b) {
+    		if(a.lastUpdate>b.lastUpdate){
+    			return -1;
+    		}else if(a.lastUpdate<b.lastUpdate){
+    			return 1;
+    		}
+    		return 0;
+        });
+        var dirPath=_curDir.path();
+        var P=FS.PathUtil;
+        tra.forEach(function (e) {
+            var n=displayName(e.name);
+            var path=P.rel(dirPath,e.name);
             //console.log(f.name(),n);
             if (!n) return;
             if (disped[n]) return;
             disped[n]=true;
-            var isCur=_curFile && _curFile.path()==f.path();
+            var isCur=_curFile && _curFile.path()==path;
             if (selbox) {
                 elem.append($("<option>").
-                        attr("value",f.path()).
-                        text(itemText(f))
+                        attr("value",path).
+                        text(itemText(e.name))
                 );
             } else {
-                var s=$("<span>").addClass("fileItem").text(itemText(f)).data("filename",f.path());
+                var s=$("<span>").addClass("fileItem").text(itemText(e.name)).data("filename",path);
                 if (isCur) { s.addClass("selected");}
-                //console.log("Add file item ",f,selbox);
                 $("<li>").append(s).appendTo(items).click(function () {
-                    select(f);
+                    var ff=FS.get(path);
+                    select(ff);
                 });
             }
-        },{order:function(a,b){
-		if(a.lastUpdate()>b.lastUpdate()){
-			return -1;
-		}else if(a.lastUpdate()<b.lastUpdate()){
-			return 1;
-		}
-		return 0;
-	}});
+        });
     }
-    function itemText(f, mod) {
-    	return (mod?"*":"")+(f.isReadOnly()?"[RO]":"")+displayName(f);
+    function itemText(fname, mod) {
+    	return (mod?"*":"")+/*(f.isReadOnly()?"[RO]":"")+*/displayName(fname);
     }
-    function displayName(f) {
+    function displayName(fname) {
         if (FL.on.displayName) return FL.on.displayName.apply(FL, arguments );
-        return f.name();
+        return f;
     }
     function curFile() {
         return _curFile;
@@ -5567,7 +5623,7 @@ return Visitor = function (funcs) {
 });
 function fixIndent(str, indentStr) {
     if (!indentStr) indentStr="    ";
-    var incdec={"{":1, "}":-1};
+    var incdec={"{":1, "}":-1,"[":1,"]":-1,"(":1,")":-1,"「":1,"」":-1};
     var linfo=[];
     /*try {
         var tokenRes=TT.parse(str);
@@ -5631,11 +5687,13 @@ function fixIndent(str, indentStr) {
 	var opens=0, closes=0;
         line=line.replace(/^\s*/,"");
         if (linfo[row]!=null) {
-            linfo[row].match(/^(\}*)/);
+            linfo[row].match(/^([\]\}\)」]*)/);
+            //console.log(linfo[row],RegExp.$1);
             closes=RegExp.$1.length;
-            linfo[row].match(/(\{*)$/);
+            linfo[row].match(/([\[\{\(「]*)$/);
+            //console.log(linfo[row],RegExp.$1);
             opens=RegExp.$1.length;
-	}
+    	}
         curDepth-=closes;
         line=indStr()+line;
         curDepth+=opens;
@@ -8943,9 +9001,10 @@ define('Menu',["UI"], function (UI) {
     };
     return Menu;
 });
-define('Sync',["FS","Shell","WebSite","assert"],
-        function (FS,sh,WebSite,A) {
+define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
+        function (FS,sh,WebSite,A,DU) {
     var Sync={};
+    var F=DU.begin;
     //var PathUtil=FS.PathUtil; Not avail
     sh.sync=function () {
         // sync options:o      local=remote=cwd
@@ -8972,13 +9031,27 @@ define('Sync',["FS","Shell","WebSite","assert"],
         // sync dir:file options:o local=remote=dir
         // sync local:file remote:file options:o
         var local,remote,options;
+        function diffTree(a,b) {
+            console.log("diff",a,b);
+            for (var k in unionKeys(a,b)) {
+                if (!k in a) console.log(k," is not in a",k[b]);
+                if (!k in b) console.log(k," is not in b",k[a]);
+                if (typeof k[a]=="object" && typeof k[b]=="object") {
+                    diffTree(k[a],k[b]);   
+                } else {
+                    if (k[a]!=k[b]) console.log(k," is differ",k[a],k[b]);
+                }            
+            }
+        }
         function getLocalDirInfo() {// This is slow!
-            var res={};
+            /*var res={};
             local.recursive(function (file) {
                 var lcm=file.metaInfo();
                 res[file.relPath(local)]=lcm;
-            },{excludes:options.excludes});
-            return res;
+            },{excludes:options.excludes});*/
+            var res2=local.getDirTree({style:"flat-relative"});
+            //diffTree(res,res2);
+            return res2;
         }
         function unionKeys() {
             var keys={};
@@ -9073,7 +9146,7 @@ define('Sync',["FS","Shell","WebSite","assert"],
             type:"get",
             url:A(WebSite.url.getDirInfo),
             data:req
-        }).then(function n1(curRemoteDirInfo) {
+        }).then(F(function n1(curRemoteDirInfo) {
             var d;
             if (options.v) sh.echo("getDirInfo",curRemoteDirInfo);
             if (curRemoteDirInfo.NOT_LOGGED_IN) {
@@ -9117,7 +9190,7 @@ define('Sync',["FS","Shell","WebSite","assert"],
                 url:A(WebSite.url.getFiles),
                 data:req
             });
-        }).then(function n2(dlData) {
+        })).then(F(function n2(dlData) {
             sh.echo("dlData=",dlData);
             //dlData=JSON.parse(dlData);
             if (options.v) sh.echo("dlData:",dlData);
@@ -9144,7 +9217,7 @@ define('Sync',["FS","Shell","WebSite","assert"],
                 url:req.pathInfo,
                 data:req
             });
-        }).then(function n3(res){
+        })).then(F(function n3(res){
             var newRemoteDirInfo=res.data;
             if (options.v) sh.echo("putFiles res=",res);
             var newLocalDirInfo=getLocalDirInfo();
@@ -9154,7 +9227,7 @@ define('Sync',["FS","Shell","WebSite","assert"],
             var upds=[];
             for (var i in uploads) upds.push(i);
             return res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};
-        });
+        }));
     };
     sh.rsh=function () {
         var a=[];
@@ -9377,106 +9450,18 @@ define('RunDialog2',["UI","LocalBrowser"],function (UI, LocalBrowser) {
     };
     return res;
 });
-define('wget',["Shell","FS"],function (sh,FS) {
-    /*sh.wget=function (url,options) {
-        var dst=this.resolve(FS.PathUtil.name(url));
-        sh.echo("Getting ",url,"...");
-        return $.get(url).then(function (r) {
-            sh.echo("Save to ",dst.path());
-            dst.text(r);
-        });
-    };*/
-    sh.wget=function (url,options) {
-        options=options||{};
-        var dst=this.resolve(options.o || FS.PathUtil.name(url));
-        this.echo("Getting ",url," -> ",dst);
-        return wget(url,dst,options);
-    };
-    function wget(url,dst,options) {    
-        var oReq = new XMLHttpRequest();
-        oReq.open("GET", url, true);
-        oReq.responseType = "arraybuffer";
-        var d=new $.Deferred;
-        oReq.onload = function (oEvent) {
-            var arrayBuffer = oReq.response; // Note: not oReq.responseText
-            if (arrayBuffer) {
-                dst.bytes(arrayBuffer);
-                d.resolve(arrayBuffer);
-            } else {
-                d.reject();
-            }
-        };
-        oReq.send(null);
-        return d.promise();
+define('logToServer',[],function () {
+    var c=0,time=(new Date().getTime());
+    function logToServer(content) {
+		var t=(new Date().getTime());
+		c+=1/time-t;
+		return $.post("dump.php",{data:content+""}).then(function (r) {
+			console.log(r);
+		}).fail(function(e){
+			console.log(e);
+		});
     }
-    return wget;
-});
-define('TJSBuilder',["assert","DeferredUtil","wget"], function (A,DU,wget) {
-    TJSBuilder=function (prj, dst) {
-        this.prj=prj;// TPRC
-        this.dst=dst;// SFile in ramdisk
-    };
-    var p=TJSBuilder.prototype;
-    p.dlFiles=function () {
-        var dst=this.dst;
-        var urls=["lib/TonyuLib.js",
-        "lib/jquery-1.12.1.js","lib/kernel.js",
-        "lib/require.js","lib/run.js",
-        "images/neko1.png","images/ball.png"];
-        var base="fs/runtime/";
-        var args=urls.map(function (url) {
-            var dstf=dst.rel(url);
-            if (!dstf.exists()) return wget(base+url, dstf);
-        });
-        return $.when.apply($,args);
-    };
-    p.genHTML=function (name) {
-        var dst=this.dst;
-        var d=this.prj.dir;
-        var curHTMLFile=d.rel(name+".html");
-        var dp=new DOMParser;
-        var dom=dp.parseFromString(curHTMLFile.text(),"text/html");
-        var html=dom.getElementsByTagName("html")[0];
-        var head=dom.getElementsByTagName("head")[0];
-        ["lib/jquery-1.12.1.js","lib/require.js","lib/run.js"].forEach(function (src) {
-            var nn=document.createElement("script");
-            nn.setAttribute("charset","utf-8");
-            nn.setAttribute("src",src);
-            head.appendChild(nn);
-        });
-        var nn=document.createElement("script");
-        nn.setAttribute("charset","utf-8");
-        var ns=this.prj.getNamespace();
-        nn.appendChild(document.createTextNode("run('"+ns+"."+name+"');"));
-        head.appendChild(nn);
-        var dstHTMLF=dst.rel(curHTMLFile.name());
-        dstHTMLF.text("<html>"+html.innerHTML+"</html>");
-    };
-    p.build=function () {
-        var curPrj=this.prj;
-        var dst=this.dst;
-        var t=this;
-        return this.dlFiles().then(function () {
-            return curPrj.loadClasses();            
-        }).then(DU.throwF(function() {
-            var concat=curPrj.getOutputFile();
-            dst.rel("user.js").copyFrom(concat);
-            curPrj.dir.each(function (f) {
-                if (f.ext()!=".html")  return;
-                t.genHTML(f.truncExt());
-            });
-        }), function (e) {
-            if (typeof SplashScreen!="undefined") SplashScreen.hide();
-            if (e.isTError) {
-                console.log("showErr: run");
-                showErrorPos($("#errorPos"),e);
-                displayMode("compile_error");
-            }else{
-                Tonyu.onRuntimeError(e);
-            }
-        });            
-    };
-    return TJSBuilder;
+    return logToServer;
 });
 requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "showErrorPos", "fixIndent",  "ProjectCompiler",
@@ -9484,7 +9469,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "runtime", "searchDialog","StackTrace",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
-           "TJSBuilder","LocalBrowser"
+           "LocalBrowser","logToServer"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -9492,9 +9477,10 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           rt, searchDialog,StackTrace,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
-          TJSBuilder,LocalBrowser
+          LocalBrowser,logToServer
           ) {
 $(function () {
+    var P=FS.PathUtil;
     var curClassroom;
     $.get("login.php?curclass="+Math.random()).then(function (r){
         console.log(r);
@@ -9529,14 +9515,30 @@ $(function () {
     var lang=opt.language || "js";
     var langList={
 	"js":"JavaScript",
-	"c":"C"
+	"c":"C",
+	"dtl":"Dolittle"
     };
     var unsaved=false;
     var unsynced=false;
-    if(lang=="c"){
-	requirejs(["cCompiler"],function(){
-	    console.log("cCom requirejsed");
-	});
+    var Builder;
+    switch (lang){
+    case "c":
+    	requirejs(["cCompiler"],function(){
+    	    console.log("cCom requirejsed");
+    	});
+    	break;
+    case "js":
+    	requirejs(["TJSBuilder"],function(_){
+    	    Builder=_;
+    	    console.log("tjsb requirejsed");
+    	});
+    	break;
+    case "dtl":
+    	requirejs(["DtlBuilder"],function(_){
+    	    Builder=_;
+    	    console.log("dtlb requirejsed");
+    	});
+    	break;
     }
     function makeUI(){
         Columns.make(
@@ -9737,14 +9739,16 @@ $(function () {
         return false;
     };
     F(FM.on);
+    console.log("listing", curProjectDir.path());
     fl.ls(curProjectDir);
+    console.log("listing", curProjectDir.path(),"done");
     function ls(){
         fl.ls(curProjectDir);
     }
-    function dispName(f) {
-        var name=f.name();
-        if (f.isDir()) return name;
-        if (f.endsWith(EXT) /*|| f.endsWith(HEXT)*/) return f.truncExt();
+    function dispName(name) {
+        //var name=f.name();
+        if (P.isDir(name)) return name;
+        if (P.endsWith(name,EXT) /*|| f.endsWith(HEXT)*/) return P.truncExt(name);
         return null;
     }
     function fixName(name, options) {
@@ -9805,11 +9809,12 @@ $(function () {
     var curName,runURL;
     function sync() {
         var projects=FS.resolve("${tonyuHome}/Projects/");
-	unsaved=false;
-	//unsynced=false;
+    	unsaved=false;
+	    //unsynced=false;
         return Sync.sync(projects, FS.get("/"),{v:true}).then(
             function(){unsynced=false;showToast("保存しました");}
         ).fail(function (e) {
+            logToServer(e.stack || e.responseText || e);
             console.log(e);
             alert("保存に失敗しました。");
         });
@@ -9841,12 +9846,13 @@ $(function () {
         save();
         displayMode("run");
         if(lang=="js"){
+    	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
             if (typeof SplashScreen!="undefined") SplashScreen.show();
             /*//RunDialog2 (new version)
             try {
                 var ram=FS.get("/ram/build/");
                 FS.mount(ram.path(),"ram");
-                var b=new TJSBuilder(curPrj, ram);
+                var b=new Builder(curPrj, ram);
                 b.build().then(function () {
                     //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
@@ -9886,40 +9892,51 @@ $(function () {
 	        }), function (e) {
 	            if (typeof SplashScreen!="undefined") SplashScreen.hide();
 	            if (e.isTError) {
-	                console.log("showErr: run");
+	                console.log("showErr: run",e);
 	                showErrorPos($("#errorPos"),e);
 	                displayMode("compile_error");
+                    logToServer("JS Compile Error!\n"+e.src+":"+e.pos+"\n"+e.mesg+"\nJS Compile Error End!");
 	            }else{
 	                Tonyu.onRuntimeError(e);
 	            }
 	        });
-	}else if(lang=="c"){
-	    $.post("dump.php",{data:"//"+curJSFile.path()+"\n"+curJSFile.text()}).then(function (r) {
-	        console.log(r);
-	    }).fail(function (e) {
-	        console.log(e);
-	    });
-		var compiledFile=curPrj.getOutputFile();
-		var log={};
-		try{
-			compile(curJSFile,compiledFile,log);
-	        	runURL=location.href.replace(/\/[^\/]*\?.*$/,
-	        	        "/js/ctrans/runc.html?file="+compiledFile.path()
-	        	);
-			//$("#ifrm").attr("src",runURL);
-			    RunDialog.show("src",runURL,{height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
-		        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
-		        $("#qr").text("QR");
-		}catch(e){
-			$.post("dump.php",{data:"COMPILE ERROR!\n"+e+"\nCOMPILE ERROR END!"}).then(function (r) {
-				console.log(r);
-			}).fail(function(e){
-				console.log(e);
-			});
-			alert(e);
-		}
-        return sync();
-	}
+    	}else if(lang=="c"){
+    	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text());
+    		var compiledFile=curPrj.getOutputFile();
+    		var log={};
+    		try{
+    			compile(curJSFile,compiledFile,log);
+    	        	runURL=location.href.replace(/\/[^\/]*\?.*$/,
+    	        	        "/js/ctrans/runc.html?file="+compiledFile.path()
+    	        	);
+    			//$("#ifrm").attr("src",runURL);
+    			    RunDialog.show("src",runURL,{height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+    		        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+    		        $("#qr").text("QR");
+    		}catch(e){
+    			logToServer("COMPILE ERROR!\n"+e+"\nCOMPILE ERROR END!");
+    			alert(e);
+    		}
+            return sync();
+    	}else if(lang=="dtl"){
+    	    try {
+                var ram=FS.get("/ram/build/");
+                if (!ram.exists()) FS.mount(ram.path(),"ram");
+                var b=new Builder(curPrj, ram);
+                b.build(curHTMLFile,curJSFile).then(function () {
+                    //console.log(ram.ls());
+                    var indexF=ram.rel("index.html");
+                    RunDialog2.show(indexF,
+                    {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+                }).fail(function (e) {
+                    console.log(e.stack);
+                }).done(function () {
+                    if (typeof SplashScreen!="undefined") SplashScreen.hide();
+                });
+            }catch(e) {
+                console.log(e.stack);
+            }
+    	}
     }
     window.moveFromFrame=function (name) {
         var f=curProjectDir.rel(name);
@@ -9973,9 +9990,11 @@ $(function () {
                         }}},"診断モードで実行しなおす"));
             }
             stop();
+            logToServer("JS Runtime Error!\n"+te.src+":"+te.pos+"\n"+te.mesg+"\nJS Runtime Error End!");
         } else {
             UI("div",{title:"Error"},"["+e+"]",["pre",e.stack]).dialog({width:800});
             stop();
+            logToServer(e.stack || e);
         }
     };
     $("#search").click(F(function () {

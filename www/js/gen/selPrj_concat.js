@@ -1,3 +1,5 @@
+// This is kowareta! because r.js does not generate module name:
+//   define("FSLib",[], function () { ... 
 //(function (global) {
 //var useGlobal=(typeof global.define!="function");
 //var define=(useGlobal ? define=function(_,f){f();} : global.define);
@@ -726,19 +728,56 @@ define('FS2',["extend","PathUtil","MIMETypes","assert"],function (extend, P, M,a
         isLink: function (path) {
             return null;
         },
-        getDirTree: function (path, dest) {
-            dest=dest||{};
+        opendirEx: function (path, options) {
             assert.is(path, P.AbsDir);
             var ls=this.opendir(path);
             var t=this;
+            var dest={};
             ls.forEach(function (f) {
                 var p=P.rel(path,f);
-                if (t.isDir(p)) {
-                    t.getDirTree(p,dest);
-                } else {
-                    dest[p]=t.getMetaInfo(p);
-                }
+                dest[f]=t.getMetaInfo(p);
             });
+            return dest;
+        },
+        getDirTree: function (path, options) {
+            options=options||{};
+            var dest=options.dest=options.dest||{};
+            options.style=options.style||"flat-absolute";
+            if (options.style=="flat-relative" && !options.base) {
+                options.base=path;
+            }
+            assert.is(path, P.AbsDir);
+            var tr=this.opendirEx(path);
+            if (options.style=="no-recursive") return tr;
+            var t=this;
+            for (var f in tr) {
+                var meta=tr[f];
+                var p=P.rel(path,f);
+                if (t.isDir(p)) {
+                    switch(options.style) {
+                    case "flat-absolute":
+                    case "flat-relative":
+                        t.getDirTree(p,options);
+                        break;
+                    case "hierarchical":
+                        options.dest={};
+                        dest[f]=t.getDirTree(p,options);
+                        break;
+                    }
+                } else {
+                    switch(options.style) {
+                    case "flat-absolute":
+                        dest[p]=meta;
+                        break;
+                    case "flat-relative":
+                        dest[P.relPath(p,options.base)]=meta;
+                        break;
+                    case "hierarchical":
+                        dest[f]=meta;
+                        break;
+                    }
+                }
+            }
             return dest;
         }
         /*get: function (path) {
@@ -1301,6 +1340,7 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
         assert(storage," new LSFS fail: no storage");
     	this.storage=storage;
     	this.options=options||{};
+    	this.dirCache={};
     };
     var isDir = P.isDir.bind(P);
     var up = P.up.bind(P);
@@ -1369,7 +1409,8 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
         if (path == null) throw new Error("getDir: Null path");
         if (!endsWith(path, SEP)) path += SEP;
         assert(this.inMyFS(path));
-        var dinfo = {};
+        if (this.dirCache[path]) return this.dirCache[path];         
+        var dinfo =  {};
         try {
             var dinfos = this.getItem(path);
             if (dinfos) {
@@ -1378,12 +1419,13 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
         } catch (e) {
             console.log("dinfo err : " , path , dinfos);
         }
-        return dinfo;
+        return this.dirCache[path]=dinfo;
     };
     LSFS.prototype.putDirInfo=function putDirInfo(path, dinfo, trashed) {
   	    assert.is(arguments,[P.AbsDir, Object]);
   	    if (!isDir(path)) throw new Error("Not a directory : " + path);
   	    assert(this.inMyFS(path));
+  	    this.dirCache[path] = dinfo;
   	    this.setItem(path, JSON.stringify(dinfo));
         var ppath = up(path);
         if (ppath == null) return;
@@ -1592,6 +1634,7 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
             this.assertWriteable(path);
             if (!this.itemExists(path)) {
                 if (P.isDir(path)) {
+                    this.dirCache[path]={};
                     this.setItem(path,"{}");
                 } else {
                     this.setItem(path,"");
@@ -1611,11 +1654,17 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
         getURL: function (path) {
             return this.getContent(path).toURL();
         },
-        getDirTree: function (path,dest) {
+        opendirEx: function (path,options) {
             assert.is(path,P.AbsDir);
-            dest=dest||{};
+            //dest=dest||{};
+            var res={};
             var d=this.getDirInfo(path);
-            for (var f in d) {
+            for (var k in d) {
+                if (d[k].trashed) continue;
+                res[k]=d[k];
+            }
+            return res;
+            /*for (var f in d) {
                 var p=P.rel(path,f);
                 if (this.isDir(p)) {// TODO symlink not follow(and no entry in dest)
                     this.getDirTree(p,dest);
@@ -1623,7 +1672,7 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
                     dest[p]=d[f];
                 }
             }
-            return dest;
+            return dest;*/
         }
     });
     return LSFS;
@@ -1775,7 +1824,7 @@ SFile.prototype={
     },
     //Common
     touch: function () {
-        this.act.fs.touch(this.act.path);
+        return this.act.fs.touch(this.act.path);
     },
     isReadOnly: function () {
         return this.act.fs.isReadOnly(this.act.path);
@@ -1798,8 +1847,8 @@ SFile.prototype={
     setMetaInfo: function (info, options) {
         return this.act.fs.setMetaInfo(this.act.path,info, options);
     },
-    getDirTree: function () {
-        return this.act.fs.getDirTree(this.act.path);
+    getDirTree: function (options) {
+        return this.act.fs.getDirTree(this.act.path, options);
     },
     lastUpdate:function () {
         A(this.exists());
@@ -2022,7 +2071,7 @@ SFile.prototype={
         return A.is(options,{excludes:{}});
     },
     mkdir: function () {
-        this.touch();
+        return this.touch();
     },
     link: function (to,options) {// % ln to path
         if (this.exists()) throw new Error(this.path()+": exists.");
@@ -2187,7 +2236,7 @@ define('FS',["FS2","NativeFS","LSFS", "PathUtil","Env","assert","SFile","RootFS"
 	requirejs(["FS"], function (r) {
 	  resMod=r;
 	});
-	window.FS=resMod;
+	if (window.FS===undefined) window.FS=resMod;
 	return resMod;
 });
 //})(window);
@@ -8412,9 +8461,10 @@ define('zip',["FS","Shell","Util"],function (FS,sh,Util) {
     };
     return zip;
 });
-define('Sync',["FS","Shell","WebSite","assert"],
-        function (FS,sh,WebSite,A) {
+define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
+        function (FS,sh,WebSite,A,DU) {
     var Sync={};
+    var F=DU.begin;
     //var PathUtil=FS.PathUtil; Not avail
     sh.sync=function () {
         // sync options:o      local=remote=cwd
@@ -8441,13 +8491,27 @@ define('Sync',["FS","Shell","WebSite","assert"],
         // sync dir:file options:o local=remote=dir
         // sync local:file remote:file options:o
         var local,remote,options;
+        function diffTree(a,b) {
+            console.log("diff",a,b);
+            for (var k in unionKeys(a,b)) {
+                if (!k in a) console.log(k," is not in a",k[b]);
+                if (!k in b) console.log(k," is not in b",k[a]);
+                if (typeof k[a]=="object" && typeof k[b]=="object") {
+                    diffTree(k[a],k[b]);   
+                } else {
+                    if (k[a]!=k[b]) console.log(k," is differ",k[a],k[b]);
+                }            
+            }
+        }
         function getLocalDirInfo() {// This is slow!
-            var res={};
+            /*var res={};
             local.recursive(function (file) {
                 var lcm=file.metaInfo();
                 res[file.relPath(local)]=lcm;
-            },{excludes:options.excludes});
-            return res;
+            },{excludes:options.excludes});*/
+            var res2=local.getDirTree({style:"flat-relative"});
+            //diffTree(res,res2);
+            return res2;
         }
         function unionKeys() {
             var keys={};
@@ -8542,7 +8606,7 @@ define('Sync',["FS","Shell","WebSite","assert"],
             type:"get",
             url:A(WebSite.url.getDirInfo),
             data:req
-        }).then(function n1(curRemoteDirInfo) {
+        }).then(F(function n1(curRemoteDirInfo) {
             var d;
             if (options.v) sh.echo("getDirInfo",curRemoteDirInfo);
             if (curRemoteDirInfo.NOT_LOGGED_IN) {
@@ -8586,7 +8650,7 @@ define('Sync',["FS","Shell","WebSite","assert"],
                 url:A(WebSite.url.getFiles),
                 data:req
             });
-        }).then(function n2(dlData) {
+        })).then(F(function n2(dlData) {
             sh.echo("dlData=",dlData);
             //dlData=JSON.parse(dlData);
             if (options.v) sh.echo("dlData:",dlData);
@@ -8613,7 +8677,7 @@ define('Sync',["FS","Shell","WebSite","assert"],
                 url:req.pathInfo,
                 data:req
             });
-        }).then(function n3(res){
+        })).then(F(function n3(res){
             var newRemoteDirInfo=res.data;
             if (options.v) sh.echo("putFiles res=",res);
             var newLocalDirInfo=getLocalDirInfo();
@@ -8623,7 +8687,7 @@ define('Sync',["FS","Shell","WebSite","assert"],
             var upds=[];
             for (var i in uploads) upds.push(i);
             return res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};
-        });
+        }));
     };
     sh.rsh=function () {
         var a=[];
