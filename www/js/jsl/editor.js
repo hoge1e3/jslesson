@@ -464,7 +464,9 @@ $(function () {
                     RunDialog2.show(indexF,
                     {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
                 }).fail(function (e) {
+                    //console.log("FAIL", arguments);
                     console.log(e.stack);
+                    Tonyu.onRuntimeError(e);
                 }).done(function () {
                     if (typeof SplashScreen!="undefined") SplashScreen.hide();
                 });

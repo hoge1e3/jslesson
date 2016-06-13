@@ -95,7 +95,7 @@ MinimalParser= function () {
 	var rp=token(/^[)）]/).ret(function(){return ")";});
 	var excr=token(/^[!！]/).ret(function(){return "!";});
 	var semicolon=token(/^[;；]/).ret(function(){return ";";});
-	var eq=token(/^[=＝]/).ret(function(){return "=";});
+	var eq=token(/^[=＝]/).noFollow(token(/^[=＝]/)).ret(function(){return "=";});
 	var deq=token(/^[=＝][=＝]/).ret(function(){return "==";});
 	var add=token(/^[+＋]/).ret(function(){return "+";});
 	var sub=token(/^[-−]/).ret(function(){return "-";});
@@ -262,7 +262,8 @@ MinimalParser= function () {
 			if(result.src.maxPos<str.length){
 				var line=(str.substr(0,result.src.maxPos)).match(/\n/g);
 				line=(line)?line.length:0;
-				alert("エラーが発生しました。\n"+line+"行目付近を確認してください。");
+				//alert("エラーが発生しました。\n"+line+"行目付近を確認してください。");
+				throw new Error("エラーが発生しました。\n"+line+"行目付近を確認してください。");
 			}
 		}
         return output;

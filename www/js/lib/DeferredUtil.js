@@ -109,7 +109,7 @@ define([], function () {
                 return DU.loop(s,DU.tr(f));
             }
     };
-    DU.begin=DU.tr=DU.throwF;
+    DU.begin=DU.try=DU.tr=DU.throwF;
     DU.callbackToPromise=DU.funcPromise;
     
     return DU;

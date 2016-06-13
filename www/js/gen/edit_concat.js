@@ -3454,8 +3454,8 @@ var FileMenu=function () {
         var f=curDir.rel(name);
         return {ok: true, file: f};
     };
-    FM.on.displayName=function (f) {
-        return f.name();
+    FM.on.displayName=function (fname) {
+        return fname;//();
     };
     FM.on.close=function () {};
     FM.on.open=function (f){
@@ -3558,7 +3558,7 @@ var FileMenu=function () {
         FM.onMenuStart("mv");
         var curFile=FM.on.getCurFile();
         if (!curFile) return;
-        var oldName=FM.on.displayName(curFile);
+        var oldName=FM.on.displayName(curFile.name());
         /*var oldName,  mode;
         if (typeof oldNameD=="string") oldName=oldNameD;
         else { oldName=oldNameD.name; mode=oldNameD.mode;}*/

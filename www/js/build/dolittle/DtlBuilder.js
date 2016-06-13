@@ -48,13 +48,13 @@ function (A,DU,wget,dtlParser) {
             var js=dtlParser.parse(curJSFile.text());
             var dstf=dst.rel("user.js");
             return dstf.text(js);
-        })).then(DU.throwF(function() {
+        })).then(DU.tr(function() {
             t.genHTML(curHTMLFile,dst.rel("index.html"));
             /*curPrj.dir.each(function (f) {
                 if (f.ext()!=".html")  return;
                 t.genHTML(f.truncExt());
             });*/
-        }), function (e) {
+        }));/*, function (e) {
             if (typeof SplashScreen!="undefined") SplashScreen.hide();
             if (e.isTError) {
                 console.log("showErr: run");
@@ -63,7 +63,7 @@ function (A,DU,wget,dtlParser) {
             }else{
                 Tonyu.onRuntimeError(e);
             }
-        });            
+        });   */         
     };
     return DtlBuilder;
 });
