@@ -349,7 +349,7 @@ $(function () {
         return Sync.sync(projects, FS.get("/"),{v:true}).then(
             function(){unsynced=false;showToast("保存しました");}
         ).fail(function (e) {
-            logToServer(e.stack || e.responseText || e);
+            logToServer("SYNC ERROR!\n"+(e.stack || e.responseText || e)+"\nSYNC ERROR END!\n");
             console.log(e);
             alert("保存に失敗しました。");
         });

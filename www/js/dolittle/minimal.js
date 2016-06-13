@@ -24,7 +24,11 @@ MinimalParser= function () {
 	        var depth=0;
 	        if ((typeof (ctx.depth))=="number") depth=ctx.depth+1;
 	        //console.log("entering",depth);
-	        return {scope: Object.create(ctx.scope||{}) ,depth:depth };
+	        var s=Object.create(ctx.scope||{});
+	        ["self","this","自分"].forEach(function (k) {
+	            s[k]={type:"self", depth:depth};  
+	        });
+	        return {scope: s ,depth:depth };
 	    },parser);
 	}
 	function lit(s) {
@@ -107,20 +111,19 @@ MinimalParser= function () {
 	var le=token(/^(?:[<＜][=＝])|≦/).ret(function(){return "<=";});
 	var neg=token(/^(?:[!！][=＝])|≠/).ret(function(){return "!=";});
 	var mod=token(/^[%％]/).ret(function(){return "%";});
-	var dquote=token(/^[\"\”]/).ret(function(){return "\"";});
 
     // \token_name 名前のトークン
 	var token_name = token(reg_name).ret(function(_name){return trim_name(_name.text);});
-	var reg_str = RegExp("^[^\"^\”]*");//文字列の正規表現
-	var tok_str = dquote.and(token(reg_str)).and(dquote).ret(function(_ldq,_str,_rdq){
-	    return extend([_ldq,_str,_rdq],{type:"string",content:_str});
+	var reg_str = RegExp("^[\"\”][^\"^\”]*[\"\”]");//文字列の正規表現
+	var tok_str = token(reg_str).ret(function(_str){
+	    return extend([_str.text],{type:"string",content:_str.text.substring(1,_str.length-1)});
 	});
 	//reg_num = /^[0-9０-９]+(?:[.。・])?(?:[0-9０-９])*/;//数字を表す正規表現
 	var reg_num=/^[0-9０-９]+/;
 	var tok_num = token(reg_num).ret(function(_num){
-		return extend([(_num+"").replace(/[０-９]/g, function(s) {
+		return extend(["(",(_num+"").replace(/[０-９]/g, function(s) {
 			return parseInt(String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
-		})],{type:"number"});
+		}),")"],{type:"number"});
 	});
     //--------------ここから構文	
 	//括弧
@@ -133,7 +136,7 @@ MinimalParser= function () {
     // sin(x) なども送信の一種
 	var func_exe=token_name.and(paren_expr).
 	ret(function(_name,_paren){
-	    return extend([_paren,".",name,"()"], {type:"func_exec",subnodes:arguments});
+	    return extend([_paren,".",_name,"()"], {type:"func_exec",subnodes:arguments});
 	});
 	//電文
 	var elec = simple.rep0().and(token_name).
@@ -284,7 +287,7 @@ MinimalParser= function () {
     		        result+=gen(el);
     		    });
     		    return result;
-    		} else return (e||"")+"";
+    		} else return (e==null ? "" : e)+"";
     	};
     	var result=gen(p);
     	//console.log("dtlgen",p,result);

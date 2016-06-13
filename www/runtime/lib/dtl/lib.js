@@ -249,7 +249,20 @@ var or={true:function(){var arr=Array.prototype.slice.call(arguments);var res=Bo
 //Booleanオブジェクト
 Boolean.prototype.then=function(){return (this)?True:False;};
 Boolean.prototype["反対"]=function(){return (false==this);};
+//Number
+["sin","cos","tan","atan","abs","floor"].forEach(function (k) {
+    Number.prototype[k]=function () {
+        return Math[k](this);
+    };
+});
+Number.prototype.radian=function() {
+    return this/180*Math.PI;
+};
+Number.prototype.degree=function() {
+    return this/Math.PI*180;
+};
 
+//Function
 Function.prototype.execute	=	function(){return this.apply(this.bound||this,arguments);};
 Function.prototype.repeat=function(param){
 	var res;
