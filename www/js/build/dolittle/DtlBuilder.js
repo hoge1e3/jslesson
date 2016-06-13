@@ -8,7 +8,7 @@ function (A,DU,wget,dtlParser) {
     p.dlFiles=function () {
         var dst=this.dst;
         var urls=["lib/jquery-1.12.1.js",
-        "lib/require.js","lib/dtl/lib.js",
+        "lib/require.js","lib/dtl/lib.js","lib/dtl/turtle.js",
         "images/ayumi.gif","images/tulip.png","images/apple.png"];
         var base="runtime/";
         var args=urls.map(function (url) {
@@ -25,7 +25,7 @@ function (A,DU,wget,dtlParser) {
         var dom=dp.parseFromString(curHTMLFile.text(),"text/html");
         var html=dom.getElementsByTagName("html")[0];
         var head=dom.getElementsByTagName("head")[0];
-        ["lib/jquery-1.12.1.js","lib/require.js","lib/dtl/lib.js","user.js"].forEach(function (src) {
+        ["lib/jquery-1.12.1.js","lib/require.js","lib/dtl/lib.js","lib/dtl/turtle.js","user.js"].forEach(function (src) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
             nn.setAttribute("src",src);

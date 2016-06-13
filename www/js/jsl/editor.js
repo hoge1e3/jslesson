@@ -469,6 +469,7 @@ $(function () {
                     Tonyu.onRuntimeError(e);
                 }).done(function () {
                     if (typeof SplashScreen!="undefined") SplashScreen.hide();
+                    return sync();
                 });
             }catch(e) {
                 console.log(e.stack);

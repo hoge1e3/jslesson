@@ -22,7 +22,10 @@ define(["UI"], function (UI) {
 				 }}}]],
 				["div",
         			 ["span","プログラミング言語"],
-        			 ["select",{$edit:"lang"},["option",{selected:true,value:"js"},"JS"],["option",{value:"c"},"C"]]
+        			 ["select",{$edit:"lang"},
+        			 ["option",{selected:true,value:"js"},"JS"],
+        			 ["option",{value:"c"},"C"],
+        			 ["option",{value:"dtl"},"Dolittle"]]
 				],
          			["div",
         			 ["span","親フォルダ"],
