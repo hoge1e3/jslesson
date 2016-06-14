@@ -185,7 +185,7 @@ MinimalParser= function () {
 	    {type:"block_param",subnodes:arguments});
 	});
 	function regLocal(n) {
-	    console.log("reglocal",n,ctx.depth);
+	    //console.log("reglocal",n,ctx.depth);
 	    ctx.scope[n+""]={type:"local",depth:ctx.depth};
 	}
 	var block = lsb.and(block_param.opt()).and(statement_list_lazy).and(rsb).

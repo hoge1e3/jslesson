@@ -1,6 +1,7 @@
 (function (){
 var root={window:window,document:document, console:console};
 window.root=root;
+root.root=root;
 //var ctx=$("canvas").get(0).getContext("2d");
 var localize=function (obj, map) {
     for (var k in map) if (obj[k]) obj[map[k]]=obj[k];
@@ -226,6 +227,7 @@ Object.defineProperty(Array.prototype,"クリア",{
 	value:function(){var length=this.length;for(var i=0;i<=length;i++)this.removepos(1);return this;}
 });
 root["配列"]=Array;
+root.Array=Array;
 
 //Stringオブジェクト
 String.prototype.add=function(_param){return this.valueOf()+ _param;};
@@ -352,4 +354,24 @@ Done= function(param){
 };
 root["ブロック"]=Function;
 localize(Function.prototype,{then:"なら", repeat:"繰り返す", "while":"の間"});
+
+root.module={
+    require: function () {
+        var a=Array.prototype.slice.call(arguments);
+        var reqs=[],func;
+        while (true) {
+            var v=a.shift();
+            if (v==null) break;
+            if (typeof v=="string") reqs.push(v);
+            if (typeof v=="function") {
+                func=v;
+                break;
+            }
+        }
+        return window.requirejs(reqs,function() {
+            if (func) return func.execute(arguments);
+        });
+    }
+};
+
 })();

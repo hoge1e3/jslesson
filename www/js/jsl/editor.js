@@ -143,16 +143,25 @@ $(function () {
     var editors={};
 
     KeyEventChecker.down(document,"bs",F(function (e) {
-	if($(":focus").attr("id")!="inputDialog"){
-        UIDiag.confirm("一つ前のページに戻ります。よろしいですか？").then(function (r) {
-            if (r) {
-                history.back();
-            }
-        });
-        e.stopPropagation();
-        e.preventDefault();
-        return false;
-	}
+	    var f=$(":focus");
+	    var doConfirm=true;
+	    if (f.length>0 && 
+	        (
+	            (f[0].tagName.toLowerCase()=="input" && 
+    	        (!f.attr("type") || f.attr("type")=="text")) || 
+	            f[0].tagName.toLowerCase()=="textarea"
+	        )
+	    ) doConfirm=false;
+	    if(doConfirm){
+            UIDiag.confirm("一つ前のページに戻ります。よろしいですか？").then(function (r) {
+                if (r) {
+                    history.back();
+                }
+            });
+            e.stopPropagation();
+            e.preventDefault();
+            return false;
+	    }
     }));
     KeyEventChecker.down(document,"F9",F(run));
     KeyEventChecker.down(document,"F2",F(function(){
@@ -458,9 +467,9 @@ $(function () {
                 var ram=FS.get("/ram/build/");
                 if (!ram.exists()) FS.mount(ram.path(),"ram");
                 var b=new Builder(curPrj, ram);
-                b.build(curHTMLFile,curJSFile).then(function () {
+                b.build().then(function () {
                     //console.log(ram.ls());
-                    var indexF=ram.rel("index.html");
+                    var indexF=ram.rel(curHTMLFile.name());
                     RunDialog2.show(indexF,
                     {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
                 }).fail(function (e) {
@@ -504,7 +513,10 @@ $(function () {
         alert(e);
         alertOnce=function(){};
     };
-    window.onerror=EC.handleException=Tonyu.onRuntimeError=function (e) {
+    window.onerror=function (a,b,c,d,e) {
+        return Tonyu.onRuntimeError(e);
+    };
+    EC.handleException=Tonyu.onRuntimeError=function (e) {
         Tonyu.globals.$lastError=e;
         var t=curPrj.env.traceTbl;
         var te;

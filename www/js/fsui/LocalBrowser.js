@@ -40,8 +40,31 @@ define(["Shell", "FS","DeferredUtil","UI"],function (sh,FS,DU,UI) {
                     }
                 },
                 convertURL:function (url) {
-                    return LocalBrowser.convertURL(iwin, url, base);
+                    if (this.fileMap[url]) {
+                        return this.fileMap[url];
+                    }
+                    return this.fileMap[url]=LocalBrowser.convertURL(iwin, url, base);
+                },
+                fileMap:{},
+                blob2originalURL: function (line) {
+                    for (var url in this.fileMap) {
+                        var blobURL=this.fileMap[url];
+                        var idx=line.indexOf(blobURL);
+                        if (idx>=0) {
+                            line=line.substring(0,idx)+url+line.substring(idx+blobURL.length);
+                        }
+                    }
+                    return line;
                 }
+            };
+            iwin.onerror=function (message, source, lineno, colno,ex) {
+                source=iwin.LocalBrowserInfo.blob2originalURL(source);
+                if (ex && ex.stack) {
+                    ex.stack=(ex.stack+"").split("\n").map(function (l) {
+                        return iwin.LocalBrowserInfo.blob2originalURL(l);
+                    }).join("\n");
+                }
+                if (window.onerror) window.onerror(message, source, lineno, colno,ex);
             };
             idoc=iwin.document;
             return $.when().then(F(function () {
