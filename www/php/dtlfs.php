@@ -6,7 +6,7 @@
 require_once"dtl/Dtl.php";
 require_once"json.php";
 require_once"dtlfs/DtlFS.php";
-
+require_once"ErrorHandler.php";
 
 if (isset($_POST["script"])) {
     $scr=$_POST["script"];

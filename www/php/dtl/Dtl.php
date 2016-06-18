@@ -14,7 +14,7 @@ class Dtl {
         self::$root->Dict=self::$root->Array;
         self::$root->root=self::$root;
         self::$root->self=self::$root;
-        self::$root->rootDir=$rootDir;
+        //self::$root->rootDir=$rootDir;
         return self::$root;
     }
     public static function run($vmcode) {

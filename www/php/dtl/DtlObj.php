@@ -11,13 +11,11 @@ class DtlObj {
         if (is_null($name)) throw new Exception("名前が空です");
         if (is_object($obj)) {
             if (preg_match("/^__/",$name)) return null;
-            $v=$obj->$name;
-            if (is_null($v)) {
-                $p=$obj->__proto__;
-                if (is_null($p)) return $v;
-                return self::s_get($p,$name);
+            if (isset($obj->$name)) {
+                return $obj->$name;
             } else {
-                return $v;
+                if (isset($obj->__proto__)) return self::s_get($obj->__proto__ ,$name);
+                return null;
             }
         }
         throw new Exception("$obj から属性$nameを取得できません");
