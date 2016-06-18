@@ -1,7 +1,35 @@
-if (typeof define!=="function") {
-   define=require("requirejs").define;
-}
 define([],function () {
+var Pos2RC=function (src) {
+    var $={};
+    var map=[];
+    var pos=0;
+    var lastRow=0;
+    src.split("\n").forEach(function (line) {
+        map.push(pos);
+        pos+=line.length+1;
+    });
+    map.push(pos);
+    $.getRC=function (pos) {
+        while(true) {
+            if (lastRow<0) {
+                return {row:1, col:1};
+            }
+            if (lastRow+1>=map.length) {
+                return {row:map.length, col:1};
+            }
+            //A(!( pos<map[lastRow]  &&  map[lastRow]<=pos ));
+            //A(!( map[lastRow+1]<=pos  &&  pos<map[lastRow+1] ));
+            if (pos<map[lastRow]) {
+                lastRow--;
+            } else if (map[lastRow+1]<=pos) {
+                lastRow++;
+            } else {
+                return {row:lastRow+1, col:pos-map[lastRow]+1};
+            }
+        }
+    };
+    return $;
+};
 return IndentBuffer=function () {
 	var $=function () {
 		var args=arguments;
@@ -23,21 +51,24 @@ return IndentBuffer=function () {
 		}
 		while (true) {
 			var i=fmt.indexOf("%");
-			if (i<0) {$.buf+=fmt; break;}
-			$.buf+=fmt.substring(0,i);
+			if (i<0) {$.print(fmt); break;}
+			$.print(fmt.substring(0,i));
 			i++;
 			var fstr=fmt.charAt(i);
 			if (fstr=="s") {
 				var str=shiftArg();
 				if (typeof str == "string" || typeof str =="number") {}
 				else if (str==null) str="null";
-				else if (str.text) str=str.text;
-				$.buf+=str;
+				else if (str.text) {
+				    $.addMapping(str);
+				    str=str.text;
+				}
+				$.print(str);
 				i++;
 			} else if (fstr=="d") {
                 var n=shiftArg();
                 if (typeof n!="number") throw new Error (n+" is not a number: fmt="+fmt);
-                $.buf+=n;
+                $.print(n);
                 i++;
 			} else if (fstr=="n") {
 				$.ln();
@@ -49,13 +80,13 @@ return IndentBuffer=function () {
 				$.dedent();
 				i++;
 			} else if (fstr=="%") {
-				$.buf+="%";
+				$.print("%");
 			} else if (fstr=="f") {
 				shiftArg()($);
 				i++;
             } else if (fstr=="l") {
                 var lit=shiftArg();
-                $.buf+=$.toLiteral(lit);
+                $.print($.toLiteral(lit));
                 i++;
 			} else if (fstr=="v") {
 			    var a=shiftArg();
@@ -66,7 +97,7 @@ return IndentBuffer=function () {
             } else if (fstr=="z") {
                 var place=shiftArg();
                 if ("val" in place) {
-                    $.buf+=place.val;
+                    $.print(place.val);
                     return;
                 }
                 if (!place.gen) {
@@ -80,7 +111,7 @@ return IndentBuffer=function () {
                     };*/
                     $.lazy(place);
                 }
-                $.buf+=place.gen;
+                $.print(place.gen);
                 i++;
 			} else if (fstr=="j") {
                 var sp_node=shiftArg();
@@ -106,12 +137,23 @@ return IndentBuffer=function () {
 			fmt=fmt.substring(i);
 		}
 	};
+	$.addMapping=function (token) {
+	    // token:extend({text:String},{pos:Number}|{row:Number,col:Number})
+	    if (typeof token.row!="number" || typeof token.row!="number") {
+	           
+	    }
+	};
+	$.setSrcFile=function (f) {
+	    $.srcFile=f;
+	    $.srcRCM=Pos2RC(f.text());
+	};
 	$.print=function (v) {
 	    $.buf+=v;
 	};
 	$.printf=$;
 	$.buf="";
 	$.lazy=function (place) {
+	    //TODO: cannot use with sourcemap
 	    if (!place) place={};
 	    place.gen=("GENERETID"+Math.random()+"DITERENEG").replace(/\W/g,"");
         place.reg=new RegExp(place.gen,"g");
@@ -125,11 +167,11 @@ return IndentBuffer=function () {
         //return {put: function () {} };
 	};
 	$.ln=function () {
-		$.buf+="\n"+$.indentBuf;
+		$.print("\n"+$.indentBuf);
 	};
 	$.indent=function () {
 		$.indentBuf+=$.indentStr;
-		$.buf+="\n"+$.indentBuf;
+		$.print("\n"+$.indentBuf);
 	};
 	$.dedent = function () {
 		var len=$.indentStr.length;

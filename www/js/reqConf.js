@@ -149,6 +149,8 @@ var reqConf={
             "ObjectMatcher": "lang/ObjectMatcher",
             "Arrow": "help/Arrow",
             "context": "lang/context",
+            "source-map": "lang/source-map",
+            "CodeBuffer": "lang/IndentBuffer",
             "IndentBuffer": "lang/IndentBuffer",
             "ExpressionParser": "lang/ExpressionParser2",
             "Grammar": "lang/Grammar",

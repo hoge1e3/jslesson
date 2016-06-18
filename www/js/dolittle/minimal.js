@@ -113,17 +113,23 @@ MinimalParser= function () {
 	var mod=token(/^[%％]/).ret(function(){return "%";});
 
     // \token_name 名前のトークン
-	var token_name = token(reg_name).ret(function(_name){return trim_name(_name.text);});
+	var token_name = token(reg_name).ret(function(_name){
+	    return {pos:_name.pos,text: trim_name(_name.text),toString:function () {
+	        return this.text;
+	    }};
+	});
 	var reg_str = RegExp("^[\"\”][^\"^\”]*[\"\”]");//文字列の正規表現
 	var tok_str = token(reg_str).ret(function(_str){
-	    return extend([_str.text],{type:"string",content:_str.text.substring(1,_str.length-1)});
+	    return extend([_str.text],{type:"string",content:_str.text.substring(1,_str.text.length-1)});
 	});
 	//reg_num = /^[0-9０-９]+(?:[.。・])?(?:[0-9０-９])*/;//数字を表す正規表現
 	var reg_num=/^[0-9０-９]+/;
 	var tok_num = token(reg_num).ret(function(_num){
-		return extend(["(",(_num+"").replace(/[０-９]/g, function(s) {
+		var v=(_num+"").replace(/[０-９]/g, function(s) {
 			return parseInt(String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
-		}),")"],{type:"number"});
+		});
+		v=parseInt(v);
+		return extend(["(",v,")"],{type:"number",value:v});
 	});
     //--------------ここから構文	
 	//括弧
@@ -277,21 +283,26 @@ MinimalParser= function () {
     	return output;
 	};
 	parser.node2js=function (p) {
+	    var buf="(function(){";
     	var gen=function(e){
     		if(typeof e=="function") return gen(e());
     		else if(Array.isArray(e)) {
     		    var f=0;
-            	var result="";
     		    e.forEach(function (el) {
-    		        if (f++) result+=e.joined||"";
-    		        result+=gen(el);
+    		        if (f++) buf+=e.joined||"";
+    		        gen(el);
     		    });
-    		    return result;
-    		} else return (e==null ? "" : e)+"";
+    		} else {
+    		    if (e && typeof e.pos=="number") {
+    		        //console.log(buf.length,e.pos);
+    		    }
+    		    buf+=(e==null ? "" : e);
+    		}
     	};
-    	var result=gen(p);
+    	gen(p);
+    	buf+="}).apply(root,[]);";
     	//console.log("dtlgen",p,result);
-    	return "(function(){"+result+"}).apply(root,[]);";
+    	return buf;
     };
 	return parser;
 }();

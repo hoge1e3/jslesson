@@ -16,13 +16,13 @@ define(["UI"], function (UI) {
         	res.d=UI("div",{title:(options.ren?"プロジェクト名の変更":"新規プロジェクト")},
         			["div",
         			 ["span","プロジェクト名"],
-        			 ["input",{$edit:"name",value:options.defName||"",
+        			 ["input",{$edit:"name",id:"prjName",value:options.defName||"",
         			     on:{enterkey:function () {
                 		     res.d.done();
 				 }}}]],
 				["div",
         			 ["span","プログラミング言語"],
-        			 ["select",{$edit:"lang"},
+        			 ["select",{$edit:"lang",id:"prjLang"},
         			 ["option",{selected:true,value:"js"},"JS"],
         			 ["option",{value:"c"},"C"],
         			 ["option",{value:"dtl"},"Dolittle"]]

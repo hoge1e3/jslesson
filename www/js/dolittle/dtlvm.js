@@ -54,7 +54,7 @@ MinimalParser.node2vm=function (node) {
             v.visit(op);            
         },
         number:function (node) {
-            add(["pushi",parseFloat(node[0]+"")]);
+            add(["pushi",parseFloat(node.value+"")]);
         },
         string:function (node) {
             add(["pushi",node.content+""]);
@@ -82,21 +82,21 @@ MinimalParser.node2vm=function (node) {
         },
         localVar: function (node) {
             var name=node.name;//subnodes[0];
-            add(["push1",name]);
+            add(["push1",name+""]);
         },
         field: function (node) {
             var name=node.name;//subnodes[0];
             add(["push1","self"]);
-            add(["push2",name]);
+            add(["push2",name+""]);
         },
         rootVar: function (node) {
             var name=node.name;//subnodes[0];
             add(["push1","root"]);
-            add(["push2",name]);
+            add(["push2",name+""]);
         },
         memberAccess: function (node) {
             var name=node.name;//subnodes[0];
-            add(["push2",name]);
+            add(["push2",name+""]);
         },
         statement: function (node) {
             var assign=node.subnodes[0];
