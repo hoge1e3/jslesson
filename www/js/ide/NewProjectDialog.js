@@ -25,7 +25,7 @@ define(["UI"], function (UI) {
         			 ["select",{$edit:"lang",id:"prjLang"},
         			 ["option",{selected:true,value:"js"},"JS"],
         			 ["option",{value:"c"},"C"],
-        			 ["option",{value:"dtl"},"Dolittle"]]
+        			 ["option",{value:"dtl"},"Dolittle(Beta)"]]
 				],
          			["div",
         			 ["span","親フォルダ"],

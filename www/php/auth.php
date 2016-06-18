@@ -1,6 +1,10 @@
 <?php
 require_once "NativeFS.php";
 require_once "json.php";
+//ini_set('session.gc_maxlifetime',60*60*24);
+ini_set('session.gc_maxlifetime',5);
+ini_set('session.gc_divisor',1);
+ini_set('session.gc_probability',1);
 
 class Auth {
    static function login($class,$user) {

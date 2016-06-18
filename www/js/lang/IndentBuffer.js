@@ -149,9 +149,15 @@ return IndentBuffer=function () {
 	};
 	$.print=function (v) {
 	    $.buf+=v;
+	    v.split("\n").forEach(function (line) {
+	        $bufRow+=line.length+1;
+	        $bufRow++;
+	    });
 	};
 	$.printf=$;
 	$.buf="";
+	$.bufRow=1;
+	$.bufRowHead=0;
 	$.lazy=function (place) {
 	    //TODO: cannot use with sourcemap
 	    if (!place) place={};

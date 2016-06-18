@@ -54,7 +54,7 @@
 	    		var vmc=MinimalParser.node2vm(dtlNode);
 	    		var vmcj=JSON.stringify(vmc);
     			console.log("VM Code", vmcj);
-    			var svurl="/fsjs/php/dtlfs.php";
+    			var svurl="../../php/dtlfs.php";
     			$.post(svurl,{script: vmcj}).then(function (res){
     			    console.log(res);
 	    			(iframe.contentWindow.timer_stopper)?iframe.contentWindow.timer_stopper():null;
