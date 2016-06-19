@@ -1,7 +1,7 @@
 define(["Tonyu","Tonyu.Compiler.JSGenerator","Tonyu.Compiler.Semantics",
-        "Tonyu.TraceTbl","FS","assert","DeferredUtil","compiledProject"],
+        "Tonyu.TraceTbl","FS","assert","DeferredUtil","compiledProject","IndentBuffer"],
         function (Tonyu,JSGenerator,Semantics,
-                ttb,FS,A,DU,CPR) {
+                ttb,FS,A,DU,CPR,IndentBuffer) {
 var TPRC=function (dir) {
      A(FS.isFile(dir) && dir.isDir(), "projectCompiler: "+dir+" is not dir obj");
      var TPR={env:{}};
@@ -201,13 +201,20 @@ var TPRC=function (dir) {
      TPR.concatJS=function (ord) {
          var env=TPR.env;
          var cbuf="";
+         var outf=TPR.getOutputFile();
+         var codeb=env.codeBuffer=IndentBuffer();
+         //codeb.printf("// Gen!%n");
          ord.forEach(function (c) {
-             console.log("concatJS :"+c.fullName);
+             console.log("concatJS :",c.fullName);//,c.src.tonyu);
+             codeb.setSrcFile(c.src.tonyu);
              JSGenerator.genJS(c, env);
              cbuf+=c.src.js+"\n";
          });
-         var outf=TPR.getOutputFile();
-         outf.text(cbuf);
+         //outf.text(cbuf);
+         //console.log("gencode", codeb.buf);
+         var mapf=outf.sibling(outf.name()+".map");
+         mapf.text(codeb.srcmap.toString());
+         outf.text(env.codeBuffer.buf+"\n//# sourceMappingURL="+mapf.name());
          evalFile(outf);
      };
      TPR.getDependingProjects=function () {

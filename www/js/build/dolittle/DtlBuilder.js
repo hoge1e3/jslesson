@@ -1,5 +1,5 @@
-define(["assert","DeferredUtil","wget", "dolittle/minimal"], 
-function (A,DU,wget,dtlParser) {
+define(["assert","DeferredUtil","wget", "dolittle/minimal","IndentBuffer"], 
+function (A,DU,wget,dtlParser,IndentBuffer) {
     DtlBuilder=function (prj, dst) {
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
@@ -58,13 +58,15 @@ function (A,DU,wget,dtlParser) {
             src:{html:html,dtl:dtl},
             dst:{
                 html:dst.rel(html.name()),
-                js:dst.rel(name+".js")
+                js:dst.rel(name+".js"),
+                map: dst.rel(name+".js.map")
             }});
         });
         return this.dlFiles().then(DU.tr(function () {
             return DU.each(files,function (f) {
                 if (isNewer(f.dst.js, f.src.dtl)) return;
-                var js=dtlParser.parse(f.src.dtl.text());
+                var buf=IndentBuffer();
+                var js=dtlParser.parse(f.src.dtl.text(),{indentBuffer:buf});
                 return f.dst.js.text(js);
             });
         })).then(DU.tr(function() {
@@ -72,21 +74,7 @@ function (A,DU,wget,dtlParser) {
                 if (isNewer(f.dst.html, f.src.html)) return;
                 return t.genHTML(f);
             });
-            //t.genHTML(curHTMLFile,dst.rel("index.html"));
-            /*curPrj.dir.each(function (f) {
-                if (f.ext()!=".html")  return;
-                t.genHTML(f.truncExt());
-            });*/
-        }));/*, function (e) {
-            if (typeof SplashScreen!="undefined") SplashScreen.hide();
-            if (e.isTError) {
-                console.log("showErr: run");
-                showErrorPos($("#errorPos"),e);
-                displayMode("compile_error");
-            }else{
-                Tonyu.onRuntimeError(e);
-            }
-        });   */         
+        }));         
     };
     return DtlBuilder;
 });

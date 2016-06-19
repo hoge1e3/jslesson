@@ -36,7 +36,7 @@ function genJS(klass, env) {//B
     function getSource(node) {
         return cu.getSource(srcCont,node);
     }
-    var buf=IndentBuffer();
+    var buf=env.codeBuffer || IndentBuffer();
     var printf=buf.printf;
     var ctx=context();
     var debug=false;

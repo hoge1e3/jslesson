@@ -277,32 +277,39 @@ MinimalParser= function () {
 		}
         return output;
     };
-	parser.parse=function (str) {
+	parser.parse=function (str,options) {
 		var output=parser.parseAsNode(str);
-		output=parser.node2js(output);
+		output=parser.node2js(output,options);
     	return output;
 	};
-	parser.node2js=function (p) {
-	    var buf="(function(){";
+	parser.node2js=function (p,options) {
+	    var buf=options.buf || {
+	        buf:"",
+	        print:function (s) {
+	            this.buf+=s;
+	        },
+	        addMapping:function (){}
+	    };
+	    buf.print("(function(){");
     	var gen=function(e){
+		    if (e && typeof e.pos=="number") {
+		        buf.addMapping(e);
+		    }
     		if(typeof e=="function") return gen(e());
     		else if(Array.isArray(e)) {
     		    var f=0;
     		    e.forEach(function (el) {
-    		        if (f++) buf+=e.joined||"";
+    		        if (f++) buf.print(e.joined||"");
     		        gen(el);
     		    });
     		} else {
-    		    if (e && typeof e.pos=="number") {
-    		        //console.log(buf.length,e.pos);
-    		    }
-    		    buf+=(e==null ? "" : e);
+    		    buf.print(e==null ? "" : e);
     		}
     	};
     	gen(p);
-    	buf+="}).apply(root,[]);";
+    	buf.print("}).apply(root,[]);");
     	//console.log("dtlgen",p,result);
-    	return buf;
+    	return buf.buf;
     };
 	return parser;
 }();

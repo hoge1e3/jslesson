@@ -9,19 +9,19 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1000026;//user.Game1:26
+      $LASTPOS=1000023;//user.Game1:23
       _this.x=100;
-      $LASTPOS=1000034;//user.Game1:34
+      $LASTPOS=1000030;//user.Game1:30
       _this.y=300;
-      $LASTPOS=1000042;//user.Game1:42
+      $LASTPOS=1000037;//user.Game1:37
       _this.onClick("right",Tonyu.bindFunc(_this,_this.right));
-      $LASTPOS=1000067;//user.Game1:67
+      $LASTPOS=1000061;//user.Game1:61
       _this.onClick("left",Tonyu.bindFunc(_this,_this.left));
-      $LASTPOS=1000090;//user.Game1:90
+      $LASTPOS=1000083;//user.Game1:83
       while (true) {
-        $LASTPOS=1000109;//user.Game1:109
+        $LASTPOS=1000101;//user.Game1:101
         _this.move("neko",_this.x,_this.y);
-        $LASTPOS=1000132;//user.Game1:132
+        $LASTPOS=1000123;//user.Game1:123
         _this.wait(50);
         
       }
@@ -32,9 +32,9 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1000026;//user.Game1:26
+      $LASTPOS=1000023;//user.Game1:23
       _this.x=100;
-      $LASTPOS=1000034;//user.Game1:34
+      $LASTPOS=1000030;//user.Game1:30
       _this.y=300;
       
       _thread.enter(function _trc_Game1_ent_main(_thread) {
@@ -42,24 +42,24 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1000042;//user.Game1:42
+            $LASTPOS=1000037;//user.Game1:37
             _this.fiber$onClick(_thread, "right", Tonyu.bindFunc(_this,_this.right));
             __pc=1;return;
           case 1:
             
-            $LASTPOS=1000067;//user.Game1:67
+            $LASTPOS=1000061;//user.Game1:61
             _this.fiber$onClick(_thread, "left", Tonyu.bindFunc(_this,_this.left));
             __pc=2;return;
           case 2:
             
-            $LASTPOS=1000090;//user.Game1:90
+            $LASTPOS=1000083;//user.Game1:83
           case 3:
-            $LASTPOS=1000109;//user.Game1:109
+            $LASTPOS=1000101;//user.Game1:101
             _this.fiber$move(_thread, "neko", _this.x, _this.y);
             __pc=4;return;
           case 4:
             
-            $LASTPOS=1000132;//user.Game1:132
+            $LASTPOS=1000123;//user.Game1:123
             _this.fiber$wait(_thread, 50);
             __pc=5;return;
           case 5:
@@ -76,7 +76,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1000171;//user.Game1:171
+      $LASTPOS=1000158;//user.Game1:158
       _this.x-=10;
     },
     fiber$left :function _trc_Game1_f_left(_thread) {
@@ -85,7 +85,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1000171;//user.Game1:171
+      $LASTPOS=1000158;//user.Game1:158
       _this.x-=10;
       
       _thread.retVal=_this;return;
@@ -94,7 +94,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1000206;//user.Game1:206
+      $LASTPOS=1000190;//user.Game1:190
       _this.x+=10;
     },
     fiber$right :function _trc_Game1_f_right(_thread) {
@@ -103,7 +103,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1000206;//user.Game1:206
+      $LASTPOS=1000190;//user.Game1:190
       _this.x+=10;
       
       _thread.retVal=_this;return;
@@ -111,7 +111,8 @@ Tonyu.klass.define({
     __dummy: false
   },
   decls: {"methods":{"main":{"nowait":false},"left":{"nowait":false},"right":{"nowait":false}}}
-});Tonyu.klass.define({
+});
+Tonyu.klass.define({
   fullName: 'user.Game2',
   shortName: 'Game2',
   namespace: 'user',
@@ -304,7 +305,8 @@ Tonyu.klass.define({
     __dummy: false
   },
   decls: {"methods":{"main":{"nowait":false},"moveBall":{"nowait":false},"left":{"nowait":false},"right":{"nowait":false}}}
-});Tonyu.klass.define({
+});
+Tonyu.klass.define({
   fullName: 'user.Game3',
   shortName: 'Game3',
   namespace: 'user',
@@ -328,20 +330,18 @@ Tonyu.klass.define({
       $LASTPOS=3000098;//user.Game3:98
       _this.onClick("left",Tonyu.bindFunc(_this,_this.left));
       $LASTPOS=3000120;//user.Game3:120
-      _this.s.r.c=0;
-      $LASTPOS=3000129;//user.Game3:129
       while (true) {
-        $LASTPOS=3000147;//user.Game3:147
+        $LASTPOS=3000138;//user.Game3:138
         _this.move("neko",_this.x,_this.y);
-        $LASTPOS=3000169;//user.Game3:169
-        $LASTPOS=3000174;//user.Game3:174
+        $LASTPOS=3000160;//user.Game3:160
+        $LASTPOS=3000165;//user.Game3:165
         _this.i=0;
         while(_this.i<4) {
-          $LASTPOS=3000187;//user.Game3:187
+          $LASTPOS=3000178;//user.Game3:178
           _this.moveBall(_this.i);
           _this.i++;
         }
-        $LASTPOS=3000204;//user.Game3:204
+        $LASTPOS=3000195;//user.Game3:195
         _this.wait(50);
         
       }
@@ -377,20 +377,18 @@ Tonyu.klass.define({
           case 2:
             
             $LASTPOS=3000120;//user.Game3:120
-            _this.s.r.c=0;
-            $LASTPOS=3000129;//user.Game3:129
           case 3:
-            $LASTPOS=3000147;//user.Game3:147
+            $LASTPOS=3000138;//user.Game3:138
             _this.fiber$move(_thread, "neko", _this.x, _this.y);
             __pc=4;return;
           case 4:
             
-            $LASTPOS=3000169;//user.Game3:169
-            $LASTPOS=3000174;//user.Game3:174
+            $LASTPOS=3000160;//user.Game3:160
+            $LASTPOS=3000165;//user.Game3:165
             _this.i=0;;
           case 5:
             if (!(_this.i<4)) { __pc=7; break; }
-            $LASTPOS=3000187;//user.Game3:187
+            $LASTPOS=3000178;//user.Game3:178
             _this.fiber$moveBall(_thread, _this.i);
             __pc=6;return;
           case 6:
@@ -399,7 +397,7 @@ Tonyu.klass.define({
             __pc=5;break;
           case 7:
             
-            $LASTPOS=3000204;//user.Game3:204
+            $LASTPOS=3000195;//user.Game3:195
             _this.fiber$wait(_thread, 50);
             __pc=8;return;
           case 8:
@@ -416,21 +414,21 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=3000256;//user.Game3:256
+      $LASTPOS=3000234;//user.Game3:234
       _this.move("ball"+i,_this.bx[i],_this.by[i]);
-      $LASTPOS=3000288;//user.Game3:288
+      $LASTPOS=3000266;//user.Game3:266
       _this.by[i]+=10;
-      $LASTPOS=3000303;//user.Game3:303
+      $LASTPOS=3000281;//user.Game3:281
       if (_this.by[i]>400) {
-        $LASTPOS=3000328;//user.Game3:328
+        $LASTPOS=3000306;//user.Game3:306
         _this.by[i]=0;
-        $LASTPOS=3000345;//user.Game3:345
+        $LASTPOS=3000323;//user.Game3:323
         _this.bx[i]=_this.rnd(300);
         
       }
-      $LASTPOS=3000371;//user.Game3:371
+      $LASTPOS=3000349;//user.Game3:349
       if (_this.bx[i]>_this.x-30&&_this.bx[i]<_this.x+30&&_this.by[i]>_this.y-30&&_this.by[i]<_this.y+30) {
-        $LASTPOS=3000444;//user.Game3:444
+        $LASTPOS=3000422;//user.Game3:422
         _this.y=- 1000;
         
       }
@@ -447,18 +445,18 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=3000256;//user.Game3:256
+            $LASTPOS=3000234;//user.Game3:234
             _this.fiber$move(_thread, "ball"+i, _this.bx[i], _this.by[i]);
             __pc=1;return;
           case 1:
             
-            $LASTPOS=3000288;//user.Game3:288
+            $LASTPOS=3000266;//user.Game3:266
             _this.by[i]+=10;
-            $LASTPOS=3000303;//user.Game3:303
+            $LASTPOS=3000281;//user.Game3:281
             if (!(_this.by[i]>400)) { __pc=3; break; }
-            $LASTPOS=3000328;//user.Game3:328
+            $LASTPOS=3000306;//user.Game3:306
             _this.by[i]=0;
-            $LASTPOS=3000345;//user.Game3:345
+            $LASTPOS=3000323;//user.Game3:323
             _this.fiber$rnd(_thread, 300);
             __pc=2;return;
           case 2:
@@ -466,9 +464,9 @@ Tonyu.klass.define({
             
           case 3:
             
-            $LASTPOS=3000371;//user.Game3:371
+            $LASTPOS=3000349;//user.Game3:349
             if (_this.bx[i]>_this.x-30&&_this.bx[i]<_this.x+30&&_this.by[i]>_this.y-30&&_this.by[i]<_this.y+30) {
-              $LASTPOS=3000444;//user.Game3:444
+              $LASTPOS=3000422;//user.Game3:422
               _this.y=- 1000;
               
             }
@@ -481,7 +479,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=3000483;//user.Game3:483
+      $LASTPOS=3000461;//user.Game3:461
       _this.x-=10;
     },
     fiber$left :function _trc_Game3_f_left(_thread) {
@@ -490,7 +488,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=3000483;//user.Game3:483
+      $LASTPOS=3000461;//user.Game3:461
       _this.x-=10;
       
       _thread.retVal=_this;return;
@@ -499,7 +497,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=3000515;//user.Game3:515
+      $LASTPOS=3000493;//user.Game3:493
       _this.x+=10;
     },
     fiber$right :function _trc_Game3_f_right(_thread) {
@@ -508,7 +506,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=3000515;//user.Game3:515
+      $LASTPOS=3000493;//user.Game3:493
       _this.x+=10;
       
       _thread.retVal=_this;return;
@@ -517,4 +515,3 @@ Tonyu.klass.define({
   },
   decls: {"methods":{"main":{"nowait":false},"moveBall":{"nowait":false},"left":{"nowait":false},"right":{"nowait":false}}}
 });
-//# sourceMappingURL=concat.js.map

@@ -2,6 +2,7 @@
 require("php/auth.php");
 $showForm=true;
 $class="";
+$mesg="";
 if (isset($_GET["curclass"])){
 	$showForm=false;
 	print Auth::curClass();

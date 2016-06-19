@@ -1,4 +1,4 @@
-define([],function () {
+define(["assert","source-map"],function (A, S) {
 var Pos2RC=function (src) {
     var $={};
     var map=[];
@@ -92,6 +92,7 @@ return IndentBuffer=function () {
 			    var a=shiftArg();
 			    if (!a) throw new Error ("Null %v");
                 if (typeof a!="object") throw new Error("nonobject %v:"+a);
+                $.addMapping(a);
 				$.visitor.visit(a);
 				i++;
             } else if (fstr=="z") {
@@ -138,26 +139,55 @@ return IndentBuffer=function () {
 		}
 	};
 	$.addMapping=function (token) {
+	    //console.log("Token",token,$.srcFile+"");
+	    if (!$.srcFile) return ;    
 	    // token:extend({text:String},{pos:Number}|{row:Number,col:Number})
-	    if (typeof token.row!="number" || typeof token.row!="number") {
-	           
+	    var rc;
+	    if (typeof token.row=="number" && typeof token.col=="number") {
+	        rc={row:token.row, col:token.col};
+	    } else if (typeof token.pos=="number") {
+	        rc=$.srcRCM.getRC(token.pos);
+	    }
+	    if (rc) {
+	        //console.log("Map",{src:{file:$.srcFile+"",row:rc.row,col:rc.col},
+	        //dst:{row:$.bufRow,col:$.bufCol}  });
+	        $.srcmap.addMapping({
+                generated: {
+                    line: $.bufRow,
+                    column: $.bufCol
+                },
+                source: $.srcFile+"",
+                original: {
+                    line: rc.row,
+                    column: rc.col
+                }
+                //name: "christopher"
+            });
 	    }
 	};
 	$.setSrcFile=function (f) {
 	    $.srcFile=f;
 	    $.srcRCM=Pos2RC(f.text());
+	    $.srcmap.setSourceContent(f.path(),f.text());
 	};
 	$.print=function (v) {
 	    $.buf+=v;
-	    v.split("\n").forEach(function (line) {
-	        $bufRow+=line.length+1;
-	        $bufRow++;
+	    var a=(v+"").split("\n");
+	    a.forEach(function (line,i) {
+	        if (i<a.length-1) {// has \n
+    	        $.bufCol+=line.length+1;
+	            $.bufRow++;
+	            $.bufCol=1;
+	        } else {
+    	        $.bufCol+=line.length;
+	        }
 	    });
 	};
 	$.printf=$;
 	$.buf="";
 	$.bufRow=1;
-	$.bufRowHead=0;
+	$.bufCol=1;
+	$.srcmap=new S.SourceMapGenerator();
 	$.lazy=function (place) {
 	    //TODO: cannot use with sourcemap
 	    if (!place) place={};
