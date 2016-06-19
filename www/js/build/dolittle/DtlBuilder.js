@@ -65,9 +65,12 @@ function (A,DU,wget,dtlParser,IndentBuffer) {
         return this.dlFiles().then(DU.tr(function () {
             return DU.each(files,function (f) {
                 if (isNewer(f.dst.js, f.src.dtl)) return;
-                var buf=IndentBuffer();
+                var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
+                buf.setSrcFile(f.src.dtl);
                 var js=dtlParser.parse(f.src.dtl.text(),{indentBuffer:buf});
-                return f.dst.js.text(js);
+                return buf.close();
+                //console.log(buf.srcmap.toString());
+                //return f.dst.js.text(js);
             });
         })).then(DU.tr(function() {
              return DU.each(files,function (f) {

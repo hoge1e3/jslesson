@@ -30,7 +30,8 @@ var Pos2RC=function (src) {
     };
     return $;
 };
-return IndentBuffer=function () {
+return IndentBuffer=function (options) {
+    options=options||{};
 	var $=function () {
 		var args=arguments;
 		var fmt=args[0];
@@ -183,6 +184,8 @@ return IndentBuffer=function () {
 	        }
 	    });
 	};
+	$.dstFile=options.dstFile;
+	$.mapFile=options.mapFile;
 	$.printf=$;
 	$.buf="";
 	$.bufRow=1;
@@ -229,6 +232,16 @@ return IndentBuffer=function () {
     };
 	$.indentBuf="";
 	$.indentStr="  ";
+	$.close=function () {
+	    if ($.mapFile && $.dstFile) {
+	        $.mapFile.text($.srcmap.toString());
+	        $.printf("%n//# sourceMappingURL=%s%n",$.mapFile.relPath($.dstFile.up()));
+	    }
+	    if ($.dstFile) {
+	        $.dstFile.text($.buf);
+	    }
+	    return $.buf;
+	};
 	return $;
 };
 });

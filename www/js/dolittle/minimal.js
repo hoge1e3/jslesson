@@ -283,7 +283,7 @@ MinimalParser= function () {
     	return output;
 	};
 	parser.node2js=function (p,options) {
-	    var buf=options.buf || {
+	    var buf=options.indentBuffer || {
 	        buf:"",
 	        print:function (s) {
 	            this.buf+=s;
@@ -293,6 +293,7 @@ MinimalParser= function () {
 	    buf.print("(function(){");
     	var gen=function(e){
 		    if (e && typeof e.pos=="number") {
+		        //console.log(e.pos);
 		        buf.addMapping(e);
 		    }
     		if(typeof e=="function") return gen(e());
