@@ -23,8 +23,8 @@ if (isset($_GET["curuser"])) {
     $class=$_GET["class"];
 }
 if ($showForm) { 
-           setcookie("user","", time()-18000);
-           session_start();
+          // setcookie("user","", time()-18000);
+         //  session_start();
 ?>
 	<meta charset="UTF-8">
 	<form action="login.php">

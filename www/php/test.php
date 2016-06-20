@@ -1,5 +1,19 @@
 <?php
-require_once"PathUtil.php";
+
+require_once"ErrorHandler.php";
+require_once"MySession.php";
+
+if (!MySession::has("count")) {
+    $c=0;
+} else {
+    $c=MySession::get("count");
+}
+$c++;
+echo $c;
+MySession::set("count",$c);
+
+/*require_once"PathUtil.php";
+
 print PathUtil::rel("a","b");
 print "<BR>\n";
 print PathUtil::rel("a/","b");
@@ -26,7 +40,7 @@ print PathUtil::up("b/c/d/");
 print "<BR>\n";
 print PathUtil::up("b/c/d");
 print "<BR>\n";
-
+*/
 
 ?>
 

@@ -1,7 +1,11 @@
 <?php
 require_once "NativeFS.php";
 require_once "json.php";
+require_once dirname(__file__)."/MySession.php";
+
+//session_save_path("/tmp");
 ini_set('session.gc_maxlifetime',60*60*24);
+//ini_set('session.gc_maxlifetime',10);
 ini_set('session.gc_divisor',1);
 ini_set('session.gc_probability',1);
 
