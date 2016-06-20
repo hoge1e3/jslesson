@@ -1,9 +1,9 @@
 <?php
-require_once "json.php";
-require_once "PathUtil.php";
-require_once "NativeFS.php";
-require_once "auth.php";
-require_once "ErrorHandler.php";
+require_once "php/json.php";
+require_once "php/PathUtil.php";
+require_once "php/NativeFS.php";
+require_once "php/auth.php";
+require_once "php/ErrorHandler.php";
 
 $fs=Auth::getFS(); //new NativeFS("../fs");
 $json=new Services_JSON;
@@ -29,7 +29,7 @@ foreach ($data as $path=>$cont) {
 }
 //header("Content-type: text/plain");
 //print "OK";
-require_once "getDirInfoLib.php";
+require_once "php/getDirInfoLib.php";
 print $json->encode( getDirInfo($base, $base) );
 
 //print $_POST["data"];

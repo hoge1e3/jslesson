@@ -1,10 +1,10 @@
 <?php
-require_once "json.php";
-require_once "PathUtil.php";
-require_once "NativeFS.php";
-require_once "auth.php";
+require_once "php/json.php";
+require_once "php/PathUtil.php";
+require_once "php/NativeFS.php";
+require_once "php/auth.php";
 $dstfs=Auth::getFS(); 
-$srcfs=new NativeFS("../fs/home/lesson_samples/lesson_samples");
+$srcfs=new NativeFS("fs/home/lesson_samples/lesson_samples");
 header("Content-type: text/json");
 if (!$dstfs) {
    print '{"NOT_LOGGED_IN":1}';

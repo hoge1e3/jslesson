@@ -1,5 +1,6 @@
 <?php
-
+echo $_COOKIE["mysessionID"];
+/*
 require_once"ErrorHandler.php";
 require_once"MySession.php";
 
@@ -11,7 +12,7 @@ if (!MySession::has("count")) {
 $c++;
 echo $c;
 MySession::set("count",$c);
-
+*/
 /*require_once"PathUtil.php";
 
 print PathUtil::rel("a","b");

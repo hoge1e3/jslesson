@@ -1,9 +1,9 @@
 <?php
-require_once "json.php";
-require_once "PathUtil.php";
-require_once "NativeFS.php";
-require_once "auth.php";
-require_once "ErrorHandler.php";
+require_once "php/json.php";
+require_once "php/PathUtil.php";
+require_once "php/NativeFS.php";
+require_once "php/auth.php";
+require_once "php/ErrorHandler.php";
 
 $fs=Auth::getFS(); //new NativeFS("../fs");
 header("Content-type: text/json");
@@ -17,7 +17,7 @@ if (!isset($_GET["base"])) {
     die("Specify base");
 }
 $base=$_GET["base"];
-require_once "getDirInfoLib.php";
+require_once "php/getDirInfoLib.php";
 
 //print $json->encode( $fs->ls("Tonyu/Projects/") );
 $inf=getDirInfo($base, $base);

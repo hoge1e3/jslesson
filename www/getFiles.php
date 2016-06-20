@@ -1,9 +1,9 @@
 <?php
-require_once "json.php";
-require_once "PathUtil.php";
-require_once "NativeFS.php";
-require_once "auth.php";
-require_once "ErrorHandler.php";
+require_once "php/json.php";
+require_once "php/PathUtil.php";
+require_once "php/NativeFS.php";
+require_once "php/auth.php";
+require_once "php/ErrorHandler.php";
 
 $fs=Auth::getFS(); //new NativeFS("../fs");
 $json=new Services_JSON;

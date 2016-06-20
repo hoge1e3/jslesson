@@ -4,10 +4,10 @@ require_once "json.php";
 require_once dirname(__file__)."/MySession.php";
 
 //session_save_path("/tmp");
-ini_set('session.gc_maxlifetime',60*60*24);
+//ini_set('session.gc_maxlifetime',60*60*24);
 //ini_set('session.gc_maxlifetime',10);
-ini_set('session.gc_divisor',1);
-ini_set('session.gc_probability',1);
+//ini_set('session.gc_divisor',1);
+//ini_set('session.gc_probability',1);
 
 class Auth {
    static function login($class,$user) {
@@ -19,11 +19,13 @@ class Auth {
         if (preg_match('/^[a-zA-Z0-9\\-_]+$/',$user)) {
 	        //setcookie("class",$class, time()+60*60*24*30*6);
             //setcookie("user",$user, time()+60*60*24*30*6);
-            if(session_id() == '') {
+            /*if(session_id() == '') {
                 session_start();
             }
             $_SESSION['class']=$class;
-            $_SESSION['user']=$user;
+            $_SESSION['user']=$user;*/
+            MySession::set("class",$class);
+            MySession::set("user",$user);
            return true;
         } else {
            return "ユーザ名は半角英数とハイフン、アンダースコアだけが使えます。";
@@ -60,26 +62,30 @@ class Auth {
         }
    }
    static function curUser() {
-        if(session_id() == '') {
+        /*if(session_id() == '') {
             session_start();
         }
         if (!isset($_SESSION['user'])) return null;
         //return $_COOKIE["user"];
-        return $_SESSION['user'];
+        return $_SESSION['user'];*/
+        if (!MySession::has("user")) return null;
+        return MySession::get("user");
    }
    static function curClass() {
-        if(session_id() == '') {
+        /*if(session_id() == '') {
             session_start();
         }
         //return $_COOKIE["class"];
         if (!isset($_SESSION['class'])) return null;
-        return $_SESSION['class'];
+        return $_SESSION['class'];*/
+        if (!MySession::has("class")) return null;
+        return MySession::get("class");
    }
    static function getFS() {
 	    $class=self::curClass();
    	    $user=self::curUser();
    	    if ($user && $class) {
-	   	    return new NativeFS("../fs/home/$class/$user");
+	   	    return new NativeFS("fs/home/$class/$user");
 	   	} else {
 	   	    return null;
 	   	}

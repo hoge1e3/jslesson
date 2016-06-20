@@ -28,7 +28,7 @@ define(["UI"], function (UI) {
         var d=res.d;
         d.$vars.OKButton.attr("disabled", false);
         d.$vars.OKButton.val("OK");
-        $.get("php/copySample.php").then(function (r) {
+        $.get("copySample.php").then(function (r) {
             console.log("res", r);
             d.$vars.loading.text("選択してください");
             r.forEach(function (n) {
@@ -55,7 +55,7 @@ define(["UI"], function (UI) {
     	    if (d.$edits.validator.isValid()) {
                 d.$vars.OKButton.attr("disabled", true);
     	        d.$vars.OKButton.text("コピー中...");
-                $.get("php/copySample.php",{src:model.sample,dst:model.name}).then(function (r) {
+                $.get("copySample.php",{src:model.sample,dst:model.name}).then(function (r) {
                     console.log(r);
                     onOK(model);
                     d.dialog("close");

@@ -16,7 +16,7 @@ class MySession {
             self::$id=$_COOKIE[$idname];
         } else {
             self::$id=rand(1,99999999);
-            setcookie($idname,self::$id);
+            setcookie($idname,self::$id,time()+60*60*24*30*6);
         }
         self::load();
     }

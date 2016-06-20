@@ -31,7 +31,7 @@ define([], function () {
     WS.tonyuHome="/Tonyu/";
     WS.JSLKer="fs/Tonyu/Projects/JSLKer";
     WS.serverTop=".";
-    WS.phpTop=WS.serverTop+"/php/";
+    WS.phpTop=WS.serverTop+"/";//php/";
     WS.url={
             getDirInfo:WS.phpTop+"getDirInfo.php",
             getFiles:WS.phpTop+"getFiles.php",
