@@ -1,6 +1,7 @@
 <?php
 require("php/auth.php");
 $showForm=true;
+$mesg="";
 if (isset($_POST["class"])) {
 	$class=$_POST["class"];
 	$pass=$_POST["pass"];

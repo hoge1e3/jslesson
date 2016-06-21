@@ -758,6 +758,7 @@ $(function () {
     function focusToEditor(){
         if(prog=getCurrentEditor()) prog.focus();
     }
+    window.getCurrentEditorInfo=getCurrentEditorInfo;
 //    SplashScreen.hide();
 });
 //});// of load ace
