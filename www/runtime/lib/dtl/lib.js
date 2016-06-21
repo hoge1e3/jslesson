@@ -53,7 +53,7 @@ root.system={
 	"日__question":function(){return (new Date).getDate();},
 	"時__question":function(){return (new Date).getHours();},
 	"分__question":function(){return (new Date).getMinutes();},
-	"秒__question":function(){return (new Date).getSeconds();},
+	"秒__question":function(){return (new Date).getSeconds();}
 };
 root.create=function () {
     var r=Object.create(this);
@@ -106,7 +106,12 @@ root.timer=new (function(){
 					timer_list.push(self);console.log(timer_list);
 					flg=false;
 				}
-				func.execute(self.cnt);
+				try {
+    				func.execute(self.cnt);
+				} catch (e) {
+				    self.stop();
+				    if (onerror) onerror(e.message,"timer",0,0,e);
+				}
 				if(++self.cnt>self.times_val){
 					self.cnt=1;
 					clearInterval(self.id);
@@ -273,6 +278,17 @@ Function.prototype.repeat=function(param){
 };
 Function.prototype.while=function(){return (new While(this));};
 Function.prototype.then=function(){return (this.execute(this,arguments))?True:False;};
+Function.prototype.checkerror=function () {
+    var f=this;
+    return function () {
+        try {
+           return f.apply(this,arguments);
+        } catch(e) {
+            if (onerror) onerror(e.message,"unknown",1,1,e); 
+            else throw e; 
+        }
+    }
+};
 var _jsroot; (function () {_jsroot=this;})();
 function dtlbind(bound, f) {
     f.bound=bound;

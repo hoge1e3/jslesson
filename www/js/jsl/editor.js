@@ -346,7 +346,13 @@ $(function () {
     function stop() {
         //curPrj.stop();
         if(curth){
-            curth.kill();
+            try {
+                curth.kill();
+            }catch(e) {
+                //IE shows error "解放されたスクリプトからコードを実行できません。";
+                console.log(e);
+            }
+            curth=null;
         }
         displayMode("edit");
     }
@@ -532,12 +538,12 @@ $(function () {
             } else {
                 var diag=showErrorPos($("#errorPos"),te);
                 displayMode("runtime_error");
-                $("#errorPos").find(".quickFix").append(
+                /*$("#errorPos").find(".quickFix").append(
                         UI("button",{on:{click: function () {
                             setDiagMode(true);
                             diag.dialog("close");
                             run();
-                        }}},"診断モードで実行しなおす"));
+                        }}},"診断モードで実行しなおす"));*/
             }
             stop();
             logToServer("JS Runtime Error!\n"+te.src+":"+te.pos+"\n"+te.mesg+"\nJS Runtime Error End!");

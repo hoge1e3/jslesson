@@ -1,6 +1,7 @@
 var webdriver = require('selenium-webdriver'),
     By = webdriver.By,
     until = webdriver.until;
+var FS = require("./SFile.js");
 
 var driver = new webdriver.Builder()
     .forBrowser('chrome')
@@ -22,16 +23,29 @@ driver.findElement(By.name('class')).sendKeys("0123");
 driver.findElement(By.name('user')).sendKeys("test");
 driver.executeScript("document.forms[0].submit();");//clickByText("OK");
 
+testHome=FS.get("../www/fs/home/0123/test/");
 
-// Project/File CRUD
-// create Project
-// - create File and run
-// open existing Project
-// - create File and run
-// - open existing File and run
-// - update File and run
-// - rename File and run
-// - delete File
+
+// For C/JS/Dtl
+
+// For C
+// cp 'Ctmpl' 'Ctes'
+// create Project 'Cnew'
+// - create File 'A' and run
+// - update File 'A' and run
+// - rename File 'A' to 'B' and run
+//     check folder status 
+// - delete File 'B'
+// - create File 'C' and run
+//     check folder status 
+// open existing Project 'Ctes'
+// - create File 'Test1' and run
+// - open existing File 'Test2' and run
+// - update File 'Test2' and run
+// - rename File 'Test2' to Test4' and run
+// - delete File 'Test3'
+//    check folder status
+
 
 driver.sleep(3000);
 
