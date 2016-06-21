@@ -12425,7 +12425,8 @@ define('RunDialog',["UI"],function (UI) {
     };
     return res;
 });
-define('LocalBrowser',["Shell", "FS","DeferredUtil","UI"],function (sh,FS,DU,UI) {
+define('LocalBrowser',["Shell", "FS","DeferredUtil","UI","source-map"],
+function (sh,FS,DU,UI,S) {
     var LocalBrowser={};
     var F=DU.tr;
     LocalBrowser=function (dom,options) {
@@ -12453,6 +12454,8 @@ define('LocalBrowser',["Shell", "FS","DeferredUtil","UI"],function (sh,FS,DU,UI)
         var iwin;
         var idoc;
         var thiz=this;
+        var regsm=/sourceMappingURL\s*=\s*([^\s]*)/i;
+        var regrc=/:([0-9]+):([0-9]+)/;
         window.ifrm=i[0];
         i.on("load",function () {
             iwin=i[0].contentWindow;
@@ -12468,29 +12471,63 @@ define('LocalBrowser',["Shell", "FS","DeferredUtil","UI"],function (sh,FS,DU,UI)
                 },
                 convertURL:function (url) {
                     if (this.fileMap[url]) {
-                        return this.fileMap[url];
+                        return this.fileMap[url].blobUrl;
                     }
-                    return this.fileMap[url]=LocalBrowser.convertURL(iwin, url, base);
+                    var smc;
+                    if (FS.PathUtil.endsWith(url,".js")) {
+                        var r=regsm.exec(base.rel(url).text());
+                        if (r) {
+                            var smf=base.rel(r[1]);
+                            if (smf.exists()) {
+                                smc = new S.SourceMapConsumer(smf.obj());
+                                console.log("Source map",smc);
+                            }
+                        }
+                    }
+                    this.fileMap[url]={
+                        blobUrl:LocalBrowser.convertURL(iwin, url, base),
+                    };
+                    if(smc) this.fileMap[url].sourcemap=smc;
+                    return this.fileMap[url].blobUrl;
                 },
                 fileMap:{},
                 blob2originalURL: function (line) {
                     for (var url in this.fileMap) {
-                        var blobURL=this.fileMap[url];
+                        var blobURL=this.fileMap[url].blobUrl;
+                        var sourcemap=this.fileMap[url].sourcemap;
                         var idx=line.indexOf(blobURL);
                         if (idx>=0) {
-                            line=line.substring(0,idx)+url+line.substring(idx+blobURL.length);
+                            var trail=line.substring(idx+blobURL.length);
+                            var rr=regrc.exec(trail);
+                            if (sourcemap && rr) {
+                                var r=parseInt(rr[1]);
+                                var c=parseInt(rr[2]);
+                                var op=sourcemap.originalPositionFor({
+                                    line: r, column:c
+                                });
+                                //console.log("Original", r,c,op);
+                                line=line.substring(0,idx)+
+                                op.source+":"+op.line+":"+op.column+")";
+                            } else {
+                                line=line.substring(0,idx)+url+trail;
+                            }
                         }
                     }
                     return line;
+                },
+                originalStackTrace: function (ex) {
+                    if (ex && ex.stack) {
+                        ex.stack=(ex.stack+"").split("\n").map(function (l) {
+                            return iwin.LocalBrowserInfo.blob2originalURL(l);
+                        }).join("\n");
+                        //console.log("stack converted!",ex.stack);
+                    }
+                    return ex;
                 }
             };
             iwin.onerror=function (message, source, lineno, colno,ex) {
                 source=iwin.LocalBrowserInfo.blob2originalURL(source);
-                if (ex && ex.stack) {
-                    ex.stack=(ex.stack+"").split("\n").map(function (l) {
-                        return iwin.LocalBrowserInfo.blob2originalURL(l);
-                    }).join("\n");
-                }
+                iwin.LocalBrowserInfo.originalStackTrace(ex);
                 if (window.onerror) window.onerror(message, source, lineno, colno,ex);
             };
             idoc=iwin.document;
@@ -12988,7 +13025,13 @@ $(function () {
     function stop() {
         //curPrj.stop();
         if(curth){
-            curth.kill();
+            try {
+                curth.kill();
+            }catch(e) {
+                //IE shows error "解放されたスクリプトからコードを実行できません。";
+                console.log(e);
+            }
+            curth=null;
         }
         displayMode("edit");
     }
@@ -13174,12 +13217,12 @@ $(function () {
             } else {
                 var diag=showErrorPos($("#errorPos"),te);
                 displayMode("runtime_error");
-                $("#errorPos").find(".quickFix").append(
+                /*$("#errorPos").find(".quickFix").append(
                         UI("button",{on:{click: function () {
                             setDiagMode(true);
                             diag.dialog("close");
                             run();
-                        }}},"診断モードで実行しなおす"));
+                        }}},"診断モードで実行しなおす"));*/
             }
             stop();
             logToServer("JS Runtime Error!\n"+te.src+":"+te.pos+"\n"+te.mesg+"\nJS Runtime Error End!");
@@ -13400,6 +13443,7 @@ $(function () {
     function focusToEditor(){
         if(prog=getCurrentEditor()) prog.focus();
     }
+    window.getCurrentEditorInfo=getCurrentEditorInfo;
 //    SplashScreen.hide();
 });
 //});// of load ace
