@@ -8,7 +8,10 @@ var driver = new webdriver.Builder()
 //    .forBrowser('firefox')
     .build();
 
-driver.get('http://localhost/?noconcat=true');
+//driver.get('http://localhost/?noconcat=true');
+//driver.get('http://localhost/');
+driver.get('http://klab.eplang.jp/jslesson/');
+
 driver.wait(until.titleIs('JS Lesson'), 10000);
 driver.sleep(1000);
 //driver.wait.until(webdriver.ExpectedConditions.alertIsPresent());

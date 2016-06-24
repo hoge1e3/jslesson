@@ -251,6 +251,23 @@ function rindex(str,c) {
     }
     return NULL;
 }
+function strstr(haystack, needle) {
+    needle=pointerize(needle);
+    haystack=pointerize(haystack);
+    var cnt=strlen(haystack)-strlen(needle);
+    var nlen=strlen(needle);
+    var i,j;
+    for (i=0; i<cnt ;i++) {
+        for (j=0;j<nlen;j++) {
+            var h=haystack.offset(i+j).read();
+            var n=needle.offset(j).read();
+            //console.log(i+j,j,h,n);
+            if (h!==n) break;
+        }
+        if (j===nlen) return haystack.offset(i); 
+    } 
+    return NULL;
+}
 function memcmp(s1,s2,n) {
     s1=pointerize(s1);
     s2=pointerize(s2);

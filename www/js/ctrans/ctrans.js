@@ -717,7 +717,7 @@ MinimalParser= function () {
 	        case "string.h":
 	            return ["strlen","strcpy","strncpy","strcmp","strncmp",
 	            "strcat","strncat","memset","index","rindex",
-	            "memcmp","memcpy"].map(function (n) {
+	            "memcmp","memcpy","strstr"].map(function (n) {
 	                return "void "+n+"();";
 	            }).join("\n");
                 break;
