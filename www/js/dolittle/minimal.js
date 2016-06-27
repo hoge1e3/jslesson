@@ -25,7 +25,8 @@ MinimalParser= function () {
 	        if ((typeof (ctx.depth))=="number") depth=ctx.depth+1;
 	        //console.log("entering",depth);
 	        var s=Object.create(ctx.scope||{});
-	        ["self","this","自分"].forEach(function (k) {
+					//修正点１
+	        ["self","this","自分","arguments"].forEach(function (k) {
 	            s[k]={type:"self", depth:depth};  
 	        });
 	        return {scope: s ,depth:depth };
@@ -283,6 +284,7 @@ MinimalParser= function () {
     	return output;
 	};
 	parser.node2js=function (p,options) {
+		options=options||{};
 	    var buf=options.indentBuffer || {
 	        buf:"",
 	        print:function (s) {

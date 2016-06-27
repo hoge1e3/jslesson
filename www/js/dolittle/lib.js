@@ -250,9 +250,14 @@ var or={true:function(){var arr=Array.prototype.slice.call(arguments);var res=Bo
 Boolean.prototype.then=function(){return (this)?True:False;};
 Boolean.prototype["反対"]=function(){return (false==this);};
 //Number
-["sin","cos","tan","atan","abs","floor"].forEach(function (k) {
+["atan","abs","floor"].forEach(function (k) {
     Number.prototype[k]=function () {
         return Math[k](this);
+    };
+});
+["sin","cos","tan"].forEach(function (k) {
+    Number.prototype[k]=function () {
+        return Math[k](this.radian());
     };
 });
 Number.prototype.radian=function() {
