@@ -101,7 +101,7 @@ MinimalParser= function () {
 	var excr=token(/^[!！]/).ret(function(){return "!";});
 	var semicolon=token(/^[;；]/).ret(function(){return ";";});
 	var eq=token(/^[=＝]/).noFollow(token(/^[=＝]/)).ret(function(){return "=";});
-	var deq=token(/^[=＝][=＝]/).ret(function(){return "==";});
+	var deq=token(/^[=＝][=＝]/).ret(function(){return "===";});
 	var add=token(/^[+＋]/).ret(function(){return "+";});
 	var sub=token(/^[-−]/).ret(function(){return "-";});
 	var mul=token(/^[*×]/).ret(function(){return "*";}); 
@@ -110,7 +110,7 @@ MinimalParser= function () {
 	var ge=token(/^(?:[>＞][=＝])|≧/).ret(function(){return ">=";});
 	var lt=token(/^[<＜]/).ret(function(){return "<";});
 	var le=token(/^(?:[<＜][=＝])|≦/).ret(function(){return "<=";});
-	var neg=token(/^(?:[!！][=＝])|≠/).ret(function(){return "!=";});
+	var neg=token(/^(?:[!！][=＝])|≠/).ret(function(){return "!==";});
 	var mod=token(/^[%％]/).ret(function(){return "%";});
 
     // \token_name 名前のトークン
@@ -310,7 +310,7 @@ MinimalParser= function () {
     		}
     	};
     	gen(p);
-    	buf.print("}).apply(root,[]);");
+    	buf.print("}).checkerror().apply(root,[]);");
     	//console.log("dtlgen",p,result);
     	return buf.buf;
     };

@@ -2,37 +2,26 @@ var webdriver = require('selenium-webdriver'),
     By = webdriver.By,
     until = webdriver.until;
 var FS = require("./SFile.js");
+var testHome=FS.get("../www/fs/home/0123/test/");
+var projectSelURL='http://localhost/?noconcat=true';
+//'http://localhost/'
+//'http://klab.eplang.jp/jslesson/'
+
 
 var driver = new webdriver.Builder()
     .forBrowser('chrome')
 //    .forBrowser('firefox')
     .build();
 
-//driver.get('http://localhost/?noconcat=true');
-//driver.get('http://localhost/');
-driver.get('http://klab.eplang.jp/jslesson/');
-
-driver.wait(until.titleIs('JS Lesson'), 10000);
-driver.sleep(1000);
-//driver.wait.until(webdriver.ExpectedConditions.alertIsPresent());
-var alert = driver.switchTo().alert();
-alert.accept();
-driver.sleep(1000);
-driver.executeScript(function () {
-	location.href='login.php';
-});
-driver.sleep(1000);
-driver.findElement(By.name('class')).sendKeys("0123");
-driver.findElement(By.name('user')).sendKeys("test");
-driver.executeScript("document.forms[0].submit();");//clickByText("OK");
-
-testHome=FS.get("../www/fs/home/0123/test/");
 
 
 // For C/JS/Dtl
 
 // For C
 // cp 'Ctmpl' 'Ctes'
+copyDir(testHome.rel("Ctmpl/"), testHome.rel("Ctes/") );
+// open jslesson
+openProjectSel();
 // create Project 'Cnew'
 // - create File 'A' and run
 // - update File 'A' and run
@@ -42,28 +31,18 @@ testHome=FS.get("../www/fs/home/0123/test/");
 // - create File 'C' and run
 //     check folder status 
 // open existing Project 'Ctes'
+driver.sleep(3000);
+selectLinkByText("Ctes/");
 // - create File 'Test1' and run
+createFile("Test1");
+var s=genTestCode();
+testCode(s);
 // - open existing File 'Test2' and run
 // - update File 'Test2' and run
 // - rename File 'Test2' to Test4' and run
 // - delete File 'Test3'
 //    check folder status
 
-
-driver.sleep(3000);
-
-/*
-//driver.findElement(By.name('q')).sendKeys('webdriver');
-driver.findElement(By.id('newPrj')).click();
-driver.sleep(1000);
-driver.findElement(By.id('prjName')).sendKeys('Tesuto');
-driver.sleep(1000);
-//driver.findElement(By.linkText('OK')).click();//sendKeys('Tesuto');
-clickByText("OK");
-//driver.wait(until.titleIs('webdriver - Google Search'), 1000);
-driver.sleep(1000);
-*/
-selectLinkByText("Ctes/");
 driver.sleep(1000);
 clickByText("Test2");
 driver.sleep(1000);
@@ -89,14 +68,60 @@ inputToEditor(cont).then(function () {
 	clickByText("OK");
     driver.quit();
 });
-function clickByText(t) {
-    var scr="$(\":contains('"+t+"')\").click();";
-    //console.log("EXEC ",scr);
-	driver.executeScript(scr);
+function copyDir(src,dst) {
+    src.recursive(function (f) {
+        var dstf=dst.rel(f.relPath(src));
+        dstf.text(f.text());
+    });
 }
-function selectLinkByText(t) {
-    var scr="location.href=$(\"a:contains('"+t+"')\").attr('href');";
-	driver.executeScript(scr);
+function openProjectSel() {
+    driver.get(projectSelURL);
+    
+    driver.wait(until.titleIs('JS Lesson'), 10000);
+    driver.sleep(1000);
+    //driver.wait.until(webdriver.ExpectedConditions.alertIsPresent());
+    var alert = driver.switchTo().alert();
+    alert.accept();
+    driver.sleep(1000);
+    driver.executeScript(function () {
+    	location.href='login.php';
+    });
+    driver.sleep(1000);
+    driver.findElement(By.name('class')).sendKeys("0123");
+    driver.findElement(By.name('user')).sendKeys("test");
+    driver.executeScript("document.forms[0].submit();");//clickByText("OK");
+}
+function createProject(name) {
+    driver.findElement(By.id('newPrj')).click();
+    driver.sleep(1000);
+    driver.findElement(By.id('prjName')).sendKeys(name);
+    driver.sleep(1000);
+    //driver.findElement(By.linkText('OK')).click();//sendKeys('Tesuto');
+    clickByText("OK");
+    //driver.wait(until.titleIs('webdriver - Google Search'), 1000);
+    driver.sleep(1000);
+}
+function createFile(name) {
+    clickByText("新規");
+    driver.sleep(1000);
+    clickByText("ファイル");
+    driver.findElement(By.id("inputDialog")).sendKey(name);
+    driver.sleep(1000);
+    clickByText("OK");
+}
+function genTestCode() {
+    var num=Math.floor(Math.random()*100000);
+    var cont=[
+    "#include<stdio.h>",
+    "int main(void){",
+    "   int x="+num+";",
+    '   printf("%d",x*2);',
+    '}'
+    ].join("\n");
+    return {cont:cont, expect:num*2};
+}
+function testCode(c) {
+    
 }
 function getConsoleOutput() {
     return driver.executeScript(function () {
@@ -109,4 +134,13 @@ function inputToEditor(cont) {
         var e=getCurrentEditorInfo().editor;
         e.setValue(cont);
     },cont);
+}
+function clickByText(t) {
+    var scr="$(\":contains('"+t+"')\").click();";
+    //console.log("EXEC ",scr);
+	driver.executeScript(scr);
+}
+function selectLinkByText(t) {
+    var scr="location.href=$(\"a:contains('"+t+"')\").attr('href');";
+	driver.executeScript(scr);
 }

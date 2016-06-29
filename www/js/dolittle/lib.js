@@ -390,7 +390,7 @@ root.module={
             }
         }
         return window.requirejs(reqs,function() {
-            if (func) return func.execute(arguments);
+            if (func) return func.checkerror().execute(arguments);
         });
     }
 };
