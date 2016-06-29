@@ -285,14 +285,14 @@ Function.prototype.while=function(){return (new While(this));};
 Function.prototype.then=function(){return (this.execute(this,arguments))?True:False;};
 Function.prototype.checkerror=function () {
     var f=this;
-    return function () {
+    return dtlbind(f.bound, function () {
         try {
            return f.apply(this,arguments);
         } catch(e) {
             if (onerror) onerror(e.message,"unknown",1,1,e); 
             else throw e; 
         }
-    }
+    });
 };
 var _jsroot; (function () {_jsroot=this;})();
 function dtlbind(bound, f) {

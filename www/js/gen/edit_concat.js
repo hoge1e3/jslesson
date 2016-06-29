@@ -8959,7 +8959,7 @@ return Visitor = function (funcs) {
 });
 function fixIndent(str, indentStr) {
     if (!indentStr) indentStr="    ";
-    var incdec={"{":1, "}":-1,"[":1,"]":-1,"(":1,")":-1,"「":1,"」":-1};
+    var incdec={"{":1, "}":-1,"[":1,"]":-1,"「":1,"」":-1};
     var linfo=[];
     /*try {
         var tokenRes=TT.parse(str);
@@ -12505,7 +12505,7 @@ function (sh,FS,DU,UI,S) {
                                 var op=sourcemap.originalPositionFor({
                                     line: r, column:c
                                 });
-                                //console.log("Original", r,c,op);
+                                console.log("Original", line, r,c,op);
                                 line=line.substring(0,idx)+
                                 op.source+":"+op.line+":"+op.column+")";
                             } else {

@@ -1,6 +1,6 @@
 function fixIndent(str, indentStr) {
     if (!indentStr) indentStr="    ";
-    var incdec={"{":1, "}":-1,"[":1,"]":-1,"(":1,")":-1,"「":1,"」":-1};
+    var incdec={"{":1, "}":-1,"[":1,"]":-1,"「":1,"」":-1};
     var linfo=[];
     /*try {
         var tokenRes=TT.parse(str);

@@ -12033,7 +12033,9 @@ $(function () {
         }).fail(function (e) {
             if (e==Sync.NOT_LOGGED_IN) {
                 $("#syncMesg").empty().append(UI("a",{href:"login.php"},"ログイン"));
-                alert("ファイルの内容を保存するためには、必ずログインをしてください");
+                if(confirm("ファイルの内容を保存するためには、必ずログインをしてください")){
+                    location.href="login.php";
+                }
             } else {
                 alert("保存に失敗しました");
                 $("#syncMesg").text("エラー!"+e);
