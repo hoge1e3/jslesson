@@ -80,10 +80,19 @@ root.background={
 
 };
 
+root.true=true;
+root.false=false;
+root.instanceof=function(f,s){
+	if(typeof f!="object")throw("instanceofの第一引数にはオブジェクトを設定してください。");
+	if(typeof s!="function")throw("instanceofの第二引数には関数を設定してください。");
+	return (f instanceof s);
+};
+root.typeof=function(p){return typeof p;};
+
 //Timerオブジェクト
 root.timer=new (function(){
 	var timer_list=[];
-	this.allreset=function(){timer_list.foreach(function(e){e.stop();});};
+	this.allreset=function(){timer_list.each(function(e){e.stop();});};
 	this.last_func=new $.Deferred;
 	this.last_func.resolve();
 	this.interval_val=100;
@@ -207,10 +216,18 @@ Object.defineProperty(Array.prototype,"挿入",{
 	enumerable:false,configurable:true,
 	value:function(index,value){this.splice(index-1,0,value);return this;}
 });
-Object.defineProperty(Array.prototype,"foreach",{
+Object.defineProperty(Array.prototype,"each",{
+	enumerable:false,configurable:true,
+	value:function(func){
+		for(var i in this){
+			func.execute(this[i]);
+		}
+	},
+});
+/*Object.defineProperty(Array.prototype,"foreach",{
 	enumerable:false,configurable:true,
 	value:Array.prototype.forEach
-});
+});*/
 Object.defineProperty(Array.prototype,"それぞれ実行",{
 	enumerable:false,configurable:true,
 	value:Array.prototype.forEach
@@ -294,6 +311,31 @@ Function.prototype.checkerror=function () {
         }
     });
 };
+Function.prototype.or=function(){
+	var res;
+	var args=(arguments.length)?Array.prototype.slice.call(arguments):[];
+	args.unshift(this);
+	var obj=function(){
+		this.func=(function(){});
+		this.params=[];
+	};
+	var objs=[];
+	do{
+		objs.push(new obj());
+		objs[objs.length-1].func=args.shift();
+		while(!(typeof args[0]).match(/function|undefined/)){
+			objs[objs.length-1].params.push(args.shift());
+		}
+	}while(args.length>0);
+	console.log(objs);
+	for(i in objs){
+		console.log(objs[i]);
+		res=objs[i].func.apply(objs[i].func,objs[i].params);
+		console.log(res);
+		if(res)break;
+	}
+	return ((res)?res:root.false);
+}
 var _jsroot; (function () {_jsroot=this;})();
 function dtlbind(bound, f) {
     f.bound=bound;

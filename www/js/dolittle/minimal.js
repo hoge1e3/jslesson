@@ -138,8 +138,12 @@ MinimalParser= function () {
 	ret(function(_lp,_expr,_rp){
 	    return extend([_lp,_expr,_rp], {type:"paren",subnodes:arguments});
 	});
+	//単項演算項  (obj! +arg1 -arg2 meth)
+	var unary_term=add.or(sub).and(term_lazy).ret(function (u,t) {
+	    return extend([u,t],{type:"unary_term"});
+	});
     //単純式
-	var simple = block_lazy.or(tok_str).or(paren_expr).or(tok_num);
+	var simple = block_lazy.or(tok_str).or(paren_expr).or(tok_num).or(unary_term);
     // sin(x) なども送信の一種
 	var func_exe=token_name.and(paren_expr).
 	ret(function(_name,_paren){
@@ -157,7 +161,7 @@ MinimalParser= function () {
 	}).or(func_exe);
 	//式
 	expr = meth_call.or(infix_expr_lazy); // simple includes in infix_expr
-	//中置式
+	//中置式 :=  前置演算子  項  演算子 項  後置演算子  （項＝変数。送信は含まず）
 	var expbuild = ExpressionParser();
 	expbuild.element(term_lazy);
 	expbuild.infixl(2,deq);
@@ -183,7 +187,7 @@ MinimalParser= function () {
 	function mkpre(op,right){return extend([op,right], {type:"prefix",subnodes:arguments});}
 	function mkpost(left,op){return extend([left,op], {type:"postfix",subnodes:arguments});}
 	infix_expr = expbuild.build();
-	//ブロック
+	//ブロック := [  [ | 引数リスト  |  文 . *  ]
 	var block_param = stick.and(token_name.rep0()).and(semicolon.opt()).and(token_name.rep0()).and(stick).
 	ret(function(_ls,_param,_semicolon,_local_param,_rs){
 	    _param.forEach(regLocal);
@@ -203,7 +207,7 @@ MinimalParser= function () {
 	    {type:"block",subnodes:arguments,depth:ctx.depth});
 	});
 	block=newScope(block);
-	//変数
+	//変数 := ( 単純式 |  名前 | :名前 ) :名前*
     var varbuild=ExpressionParser();
     varbuild.element(simple.or(token_name.ret(function (n) {
         if (ctx.scope[n]) {
@@ -220,15 +224,15 @@ MinimalParser= function () {
     }));
     varbuild.mkPostfix(mkpost);
 	variable=varbuild.build();
-	//項
+	//項 := 変数
 	var term = variable; //simple.or(func_exe).or(variable);
-    //文
+    //文 := [変数  = ] 式
     var statement = variable.and(eq).ret(function (v) {
         return extend([v,"="],{type:"assign",subnodes:arguments});
     }).opt().and(expr).ret(function (v,e) {
-        return extend([(v||""),e,";"],{type:"statement",subnodes:arguments});
+        return extend([(v||""),e,";\n"],{type:"statement",subnodes:arguments});
     });
-    //プログラム
+    //プログラム := 文 . * (最後の.は省略可能)
 	statement_list = statement.sep0(period,true).and(period.opt()).
 	ret(function(_stmts){
 	    var stmts=_stmts.slice();
