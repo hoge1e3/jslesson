@@ -330,7 +330,7 @@ Function.prototype.or=function(){
 	console.log(objs);
 	for(i in objs){
 		console.log(objs[i]);
-		res=objs[i].func.apply(objs[i].func,objs[i].params);
+		res=objs[i].func.execute.apply(objs[i].func,objs[i].params);
 		console.log(res);
 		if(res)break;
 	}

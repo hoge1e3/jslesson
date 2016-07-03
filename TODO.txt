@@ -23,7 +23,7 @@ aaa({
 --スマホ対応
 --タイマー=timer.
 -Bool ! then
--Block ! or
+-OK Block ! or
 --[a] ! [b] [c] or
 --aがJSのtrue相当の値ならaを返す、そうでなければbがtrue相当の値ならbを返す、そうでなければc....
 -root ! (a) (b) instanceof

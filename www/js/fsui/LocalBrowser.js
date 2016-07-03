@@ -78,6 +78,9 @@ function (sh,FS,DU,UI,S) {
                                 var op=sourcemap.originalPositionFor({
                                     line: r, column:c
                                 });
+                                if (window.parent) {
+                                    window.parent.lastSourceMap=sourcemap;
+                                }
                                 console.log("Original", line, r,c,op);
                                 line=line.substring(0,idx)+
                                 op.source+":"+op.line+":"+op.column+")";

@@ -28,7 +28,7 @@ MinimalParser.node2vm=function (node) {
 			if (obj) v.visit(obj);
 			else {
 			    add(["push1","self"]);
-			    add(["push2","root"]);
+			    //add(["push2","root"]);
 			}
 			v.visit(elec);
         },

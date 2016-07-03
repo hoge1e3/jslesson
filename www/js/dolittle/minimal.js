@@ -203,7 +203,7 @@ MinimalParser= function () {
 	ret(function(_lsb,_param,_progs,_rsb){
 	    _param=_param||["",""]; 
 	    return extend(["dtlbind(this,function(",_param[0],
-	    "){var self=this;var 自分=self;",_param[1],_progs,"})"], 
+	    "){\nvar self=this;var 自分=self;\n",_param[1],_progs,"})"], 
 	    {type:"block",subnodes:arguments,depth:ctx.depth});
 	});
 	block=newScope(block);

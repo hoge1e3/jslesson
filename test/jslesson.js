@@ -3,10 +3,11 @@ var webdriver = require('selenium-webdriver'),
     until = webdriver.until;
 var FS = require("./SFile.js");
 var testHome=FS.get("../www/fs/home/0123/test/");
-var projectSelURL='http://localhost/?noconcat=true';
-var loggedin=false;
+var projectSelURL='http://klab.eplang.jp/jslesson/';
+//'http://localhost/';//?noconcat=true';
 //'http://localhost/'
 //'http://klab.eplang.jp/jslesson/'
+var loggedin=false;
 var SLP=500;
 
 var driver = new webdriver.Builder()
@@ -83,23 +84,32 @@ function copyDir(src,dst) {
 }
 function openProjectSel() {
     driver.get(projectSelURL);
-    
     driver.wait(until.titleIs('JS Lesson'), 10000);
     if (loggedin) return;
-    driver.sleep(1000);
     //driver.wait.until(webdriver.ExpectedConditions.alertIsPresent());
-    var alert = driver.switchTo().alert();
-    alert.accept();
-    driver.sleep(SLP);
-    driver.executeScript(function () {
-    	location.href='login.php';
+    function waitAlert() {
+        return driver.sleep(5000).then(function () {
+            try {
+                var alert = driver.switchTo().alert();
+                alert.accept();
+            } catch (e) {
+                console.log("Alert is not present. still waiting...");
+                return waitAlert();
+            }
+        });
+    }
+    return waitAlert().then(function () {
+        /*driver.sleep(SLP);
+        driver.executeScript(function () {
+        	location.href='login.php';
+        });*/
+        driver.sleep(3000);
+        driver.findElement(By.name('class')).sendKeys("0123");
+        driver.findElement(By.name('user')).sendKeys("test");
+        driver.executeScript("document.forms[0].submit();");//clickByText("OK");
+        loggedin=true;
+        return driver.sleep(10);
     });
-    driver.sleep(SLP);
-    driver.findElement(By.name('class')).sendKeys("0123");
-    driver.findElement(By.name('user')).sendKeys("test");
-    driver.executeScript("document.forms[0].submit();");//clickByText("OK");
-    loggedin=true;
-    return driver.sleep(10);
 }
 function createProject(name) {
     driver.findElement(By.id('newPrj')).click();

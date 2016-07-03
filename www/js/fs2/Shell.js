@@ -1,5 +1,6 @@
 define(["FS","assert"],
         function (FS,assert) {
+    console.log("Shell load!!");
     var Shell={};
     var PathUtil=assert(FS.PathUtil);
     Shell.cd=function (dir) {
@@ -201,5 +202,6 @@ define(["FS","assert"],
     } else {
         sh.cd("/");
     }
+    console.log("Shell load end!!",window.sh);
     return Shell;
 });
