@@ -8,7 +8,7 @@ function ExpressionParser() {
 	    $.eq=function (o) {return type==o.type() && prio==o.prio(); };
         $.type=function (t) { if (!t) return type; else return t==type;};
 	    $.prio=function () {return prio;};
-	    $.toString=function () {return "["+type+":"+prio+"]"; }
+	    $.toString=function () {return "["+type+":"+prio+"]"; };
 	    return $;
 	}
 	function composite(a) {

@@ -2,7 +2,7 @@ lineBuf=[];
 NULL=0;
 function log(){
 	console.log(arguments);
-};
+}
 function pointer(obj,key,type,ofs) {
 	if(Array.isArray(obj[key])){
 		var tmp=[];
@@ -196,9 +196,9 @@ function strncmp(s1,s2,n) {
     s2=pointerize(s2);
     for (var i=0;i<n;i++) {
         var e1=s1.read(),e2=s2.read();
-        if (e1==0 && e2==0) return 0;
+        if (e1===0 && e2===0) return 0;
         var s=e1>e2?1:e1<e2?-1:0;
-        if (s!=0) return s;
+        if (s!==0) return s;
         s1=s1.offset(1);
         s2=s2.offset(1);
     }
@@ -219,7 +219,7 @@ function strncat(dst,src,n) {
     var i;
     for (i=0;i<n;i++) {
         dst.write(src.read());
-        if (src.read()==0) break;
+        if (src.read()===0) break;
         src=src.offset(1);
         dst=dst.offset(1);
     }
@@ -274,7 +274,7 @@ function memcmp(s1,s2,n) {
     for (var i=0;i<n;i++) {
         var e1=s1.read(),e2=s2.read();
         var s=e1>e2?1:e1<e2?-1:0;
-        if (s!=0) return s;
+        if (s!==0) return s;
         s1=s1.offset(1);
         s2=s2.offset(1);
     }
@@ -291,4 +291,4 @@ function memcpy(dst, src,n) {
     }
     return r;
 }
-window.print=function() {throw new Error("print関数はありません。printfの間違いではないですか？");}
+window.print=function() {throw new Error("print関数はありません。printfの間違いではないですか？");};

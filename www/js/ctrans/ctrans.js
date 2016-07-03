@@ -23,7 +23,7 @@ MinimalParser= function () {
 					//return this.text+"("+this.pos+")";
 					return this.text;
 				}
-			}
+			};
 		});
 	}
 	var t=token;
@@ -101,7 +101,6 @@ MinimalParser= function () {
 	var argument_expressions;
 	var postfix_expression;
 	var cast_expression;
-	var postfix_expression;
 	var unary_expression;
 	var specifier_qualifier_list;
 	var direct_abstract_declarator;
@@ -118,7 +117,6 @@ MinimalParser= function () {
 	var direct_abstract_declarator_lazy=Parser.lazy(function(){return direct_abstract_declarator;});
 	var specifier_qualifier_list_lazy=Parser.lazy(function(){return specifier_qualifier_list;});
 	var unary_expression_lazy=Parser.lazy(function(){return unary_expression;});
-	var postfix_expression_lazy=Parser.lazy(function(){return postfix_expression;});
 	var cast_expression_lazy=Parser.lazy(function(){return cast_expression;});
 	var postfix_expression_lazy=Parser.lazy(function(){return postfix_expression;});
 	var argument_expressions_lazy=Parser.lazy(function(){return argument_expressions;});
@@ -211,7 +209,7 @@ MinimalParser= function () {
 			$.isArray=true
 			return $;
 		});
-	var direct_abstract_declarator=direct_abstract_declarator.or(t("(")
+	direct_abstract_declarator=direct_abstract_declarator.or(t("(")
 		.and(parameter_type_list_lazy).and(t(")")).ret(function(lp,parameter_type_list,rp){
 			return ["(",parameter_type_list,")"];
 		}));
@@ -356,7 +354,7 @@ MinimalParser= function () {
 		});
 
 	var init_declarator_list=init_declarator.sep0(t(","),true);
-	var declaration=declaration_specifiers.and(init_declarator_list).and(t(";"))
+	declaration=declaration_specifiers.and(init_declarator_list).and(t(";"))
 		.ret(function(decl_specifiers,init_decl_list,semicolon){
 			var identifier_list=[];
 			init_decl_list.forEach(function(e){});
@@ -713,21 +711,18 @@ MinimalParser= function () {
 	            return ["printf","scanf"].map(function (n) {
 	                return "void "+n+"();\n";
 	            }).join("\n");
-                break;
 	        case "string.h":
 	            return ["strlen","strcpy","strncpy","strcmp","strncmp",
 	            "strcat","strncat","memset","index","rindex",
 	            "memcmp","memcpy","strstr"].map(function (n) {
 	                return "void "+n+"();";
 	            }).join("\n");
-                break;
 	        case "math.h":
 	            // also in lib.js
                 return ["abs","acos","asin","atan","atan2","ceil","cos","exp","floor",
                 "log","max","min","pow","random","round","sin","sqrt","tan"].map(function (n) {
 	                return "double "+n+"();";
 	            }).join("\n");
-                break;
 	    }
 	    return null;
 	}).or(control_line);
@@ -753,7 +748,7 @@ MinimalParser= function () {
 		}
 		//console.log("preproc",lines.join("\n"));
 		return lines.join("\n");
-	}
+	};
 
 
 	parser.parse=function (str) {

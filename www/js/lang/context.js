@@ -31,7 +31,7 @@ return context=function () {
             if (!builtins[k]) delete c[k];
         }
     };
-    for (var k in c) { builtins[k]=true };
+    for (var k in c) { builtins[k]=true; }
     return c;
     function enter(val, act) {
         var sv={};

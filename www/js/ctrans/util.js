@@ -21,7 +21,7 @@ function loop_chk2() {
     }
 }
 function loop_start(){
-	return {time:(new Date().getTime()),count:0}
+	return {time:(new Date().getTime()),count:0};
 }
 
 function loop_chk(start){
@@ -65,7 +65,7 @@ function param_init(arg,init){
 
 function arrInit(){
     var a=Array.prototype.slice.call(arguments);
-    if (a.length==0) return null;
+    if (a.length===0) return null;
     var n=a.shift();
 	var res=[];
     for (var i=0;i<n;i++) {
@@ -83,7 +83,7 @@ function arrInit(){
 }
 
 function cast(type,data){
-	var type=type.replace(/ /g,"_");
+	type=type.replace(/ /g,"_");
 	type=type.charAt(0).toUpperCase()+type.slice(1);
 
 	if(typeof data == "string")data=data.charCodeAt(0);
@@ -168,4 +168,4 @@ var casts={
 		res=param;
 		return res;
 	},
-}
+};

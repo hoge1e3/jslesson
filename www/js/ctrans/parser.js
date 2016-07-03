@@ -31,13 +31,13 @@ Parser=function () {
     function _debug(s) {console.log(s);}
     function Parser(parseFunc){
         this.parse=parseFunc;
-    };
+    }
     Parser.create=function(parseFunc) { // (State->State)->Parser
         return new Parser(parseFunc);
     };
     $.create=Parser.create;
     function nc(v,name) {
-    	if (v==null) throw name+" is null!";
+    	if (v==null) throw new Error(name+" is null!");
     	return v;
     }
     extend(Parser.prototype, {// class Parser
@@ -93,7 +93,7 @@ Parser=function () {
             return res;
         },
         first: function (space, ct) {
-        	if (space==null) throw "Space is null2!";
+        	if (space==null) throw new Error("Space is null2!");
         	if (typeof ct=="string") {
         		this._first={space: space, chars:ct};
         	} else {
@@ -296,7 +296,7 @@ Parser=function () {
         retN: function (i) {
         	return this.ret(function () {
         		return arguments[i];
-        	})
+        	});
         },
         parseStr: function (str) {
             var st=new State(str);
@@ -307,10 +307,10 @@ Parser=function () {
         if (str) {
             this.src={str:str, maxPos:0};// maxPos is shared by all state
             this.pos=0;
-            this.result=[]
+            this.result=[];
             this.success=true;
         }
-    };
+    }
     extend(State.prototype, {
         clone: function() {
             var s=new State();
@@ -361,7 +361,7 @@ Parser=function () {
         	// func :: str,pos, state? -> {len:int, other...}  (null for no match )
             return Parser.create(function(state){
                 var str= state.src.str;
-                if (str==null) throw "strLike: str is null!";
+                if (str==null) throw new Error("strLike: str is null!");
                 var spos=state.pos;
                 //console.log(" strlike: "+str+" pos:"+spos);
                 var r1=func(str, spos, state);
@@ -396,7 +396,7 @@ Parser=function () {
     	var p=null;
     	return Parser.create(function (st) {
     		if (!p) p=pf();
-    		if (!p) throw pf+" returned null!";
+    		if (!p) throw new Error(pf+" returned null!");
     		this.name=pf.name;
     		return p.parse(st);
     	}).setName("LZ");
