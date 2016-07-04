@@ -75,9 +75,17 @@ function (sh,FS,DU,UI,S) {
                             if (sourcemap && rr) {
                                 var r=parseInt(rr[1]);
                                 var c=parseInt(rr[2]);
-                                var op=sourcemap.originalPositionFor({
-                                    line: r, column:c
+                                var op;
+                                op=sourcemap.originalPositionFor({
+                                    line: r, column:c,
+                                    bias:S.SourceMapConsumer.GREATEST_LOWER_BOUND
                                 });
+                                if (op.source==null) {
+                                    op=sourcemap.originalPositionFor({
+                                        line: r, column:c,
+                                        bias:S.SourceMapConsumer.LEAST_UPPER_BOUND
+                                    });
+                                }
                                 if (window.parent) {
                                     window.parent.lastSourceMap=sourcemap;
                                 }
