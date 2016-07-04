@@ -1,4 +1,4 @@
-define(["UI","FS"], function (UI,FS) {
+define(["UI","FS","assert"], function (UI,FS,A) {
 var FileMenu=function () {
     var FM={on:{}};
     FM.on.validateName=function (name,action) {
@@ -26,13 +26,13 @@ var FileMenu=function () {
         if (typeof FM.fileList=="object") {
             return FM.fileList.curFile();
         }
-        throw "on.getCurFile is missing";
+        throw new Error("on.getCurFile is missing");
     };
     FM.on.getCurDir=function () {
         if (typeof FM.fileList=="object") {
             return FM.fileList.curDir();
         }
-        throw "on.getCurDir is missing";
+        throw new Error("on.getCurDir is missing");
     };
     FM.on.createContent=function (f) {
         return f.text("");
@@ -76,6 +76,7 @@ var FileMenu=function () {
         var r=null;
         v.done=function() {
             if (!r || !r.ok) return;
+            A.is(r.file,"SFile");
             //clearInterval(t);
             onend(r.file);
             FM.d.dialog("close");
@@ -135,6 +136,7 @@ var FileMenu=function () {
         FM.onMenuStart("rm");
         var curFile=FM.on.getCurFile();
         if (!curFile) return;
+        A.is(curFile,"SFile");
         if (!confirm(curFile.name()+"を削除しますか？")) return;
         if (FM.on.rm && FM.on.rm(curFile)===false) return;
         curFile.rm();

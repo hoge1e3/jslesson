@@ -1,7 +1,14 @@
 requirejs(["FS","Shell","Shell2","ProjectCompiler",
-           "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog"],
+           "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog",
+           "assert"],
   function (FS, sh,sh2,TPRC,
-           NPD,           UI, Auth,zip,Sync,NSD) {
+           NPD,           UI, Auth,zip,Sync,NSD,
+           A) {
+    if (location.href.match(/localhost/)) {
+        A.setMode(A.MODE_STRICT);
+    } else {
+        A.setMode(A.MODE_DEFENSIVE);
+    }
 $(function () {
     $("body").append(UI("div",
             ["h1","プロジェクト一覧"],

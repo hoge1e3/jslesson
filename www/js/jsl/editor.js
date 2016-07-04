@@ -15,15 +15,23 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           LocalBrowser,logToServer
           ) {
 $(function () {
+    if (location.href.match(/localhost/)) {
+        console.log("assertion mode strict");
+        A.setMode(A.MODE_STRICT);
+    } else {
+        console.log("assertion mode defensive");
+        A.setMode(A.MODE_DEFENSIVE);
+    }
+    //console.log("assert test", A.is(null,String));
     var P=FS.PathUtil;
     var curClassroom;
     $.get("login.php?curclass="+Math.random()).then(function (r){
-        console.log(r);
+        console.log("curclass",r);
         curClassroom=r;
     });
     var curUser;
     $.get("login.php?curuser="+Math.random()).then(function (r) {
-        console.log(r);
+        console.log("curuser",r);
         curUser=r;
     });
     if (typeof SplashScreen!="undefined") SplashScreen.show();
@@ -112,6 +120,7 @@ $(function () {
                       {label:"新規",id:"newFile"},
                       {label:"名前変更",id:"mvFile"},
                       {label:"コピー",id:"cpFile"},
+                      //{label:"閉じる",id:"closeFile"},
                       {label:"削除", id:"rmFile"}
                   ]},
                   {label:"実行",id:"runMenu",action:run/*sub:[
@@ -143,6 +152,7 @@ $(function () {
     var editors={};
 
     KeyEventChecker.down(document,"bs",F(function (e) {
+        A.is(e,"Event");
 	    var f=$(":focus");
 	    var doConfirm=true;
 	    if (f.length>0 && 
@@ -170,6 +180,7 @@ $(function () {
         //console.log("F2 pressed");
     }));
     KeyEventChecker.down(document,"ctrl+s",F(function (e) {
+        A.is(e,"Event");
     	save();
     	e.stopPropagation();
     	e.preventDefault();
@@ -224,8 +235,12 @@ $(function () {
     $("#rmFile").click(F(FM.rm));
     FM.on.close=function (f) {
         var s=fileSet(f);
+        var shouldRemove=false;
         s.forEach(function (e) {
-            if (e.exists()) {
+            if (!e.exists()) shouldRemove=true;
+        });
+        s.forEach(function (e) {
+            if (shouldRemove && e.exists()) {
                 e.rm();
             }
             close(e);
@@ -249,11 +264,12 @@ $(function () {
         }
     };
     FM.on.displayName=function (f) {
+        A.is(f,String);
         var r=dispName(f);
         if (r) {
             return r;
         }
-        return f.name();
+        return f;
     };
     var refactorUI;
     FM.on.rm=function (f) {
@@ -290,12 +306,14 @@ $(function () {
         fl.ls(curProjectDir);
     }
     function dispName(name) {
+        A.is(name,String);
         //var name=f.name();
         if (P.isDir(name)) return name;
         if (P.endsWith(name,EXT) /*|| f.endsWith(HEXT)*/) return P.truncExt(name);
         return null;
     }
     function fixName(name, options) {
+        A.is(arguments,[String]);
         var upcased=false;
         if (name.match(/^[a-z]/)) {
             name= name.substring(0,1).toUpperCase()+name.substring(1);
@@ -317,14 +335,15 @@ $(function () {
     function getCurrentEditorInfo() {
         var f=fl.curFile();
         if (!f) return null;
-        return editors[f.path()];
+        A.is(f,"SFile");
+        return A.is(editors[f.path()],"EditorInfo?");
     }
-    function getCurrentEditor() {
+    function getCurrentEditor() {//->AceEditor?
         var i=getCurrentEditorInfo();
-        if (i) return i.editor;
+        if (i) return A.is(i.editor,"AceEditor");
         return null;
     }
-    function displayMode(mode, next) {
+    function displayMode(mode) {
         // mode == run     compile_error     runtime_error    edit
         var prog=getCurrentEditor();
         switch(mode) {
@@ -364,6 +383,7 @@ $(function () {
         return Sync.sync(projects, FS.get("/"),{v:true}).then(
             function(){unsynced=false;showToast("保存しました");}
         ).fail(function (e) {
+            if (!e) e="Unknown error";
             logToServer("SYNC ERROR!\n"+(e.stack || e.responseText || e)+"\nSYNC ERROR END!\n");
             console.log(e);
             alert("保存に失敗しました。");
@@ -422,6 +442,10 @@ $(function () {
             
             var name=curPrj.getClassName(curJSFile);
             A.is(name,String);
+            if (!curClassroom || !curUser) {
+                alert("ログインしていないので実行できません");
+                return;
+            }
 	        runURL=location.href.replace(/\/[^\/]*\?.*$/,
 	                "/run.html?classroom="+curClassroom+"&usr="+curUser+
 	                "&prj="+curProjectDir.name().replace("/","")+
@@ -440,6 +464,7 @@ $(function () {
 	            }
 	            return sync();
 	        }), function (e) {
+	            A(e);
 	            if (typeof SplashScreen!="undefined") SplashScreen.hide();
 	            if (e.isTError) {
 	                console.log("showErr: run",e);
@@ -487,11 +512,12 @@ $(function () {
                     return sync();
                 });
             }catch(e) {
-                console.log(e.stack);
+	            if(e) console.log(e.stack);
             }
     	}
     }
     window.moveFromFrame=function (name) {
+        A.is(name,String);
         var f=curProjectDir.rel(name);
         if (f.exists()) {
             fl.select(f);
@@ -501,6 +527,7 @@ $(function () {
     var curFrameRun;
     var curth;
     window.setupFrame=function (r) {
+        A.is(r,Function);
         curFrameRun=r;
         var inf=getCurrentEditorInfo();
         var ht="";
@@ -520,10 +547,13 @@ $(function () {
         alertOnce=function(){};
     };
     window.onerror=function (a,b,c,d,e) {
+        if (!e) return;
         return Tonyu.onRuntimeError(e);
     };
     EC.handleException=Tonyu.onRuntimeError=function (e) {
         Tonyu.globals.$lastError=e;
+        //A.is(e,Error);// This will fail when error from iframe.
+        A(e,"Error is empty");
         var t=curPrj.env.traceTbl;
         var te;
         var tid = t.find(e) || t.decode($LASTPOS); // user.Main:234
@@ -566,12 +596,14 @@ $(function () {
     function close(rm) { // rm or mv
         var i=editors[rm.path()]; //getCurrentEditorInfo();
         if (i) {
+            A.is(i,"EditorInfo");
             i.editor.destroy();
             i.dom.remove();
             delete editors[rm.path()];
         }
     }
     function fixEditorIndent(prog) {
+        A.is(prog,"AceEditor");
         var cur=prog.getCursorPosition();
         prog.setValue(fixIndent( prog.getValue() ));
         prog.clearSelection();
@@ -619,6 +651,7 @@ $(function () {
 	    }
     }
     function fileSet(c) {
+        A.is(c,"SFile");
         var n=c.truncExt();
         return [c.up().rel(n+HEXT), c.up().rel(n+EXT)];
     }
@@ -639,6 +672,11 @@ $(function () {
     setInterval(watchModified,1000);
     var curDOM;
     function open(f) {
+        A.is(f,"SFile");
+        if (!window.ace) {
+            alert("しばらくしてからもう一度開いてください");
+            return true;
+        }
 	// do not call directly !!  it doesnt change fl.curFile. use fl.select instead
         if (f.isDir()) {
             return;
