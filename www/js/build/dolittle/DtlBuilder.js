@@ -67,7 +67,7 @@ function (A,DU,wget,dtlParser,IndentBuffer) {
                 if (isNewer(f.dst.js, f.src.dtl)) return;
                 var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
                 buf.setSrcFile(f.src.dtl);
-                var js=dtlParser.parse(f.src.dtl.text(),{indentBuffer:buf});
+                var js=dtlParser.parse(f.src.dtl.text(),{indentBuffer:buf,src:f.src.dtl.name()});
                 return buf.close();
                 //console.log(buf.srcmap.toString());
                 //return f.dst.js.text(js);

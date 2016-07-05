@@ -265,7 +265,9 @@ MinimalParser= function () {
 	    a.joined=s;
 	    return a;
 	}
-	parser.parseAsNode=function (str) {
+	parser.parseAsNode=function (str,options) {
+	    options=options||{};
+	    var de=options.src?options.src+"で":"";
 		var input=str;
 		var output="";
 		var line=1;
@@ -277,13 +279,13 @@ MinimalParser= function () {
 				var line=(str.substr(0,result.src.maxPos)).match(/\n/g);
 				line=(line)?line.length:0;
 				//alert("エラーが発生しました。\n"+line+"行目付近を確認してください。");
-				throw new Error("エラーが発生しました。\n"+line+"行目付近を確認してください。");
+				throw new Error(de+"エラーが発生しました。\n"+line+"行目付近を確認してください。");
 			}
 		}
         return output;
     };
 	parser.parse=function (str,options) {
-		var output=parser.parseAsNode(str);
+		var output=parser.parseAsNode(str,options);
 		output=parser.node2js(output,options);
     	return output;
 	};
