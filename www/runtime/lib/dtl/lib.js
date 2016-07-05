@@ -6,6 +6,11 @@ root.root=root;
 var localize=function (obj, map) {
     for (var k in map) if (obj[k]) obj[map[k]]=obj[k];
 };
+var eventHandler={
+    create: function () {
+        
+    }
+};
 root.system={
 	localize: localize,
 	gui_posx:10,
@@ -83,11 +88,15 @@ root.background={
 root.true=true;
 root.false=false;
 root.instanceof=function(f,s){
-	if(typeof f!="object")throw("instanceofの第一引数にはオブジェクトを設定してください。");
-	if(typeof s!="function")throw("instanceofの第二引数には関数を設定してください。");
+	if(typeof f!="object")throw new Error("instanceofの第一引数にはオブジェクトを渡して下さい。");
+	if(typeof s!="function")throw new Error("instanceofの第二引数には関数を渡して下さい。");
 	return (f instanceof s);
 };
 root.typeof=function(p){return typeof p;};
+root.is=function(p){
+	if((typeof p)!="object")throw new Error("isの引数にはオブジェクトを渡して下さい。");
+	return p.isPrototypeOf(this);
+};
 
 //Timerオブジェクト
 root.timer=new (function(){
@@ -330,7 +339,7 @@ Function.prototype.or=function(){
 	console.log(objs);
 	for(i in objs){
 		console.log(objs[i]);
-		res=objs[i].func.apply(objs[i].func,objs[i].params);
+		res=objs[i].func.execute.apply(objs[i].func,objs[i].params);
 		console.log(res);
 		if(res)break;
 	}
