@@ -103,7 +103,7 @@ MinimalParser= function () {
 	var eq=token(/^[=＝]/).noFollow(token(/^[=＝]/)).ret(function(){return "=";});
 	var deq=token(/^[=＝][=＝]/).ret(function(){return "===";});
 	var add=token(/^[+＋]/).ret(function(){return "+";});
-	var sub=token(/^[-−]/).ret(function(){return "-";});
+	var sub=token(/^[-−–]/).ret(function(){return "-";});
 	var mul=token(/^[*×]/).ret(function(){return "*";}); 
 	var div=token(/^[/÷]/).ret(function(){return "/";});
 	var gt=token(/^[>＞]/).ret(function(){return ">";});
@@ -123,13 +123,13 @@ MinimalParser= function () {
 	var tok_str = token(reg_str).ret(function(_str){
 	    return extend([_str.text],{type:"string",content:_str.text.substring(1,_str.text.length-1)});
 	});
-	//reg_num = /^[0-9０-９]+(?:[.。・])?(?:[0-9０-９])*/;//数字を表す正規表現
-	var reg_num=/^[0-9０-９]+/;
+	var reg_num = /^[0-9０-９]+([.．]([0-9０-９])+)?/;//数字を表す正規表現
+	//var reg_num=/^[0-9０-９]+/;
 	var tok_num = token(reg_num).ret(function(_num){
 		var v=(_num+"").replace(/[０-９]/g, function(s) {
 			return parseInt(String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
-		});
-		v=parseInt(v);
+		}).replace(/．/,".");
+		v=parseFloat(v);
 		return extend(["(",v,")"],{type:"number",value:v});
 	});
     //--------------ここから構文	

@@ -6,11 +6,71 @@ root.root=root;
 var localize=function (obj, map) {
     for (var k in map) if (obj[k]) obj[map[k]]=obj[k];
 };
-var eventHandler={
-    create: function () {
-        
-    }
+root.create=function () {
+    var r=Object.create(this);
+    var init=(r.initialize || r["初期化"] || function (){});
+    init.apply(r,arguments);
+    return r;
 };
+root.EventType=root.create();
+root.EventType.initialize=function () {
+    this.listenerMethods=[];    
+};
+root.EventType.addListenerMethod=function (name) {
+    var t=this;
+    if (name instanceof Array) {
+        name.forEach(function (n) {
+            t.listenerMethods.push(name);
+        });    
+    } else {
+        this.listenerMethods.push(name);
+    }
+    return this;
+};
+root.EventType.invoke=function (self,args) {
+    var res;
+    this.listenerMethods.forEach(function (f) {
+        if (typeof self[f]=="function") {
+            res=self[f].apply(self,args);
+        }
+    });
+    return res;
+};
+var ETYPE="__etype__";
+root.getEventType=function (type) {
+    return this[ETYPE+type];
+};
+root.addEventType=function () {
+    var a=Array.prototype.slice.call(arguments);
+    var type=a.shift();
+    this[ETYPE+type]=root.EventType.create().addListenerMethod(type);
+    return this;
+};
+root.invokeEvent=function () {
+    var a=Array.prototype.slice.call(arguments);
+    var type=a.shift();
+    var et=this.getEventType(type);
+    if (!et) throw new Error("No event type:"+type);
+    return et.invoke(this,a);
+};
+root.addAlias=function () {
+    var a=Array.prototype.slice.call(arguments);
+    var orig=a.shift();
+    var t=this;
+    var et=this.getEventType(orig);
+    if (et) {
+        a.forEach(function (n) {
+            et.addListenerMethod(n);
+        });
+    } else {
+        a.forEach(function (n) {
+            t[n]=t[orig];
+        });
+    }
+    return this;
+};
+
+
 root.system={
 	localize: localize,
 	gui_posx:10,
@@ -60,12 +120,6 @@ root.system={
 	"分__question":function(){return (new Date).getMinutes();},
 	"秒__question":function(){return (new Date).getSeconds();}
 };
-root.create=function () {
-    var r=Object.create(this);
-    var init=(r.initialize || r["初期化"] || function (){});
-    init.apply(r,arguments);
-    return r;
-};
 localize(root, {system:"システム", create:"作る"});
 localize(root.system, {time__question:"時刻__question"  ,use: "使う"});
 
@@ -107,7 +161,11 @@ root.timer=new (function(){
 	this.interval_val=100;
 	this.times_val=100;
 	this.cnt=1;
-	this.create=function(){var obj=Object.create(this);return obj;};
+	this.create=function(){
+	    var obj=Object.create(this);
+	    //if (!obj.__proto__) obj.__proto__=this;
+	    return obj;
+	};
 	this.interval=function(num){this.interval_val=num*1000;return this;};
 	this.times=function(num){this.times_val=num;return this;};
 	//this.wait=function(){var end_flag=false;this.last_func.then(function(){end_flag=true;});for(;;){if(end_flag)break;system.sleep(1);console.log("a");}};
@@ -283,7 +341,7 @@ var or={true:function(){var arr=Array.prototype.slice.call(arguments);var res=Bo
 Boolean.prototype.then=function(){return (this)?True:False;};
 Boolean.prototype["反対"]=function(){return (false==this);};
 //Number
-["atan","abs","floor"].forEach(function (k) {
+["atan","abs","floor","sqrt"].forEach(function (k) {
     Number.prototype[k]=function () {
         return Math[k](this);
     };

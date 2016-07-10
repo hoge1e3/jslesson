@@ -7,9 +7,11 @@ function (A,DU,wget,dtlParser,IndentBuffer) {
     var p=DtlBuilder.prototype;
     p.dlFiles=function () {
         var dst=this.dst;
+        var images=["99.gif", "akazukin.gif", "apple.png", "arrow0.png", "arrow1.png", "arrow2.png", "arrow3.png", "ayumi.gif", "ayumi.png", "ayumiAka.gif", "ayumiAo.gif", "ayumiBlue.png", "ayumiKiiro.gif", "ayumiRed.png", "ayumiYellow.png", "ball.png", "base.png", "beetle.png", "bluefish.png", "book.png", "car.png", "clear.png", "copy.png", "crab.png", "cut.png", "ecl.png", "editAdd.png", "fish.png", "heri.gif", "inputPad.png", "kuno.gif", "kuno.png", "mapchip.png", "myurobo.png", "neko.png", "neko1.png", "neko2.png", "niwa.gif", "nowprint.png", "paste.png", "pen.png", "rabbitBlue.png", "rabbitGreen.png", "rabbitRed.png", "rabbitYellow.png", "raceBlue.png", "raceGreen.png", "raceRed.png", "raceYellow.png", "redo.png", "rocket.gif", "runner.png", "Sample.png", "server.png", "soccer.png", "sound.png", "star.png", "tnu.ico", "tonbo.gif", "tonyu.png", "trumpet.png", "tulip.png", "ui-icons_888888_256x240.png", "undo.png", "usa.gif"];
+        images=images.map(function (n) {return "images/"+n;});
         var urls=["lib/jquery-1.12.1.js",
-        "lib/require.js","lib/dtl/lib.js","lib/dtl/polyk.js",
-        "images/ayumi.gif","images/tulip.png","images/apple.png"];
+        "lib/require.js","lib/dtl/lib.js","lib/dtl/polyk.js"];
+        urls=urls.concat(images);
         var base="runtime/";
         var args=urls.map(function (url) {
             var dstf=dst.rel(url);

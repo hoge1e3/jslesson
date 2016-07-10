@@ -4,20 +4,26 @@ define(["UI"],function (UI) {
         options=options||{};
         window.dialogClosed=false;
         var d=res.embed(src, runURL, options);
-        d.dialog({width:600,close:function(){window.dialogClosed=true;if(typeof options.toEditor == "function")options.toEditor();}});//,height:options.height?options.height-50:400});
+        d.dialog({width:600,close:function(){
+		window.dialogClosed=true;
+		$("#ifrmDlg").remove();
+		if(typeof options.toEditor == "function") options.toEditor();
+	}});//,height:options.height?options.height-50:400});
     };
     res.embed=function (src, runURL, options) {
         if (!options) options={};
         if (!res.d) {
             res.d=UI("div",{title:"実行画面ダイアログ"},
-                    ["div",{id:"browser"},
+                    ["div",{id:"iBrowser"},
                           ["iframe",{id:"ifrmDlg",width:465,height:options.height||400,src:runURL}]
                     ],
                     ["button", {type:"button",$var:"OKButton", on:{click: function () {
                         res.d.dialog("close");
                     }}}, "OK"]
             );
-        }
+        }else{
+		$("#iBrowser").append(UI("iframe",{id:"ifrmDlg",width:465,height:options.height||400,src:runURL}));
+	}
         $("#ifrmDlg").attr(src,runURL);
         //if($("#ifrmDlg")[0]) console.log($("#ifrmDlg")[0].contentWindow.document.body);
         if($("#ifrmDlg")[0]) {

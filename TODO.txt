@@ -5,6 +5,7 @@ OK -実行終了後、フォーカスをエディタ画面(元の場所)へ戻�
 -実習画面にユーザとクラス
 -ウィンドウサイズを変えるとiframeも変わる
 -なるべくソースコードとかぶらない位置に表示
+-エラーメッセージスタックトレース隠す
 Ok セッションの長さ
 OK-インデントがへん
 aaa({
@@ -15,28 +16,31 @@ aaa({
 
 ドリトル対応
 -エラー
---パースエラーのファイル名
+--OK パースエラーのファイル名
 -Turtle on SVG
 --OK  図形にする
---図形塗る
+--OK 図形塗る
 --90% 図形のあたり判定
 --スマホ対応
 --タイマー=timer.
+-Block ! and
+-Block ! elsif
+-Block ! unless
 -Bool ! then
 -OK Block ! or
 --[a] ! [b] [c] or
 --aがJSのtrue相当の値ならaを返す、そうでなければbがtrue相当の値ならbを返す、そうでなければc....
--root ! (a) (b) instanceof
+-OK root ! (a) (b) instanceof
 --a instanceof b
 -root ! (a) typeof
 --typeof a
--root ! (a) is
+-OK root ! (a) is
 -- thisが aを親（または祖先）に持つかどうか。instanceofとは挙動が全然ちがう
 -- b=a!create.
 -- b ! (a) is.  //true
 -- c=a! create.
 -- c ! (a) is.  //true
--Array ! [f] each   // f.executeで呼び出す（JS組み込みのforEachとは挙動が違い、fがちゃんと外側のthisを保って実行される)
+-OK Array ! [f] each   // f.executeで呼び出す（JS組み込みのforEachとは挙動が違い、fがちゃんと外側のthisを保って実行される)
 -これのmap版もほしいけどいい名前が思いついていない（同じ名前で上書きしたくない）
 
 *ログ
