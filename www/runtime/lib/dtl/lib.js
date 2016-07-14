@@ -12,6 +12,7 @@ root.create=function () {
     init.apply(r,arguments);
     return r;
 };
+/*
 root.EventType=root.create();
 root.EventType.initialize=function () {
     this.listenerMethods=[];    
@@ -64,9 +65,30 @@ root.addAlias=function () {
         });
     } else {
         a.forEach(function (n) {
-            t[n]=t[orig];
+            switch(typeof t[orig]) {
+            case "function":
+                t[n]=function () {
+                    return this[orig].apply(this,arguments);
+                };
+                break;
+            default:
+                t[n]=t[orig];
+            }
         });
     }
+    return this;
+};*/
+root.addAlias=function () {
+    var a=Array.prototype.slice.call(arguments);
+    var orig=a.shift();
+    var t=this;
+    a.forEach(function (al) {
+        Object.defineProperty(t,al,{
+	        enumerable:true,configurable:true,
+	        get:function() { return this[orig]; },
+	        set:function(v) { return this[orig]=v; }
+        });
+    });
     return this;
 };
 

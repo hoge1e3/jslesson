@@ -1,165 +1,144 @@
-(function() {
-    this.$ = this.create();
-    this.$.create = dtlbind(this, function(tag) {
-        var self = this;
-        var 自分 = self;
-        return (this.window.$).call((this.root), (tag));
-    });
-    this.turtle = this.create();
-    this.turtle.createSVGElem = dtlbind(this, function(tag) {
-        var self = this;
-        var 自分 = self;
-        return this.$.create((this.document.createElementNS(
-            "http://www.w3.org/2000/svg", (
-                tag))));
-    });
-    this.turtle.initSVG = dtlbind(this, function() {
-        var self = this;
-        var 自分 = self;
-        this.svg = this.$.create("svg");
-        dtlbind(this, function() {
-            var self = this;
-            var 自分 = self;
-            return (this.svg.length == (0));
-        }).then().execute(dtlbind(this, function() {
-            var self = this;
-            var 自分 = self;
-            return this.svg = this.createSVGElem(
-                "svg").attr("width",
-                "400").attr("height",
-                "400").appendTo("body");
-        }));
-        this.svg_g = this.svg.find("g");
-        return dtlbind(this, function() {
-            var self = this;
-            var 自分 = self;
-            return (this.svg_g.length == (0));
-        }).then().execute(dtlbind(this, function() {
-            var self = this;
-            var 自分 = self;
-            return this.svg_g = this.createSVGElem(
-                "g").attr("transform",
-                "translate(200,200) scale(1,-1)"
-            ).appendTo((this.svg));
-        }));
-    });
-    this.turtle.initSVG();
-    this.turtle.initialize = dtlbind(this, function() {
-        var self = this;
-        var 自分 = self;
-        this.im = this.createSVGElem("image");
-        this.im.get((0)).setAttributeNS(
-            "http://www.w3.org/1999/xlink", "href",
-            "runtime/images/ayumi.gif");
-        this.im.attr("width", "32px").attr("height",
-            "32px").attr("x", (-(16))).attr("y", (-(
-            16))).attr("transform", "scale(1 -1)").appendTo(
-            (this.svg_g));
-        this.x = (0);
-        this.y = (0);
-        this.dir = (0);
-        return this.newLineG();
-    });
-    this.turtle.newLineG = dtlbind(this, function() {
-        var self = this;
-        var 自分 = self;
-        this.lineG = this.createSVGElem("g").appendTo((
-            this.svg_g));
-        this.lineG.attr("transform", ((((("translate(" +
-                this.x) + " ") + this.y) +
-            ")")));
-        this.lX = this.x;
-        return this.lY = this.y;
-    });
-    this.turtle.forward = dtlbind(this, function(by) {
-        var self = this;
-        var 自分 = self;
-        var line;
-        this.nx = (this.x + ((this.dir.radian().cos()) *
-            by));
-        this.ny = (this.y + ((this.dir.radian().sin()) *
-            by));
-        line = this.createSVGElem("line").attr("x1", ((
-                this.x - this.lX))).attr("y1", ((this.y -
-                this.lY))).attr("x2", ((this.nx - this.lX)))
-            .attr("y2", ((this.ny - this.lY))).attr(
-                "style",
-                "stroke:rgb(0,0,0);stroke-width:3").appendTo(
-                (this.lineG));
-        this.x = this.nx;
-        this.y = this.ny;
-        this.setTrans();
-        return this;
-    });
-    this.turtle.setTrans = dtlbind(this, function() {
-        var self = this;
-        var 自分 = self;
-        var str;
-        str = (((("translate(" + this.x) + " ") + this.y) +
-            ") ");
-        str = (((str + "rotate(") + this.dir) + ") ");
-        str = (str + "scale(1 -1)");
-        return this.im.attr("transform", (str));
-    });
-    this.turtle.turnLeft = dtlbind(this, function(by) {
-        var self = this;
-        var 自分 = self;
-        this.dir = (this.dir + by);
-        this.setTrans();
-        return this;
-    });
-    this.turtle.turnRight = dtlbind(this, function(by) {
-        var self = this;
-        var 自分 = self;
-        return this.turnLeft((-by));
-    });
-    this.turtle.makeFigure = dtlbind(this, function() {
-        var self = this;
-        var 自分 = self;
-        this.r = this.figure.create((this));
-        this.newLineG();
-        return this.r;
-    });
-    this.figure = this.create();
-    this.figure.initialize = dtlbind(this, function(parent) {
-        var self = this;
-        var 自分 = self;
-        this.grp = parent.lineG;
-        this.x = parent.lX;
-        this.y = parent.lY;
-        this.dir = (0);
-        return this.setTrans();
-    });
-    this.figure.forward = dtlbind(this, function(by) {
-        var self = this;
-        var 自分 = self;
-        var line;
-        this.x = (this.x + ((this.dir.radian().cos()) *
-            by));
-        this.y = (this.y + ((this.dir.radian().sin()) *
-            by));
-        this.setTrans();
-        return this;
-    });
-    this.figure.turnLeft = dtlbind(this, function(by) {
-        var self = this;
-        var 自分 = self;
-        this.dir = (this.dir + by);
-        this.setTrans();
-        return this;
-    });
-    this.figure.turnRight = dtlbind(this, function(by) {
-        var self = this;
-        var 自分 = self;
-        return this.turnLeft((-by));
-    });
-    return this.figure.setTrans = dtlbind(this, function() {
-        var self = this;
-        var 自分 = self;
-        var str;
-        str = (((("translate(" + this.x) + " ") + this.y) +
-            ") ");
-        str = (((str + "rotate(") + this.dir) + ") ");
-        return this.grp.attr("transform", (str));
-    });
-});//.apply(root, []);
+(function(){this.turtle=this.Actor.create();
+this.Turtle=this.turtle;
+this.turtle.initialize=dtlbind(this,function(){
+var self=this;var 自分=self;
+this.width=(32);
+this.height=(32);
+this.element=this.createSVGElem("image");
+this.element.get((0)).setAttributeNS("http://www.w3.org/1999/xlink","href","runtime/images/ayumi.gif");
+this.adjustImage();
+this.element.attr("transform","scale(1,-1)");
+this.pos=this.Vec2.create((0),(0));
+this.dir=(0);
+this.isPenDown=this.true;
+this.lineWidth((3));
+this.lineColor("black");
+this.appear();
+return this.newLineG();
+});
+this.turtle.adjustImage=dtlbind(this,function(){
+var self=this;var 自分=self;
+return this.element.attr("width",((this.width+"px"))).attr("height",((this.height+"px"))).attr("x",((-this.width/(2)))).attr("y",((-this.height/(2))));
+});
+this.turtle.getImageSize=dtlbind(this,function(url){
+var self=this;var 自分=self;
+var t;
+t=this;
+return this.$.create("<img>").css("display","none").load(dtlbind(this,function(){
+var self=this;var 自分=self;
+var j;
+j=(t.$).create((this));
+t.width=j.width();
+t.height=j.height();
+t.adjustImage();
+return j.remove();
+})).attr("src",(url)).appendTo("body");
+});
+this.turtle.newLineG=dtlbind(this,function(){
+var self=this;var 自分=self;
+this.lineG=this.createSVGElem("g").appendTo((this.svg_g));
+this.lineG.attr("transform",((((("translate("+(this.pos.x))+" ")+(this.pos.y))+")")));
+return this.lineOrig=this.pos;
+});
+this.turtle.addPath=dtlbind(this,function(pos1,pos2){
+var self=this;var 自分=self;
+var line;
+pos1=pos1.sub((this.lineOrig));
+pos2=pos2.sub((this.lineOrig));
+line=this.createSVGElem("line").attr("x1",(pos1.x)).attr("y1",(pos1.y)).attr("x2",(pos2.x)).attr("y2",(pos2.y)).attr("style",(((("stroke:"+this._lineCol)+";stroke-width:")+this._lineWidth))).attr("data-width",(this._lineWidth)).appendTo((this.lineG));
+return this;
+});
+this.turtle.addPathAfterAction=dtlbind(this,function(a){
+var self=this;var 自分=self;
+var pos1;
+pos1=this.pos;
+a.execute();
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return this.isPenDown;
+}).then().execute(dtlbind(this,function(){
+var self=this;var 自分=self;
+return this.addPath((pos1),(this.pos));
+}));
+return this;
+});
+this.turtle.forward=dtlbind(this,function(by){
+var self=this;var 自分=self;
+return this.addPathAfterAction(dtlbind(this,function(){
+var self=this;var 自分=self;
+return (this.Actor.forward).call((this),(by));
+}));
+});
+this.turtle.moveTo=dtlbind(this,function(x,y){
+var self=this;var 自分=self;
+return this.addPathAfterAction(dtlbind(this,function(){
+var self=this;var 自分=self;
+return (this.Actor.moveTo).call((this),(x),(y));
+}));
+});
+this.turtle.close=dtlbind(this,function(){
+var self=this;var 自分=self;
+return this.addPath((this.pos),(this.lineOrig));
+});
+this.turtle.lineColor=dtlbind(this,function(col){
+var self=this;var 自分=self;
+this._lineCol=col;
+return this;
+});
+this.turtle.lineWidth=dtlbind(this,function(w){
+var self=this;var 自分=self;
+this._lineWidth=w;
+return this;
+});
+this.turtle.makeFigure=dtlbind(this,function(col){
+var self=this;var 自分=self;
+var r;
+r=this.Figure.create((this));
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return col;
+}).then().execute(dtlbind(this,function(){
+var self=this;var 自分=self;
+return r.paint((col));
+}));
+this.newLineG();
+return r;
+});
+this.turtle.penDown=dtlbind(this,function(){
+var self=this;var 自分=self;
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return this.isPenDown;
+}).then().else(dtlbind(this,function(){
+var self=this;var 自分=self;
+return })).execute(dtlbind(this,function(){
+var self=this;var 自分=self;
+this.isPenDown=this.true;
+return this.newLineG();
+}));
+return this;
+});
+this.turtle.penUp=dtlbind(this,function(){
+var self=this;var 自分=self;
+this.isPenDown=this.false;
+return this;
+});
+this.turtle.change=dtlbind(this,function(url){
+var self=this;var 自分=self;
+url=("runtime/images/"+url);
+this.element.get((0)).setAttributeNS("http://www.w3.org/1999/xlink","href",(url));
+this.getImageSize((url));
+return this;
+});
+return this.turtle.setTrans=dtlbind(this,function(){
+var self=this;var 自分=self;
+var str;
+str=(((("translate("+(this.pos.x))+" ")+(this.pos.y))+") ");
+str=(((str+"rotate(")+this.dir)+") ");
+str=(str+"scale(1 -1) ");
+this.element.attr("transform",(str)).attr("data-trans",((((((this.pos.x)+",")+(this.pos.y))+",")+this.dir)));
+this.checkCrash();
+return this;
+});
+}).checkerror().apply(root,[]);
+//# sourceMappingURL=Turtle.js.map

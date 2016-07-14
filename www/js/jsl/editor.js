@@ -4,7 +4,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "runtime", "searchDialog","StackTrace",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
-           "LocalBrowser","logToServer"
+           "LocalBrowser","logToServer","zip"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -12,7 +12,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           rt, searchDialog,StackTrace,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
-          LocalBrowser,logToServer
+          LocalBrowser,logToServer,zip
           ) {
 $(function () {
     if (location.href.match(/localhost/)) {
@@ -173,6 +173,9 @@ $(function () {
             return false;
 	    }
     }));
+    KeyEventChecker.down(document,"ctrl+shift+s",function () {
+        sh.window();
+    });
     KeyEventChecker.down(document,"F9",F(run));
     KeyEventChecker.down(document,"F2",F(function(){
         stop();
@@ -528,7 +531,7 @@ $(function () {
     var curth;
     window.setupFrame=function (r) {
         A.is(r,Function);
-        curFrameRun=r;
+        //curFrameRun=r;
         var inf=getCurrentEditorInfo();
         var ht="";
         var curFile=inf.file;
@@ -578,7 +581,8 @@ $(function () {
             stop();
             logToServer("JS Runtime Error!\n"+te.src+":"+te.pos+"\n"+te.mesg+"\nJS Runtime Error End!");
         } else {
-            UI("div",{title:"Error"},"["+e+"]",["pre",e.stack]).dialog({width:800});
+            var stack = e.stack.split("\n");
+            UI("div",{title:"Error"},"["+e+"]",["button",{on:{click:function(){console.log("clicked");$("#reConsole").text(e.stack);}}},"詳細"],["pre",{id:"reConsole"},stack[0]+"\n"+stack[1]]).dialog({width:800});
             stop();
             logToServer(e.stack || e);
         }

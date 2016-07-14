@@ -36,7 +36,14 @@ MinimalParser= function () {
 	    return '"'+s+'"';
 	}
     function extend(arr,obj) {
-        for (var k in obj) arr[k]=obj[k];
+        var pos;
+        for (var k in obj) {
+            var v=obj[k];
+            arr[k]=v;
+            if (typeof v=="number") pos=v;
+            if (v && typeof v.pos=="number") pos=v.pos;
+        }
+        arr.pos=arr.pos||pos;
         return arr;
     }
 	//    ↓ 空白またはコメントを解析するパーサ
