@@ -151,7 +151,7 @@ MinimalParser= function () {
 	});
     //単純式
 	var simple = block_lazy.or(tok_str).or(paren_expr).or(tok_num).or(unary_term);
-    // sin(x) なども送信の一種
+    // sin(x) なども送信の一種...にしないほうがいい
 	var func_exe=token_name.and(paren_expr).
 	ret(function(_name,_paren){
 	    return extend([_paren,".",_name,"()"], {type:"func_exec",subnodes:arguments});
@@ -165,7 +165,7 @@ MinimalParser= function () {
 	//送信
 	var meth_call = term_lazy.opt().and(excr).and(elec).ret(function (obj,_,elec) {
 	    return extend([(obj||"this"),elec], {type:"meth_call",subnodes:arguments});
-	}).or(func_exe);
+	});//.or(func_exe);
 	//式
 	expr = meth_call.or(infix_expr_lazy); // simple includes in infix_expr
 	//中置式 :=  前置演算子  項  演算子 項  後置演算子  （項＝変数。送信は含まず）
@@ -231,8 +231,8 @@ MinimalParser= function () {
     }));
     varbuild.mkPostfix(mkpost);
 	variable=varbuild.build();
-	//項 := 変数
-	var term = variable; //simple.or(func_exe).or(variable);
+	//項 := 関数呼出 | 変数
+	var term = func_exe.or(variable); //simple.or(func_exe).or(variable);
     //文 := [変数  = ] 式
     var statement = variable.and(eq).ret(function (v) {
         return extend([v,"="],{type:"assign",subnodes:arguments});
