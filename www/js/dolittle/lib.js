@@ -97,8 +97,8 @@ root.system={
 	localize: localize,
 	gui_posx:10,
 	gui_posy:10,
-	timestamp__question:function(){return new Date().getTime();},
-	time__question:function(){
+	"timestamp?":function(){return new Date().getTime();},
+	"time?":function(){
 		var date = new Date();
 		return (date.getHours()+":"+date.getMinutes()+":"+date.getSeconds());
 	},
@@ -119,13 +119,13 @@ root.system={
 			(new Function(window.parent.MinimalParser.parse(data)))();
 		},function(){alert("setup.iniの読み込みに失敗しました");});
 	},
-	"システム秒__question":function(){return new Date().getTime();},
-	"時刻__question":function(){
+	"システム秒?":function(){return new Date().getTime();},
+	"時刻?":function(){
 		var date = new Date();
 		return (date.getHours()+":"+date.getMinutes()+":"+date.getSeconds());
 	},
-	"日時__question":function(){return (new Date).toString();},
-	"曜日__question":function(){var num=(new Date).getDay();var res=null;
+	"日時?":function(){return (new Date).toString();},
+	"曜日?":function(){var num=(new Date).getDay();var res=null;
 		if(num==0)return "日";
 		else if(num==1)res= "月";
 		else if(num==2)res= "火";
@@ -135,15 +135,15 @@ root.system={
 		else res="土";
 		return res;
 	},
-	"年__question":function(){return (new Date).getFullYear();},
-	"月__question":function(){return (new Date).getMonth();},
-	"日__question":function(){return (new Date).getDate();},
-	"時__question":function(){return (new Date).getHours();},
-	"分__question":function(){return (new Date).getMinutes();},
-	"秒__question":function(){return (new Date).getSeconds();}
+	"年?":function(){return (new Date).getFullYear();},
+	"月?":function(){return (new Date).getMonth();},
+	"日?":function(){return (new Date).getDate();},
+	"時?":function(){return (new Date).getHours();},
+	"分?":function(){return (new Date).getMinutes();},
+	"秒?":function(){return (new Date).getSeconds();}
 };
 localize(root, {system:"システム", create:"作る"});
-localize(root.system, {time__question:"時刻__question"  ,use: "使う"});
+localize(root.system, {"time?":"時刻?"  ,use: "使う"});
 
 root.random=function(param){
 	var res=Math.random();
@@ -321,11 +321,11 @@ Object.defineProperty(Array.prototype,"それぞれ実行",{
 	enumerable:false,configurable:true,
 	value:Array.prototype.forEach
 });
-Object.defineProperty(Array.prototype,"length__question",{
+Object.defineProperty(Array.prototype,"length?",{
 	enumerable:false,configurable:true,
 	value:function(){return this.length;}
 });
-Object.defineProperty(Array.prototype,"要素数__question",{
+Object.defineProperty(Array.prototype,"要素数?",{
 	enumerable:false,configurable:true,
 	value:function(){return this.length;}
 });
@@ -343,13 +343,13 @@ root.Array=Array;
 //Stringオブジェクト
 String.prototype.add=function(_param){return this.valueOf()+ _param;};
 String.prototype["連結"]=String.prototype.add;
-String.prototype.contain__question=function(_param){return -1!=this.valueOf().search(RegExp(_param));};
-String.prototype["含む__question"]=String.prototype.contain__question;
-String.prototype["何文字目__question"]=function(_param){return this.valueOf().search(RegExp(_param))+1};
+String.prototype["contain?"]=function(_param){return -1!=this.valueOf().search(RegExp(_param));};
+String.prototype["含む?"]=String.prototype["contain?"];
+String.prototype["何文字目?"]=function(_param){return this.valueOf().search(RegExp(_param))+1};
 String.prototype["substr"]=function(){return ((arguments.length==1)?substr1:substr2).apply(this,arguments);};
-String.prototype["部分__question"]=String.prototype.substr;
-String.prototype["length__question"]=function(){return this.length;};
-String.prototype["長さ__question"]=String.prototype.length__question;
+String.prototype["部分?"]=String.prototype.substr;
+String.prototype["length?"]=function(){return this.length;};
+String.prototype["長さ?"]=String.prototype["length?"];
 String.prototype["分割"]=String.prototype.split;
 String.prototype["置き換える"]=String.prototype.replace;
 String.prototype["全部置き換える"]=function(_pattern,_replacement){return this.valueOf().replace((new RegExp(_pattern,"g")),_replacement);};

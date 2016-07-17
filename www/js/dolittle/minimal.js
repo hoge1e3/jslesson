@@ -95,9 +95,25 @@ MinimalParser= function () {
 	var str_name = "[a-zA-Z_$\?？ーぁ-んァ-ヶ々〇〻\u3400-\u9FFF\uF900-\uFAFF\uD840-\uD87F\uDC00-\uDFFF][a-zA-Z_$\?？0-9０-９ーぁ-んァ-ヶ々〇〻\u3400-\u9FFF\uF900-\uFAFF\uD840-\uD87F\uDC00-\uDFFF]*";
 	var reg_name = RegExp("^"+str_name);// 名前の正規表現
 	var trim_name=function(name){
-		name=name.replace(/[？?]/,"__question");
-		return name;
+		//name=name.replace(/[？?]/,"__question");
+		return toHalfWidth(name);
 	};
+	function toHalfWidth(strVal){
+      // 半角変換
+        var halfVal = strVal.replace(/[！-～]/g,
+            function( tmpStr ) {
+              // 文字コードをシフト
+              return String.fromCharCode( tmpStr.charCodeAt(0) - 0xFEE0 );
+            }
+        );
+          // 文字コードシフトで対応できない文字の変換
+        return halfVal.replace(/”/g, "\"")
+            .replace(/’/g, "'")
+            .replace(/‘/g, "`")
+            .replace(/￥/g, "\\")
+            .replace(/　/g, " ")
+            .replace(/〜/g, "~");
+    }
 	var colon=token(/^[:：]/).ret(function(){return ":";});
 	var lsb=token(/^[\[「]/).ret(function(){return "[";});
 	var rsb=token(/^[\]」]/).ret(function(){return "]";});
@@ -159,7 +175,7 @@ MinimalParser= function () {
 	//電文
 	var elec = simple.rep0().and(token_name).
 	ret(function(_params,_meth){
-	    return extend([".",_meth,"(",joinary(_params,","),")"], 
+	    return extend(["['"+_meth+"']","(",joinary(_params,","),")"], 
 	    {type:"elec",subnodes:arguments});
 	}).sep1(semicolon.opt(),true);
 	//送信
@@ -220,14 +236,14 @@ MinimalParser= function () {
         if (ctx.scope[n]) {
             return extend([n],{type:"localVar",name:n,depth:ctx.scope[n].depth});
         } else {
-            return extend(["this."+n],{type:"field",name:n});
+            return extend(["this['"+n+"']"],{type:"field",name:n});
         }
     })).or(colon.and(token_name).ret(function (_,n) {
-            return extend(["root."+n],{type:"rootVar",name:n});  
+            return extend(["root['"+n+"']"],{type:"rootVar",name:n});  
         })
     ));
     varbuild.postfix(1,colon.and(token_name).ret(function (_,name) {
-        return extend(["."+name],{type:"memberAccess",name:name});
+        return extend(["['"+name+"']"],{type:"memberAccess",name:name});
     }));
     varbuild.mkPostfix(mkpost);
 	variable=varbuild.build();

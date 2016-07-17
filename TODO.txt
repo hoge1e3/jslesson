@@ -1,26 +1,19 @@
 *環境へ対する要望等
 
 -日本語プロジェクト作成可能に
-OK -実行終了後、フォーカスをエディタ画面(元の場所)へ戻す
 -実習画面にユーザとクラス
 -ウィンドウサイズを変えるとiframeも変わる
 -なるべくソースコードとかぶらない位置に表示
 -エラーメッセージスタックトレース隠す
-Ok セッションの長さ
-OK-インデントがへん
-aaa({
-
-});
 
 *言語
 
 ドリトル対応
--エラー
---OK パースエラーのファイル名
--OK 画像の大きさ
+__question
+lib.jsからは日本語の命令を削除
+
+
 -Turtle on SVG
---OK  図形にする
---OK 図形塗る
 --90% 図形のあたり判定
 ---グループ図形
 --スマホ対応
@@ -29,21 +22,9 @@ aaa({
 -Block ! elsif
 -Block ! unless
 -Bool ! then
--OK Block ! or
---[a] ! [b] [c] or
---aがJSのtrue相当の値ならaを返す、そうでなければbがtrue相当の値ならbを返す、そうでなければc....
--OK root ! (a) (b) instanceof
---a instanceof b
 -root ! (a) typeof
 --typeof a
--OK root ! (a) is
--- thisが aを親（または祖先）に持つかどうか。instanceofとは挙動が全然ちがう
--- b=a!create.
--- b ! (a) is.  //true
--- c=a! create.
--- c ! (a) is.  //true
--OK Array ! [f] each   // f.executeで呼び出す（JS組み込みのforEachとは挙動が違い、fがちゃんと外側のthisを保って実行される)
--これのmap版もほしいけどいい名前が思いついていない（同じ名前で上書きしたくない）
+-Array:mapもほしいけどいい名前が思いついていない（同じ名前で上書きしたくない）
 - 한굴 명령 사용시 에러!
 
 *ログ
@@ -62,12 +43,38 @@ aaa({
 ** プロジェクト毎同期 / プロジェクトリストをサーバから取得。置き場は/Tonyu/Projects/やめる
 
 //------以下OK----
+*言語
+-Dtl
+--OK パースエラーのファイル名
+-OK 画像の大きさ
+--OK  図形にする
+--OK 図形塗る
+-OK Block ! or
+--[a] ! [b] [c] or
+--aがJSのtrue相当の値ならaを返す、そうでなければbがtrue相当の値ならbを返す、そうでなければc....
+-OK root ! (a) (b) instanceof
+--a instanceof b
+-OK root ! (a) is
+-- thisが aを親（または祖先）に持つかどうか。instanceofとは挙動が全然ちがう
+-- b=a!create.
+-- b ! (a) is.  //true
+-- c=a! create.
+-- c ! (a) is.  //true
+-OK Array ! [f] each   // f.executeで呼び出す（JS組み込みのforEachとは挙動が違い、fがちゃんと外側のthisを保って実行される)
+
+
 *環境
 OK-エディタの文字サイズが小さい
 OK--初期18ぐらいがいいと思う
 OK-エディタ画面に出てくるファイルリストは新しいものを上に?
 更新可-先生用の画面もソートして(学生番号順?)
 更新可-同期確認メッセージ
+Ok セッションの長さ
+OK-インデントがへん
+aaa({
+
+});
+OK -実行終了後、フォーカスをエディタ画面(元の場所)へ戻す
 
 
 *OKクラス別アカウントの作成
