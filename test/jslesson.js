@@ -3,9 +3,9 @@ var webdriver = require('selenium-webdriver'),
     until = webdriver.until;
 var FS = require("./SFile.js");
 var testHome=FS.get("../www/fs/home/0123/test/");
-var projectSelURL='http://klab.eplang.jp/jslesson/';
-//'http://localhost/';//?noconcat=true';
-//'http://localhost/'
+//var projectSelURL='http://klab.eplang.jp/jslesson/';
+//var projectSelURL='http://localhost/?noconcat=true';
+var projectSelURL='http://localhost/'
 //'http://klab.eplang.jp/jslesson/'
 var loggedin=false;
 var SLP=500;

@@ -12,72 +12,7 @@ root.create=function () {
     init.apply(r,arguments);
     return r;
 };
-/*
-root.EventType=root.create();
-root.EventType.initialize=function () {
-    this.listenerMethods=[];    
-};
-root.EventType.addListenerMethod=function (name) {
-    var t=this;
-    if (name instanceof Array) {
-        name.forEach(function (n) {
-            t.listenerMethods.push(name);
-        });    
-    } else {
-        this.listenerMethods.push(name);
-    }
-    return this;
-};
-root.EventType.invoke=function (self,args) {
-    var res;
-    this.listenerMethods.forEach(function (f) {
-        if (typeof self[f]=="function") {
-            res=self[f].apply(self,args);
-        }
-    });
-    return res;
-};
-var ETYPE="__etype__";
-root.getEventType=function (type) {
-    return this[ETYPE+type];
-};
-root.addEventType=function () {
-    var a=Array.prototype.slice.call(arguments);
-    var type=a.shift();
-    this[ETYPE+type]=root.EventType.create().addListenerMethod(type);
-    return this;
-};
-root.invokeEvent=function () {
-    var a=Array.prototype.slice.call(arguments);
-    var type=a.shift();
-    var et=this.getEventType(type);
-    if (!et) throw new Error("No event type:"+type);
-    return et.invoke(this,a);
-};
-root.addAlias=function () {
-    var a=Array.prototype.slice.call(arguments);
-    var orig=a.shift();
-    var t=this;
-    var et=this.getEventType(orig);
-    if (et) {
-        a.forEach(function (n) {
-            et.addListenerMethod(n);
-        });
-    } else {
-        a.forEach(function (n) {
-            switch(typeof t[orig]) {
-            case "function":
-                t[n]=function () {
-                    return this[orig].apply(this,arguments);
-                };
-                break;
-            default:
-                t[n]=t[orig];
-            }
-        });
-    }
-    return this;
-};*/
+
 root.addAlias=function () {
     var a=Array.prototype.slice.call(arguments);
     var orig=a.shift();

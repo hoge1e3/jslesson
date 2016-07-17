@@ -3444,7 +3444,197 @@ define('UI',["Util","exceptionCatcher"],function (Util, EC) {
     return UI;
 });
 
-define('FileMenu',["UI","FS"], function (UI,FS) {
+define('assert',[],function () {
+    var Assertion=function(failMesg) {
+        this.failMesg=flatten(failMesg || "Assertion failed: ");
+    };
+    var $a;
+    Assertion.prototype={
+        _regedType:{},
+        registerType: function (name,t) {
+            this._regedType[name]=t;
+        },
+        MODE_STRICT:"strict",
+        MODE_DEFENSIVE:"defensive",
+        MODE_BOOL:"bool",
+        fail:function () {
+            var a=$a(arguments);
+            var value=a.shift();
+            a=flatten(a);
+            a=this.failMesg.concat(value).concat(a).concat(["mode",this._mode]);
+            console.log.apply(console,a);
+            if (this.isDefensive()) return value;
+            if (this.isBool()) return false;
+            throw new Error(a.join(" "));
+        },
+        subAssertion: function () {
+            var a=$a(arguments);
+            a=flatten(a);
+            return new Assertion(this.failMesg.concat(a));
+        },
+        assert: function (t,failMesg) {
+            if (!t) return this.fail(t,failMesg);
+            return t;
+        },
+        eq: function (a,b) {
+            if (a!==b) return this.fail(a,"!==",b);
+            return this.isBool()?true:a;
+        },
+        ne: function (a,b) {
+            if (a===b) return this.fail(a,"===",b);
+            return this.isBool()?true:a;
+        },
+        isset: function (a, n) {
+            if (a==null) return this.fail(a, (n||"")+" is null/undef");
+            return this.isBool()?true:a;
+        },
+        is: function (value,type) {
+            var t=type,v=value;
+            if (t==null) {
+                return this.fail(value, "assert.is: type must be set");
+                // return t; Why!!!!???? because is(args,[String,Number])
+            }
+            if (t._assert_func) {
+                t._assert_func.apply(this,[v]);
+                return this.isBool()?true:value;
+            }
+            this.assert(value!=null,[value, "should be ",t]);
+            if (t instanceof Array || (typeof global=="object" && typeof global.Array=="function" && t instanceof global.Array) ) {
+                if (!value || typeof value.length!="number") {
+                    return this.fail(value, "should be array:");
+                }
+                var self=this;
+                for (var i=0 ;i<t.length; i++) {
+                    var na=self.subAssertion("failed at ",value,"[",i,"]: ");
+                    if (t[i]==null) {
+                        console.log("WOW!7", v[i],t[i]);
+                    }
+                    na.is(v[i],t[i]);
+                }
+                return this.isBool()?true:value;
+            }
+            if (t===String || t=="string") {
+                this.assert(typeof(v)=="string",[v,"should be a string "]);
+                return this.isBool()?true:value;
+            }
+            if (t===Number || t=="number") {
+                this.assert(typeof(v)=="number",[v,"should be a number"]);
+                return this.isBool()?true:value;
+            }
+            if (t instanceof RegExp || (typeof global=="object" && typeof global.RegExp=="function" && t instanceof global.RegExp)) {
+                this.is(v,String);
+                this.assert(t.exec(v),[v,"does not match to",t]);
+                return this.isBool()?true:value;
+            }
+            if (t===Function) {
+                this.assert(typeof v=="function",[v,"should be a function"]);
+                return this.isBool()?true:value;
+            }
+            if (typeof t=="function") {
+                this.assert((v instanceof t),[v, "should be ",t]);
+                return this.isBool()?true:value;
+            }
+            if (t && typeof t=="object") {
+                for (var k in t) {
+                    var na=this.subAssertion("failed at ",value,".",k,":");
+                    na.is(value[k],t[k]);
+                }
+                return this.isBool()?true:value;
+            }
+            if (typeof t=="string") {
+                var ty=this._regedType[t];
+                if (ty) return this.is(value,ty);
+                //console.log("assertion Warning:","unregistered type:", t, "value:",value);
+                return this.isBool()?true:value;
+            }
+            return this.fail(value, "Invaild type: ",t);
+        },
+        ensureError: function (action, err) {
+            try {
+                action();
+            } catch(e) {
+                if(typeof err=="string") {
+                    assert(e+""===err,action+" thrown an error "+e+" but expected:"+err);
+                }
+                console.log("Error thrown successfully: ",e.message);
+                return;
+            }
+            this.fail(action,"should throw an error",err);
+        },
+        setMode:function (mode) {
+            this._mode=mode;
+        },
+        isDefensive:function () {
+            return this._mode===this.MODE_DEFENSIVE;
+        },
+        isBool:function () {
+            return this._mode===this.MODE_BOOL;
+        },
+        isStrict:function () {
+            return !this.isDefensive() && !this.isBool();
+        }
+    };
+    $a=function (args) {
+        var a=[];
+        for (var i=0; i<args.length ;i++) a.push(args[i]);
+        return a;
+    };
+    var top=new Assertion();
+    var assert=function () {
+        try {
+            return top.assert.apply(top,arguments);
+        } catch(e) {
+            throw new Error(e.message);
+        }
+    };
+    ["setMode","isDefensive","is","isset","ne","eq","ensureError"].forEach(function (m) {
+        assert[m]=function () {
+            try {
+                return top[m].apply(top,arguments);
+            } catch(e) {
+                console.log(e.stack);
+                //if (top.isDefensive()) return arguments[0];
+                //if (top.isBool()) return false;
+                throw new Error(e.message);
+            }
+        };
+    });
+    assert.fail=top.fail.bind(top);
+    assert.MODE_STRICT=top.MODE_STRICT;
+    assert.MODE_DEFENSIVE=top.MODE_DEFENSIVE;
+    assert.MODE_BOOL=top.MODE_BOOL;
+    assert.f=function (f) {
+        return {
+            _assert_func: f
+        };
+    };
+    assert.and=function () {
+        var types=$a(arguments);
+        assert(types instanceof Array);
+        return assert.f(function (value) {
+            var t=this;
+            for (var i=0; i<types.length; i++) {
+                t.is(value,types[i]);
+            }
+        });
+    };
+    function flatten(a) {
+        if (a instanceof Array) {
+            var res=[];
+            a.forEach(function (e) {
+                res=res.concat(flatten(e));
+            });
+            return res;
+        }
+        return [a];
+    }
+    function isArg(a) {
+        return "length" in a && "caller" in a && "callee" in a;
+    };
+    return assert;
+});
+
+define('FileMenu',["UI","FS","assert"], function (UI,FS,A) {
 var FileMenu=function () {
     var FM={on:{}};
     FM.on.validateName=function (name,action) {
@@ -3472,13 +3662,13 @@ var FileMenu=function () {
         if (typeof FM.fileList=="object") {
             return FM.fileList.curFile();
         }
-        throw "on.getCurFile is missing";
+        throw new Error("on.getCurFile is missing");
     };
     FM.on.getCurDir=function () {
         if (typeof FM.fileList=="object") {
             return FM.fileList.curDir();
         }
-        throw "on.getCurDir is missing";
+        throw new Error("on.getCurDir is missing");
     };
     FM.on.createContent=function (f) {
         return f.text("");
@@ -3522,6 +3712,7 @@ var FileMenu=function () {
         var r=null;
         v.done=function() {
             if (!r || !r.ok) return;
+            A.is(r.file,"SFile");
             //clearInterval(t);
             onend(r.file);
             FM.d.dialog("close");
@@ -3581,6 +3772,7 @@ var FileMenu=function () {
         FM.onMenuStart("rm");
         var curFile=FM.on.getCurFile();
         if (!curFile) return;
+        A.is(curFile,"SFile");
         if (!confirm(curFile.name()+"を削除しますか？")) return;
         if (FM.on.rm && FM.on.rm(curFile)===false) return;
         curFile.rm();
@@ -3683,195 +3875,6 @@ return function showErrorPos(elem, err) {
     return diag;
 };
 });
-define('assert',[],function () {
-    var Assertion=function(failMesg) {
-        this.failMesg=flatten(failMesg || "Assertion failed: ");
-    };
-    var $a;
-    Assertion.prototype={
-        fail:function () {
-            var a=$a(arguments);
-            a=flatten(a);
-            a=this.failMesg.concat(a);
-            console.log.apply(console,a);
-            throw new Error(a.join(" "));
-        },
-        subAssertion: function () {
-            var a=$a(arguments);
-            a=flatten(a);
-            return new Assertion(this.failMesg.concat(a));
-        },
-        assert: function (t,failMesg) {
-            if (!t) this.fail(failMesg);
-            return t;
-        },
-        eq: function (a,b) {
-            if (a!==b) this.fail(a,"!==",b);
-            return a;
-        },
-        ne: function (a,b) {
-            if (a===b) this.fail(a,"===",b);
-            return a;
-        },
-        isset: function (a, n) {
-            if (a==null) this.fail((n||"")+" is null/undef");
-            return a;
-        },
-        is: function (value,type) {
-            var t=type,v=value;
-            if (t==null) {
-                this.fail("assert.is: type must be set");
-                // return t; Why!!!!???? because is(args,[String,Number])
-            }
-            if (t._assert_func) {
-                t._assert_func.apply(this,[v]);
-                return value;
-            }
-            this.assert(value!=null,[value, "should be ",t]);
-            if (t instanceof Array || (typeof global=="object" && typeof global.Array=="function" && t instanceof global.Array) ) {
-                if (!value || typeof value.length!="number") {
-                    this.fail(value, "should be array:");
-                }
-                var self=this;
-                for (var i=0 ;i<t.length; i++) {
-                    var na=self.subAssertion("failed at ",value,"[",i,"]: ");
-                    if (t[i]==null) {
-                        console.log("WOW!7", v[i],t[i])
-                    }
-                    na.is(v[i],t[i]);
-                }
-                return value;
-            }
-            if (t===String || t=="string") {
-                this.assert(typeof(v)=="string",[v,"should be a string "]);
-                return value;
-            }
-            if (t===Number || t=="number") {
-                this.assert(typeof(v)=="number",[v,"should be a number"]);
-                return value;
-            }
-            if (t instanceof RegExp || (typeof global=="object" && typeof global.RegExp=="function" && t instanceof global.RegExp)) {
-                this.is(v,String);
-                this.assert(t.exec(v),[v,"does not match to",t]);
-                return value;
-            }
-            if (typeof t=="function") {
-                this.assert((v instanceof t),[v, "should be ",t]);
-                return value;
-            }
-            if (t && typeof t=="object") {
-                for (var k in t) {
-                    var na=this.subAssertion("failed at ",value,".",k,":");
-                    na.is(value[k],t[k]);
-                }
-                return value;
-            }
-            this.fail("Invaild type: ",t);
-        },
-        ensureError: function (action, err) {
-            try {
-                action();
-            } catch(e) {
-                if(typeof err=="string") {
-                    assert(e+""===err,action+" thrown an error "+e+" but expected:"+err);
-                }
-                console.log("Error thrown successfully: ",e.message);
-                return;
-            }
-            this.fail(action,"should throw an error",err);
-        }
-    };
-    $a=function (args) {
-        var a=[];
-        for (var i=0; i<args.length ;i++) a.push(args[i]);
-        return a;
-    };
-    var top=new Assertion;
-    var assert=function () {
-        try {
-            return top.assert.apply(top,arguments);
-        } catch(e) {
-            throw new Error(e.message);
-        }
-    };
-    ["is","isset","ne","eq","ensureError"].forEach(function (m) {
-        assert[m]=function () {
-            try {
-                return top[m].apply(top,arguments);
-            } catch(e) {
-                console.log(e.stack);
-                throw new Error(e.message);
-            }
-        };
-    });
-    /*assert.is=function () {
-        try {
-            return top.is.apply(top,arguments);
-        } catch(e) {
-            console.log(e.stack);
-            throw new Error(e.message);
-        }
-    };
-    assert.isset=function () {
-        try {
-            return top.isset.apply(top,arguments);
-        } catch(e) {
-            throw new Error(e.message);
-        }
-    };
-    assert.ne=function () {
-        try {
-            return top.ne.apply(top,arguments);
-        } catch(e) {
-            throw new Error(e.message);
-        }
-    };
-    assert.eq=function () {
-        try {
-            return top.eq.apply(top,arguments);
-        } catch(e) {
-            throw new Error(e.message);
-        }
-    };
-    assert.ensureError=function () {
-        try {
-            return top.ensureError.apply(top,arguments);
-        } catch(e) {
-            throw new Error(e.message);
-        }
-    };*/
-    assert.fail=top.fail.bind(top);
-    assert.f=function (f) {
-        return {
-            _assert_func: f
-        };
-    };
-    assert.and=function () {
-        var types=$a(arguments);
-        assert(types instanceof Array);
-        return assert.f(function (value) {
-            var t=this;
-            for (var i=0; i<types.length; i++) {
-                t.is(value,types[i]);
-            }
-        });
-    };
-    function flatten(a) {
-        if (a instanceof Array) {
-            var res=[];
-            a.forEach(function (e) {
-                res=res.concat(flatten(e));
-            });
-            return res;
-        }
-        return [a];
-    }
-    function isArg(a) {
-        return "length" in a && "caller" in a && "callee" in a;
-    };
-    return assert;
-});
-
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -9213,7 +9216,7 @@ return context=function () {
             if (!builtins[k]) delete c[k];
         }
     };
-    for (var k in c) { builtins[k]=true };
+    for (var k in c) { builtins[k]=true; }
     return c;
     function enter(val, act) {
         var sv={};
@@ -11408,6 +11411,7 @@ return TPRC;
 
 define('Shell',["FS","assert"],
         function (FS,assert) {
+    console.log("Shell load!!");
     var Shell={};
     var PathUtil=assert(FS.PathUtil);
     Shell.cd=function (dir) {
@@ -11609,6 +11613,7 @@ define('Shell',["FS","assert"],
     } else {
         sh.cd("/");
     }
+    console.log("Shell load end!!",window.sh);
     return Shell;
 });
 
@@ -11814,7 +11819,7 @@ define('ShellParser',["Shell","DeferredUtil"],function (sh,DU) {
         });
     };
 });
-define('Shell2',["Shell","UI","FS","Util","ShellParser"], 
+define('ShellUI',["Shell","UI","FS","Util","ShellParser"], 
 function (shParent,UI,FS,Util,shp) {
     var res={};
     var sh=shParent.clone();
@@ -12400,20 +12405,34 @@ define('RunDialog',["UI"],function (UI) {
         options=options||{};
         window.dialogClosed=false;
         var d=res.embed(src, runURL, options);
-        d.dialog({width:600,close:function(){window.dialogClosed=true;if(typeof options.toEditor == "function")options.toEditor();}});//,height:options.height?options.height-50:400});
+        d.dialog({width:600,
+            close:function(){
+		        window.dialogClosed=true;
+		        $("#ifrmDlg").remove();
+		        if(typeof options.toEditor == "function") options.toEditor();
+	        },
+            resize:function(e,u){
+                console.log(u.size);
+                $("#iBrowser").css({width:u.size.width-50,height:u.size.height-120});
+                $("#ifrmDlg").attr({width:u.size.width-50,height:u.size.height-120});
+            }
+        });//,height:options.height?options.height-50:400});
     };
     res.embed=function (src, runURL, options) {
         if (!options) options={};
         if (!res.d) {
             res.d=UI("div",{title:"実行画面ダイアログ"},
-                    ["div",{id:"browser"},
-                          ["iframe",{id:"ifrmDlg",width:465,height:options.height||400,src:runURL}]
+                    ["div",{id:"iBrowser"},
+                          ["iframe",{id:"ifrmDlg",width:570,height:options.height||400,src:runURL}]
                     ],
                     ["button", {type:"button",$var:"OKButton", on:{click: function () {
                         res.d.dialog("close");
                     }}}, "OK"]
             );
-        }
+        }else{
+            $("#ifrmDlg").remove();
+		$("#iBrowser").append(UI("iframe",{id:"ifrmDlg",width:570,height:options.height||400,src:runURL}));
+	}
         $("#ifrmDlg").attr(src,runURL);
         //if($("#ifrmDlg")[0]) console.log($("#ifrmDlg")[0].contentWindow.document.body);
         if($("#ifrmDlg")[0]) {
@@ -12502,9 +12521,20 @@ function (sh,FS,DU,UI,S) {
                             if (sourcemap && rr) {
                                 var r=parseInt(rr[1]);
                                 var c=parseInt(rr[2]);
-                                var op=sourcemap.originalPositionFor({
-                                    line: r, column:c
+                                var op;
+                                op=sourcemap.originalPositionFor({
+                                    line: r, column:c,
+                                    bias:S.SourceMapConsumer.GREATEST_LOWER_BOUND
                                 });
+                                if (op.source==null) {
+                                    op=sourcemap.originalPositionFor({
+                                        line: r, column:c,
+                                        bias:S.SourceMapConsumer.LEAST_UPPER_BOUND
+                                    });
+                                }
+                                if (window.parent) {
+                                    window.parent.lastSourceMap=sourcemap;
+                                }
                                 console.log("Original", line, r,c,op);
                                 line=line.substring(0,idx)+
                                 op.source+":"+op.line+":"+op.column+")";
@@ -12677,32 +12707,92 @@ define('logToServer',[],function () {
     }
     return logToServer;
 });
+define('zip',["FS","Shell","Util"],function (FS,sh,Util) {
+    if (typeof JSZip=="undefined") return {};
+    var zip={};
+    zip.zip=function (dir,options) {
+        var zip = new JSZip();
+        function loop(dst, dir) {
+            dir.each(function (f) {
+                if (f.isDir()) {
+                    var sf=dst.folder(f.name());
+                    loop(sf, f);
+                } else {
+                    dst.file(f.name(),f.text());
+                }
+            });
+        }
+        loop(zip, dir);
+        //zip.file("Hello.txt", "Hello World\n");
+        //var img = zip.folder("images");
+        //img.file("smile.gif", imgData, {base64: true});
+        var content = zip.generate({type:"blob"});
+        return content;
+    };
+    if (typeof saveAs!="undefined") {
+        sh.dlzip=function (dir) {
+            dir=sh.resolve(dir);
+            var content=zip.zip(dir);
+            saveAs(content, dir.name().replace(/\//g,"")+".zip");
+        }
+    }
+    // same as SFileNW.js
+    var binMap={".png": "image/png", ".jpg":"image/jpg", ".gif": "image/gif", ".jpeg":"image/jpg",
+            ".mp3":"audio/mp3", ".ogg":"audio/ogg"};
+    zip.unzip=function (arrayBuf,destDir) {
+        var zip=new JSZip(arrayBuf);
+        for (var i in zip.files) {
+            var zipEntry=zip.files[i];
+            var dest=destDir.rel(zipEntry.name);
+            for (var ext in binMap) {
+                var text;
+                if (dest.endsWith(ext)) {
+                    var ct=binMap[ext];
+                    text="data:"+ct+";base64,"+Util.Base64_From_ArrayBuffer(zipEntry.asArrayBuffer());
+                } else {
+                    text=zipEntry.asText();
+                }
+                dest.text(text);
+            }
+            console.log(zipEntry.name);
+        }
+    };
+    return zip;
+});
 requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "showErrorPos", "fixIndent",  "ProjectCompiler",
-           "Shell","Shell2","KeyEventChecker",
+           "Shell","ShellUI","KeyEventChecker",
            "runtime", "searchDialog","StackTrace",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
-           "LocalBrowser","logToServer"
+           "LocalBrowser","logToServer","zip"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
-          sh,sh2,  KeyEventChecker,
+          sh,shui,  KeyEventChecker,
           rt, searchDialog,StackTrace,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
-          LocalBrowser,logToServer
+          LocalBrowser,logToServer,zip
           ) {
 $(function () {
+    if (location.href.match(/localhost/)) {
+        console.log("assertion mode strict");
+        A.setMode(A.MODE_STRICT);
+    } else {
+        console.log("assertion mode defensive");
+        A.setMode(A.MODE_DEFENSIVE);
+    }
+    //console.log("assert test", A.is(null,String));
     var P=FS.PathUtil;
     var curClassroom;
     $.get("login.php?curclass="+Math.random()).then(function (r){
-        console.log(r);
+        console.log("curclass",r);
         curClassroom=r;
     });
     var curUser;
     $.get("login.php?curuser="+Math.random()).then(function (r) {
-        console.log(r);
+        console.log("curuser",r);
         curUser=r;
     });
     if (typeof SplashScreen!="undefined") SplashScreen.show();
@@ -12791,6 +12881,7 @@ $(function () {
                       {label:"新規",id:"newFile"},
                       {label:"名前変更",id:"mvFile"},
                       {label:"コピー",id:"cpFile"},
+                      //{label:"閉じる",id:"closeFile"},
                       {label:"削除", id:"rmFile"}
                   ]},
                   {label:"実行",id:"runMenu",action:run/*sub:[
@@ -12822,6 +12913,7 @@ $(function () {
     var editors={};
 
     KeyEventChecker.down(document,"bs",F(function (e) {
+        A.is(e,"Event");
 	    var f=$(":focus");
 	    var doConfirm=true;
 	    if (f.length>0 && 
@@ -12842,6 +12934,9 @@ $(function () {
             return false;
 	    }
     }));
+    KeyEventChecker.down(document,"ctrl+shift+s",function () {
+        sh.window();
+    });
     KeyEventChecker.down(document,"F9",F(run));
     KeyEventChecker.down(document,"F2",F(function(){
         stop();
@@ -12849,6 +12944,7 @@ $(function () {
         //console.log("F2 pressed");
     }));
     KeyEventChecker.down(document,"ctrl+s",F(function (e) {
+        A.is(e,"Event");
     	save();
     	e.stopPropagation();
     	e.preventDefault();
@@ -12903,8 +12999,12 @@ $(function () {
     $("#rmFile").click(F(FM.rm));
     FM.on.close=function (f) {
         var s=fileSet(f);
+        var shouldRemove=false;
         s.forEach(function (e) {
-            if (e.exists()) {
+            if (!e.exists()) shouldRemove=true;
+        });
+        s.forEach(function (e) {
+            if (shouldRemove && e.exists()) {
                 e.rm();
             }
             close(e);
@@ -12928,11 +13028,12 @@ $(function () {
         }
     };
     FM.on.displayName=function (f) {
+        A.is(f,String);
         var r=dispName(f);
         if (r) {
             return r;
         }
-        return f.name();
+        return f;
     };
     var refactorUI;
     FM.on.rm=function (f) {
@@ -12969,12 +13070,14 @@ $(function () {
         fl.ls(curProjectDir);
     }
     function dispName(name) {
+        A.is(name,String);
         //var name=f.name();
         if (P.isDir(name)) return name;
         if (P.endsWith(name,EXT) /*|| f.endsWith(HEXT)*/) return P.truncExt(name);
         return null;
     }
     function fixName(name, options) {
+        A.is(arguments,[String]);
         var upcased=false;
         if (name.match(/^[a-z]/)) {
             name= name.substring(0,1).toUpperCase()+name.substring(1);
@@ -12996,14 +13099,15 @@ $(function () {
     function getCurrentEditorInfo() {
         var f=fl.curFile();
         if (!f) return null;
-        return editors[f.path()];
+        A.is(f,"SFile");
+        return A.is(editors[f.path()],"EditorInfo?");
     }
-    function getCurrentEditor() {
+    function getCurrentEditor() {//->AceEditor?
         var i=getCurrentEditorInfo();
-        if (i) return i.editor;
+        if (i) return A.is(i.editor,"AceEditor");
         return null;
     }
-    function displayMode(mode, next) {
+    function displayMode(mode) {
         // mode == run     compile_error     runtime_error    edit
         var prog=getCurrentEditor();
         switch(mode) {
@@ -13043,6 +13147,7 @@ $(function () {
         return Sync.sync(projects, FS.get("/"),{v:true}).then(
             function(){unsynced=false;showToast("保存しました");}
         ).fail(function (e) {
+            if (!e) e="Unknown error";
             logToServer("SYNC ERROR!\n"+(e.stack || e.responseText || e)+"\nSYNC ERROR END!\n");
             console.log(e);
             alert("保存に失敗しました。");
@@ -13101,6 +13206,10 @@ $(function () {
             
             var name=curPrj.getClassName(curJSFile);
             A.is(name,String);
+            if (!curClassroom || !curUser) {
+                alert("ログインしていないので実行できません");
+                return;
+            }
 	        runURL=location.href.replace(/\/[^\/]*\?.*$/,
 	                "/run.html?classroom="+curClassroom+"&usr="+curUser+
 	                "&prj="+curProjectDir.name().replace("/","")+
@@ -13119,6 +13228,7 @@ $(function () {
 	            }
 	            return sync();
 	        }), function (e) {
+	            A(e);
 	            if (typeof SplashScreen!="undefined") SplashScreen.hide();
 	            if (e.isTError) {
 	                console.log("showErr: run",e);
@@ -13166,11 +13276,12 @@ $(function () {
                     return sync();
                 });
             }catch(e) {
-                console.log(e.stack);
+	            if(e) console.log(e.stack);
             }
     	}
     }
     window.moveFromFrame=function (name) {
+        A.is(name,String);
         var f=curProjectDir.rel(name);
         if (f.exists()) {
             fl.select(f);
@@ -13180,7 +13291,8 @@ $(function () {
     var curFrameRun;
     var curth;
     window.setupFrame=function (r) {
-        curFrameRun=r;
+        A.is(r,Function);
+        //curFrameRun=r;
         var inf=getCurrentEditorInfo();
         var ht="";
         var curFile=inf.file;
@@ -13199,10 +13311,13 @@ $(function () {
         alertOnce=function(){};
     };
     window.onerror=function (a,b,c,d,e) {
+        if (!e) return;
         return Tonyu.onRuntimeError(e);
     };
     EC.handleException=Tonyu.onRuntimeError=function (e) {
         Tonyu.globals.$lastError=e;
+        //A.is(e,Error);// This will fail when error from iframe.
+        A(e,"Error is empty");
         var t=curPrj.env.traceTbl;
         var te;
         var tid = t.find(e) || t.decode($LASTPOS); // user.Main:234
@@ -13227,7 +13342,8 @@ $(function () {
             stop();
             logToServer("JS Runtime Error!\n"+te.src+":"+te.pos+"\n"+te.mesg+"\nJS Runtime Error End!");
         } else {
-            UI("div",{title:"Error"},"["+e+"]",["pre",e.stack]).dialog({width:800});
+            var stack = e.stack.split("\n");
+            UI("div",{title:"Error"},"["+e+"]",["button",{on:{click:function(){console.log("clicked");$("#reConsole").text(e.stack);}}},"詳細"],["pre",{id:"reConsole"},stack[0]+"\n"+stack[1]]).dialog({width:800});
             stop();
             logToServer(e.stack || e);
         }
@@ -13245,12 +13361,14 @@ $(function () {
     function close(rm) { // rm or mv
         var i=editors[rm.path()]; //getCurrentEditorInfo();
         if (i) {
+            A.is(i,"EditorInfo");
             i.editor.destroy();
             i.dom.remove();
             delete editors[rm.path()];
         }
     }
     function fixEditorIndent(prog) {
+        A.is(prog,"AceEditor");
         var cur=prog.getCursorPosition();
         prog.setValue(fixIndent( prog.getValue() ));
         prog.clearSelection();
@@ -13298,6 +13416,7 @@ $(function () {
 	    }
     }
     function fileSet(c) {
+        A.is(c,"SFile");
         var n=c.truncExt();
         return [c.up().rel(n+HEXT), c.up().rel(n+EXT)];
     }
@@ -13318,6 +13437,11 @@ $(function () {
     setInterval(watchModified,1000);
     var curDOM;
     function open(f) {
+        A.is(f,"SFile");
+        if (!window.ace) {
+            alert("しばらくしてからもう一度開いてください");
+            return true;
+        }
 	// do not call directly !!  it doesnt change fl.curFile. use fl.select instead
         if (f.isDir()) {
             return;

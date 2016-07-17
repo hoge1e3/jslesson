@@ -2301,11 +2301,21 @@ define('assert',[],function () {
     };
     var $a;
     Assertion.prototype={
+        _regedType:{},
+        registerType: function (name,t) {
+            this._regedType[name]=t;
+        },
+        MODE_STRICT:"strict",
+        MODE_DEFENSIVE:"defensive",
+        MODE_BOOL:"bool",
         fail:function () {
             var a=$a(arguments);
+            var value=a.shift();
             a=flatten(a);
-            a=this.failMesg.concat(a);
+            a=this.failMesg.concat(value).concat(a).concat(["mode",this._mode]);
             console.log.apply(console,a);
+            if (this.isDefensive()) return value;
+            if (this.isBool()) return false;
             throw new Error(a.join(" "));
         },
         subAssertion: function () {
@@ -2314,71 +2324,81 @@ define('assert',[],function () {
             return new Assertion(this.failMesg.concat(a));
         },
         assert: function (t,failMesg) {
-            if (!t) this.fail(failMesg);
+            if (!t) return this.fail(t,failMesg);
             return t;
         },
         eq: function (a,b) {
-            if (a!==b) this.fail(a,"!==",b);
-            return a;
+            if (a!==b) return this.fail(a,"!==",b);
+            return this.isBool()?true:a;
         },
         ne: function (a,b) {
-            if (a===b) this.fail(a,"===",b);
-            return a;
+            if (a===b) return this.fail(a,"===",b);
+            return this.isBool()?true:a;
         },
         isset: function (a, n) {
-            if (a==null) this.fail((n||"")+" is null/undef");
-            return a;
+            if (a==null) return this.fail(a, (n||"")+" is null/undef");
+            return this.isBool()?true:a;
         },
         is: function (value,type) {
             var t=type,v=value;
             if (t==null) {
-                this.fail("assert.is: type must be set");
+                return this.fail(value, "assert.is: type must be set");
                 // return t; Why!!!!???? because is(args,[String,Number])
             }
             if (t._assert_func) {
                 t._assert_func.apply(this,[v]);
-                return value;
+                return this.isBool()?true:value;
             }
             this.assert(value!=null,[value, "should be ",t]);
             if (t instanceof Array || (typeof global=="object" && typeof global.Array=="function" && t instanceof global.Array) ) {
                 if (!value || typeof value.length!="number") {
-                    this.fail(value, "should be array:");
+                    return this.fail(value, "should be array:");
                 }
                 var self=this;
                 for (var i=0 ;i<t.length; i++) {
                     var na=self.subAssertion("failed at ",value,"[",i,"]: ");
                     if (t[i]==null) {
-                        console.log("WOW!7", v[i],t[i])
+                        console.log("WOW!7", v[i],t[i]);
                     }
                     na.is(v[i],t[i]);
                 }
-                return value;
+                return this.isBool()?true:value;
             }
             if (t===String || t=="string") {
                 this.assert(typeof(v)=="string",[v,"should be a string "]);
-                return value;
+                return this.isBool()?true:value;
             }
             if (t===Number || t=="number") {
                 this.assert(typeof(v)=="number",[v,"should be a number"]);
-                return value;
+                return this.isBool()?true:value;
             }
             if (t instanceof RegExp || (typeof global=="object" && typeof global.RegExp=="function" && t instanceof global.RegExp)) {
                 this.is(v,String);
                 this.assert(t.exec(v),[v,"does not match to",t]);
-                return value;
+                return this.isBool()?true:value;
+            }
+            if (t===Function) {
+                this.assert(typeof v=="function",[v,"should be a function"]);
+                return this.isBool()?true:value;
             }
             if (typeof t=="function") {
                 this.assert((v instanceof t),[v, "should be ",t]);
-                return value;
+                return this.isBool()?true:value;
             }
             if (t && typeof t=="object") {
                 for (var k in t) {
                     var na=this.subAssertion("failed at ",value,".",k,":");
                     na.is(value[k],t[k]);
                 }
-                return value;
+                return this.isBool()?true:value;
             }
-            this.fail("Invaild type: ",t);
+            if (typeof t=="string") {
+                var ty=this._regedType[t];
+                if (ty) return this.is(value,ty);
+                //console.log("assertion Warning:","unregistered type:", t, "value:",value);
+                return this.isBool()?true:value;
+            }
+            return this.fail(value, "Invaild type: ",t);
         },
         ensureError: function (action, err) {
             try {
@@ -2391,6 +2411,18 @@ define('assert',[],function () {
                 return;
             }
             this.fail(action,"should throw an error",err);
+        },
+        setMode:function (mode) {
+            this._mode=mode;
+        },
+        isDefensive:function () {
+            return this._mode===this.MODE_DEFENSIVE;
+        },
+        isBool:function () {
+            return this._mode===this.MODE_BOOL;
+        },
+        isStrict:function () {
+            return !this.isDefensive() && !this.isBool();
         }
     };
     $a=function (args) {
@@ -2398,7 +2430,7 @@ define('assert',[],function () {
         for (var i=0; i<args.length ;i++) a.push(args[i]);
         return a;
     };
-    var top=new Assertion;
+    var top=new Assertion();
     var assert=function () {
         try {
             return top.assert.apply(top,arguments);
@@ -2406,53 +2438,22 @@ define('assert',[],function () {
             throw new Error(e.message);
         }
     };
-    ["is","isset","ne","eq","ensureError"].forEach(function (m) {
+    ["setMode","isDefensive","is","isset","ne","eq","ensureError"].forEach(function (m) {
         assert[m]=function () {
             try {
                 return top[m].apply(top,arguments);
             } catch(e) {
                 console.log(e.stack);
+                //if (top.isDefensive()) return arguments[0];
+                //if (top.isBool()) return false;
                 throw new Error(e.message);
             }
         };
     });
-    /*assert.is=function () {
-        try {
-            return top.is.apply(top,arguments);
-        } catch(e) {
-            console.log(e.stack);
-            throw new Error(e.message);
-        }
-    };
-    assert.isset=function () {
-        try {
-            return top.isset.apply(top,arguments);
-        } catch(e) {
-            throw new Error(e.message);
-        }
-    };
-    assert.ne=function () {
-        try {
-            return top.ne.apply(top,arguments);
-        } catch(e) {
-            throw new Error(e.message);
-        }
-    };
-    assert.eq=function () {
-        try {
-            return top.eq.apply(top,arguments);
-        } catch(e) {
-            throw new Error(e.message);
-        }
-    };
-    assert.ensureError=function () {
-        try {
-            return top.ensureError.apply(top,arguments);
-        } catch(e) {
-            throw new Error(e.message);
-        }
-    };*/
     assert.fail=top.fail.bind(top);
+    assert.MODE_STRICT=top.MODE_STRICT;
+    assert.MODE_DEFENSIVE=top.MODE_DEFENSIVE;
+    assert.MODE_BOOL=top.MODE_BOOL;
     assert.f=function (f) {
         return {
             _assert_func: f
@@ -2486,6 +2487,7 @@ define('assert',[],function () {
 
 define('Shell',["FS","assert"],
         function (FS,assert) {
+    console.log("Shell load!!");
     var Shell={};
     var PathUtil=assert(FS.PathUtil);
     Shell.cd=function (dir) {
@@ -2687,6 +2689,7 @@ define('Shell',["FS","assert"],
     } else {
         sh.cd("/");
     }
+    console.log("Shell load end!!",window.sh);
     return Shell;
 });
 
@@ -9376,7 +9379,7 @@ return context=function () {
             if (!builtins[k]) delete c[k];
         }
     };
-    for (var k in c) { builtins[k]=true };
+    for (var k in c) { builtins[k]=true; }
     return c;
     function enter(val, act) {
         var sv={};
@@ -11934,9 +11937,16 @@ define('NewSampleDialog',["UI"], function (UI) {
 });
 
 requirejs(["FS","Shell","Shell2","ProjectCompiler",
-           "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog"],
+           "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog",
+           "assert"],
   function (FS, sh,sh2,TPRC,
-           NPD,           UI, Auth,zip,Sync,NSD) {
+           NPD,           UI, Auth,zip,Sync,NSD,
+           A) {
+    if (location.href.match(/localhost/)) {
+        A.setMode(A.MODE_STRICT);
+    } else {
+        A.setMode(A.MODE_DEFENSIVE);
+    }
 $(function () {
     $("body").append(UI("div",
             ["h1","プロジェクト一覧"],
