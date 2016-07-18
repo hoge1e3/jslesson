@@ -46,11 +46,20 @@ function (sh,FS,DU,UI,S) {
                     if (this.fileMap[url]) {
                         return this.fileMap[url].blobUrl;
                     }
+                    if (FS.PathUtil.isURL(url)) {
+                        return url;
+                    }
+                    var file;
+                    if (FS.PathUtil.isRelativePath(url)) {
+                        file=base.rel(url);
+                    } else {
+                        file=FS.get(url);
+                    }
                     var smc;
                     if (FS.PathUtil.endsWith(url,".js")) {
-                        var r=regsm.exec(base.rel(url).text());
+                        var r=regsm.exec(file.text());
                         if (r) {
-                            var smf=base.rel(r[1]);
+                            var smf=file.sibling(r[1]);
                             if (smf.exists()) {
                                 smc = new S.SourceMapConsumer(smf.obj());
                                 console.log("Source map",smc);

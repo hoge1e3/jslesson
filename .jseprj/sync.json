@@ -1,0 +1,4 @@
+[
+   ["www/js/dolittle/lib.js", "www/runtime/lib/dtl/lib.js"],
+   ["www/js/fsui/LocalBrowser.js", "${projects:FS.js}/www/fstools/LocalBrowser.js"]
+]
