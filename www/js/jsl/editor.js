@@ -498,6 +498,7 @@ $(function () {
             return sync();
     	}else if(lang=="dtl"){
     	    try {
+        	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
                 var ram=FS.get("/ram/build/");
                 if (!ram.exists()) FS.mount(ram.path(),"ram");
                 var b=new Builder(curPrj, ram);
