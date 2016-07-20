@@ -23,6 +23,7 @@ function (sh,FS,DU,UI,S) {
         }
         var i=$("<iframe>");
         i.attr(this.iframeAttr);
+        this.iframe=i;
         var base=f.up();
         var iwin;
         var idoc;

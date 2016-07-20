@@ -2,7 +2,6 @@
 var root={window:window,document:document, console:console};
 window.root=root;
 root.root=root;
-//var ctx=$("canvas").get(0).getContext("2d");
 var localize=function (obj, map) {
     for (var k in map) if (obj[k]) obj[map[k]]=obj[k];
 };

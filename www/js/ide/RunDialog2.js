@@ -4,11 +4,21 @@ define(["UI","LocalBrowser"],function (UI, LocalBrowser) {
         options=options||{};
         window.dialogClosed=false;
         var d=res.embed(runFile, options);
-        d.dialog({width:600,close:function(){
-            window.dialogClosed=true;
-            if (res.b) res.b.close();
-            if(typeof options.toEditor == "function")options.toEditor();
-        }});//,height:options.height?options.height-50:400});
+        d.dialog({
+            width:600,
+            close:function(){
+                window.dialogClosed=true;
+                if (res.b) res.b.close();
+                if(typeof options.toEditor == "function")options.toEditor();
+            }, 
+            resize:function(e,u){
+                console.log(u.size);
+                //$("#iBrowser").css({width:u.size.width-50,height:u.size.height-120});
+                if (res.b && res.b.iframe) {
+                    res.b.iframe.attr({width:u.size.width-50,height:u.size.height-120});
+                }
+            }
+        });//,height:options.height?options.height-50:400});
     };
     res.embed=function (runFile, options) {
         options=options||{};

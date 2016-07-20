@@ -4,7 +4,7 @@ define(["UI"],function (UI) {
         options=options||{};
         window.dialogClosed=false;
         var d=res.embed(src, runURL, options);
-        d.dialog({width:600,
+        d.dialog({width:600,position: { my: "center top", at: "right bottom"},
             close:function(){
 		        window.dialogClosed=true;
 		        $("#ifrmDlg").remove();

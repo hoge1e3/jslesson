@@ -30,7 +30,8 @@ define(["UI"], function (UI) {
         d.$vars.OKButton.val("OK");
         $.get("copySample.php").then(function (r) {
             console.log("res", r);
-            //d.$vars.sample.empty();
+            d.$vars.sample.empty();
+            d.$vars.sample.append(UI("option",{$var:"loading",selected:true,value:"notsel"},"選択してください"));
             d.$vars.loading.text("選択してください");
             r.forEach(function (n) {
                     d.$vars.sample.append(UI("option",{value:n},n)); 

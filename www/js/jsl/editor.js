@@ -113,7 +113,7 @@ $(function () {
     }
     makeUI();
     function makeMenu() {
-        Menu.make("JS Lesson",
+        Menu.make("Bit Arrow",
                 [
                   {label:"Home"/*,href:"index.html"*/,id:"home"},
                   {label:"ファイル",sub:[

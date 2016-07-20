@@ -142,9 +142,10 @@ MinimalParser= function () {
 	        return this.text;
 	    }};
 	});
-	var reg_str = RegExp("^[\"\”][^\"^\”]*[\"\”]");//文字列の正規表現
+	var reg_str = RegExp("^[\"\”\“『][^\"\“\”\』]*[\"\”\“』]");//文字列の正規表現
 	var tok_str = token(reg_str).ret(function(_str){
-	    return extend([_str.text],{type:"string",content:_str.text.substring(1,_str.text.length-1)});
+	    var content=_str.text.substring(1,_str.text.length-1);
+	    return extend(['"'+content+'"'],{type:"string",content:content});
 	});
 	var reg_num = /^[0-9０-９]+([.．]([0-9０-９])+)?/;//数字を表す正規表現
 	//var reg_num=/^[0-9０-９]+/;
