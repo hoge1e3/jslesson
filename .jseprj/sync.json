@@ -1,7 +1,7 @@
 [
    ["www/js/dolittle/lib.js", "www/runtime/lib/dtl/lib.js"],
    ["www/js/fsui/LocalBrowser.js", "${projects:FS.js}/www/fstools/LocalBrowser.js"],
-   ["www/php/dtlfs.php", "${projects:FS.js}/www/php/dtlfs.php"],
+   ["${projects:Tonyu2}/js/ui/","www/js/ui/"],
    ["www/php/dtl/", "${projects:FS.js}/www/php/dtl/"],
    ["www/php/dtlfs/", "${projects:FS.js}/www/php/dtlfs/"]
 ]
