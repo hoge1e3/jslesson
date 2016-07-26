@@ -17,7 +17,8 @@ class DtlThread {
             case "pushi":
                 $stack->push(DtlUtil::wrap($c[1]));
                 break;
-            //push1 nameid (local)
+            //push1 nameid (local)  -> push1 nameid(self::name)
+            case "pushbinding":
             case "push1":
                 $name=$c[1];
                 $stack->push(DtlObj::s_get($scope,$name));
@@ -29,6 +30,7 @@ class DtlThread {
                 $stack->push(DtlObj::s_get($obj,$name));
                 break;
             //pushb blockid  (with dtlbind)
+            case "pushbb": // block with binding
             case "pushb":
                 $stack->push(new DtlBlock($scope,$c[1]) );
                 break;
@@ -63,6 +65,7 @@ class DtlThread {
             case "ret":
                 return $stack->pop();
             // [val] store1 nameid layer
+            case "storebinding":
             case "store1":
                 $name=$c[1];
                 $layer=$c[2];
@@ -80,6 +83,7 @@ class DtlThread {
                 DtlObj::s_set($obj,$name,$val);
                 $stack->push($val);
                 break;
+            // Deprecated?
             case "para":
                 $name=$c[1];
                 DtlObj::s_set($scope, $name, array_shift($scope->arguments));

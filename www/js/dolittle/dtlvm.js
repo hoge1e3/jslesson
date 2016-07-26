@@ -27,7 +27,7 @@ MinimalParser.node2vm=function (node) {
             var elec=node.subnodes[2];
 			if (obj) v.visit(obj);
 			else {
-			    add(["push1","self"]);
+			    add(["pushbinding","self"]);
 			    //add(["push2","root"]);
 			}
 			v.visit(elec);
@@ -78,20 +78,20 @@ MinimalParser.node2vm=function (node) {
                 v.visit(param);
                 v.visit(progs);
             });
-            add(["pushb",nc]);
+            add(["pushbb",nc]);
         },
         localVar: function (node) {
             var name=node.name;//subnodes[0];
-            add(["push1",name+""]);
+            add(["pushbinding",name+""]);
         },
         field: function (node) {
             var name=node.name;//subnodes[0];
-            add(["push1","self"]);
+            add(["pushbinding","self"]);
             add(["push2",name+""]);
         },
         rootVar: function (node) {
             var name=node.name;//subnodes[0];
-            add(["push1","root"]);
+            add(["pushbinding","root"]);
             add(["push2",name+""]);
         },
         memberAccess: function (node) {
@@ -105,15 +105,15 @@ MinimalParser.node2vm=function (node) {
             switch(left ? left.type : "nolet") {
            	case "localVar":
 	            v.visit(expr);
-	            add(["store1",left.name+"", ctx.depth-left.depth]);//TODO
+	            add(["storebinding",left.name+"", ctx.depth-left.depth]);//TODO
             	break;
            	case "field":
-           		add(["push1","self"]);
+           		add(["pushbinding","self"]);
 	            v.visit(expr);
 	            add(["store2",left.name+""]);
             	break;
            	case "rootVar":
-           		add(["push1","root"]);
+           		add(["pushbinding","root"]);
 	            v.visit(expr);
 	            add(["store2",left.name+""]);
             	break;
