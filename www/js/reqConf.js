@@ -127,6 +127,7 @@ var reqConf={
             WebSite: "runtime/WebSite",
             UI:"lib/UI",
             UIDiag:"lib/UIDiag",
+            DiagAdjuster:"ui/DiagAdjuster",
             ImageResEditor: "ide/ImageResEditor",
             ResEditor: "ide/ResEditor",
             reqConf: "reqConf",
