@@ -2264,21 +2264,21 @@ define('WebSite',[], function () {
         WS.pluginTop=WS.top+"/js/plugins";
     }
     WS.disableROM={};
-    if (loc.match(/\.appspot\.com/) ||  loc.match(/localhost:888[87]/)) {
-        WS.serverType="GAE";
-    }
     WS.sampleImg=WS.top+"/images";
     WS.isNW=(typeof process=="object" && process.__node_webkit);
     //WS.fsHome="";
     WS.tonyuHome="/Tonyu/";
     WS.JSLKer="fs/Tonyu/Projects/JSLKer";
-    WS.serverTop=".";
-    WS.phpTop=WS.serverTop+"/";//php/";
+    WS.serverTop=location.href.replace(/\?.*$/,"").replace(/[^/]*$/,"");//"."; // includes /
+    WS.phpTop=WS.serverTop+"";//php/";
     WS.url={
             getDirInfo:WS.phpTop+"getDirInfo.php",
             getFiles:WS.phpTop+"getFiles.php",
             putFiles:WS.phpTop+"putFiles.php"
     };
+    WS.runtime=WS.serverTop+"runtime/";
+    WS.published=WS.serverTop+"fs/home/";
+    
     /*if (WS.isNW) {
         if (process.env.TONYU_HOME) {
             WS.tonyuHome=process.env.TONYU_HOME.replace(/\\/g,"/");
@@ -11891,6 +11891,8 @@ define('NewSampleDialog',["UI"], function (UI) {
         d.$vars.OKButton.val("OK");
         $.get("copySample.php").then(function (r) {
             console.log("res", r);
+            d.$vars.sample.empty();
+            d.$vars.sample.append(UI("option",{$var:"loading",selected:true,value:"notsel"},"選択してください"));
             d.$vars.loading.text("選択してください");
             r.forEach(function (n) {
                     d.$vars.sample.append(UI("option",{value:n},n)); 
@@ -11951,19 +11953,19 @@ $(function () {
     $("body").append(UI("div",
             ["h1","プロジェクト一覧"],
             ["div",
-	        ["a",{href:"http://klab.eplang.jp/jslesson_wiki/",target:"wikiTab"},"JSLesson説明ページ"],"JSLessonの解説などを掲載しています"
+	        ["a",{href:"http://klab.eplang.jp/jslesson_wiki/",target:"wikiTab"},"Bit Arrow説明ページ"],"Bit Arrowの解説などを掲載しています"
 	    ],
             ["div",
-	        ["a",{href:"https://docs.google.com/document/d/17_RcWbezzXf4ShnTUcS2IRYxgO03QB9--sFN4xC9Ts0/pub",target:"manTab"},"入門テキスト"],"JSLessonの基本的な使い方を説明します。"
+	        ["a",{href:"https://docs.google.com/document/d/17_RcWbezzXf4ShnTUcS2IRYxgO03QB9--sFN4xC9Ts0/pub",target:"manTab"},"入門テキスト"],"Bit Arrowの基本的な使い方を説明します。"
 	    ],
 	    ["div",
-	        ["a",{href:"https://docs.google.com/document/d/1VzrUiHj6IBIgnN4GY2AFs92wGwjlreG6DmByg3VkROA/pub",target:"gamTab"},"ゲーム制作のテキスト"],"JSLessonでゲームを制作するサンプル教材です。"
+	        ["a",{href:"https://docs.google.com/document/d/1VzrUiHj6IBIgnN4GY2AFs92wGwjlreG6DmByg3VkROA/pub",target:"gamTab"},"ゲーム制作のテキスト"],"Bit Arrowでゲームを制作するサンプル教材です。"
 	    ],
 	    ["div",
-	    	["a",{href:"https://docs.google.com/document/d/1TqO4SCzWyCggfRZ8onqcAmiIpHPQygeSuVtO0atbZVs/pub",target:"apiTab"},"JSLessonで使える命令"],"JSLessonで使える命令の一覧と使用例です。"
+	    	["a",{href:"https://docs.google.com/document/d/1TqO4SCzWyCggfRZ8onqcAmiIpHPQygeSuVtO0atbZVs/pub",target:"apiTab"},"Bit Arrowで使える命令"],"Bit Arrowで使える命令の一覧と使用例です。"
 	    ],
 	    ["div",
-	    	["a",{href:"https://docs.google.com/document/d/1oLtnBKggCuOI-cyD16ZCg7JOFCi-oS8Rj9vo0uhWFvs/pub",target:"regTab"},"教員の方向け説明"],"JSLessonを使って授業を展開される方への説明です。"
+	    	["a",{href:"https://docs.google.com/document/d/1oLtnBKggCuOI-cyD16ZCg7JOFCi-oS8Rj9vo0uhWFvs/pub",target:"regTab"},"教員の方向け説明"],"Bit Arrowを使って授業を展開される方への説明です。"
 	    ],
 	    ["div",
 	    	["a",{href:"teacher.php",target:"teaTab"},"教員用ログイン"]

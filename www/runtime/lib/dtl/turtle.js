@@ -1,143 +1,153 @@
-(function(){this.turtle=this.Actor.create();
-this.Turtle=this.turtle;
-this.turtle.initialize=dtlbind(this,function(){
+(function(){this['turtle']=this['Actor']['create']();
+this['Turtle']=this['turtle'];
+this['console']['log']("LOC",(this['window']['location']['href']));
+this['Turtle']['baseURL']=dtlbind(this,function(){
 var self=this;var 自分=self;
-this.width=(32);
-this.height=(32);
-this.element=this.createSVGElem("image");
-this.element.get((0)).setAttributeNS("http://www.w3.org/1999/xlink","href","runtime/images/ayumi.gif");
-this.adjustImage();
-this.element.attr("transform","scale(1,-1)");
-this.pos=this.Vec2.create((0),(0));
-this.dir=(0);
-this.isPenDown=this.true;
-this.lineWidth((3));
-this.lineColor("black");
-this.appear();
-return this.newLineG();
-});
-this.turtle.adjustImage=dtlbind(this,function(){
+return ((this['window']['location']['href']['indexOf']("localhost"))>=(0));
+})['then']()['else'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return this.element.attr("width",((this.width+"px"))).attr("height",((this.height+"px"))).attr("x",((-this.width/(2)))).attr("y",((-this.height/(2))));
+return "http://localhost/runtime/images/";
+}))['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return "http://klab.eplang.jp/jslesson/runtime/images/";
+}));
+this['turtle']['initialize']=dtlbind(this,function(){
+var self=this;var 自分=self;
+this['element']=this['createSVGElem']("image");
+this['element']['get']((0))['setAttributeNS']("http://www.w3.org/1999/xlink","href",((this['baseURL']+"ayumi.gif")));
+this['adjustImage']();
+this['element']['attr']("transform","scale(1,-1)");
+this['lineColor']("black");
+this['appear']();
+this['newLineG']();
+return this['setTrans']();
 });
-this.turtle.getImageSize=dtlbind(this,function(url){
+this['turtle']['width']=(32);
+this['turtle']['height']=(32);
+this['turtle']['_lineWidth']=(3);
+this['turtle']['isPenDown']=this['true'];
+this['turtle']['adjustImage']=dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['element']['attr']("width",((this['width']+"px")))['attr']("height",((this['height']+"px")))['attr']("x",((-this['width']/(2))))['attr']("y",((-this['height']/(2))));
+});
+this['turtle']['getImageSize']=dtlbind(this,function(url){
 var self=this;var 自分=self;
 var t;
 t=this;
-return this.$.create("<img>").css("display","none").load(dtlbind(this,function(){
+return this['$']['create']("<img>")['css']("display","none")['load'](dtlbind(this,function(){
 var self=this;var 自分=self;
 var j;
-j=(t.$).create((this));
-t.width=j.width();
-t.height=j.height();
-t.adjustImage();
-return j.remove();
-})).attr("src",(url)).appendTo("body");
+j=(t['$'])['create']((this));
+t['width']=j['width']();
+t['height']=j['height']();
+t['adjustImage']();
+return j['remove']();
+}))['attr']("src",(url))['appendTo']("body");
 });
-this.turtle.newLineG=dtlbind(this,function(){
+this['turtle']['newLineG']=dtlbind(this,function(){
 var self=this;var 自分=self;
-this.lineG=this.createSVGElem("g").appendTo((this.svg_g));
-this.lineG.attr("transform",((((("translate("+(this.pos.x))+" ")+(this.pos.y))+")")));
-return this.lineOrig=this.pos;
+this['lineG']=this['createSVGElem']("g")['appendTo']((this['svg_g']));
+this['lineG']['attr']("transform",((((("translate("+(this['pos']['x']))+" ")+(this['pos']['y']))+")")));
+return this['lineOrig']=this['pos'];
 });
-this.turtle.addPath=dtlbind(this,function(pos1,pos2){
+this['turtle']['addPath']=dtlbind(this,function(pos1,pos2){
 var self=this;var 自分=self;
 var line;
-pos1=pos1.sub((this.lineOrig));
-pos2=pos2.sub((this.lineOrig));
-line=this.createSVGElem("line").attr("x1",(pos1.x)).attr("y1",(pos1.y)).attr("x2",(pos2.x)).attr("y2",(pos2.y)).attr("style",(((("stroke:"+this._lineCol)+";stroke-width:")+this._lineWidth))).attr("data-width",(this._lineWidth)).appendTo((this.lineG));
+pos1=pos1['sub']((this['lineOrig']));
+pos2=pos2['sub']((this['lineOrig']));
+line=this['createSVGElem']("line")['attr']("x1",(pos1['x']))['attr']("y1",(pos1['y']))['attr']("x2",(pos2['x']))['attr']("y2",(pos2['y']))['attr']("style",(((("stroke:"+this['_lineCol'])+";stroke-width:")+this['_lineWidth'])))['attr']("data-width",(this['_lineWidth']))['appendTo']((this['lineG']));
 return this;
 });
-this.turtle.addPathAfterAction=dtlbind(this,function(a){
+this['turtle']['addPathAfterAction']=dtlbind(this,function(a){
 var self=this;var 自分=self;
 var pos1;
-pos1=this.pos;
-a.execute();
+pos1=this['pos'];
+a['execute']();
 dtlbind(this,function(){
 var self=this;var 自分=self;
-return this.isPenDown;
-}).then().execute(dtlbind(this,function(){
+return this['isPenDown'];
+})['then']()['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return this.addPath((pos1),(this.pos));
+return this['addPath']((pos1),(this['pos']));
 }));
 return this;
 });
-this.turtle.forward=dtlbind(this,function(by){
+this['turtle']['forward']=dtlbind(this,function(by){
 var self=this;var 自分=self;
-return this.addPathAfterAction(dtlbind(this,function(){
+return this['addPathAfterAction'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return (this.Actor.forward).call((this),(by));
+return (this['Actor']['forward'])['call']((this),(by));
 }));
 });
-this.turtle.moveTo=dtlbind(this,function(x,y){
+this['turtle']['moveTo']=dtlbind(this,function(x,y){
 var self=this;var 自分=self;
-return this.addPathAfterAction(dtlbind(this,function(){
+return this['addPathAfterAction'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return (this.Actor.moveTo).call((this),(x),(y));
+return (this['Actor']['moveTo'])['call']((this),(x),(y));
 }));
 });
-this.turtle.close=dtlbind(this,function(){
+this['turtle']['close']=dtlbind(this,function(){
 var self=this;var 自分=self;
-return this.addPath((this.pos),(this.lineOrig));
+return this['addPath']((this['pos']),(this['lineOrig']));
 });
-this.turtle.lineColor=dtlbind(this,function(col){
+this['turtle']['lineColor']=dtlbind(this,function(col){
 var self=this;var 自分=self;
-this._lineCol=col;
+this['_lineCol']=col;
 return this;
 });
-this.turtle.lineWidth=dtlbind(this,function(w){
+this['turtle']['lineWidth']=dtlbind(this,function(w){
 var self=this;var 自分=self;
-this._lineWidth=w;
+this['_lineWidth']=w;
 return this;
 });
-this.turtle.makeFigure=dtlbind(this,function(col){
+this['turtle']['makeFigure']=dtlbind(this,function(col){
 var self=this;var 自分=self;
 var r;
-r=this.Figure.create((this));
+r=this['Figure']['create']((this));
 dtlbind(this,function(){
 var self=this;var 自分=self;
 return col;
-}).then().execute(dtlbind(this,function(){
+})['then']()['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return r.paint((col));
+return r['paint']((col));
 }));
-this.newLineG();
+this['newLineG']();
 return r;
 });
-this.turtle.penDown=dtlbind(this,function(){
+this['turtle']['penDown']=dtlbind(this,function(){
 var self=this;var 自分=self;
 dtlbind(this,function(){
 var self=this;var 自分=self;
-return this.isPenDown;
-}).then().else(dtlbind(this,function(){
+return this['isPenDown'];
+})['then']()['else'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return })).execute(dtlbind(this,function(){
+return }))['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;
-this.isPenDown=this.true;
-return this.newLineG();
+this['isPenDown']=this['true'];
+return this['newLineG']();
 }));
 return this;
 });
-this.turtle.penUp=dtlbind(this,function(){
+this['turtle']['penUp']=dtlbind(this,function(){
 var self=this;var 自分=self;
-this.isPenDown=this.false;
+this['isPenDown']=this['false'];
 return this;
 });
-this.turtle.change=dtlbind(this,function(url){
+this['turtle']['change']=dtlbind(this,function(url){
 var self=this;var 自分=self;
-url=("runtime/images/"+url);
-this.element.get((0)).setAttributeNS("http://www.w3.org/1999/xlink","href",(url));
-this.getImageSize((url));
+url=(this['baseURL']+url);
+this['element']['get']((0))['setAttributeNS']("http://www.w3.org/1999/xlink","href",(url));
+this['getImageSize']((url));
 return this;
 });
-return this.turtle.setTrans=dtlbind(this,function(){
+return this['turtle']['setTrans']=dtlbind(this,function(){
 var self=this;var 自分=self;
 var str;
-str=(((("translate("+(this.pos.x))+" ")+(this.pos.y))+") ");
-str=(((str+"rotate(")+this.dir)+") ");
+str=(((("translate("+(this['pos']['x']))+" ")+(this['pos']['y']))+") ");
+str=(((str+"rotate(")+this['dir'])+") ");
 str=(str+"scale(1 -1) ");
-this.element.attr("transform",(str)).attr("data-trans",((((((this.pos.x)+",")+(this.pos.y))+",")+this.dir)));
-this.checkCrash();
+this['element']['attr']("transform",(str))['attr']("data-trans",((((((this['pos']['x'])+",")+(this['pos']['y']))+",")+this['dir'])));
+this['checkCrash']();
 return this;
 });
 }).checkerror().apply(root,[]);

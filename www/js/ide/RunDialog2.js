@@ -1,4 +1,5 @@
-define(["UI","LocalBrowser"],function (UI, LocalBrowser) {
+define(["UI","LocalBrowser","DiagAdjuster"],
+function (UI, LocalBrowser,DA) {
     var res={};
     res.show=function (runFile, options) {
         options=options||{};
@@ -11,26 +12,39 @@ define(["UI","LocalBrowser"],function (UI, LocalBrowser) {
                 if (res.b) res.b.close();
                 if(typeof options.toEditor == "function")options.toEditor();
             }, 
-            resize:function(e,u){
-                console.log(u.size);
-                //$("#iBrowser").css({width:u.size.width-50,height:u.size.height-120});
-                if (res.b && res.b.iframe) {
-                    res.b.iframe.attr({width:u.size.width-50,height:u.size.height-120});
-                }
-            }
+            resize:handleResize
         });//,height:options.height?options.height-50:400});
+        handleResize();
+        function handleResize() {
+            if (res.b && res.b.iframe) {
+                res.b.iframe.attr({
+                    width:d.width(),
+                    height:d.height()-d.$vars.OKButton.height()});
+            }
+        }
     };
     res.embed=function (runFile, options) {
         options=options||{};
         if (!res.d) {
-            res.d=UI("div",{title:"実行画面ダイアログ"},
+            res.d=UI("div",{title:"実行画面ダイアログ",css:{overflow:"hidden"}},
                     ["div",{$var:"browser"}],
                     ["button", {type:"button",$var:"OKButton", on:{click: function () {
                         res.d.dialog("close");
                     }}}, "OK"]
             );
-            res.b=new LocalBrowser(res.d.$vars.browser[0],
-            {id:"ifrmDlg",width:465,height:options.height||400});
+            res.da=new DA(res.d);
+            res.da.afterResize=function (d) {
+                if (res.b && res.b.iframe) {
+                    res.b.iframe.attr({
+                        width:d.width(),
+                        height:d.height()-res.d.$vars.OKButton.height()});
+                }
+            };
+            res.b=new LocalBrowser(res.d.$vars.browser[0],{
+                id:"ifrmDlg",
+                width:400,
+                height:400
+            });
         }
         res.b.open(runFile,{
             onload:function () {
@@ -39,6 +53,7 @@ define(["UI","LocalBrowser"],function (UI, LocalBrowser) {
                 if (cons) cons.style.fontSize=options.font+"px";
             }
         });
+        //if (res.da) res.da.handleResize();
         return res.d;
     };
     return res;

@@ -1,5 +1,5 @@
-define(["assert","DeferredUtil","wget", "dolittle/minimal","IndentBuffer"], 
-function (A,DU,wget,dtlParser,IndentBuffer) {
+define(["assert","DeferredUtil","wget", "dolittle/minimal","IndentBuffer","Sync","FS"], 
+function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS) {
     DtlBuilder=function (prj, dst) {
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
@@ -22,9 +22,14 @@ function (A,DU,wget,dtlParser,IndentBuffer) {
     "tnu.ico", "tonbo.gif", "tonyu.png", "trumpet.png", 
     "tulip.png", "ui-icons_888888_256x240.png", "undo.png", "usa.gif"].map(
         function (n) {return "images/"+n;});*/
-    var libs=["jquery-1.12.1","require"].map(function (n) {return "lib/"+n+".js";});
+    var libs=["jquery-1.12.1","require"].map(function (n) {
+        return "lib/"+n+".js";
+    });
     var dtlibs=["lib","polyk","Vec2","Actor","Group","UI","Turtle","Figure","DOM","Japanese"].map(
-        function (n) {return "lib/dtl/"+n+".js";});
+        function (n) {
+            return "lib/dtl/"+n+".js";
+        }
+    );
     var p=DtlBuilder.prototype;
     p.dlFiles=function () {
         var dst=this.dst;
@@ -47,20 +52,16 @@ function (A,DU,wget,dtlParser,IndentBuffer) {
         var dom=dp.parseFromString(f.src.html.text(),"text/html");
         var html=dom.getElementsByTagName("html")[0];
         var head=dom.getElementsByTagName("head")[0];
-        libs.concat(dtlibs).concat([f.name+".js"]).forEach(function (src) {
+        var body=dom.getElementsByTagName("body")[0];
+        libs.concat(dtlibs).map(function (r) {
+            return WebSite.runtime+r;
+        }).concat([f.name+".js"]).forEach(function (src) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
             nn.setAttribute("src",src);
-            head.appendChild(nn);
+            body.appendChild(nn);
         });
-        /*var nn=document.createElement("script");
-        nn.setAttribute("charset","utf-8");
-        var ns=this.prj.getNamespace();
-        nn.appendChild(document.createTextNode("run('"+ns+"."+name+"');"));
-        head.appendChild(nn);*/
-        //var dstHTMLF=dst.rel(curHTMLFile.name());
         return f.dst.html.text("<html>"+html.innerHTML+"</html>");
-        
     };
     function isNewer(a,b) {
         if (!a.exists()) return false;
@@ -85,15 +86,13 @@ function (A,DU,wget,dtlParser,IndentBuffer) {
                 map: dst.rel(name+".js.map")
             }});
         });
-        return this.dlFiles().then(DU.tr(function () {
+        return $.when().then(DU.tr(function () {
             return DU.each(files,function (f) {
                 if (isNewer(f.dst.js, f.src.dtl)) return;
                 var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
                 buf.setSrcFile(f.src.dtl);
                 var js=dtlParser.parse(f.src.dtl.text(),{indentBuffer:buf,src:f.src.dtl.name()});
                 return buf.close();
-                //console.log(buf.srcmap.toString());
-                //return f.dst.js.text(js);
             });
         })).then(DU.tr(function() {
              return DU.each(files,function (f) {
@@ -101,6 +100,9 @@ function (A,DU,wget,dtlParser,IndentBuffer) {
                 return t.genHTML(f);
             });
         }));         
+    };
+    p.upload=function (pub) {
+        return Sync.sync(this.dst,pub);  
     };
     return DtlBuilder;
 });

@@ -3024,21 +3024,21 @@ define('WebSite',[], function () {
         WS.pluginTop=WS.top+"/js/plugins";
     }
     WS.disableROM={};
-    if (loc.match(/\.appspot\.com/) ||  loc.match(/localhost:888[87]/)) {
-        WS.serverType="GAE";
-    }
     WS.sampleImg=WS.top+"/images";
     WS.isNW=(typeof process=="object" && process.__node_webkit);
     //WS.fsHome="";
     WS.tonyuHome="/Tonyu/";
     WS.JSLKer="fs/Tonyu/Projects/JSLKer";
-    WS.serverTop=".";
-    WS.phpTop=WS.serverTop+"/";//php/";
+    WS.serverTop=location.href.replace(/\?.*$/,"").replace(/[^/]*$/,"");//"."; // includes /
+    WS.phpTop=WS.serverTop+"";//php/";
     WS.url={
             getDirInfo:WS.phpTop+"getDirInfo.php",
             getFiles:WS.phpTop+"getFiles.php",
             putFiles:WS.phpTop+"putFiles.php"
     };
+    WS.runtime=WS.serverTop+"runtime/";
+    WS.published=WS.serverTop+"fs/home/";
+    
     /*if (WS.isNW) {
         if (process.env.TONYU_HOME) {
             WS.tonyuHome=process.env.TONYU_HOME.replace(/\\/g,"/");
@@ -12399,40 +12399,79 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
     return Sync;
 });
 
-define('RunDialog',["UI"],function (UI) {
+define('DiagAdjuster',[],function () {
+    var DiagAdjuster=function (diagElem) {
+        this.diagElem=diagElem;
+        this.rszt=null;
+        this.margin=30;
+        this.timeout=100;
+    };
+    DiagAdjuster.prototype.handleResize=function () {
+        var self=this;
+        if (this.rszt) clearTimeout(this.rszt);
+        this.rszt=setTimeout(function () {
+            var d=self.diagElem.closest(".ui-dialog");
+            var t=d.find(".ui-dialog-titlebar");
+            var dw=d.width(),dh=d.height(),th=t.height();
+            var pad=self.margin;
+            var sz={w:dw-pad, h:dh-th-pad};
+            self.diagElem.css({width:sz.w,height:sz.h});
+            self.afterResize(self.diagElem);
+        },this.timeout);
+    };
+    DiagAdjuster.prototype.handleResizeF=function () {
+        var self=this;
+        return function () {
+            self.handleResize();    
+        };
+    };
+    DiagAdjuster.prototype.afterResize=function (){};
+    return DiagAdjuster;
+});
+
+define('RunDialog',["UI","DiagAdjuster"],function (UI,DA) {
     var res={};
     res.show=function (src, runURL, options) {
         options=options||{};
         window.dialogClosed=false;
         var d=res.embed(src, runURL, options);
-        d.dialog({width:600,
+        d.dialog({width:16*((options.height+10)/9),position: { my: "center top", at: "right bottom"},
             close:function(){
 		        window.dialogClosed=true;
 		        $("#ifrmDlg").remove();
 		        if(typeof options.toEditor == "function") options.toEditor();
 	        },
             resize:function(e,u){
-                console.log(u.size);
-                $("#iBrowser").css({width:u.size.width-50,height:u.size.height-120});
-                $("#ifrmDlg").attr({width:u.size.width-50,height:u.size.height-120});
+                //console.log(u.size);
+                //$("#iBrowser").css({width:u.size.width-50,height:u.size.height-120});
+                //$("#ifrmDlg").attr({width:u.size.width-50,height:u.size.height-120});
+                var d=res.d;
+                $("#ifrmDlg").attr({width:d.width(),height:d.height()-d.$vars.OKButton.height()});
+                //if (res.da) res.da.handleResize();
             }
         });//,height:options.height?options.height-50:400});
     };
     res.embed=function (src, runURL, options) {
         if (!options) options={};
         if (!res.d) {
-            res.d=UI("div",{title:"実行画面ダイアログ"},
+            res.d=UI("div",{title:"実行画面ダイアログ",css:{"overflow":"hidden"}},
                     ["div",{id:"iBrowser"},
-                          ["iframe",{id:"ifrmDlg",width:570,height:options.height||400,src:runURL}]
+                          ["iframe",{id:"ifrmDlg",width:16*(options.height/9)||970,height:options.height||400,src:runURL}]
                     ],
                     ["button", {type:"button",$var:"OKButton", on:{click: function () {
                         res.d.dialog("close");
                     }}}, "OK"]
             );
+            res.da=new DA(res.d);
+            res.da.afterResize=function (d) {
+                $("#ifrmDlg").attr({width:d.width(),height:d.height()-res.d.$vars.OKButton.height()});
+            };            
         }else{
             $("#ifrmDlg").remove();
-		$("#iBrowser").append(UI("iframe",{id:"ifrmDlg",width:570,height:options.height||400,src:runURL}));
-	}
+		    //$("#iBrowser").append(UI("iframe",{id:"ifrmDlg",width:570,height:options.height||400,src:runURL}));
+		    $("#iBrowser").append(UI("iframe",{id:"ifrmDlg",width:16*(options.height/9)||970,height:options.height||400,src:runURL}));
+	    }
+	    
         $("#ifrmDlg").attr(src,runURL);
         //if($("#ifrmDlg")[0]) console.log($("#ifrmDlg")[0].contentWindow.document.body);
         if($("#ifrmDlg")[0]) {
@@ -12469,6 +12508,7 @@ function (sh,FS,DU,UI,S) {
         }
         var i=$("<iframe>");
         i.attr(this.iframeAttr);
+        this.iframe=i;
         var base=f.up();
         var iwin;
         var idoc;
@@ -12492,11 +12532,20 @@ function (sh,FS,DU,UI,S) {
                     if (this.fileMap[url]) {
                         return this.fileMap[url].blobUrl;
                     }
+                    if (FS.PathUtil.isURL(url)) {
+                        return url;
+                    }
+                    var file;
+                    if (FS.PathUtil.isRelativePath(url)) {
+                        file=base.rel(url);
+                    } else {
+                        file=FS.get(url);
+                    }
                     var smc;
                     if (FS.PathUtil.endsWith(url,".js")) {
-                        var r=regsm.exec(base.rel(url).text());
+                        var r=regsm.exec(file.text());
                         if (r) {
-                            var smf=base.rel(r[1]);
+                            var smf=file.sibling(r[1]);
                             if (smf.exists()) {
                                 smc = new S.SourceMapConsumer(smf.obj());
                                 console.log("Source map",smc);
@@ -12659,29 +12708,53 @@ function (sh,FS,DU,UI,S) {
     return LocalBrowser;
 });
 
-define('RunDialog2',["UI","LocalBrowser"],function (UI, LocalBrowser) {
+define('RunDialog2',["UI","LocalBrowser","DiagAdjuster"],
+function (UI, LocalBrowser,DA) {
     var res={};
     res.show=function (runFile, options) {
         options=options||{};
         window.dialogClosed=false;
         var d=res.embed(runFile, options);
-        d.dialog({width:600,close:function(){
-            window.dialogClosed=true;
-            if (res.b) res.b.close();
-            if(typeof options.toEditor == "function")options.toEditor();
-        }});//,height:options.height?options.height-50:400});
+        d.dialog({
+            width:600,
+            close:function(){
+                window.dialogClosed=true;
+                if (res.b) res.b.close();
+                if(typeof options.toEditor == "function")options.toEditor();
+            }, 
+            resize:handleResize
+        });//,height:options.height?options.height-50:400});
+        handleResize();
+        function handleResize() {
+            if (res.b && res.b.iframe) {
+                res.b.iframe.attr({
+                    width:d.width(),
+                    height:d.height()-d.$vars.OKButton.height()});
+            }
+        }
     };
     res.embed=function (runFile, options) {
         options=options||{};
         if (!res.d) {
-            res.d=UI("div",{title:"実行画面ダイアログ"},
+            res.d=UI("div",{title:"実行画面ダイアログ",css:{overflow:"hidden"}},
                     ["div",{$var:"browser"}],
                     ["button", {type:"button",$var:"OKButton", on:{click: function () {
                         res.d.dialog("close");
                     }}}, "OK"]
             );
-            res.b=new LocalBrowser(res.d.$vars.browser[0],
-            {id:"ifrmDlg",width:465,height:options.height||400});
+            res.da=new DA(res.d);
+            res.da.afterResize=function (d) {
+                if (res.b && res.b.iframe) {
+                    res.b.iframe.attr({
+                        width:d.width(),
+                        height:d.height()-res.d.$vars.OKButton.height()});
+                }
+            };
+            res.b=new LocalBrowser(res.d.$vars.browser[0],{
+                id:"ifrmDlg",
+                width:400,
+                height:400
+            });
         }
         res.b.open(runFile,{
             onload:function () {
@@ -12690,6 +12763,7 @@ define('RunDialog2',["UI","LocalBrowser"],function (UI, LocalBrowser) {
                 if (cons) cons.style.fontSize=options.font+"px";
             }
         });
+        //if (res.da) res.da.handleResize();
         return res.d;
     };
     return res;
@@ -12790,6 +12864,7 @@ $(function () {
         console.log("curclass",r);
         curClassroom=r;
     });
+    var builder;
     var curUser;
     $.get("login.php?curuser="+Math.random()).then(function (r) {
         console.log("curuser",r);
@@ -12874,7 +12949,7 @@ $(function () {
     }
     makeUI();
     function makeMenu() {
-        Menu.make("JS Lesson",
+        Menu.make("Bit Arrow",
                 [
                   {label:"Home"/*,href:"index.html"*/,id:"home"},
                   {label:"ファイル",sub:[
@@ -13154,15 +13229,36 @@ $(function () {
         });
     }
     $("#fullScr").click(function () {
-        if (runURL) {
-            var cv=$("<div>");
-            cv.dialog();
-            sync().then(function () {
-                cv.append($("<div>").append(
+        if (lang=="dtl") {
+            var inf=getCurrentEditorInfo();
+            if (builder && inf) {
+                var curFile=inf.file;
+                var pub=FS.get("/public/").rel(curProjectDir.name());
+                //alert(pub.path());
+                var cv=$("<div>");
+                cv.dialog();
+                builder.upload(pub).then(function () {
+                    //  http://localhost/fs/home/0123/dolittle/public/Turtle2/Raw_k6.html
+                    runURL=WebSite.published+curClassroom+"/"+
+                    curUser+"/public/"+pub.name()+curFile.truncExt()+".html";
+                    //alert("synced "+runURL);
+                    cv.append($("<div>").append(
                         $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
-                ));
-                cv.append($("<div>").qrcode(runURL));
-            });
+                    ));
+                    cv.append($("<div>").qrcode(runURL));
+                });
+            }
+        } else {
+            if (runURL) {
+                var cv=$("<div>");
+                cv.dialog();
+                sync().then(function () {
+                    cv.append($("<div>").append(
+                            $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
+                    ));
+                    cv.append($("<div>").qrcode(runURL));
+                });
+            }
         }
     });
     function run() {//run!!
@@ -13259,10 +13355,12 @@ $(function () {
             return sync();
     	}else if(lang=="dtl"){
     	    try {
+        	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
+    	        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
                 var ram=FS.get("/ram/build/");
                 if (!ram.exists()) FS.mount(ram.path(),"ram");
-                var b=new Builder(curPrj, ram);
-                b.build().then(function () {
+                builder=new Builder(curPrj, ram);
+                builder.build().then(function () {
                     //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
                     RunDialog2.show(indexF,

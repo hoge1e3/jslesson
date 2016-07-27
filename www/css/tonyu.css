@@ -6,6 +6,11 @@ body {
   padding: 40px 15px;
   text-align: center;
 }
+.ui-dialog,.ui-dialog-content {
+    -webkit-box-sizing: content-box!important;
+    -moz-box-sizing:content-box!important;
+    box-sizing: content-box!important;
+}
 
 .project {
 	float: left;

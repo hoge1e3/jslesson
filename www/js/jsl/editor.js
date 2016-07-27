@@ -29,6 +29,7 @@ $(function () {
         console.log("curclass",r);
         curClassroom=r;
     });
+    var builder;
     var curUser;
     $.get("login.php?curuser="+Math.random()).then(function (r) {
         console.log("curuser",r);
@@ -393,15 +394,36 @@ $(function () {
         });
     }
     $("#fullScr").click(function () {
-        if (runURL) {
-            var cv=$("<div>");
-            cv.dialog();
-            sync().then(function () {
-                cv.append($("<div>").append(
+        if (lang=="dtl") {
+            var inf=getCurrentEditorInfo();
+            if (builder && inf) {
+                var curFile=inf.file;
+                var pub=FS.get("/public/").rel(curProjectDir.name());
+                //alert(pub.path());
+                var cv=$("<div>");
+                cv.dialog();
+                builder.upload(pub).then(function () {
+                    //  http://localhost/fs/home/0123/dolittle/public/Turtle2/Raw_k6.html
+                    runURL=WebSite.published+curClassroom+"/"+
+                    curUser+"/public/"+pub.name()+curFile.truncExt()+".html";
+                    //alert("synced "+runURL);
+                    cv.append($("<div>").append(
                         $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
-                ));
-                cv.append($("<div>").qrcode(runURL));
-            });
+                    ));
+                    cv.append($("<div>").qrcode(runURL));
+                });
+            }
+        } else {
+            if (runURL) {
+                var cv=$("<div>");
+                cv.dialog();
+                sync().then(function () {
+                    cv.append($("<div>").append(
+                            $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
+                    ));
+                    cv.append($("<div>").qrcode(runURL));
+                });
+            }
         }
     });
     function run() {//run!!
@@ -499,10 +521,11 @@ $(function () {
     	}else if(lang=="dtl"){
     	    try {
         	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
+    	        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
                 var ram=FS.get("/ram/build/");
                 if (!ram.exists()) FS.mount(ram.path(),"ram");
-                var b=new Builder(curPrj, ram);
-                b.build().then(function () {
+                builder=new Builder(curPrj, ram);
+                builder.build().then(function () {
                     //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
                     RunDialog2.show(indexF,

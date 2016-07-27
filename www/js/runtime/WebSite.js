@@ -22,21 +22,21 @@ define([], function () {
         WS.pluginTop=WS.top+"/js/plugins";
     }
     WS.disableROM={};
-    if (loc.match(/\.appspot\.com/) ||  loc.match(/localhost:888[87]/)) {
-        WS.serverType="GAE";
-    }
     WS.sampleImg=WS.top+"/images";
     WS.isNW=(typeof process=="object" && process.__node_webkit);
     //WS.fsHome="";
     WS.tonyuHome="/Tonyu/";
     WS.JSLKer="fs/Tonyu/Projects/JSLKer";
-    WS.serverTop=".";
-    WS.phpTop=WS.serverTop+"/";//php/";
+    WS.serverTop=location.href.replace(/\?.*$/,"").replace(/[^/]*$/,"");//"."; // includes /
+    WS.phpTop=WS.serverTop+"";//php/";
     WS.url={
             getDirInfo:WS.phpTop+"getDirInfo.php",
             getFiles:WS.phpTop+"getFiles.php",
             putFiles:WS.phpTop+"putFiles.php"
     };
+    WS.runtime=WS.serverTop+"runtime/";
+    WS.published=WS.serverTop+"fs/home/";
+    
     /*if (WS.isNW) {
         if (process.env.TONYU_HOME) {
             WS.tonyuHome=process.env.TONYU_HOME.replace(/\\/g,"/");
