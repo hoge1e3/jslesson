@@ -57,7 +57,7 @@ function (sh,FS,DU,UI,S) {
                         file=FS.get(url);
                     }
                     var smc;
-                    if (FS.PathUtil.endsWith(url,".js")) {
+                    if (FS.PathUtil.endsWith(url,".js") && file.exists()) {
                         var r=regsm.exec(file.text());
                         if (r) {
                             var smf=file.sibling(r[1]);
@@ -193,7 +193,9 @@ function (sh,FS,DU,UI,S) {
     LocalBrowser.convertURL=function (iwin,url,base) {
         if (FS.PathUtil.isRelativePath(url)) {
             var sfile=base.rel(url);
-            url=LocalBrowser.file2blobURL(iwin,sfile);
+            if (sfile.exists()) {
+                url=LocalBrowser.file2blobURL(iwin,sfile);
+            }
         }
         return url;
     };

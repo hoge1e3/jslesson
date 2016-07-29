@@ -1,5 +1,5 @@
 <?php
-require("php/auth.php");
+require_once("php/auth.php");
 $showForm=true;
 $class="";
 $mesg="";

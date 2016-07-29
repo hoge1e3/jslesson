@@ -214,11 +214,14 @@ MinimalParser= function () {
 	//ブロック := [  [ | 引数リスト  |  文 . *  ]
 	var block_param = stick.and(token_name.rep0()).and(semicolon.opt()).and(token_name.rep0()).and(stick).
 	ret(function(_ls,_param,_semicolon,_local_param,_rs){
-	    _param.forEach(regLocal);
+	    _param.forEach(regParam);
 	    _local_param.forEach(regLocal);
 	    return extend([joinary(_param,","),local_param_trim(_local_param)], 
 	    {type:"block_param",subnodes:arguments});
 	});
+	function regParam(n,i) {
+	    ctx.scope[n+""]={type:"param",depth:ctx.depth,seq:i};
+	}
 	function regLocal(n,i) {
 	    ctx.scope[n+""]={type:"local",depth:ctx.depth,seq:i};
 	}
@@ -234,7 +237,13 @@ MinimalParser= function () {
     var varbuild=ExpressionParser();
     varbuild.element(simple.or(token_name.ret(function (n) {
         if (ctx.scope[n]) {
-            return extend([n],{type:"localVar",name:n,depth:ctx.scope[n].depth});
+            var s=ctx.scope[n];
+            return extend([n],{
+                type:"localVar",
+                name:n,
+                depth:s.depth,
+                vmname: (s.type=="local"?"_local":"_param")+s.seq
+            });
         } else {
             return extend(["this['"+n+"']"],{type:"field",name:n});
         }

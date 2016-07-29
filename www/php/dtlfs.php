@@ -3,10 +3,10 @@
 //require_once"./PathUtil.php";
 //require_once"./Permission.php";
 //require_once"./SFile.php";
-require_once"dtl/Dtl.php";
-require_once"json.php";
-require_once"dtlfs/DtlFS.php";
-require_once"ErrorHandler.php";
+require_once __DIR__."/dtl/Dtl.php";
+require_once __DIR__."/json.php";
+require_once __DIR__."/dtlfs/DtlFS.php";
+require_once __DIR__."/ErrorHandler.php";
 
 if (isset($_POST["script"])) {
     $scr=$_POST["script"];

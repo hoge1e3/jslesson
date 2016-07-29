@@ -1,7 +1,6 @@
 <?php
 require_once "php/json.php";
-require_once "php/PathUtil.php";
-require_once "php/NativeFS.php";
+require_once "php/fs/NativeFS.php";
 require_once "php/auth.php";
 $dstfs=Auth::getFS(); 
 $srcfs=new NativeFS("fs/home/lesson_samples/lesson_samples");

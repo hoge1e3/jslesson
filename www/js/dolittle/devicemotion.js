@@ -1,34 +1,44 @@
-var Accelo=(function(){
+root.Accelo=new (function(){
+	this.x=0;
+	this.y=0;
 	this.作る=function(){
-		if ((navigator.userAgent.indexOf('iPhone') > 0 || navigator.userAgent.indexOf('iPad') > 0 || navigator.userAgent.indexOf('iPod') > 0 || navigator.userAgent.indexOf('Android') > 0)==false){
+		if (
+			(navigator.userAgent.indexOf('iPhone') > 0 || 
+			navigator.userAgent.indexOf('iPad') > 0 || 
+			navigator.userAgent.indexOf('iPod') > 0 || 
+			navigator.userAgent.indexOf('Android') > 0)==false){
 			alert("タブレット専用のオブジェクトです。");
 			return -1;
 		}
-		console.log((navigator.userAgent.indexOf('iPhone') > 0 || navigator.userAgent.indexOf('iPad') > 0 || navigator.userAgent.indexOf('iPod') > 0 || navigator.userAgent.indexOf('Android') > 0)==false);
-		var obj={};
+		var obj=root.create();
 		obj=Object.create(this);
 		$(function(){
 			window.addEventListener("devicemotion", function(evt){
-				var x=(parseInt(evt.accelerationIncludingGravity.x));
-				var y=(parseInt(evt.accelerationIncludingGravity.y));
-				try{
-					if(window.orientation===0)obj.動作(y,x);
-					else if(window.orientation===180)obj.動作(-y,-x);
-					else if(window.orientation===90)obj.動作(x,-y);
-					else obj.動作(-x,y);
-				}catch(e){alert("エラーが発生しました。\n"+e);}
-				
+				var dx=(parseInt(evt.accelerationIncludingGravity.x));
+				var dy=(parseInt(evt.accelerationIncludingGravity.y));
+				if(window.orientation==0){obj.x=dy,obj.y=dx;}//obj.動作(y,x);
+				else if(window.orientation==180){obj.x=-dy,obj.y=-dx;}//obj.動作(-y,-x);
+				else if(window.orientation==90){obj.x=dx,obj.y=-dy;}//obj.動作(x,-y);
+				else {obj.x=-dx,obj.y=dy;}//obj.動作(-x,y);
+				obj.動作.call(root,obj.x,obj.y);
 			}, true);
 		});
 		return obj;
 	};
+	this["動作"]=(function(){});
+	this["横の傾き"]=function(){return this.x};
+	this["xの傾き"]=this["横の傾き"];
+	this["xの傾き"]=this["横の傾き"];
+	this["縦の傾き"]=function(){return this.y};
+	this["yの傾き"]=this["縦の傾き"];
+	this["yの傾き"]=this["縦の傾き"];
+
 });
-Accelo.prototype=root;
 
-var 加速度センサ = new Accelo;
-var 傾きセンサ=加速度センサ;
+root.加速度センサ =root.Accelo;
+root.傾きセンサ=root.加速度センサ;
 
-var コンパス = new (function(){
+root.コンパス = new (function(){
 	var 方角=null;
 	var direction=null;
 	this.作る =function(){
@@ -57,3 +67,5 @@ var コンパス = new (function(){
 	this.南__question=function(){return (方角=="南");};
 	this.北__question=function(){return (方角=="北");};
 });
+
+

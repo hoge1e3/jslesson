@@ -1,8 +1,6 @@
 <?php
-
-require_once dirname(__FILE__)."/json.php";
-require_once dirname(__FILE__)."/PathUtil.php";
-require_once dirname(__FILE__)."/NativeFS.php";
+require_once __DIR__."/json.php";
+require_once __DIR__."/fs/NativeFS.php";
 class MySession {
     static $fs,$j,$id,$data;
     public static function start() {

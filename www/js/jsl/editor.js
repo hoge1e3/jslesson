@@ -394,7 +394,7 @@ $(function () {
         });
     }
     $("#fullScr").click(function () {
-        if (lang=="dtl") {
+        if (lang=="dtl" || lang=="js") {
             var inf=getCurrentEditorInfo();
             if (builder && inf) {
                 var curFile=inf.file;
@@ -443,12 +443,12 @@ $(function () {
         if(lang=="js"){
     	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
             if (typeof SplashScreen!="undefined") SplashScreen.show();
-            /*//RunDialog2 (new version)
+            //RunDialog2 (new version)
             try {
                 var ram=FS.get("/ram/build/");
                 FS.mount(ram.path(),"ram");
-                var b=new Builder(curPrj, ram);
-                b.build().then(function () {
+                builder=new Builder(curPrj, ram);
+                builder.build().then(function () {
                     //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
                     RunDialog2.show(indexF,
@@ -456,11 +456,14 @@ $(function () {
                 }).fail(function (e) {
                     console.log(e.stack);
                 }).done(function () {
+        	        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
                     if (typeof SplashScreen!="undefined") SplashScreen.hide();
                 });
             }catch(e) {
                 console.log(e.stack);
             }
+            return sync();
+            /*
             QR code
             sync
             */

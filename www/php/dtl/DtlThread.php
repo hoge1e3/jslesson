@@ -19,9 +19,18 @@ class DtlThread {
                 break;
             //push1 nameid (local)  -> push1 nameid(self::name)
             case "pushbinding":
-            case "push1":
                 $name=$c[1];
-                $stack->push(DtlObj::s_get($scope,$name));
+                $layer=$c[2];
+                $sscope=$scope;
+                while ($layer-->0) $sscope=$sscope->__proto__;
+                $stack->push(DtlObj::s_get($sscope,$name));
+                break;
+            case "push1":
+                if ($name=="self") {
+                    $stack->push($self);
+                } else {
+                    $stack->push(DtlObj::s_get($self,$name));
+                }
                 break;
             //[obj] push2 nameid
             case "push2":

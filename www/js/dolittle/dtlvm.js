@@ -82,16 +82,16 @@ MinimalParser.node2vm=function (node) {
         },
         localVar: function (node) {
             var name=node.name;//subnodes[0];
-            add(["pushbinding",name+""]);
+            add(["pushbinding",node.vmname+"", ctx.depth-node.depth]);
         },
         field: function (node) {
             var name=node.name;//subnodes[0];
-            add(["pushbinding","self"]);
-            add(["push2",name+""]);
+            //add(["pushbinding","self"]);
+            add(["push1",name+""]);
         },
         rootVar: function (node) {
             var name=node.name;//subnodes[0];
-            add(["pushbinding","root"]);
+            add(["push1","root"]);
             add(["push2",name+""]);
         },
         memberAccess: function (node) {
@@ -105,15 +105,15 @@ MinimalParser.node2vm=function (node) {
             switch(left ? left.type : "nolet") {
            	case "localVar":
 	            v.visit(expr);
-	            add(["storebinding",left.name+"", ctx.depth-left.depth]);//TODO
+	            add(["storebinding",left.vmname+"", ctx.depth-left.depth]);//TODO
             	break;
            	case "field":
-           		add(["pushbinding","self"]);
+           		//add(["pushbinding","self"]);
 	            v.visit(expr);
-	            add(["store2",left.name+""]);
+	            add(["store1",left.name+""]);
             	break;
            	case "rootVar":
-           		add(["pushbinding","root"]);
+           		add(["push1","root"]);
 	            v.visit(expr);
 	            add(["store2",left.name+""]);
             	break;

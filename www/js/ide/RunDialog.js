@@ -1,4 +1,4 @@
-define(["UI","DiagAdjuster"],function (UI,DA) {
+define(["UI"],function (UI) {
     var res={};
     res.show=function (src, runURL, options) {
         options=options||{};
@@ -31,10 +31,10 @@ define(["UI","DiagAdjuster"],function (UI,DA) {
                         res.d.dialog("close");
                     }}}, "OK"]
             );
-            res.da=new DA(res.d);
+            /*res.da=new DA(res.d);
             res.da.afterResize=function (d) {
                 $("#ifrmDlg").attr({width:d.width(),height:d.height()-res.d.$vars.OKButton.height()});
-            };            
+            };*/            
         }else{
             $("#ifrmDlg").remove();
 		    //$("#iBrowser").append(UI("iframe",{id:"ifrmDlg",width:570,height:options.height||400,src:runURL}));

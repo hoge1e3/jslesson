@@ -53,6 +53,9 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS) {
         var html=dom.getElementsByTagName("html")[0];
         var head=dom.getElementsByTagName("head")[0];
         var body=dom.getElementsByTagName("body")[0];
+        $(head).append($("<meta>").attr("charset","UTF-8"));
+        $(head).append($("<script>").text("window.runtimePath='"+WebSite.runtime+"';"));
+
         libs.concat(dtlibs).map(function (r) {
             return WebSite.runtime+r;
         }).concat([f.name+".js"]).forEach(function (src) {

@@ -1,7 +1,6 @@
 <?php
 require_once "php/json.php";
-require_once "php/PathUtil.php";
-require_once "php/NativeFS.php";
+require_once "php/fs/NativeFS.php"; #TOFS
 require_once "php/auth.php";
 require_once "php/ErrorHandler.php";
 

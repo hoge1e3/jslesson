@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__."/PathUtil.php";
+
 class NativeFS {
    var $top;
    function NativeFS($top) {

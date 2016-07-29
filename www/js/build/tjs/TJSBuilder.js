@@ -1,4 +1,5 @@
-define(["assert","DeferredUtil","wget"], function (A,DU,wget) {
+define(["assert","DeferredUtil","wget","Sync"], 
+function (A,DU,wget,Sync) {
     TJSBuilder=function (prj, dst) {
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
@@ -25,10 +26,25 @@ define(["assert","DeferredUtil","wget"], function (A,DU,wget) {
         var dom=dp.parseFromString(curHTMLFile.text(),"text/html");
         var html=dom.getElementsByTagName("html")[0];
         var head=dom.getElementsByTagName("head")[0];
+        var body=dom.getElementsByTagName("body")[0];
+        $(body).find("img").each(function () {
+            var url=$(this).attr("src");
+            if (!url.match(/^http/)) {
+                $(this).attr("src",WebSite.runtime+url);
+            }
+        });
+        /*var base=document.createElement("base");
+        base.setAttribute("href",WebSite.runtime);
+        head.appendChild(base);
+        var metacharset=document.createElement("meta");
+        metacharset.setAttribute("charset","UTF-8");
+        head.appendChild(metacharset);*/
+        $(head).append($("<meta>").attr("charset","UTF-8"));
+        $(head).append($("<script>").text("window.runtimePath='"+WebSite.runtime+"';"));
         ["lib/jquery-1.12.1.js","lib/require.js","lib/tjs/run.js"].forEach(function (src) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
-            nn.setAttribute("src",src);
+            nn.setAttribute("src",WebSite.runtime+src);
             head.appendChild(nn);
         });
         var nn=document.createElement("script");
@@ -43,7 +59,7 @@ define(["assert","DeferredUtil","wget"], function (A,DU,wget) {
         var curPrj=this.prj;
         var dst=this.dst;
         var t=this;
-        return this.dlFiles().then(function () {
+        return /*this.dlFiles()*/$.when().then(function () {
             return curPrj.loadClasses();            
         }).then(DU.throwF(function() {
             var concat=curPrj.getOutputFile();
@@ -62,6 +78,9 @@ define(["assert","DeferredUtil","wget"], function (A,DU,wget) {
                 Tonyu.onRuntimeError(e);
             }
         });            
+    };
+    p.upload=function (pub) {
+        return Sync.sync(this.dst,pub);  
     };
     return TJSBuilder;
 });
