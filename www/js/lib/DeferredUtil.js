@@ -83,20 +83,26 @@ define([], function () {
                 }
             },
             loop: function (f,r) {
-                while(true) {
-                    if (r instanceof DUBRK) return r.res;
-                    var deff1=true, deff2=false;
-                    // ★ not deffered  ☆  deferred
-                    var r1=f(r);
-                    var dr=$.when(r1).then(function (r2) {
-                        r=r2;
-                        deff1=false;
+                try {
+                    while(true) {
                         if (r instanceof DUBRK) return r.res;
-                        if (deff2) return DU.loop(f,r); //☆
-                    });
-                    deff2=true;
-                    if (deff1) return dr;//☆
-                    //★
+                        var deff1=true, deff2=false;
+                        // ★ not deffered  ☆  deferred
+                        var r1=f(r);
+                        var dr=$.when(r1).then(function (r2) {
+                            r=r2;
+                            deff1=false;
+                            if (r instanceof DUBRK) return r.res;
+                            if (deff2) return DU.loop(f,r); //☆
+                        }).fail(function () {
+                            deff1=false;
+                        });
+                        deff2=true;
+                        if (deff1) return dr;//☆
+                        //★
+                    }
+                }catch (e) {
+                    return DU.throwPromise(e);
                 }
             },
             brk: function (res) {

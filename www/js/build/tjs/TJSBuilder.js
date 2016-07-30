@@ -61,22 +61,13 @@ function (A,DU,wget,Sync) {
         var t=this;
         return /*this.dlFiles()*/$.when().then(function () {
             return curPrj.loadClasses();            
-        }).then(DU.throwF(function() {
+        }).then(function() {
             var concat=curPrj.getOutputFile();
             dst.rel("user.js").copyFrom(concat);
             curPrj.dir.each(function (f) {
                 if (f.ext()!=".html")  return;
                 t.genHTML(f.truncExt());
             });
-        }), function (e) {
-            if (typeof SplashScreen!="undefined") SplashScreen.hide();
-            if (e.isTError) {
-                console.log("showErr: run");
-                showErrorPos($("#errorPos"),e);
-                displayMode("compile_error");
-            }else{
-                Tonyu.onRuntimeError(e);
-            }
         });            
     };
     p.upload=function (pub) {

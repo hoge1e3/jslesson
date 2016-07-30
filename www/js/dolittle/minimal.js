@@ -126,7 +126,7 @@ MinimalParser= function () {
 	var eq=token(/^[=＝]/).noFollow(token(/^[=＝]/)).ret(function(){return "=";});
 	var deq=token(/^[=＝][=＝]/).ret(function(){return "===";});
 	var add=token(/^[+＋]/).ret(function(){return "+";});
-	var sub=token(/^[-−–]/).ret(function(){return "-";});
+	var sub=token(/^[-−–－]/).ret(function(){return "-";});
 	var mul=token(/^[*×]/).ret(function(){return "*";}); 
 	var div=token(/^[/÷]/).ret(function(){return "/";});
 	var gt=token(/^[>＞]/).ret(function(){return ">";});

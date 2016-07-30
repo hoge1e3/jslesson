@@ -463,15 +463,25 @@ $(function () {
             if (typeof SplashScreen!="undefined") SplashScreen.show();
             //RunDialog2 (new version)
             try {
-                builder.build().then(function () {
+                DU.timeout(0).then(function () {
+                    return builder.build();    
+                }).then(function () {
                     //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
                     RunDialog2.show(indexF,
                     {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
                 }).fail(function (e) {
                     console.log(e.stack);
-                }).done(function () {
-        	        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+    	            if (e.isTError) {
+    	                console.log("showErr: run",e);
+    	                showErrorPos($("#errorPos"),e);
+    	                displayMode("compile_error");
+                        logToServer("JS Compile Error!\n"+e.src+":"+e.pos+"\n"+e.mesg+"\nJS Compile Error End!");
+    	            }else{
+    	                Tonyu.onRuntimeError(e);
+    	            }
+                }).always(function () {
+        	        //$("#fullScr").attr("href","javascript:;").text("別ページで実行");
                     if (typeof SplashScreen!="undefined") SplashScreen.hide();
                 });
             }catch(e) {
@@ -550,9 +560,9 @@ $(function () {
                     {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
                 }).fail(function (e) {
                     //console.log("FAIL", arguments);
-                    console.log(e.stack);
                     Tonyu.onRuntimeError(e);
-                }).done(function () {
+                    console.log("DTLFAIL",e.stack);
+                }).always(function () {
                     if (typeof SplashScreen!="undefined") SplashScreen.hide();
                     return sync();
                 });

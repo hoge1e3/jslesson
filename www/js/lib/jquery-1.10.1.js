@@ -3221,10 +3221,21 @@ jQuery.extend({
 				},
 				then: function( /* fnDone, fnFail, fnProgress */ ) {
 					var fns = arguments;
+		            function throwF(f) {//@hoge1e3
+                        return function () {
+                            try {
+                                return f.apply(this,arguments);
+                            } catch(e) {
+            	                var d=new jQuery.Deferred;
+            	                d.reject(e);
+            	                return d.promise();
+                            }
+                        };
+                    }
 					return jQuery.Deferred(function( newDefer ) {
 						jQuery.each( tuples, function( i, tuple ) {
 							var action = tuple[ 0 ],
-								fn = jQuery.isFunction( fns[ i ] ) && fns[ i ];
+								fn = jQuery.isFunction( fns[ i ] ) && throwF(fns[ i ]); //@hoge1e3
 							// deferred[ done | fail | progress ] for forwarding actions to newDefer
 							deferred[ tuple[1] ](function() {
 								var returned = fn && fn.apply( this, arguments );
