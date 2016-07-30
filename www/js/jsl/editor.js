@@ -436,7 +436,6 @@ $(function () {
         var curFiles=fileSet(curFile);
         var curHTMLFile=curFiles[0];
         var curJSFile=curFiles[1];
-
         stop();
         save();
         displayMode("run");
@@ -523,6 +522,7 @@ $(function () {
             return sync();
     	}else if(lang=="dtl"){
     	    try {
+                if (typeof SplashScreen!="undefined") SplashScreen.show();
         	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
     	        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
                 var ram=FS.get("/ram/build/");
@@ -531,7 +531,7 @@ $(function () {
                 builder.build().then(function () {
                     //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
-                    RunDialog2.show(indexF,
+                    return RunDialog2.show(indexF,
                     {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
                 }).fail(function (e) {
                     //console.log("FAIL", arguments);
@@ -543,6 +543,7 @@ $(function () {
                 });
             }catch(e) {
 	            if(e) console.log(e.stack);
+                if (typeof SplashScreen!="undefined") SplashScreen.show();
             }
     	}
     }

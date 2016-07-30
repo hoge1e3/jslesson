@@ -26,6 +26,7 @@ class DtlThread {
                 $stack->push(DtlObj::s_get($sscope,$name));
                 break;
             case "push1":
+                $name=$c[1];
                 if ($name=="self") {
                     $stack->push($self);
                 } else {
@@ -75,13 +76,18 @@ class DtlThread {
                 return $stack->pop();
             // [val] store1 nameid layer
             case "storebinding":
-            case "store1":
                 $name=$c[1];
                 $layer=$c[2];
                 $val=$stack->pop();
                 $sscope=$scope;
                 while ($layer-->0) $sscope=$sscope->__proto__;
                 DtlObj::s_set($sscope,$name,$val);
+                $stack->push($val);
+                break;
+            case "store1":
+                $name=$c[1];
+                $val=$stack->pop();
+                DtlObj::s_set($self,$name,$val);
                 $stack->push($val);
                 break;
             //[obj] [val] store2 nameid (obj.nameid=val)

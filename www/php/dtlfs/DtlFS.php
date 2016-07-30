@@ -1,10 +1,9 @@
 <?php 
-require_once"./NativeFS.php";
-require_once"./PathUtil.php";
-require_once"./Permission.php";
-require_once"./SFile.php";
-require_once"./dtl/Dtl.php";
-require_once"./dtlfs/DtlSys.php";
+require_once __dir__."/../fs/NativeFS.php";
+require_once __dir__."/../fs/Permission.php";
+require_once __dir__."/../fs/SFile.php";
+require_once __dir__."/../dtl/Dtl.php";
+require_once __dir__."/../dtlfs/DtlSys.php";
 class DtlFS {
     public static function init() {
         $fs=new NativeFS("./tmp/");

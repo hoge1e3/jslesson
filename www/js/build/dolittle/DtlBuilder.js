@@ -31,6 +31,9 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS) {
         }
     );
     var p=DtlBuilder.prototype;
+    p.progress=function (m) {
+        if (window.SplashScreen) window.SplashScreen.progress(m);
+    };
     p.dlFiles=function () {
         var dst=this.dst;
         var urls=[];
@@ -47,6 +50,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS) {
         return $.when.apply($,args);
     };
     p.genHTML=function (f) {
+        this.progress("generate "+f.src.html.name());
         //var curHTMLFile=d.rel(name+".html");
         var dp=new DOMParser;
         var dom=dp.parseFromString(f.src.html.text(),"text/html");
@@ -75,6 +79,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS) {
         var dst=this.dst;
         var t=this;
         var files=[];
+        //var tr=curPrj.dir.getDirTree({style:"no-recursive"});
         curPrj.dir.each(function (f) {
             if (f.ext()!=".html")  return;
             var name=f.truncExt();
@@ -91,11 +96,13 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS) {
         });
         return $.when().then(DU.tr(function () {
             return DU.each(files,function (f) {
+                t.progress("Transpile "+f.src.dtl.name());
                 if (isNewer(f.dst.js, f.src.dtl)) return;
                 var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
                 buf.setSrcFile(f.src.dtl);
                 var js=dtlParser.parse(f.src.dtl.text(),{indentBuffer:buf,src:f.src.dtl.name()});
-                return buf.close();
+                buf.close();
+                return DU.timeout(0);
             });
         })).then(DU.tr(function() {
              return DU.each(files,function (f) {

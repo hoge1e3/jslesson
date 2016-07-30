@@ -1,4 +1,45 @@
-root.Accelo=new (function(){
+root.Accelo=root.create();
+root.Accelo.x=0;
+root.Accelo.y=0;
+root.Accelo.動作=(function(){});
+root.Accelo.initialize=function(){
+	if (
+		(window.navigator.userAgent.indexOf('iPhone') > 0 || 
+		window.navigator.userAgent.indexOf('iPad') > 0 || 
+		window.navigator.userAgent.indexOf('iPod') > 0 || 
+		window.navigator.userAgent.indexOf('Android') > 0)==false){
+		window.alert("タブレット、スマホ専用のオブジェクトです。");
+		return -1;
+	}
+	var self=this;
+	window.$(function(){
+		window.addEventListener("devicemotion", function(evt){
+		try{
+				window.alert((evt.accelerationIncludingGravity.y));
+			var x=((evt.accelerationIncludingGravity.x));
+			var y=((evt.accelerationIncludingGravity.y));
+
+			if(window.orientation==0){
+				self.x=y,self.y=x;
+			}else if(window.orientation==180){
+				self.x=-y,self.y=-x;
+			}else if(window.orientation==90){
+				self.x=x,self.y=-y;
+			}else {
+				self.x=-x,self.y=y;
+			}
+			self.動作.execute(self.x,self.y);}catch(e){throw new Error(e);}
+		},true);
+	});
+};
+this["動作"]=(function(){});
+this["横の傾き"]=function(){return this.x};
+this["xの傾き"]=this["横の傾き"];
+this["xの傾き"]=this["横の傾き"];
+this["縦の傾き"]=function(){return this.y};
+this["yの傾き"]=this["縦の傾き"];
+this["yの傾き"]=this["縦の傾き"];
+/*root.Accelo=new (function(){
 	this.x=0;
 	this.y=0;
 	this.作る=function(){
@@ -33,7 +74,7 @@ root.Accelo=new (function(){
 	this["yの傾き"]=this["縦の傾き"];
 	this["yの傾き"]=this["縦の傾き"];
 
-});
+});*/
 
 root.加速度センサ =root.Accelo;
 root.傾きセンサ=root.加速度センサ;
