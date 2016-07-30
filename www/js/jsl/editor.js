@@ -29,7 +29,6 @@ $(function () {
         console.log("curclass",r);
         curClassroom=r;
     });
-    var builder;
     var curUser;
     $.get("login.php?curuser="+Math.random()).then(function (r) {
         console.log("curuser",r);
@@ -65,6 +64,8 @@ $(function () {
     var unsaved=false;
     var unsynced=false;
     var Builder;
+    var builder;
+    var ram;
     switch (lang){
     case "c":
     	requirejs(["cCompiler"],function(){
@@ -75,12 +76,20 @@ $(function () {
     	requirejs(["TJSBuilder"],function(_){
     	    Builder=_;
     	    console.log("tjsb requirejsed");
+    	    $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+            ram=FS.get("/ram/build/");
+            FS.mount(ram.path(),"ram");
+            builder=new Builder(curPrj, ram);
     	});
     	break;
     case "dtl":
     	requirejs(["DtlBuilder"],function(_){
     	    Builder=_;
     	    console.log("dtlb requirejsed");
+    	    $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+            ram=FS.get("/ram/build/");
+            FS.mount(ram.path(),"ram");
+            builder=new Builder(curPrj, ram);
     	});
     	break;
     }
@@ -396,13 +405,22 @@ $(function () {
     $("#fullScr").click(function () {
         if (lang=="dtl" || lang=="js") {
             var inf=getCurrentEditorInfo();
+            if (!inf) {
+                alert("実行したファイルを選んでください");
+            }
             if (builder && inf) {
                 var curFile=inf.file;
                 var pub=FS.get("/public/").rel(curProjectDir.name());
-                //alert(pub.path());
-                var cv=$("<div>");
-                cv.dialog();
-                builder.upload(pub).then(function () {
+                if (window.SplashScreen) window.SplashScreen.show();
+                DU.timeout(0).then(function () {
+                    return builder.build();    
+                }).then(function () {
+                    if (window.SplashScreen) window.SplashScreen.progress("Upload contents...");
+                    return builder.upload(pub);                    
+                }).then(function () {
+                    if (window.SplashScreen) window.SplashScreen.hide();
+                    var cv=$("<div>");
+                    cv.dialog();
                     //  http://localhost/fs/home/0123/dolittle/public/Turtle2/Raw_k6.html
                     runURL=WebSite.published+curClassroom+"/"+
                     curUser+"/public/"+pub.name()+curFile.truncExt()+".html";
@@ -411,6 +429,7 @@ $(function () {
                         $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
                     ));
                     cv.append($("<div>").qrcode(runURL));
+                    return sync();
                 });
             }
         } else {
@@ -444,9 +463,6 @@ $(function () {
             if (typeof SplashScreen!="undefined") SplashScreen.show();
             //RunDialog2 (new version)
             try {
-                var ram=FS.get("/ram/build/");
-                FS.mount(ram.path(),"ram");
-                builder=new Builder(curPrj, ram);
                 builder.build().then(function () {
                     //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
@@ -525,10 +541,9 @@ $(function () {
                 if (typeof SplashScreen!="undefined") SplashScreen.show();
         	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
     	        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
-                var ram=FS.get("/ram/build/");
-                if (!ram.exists()) FS.mount(ram.path(),"ram");
-                builder=new Builder(curPrj, ram);
-                builder.build().then(function () {
+                DU.timeout(0).then(function () {
+                    return builder.build();    
+                }).then(function () {
                     //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
                     return RunDialog2.show(indexF,
