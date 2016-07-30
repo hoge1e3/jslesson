@@ -2475,10 +2475,10 @@ var SFile=function (rootFS, path) {
     this._path=path;
     this.rootFS=rootFS;
     this.fs=rootFS.resolveFS(path);
-    this.act={};// path/fs after follwed symlink
+    /*this.act={};// path/fs after follwed symlink
     this.act.path=this.fs.resolveLink(path);
     this.act.fs=rootFS.resolveFS(this.act.path);
-    A.is(this.act, {fs:FS2, path:P.Absolute});
+    A.is(this.act, {fs:FS2, path:P.Absolute});*/
     if (this.isDir() && !P.isDir(path)) {
         this._path+=P.SEP;
     }
@@ -2610,8 +2610,11 @@ SFile.prototype={
     getDirTree: function (options) {
         return this.act.fs.getDirTree(this.act.path, options);
     },
+    assertExists: function () {
+        A(this.exists(),this.path()+" does not exist.");
+    },
     lastUpdate:function () {
-        A(this.exists());
+        this.assertExists();
         return this.metaInfo().lastUpdate;
     },
     exists: function (options) {
@@ -2847,6 +2850,17 @@ SFile.prototype={
         return this.act.path;
     }
 };
+Object.defineProperty(SFile.prototype,"act",{
+    get: function () {
+        if (this._act) return this._act;
+        this._act={};// path/fs after follwed symlink
+        this._act.path=this.fs.resolveLink(this._path);
+        this._act.fs=this.rootFS.resolveFS(this._act.path);
+        A.is(this._act, {fs:FS2, path:P.Absolute});
+        return this._act;
+    } 
+});
+
 return SFile;
 });
 
@@ -12399,37 +12413,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
     return Sync;
 });
 
-define('DiagAdjuster',[],function () {
-    var DiagAdjuster=function (diagElem) {
-        this.diagElem=diagElem;
-        this.rszt=null;
-        this.margin=30;
-        this.timeout=100;
-    };
-    DiagAdjuster.prototype.handleResize=function () {
-        var self=this;
-        if (this.rszt) clearTimeout(this.rszt);
-        this.rszt=setTimeout(function () {
-            var d=self.diagElem.closest(".ui-dialog");
-            var t=d.find(".ui-dialog-titlebar");
-            var dw=d.width(),dh=d.height(),th=t.height();
-            var pad=self.margin;
-            var sz={w:dw-pad, h:dh-th-pad};
-            self.diagElem.css({width:sz.w,height:sz.h});
-            self.afterResize(self.diagElem);
-        },this.timeout);
-    };
-    DiagAdjuster.prototype.handleResizeF=function () {
-        var self=this;
-        return function () {
-            self.handleResize();    
-        };
-    };
-    DiagAdjuster.prototype.afterResize=function (){};
-    return DiagAdjuster;
-});
-
-define('RunDialog',["UI","DiagAdjuster"],function (UI,DA) {
+define('RunDialog',["UI"],function (UI) {
     var res={};
     res.show=function (src, runURL, options) {
         options=options||{};
@@ -12462,10 +12446,10 @@ define('RunDialog',["UI","DiagAdjuster"],function (UI,DA) {
                         res.d.dialog("close");
                     }}}, "OK"]
             );
-            res.da=new DA(res.d);
+            /*res.da=new DA(res.d);
             res.da.afterResize=function (d) {
                 $("#ifrmDlg").attr({width:d.width(),height:d.height()-res.d.$vars.OKButton.height()});
-            };            
+            };*/            
         }else{
             $("#ifrmDlg").remove();
 		    //$("#iBrowser").append(UI("iframe",{id:"ifrmDlg",width:570,height:options.height||400,src:runURL}));
@@ -12542,7 +12526,7 @@ function (sh,FS,DU,UI,S) {
                         file=FS.get(url);
                     }
                     var smc;
-                    if (FS.PathUtil.endsWith(url,".js")) {
+                    if (FS.PathUtil.endsWith(url,".js") && file.exists()) {
                         var r=regsm.exec(file.text());
                         if (r) {
                             var smf=file.sibling(r[1]);
@@ -12678,7 +12662,9 @@ function (sh,FS,DU,UI,S) {
     LocalBrowser.convertURL=function (iwin,url,base) {
         if (FS.PathUtil.isRelativePath(url)) {
             var sfile=base.rel(url);
-            url=LocalBrowser.file2blobURL(iwin,sfile);
+            if (sfile.exists()) {
+                url=LocalBrowser.file2blobURL(iwin,sfile);
+            }
         }
         return url;
     };
@@ -12706,6 +12692,36 @@ function (sh,FS,DU,UI,S) {
         return d.promise();
     };
     return LocalBrowser;
+});
+
+define('DiagAdjuster',[],function () {
+    var DiagAdjuster=function (diagElem) {
+        this.diagElem=diagElem;
+        this.rszt=null;
+        this.margin=30;
+        this.timeout=100;
+    };
+    DiagAdjuster.prototype.handleResize=function () {
+        var self=this;
+        if (this.rszt) clearTimeout(this.rszt);
+        this.rszt=setTimeout(function () {
+            var d=self.diagElem.closest(".ui-dialog");
+            var t=d.find(".ui-dialog-titlebar");
+            var dw=d.width(),dh=d.height(),th=t.height();
+            var pad=self.margin;
+            var sz={w:dw-pad, h:dh-th-pad};
+            self.diagElem.css({width:sz.w,height:sz.h});
+            self.afterResize(self.diagElem);
+        },this.timeout);
+    };
+    DiagAdjuster.prototype.handleResizeF=function () {
+        var self=this;
+        return function () {
+            self.handleResize();    
+        };
+    };
+    DiagAdjuster.prototype.afterResize=function (){};
+    return DiagAdjuster;
 });
 
 define('RunDialog2',["UI","LocalBrowser","DiagAdjuster"],
@@ -12864,7 +12880,6 @@ $(function () {
         console.log("curclass",r);
         curClassroom=r;
     });
-    var builder;
     var curUser;
     $.get("login.php?curuser="+Math.random()).then(function (r) {
         console.log("curuser",r);
@@ -12900,6 +12915,8 @@ $(function () {
     var unsaved=false;
     var unsynced=false;
     var Builder;
+    var builder;
+    var ram;
     switch (lang){
     case "c":
     	requirejs(["cCompiler"],function(){
@@ -12910,12 +12927,20 @@ $(function () {
     	requirejs(["TJSBuilder"],function(_){
     	    Builder=_;
     	    console.log("tjsb requirejsed");
+    	    $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+            ram=FS.get("/ram/build/");
+            FS.mount(ram.path(),"ram");
+            builder=new Builder(curPrj, ram);
     	});
     	break;
     case "dtl":
     	requirejs(["DtlBuilder"],function(_){
     	    Builder=_;
     	    console.log("dtlb requirejsed");
+    	    $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+            ram=FS.get("/ram/build/");
+            FS.mount(ram.path(),"ram");
+            builder=new Builder(curPrj, ram);
     	});
     	break;
     }
@@ -13229,15 +13254,24 @@ $(function () {
         });
     }
     $("#fullScr").click(function () {
-        if (lang=="dtl") {
+        if (lang=="dtl" || lang=="js") {
             var inf=getCurrentEditorInfo();
+            if (!inf) {
+                alert("実行したファイルを選んでください");
+            }
             if (builder && inf) {
                 var curFile=inf.file;
                 var pub=FS.get("/public/").rel(curProjectDir.name());
-                //alert(pub.path());
-                var cv=$("<div>");
-                cv.dialog();
-                builder.upload(pub).then(function () {
+                if (window.SplashScreen) window.SplashScreen.show();
+                DU.timeout(0).then(function () {
+                    return builder.build();    
+                }).then(function () {
+                    if (window.SplashScreen) window.SplashScreen.progress("Upload contents...");
+                    return builder.upload(pub);                    
+                }).then(function () {
+                    if (window.SplashScreen) window.SplashScreen.hide();
+                    var cv=$("<div>");
+                    cv.dialog();
                     //  http://localhost/fs/home/0123/dolittle/public/Turtle2/Raw_k6.html
                     runURL=WebSite.published+curClassroom+"/"+
                     curUser+"/public/"+pub.name()+curFile.truncExt()+".html";
@@ -13246,6 +13280,7 @@ $(function () {
                         $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
                     ));
                     cv.append($("<div>").qrcode(runURL));
+                    return sync();
                 });
             }
         } else {
@@ -13271,19 +13306,15 @@ $(function () {
         var curFiles=fileSet(curFile);
         var curHTMLFile=curFiles[0];
         var curJSFile=curFiles[1];
-
         stop();
         save();
         displayMode("run");
         if(lang=="js"){
     	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
             if (typeof SplashScreen!="undefined") SplashScreen.show();
-            /*//RunDialog2 (new version)
+            //RunDialog2 (new version)
             try {
-                var ram=FS.get("/ram/build/");
-                FS.mount(ram.path(),"ram");
-                var b=new Builder(curPrj, ram);
-                b.build().then(function () {
+                builder.build().then(function () {
                     //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
                     RunDialog2.show(indexF,
@@ -13291,11 +13322,14 @@ $(function () {
                 }).fail(function (e) {
                     console.log(e.stack);
                 }).done(function () {
+        	        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
                     if (typeof SplashScreen!="undefined") SplashScreen.hide();
                 });
             }catch(e) {
                 console.log(e.stack);
             }
+            return sync();
+            /*
             QR code
             sync
             */
@@ -13355,15 +13389,15 @@ $(function () {
             return sync();
     	}else if(lang=="dtl"){
     	    try {
+                if (typeof SplashScreen!="undefined") SplashScreen.show();
         	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
     	        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
-                var ram=FS.get("/ram/build/");
-                if (!ram.exists()) FS.mount(ram.path(),"ram");
-                builder=new Builder(curPrj, ram);
-                builder.build().then(function () {
+                DU.timeout(0).then(function () {
+                    return builder.build();    
+                }).then(function () {
                     //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
-                    RunDialog2.show(indexF,
+                    return RunDialog2.show(indexF,
                     {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
                 }).fail(function (e) {
                     //console.log("FAIL", arguments);
@@ -13375,6 +13409,7 @@ $(function () {
                 });
             }catch(e) {
 	            if(e) console.log(e.stack);
+                if (typeof SplashScreen!="undefined") SplashScreen.show();
             }
     	}
     }

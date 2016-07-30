@@ -1715,10 +1715,10 @@ var SFile=function (rootFS, path) {
     this._path=path;
     this.rootFS=rootFS;
     this.fs=rootFS.resolveFS(path);
-    this.act={};// path/fs after follwed symlink
+    /*this.act={};// path/fs after follwed symlink
     this.act.path=this.fs.resolveLink(path);
     this.act.fs=rootFS.resolveFS(this.act.path);
-    A.is(this.act, {fs:FS2, path:P.Absolute});
+    A.is(this.act, {fs:FS2, path:P.Absolute});*/
     if (this.isDir() && !P.isDir(path)) {
         this._path+=P.SEP;
     }
@@ -1850,8 +1850,11 @@ SFile.prototype={
     getDirTree: function (options) {
         return this.act.fs.getDirTree(this.act.path, options);
     },
+    assertExists: function () {
+        A(this.exists(),this.path()+" does not exist.");
+    },
     lastUpdate:function () {
-        A(this.exists());
+        this.assertExists();
         return this.metaInfo().lastUpdate;
     },
     exists: function (options) {
@@ -2087,6 +2090,17 @@ SFile.prototype={
         return this.act.path;
     }
 };
+Object.defineProperty(SFile.prototype,"act",{
+    get: function () {
+        if (this._act) return this._act;
+        this._act={};// path/fs after follwed symlink
+        this._act.path=this.fs.resolveLink(this._path);
+        this._act.fs=this.rootFS.resolveFS(this._act.path);
+        A.is(this._act, {fs:FS2, path:P.Absolute});
+        return this._act;
+    } 
+});
+
 return SFile;
 });
 
