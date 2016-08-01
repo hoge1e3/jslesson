@@ -62,12 +62,12 @@ MinimalParser.node2vm=function (node) {
         block_param: function (node) {
             var params=node.subnodes[1];
             var locals=node.subnodes[3];
-            params.forEach(function (p) {
+            /*params.forEach(function (p) {
             	add(["para",p+""]);
             });
             locals.forEach(function (p) {
             	add(["tmp",p+""]);
-            });
+            });*/
             
         },
         block: function (node) {

@@ -8,8 +8,8 @@ root.GPS=new (function(){
 	}
 	this.作る=function(){
 		if ((navigator.userAgent.indexOf('iPhone') > 0 || navigator.userAgent.indexOf('iPad') > 0 || navigator.userAgent.indexOf('iPod') > 0 || navigator.userAgent.indexOf('Android') > 0)==false){
-			alert("タブレット専用のオブジェクトです。");
-			return -1;
+			alert("タブレット専用のオブジェクトです。この端末では動作しないことがあります");
+			//return -1;
 		}
 		var obj={};
 		var success=function(pos){return pos;};

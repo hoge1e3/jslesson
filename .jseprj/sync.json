@@ -1,5 +1,7 @@
 [
-   ["www/js/dolittle/lib.js", "www/runtime/lib/dtl/lib.js"],
+   ["www/js/dolittle/gps.js", "www/runtime/lib/dtl/"],
+   ["www/js/dolittle/devicemotion.js", "www/runtime/lib/dtl/"],
+   ["www/js/dolittle/lib.js", "www/runtime/lib/dtl/"],
    ["www/js/fsui/LocalBrowser.js", "${projects:FS.js}/www/fstools/LocalBrowser.js"],
    ["${projects:Tonyu2}/js/ui/","www/js/ui/"],
    ["www/php/dtl/", "${projects:FS.js}/www/php/dtl/"],
