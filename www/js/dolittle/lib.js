@@ -315,7 +315,7 @@ Number.prototype.degree=function() {
     return this/Math.PI*180;
 };
 Number.prototype.random=function(){
-	return parseInt(Math.random()*this);
+	return parseInt(Math.random()*this)+1;
 }
 Number.prototype["乱数"]=Number.prototype.random;
 
