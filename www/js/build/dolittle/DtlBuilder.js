@@ -25,7 +25,8 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS) {
     var libs=["jquery-1.12.1","require"].map(function (n) {
         return "lib/"+n+".js";
     });
-    var dtlibs=["lib","polyk","Vec2","Actor","Group","UI","Turtle","Figure","DOM","Japanese"].map(
+    var dtlibs=["lib","polyk","devicemotion","gps",
+    "Vec2","Actor","Group","UI","Turtle","Figure","DOM","Japanese"].map(
         function (n) {
             return "lib/dtl/"+n+".js";
         }

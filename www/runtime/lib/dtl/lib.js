@@ -53,6 +53,7 @@ root.system={
 			(new Function(window.parent.MinimalParser.parse(data)))();
 		},function(){alert("setup.iniの読み込みに失敗しました");});
 	},
+	throw:function(e){throw new Error(e);},
 	"システム秒?":function(){return new Date().getTime();},
 	"時刻?":function(){
 		var date = new Date();
@@ -313,6 +314,10 @@ Number.prototype.radian=function() {
 Number.prototype.degree=function() {
     return this/Math.PI*180;
 };
+Number.prototype.random=function(){
+	return parseInt(Math.random()*this);
+}
+Number.prototype["乱数"]=Number.prototype.random;
 
 //Function
 Function.prototype.execute	=	function(){return this.apply(this.bound||this,arguments);};
@@ -359,6 +364,22 @@ Function.prototype.or=function(){
 	}
 	return ((res)?res:root.false);
 }
+Function.prototype.try=function(){
+	var res={
+		catch:function(){
+			return {finally:res.finally};
+		},
+		finally:function(f){
+			f.execute();
+		}
+	};
+	try{
+		this.execute.apply(this,arguments);
+	}catch(e){
+		res.catch=function(f){f.execute(e);return {finally:res.finally};};
+	}
+	return res;
+};
 var _jsroot; (function () {_jsroot=this;})();
 function dtlbind(bound, f) {
     f.bound=bound;

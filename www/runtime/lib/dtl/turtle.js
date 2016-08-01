@@ -1,16 +1,6 @@
 (function(){this['turtle']=this['Actor']['create']();
 this['Turtle']=this['turtle'];
-this['console']['log']("LOC",(this['window']['location']['href']));
-this['Turtle']['baseURL']=dtlbind(this,function(){
-var self=this;var 自分=self;
-return ((this['window']['location']['href']['indexOf']("localhost"))>=(0));
-})['then']()['else'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return "http://localhost/runtime/images/";
-}))['execute'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return "http://klab.eplang.jp/jslesson/runtime/images/";
-}));
+this['Turtle']['baseURL']=(this['window']['runtimePath']+"images/");
 this['turtle']['initialize']=dtlbind(this,function(){
 var self=this;var 自分=self;
 this['element']=this['createSVGElem']("image");
@@ -135,7 +125,16 @@ return this;
 });
 this['turtle']['change']=dtlbind(this,function(url){
 var self=this;var 自分=self;
-url=(this['baseURL']+url);
+url=dtlbind(this,function(){
+var self=this;var 自分=self;
+return url['match']("https?");
+})['then']()['else'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return url;
+}))['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return (this['baseURL']+url);
+}));
 this['element']['get']((0))['setAttributeNS']("http://www.w3.org/1999/xlink","href",(url));
 this['getImageSize']((url));
 return this;
