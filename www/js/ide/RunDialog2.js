@@ -3,10 +3,13 @@ function (UI, LocalBrowser,DA) {
     var res={};
     res.show=function (runFile, options) {
         options=options||{};
+        options.height=options.height||600;
         window.dialogClosed=false;
         var d=res.embed(runFile, options);
         d.dialog({
-            width:600,
+            width:16*((options.height+10)/9),
+            position: { my: "center top", at: "right bottom"},
+            //width:600,
             close:function(){
                 window.dialogClosed=true;
                 if (res.b) res.b.close();
@@ -16,10 +19,11 @@ function (UI, LocalBrowser,DA) {
         });//,height:options.height?options.height-50:400});
         handleResize();
         function handleResize() {
-            if (res.b && res.b.iframe) {
-                res.b.iframe.attr({
+            if (res.b/* && res.b.iframe*/) {
+                res.b.resize(d.width(),d.height()-d.$vars.OKButton.height());
+                /*res.b.iframe.attr({
                     width:d.width(),
-                    height:d.height()-d.$vars.OKButton.height()});
+                    height:d.height()-d.$vars.OKButton.height()});*/
             }
         }
     };

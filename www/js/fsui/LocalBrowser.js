@@ -11,6 +11,15 @@ function (sh,FS,DU,UI,S) {
     p.close=function () {
         $(this.iframeArea).empty();
     };
+    p.resize=function (w,h) {
+        if (this.iframe) {
+            this.iframe.attr({
+                    width:w,height:h
+            });
+            this.iframeAttr.width=w;
+            this.iframeAttr.height=h;
+        }
+    };
     p.open=function (f,options) {    
         options=options||{};
         var onload=options.onload || function () {};
@@ -31,7 +40,10 @@ function (sh,FS,DU,UI,S) {
         var regsm=/sourceMappingURL\s*=\s*([^\s]*)/i;
         var regrc=/:([0-9]+):([0-9]+)/;
         window.ifrm=i[0];
+        var loaded;
         i.on("load",function () {
+            if (loaded) return;
+            loaded=true;
             iwin=i[0].contentWindow;
             iwin.LocalBrowserInfo={
                 __file__: f,
@@ -128,9 +140,6 @@ function (sh,FS,DU,UI,S) {
             return $.when().then(F(function () {
                 return appendTo(src.getElementsByTagName("html")[0], 
                 idoc.getElementsByTagName("html")[0]);
-                //return appendTo(src.getElementsByTagName("head")[0], idoc.head);
-            //})).then(F(function (){
-                //return appendTo(src.getElementsByTagName("body")[0], idoc.body);
             })).then(F(function () {
                 onload.apply(i[0],[]);
             })).fail(onerror);

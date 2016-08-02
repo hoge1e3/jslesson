@@ -147,7 +147,7 @@ MinimalParser= function () {
 	    var content=_str.text.substring(1,_str.text.length-1);
 	    return extend(['"'+content+'"'],{type:"string",content:content});
 	});
-	var reg_num = /^[0-9０-９]+([.．]([0-9０-９])+)?/;//数字を表す正規表現
+	var reg_num = /^[0-9０-９]+([.．]([0-9０-９])+)?([a-zA-Z_$\?？ーぁ-んァ-ヶ々〇〻\u3400-\u9FFF\uF900-\uFAFF\uD840-\uD87F\uDC00-\uDFFF][a-zA-Z_$\?？0-9０-９ーぁ-んァ-ヶ々〇〻\u3400-\u9FFF\uF900-\uFAFF\uD840-\uD87F\uDC00-\uDFFF]*)?/;//数字を表す正規表現
 	//var reg_num=/^[0-9０-９]+/;
 	var tok_num = token(reg_num).ret(function(_num){
 		var v=(_num+"").replace(/[０-９]/g, function(s) {
@@ -311,7 +311,10 @@ MinimalParser= function () {
 				var line=(str.substr(0,result.src.maxPos)).match(/\n/g);
 				line=(line)?line.length:0;
 				//alert("エラーが発生しました。\n"+line+"行目付近を確認してください。");
-				throw new Error(de+"エラーが発生しました。\n"+line+"行目付近を確認してください。");
+				return [
+				"throw new Error('",de,"エラーが発生しました。\\n",line,
+				"行目付近を確認してください。');"
+				];
 			}
 		}
         return output;

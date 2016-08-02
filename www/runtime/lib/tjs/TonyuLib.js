@@ -281,8 +281,10 @@ return Tonyu=function () {
     function handleEx(e) {
         if (Tonyu.onRuntimeError) {
             Tonyu.onRuntimeError(e);
+        } else if (window.onerror) {
+            window.onerror("","","","",e);
         } else {
-            alert ("エラー! at "+$LASTPOS+" メッセージ  : "+e);
+            alert ("エラー!! at "+$LASTPOS+" メッセージ  : "+e);
             throw e;
         }
     }

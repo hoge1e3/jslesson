@@ -282,7 +282,7 @@ return Tonyu=function () {
         if (Tonyu.onRuntimeError) {
             Tonyu.onRuntimeError(e);
         } else {
-            alert ("エラー! at "+$LASTPOS+" メッセージ  : "+e);
+            alert ("エラー!! at "+$LASTPOS+" メッセージ  : "+e);
             throw e;
         }
     }
