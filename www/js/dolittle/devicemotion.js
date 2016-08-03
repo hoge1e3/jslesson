@@ -142,8 +142,10 @@ root.タッチセンサ.initialize=function(){
 	window.$(function(){
 	  window.document.addEventListener("touchmove", function(evt){
 			var x=0,y=0;
-			var width=document.getElementById("canvas").width/2;
-			var height=document.getElementById("canvas").height/2;
+			//var width=document.getElementById("canvas").width/2;
+			//var height=document.getElementById("canvas").height/2;
+			var width=window.$("#canvas").context.documentElement.clientWidth/2;
+			var height=window.$("#canvas").context.documentElement.clientHeight/2;
 			x=evt.touches[0].clientX;
 			y=evt.touches[0].clientY;
 			self.x=x-width;

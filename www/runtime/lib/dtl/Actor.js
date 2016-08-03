@@ -98,8 +98,15 @@ var svgh;
 this['svg']=this['$']['create']("svg");
 this['console']['log']("SVG",(this['svg']));
 wndj=this['$']['create']((this['window']));
-svgw=wndj['width']();
-svgh=wndj['height']();
+svgw=((wndj['width']())-(10));
+svgh=((wndj['height']())-(10));
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return (svgh<=(0));
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return svgh=((svgw/(16))*(9));
+}));
 dtlbind(this,function(){
 var self=this;var 自分=self;
 return (this['svg']['length']===(0));
@@ -118,8 +125,15 @@ return this['svg_g']=this['createSVGElem']("g")['attr']("transform",((((("transl
 t=self;
 wndj['resize'](dtlbind(this,function(){
 var self=this;var 自分=self;
-svgw=wndj['width']();
-svgh=wndj['height']();
+svgw=((wndj['width']())-(10));
+svgh=((wndj['height']())-(10));
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return (svgh<=(0));
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return svgh=((svgw/(16))*(9));
+}));
 (t['svg'])['attr']("width",(svgw))['attr']("height",(svgh));
 return (t['svg_g'])['attr']("transform",((((("translate("+((svgw/(2))))+",")+((svgh/(2))))+") scale(1,-1)")));
 }));
@@ -234,7 +248,7 @@ return res['push']((a));
 }));
 return res;
 });
-return this['Actor']['bounce']=dtlbind(this,function(_hitTarget){
+this['Actor']['bounce']=dtlbind(this,function(_hitTarget){
 var self=this;var 自分=self;
 var lp;
 var ld;
@@ -267,6 +281,14 @@ return this['turnLeft']((180));
 }));
 }));
 return self;
+});
+this['Actor']['xpos?']=dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['pos']['x'];
+});
+return this['Actor']['ypos?']=dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['pos']['y'];
 });
 }).checkerror().apply(root,[]);
 //# sourceMappingURL=Actor.js.map

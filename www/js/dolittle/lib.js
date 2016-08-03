@@ -75,7 +75,16 @@ root.system={
 	"日?":function(){return (new Date).getDate();},
 	"時?":function(){return (new Date).getHours();},
 	"分?":function(){return (new Date).getMinutes();},
-	"秒?":function(){return (new Date).getSeconds();}
+	"秒?":function(){return (new Date).getSeconds();},
+	"try": function (t,c,f) {
+	    try {
+	        return t.execute();
+	    } catch(e) {
+	        if (c) return c.execute(e);
+	    } finally {
+	        if (f) return t.execute();
+	    }
+	}
 };
 localize(root, {system:"システム", create:"作る"});
 localize(root.system, {"time?":"時刻?"  ,use: "使う"});

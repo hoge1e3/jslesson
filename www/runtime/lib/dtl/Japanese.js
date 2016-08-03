@@ -6,75 +6,79 @@ var self=this;var 自分=self;
 return (x==="黒");
 })['なら']()['実行'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return x="black";
+return x=this['black'];
 }));
 dtlbind(this,function(){
 var self=this;var 自分=self;
 return (x==="赤");
 })['なら']()['実行'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return x="red";
+return x=this['red'];
 }));
 dtlbind(this,function(){
 var self=this;var 自分=self;
 return (x==="緑");
 })['なら']()['実行'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return x="green";
+return x=this['green'];
 }));
 dtlbind(this,function(){
 var self=this;var 自分=self;
 return (x==="青");
 })['なら']()['実行'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return x="blue";
+return x=this['blue'];
 }));
 dtlbind(this,function(){
 var self=this;var 自分=self;
 return (x==="ピンク");
 })['なら']()['実行'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return x="pink";
+return x=this['pink'];
 }));
 dtlbind(this,function(){
 var self=this;var 自分=self;
 return (x==="紫");
 })['なら']()['実行'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return x="magenta";
+return x=this['magenta'];
 }));
 dtlbind(this,function(){
 var self=this;var 自分=self;
 return (x==="水色");
 })['なら']()['実行'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return x="cyan";
+return x=this['cyan'];
 }));
 dtlbind(this,function(){
 var self=this;var 自分=self;
 return (x==="黄色");
 })['なら']()['実行'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return x="yellow";
+return x=this['yellow'];
 }));
 dtlbind(this,function(){
 var self=this;var 自分=self;
 return (x==="白");
 })['なら']()['実行'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return x="white";
+return x=this['white'];
 }));
 return x;
 });
-this['青']="blue";
-this['赤']="red";
-this['緑']="green";
-this['青']="blue";
-this['ピンク']="pink";
-this['紫']="magenta";
-this['水色']="cyan";
-this['黄色']="yellow";
-this['白']="white";
+this['addAlias']("blue","青");
+this['addAlias']("red","赤");
+this['addAlias']("green","緑");
+this['addAlias']("pink","ピンク");
+this['addAlias']("magenta","紫");
+this['addAlias']("cyan","水色");
+this['addAlias']("yellow","黄色");
+this['addAlias']("white","白");
+this['addAlias']("black","黒");
+this['addAlias']("Color","色");
+this['Color']['addAlias']("darken","暗くする");
+this['Color']['addAlias']("brighten","明るくする");
+this['Color']['addAlias']("randomCreate","ランダムに作る");
 this['addAlias']("create","作る");
 this['addAlias']("create","만들다");
 this['Actor']['addAlias']("forward","歩く")['addAlias']("turnRight","右回り")['addAlias']("turnLeft","左回り")['addAlias']("moveTo","位置")['addAlias']("moveBy","移動する")['addAlias']("setDir","向き")['addAlias']("bounce","跳ね返る")['addAlias']("die","消える")['addAlias']("collision","衝突");
@@ -129,6 +133,15 @@ this['aa']['call']((this['timer']),"times","回数");
 this['aa']['call']((this['timer']),"duration","時間");
 this['ボタン']=this['Button'];
 this['Button']['addAlias']("action","動作");
+this['Button']['addAlias']("position","位置");
+this['Button']['addAlias']("moveTo","移動する");
+this['Button']['addAlias']("width?","幅?");
+this['Button']['addAlias']("height?","高さ?");
+this['Button']['addAlias']("size","大きさ");
+this['Button']['addAlias']("fontSize","文字サイズ");
+this['Button']['addAlias']("paint","塗る");
+this['Button']['addAlias']("fontColor","文字色");
+this['Button']['addAlias']("inc","増やす");
 this['フィールド']=this['Field'];
 this['Field']['増やす']=this['Field']['inc'];
 this['addAlias']("and","全部");

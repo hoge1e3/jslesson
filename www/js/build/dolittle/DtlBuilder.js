@@ -26,7 +26,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS) {
         return "lib/"+n+".js";
     });
     var dtlibs=["lib","polyk","devicemotion","gps",
-    "Vec2","Actor","Group","UI","Turtle","Figure","DOM","Japanese"].map(
+    "Vec2","Actor","Group","UI","Timer","Color","Turtle","Figure","DOM","Japanese"].map(
         function (n) {
             return "lib/dtl/"+n+".js";
         }
@@ -69,7 +69,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS) {
             nn.setAttribute("src",src);
             body.appendChild(nn);
         });
-        return f.dst.html.text("<html>"+html.innerHTML+"</html>");
+        return f.dst.html.text("<!DOCTYPE HTML>\n<html>"+html.innerHTML+"</html>");
     };
     function isNewer(a,b) {
         if (!a.exists()) return false;
