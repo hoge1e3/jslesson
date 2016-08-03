@@ -494,8 +494,10 @@ return Tonyu=function () {
     function handleEx(e) {
         if (Tonyu.onRuntimeError) {
             Tonyu.onRuntimeError(e);
+        } else if (window.onerror) {
+            window.onerror("","","","",e);
         } else {
-            alert ("エラー! at "+$LASTPOS+" メッセージ  : "+e);
+            alert ("エラー!! at "+$LASTPOS+" メッセージ  : "+e);
             throw e;
         }
     }
@@ -12486,6 +12488,15 @@ function (sh,FS,DU,UI,S) {
     p.close=function () {
         $(this.iframeArea).empty();
     };
+    p.resize=function (w,h) {
+        if (this.iframe) {
+            this.iframe.attr({
+                    width:w,height:h
+            });
+            this.iframeAttr.width=w;
+            this.iframeAttr.height=h;
+        }
+    };
     p.open=function (f,options) {    
         options=options||{};
         var onload=options.onload || function () {};
@@ -12498,6 +12509,9 @@ function (sh,FS,DU,UI,S) {
         }
         var i=$("<iframe>");
         i.attr(this.iframeAttr);
+        if (isFirefox()) {
+            i.attr("src",iframeSrcURL());
+        }
         this.iframe=i;
         var base=f.up();
         var iwin;
@@ -12506,7 +12520,10 @@ function (sh,FS,DU,UI,S) {
         var regsm=/sourceMappingURL\s*=\s*([^\s]*)/i;
         var regrc=/:([0-9]+):([0-9]+)/;
         window.ifrm=i[0];
+        var loaded;
         i.on("load",function () {
+            if (loaded) return;
+            loaded=true;
             iwin=i[0].contentWindow;
             iwin.LocalBrowserInfo={
                 __file__: f,
@@ -12603,9 +12620,6 @@ function (sh,FS,DU,UI,S) {
             return $.when().then(F(function () {
                 return appendTo(src.getElementsByTagName("html")[0], 
                 idoc.getElementsByTagName("html")[0]);
-                //return appendTo(src.getElementsByTagName("head")[0], idoc.head);
-            //})).then(F(function (){
-                //return appendTo(src.getElementsByTagName("body")[0], idoc.body);
             })).then(F(function () {
                 onload.apply(i[0],[]);
             })).fail(onerror);
@@ -12674,6 +12688,15 @@ function (sh,FS,DU,UI,S) {
         }
         return url;
     };
+    function isFirefox() {
+        return navigator.userAgent.indexOf("Firefox")>=0;
+    }
+    function iframeSrcURL(){
+        var src="<!DOCTYPE HTML><html><head></head><body></body></html>";        
+        var blob = new Blob([src], {type: "text/html"});
+        var url = URL.createObjectURL(blob);
+        return url;
+    }
     LocalBrowser.file2blobURL=function (iwin,sfile) {
         var blob;
         if (sfile.isText()) {
@@ -12735,10 +12758,13 @@ function (UI, LocalBrowser,DA) {
     var res={};
     res.show=function (runFile, options) {
         options=options||{};
+        options.height=options.height||600;
         window.dialogClosed=false;
         var d=res.embed(runFile, options);
         d.dialog({
-            width:600,
+            width:16*((options.height+10)/9),
+            position: { my: "center top", at: "right bottom"},
+            //width:600,
             close:function(){
                 window.dialogClosed=true;
                 if (res.b) res.b.close();
@@ -12748,10 +12774,11 @@ function (UI, LocalBrowser,DA) {
         });//,height:options.height?options.height-50:400});
         handleResize();
         function handleResize() {
-            if (res.b && res.b.iframe) {
-                res.b.iframe.attr({
+            if (res.b/* && res.b.iframe*/) {
+                res.b.resize(d.width(),d.height()-d.$vars.OKButton.height());
+                /*res.b.iframe.attr({
                     width:d.width(),
-                    height:d.height()-d.$vars.OKButton.height()});
+                    height:d.height()-d.$vars.OKButton.height()});*/
             }
         }
     };

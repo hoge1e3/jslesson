@@ -32,6 +32,9 @@ function (sh,FS,DU,UI,S) {
         }
         var i=$("<iframe>");
         i.attr(this.iframeAttr);
+        if (isFirefox()) {
+            i.attr("src",iframeSrcURL());
+        }
         this.iframe=i;
         var base=f.up();
         var iwin;
@@ -208,6 +211,15 @@ function (sh,FS,DU,UI,S) {
         }
         return url;
     };
+    function isFirefox() {
+        return navigator.userAgent.indexOf("Firefox")>=0;
+    }
+    function iframeSrcURL(){
+        var src="<!DOCTYPE HTML><html><head></head><body></body></html>";        
+        var blob = new Blob([src], {type: "text/html"});
+        var url = URL.createObjectURL(blob);
+        return url;
+    }
     LocalBrowser.file2blobURL=function (iwin,sfile) {
         var blob;
         if (sfile.isText()) {
