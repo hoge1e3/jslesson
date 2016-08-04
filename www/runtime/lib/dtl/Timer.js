@@ -9,16 +9,21 @@ return i['stop']();
 return self;
 });
 this['Timer']=this['create']();
-this['Timer']['interval_val']=(100);
-this['Timer']['times_val']=(100);
+this['Timer']['i']=(100);
+this['Timer']['t']=(100);
 this['Timer']['interval']=dtlbind(this,function(i){
 var self=this;var 自分=self;
-self['interval_val']=i;
+self['i']=(i*(1000));
 return self;
 });
 this['Timer']['times']=dtlbind(this,function(t){
 var self=this;var 自分=self;
-self['times_val']=t;
+self['t']=t;
+return self;
+});
+this['Timer']['duration']=dtlbind(this,function(t){
+var self=this;var 自分=self;
+self['t']=((t*(1000))/self['i']);
 return self;
 });
 this['Timer']['d']=root['system']['new']((root['window']['$']['Deferred']))['resolve']();
@@ -32,8 +37,8 @@ var t;
 var i;
 var c;
 s=self;
-t=s['times_val'];
-i=s['interval_val'];
+t=s['t'];
+i=s['i'];
 c=(1);
 root['alltimer']['list']['add']((s));
 s['d']=s['d']['then'](dtlbind(this,function(){
@@ -41,12 +46,20 @@ var self=this;var 自分=self;
 var d;
 s['stop']=dtlbind(this,function(){
 var self=this;var 自分=self;
-return root['window']['clearInterval']((s['id']));
+root['window']['clearInterval']((s['id']));
+return d['resolve']();
 });
 d=root['system']['new']((root['window']['$']['Deferred']));
 s['id']=(root['window'])['setInterval'](dtlbind(this,function(){
 var self=this;var 自分=self;
-f['execute']((c));
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return f['execute']((c));
+})['try']()['catch'](dtlbind(this,function(e){
+var self=this;var 自分=self;
+s['stop']();
+return root['system']['throw']((e));
+}));
 c=(c+(1));
 return dtlbind(this,function(){
 var self=this;var 自分=self;
