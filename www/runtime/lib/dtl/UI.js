@@ -23,12 +23,13 @@ this['Label']['initialize']=dtlbind(this,function(label){
 var self=this;var 自分=self;
 var t;
 t=this;
-this['element']=this['$']['create']("<div>")['text']((label))['css']("position","absolute")['css']("font-size","1.0em")['appendTo']("body");
+this['element']=this['$']['create']("<div>")['text'](((label+"")))['css']("position","absolute")['css']("font-size","1.0em")['appendTo']("body");
 return this['autoLayout']();
 });
 this['Label']['write']=dtlbind(this,function(m){
 var self=this;var 自分=self;
-return this['element']['text']((m));
+this['element']['text']((m));
+return self;
 });
 this['Label']['inc']=dtlbind(this,function(by){
 var self=this;var 自分=self;
@@ -39,7 +40,44 @@ return by;
 var self=this;var 自分=self;
 return (1);
 }));
-return this['element']['text'](((((this['element']['text']())-(0))+by)));
+this['element']['text'](((((this['element']['text']())-(0))+by)));
+return self;
+});
+this['Label']['fontColor']=dtlbind(this,function(r,g,b){
+var self=this;var 自分=self;
+var args;
+var c;
+args=root['window']['Array']['prototype']['slice']['call']((arguments));
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return (args['length']===(1));
+})['then']()['else'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return c=r;
+}))['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return c=this['Color']['create']((r),(g),(b));
+}));
+self['element']['css']("color",(c));
+return self;
+});
+this['Label']['moveTo']=dtlbind(this,function(x,y){
+var self=this;var 自分=self;
+var oldx;
+var oldy;
+oldx=(self['element']['get']((0)))['offsetLeft'];
+oldy=(self['element']['get']((0)))['offsetTop'];
+self['position'](((oldx+x)),((oldy-y)));
+return self;
+});
+this['Label']['position']=dtlbind(this,function(x,y){
+var self=this;var 自分=self;
+var w;
+var h;
+w=((root['window']['$']("#canvas"))['context']['documentElement']['clientWidth']/(2));
+h=((root['window']['$']("#canvas"))['context']['documentElement']['clientHeight']/(2));
+self['element']['css']("top",((((h-y))+"px")))['css']("left",((((w+x))+"px")));
+return self;
 });
 this['Button']=this['UI']['create']();
 this['Button']['action']=dtlbind(this,function(){
@@ -126,7 +164,11 @@ return self;
 });
 this['Button']['position']=dtlbind(this,function(x,y){
 var self=this;var 自分=self;
-self['element']['css']("top",(((y)+"px")))['css']("left",(((x)+"px")));
+var w;
+var h;
+w=((root['window']['$']("#canvas"))['context']['documentElement']['clientWidth']/(2));
+h=((root['window']['$']("#canvas"))['context']['documentElement']['clientHeight']/(2));
+self['element']['css']("top",((((h-y))+"px")))['css']("left",((((w+x))+"px")));
 return self;
 });
 this['Button']['moveTo']=dtlbind(this,function(x,y){

@@ -1,10 +1,11 @@
 (function(){this['turtle']=this['Actor']['create']();
 this['Turtle']=this['turtle'];
 this['Turtle']['baseURL']=(this['window']['runtimePath']+"images/");
+this['Turtle']['img']="ayumi.gif";
 this['turtle']['initialize']=dtlbind(this,function(){
 var self=this;var 自分=self;
 this['element']=this['createSVGElem']("image");
-this['element']['get']((0))['setAttributeNS']("http://www.w3.org/1999/xlink","href",((this['baseURL']+"ayumi.gif")));
+this['element']['get']((0))['setAttributeNS']("http://www.w3.org/1999/xlink","href",((this['baseURL']+self['img'])));
 this['adjustImage']();
 this['element']['attr']("transform","scale(1,-1)");
 this['lineColor']("black");
@@ -125,6 +126,7 @@ return this;
 });
 this['turtle']['change']=dtlbind(this,function(url){
 var self=this;var 自分=self;
+self['img']=url;
 url=dtlbind(this,function(){
 var self=this;var 自分=self;
 return url['match']("https?");
