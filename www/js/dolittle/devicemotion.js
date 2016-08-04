@@ -1,8 +1,8 @@
-root.Accelo=root.create();
-root.Accelo.x=0;
-root.Accelo.y=0;
-root.Accelo.動作=(function(){});
-root.Accelo.initialize=function(){
+root.加速度センサ=root.create();
+root.加速度センサ.x=0;
+root.加速度センサ.y=0;
+root.加速度センサ.動作=(function(){});
+root.加速度センサ.initialize=function(){
 	if (
 		(window.navigator.userAgent.indexOf('iPhone') > 0 || 
 		window.navigator.userAgent.indexOf('iPad') > 0 || 
@@ -16,7 +16,6 @@ root.Accelo.initialize=function(){
 		window.addEventListener("devicemotion", function(evt){
 			var x=((evt.accelerationIncludingGravity.x));
 			var y=((evt.accelerationIncludingGravity.y));
-
 			if(window.orientation==0){
 				self.x=y,self.y=x;
 			}else if(window.orientation==180){
@@ -30,15 +29,11 @@ root.Accelo.initialize=function(){
 		},true);
 	});
 };
-root.Accelo["動作"]=(function(){});
-root.Accelo["横の傾き"]=function(){return this.y};
-root.Accelo["xの傾き"]=root.Accelo["横の傾き"];
-root.Accelo["xの傾き"]=root.Accelo["横の傾き"];
-root.Accelo["縦の傾き"]=function(){return this.x};
-root.Accelo["yの傾き"]=root.Accelo["縦の傾き"];
-root.Accelo["yの傾き"]=root.Accelo["縦の傾き"];
+root.加速度センサ["横の傾き?"]=function(){return this.x};
+root.加速度センサ["xの傾き?"]=root.加速度センサ["横の傾き?"];
+root.加速度センサ["縦の傾き?"]=function(){return this.y};
+root.加速度センサ["yの傾き?"]=root.加速度センサ["縦の傾き?"];
 
-root.加速度センサ =root.Accelo;
 root.傾きセンサ=root.加速度センサ;
 
 
