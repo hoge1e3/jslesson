@@ -1876,12 +1876,13 @@ var requirejs, require, define;
                         typeof parent==="object" && 
                         parent.requirejs && 
                         parent.requirejs.__urlPostfix
-                    ) || Math.floor(Math.random()*89+10);
+                    ) || String.fromCharCode(
+                        Math.floor(Math.random()*9)+
+                        Math.floor(Math.random()*5)*16+49);
                 }
-                cvurl += "?"+requirejs.__urlPostfix;
+                cvurl += (cvurl.indexOf("?")<0?"?":"&")+requirejs.__urlPostfix;
             }
             node.src=cvurl;
-            //}
 
             //For some cache cases in IE 6-8, the script executes before the end
             //of the appendChild execution, so to tie an anonymous define
