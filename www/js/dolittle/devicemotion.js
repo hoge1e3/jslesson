@@ -17,13 +17,13 @@ root.加速度センサ.initialize=function(){
 			var x=((evt.accelerationIncludingGravity.x));
 			var y=((evt.accelerationIncludingGravity.y));
 			if(window.orientation==0){
-				self.x=y,self.y=x;
+				self.y=y,self.x=x;
 			}else if(window.orientation==180){
-				self.x=-y,self.y=-x;
+				self.y=-y,self.x=-x;
 			}else if(window.orientation==90){
-				self.x=x,self.y=-y;
+				self.y=x,self.x=-y;
 			}else {
-				self.x=-x,self.y=y;
+				self.y=-x,self.x=y;
 			}
 			self["動作"].execute(self.x,self.y);
 		},true);
@@ -171,9 +171,11 @@ root.タッチセンサ["タッチしてる?"]=root.タッチセンサ["タッ�
 root.タッチセンサ["触れている?"]=root.タッチセンサ["タッチしている?"];
 root.タッチセンサ["触れてる?"]=root.タッチセンサ["タッチしている?"];
 root.タッチセンサ["横の位置?"]=function(){return this.x;};
-root.タッチセンサ["xの位置?"]=root.タッチセンサ["横の位置?"];
+//root.タッチセンサ["xの位置?"]=root.タッチセンサ["横の位置?"];
+//root.タッチセンサ["x座標?"]=root.タッチセンサ["横の位置?"];
 root.タッチセンサ["縦の位置?"]=function(){return this.y;};
-root.タッチセンサ["yの位置?"]=root.タッチセンサ["縦の位置?"];
+//root.タッチセンサ["yの位置?"]=root.タッチセンサ["縦の位置?"];
+//root.タッチセンサ["y座標?"]=root.タッチセンサ["縦の位置?"];
 root.タッチセンサー=root.タッチセンサ;
 
 root.ジャイロセンサ=root.create();
@@ -193,8 +195,8 @@ root.ジャイロセンサ.initialize=function(){
 	var self=this;
 	window.$(function(){
 		window.addEventListener("deviceorientation",function(evt){
-			var x=evt.gamma;
-			var y=evt.beta;
+			var x=evt.beta;
+			var y=evt.gamma;
 			var z=evt.alpha;
 			self.x=x;
 			self.y=y;
@@ -203,10 +205,10 @@ root.ジャイロセンサ.initialize=function(){
 		},true);
 	});
 };
-root.ジャイロセンサ["回した角度?"]=function(){return this.x;};
-root.ジャイロセンサ["x軸の角度?"]=root.ジャイロセンサ["回した角度?"];
-root.ジャイロセンサ["縦の角度?"]=function(){return this.y;};
-root.ジャイロセンサ["y軸の角度?"]=root.ジャイロセンサ["縦の角度?"];
-root.ジャイロセンサ["横の角度?"]=function(){return this.z;};
-root.ジャイロセンサ["z軸の角度?"]=root.ジャイロセンサ["横の角度?"];
+root.ジャイロセンサ["回した角度?"]=function(){return this.z;};
+root.ジャイロセンサ["z軸の角度?"]=root.ジャイロセンサ["回した角度?"];
+root.ジャイロセンサ["縦の角度?"]=function(){return this.x;};
+root.ジャイロセンサ["x軸の角度?"]=root.ジャイロセンサ["縦の角度?"];
+root.ジャイロセンサ["横の角度?"]=function(){return this.y;};
+root.ジャイロセンサ["y軸の角度?"]=root.ジャイロセンサ["横の角度?"];
 root.ジャイロセンサー=root.ジャイロセンサ;
