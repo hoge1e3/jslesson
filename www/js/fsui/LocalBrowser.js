@@ -63,17 +63,18 @@ function (sh,FS,DU,UI,S) {
                     if (this.fileMap[url]) {
                         return this.fileMap[url].blobUrl;
                     }
-                    if (FS.PathUtil.isURL(url)) {
+                    var urlHead=url.replace(urlparam,"");
+                    if (FS.PathUtil.isURL(urlHead)) {
                         return url;
                     }
                     var file;
-                    if (FS.PathUtil.isRelativePath(url)) {
-                        file=base.rel(url);
+                    if (FS.PathUtil.isRelativePath(urlHead)) {
+                        file=base.rel(urlHead);
                     } else {
-                        file=FS.get(url);
+                        file=FS.get(urlHead);
                     }
                     var smc;
-                    if (FS.PathUtil.endsWith(url,".js") && file.exists()) {
+                    if (FS.PathUtil.endsWith(urlHead,".js") && file.exists()) {
                         var r=regsm.exec(file.text());
                         if (r) {
                             var smf=file.sibling(r[1]);
@@ -84,6 +85,7 @@ function (sh,FS,DU,UI,S) {
                         }
                     }
                     this.fileMap[url]={
+                        file:file,
                         blobUrl:LocalBrowser.convertURL(iwin, url, base),
                     };
                     if(smc) this.fileMap[url].sourcemap=smc;
@@ -118,6 +120,7 @@ function (sh,FS,DU,UI,S) {
                                 console.log("Original", line, r,c,op);
                                 line=line.substring(0,idx)+
                                 op.source+":"+op.line+":"+op.column+")";
+                                console.log("Converted", line);
                             } else {
                                 line=line.substring(0,idx)+url+trail;
                             }
@@ -127,10 +130,11 @@ function (sh,FS,DU,UI,S) {
                 },
                 originalStackTrace: function (ex) {
                     if (ex && ex.stack) {
+                        console.log("stack converting ",ex.stack);
                         ex.stack=(ex.stack+"").split("\n").map(function (l) {
                             return iwin.LocalBrowserInfo.blob2originalURL(l);
                         }).join("\n");
-                        //console.log("stack converted!",ex.stack);
+                        console.log("stack converted!",ex.stack);
                     }
                     return ex;
                 }
