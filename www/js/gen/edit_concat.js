@@ -12497,6 +12497,7 @@ function (sh,FS,DU,UI,S) {
             this.iframeAttr.height=h;
         }
     };
+    var urlparam=/\?.*$/;
     p.open=function (f,options) {    
         options=options||{};
         var onload=options.onload || function () {};
@@ -12680,8 +12681,9 @@ function (sh,FS,DU,UI,S) {
         }
     };
     LocalBrowser.convertURL=function (iwin,url,base) {
-        if (FS.PathUtil.isRelativePath(url)) {
-            var sfile=base.rel(url);
+        var urlHead=url.replace(urlparam,"");
+        if (FS.PathUtil.isRelativePath(urlHead)) {
+            var sfile=base.rel(urlHead);
             if (sfile.exists()) {
                 url=LocalBrowser.file2blobURL(iwin,sfile);
             }
