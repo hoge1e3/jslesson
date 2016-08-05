@@ -1,4 +1,5 @@
 [
+   ["www/js/lib/require.js", "www/runtime/lib/"],
    ["www/js/dolittle/gps.js", "www/runtime/lib/dtl/"],
    ["www/js/dolittle/devicemotion.js", "www/runtime/lib/dtl/"],
    ["www/js/dolittle/lib.js", "www/runtime/lib/dtl/"],
