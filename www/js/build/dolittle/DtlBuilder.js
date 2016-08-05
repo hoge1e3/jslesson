@@ -66,7 +66,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS) {
         }).concat([f.name+".js"]).forEach(function (src) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
-            nn.setAttribute("src",src);
+            nn.setAttribute("src",src+"?"+requirejs.__urlPostfix);
             body.appendChild(nn);
         });
         return f.dst.html.text("<!DOCTYPE HTML>\n<html>"+html.innerHTML+"</html>");

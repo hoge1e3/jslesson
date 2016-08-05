@@ -1819,7 +1819,7 @@ var requirejs, require, define;
      */
     req.load = function (context, moduleName, url) {
         var config = (context && context.config) || {},
-            node;
+            node,cvurl;
         if (isBrowser) {
             //In the browser so use a script tag
             node = req.createNode(config, moduleName, url);
@@ -1868,11 +1868,20 @@ var requirejs, require, define;
                 node.addEventListener('load', context.onScriptLoad, false);
                 node.addEventListener('error', context.onScriptError, false);
             }
-            node.src = (typeof LocalBrowserInfo=="object") ? 
+            cvurl = (typeof LocalBrowserInfo=="object") ? 
             LocalBrowserInfo.convertURL(url) : url;
-            if (typeof window=="object" && window.location.href.match(/^http.*localhost/)) {
-                node.src += "?"+Math.random();
+            if (cvurl===url) {
+                if (!requirejs.__urlPostfix) {
+                    requirejs.__urlPostfix=(
+                        typeof parent==="object" && 
+                        parent.requirejs && 
+                        parent.requirejs.__urlPostfix
+                    ) || Math.floor(Math.random()*89+10);
+                }
+                cvurl += "?"+requirejs.__urlPostfix;
             }
+            node.src=cvurl;
+            //}
 
             //For some cache cases in IE 6-8, the script executes before the end
             //of the appendChild execution, so to tie an anonymous define
