@@ -12,11 +12,20 @@ root.加速度センサ.initialize=function(){
 		//return -1;
 	}
 	var self=this;
+    try {
+        self.calibrated=JSON.parse(localStorage.acceleratorCalibration);
+        console.log(self.calibrated,window.orientation);
+    }catch(e) {
+        console.log(e);
+        self.calibrated={f:false,x:1,y:1};
+    }
 	window.$(function(){
 		window.addEventListener("devicemotion", function(evt){
 			var x=((evt.accelerationIncludingGravity.x));
 			var y=((evt.accelerationIncludingGravity.y));
-			if(window.orientation==0){
+			var c=self.getCalibratedXY({x:x,y:y},self.calibrated);
+			self.x=c.x;self.y=-c.y;
+			/*if(window.orientation==0){
 				self.y=y,self.x=x;
 			}else if(window.orientation==180){
 				self.y=-y,self.x=-x;
@@ -24,11 +33,22 @@ root.加速度センサ.initialize=function(){
 				self.y=x,self.x=-y;
 			}else {
 				self.y=-x,self.x=y;
-			}
+			}*/
 			self["動作"].execute(self.x,self.y);
 		},true);
 	});
 };
+root.加速度センサ.getCalibratedXY=function (raw,c) {
+     if (c.f) {
+         return {x:raw.y*c.y, y:raw.x*c.x};
+     } else {
+         return {y:raw.y*c.y, x:raw.x*c.x};
+     }   
+};
+root.加速度センサ.calibrate=function () {
+      location.href=(window.WebSite&&window.WebSite.runtime || window.runtimePath)+"/cal.html";
+};
+root.加速度センサ['調整']=root.加速度センサ.calibrate;
 root.加速度センサ["横の傾き?"]=function(){return this.x};
 root.加速度センサ["xの傾き?"]=root.加速度センサ["横の傾き?"];
 root.加速度センサ["縦の傾き?"]=function(){return this.y};

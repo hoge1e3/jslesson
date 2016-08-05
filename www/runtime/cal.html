@@ -1,0 +1,134 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" /><title>傾きセンサーのキャリブレーション - js do it</title>
+<meta name="Description" content="jsdo.it - share JavaScript, HTML5 and CSS - " />
+<meta name="Keywords"  content="JavaScript,HTML5,CSS" />
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
+
+<style type="text/css">* {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+body {
+  background: #ffd;
+  font: 30px sans-serif;
+}</style></head>
+<body>
+<canvas id="cv" width=200 height=200></canvas>
+<script type="text/javascript" src="lib/jquery-1.12.1.js"></script>
+
+<script type="text/javascript">
+function Accel() {
+    var self=this;
+	window.$(function(){
+		window.addEventListener("devicemotion", function(evt){
+			var x=((evt.accelerationIncludingGravity.x));
+			var y=((evt.accelerationIncludingGravity.y));
+            var raw={x:x,y:y};
+            if (!self.calibrationMode) {
+                var p=self.getCalibratedXY(raw, Accel.calibrated);
+    			self.action(p.x,p.y);
+            } else {
+                var bestc,mind=100000;
+                self.calibrationList.forEach(function (c,i) {
+                    var cxy=self.getCalibratedXY(raw,c);
+                    var dir=Math.atan2(cxy.y,cxy.x);
+                    //var dst={x:Math.cos( self.dstDir), y: Math.sin( self.dstDir) };
+                    var dd=Math.abs(angleDiff(self.dstDir-dir));
+                    c.dist=c.dist||0;
+                    c.dist+=dd;
+                });
+                //var p=self.getCalibratedXY(raw, bestc);
+    			self.action(raw.x,raw.y);
+            }
+		},true);
+	});
+}
+function dist(a,b) {
+    return (a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y);
+}
+function angleDiff(d) {
+    while (d>Math.PI) d-=Math.PI*2;
+    while (d<-Math.PI) d+=Math.PI*2;
+    return d;
+}
+var p=Accel.prototype;
+p.getCalibratedXY=function (raw,c) {
+     if (c.f) {
+         return {x:raw.y*c.y, y:raw.x*c.x};
+     } else {
+         return {y:raw.y*c.y, x:raw.x*c.x};
+     }   
+};
+p.calibrationList=[
+    {f:false,x:1, y:1},   
+    {f:false,x:-1, y:1},   
+    {f:false,x:1, y:-1},   
+    {f:false,x:-1, y:-1},   
+    {f:true,x:1, y:1},   
+    {f:true,x:-1, y:1},   
+    {f:true,x:1, y:-1},   
+    {f:true,x:-1, y:-1}   
+];
+
+Accel.calibrated={f:false, x:1, y:1};
+var a=new Accel;
+a.calibrationMode=true;
+a.dstDir=0;
+var cnt=0;
+a.action=function (x,y) {
+    var cv= $("#cv")[0].getContext("2d");
+    cv.fillStyle="white";
+    cv.fillRect(0,0,200,200);
+    cv.fillStyle="red";
+    if (cnt<4) {
+        cv.font="12px monospace";
+        cv.fillText("矢印の方向に傾けてください",20,50);
+        cv.font="30px monospace";
+        cv.fillText("→↓←↑"[cnt],100,100);//100+Math.cos(a.dstDir)*80,100+Math.sin(a.dstDir)*80,10,10);
+    }
+    if (cnt==4) {
+        var min=10000000;
+        a.calibrationList.forEach(function (c,i) {
+            c.dist=c.dist||0;
+            //console.log(c);
+            if (c.dist<min) { Accel.calibrated=c; min=c.dist;}
+        });
+        localStorage.acceleratorCalibration=JSON.stringify( Accel.calibrated);
+         a.calibrationMode=false;   
+    }
+    if (cnt>=4) {
+        cv.fillStyle="black";
+        cv.fillText("調整完了",20,50);
+        cv.fillRect(100+x*30,100+y*30,10,10);
+        //cv.fillText(JSON.stringify( Accel.calibrated), 30,30);
+    } else {
+        //cv.fillText(JSON.stringify( a.bestc), 30,50);
+
+        /*var d=Math.atan2(y,x);
+        cv.fillStyle="blue";
+        for (var i=0;i<4; i++) {
+            cv.fillRect(100+Math.cos(d+Math.PI/2*i)*80,100+Math.sin(d+Math.PI/2*i)*80,10,10);
+        }*/
+    }
+    cv.fillStyle="red";
+       /* a.calibrationList.forEach(function (c,i) {
+            var p=a.getCalibratedXY({x:x,y:y},c);
+            cv.fillText(i, 100+p.x*30, 100+p.y*30,10,10);
+            //if (c.cnt>max) { Accel.calibrated=c; max=c.cnt;}
+        });*/
+    
+
+};
+setInterval(function () {
+     cnt++;   
+    a.dstDir+=Math.PI/2;
+},3000);
+
+</script>
+</body>
+</html>
