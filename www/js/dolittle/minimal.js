@@ -271,7 +271,7 @@ MinimalParser= function () {
 	    var last=stmts.pop();
 	    return extend([stmts,"return ",last], {type:"statement_list",subnodes:arguments});
 	});
-    program = newScope(statement_list);
+    program = newScope(statement_list).and(space.opt());
 	/* 
 	パーサに適用できるメソッド（いずれも新しいパーサを生成して返す）：
 	メソッド                         新しく生成されるパーサの動作
@@ -300,7 +300,7 @@ MinimalParser= function () {
 	parser.parseAsNode=function (str,options) {
 	    options=options||{};
 	    var de=options.src?options.src+"で":"";
-		var input=str;
+		var input=str+"\n";
 		var output="";
 		var line=1;
 		ctx=context();
