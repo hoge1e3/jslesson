@@ -11975,8 +11975,8 @@ $(function () {
     $("body").append(UI("div",
             ["h1","プロジェクト一覧"],
             ["div",
-	        ["a",{href:"http://klab.eplang.jp/jslesson_wiki/",target:"wikiTab"},"Bit Arrow説明ページ"],"Bit Arrowの解説などを掲載しています"
-	    ],
+	        ["a",{href:"http://bitarrow.eplang.jp/",target:"wikiTab"},"Bit Arrow説明ページ"],"Bit Arrowの解説などを掲載しています"
+	    ],/*
             ["div",
 	        ["a",{href:"https://docs.google.com/document/d/17_RcWbezzXf4ShnTUcS2IRYxgO03QB9--sFN4xC9Ts0/pub",target:"manTab"},"入門テキスト"],"Bit Arrowの基本的な使い方を説明します。"
 	    ],
@@ -11988,7 +11988,7 @@ $(function () {
 	    ],
 	    ["div",
 	    	["a",{href:"https://docs.google.com/document/d/1oLtnBKggCuOI-cyD16ZCg7JOFCi-oS8Rj9vo0uhWFvs/pub",target:"regTab"},"教員の方向け説明"],"Bit Arrowを使って授業を展開される方への説明です。"
-	    ],
+	    ],*/
 	    ["div",
 	    	["a",{href:"teacher.php",target:"teaTab"},"教員用ログイン"]
             ],

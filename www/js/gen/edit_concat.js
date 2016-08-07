@@ -13525,7 +13525,21 @@ $(function () {
             logToServer("JS Runtime Error!\n"+te.src+":"+te.pos+"\n"+te.mesg+"\nJS Runtime Error End!");
         } else {
             var stack = e.stack.split("\n");
-            UI("div",{title:"Error"},"["+e+"]",["button",{on:{click:function(){console.log("clicked");$("#reConsole").text(e.stack);}}},"詳細"],["pre",{id:"reConsole"},stack[0]+"\n"+stack[1]]).dialog({width:800});
+            var cve;
+            var rc=/:([0-9]+):([0-9]+)/;
+            stack.forEach(function (s) {
+                var idx=s.indexOf(curProjectDir.path());
+                if (idx>0) {
+                    s=s.substring(idx);
+                    var m=rc.exec(s);
+                    cve=FS.PathUtil.name(s.substring(0,m.index))+"の"+
+                    m[1]+"行目"+m[2]+"文字目付近でエラーが発生しました";
+                    console.log("ERT",s.substring(0,m.index), m[1], m[2]);
+                }
+            });
+            UI("div",{title:"Error"},"["+(cve||e)+"]",
+            ["button",{on:{click:function(){console.log("clicked");$("#reConsole").text(e.stack);}}},"詳細"],
+            ["pre",{id:"reConsole"},stack[0]+"\n"+stack[1]]).dialog({width:800});
             stop();
             logToServer(e.stack || e);
         }
