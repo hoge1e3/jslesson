@@ -638,6 +638,7 @@ $(function () {
             var cve;
             var rc=/:([0-9]+):([0-9]+)/;
             stack.forEach(function (s) {
+                if (cve) return;
                 var idx=s.indexOf(curProjectDir.path());
                 if (idx>0) {
                     s=s.substring(idx);

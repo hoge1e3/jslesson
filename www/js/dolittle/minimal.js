@@ -92,7 +92,7 @@ MinimalParser= function () {
 	var statement_list_lazy=Parser.lazy(function(){return statement_list;});
 	//--------字句要素
 	//名前
-	var str_name = "[a-zA-Z_$\?？ーぁ-んァ-ヶ々〇〻\u3400-\u9FFF\uF900-\uFAFF\uD840-\uD87F\uDC00-\uDFFF][a-zA-Z_$\?？0-9０-９ーぁ-んァ-ヶ々〇〻\u3400-\u9FFF\uF900-\uFAFF\uD840-\uD87F\uDC00-\uDFFF]*";
+	var str_name = "[a-zａ-ｚA-ZＡ-Ｚ_＿\\$＄\\?？ーぁ-んァ-ヶ々〇〻\u3400-\u9FFF\uF900-\uFAFF\uD840-\uD87F\uDC00-\uDFFF][a-zａ-ｚA-ZＡ-Ｚ_＿\\$＄\\?？0-9０-９ーぁ-んァ-ヶ々〇〻\u3400-\u9FFF\uF900-\uFAFF\uD840-\uD87F\uDC00-\uDFFF]*";
 	var reg_name = RegExp("^"+str_name);// 名前の正規表現
 	var trim_name=function(name){
 		//name=name.replace(/[？?]/,"__question");
