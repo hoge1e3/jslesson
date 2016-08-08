@@ -34,8 +34,8 @@
  * @param payload a function to call with (require, exports, module) params
  */
 
+var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
 (function() {
-
 var ACE_NAMESPACE = "ace";
 
 var global = (function() { return this; })();
@@ -2261,6 +2261,7 @@ var TextInput = function(parentNode, host) {
                 sendText(str);
             }
         });
+        if (isChrome53) resetValue();
         inputHandler = function compositionInputHandler(str) {
             if (timer)
                 clearTimeout(timer);

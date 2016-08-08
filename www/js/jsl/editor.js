@@ -15,6 +15,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           LocalBrowser,logToServer,zip
           ) {
 $(function () {
+    var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
         A.setMode(A.MODE_STRICT);
@@ -130,7 +131,7 @@ $(function () {
                       {label:"新規",id:"newFile"},
                       {label:"名前変更",id:"mvFile"},
                       {label:"コピー",id:"cpFile"},
-                      //{label:"閉じる",id:"closeFile"},
+                      {label:"閉じる",id:"closeFile"},
                       {label:"削除", id:"rmFile"}
                   ]},
                   {label:"実行",id:"runMenu",action:run/*sub:[
@@ -246,6 +247,18 @@ $(function () {
     }));
 
     $("#rmFile").click(F(FM.rm));
+    $("#closeFile").click(closeCurrentFile);
+    function closeCurrentFile() {
+        var inf=getCurrentEditorInfo();
+        if (!inf) {
+            return;
+        }
+        var f=inf.file;
+        var s=fileSet(f);
+        s.forEach(function (e) {
+            close(e);
+        });
+    }
     FM.on.close=function (f) {
         var s=fileSet(f);
         var shouldRemove=false;
@@ -349,7 +362,7 @@ $(function () {
         var f=fl.curFile();
         if (!f) return null;
         A.is(f,"SFile");
-        return A.is(editors[f.path()],"EditorInfo?");
+        return editors[f.path()];//A.is(editors[f.path()],"EditorInfo?");
     }
     function getCurrentEditor() {//->AceEditor?
         var i=getCurrentEditorInfo();
@@ -672,6 +685,7 @@ $(function () {
             i.editor.destroy();
             i.dom.remove();
             delete editors[rm.path()];
+            //alert(editors[rm.path()]);
         }
     }
     function fixEditorIndent(prog) {
@@ -754,12 +768,14 @@ $(function () {
             return;
         }
         save();
+        if (isChrome53) closeCurrentFile();
         if (curDOM) curDOM.hide();
         var inf=editors[f.path()];
         $(".selTab").removeClass("selected");
         $(".selTab[data-ext='"+f.ext()+"']").addClass("selected");
         if (!inf) {
             var progDOM=$("<pre>").css("height", screenH+"px").text(f.text()).appendTo("#progs");
+            progDOM.attr("data-file",f.name());
             var prog=ace.edit(progDOM[0]);
             if (typeof desktopEnv.editorFontSize=="number") prog.setFontSize(desktopEnv.editorFontSize);
 	    else prog.setFontSize(18);

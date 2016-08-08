@@ -221,7 +221,7 @@ Object.defineProperty(Array.prototype,"remove",{
 	enumerable:false,configurable:true,
 	value:function(obj){
 		for(var i=0;i<this.length;i++){
-			if(this[i]==obj){this.removepos(i);i=0;}
+			if(this[i]===obj){this.removepos(i+1);break;}
 		}
 	}
 });
@@ -229,7 +229,7 @@ Object.defineProperty(Array.prototype,"消す",{
 	enumerable:false,configurable:true,
 	value:function(obj){
 		for(var i=0;i<this.length;i++){
-			if(this[i]==obj){this.removepos(i);i=0;}
+			if(this[i]===obj){this.removepos(i+1);break;}
 		}
 	}
 });
