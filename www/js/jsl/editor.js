@@ -768,7 +768,7 @@ $(function () {
             return;
         }
         save();
-        if (isChrome53) closeCurrentFile();
+        //if (isChrome53) closeCurrentFile();
         if (curDOM) curDOM.hide();
         var inf=editors[f.path()];
         $(".selTab").removeClass("selected");

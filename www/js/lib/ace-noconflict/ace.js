@@ -2261,7 +2261,6 @@ var TextInput = function(parentNode, host) {
                 sendText(str);
             }
         });
-        if (isChrome53) resetValue();
         inputHandler = function compositionInputHandler(str) {
             if (timer)
                 clearTimeout(timer);
@@ -2277,6 +2276,7 @@ var TextInput = function(parentNode, host) {
         if (e.type == "compositionend" && c.range) {
             host.selection.setRange(c.range);
         }
+        if (isChrome53) onInput();
     };
     
     
