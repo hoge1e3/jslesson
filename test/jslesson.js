@@ -4,8 +4,8 @@ var webdriver = require('selenium-webdriver'),
 var FS = require("./SFile.js");
 var testHome=FS.get("../www/fs/home/0123/test/");
 //var projectSelURL='http://klab.eplang.jp/jslesson/';
-var projectSelURL='http://localhost/?noconcat=true';
-//var projectSelURL='http://localhost/'
+//var projectSelURL='http://localhost/?noconcat=true';
+var projectSelURL='http://localhost/'
 //var projectSelURL='http://klab.eplang.jp/jslesson/'
 var loggedin=false;
 var SLP=500;
@@ -24,9 +24,13 @@ rmDir(testHome.rel("Ctes/"));
 copyDir(testHome.rel("Ctmpl/"), testHome.rel("Ctes/") );
 rmDir(testHome.rel("TJStes/"));
 copyDir(testHome.rel("TJSTmpl/"), testHome.rel("TJStes/") );
+rmDir(testHome.rel("DtlTes/"));
+copyDir(testHome.rel("DtlTmpl/"), testHome.rel("DtlTes/") );
 
-openProjectSel().then(testC).
+driver.sleep(100).
+then(openProjectSel).then(testC).
 then(openProjectSel).then(testJS).
+then(openProjectSel).then(testDtl).
 then(function () {
     driver.quit();
 });
@@ -67,6 +71,15 @@ function testJS() {
         clickByText("Test1");
         driver.sleep(SLP);
         return runTJSCode('<span name="val">55</span>');
+    });
+}
+function testDtl() {
+    return driver.sleep(3000).then(function () {
+        selectLinkByText("DtlTes/");
+        driver.sleep(1000);
+        clickByText("Test");
+        driver.sleep(SLP);
+        return runDtlCode();
     });
 }
 function rmDir(d) {
@@ -146,7 +159,7 @@ function inputAndRunCode(c) {
     });
 }
 function runCode(expect) {
-	clickByText("実行");
+	clickByID("runMenu");
 	driver.sleep(2000);
 	return getConsoleOutput().then(function (tx) {
     	console.log("The output", tx);
@@ -159,7 +172,7 @@ function trimspace(s) {
     return s.replace(/^[\r\n\s]*/,"").replace(/[\r\n\s]*$/,"").replace(/[\r\n\s]+/g," ");
 }
 function runTJSCode(expect) {
-	clickByText("実行");
+	clickByID("runMenu");
 	expect=trimspace(expect);
 	driver.sleep(2000);
 	return getOutputBodyHTML().then(function (tx) {
@@ -168,6 +181,31 @@ function runTJSCode(expect) {
     	console.log(tx,expect);
     	if (tx!==expect) throw new Error("Asserion failed"+tx+"!="+expect);
     	clickByText("OK");
+    });
+}
+function runDtlCode() {
+	clickByID("runMenu");
+	driver.sleep(2000);
+    return getOutputBodyHTML().then(function (tx) {
+        var cnt=0;
+	    tx.replace(/<line[^>]*>/g,function (e) { 
+            console.log(e);
+            switch(cnt) {
+                case 0:
+                    if (e.indexOf("100")<0) throw new Error("Line #0 not found: ");
+                    break;
+                case 1:
+                    if (e.indexOf("50")<0 || e.indexOf("86")<0) throw new Error("Line #1 not found :");
+                    break;
+                case 2:
+                    if (e.indexOf("50")<0 || e.indexOf("-86")<0) throw new Error("Line #2 not found :");
+                    break;
+                default:
+                    throw new Error("Too many lines");
+            }
+            cnt++;
+    	});
+    	if (cnt<3) throw new Error("Too few lines: "+cnt);
     });
 }
 function getConsoleOutput() {
@@ -191,6 +229,11 @@ function inputToEditor(cont) {
 function clickByText(t) {
     var scr="$(\":contains('"+t+"')\").click();";
     //console.log("EXEC ",scr);
+	driver.executeScript(scr);
+}
+//runMenu
+function clickByID(id) {
+    var scr="$('#"+id+"').click();";
 	driver.executeScript(scr);
 }
 function selectLinkByText(t) {

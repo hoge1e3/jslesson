@@ -85,7 +85,7 @@ define([], function () {
             loop: function (f,r) {
                 try {
                     while(true) {
-                        if (r instanceof DUBRK) return r.res;
+                        if (r instanceof DUBRK) return $.when(r.res);
                         var deff1=true, deff2=false;
                         // ★ not deffered  ☆  deferred
                         var r1=f(r);
