@@ -1505,16 +1505,32 @@ define('FS2',["extend","PathUtil","MIMETypes","assert"],function (extend, P, M,a
             options=options||{};
             var dest=options.dest=options.dest||{};
             options.style=options.style||"flat-absolute";
-            if (options.style=="flat-relative" && !options.base) {
+            options.excludes=options.excludes||[];
+            assert.is(options.excludes,Array);
+            if (!options.base) {
                 options.base=path;
             }
             assert.is(path, P.AbsDir);
-            var tr=this.opendirEx(path);
+            var tr=this.opendirEx(path,options);
             if (options.style=="no-recursive") return tr;
             var t=this;
             for (var f in tr) {
                 var meta=tr[f];
                 var p=P.rel(path,f);
+                var relP=P.relPath(p,options.base);
+                switch(options.style) {
+                    case "flat-relative":
+                    case "hierarchical":
+                        if (options.excludes.indexOf(relP)>=0) {
+                            continue;
+                        }
+                        break;
+                    case "flat-absolute":
+                        if (options.excludes.indexOf(p)>=0) {
+                            continue;
+                        }
+                        break;
+                }
                 if (t.isDir(p)) {
                     switch(options.style) {
                     case "flat-absolute":
@@ -1532,7 +1548,7 @@ define('FS2',["extend","PathUtil","MIMETypes","assert"],function (extend, P, M,a
                         dest[p]=meta;
                         break;
                     case "flat-relative":
-                        dest[P.relPath(p,options.base)]=meta;
+                        dest[relP]=meta;
                         break;
                     case "hierarchical":
                         dest[f]=meta;
@@ -2418,23 +2434,18 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
         },
         opendirEx: function (path,options) {
             assert.is(path,P.AbsDir);
-            //dest=dest||{};
+            options=options||{};
             var res={};
             var d=this.getDirInfo(path);
+            if (options.includeTrashed) {
+                //console.log("INCLTR",d);
+                return d;
+            }
             for (var k in d) {
                 if (d[k].trashed) continue;
                 res[k]=d[k];
             }
             return res;
-            /*for (var f in d) {
-                var p=P.rel(path,f);
-                if (this.isDir(p)) {// TODO symlink not follow(and no entry in dest)
-                    this.getDirTree(p,dest);
-                } else {
-                    dest[p]=d[f];
-                }
-            }
-            return dest;*/
         }
     });
     return LSFS;
@@ -2812,15 +2823,18 @@ SFile.prototype={
     ls:function (options) {
         A(options==null || typeof options=="object");
         var dir=this.assertDir();
+        if (!options) {
+            return this.act.fs.opendir(this.act.path, options);
+        }
         var res=dir.listFiles(options);
         return res.map(function (f) {
             return f.name();
         });
     },
-    convertOptions:function(options) {
+    convertOptions:function(o) {
+        var options=Util.extend({},o);
         var dir=this.assertDir();
         var pathR=this.path();
-        if (!options) options={};
         if (!options.excludes) options.excludes={};
         if (options.excludes instanceof Array) {
             var excludes={};
@@ -10941,9 +10955,9 @@ define('DeferredUtil',[], function () {
             then: function (f) {
                 return DU.directPromise().then(f);
             },
-            timeout:function (timeout) {
+            timeout:function (timeout,value) {
                 var d=new $.Deferred;
-                setTimeout(function () {d.resolve();},timeout);
+                setTimeout(function () {d.resolve(value);},timeout);
                 return d.promise();
             },
             funcPromise:function (f) {
@@ -12224,14 +12238,10 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                 }            
             }
         }
-        function getLocalDirInfo() {// This is slow!
-            /*var res={};
-            local.recursive(function (file) {
-                var lcm=file.metaInfo();
-                res[file.relPath(local)]=lcm;
-            },{excludes:options.excludes});*/
-            var res2=local.getDirTree({style:"flat-relative"});
-            //diffTree(res,res2);
+        function getLocalDirInfo() {
+            console.log("gerLCD");
+            var res2=local.getDirTree({style:"flat-relative",excludes:[".sync/"]});
+            console.log("gerLCD done",res2);
             return res2;
         }
         function unionKeys() {
@@ -12282,6 +12292,12 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             }
             return res;
         }
+        function status(name, param) {
+            sh.echo("Status: "+name+" param:",param);
+            if (options.onstatus) {
+                options.onstatus(name, param);
+            }
+        }
         var i=0;
         if (FS.isFile(arguments[i])) {
             local=arguments[i];
@@ -12299,28 +12315,20 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
         var syncInfoDir=local.rel(".sync/");
         options.excludes=options.excludes||[];
         options.excludes=options.excludes.concat(syncInfoDir.name());
+        var downloadSkipped, uploadSkipped;
+        var uploads={},downloads=[];
+        var user;
+        var classid;
+        var localDelta;
         var localDirInfoFile=syncInfoDir.rel("local.json");
         var remoteDirInfoFile=syncInfoDir.rel("remote.json");
         var lastLocalDirInfo=localDirInfoFile.exists()?localDirInfoFile.obj():{};
         var lastRemoteDirInfo=remoteDirInfoFile.exists()?remoteDirInfoFile.obj():{};
+        status("getLocalDirInfo", req);
         var curLocalDirInfo=getLocalDirInfo();
         //if (options.v) sh.echo("last/cur LocalDirInfo",lastLocalDirInfo, curLocalDirInfo);
-        var localDelta=getDelta(lastLocalDirInfo, curLocalDirInfo);
+        localDelta=getDelta(lastLocalDirInfo, curLocalDirInfo);
         if (options.v) sh.echo("localDelta",localDelta);
-        var uploads={},downloads=[],visited={};
-        var user;
-        var classid;
-        function status(name, param) {
-            sh.echo("Status: "+name+" param:",param);
-            if (options.onstatus) {
-                options.onstatus(name, param);
-            }
-        }
-        function onError() {
-            if (options.onerror) {
-                options.onerror.apply(this, arguments);
-            }
-        }
         var req={base:remote.path(),excludes:JSON.stringify(options.excludes),token:""+Math.random()};
         status("getDirInfo", req);
         return $.ajax({
@@ -12364,6 +12372,11 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                 sh.echo("uploads:",uploads);
                 sh.echo("downloads:",downloads);
             }
+            if (downloads.length==0) {
+                if (options.v) sh.echo("Skip Download");
+                downloadSkipped=true;
+                return {data:{},downloadSkipped:true};
+            }
             var req={base:remote.path(),paths:JSON.stringify(downloads),token:""+Math.random()};
             status("getFiles", req);
             return $.ajax({
@@ -12390,6 +12403,11 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                 delete d.text;
                 dlf.metaInfo(d);
             }
+            if (Object.keys(uploads).length==0) {
+                if (options.v) sh.echo("Skip Upload");
+                uploadSkipped=true;
+                return {uploadSkipped:true};
+            }
             var req={base:remote.path(),data:JSON.stringify(uploads),token:""+Math.random()};
             req.pathInfo=A(WebSite.url.putFiles);
             status("putFiles", req);
@@ -12399,12 +12417,15 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                 data:req
             });
         })).then(F(function n3(res){
-            var newRemoteDirInfo=res.data;
             if (options.v) sh.echo("putFiles res=",res);
-            var newLocalDirInfo=getLocalDirInfo();
-            localDirInfoFile.obj(newLocalDirInfo);
-            remoteDirInfoFile.obj(newRemoteDirInfo);
-
+            if (!downloadSkipped) {
+                var newLocalDirInfo=getLocalDirInfo();
+                localDirInfoFile.obj(newLocalDirInfo);
+            }
+            if (!uploadSkipped) {
+                var newRemoteDirInfo=res.data;
+                remoteDirInfoFile.obj(newRemoteDirInfo);
+            }
             var upds=[];
             for (var i in uploads) upds.push(i);
             return res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};
@@ -12674,13 +12695,13 @@ function (sh,FS,DU,UI,S) {
                     return $.when(d && d.promise()).then(function () {
                         return appendTo(n ,nn);
                     }).then (function () {
-                        return i+1;
+                        return DU.timeout(0,i+1);
                     });
                 case Node.TEXT_NODE:
                     dst.appendChild(idoc.createTextNode(n.textContent));
                     break;
                 }
-                return i+1;
+                return DU.timeout(0,i+1);
             },0);
         }
     };
@@ -12888,13 +12909,86 @@ define('zip',["FS","Shell","Util"],function (FS,sh,Util) {
     };
     return zip;
 });
+window.SplashScreen=window.SplashScreen||(function () {
+    var s=$("<img>").css({position:"absolute",
+            left: 100, top:100, fontSize: 30, //background: "white",
+            zIndex:1000,transform:"scale(0.5,0.5)"
+        }).attr({src:"images/bitarrow-3_360.png"});
+    var SS={};
+    SS.show=function (mesg) {
+    	if (!s) return;
+        //s.text(mesg||"Please wait...");
+    	//if (SS.state) return;
+    	SS.state=true;
+    	console.log("Show");
+    	s.appendTo("body");
+        var top=$(window).height()/2-s.height()/2;
+        var left=$(window).width()/2-s.width()/2;
+        SS.x=10;
+        s.css("left",SS.x);
+        s.css("top",top);
+    };
+    var cnt=0;
+    setTimeout(animation,100);
+    function animation() {
+        var top=$(window).height()/2-s.height()/2;
+        var left=$(window).width()/2-s.width()/2;
+        if (SS.state=="away") {
+            SS.x+=100;
+            if (SS.x+s.width()/2>=$(window).width()) {
+                s.remove();
+                SS.state=false;
+            } else {
+                s.css("left",SS.x);
+            }       
+        } else if (SS.state===true) {
+            //s.text("Please wait"+(cnt%2==0?"...":""));
+            cnt+=0.5;
+            s.css("left",SS.x);
+            s.css("top",top+Math.sin(cnt)*10);
+            if (SS.x<left) SS.x+=100;
+        }
+        setTimeout(animation,100);
+        SS.lastAnimated=new Date().getTime();
+    }
+    SS.lastAnimated=0;
+    SS.waitIfBusy=function (r) {
+        if (SS.busyTime()>90) {
+            var d=new $.Deferred;
+            setTimeout(function () {d.resolve(r)},0);
+            return d.promise();
+        }  
+        return r;
+    };
+    SS.busyTime=function () {
+        return new Date().getTime()-SS.lastAnimated;
+    }
+    SS.progress=function (me) {
+        //s.text(me||"Please wait...");
+        //SS.show(me);
+    };
+    SS.hide=function () {
+    	if (SS.state===false) return;
+    	console.log("Hide");
+    	//s.remove();
+    	SS.state="away";
+    };
+    return SS;
+})();
+define("SplashScreen", (function (global) {
+    return function () {
+        var ret, fn;
+        return ret || global.SplashScreen;
+    };
+}(this)));
+
 requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "showErrorPos", "fixIndent",  "ProjectCompiler",
            "Shell","ShellUI","KeyEventChecker",
            "runtime", "searchDialog","StackTrace",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
-           "LocalBrowser","logToServer","zip"
+           "LocalBrowser","logToServer","zip","SplashScreen"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -12902,9 +12996,10 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           rt, searchDialog,StackTrace,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
-          LocalBrowser,logToServer,zip
+          LocalBrowser,logToServer,zip,SplashScreen
           ) {
 $(function () {
+    var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
         A.setMode(A.MODE_STRICT);
@@ -12924,10 +13019,9 @@ $(function () {
         console.log("curuser",r);
         curUser=r;
     });
-    if (typeof SplashScreen!="undefined") SplashScreen.show();
     requirejs(["ace"],function (){
         console.log("ace loaded:",ace);
-        if (typeof SplashScreen!="undefined") SplashScreen.hide();
+        SplashScreen.hide();
     });
     var F=EC.f;
     $LASTPOS=0;
@@ -13020,7 +13114,7 @@ $(function () {
                       {label:"新規",id:"newFile"},
                       {label:"名前変更",id:"mvFile"},
                       {label:"コピー",id:"cpFile"},
-                      //{label:"閉じる",id:"closeFile"},
+                      {label:"閉じる",id:"closeFile"},
                       {label:"削除", id:"rmFile"}
                   ]},
                   {label:"実行",id:"runMenu",action:run/*sub:[
@@ -13136,6 +13230,18 @@ $(function () {
     }));
 
     $("#rmFile").click(F(FM.rm));
+    $("#closeFile").click(closeCurrentFile);
+    function closeCurrentFile() {
+        var inf=getCurrentEditorInfo();
+        if (!inf) {
+            return;
+        }
+        var f=inf.file;
+        var s=fileSet(f);
+        s.forEach(function (e) {
+            close(e);
+        });
+    }
     FM.on.close=function (f) {
         var s=fileSet(f);
         var shouldRemove=false;
@@ -13239,7 +13345,7 @@ $(function () {
         var f=fl.curFile();
         if (!f) return null;
         A.is(f,"SFile");
-        return A.is(editors[f.path()],"EditorInfo?");
+        return editors[f.path()];//A.is(editors[f.path()],"EditorInfo?");
     }
     function getCurrentEditor() {//->AceEditor?
         var i=getCurrentEditorInfo();
@@ -13255,10 +13361,10 @@ $(function () {
             showErrorPos($("#errorPos"));
             break;
         case "compile_error":
-            if (typeof SplashScreen!="undefined") SplashScreen.hide();
+            SplashScreen.hide();
             break;
         case "runtime_error":
-            if (typeof SplashScreen!="undefined") SplashScreen.hide();
+            SplashScreen.hide();
             break;
         case "edit":
             //if(progs=getCurrentEditor()) progs.focus();
@@ -13301,14 +13407,14 @@ $(function () {
             if (builder && inf) {
                 var curFile=inf.file;
                 var pub=FS.get("/public/").rel(curProjectDir.name());
-                if (window.SplashScreen) window.SplashScreen.show();
+                SplashScreen.show();
                 DU.timeout(0).then(function () {
                     return builder.build();    
                 }).then(function () {
-                    if (window.SplashScreen) window.SplashScreen.progress("Upload contents...");
+                    //if (window.SplashScreen) window.SplashScreen.progress("Upload contents...");
                     return builder.upload(pub);                    
                 }).then(function () {
-                    if (window.SplashScreen) window.SplashScreen.hide();
+                    SplashScreen.hide();
                     var cv=$("<div>");
                     cv.dialog();
                     //  http://localhost/fs/home/0123/dolittle/public/Turtle2/Raw_k6.html
@@ -13350,7 +13456,7 @@ $(function () {
         displayMode("run");
         if(lang=="js"){
     	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
-            if (typeof SplashScreen!="undefined") SplashScreen.show();
+            SplashScreen.show();
             //RunDialog2 (new version)
             try {
                 DU.timeout(0).then(function () {
@@ -13372,7 +13478,7 @@ $(function () {
     	            }
                 }).always(function () {
         	        //$("#fullScr").attr("href","javascript:;").text("別ページで実行");
-                    if (typeof SplashScreen!="undefined") SplashScreen.hide();
+                    SplashScreen.hide();
                 });
             }catch(e) {
                 console.log(e.stack);
@@ -13383,7 +13489,7 @@ $(function () {
             sync
             */
             
-            var name=curPrj.getClassName(curJSFile);
+            /*var name=curPrj.getClassName(curJSFile);
             A.is(name,String);
             if (!curClassroom || !curUser) {
                 alert("ログインしていないので実行できません");
@@ -13408,7 +13514,7 @@ $(function () {
 	            return sync();
 	        }), function (e) {
 	            A(e);
-	            if (typeof SplashScreen!="undefined") SplashScreen.hide();
+	            SplashScreen.hide();
 	            if (e.isTError) {
 	                console.log("showErr: run",e);
 	                showErrorPos($("#errorPos"),e);
@@ -13417,7 +13523,7 @@ $(function () {
 	            }else{
 	                Tonyu.onRuntimeError(e);
 	            }
-	        });
+	        });*/
     	}else if(lang=="c"){
     	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text());
     		var compiledFile=curPrj.getOutputFile();
@@ -13438,13 +13544,12 @@ $(function () {
             return sync();
     	}else if(lang=="dtl"){
     	    try {
-                if (typeof SplashScreen!="undefined") SplashScreen.show();
+                SplashScreen.show();
         	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
     	        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
                 DU.timeout(0).then(function () {
                     return builder.build();    
                 }).then(function () {
-                    //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
                     return RunDialog2.show(indexF,
                     {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
@@ -13453,12 +13558,12 @@ $(function () {
                     Tonyu.onRuntimeError(e);
                     console.log("DTLFAIL",e.stack);
                 }).always(function () {
-                    if (typeof SplashScreen!="undefined") SplashScreen.hide();
+                    SplashScreen.hide();
                     return sync();
                 });
             }catch(e) {
 	            if(e) console.log(e.stack);
-                if (typeof SplashScreen!="undefined") SplashScreen.show();
+                SplashScreen.hide();
             }
     	}
     }
@@ -13485,7 +13590,7 @@ $(function () {
         var f=curPrj.getOutputFile();
         var js=f.text();
         curth=r(ht,js, curName);
-        if (typeof SplashScreen!="undefined") SplashScreen.hide();
+        SplashScreen.hide();
     };
     var alertOnce;
     alertOnce=function (e) {
@@ -13528,6 +13633,7 @@ $(function () {
             var cve;
             var rc=/:([0-9]+):([0-9]+)/;
             stack.forEach(function (s) {
+                if (cve) return;
                 var idx=s.indexOf(curProjectDir.path());
                 if (idx>0) {
                     s=s.substring(idx);
@@ -13561,6 +13667,7 @@ $(function () {
             i.editor.destroy();
             i.dom.remove();
             delete editors[rm.path()];
+            //alert(editors[rm.path()]);
         }
     }
     function fixEditorIndent(prog) {
@@ -13643,12 +13750,14 @@ $(function () {
             return;
         }
         save();
+        //if (isChrome53) closeCurrentFile();
         if (curDOM) curDOM.hide();
         var inf=editors[f.path()];
         $(".selTab").removeClass("selected");
         $(".selTab[data-ext='"+f.ext()+"']").addClass("selected");
         if (!inf) {
             var progDOM=$("<pre>").css("height", screenH+"px").text(f.text()).appendTo("#progs");
+            progDOM.attr("data-file",f.name());
             var prog=ace.edit(progDOM[0]);
             if (typeof desktopEnv.editorFontSize=="number") prog.setFontSize(desktopEnv.editorFontSize);
 	    else prog.setFontSize(18);

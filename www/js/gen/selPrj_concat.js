@@ -743,16 +743,32 @@ define('FS2',["extend","PathUtil","MIMETypes","assert"],function (extend, P, M,a
             options=options||{};
             var dest=options.dest=options.dest||{};
             options.style=options.style||"flat-absolute";
-            if (options.style=="flat-relative" && !options.base) {
+            options.excludes=options.excludes||[];
+            assert.is(options.excludes,Array);
+            if (!options.base) {
                 options.base=path;
             }
             assert.is(path, P.AbsDir);
-            var tr=this.opendirEx(path);
+            var tr=this.opendirEx(path,options);
             if (options.style=="no-recursive") return tr;
             var t=this;
             for (var f in tr) {
                 var meta=tr[f];
                 var p=P.rel(path,f);
+                var relP=P.relPath(p,options.base);
+                switch(options.style) {
+                    case "flat-relative":
+                    case "hierarchical":
+                        if (options.excludes.indexOf(relP)>=0) {
+                            continue;
+                        }
+                        break;
+                    case "flat-absolute":
+                        if (options.excludes.indexOf(p)>=0) {
+                            continue;
+                        }
+                        break;
+                }
                 if (t.isDir(p)) {
                     switch(options.style) {
                     case "flat-absolute":
@@ -770,7 +786,7 @@ define('FS2',["extend","PathUtil","MIMETypes","assert"],function (extend, P, M,a
                         dest[p]=meta;
                         break;
                     case "flat-relative":
-                        dest[P.relPath(p,options.base)]=meta;
+                        dest[relP]=meta;
                         break;
                     case "hierarchical":
                         dest[f]=meta;
@@ -1656,23 +1672,18 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
         },
         opendirEx: function (path,options) {
             assert.is(path,P.AbsDir);
-            //dest=dest||{};
+            options=options||{};
             var res={};
             var d=this.getDirInfo(path);
+            if (options.includeTrashed) {
+                //console.log("INCLTR",d);
+                return d;
+            }
             for (var k in d) {
                 if (d[k].trashed) continue;
                 res[k]=d[k];
             }
             return res;
-            /*for (var f in d) {
-                var p=P.rel(path,f);
-                if (this.isDir(p)) {// TODO symlink not follow(and no entry in dest)
-                    this.getDirTree(p,dest);
-                } else {
-                    dest[p]=d[f];
-                }
-            }
-            return dest;*/
         }
     });
     return LSFS;
@@ -2050,15 +2061,18 @@ SFile.prototype={
     ls:function (options) {
         A(options==null || typeof options=="object");
         var dir=this.assertDir();
+        if (!options) {
+            return this.act.fs.opendir(this.act.path, options);
+        }
         var res=dir.listFiles(options);
         return res.map(function (f) {
             return f.name();
         });
     },
-    convertOptions:function(options) {
+    convertOptions:function(o) {
+        var options=Util.extend({},o);
         var dir=this.assertDir();
         var pathR=this.path();
-        if (!options) options={};
         if (!options.excludes) options.excludes={};
         if (options.excludes instanceof Array) {
             var excludes={};
@@ -3200,9 +3214,9 @@ define('DeferredUtil',[], function () {
             then: function (f) {
                 return DU.directPromise().then(f);
             },
-            timeout:function (timeout) {
+            timeout:function (timeout,value) {
                 var d=new $.Deferred;
-                setTimeout(function () {d.resolve();},timeout);
+                setTimeout(function () {d.resolve(value);},timeout);
                 return d.promise();
             },
             funcPromise:function (f) {
@@ -11538,9 +11552,9 @@ define('NewProjectDialog',["UI"], function (UI) {
 				["div",
         			 ["span","プログラミング言語"],
         			 ["select",{$edit:"lang",id:"prjLang"},
-        			 ["option",{selected:true,value:"js"},"JS"],
-        			 ["option",{value:"c"},"C"],
-        			 ["option",{value:"dtl"},"Dolittle(Beta)"]]
+        			 ["option",{selected:true,value:"js"},"JavaScript"],
+        			 ["option",{value:"dtl"},"ドリトル"],
+        			 ["option",{value:"c"},"C"]]
 				],
          			["div",
         			 ["span","親フォルダ"],
@@ -11684,14 +11698,10 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                 }            
             }
         }
-        function getLocalDirInfo() {// This is slow!
-            /*var res={};
-            local.recursive(function (file) {
-                var lcm=file.metaInfo();
-                res[file.relPath(local)]=lcm;
-            },{excludes:options.excludes});*/
-            var res2=local.getDirTree({style:"flat-relative"});
-            //diffTree(res,res2);
+        function getLocalDirInfo() {
+            console.log("gerLCD");
+            var res2=local.getDirTree({style:"flat-relative",excludes:[".sync/"]});
+            console.log("gerLCD done",res2);
             return res2;
         }
         function unionKeys() {
@@ -11742,6 +11752,12 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             }
             return res;
         }
+        function status(name, param) {
+            sh.echo("Status: "+name+" param:",param);
+            if (options.onstatus) {
+                options.onstatus(name, param);
+            }
+        }
         var i=0;
         if (FS.isFile(arguments[i])) {
             local=arguments[i];
@@ -11759,28 +11775,20 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
         var syncInfoDir=local.rel(".sync/");
         options.excludes=options.excludes||[];
         options.excludes=options.excludes.concat(syncInfoDir.name());
+        var downloadSkipped, uploadSkipped;
+        var uploads={},downloads=[];
+        var user;
+        var classid;
+        var localDelta;
         var localDirInfoFile=syncInfoDir.rel("local.json");
         var remoteDirInfoFile=syncInfoDir.rel("remote.json");
         var lastLocalDirInfo=localDirInfoFile.exists()?localDirInfoFile.obj():{};
         var lastRemoteDirInfo=remoteDirInfoFile.exists()?remoteDirInfoFile.obj():{};
+        status("getLocalDirInfo", req);
         var curLocalDirInfo=getLocalDirInfo();
         //if (options.v) sh.echo("last/cur LocalDirInfo",lastLocalDirInfo, curLocalDirInfo);
-        var localDelta=getDelta(lastLocalDirInfo, curLocalDirInfo);
+        localDelta=getDelta(lastLocalDirInfo, curLocalDirInfo);
         if (options.v) sh.echo("localDelta",localDelta);
-        var uploads={},downloads=[],visited={};
-        var user;
-        var classid;
-        function status(name, param) {
-            sh.echo("Status: "+name+" param:",param);
-            if (options.onstatus) {
-                options.onstatus(name, param);
-            }
-        }
-        function onError() {
-            if (options.onerror) {
-                options.onerror.apply(this, arguments);
-            }
-        }
         var req={base:remote.path(),excludes:JSON.stringify(options.excludes),token:""+Math.random()};
         status("getDirInfo", req);
         return $.ajax({
@@ -11824,6 +11832,11 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                 sh.echo("uploads:",uploads);
                 sh.echo("downloads:",downloads);
             }
+            if (downloads.length==0) {
+                if (options.v) sh.echo("Skip Download");
+                downloadSkipped=true;
+                return {data:{},downloadSkipped:true};
+            }
             var req={base:remote.path(),paths:JSON.stringify(downloads),token:""+Math.random()};
             status("getFiles", req);
             return $.ajax({
@@ -11850,6 +11863,11 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                 delete d.text;
                 dlf.metaInfo(d);
             }
+            if (Object.keys(uploads).length==0) {
+                if (options.v) sh.echo("Skip Upload");
+                uploadSkipped=true;
+                return {uploadSkipped:true};
+            }
             var req={base:remote.path(),data:JSON.stringify(uploads),token:""+Math.random()};
             req.pathInfo=A(WebSite.url.putFiles);
             status("putFiles", req);
@@ -11859,12 +11877,15 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                 data:req
             });
         })).then(F(function n3(res){
-            var newRemoteDirInfo=res.data;
             if (options.v) sh.echo("putFiles res=",res);
-            var newLocalDirInfo=getLocalDirInfo();
-            localDirInfoFile.obj(newLocalDirInfo);
-            remoteDirInfoFile.obj(newRemoteDirInfo);
-
+            if (!downloadSkipped) {
+                var newLocalDirInfo=getLocalDirInfo();
+                localDirInfoFile.obj(newLocalDirInfo);
+            }
+            if (!uploadSkipped) {
+                var newRemoteDirInfo=res.data;
+                remoteDirInfoFile.obj(newRemoteDirInfo);
+            }
             var upds=[];
             for (var i in uploads) upds.push(i);
             return res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};
@@ -12067,7 +12088,7 @@ $(function () {
         }).fail(function (e) {
             if (e==Sync.NOT_LOGGED_IN) {
                 $("#syncMesg").empty().append(UI("a",{href:"login.php"},"ログイン"));
-                if(confirm("ファイルの内容を保存するためには、必ずログインをしてください")){
+                if(confirm("ログインしていません。ログインページに移動します。")){
                     location.href="login.php";
                 }
             } else {
@@ -12075,6 +12096,8 @@ $(function () {
                 $("#syncMesg").text("エラー!"+e);
                 console.log(e);
             }
+        }).always(function () {
+            if (window.SplashScreen) window.SplashScreen.hide();
         });
     }
     $("#newPrj").click(function (){
