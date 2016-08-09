@@ -40,14 +40,10 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
                 }            
             }
         }
-        function getLocalDirInfo() {// This is slow!
-            /*var res={};
-            local.recursive(function (file) {
-                var lcm=file.metaInfo();
-                res[file.relPath(local)]=lcm;
-            },{excludes:options.excludes});*/
-            var res2=local.getDirTree({style:"flat-relative"});
-            //diffTree(res,res2);
+        function getLocalDirInfo() {
+            console.log("gerLCD");
+            var res2=local.getDirTree({style:"flat-relative",excludes:[".sync/"]});
+            console.log("gerLCD done",res2);
             return res2;
         }
         function unionKeys() {
@@ -98,6 +94,12 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
             }
             return res;
         }
+        function status(name, param) {
+            sh.echo("Status: "+name+" param:",param);
+            if (options.onstatus) {
+                options.onstatus(name, param);
+            }
+        }
         var i=0;
         if (FS.isFile(arguments[i])) {
             local=arguments[i];
@@ -115,28 +117,20 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
         var syncInfoDir=local.rel(".sync/");
         options.excludes=options.excludes||[];
         options.excludes=options.excludes.concat(syncInfoDir.name());
+        var downloadSkipped, uploadSkipped;
+        var uploads={},downloads=[];
+        var user;
+        var classid;
+        var localDelta;
         var localDirInfoFile=syncInfoDir.rel("local.json");
         var remoteDirInfoFile=syncInfoDir.rel("remote.json");
         var lastLocalDirInfo=localDirInfoFile.exists()?localDirInfoFile.obj():{};
         var lastRemoteDirInfo=remoteDirInfoFile.exists()?remoteDirInfoFile.obj():{};
+        status("getLocalDirInfo", req);
         var curLocalDirInfo=getLocalDirInfo();
         //if (options.v) sh.echo("last/cur LocalDirInfo",lastLocalDirInfo, curLocalDirInfo);
-        var localDelta=getDelta(lastLocalDirInfo, curLocalDirInfo);
+        localDelta=getDelta(lastLocalDirInfo, curLocalDirInfo);
         if (options.v) sh.echo("localDelta",localDelta);
-        var uploads={},downloads=[],visited={};
-        var user;
-        var classid;
-        function status(name, param) {
-            sh.echo("Status: "+name+" param:",param);
-            if (options.onstatus) {
-                options.onstatus(name, param);
-            }
-        }
-        function onError() {
-            if (options.onerror) {
-                options.onerror.apply(this, arguments);
-            }
-        }
         var req={base:remote.path(),excludes:JSON.stringify(options.excludes),token:""+Math.random()};
         status("getDirInfo", req);
         return $.ajax({
@@ -180,6 +174,11 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
                 sh.echo("uploads:",uploads);
                 sh.echo("downloads:",downloads);
             }
+            if (downloads.length==0) {
+                if (options.v) sh.echo("Skip Download");
+                downloadSkipped=true;
+                return {data:{},downloadSkipped:true};
+            }
             var req={base:remote.path(),paths:JSON.stringify(downloads),token:""+Math.random()};
             status("getFiles", req);
             return $.ajax({
@@ -206,6 +205,11 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
                 delete d.text;
                 dlf.metaInfo(d);
             }
+            if (Object.keys(uploads).length==0) {
+                if (options.v) sh.echo("Skip Upload");
+                uploadSkipped=true;
+                return {uploadSkipped:true};
+            }
             var req={base:remote.path(),data:JSON.stringify(uploads),token:""+Math.random()};
             req.pathInfo=A(WebSite.url.putFiles);
             status("putFiles", req);
@@ -215,12 +219,15 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
                 data:req
             });
         })).then(F(function n3(res){
-            var newRemoteDirInfo=res.data;
             if (options.v) sh.echo("putFiles res=",res);
-            var newLocalDirInfo=getLocalDirInfo();
-            localDirInfoFile.obj(newLocalDirInfo);
-            remoteDirInfoFile.obj(newRemoteDirInfo);
-
+            if (!downloadSkipped) {
+                var newLocalDirInfo=getLocalDirInfo();
+                localDirInfoFile.obj(newLocalDirInfo);
+            }
+            if (!uploadSkipped) {
+                var newRemoteDirInfo=res.data;
+                remoteDirInfoFile.obj(newRemoteDirInfo);
+            }
             var upds=[];
             for (var i in uploads) upds.push(i);
             return res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};

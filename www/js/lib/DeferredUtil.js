@@ -33,9 +33,9 @@ define([], function () {
             then: function (f) {
                 return DU.directPromise().then(f);
             },
-            timeout:function (timeout) {
+            timeout:function (timeout,value) {
                 var d=new $.Deferred;
-                setTimeout(function () {d.resolve();},timeout);
+                setTimeout(function () {d.resolve(value);},timeout);
                 return d.promise();
             },
             funcPromise:function (f) {

@@ -105,7 +105,7 @@ $(function () {
         }).fail(function (e) {
             if (e==Sync.NOT_LOGGED_IN) {
                 $("#syncMesg").empty().append(UI("a",{href:"login.php"},"ログイン"));
-                if(confirm("ファイルの内容を保存するためには、必ずログインをしてください")){
+                if(confirm("ログインしていません。ログインページに移動します。")){
                     location.href="login.php";
                 }
             } else {

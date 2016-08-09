@@ -27,6 +27,7 @@ if ($showForm) {
          //  session_start();
 ?>
 	<meta charset="UTF-8">
+	<h1>Bit Arrow ログイン画面</h1>
 	<form action="login.php">
 	  クラスID<input name="class" value="<?php print $class; ?>"></br>
 	  ユーザ名<input name="user">
@@ -34,6 +35,10 @@ if ($showForm) {
 	  <br/>
 	  <input type="submit" value="OK"/>
 	</form>
+	クラス名は授業で指定されたものを入力してください。<br/>
+	授業以外で利用する方は、クラス名を guest としてください。<br/>
+	ユーザ名には半角英数字を使ってください。また、先頭に数字は使わないでください。<br/>
+	<a href="index.html">戻る</a>
 <?php 
 } 
 ?>

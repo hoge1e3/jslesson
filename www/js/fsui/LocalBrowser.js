@@ -197,13 +197,13 @@ function (sh,FS,DU,UI,S) {
                     return $.when(d && d.promise()).then(function () {
                         return appendTo(n ,nn);
                     }).then (function () {
-                        return i+1;
+                        return DU.timeout(0,i+1);
                     });
                 case Node.TEXT_NODE:
                     dst.appendChild(idoc.createTextNode(n.textContent));
                     break;
                 }
-                return i+1;
+                return DU.timeout(0,i+1);
             },0);
         }
     };

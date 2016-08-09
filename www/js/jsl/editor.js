@@ -505,7 +505,7 @@ $(function () {
             sync
             */
             
-            var name=curPrj.getClassName(curJSFile);
+            /*var name=curPrj.getClassName(curJSFile);
             A.is(name,String);
             if (!curClassroom || !curUser) {
                 alert("ログインしていないので実行できません");
@@ -539,7 +539,7 @@ $(function () {
 	            }else{
 	                Tonyu.onRuntimeError(e);
 	            }
-	        });
+	        });*/
     	}else if(lang=="c"){
     	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text());
     		var compiledFile=curPrj.getOutputFile();
@@ -566,7 +566,6 @@ $(function () {
                 DU.timeout(0).then(function () {
                     return builder.build();    
                 }).then(function () {
-                    //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
                     return RunDialog2.show(indexF,
                     {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
