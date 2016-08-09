@@ -2050,6 +2050,9 @@ SFile.prototype={
     ls:function (options) {
         A(options==null || typeof options=="object");
         var dir=this.assertDir();
+        if (!options) {
+            return this.act.fs.opendir(this.act.path, options);
+        }
         var res=dir.listFiles(options);
         return res.map(function (f) {
             return f.name();

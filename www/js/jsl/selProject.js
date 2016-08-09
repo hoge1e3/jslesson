@@ -113,6 +113,8 @@ $(function () {
                 $("#syncMesg").text("エラー!"+e);
                 console.log(e);
             }
+        }).always(function () {
+            if (window.SplashScreen) window.SplashScreen.hide();
         });
     }
     $("#newPrj").click(function (){

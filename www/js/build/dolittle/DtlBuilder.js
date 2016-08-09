@@ -1,5 +1,5 @@
-define(["assert","DeferredUtil","wget", "dolittle/minimal","IndentBuffer","Sync","FS"], 
-function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS) {
+define(["assert","DeferredUtil","wget", "dolittle/minimal","IndentBuffer","Sync","FS","SplashScreen"], 
+function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
     DtlBuilder=function (prj, dst) {
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
@@ -81,34 +81,37 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS) {
         var t=this;
         var files=[];
         //var tr=curPrj.dir.getDirTree({style:"no-recursive"});
-        curPrj.dir.each(function (f) {
-            if (f.ext()!=".html")  return;
+        return DU.each(curPrj.dir.ls(),function (n) {
+            if (FS.PathUtil.ext(n)!=".html")  return;
+            var f=curPrj.dir.rel(n);
             var name=f.truncExt();
             var html=f;
             var dtl=f.up().rel(name+".dtl");
             if (!dtl.exists()) return;
             files.push({name:name,
-            src:{html:html,dtl:dtl},
-            dst:{
-                html:dst.rel(html.name()),
-                js:dst.rel(name+".js"),
-                map: dst.rel(name+".js.map")
-            }});
-        });
-        return $.when().then(DU.tr(function () {
+                src:{html:html,dtl:dtl},
+                dst:{
+                    html:dst.rel(name+".html"),
+                    js:dst.rel(name+".js"),
+                    map: dst.rel(name+".js.map")
+                }
+            });
+            return SplashScreen.waitIfBusy();
+        }).then(DU.tr(function () {
             return DU.each(files,function (f) {
                 t.progress("Transpile "+f.src.dtl.name());
-                if (isNewer(f.dst.js, f.src.dtl)) return;
+                if (isNewer(f.dst.js, f.src.dtl)) return SplashScreen.waitIfBusy();
                 var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
                 buf.setSrcFile(f.src.dtl);
                 var js=dtlParser.parse(f.src.dtl.text(),{indentBuffer:buf,src:f.src.dtl.name()});
                 buf.close();
-                return DU.timeout(0);
+                return SplashScreen.waitIfBusy();
             });
         })).then(DU.tr(function() {
-             return DU.each(files,function (f) {
-                if (isNewer(f.dst.html, f.src.html)) return;
-                return t.genHTML(f);
+            return DU.each(files,function (f) {
+                if (isNewer(f.dst.html, f.src.html)) return SplashScreen.waitIfBusy();
+                t.genHTML(f);
+                return SplashScreen.waitIfBusy();
             });
         }));         
     };

@@ -77,6 +77,9 @@ var reqConf={
             Base64: {
                 exports:"Base64"
             },
+            SplashScreen: {
+                exports: "SplashScreen"
+            },
             "ctrans/ctrans": {
                 deps:["Parser"],
                 exports:"MinimalParser"
@@ -104,6 +107,7 @@ var reqConf={
             jsl_edit: "jsl/editor",
             jsl_edit_concat: 'gen/edit_concat',
             Sync: "fs2/sync2",
+            SplashScreen: "lib/SplashScreen",
             TT: "lang/tonyu2_token",
             Auth: "jsl/auth",
             Encoding:"lib/encoding.min",

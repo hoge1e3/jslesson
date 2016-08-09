@@ -4,7 +4,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "runtime", "searchDialog","StackTrace",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
-           "LocalBrowser","logToServer","zip"
+           "LocalBrowser","logToServer","zip","SplashScreen"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -12,7 +12,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           rt, searchDialog,StackTrace,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
-          LocalBrowser,logToServer,zip
+          LocalBrowser,logToServer,zip,SplashScreen
           ) {
 $(function () {
     var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
@@ -35,10 +35,9 @@ $(function () {
         console.log("curuser",r);
         curUser=r;
     });
-    if (typeof SplashScreen!="undefined") SplashScreen.show();
     requirejs(["ace"],function (){
         console.log("ace loaded:",ace);
-        if (typeof SplashScreen!="undefined") SplashScreen.hide();
+        SplashScreen.hide();
     });
     var F=EC.f;
     $LASTPOS=0;
@@ -378,10 +377,10 @@ $(function () {
             showErrorPos($("#errorPos"));
             break;
         case "compile_error":
-            if (typeof SplashScreen!="undefined") SplashScreen.hide();
+            SplashScreen.hide();
             break;
         case "runtime_error":
-            if (typeof SplashScreen!="undefined") SplashScreen.hide();
+            SplashScreen.hide();
             break;
         case "edit":
             //if(progs=getCurrentEditor()) progs.focus();
@@ -424,14 +423,14 @@ $(function () {
             if (builder && inf) {
                 var curFile=inf.file;
                 var pub=FS.get("/public/").rel(curProjectDir.name());
-                if (window.SplashScreen) window.SplashScreen.show();
+                SplashScreen.show();
                 DU.timeout(0).then(function () {
                     return builder.build();    
                 }).then(function () {
-                    if (window.SplashScreen) window.SplashScreen.progress("Upload contents...");
+                    //if (window.SplashScreen) window.SplashScreen.progress("Upload contents...");
                     return builder.upload(pub);                    
                 }).then(function () {
-                    if (window.SplashScreen) window.SplashScreen.hide();
+                    SplashScreen.hide();
                     var cv=$("<div>");
                     cv.dialog();
                     //  http://localhost/fs/home/0123/dolittle/public/Turtle2/Raw_k6.html
@@ -473,7 +472,7 @@ $(function () {
         displayMode("run");
         if(lang=="js"){
     	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
-            if (typeof SplashScreen!="undefined") SplashScreen.show();
+            SplashScreen.show();
             //RunDialog2 (new version)
             try {
                 DU.timeout(0).then(function () {
@@ -495,7 +494,7 @@ $(function () {
     	            }
                 }).always(function () {
         	        //$("#fullScr").attr("href","javascript:;").text("別ページで実行");
-                    if (typeof SplashScreen!="undefined") SplashScreen.hide();
+                    SplashScreen.hide();
                 });
             }catch(e) {
                 console.log(e.stack);
@@ -531,7 +530,7 @@ $(function () {
 	            return sync();
 	        }), function (e) {
 	            A(e);
-	            if (typeof SplashScreen!="undefined") SplashScreen.hide();
+	            SplashScreen.hide();
 	            if (e.isTError) {
 	                console.log("showErr: run",e);
 	                showErrorPos($("#errorPos"),e);
@@ -561,7 +560,7 @@ $(function () {
             return sync();
     	}else if(lang=="dtl"){
     	    try {
-                if (typeof SplashScreen!="undefined") SplashScreen.show();
+                SplashScreen.show();
         	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
     	        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
                 DU.timeout(0).then(function () {
@@ -576,12 +575,12 @@ $(function () {
                     Tonyu.onRuntimeError(e);
                     console.log("DTLFAIL",e.stack);
                 }).always(function () {
-                    if (typeof SplashScreen!="undefined") SplashScreen.hide();
+                    SplashScreen.hide();
                     return sync();
                 });
             }catch(e) {
 	            if(e) console.log(e.stack);
-                if (typeof SplashScreen!="undefined") SplashScreen.show();
+                SplashScreen.hide();
             }
     	}
     }
@@ -608,7 +607,7 @@ $(function () {
         var f=curPrj.getOutputFile();
         var js=f.text();
         curth=r(ht,js, curName);
-        if (typeof SplashScreen!="undefined") SplashScreen.hide();
+        SplashScreen.hide();
     };
     var alertOnce;
     alertOnce=function (e) {

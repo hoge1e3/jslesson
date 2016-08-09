@@ -69,7 +69,7 @@ MinimalParser= function () {
 			}
 		});
 	}
-
+	
 	//ブロックに引数を与える際の構文
 	var local_param_trim=function(_array){
 		var result="";
@@ -147,13 +147,21 @@ MinimalParser= function () {
 	    var content=_str.text.substring(1,_str.text.length-1);
 	    return extend(['"'+content+'"'],{type:"string",content:content});
 	});
-	var reg_num = /^[0-9０-９]+([.．]([0-9０-９])+)?([a-zA-Z_$\?？ーぁ-んァ-ヶ々〇〻\u3400-\u9FFF\uF900-\uFAFF\uD840-\uD87F\uDC00-\uDFFF][a-zA-Z_$\?？0-9０-９ーぁ-んァ-ヶ々〇〻\u3400-\u9FFF\uF900-\uFAFF\uD840-\uD87F\uDC00-\uDFFF]*)?/;//数字を表す正規表現
+	var reg_num = /^(([0０][xｘXＸ][0-9０-９a-fA-Fａ-ｆＡ-Ｆ]+)|([0-9０-９]+([.．]([0-9０-９])+)?))([a-zA-Z_$\?？ーぁ-んァ-ヶ々〇〻\u3400-\u9FFF\uF900-\uFAFF\uD840-\uD87F\uDC00-\uDFFF][a-zA-Z_$\?？ーぁ-んァ-ヶ々〇〻\u3400-\u9FFF\uF900-\uFAFF\uD840-\uD87F\uDC00-\uDFFF]*)?/;//数字を表す正規表現
 	//var reg_num=/^[0-9０-９]+/;
 	var tok_num = token(reg_num).ret(function(_num){
+	console.log(_num);
 		var v=(_num+"").replace(/[０-９]/g, function(s) {
 			return parseInt(String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
-		}).replace(/．/,".");
-		v=parseFloat(v);
+		}).replace(/．/,".").replace(/[ｘＸ]/,function(s){
+			return String.fromCharCode(s.charCodeAt(0)-0xFEE0);
+		});
+		console.log(v);
+		if(v.match(/^[0０][xｘXＸ][0-9０-９a-fA-Fａ-ｆＡ-Ｆ]+/)){
+			v=parseInt(v);
+		}else{
+			v=parseFloat(v);
+		}
 		return extend(["(",v,")"],{type:"number",value:v});
 	});
     //--------------ここから構文	

@@ -18,10 +18,10 @@
 <link href="css/jquery-ui.css" rel="stylesheet">
 </head>
 
-<body>Loading...
-</body>
-
+<body>
 <script src="js/lib/jquery-1.10.1.js" type="text/javascript"></script>
+<script src="js/lib/SplashScreen.js" type="text/javascript"></script>
+<script>SplashScreen.show();</script>
 <script src="js/lib/jquery.tmpl.js" type="text/javascript"></script>
 <script src="js/lib/jquery.hotkeys.js" type="text/javascript"></script>
 <script src="js/lib/jquery-ui.js" type="text/javascript"></script>
@@ -29,14 +29,12 @@
 <script src="css/bootstrap.min.js" type="text/javascript"></script>
 <script src="js/lib/jszip.min.js" type="text/javascript"></script>
 <script src="js/lib/FileSaver.min.js" type="text/javascript"></script>
-<script src="js/lib/SplashScreen.js" type="text/javascript"></script>
 
 <script src="js/reqConf.js"></script>
 <script src="js/lib/require.js"></script>
 <script>
-$("body").empty();
+//$("body").empty();
 requirejs.config(reqConf);
-SplashScreen.show();
 requirejs(["Util"],function (Util){
     var run=Util.getQueryString("r");
     if (!run) run="jsl_selProject";
@@ -56,8 +54,9 @@ requirejs(["Util"],function (Util){
         }
     }
     requirejs([run], function(){
-        SplashScreen.hide();
+        //SplashScreen.hide();
     });
 });
 </script>
+</body>
 </html>
