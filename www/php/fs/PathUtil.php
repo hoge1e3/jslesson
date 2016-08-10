@@ -1,9 +1,24 @@
 <?php
 class PathUtil {
   const SEP="/";
-  public static function rel($path, $rel) {
-      $path=self::truncSep($path);
-      return "$path/$rel";
+  public static function rel($path, $relPath) {
+    // echo "rel $path $relPath<BR>";
+    if ($relPath=="") return $path;
+    $paths=PathUtil::splitPath($relPath);
+    $resPath=$path;
+    $resPath=self::truncSep($resPath);
+    foreach ($paths as $n) {
+        //echo "Bfr $n $resPath <BR>";
+        if ($n==".." || $n=="../") $resPath=self::up($resPath);
+        else {
+             $resPath=self::truncSep($resPath);
+             $resPath.=self::SEP.($n=="."||$n=="./" ? "": $n);
+        }
+        //echo "Aft $n $resPath <BR>";
+        if (is_null($resPath)) break;
+    }
+    //echo "rel end $resPath<BR>";
+    return $resPath;
   }
   static function relPath($path, $base) {
      return substr($path, strlen($base));
@@ -29,10 +44,13 @@ class PathUtil {
         return $res;
   }
   public static function up($path) {
-        if ($path==self::SEP) return null;
+        if ($path==self::SEP || $path=="") return null;
         $ps=PathUtil::splitPath($path);
         array_pop($ps);
         return join(self::SEP,$ps).self::SEP;
+  }
+  public static function name($path) {
+        return array_pop(self::splitPath($path));
   }
 }
 ?>

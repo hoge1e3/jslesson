@@ -7,5 +7,6 @@
    ["www/js/fsui/LocalBrowser.js", "${projects:FS.js}/www/fstools/LocalBrowser.js"],
    ["${projects:Tonyu2}/js/ui/","www/js/ui/"],
    ["www/php/dtl/", "${projects:FS.js}/www/php/dtl/"],
-   ["www/php/dtlfs/", "${projects:FS.js}/www/php/dtlfs/"]
+   ["www/php/dtlfs/", "${projects:FS.js}/www/php/dtlfs/"],
+   ["www/php/fs/", "${projects:FS.js}/www/php/fs/"]
 ]

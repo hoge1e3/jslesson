@@ -7,7 +7,15 @@ class NativeFS {
        $this->top=$top;
    }
    public function resolve($path) {
-       return $this->top.$path;
+        if (is_null($path)) throw new Exception("path is null!");
+        if (PathUtil::startsWith($path, PathUtil::SEP)) {
+           $path=substr($path,1);
+        }
+        $r=PathUtil::rel($this->top, $path);
+        if (PathUtil::startsWith($r,$this->top)) { 
+            return $r; 
+        }
+        throw new Exception("Canno access to $path");
    }
    public function getContent($path) {
        if (!$this->exists($path)) $this->notFound($path);

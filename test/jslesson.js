@@ -5,8 +5,8 @@ var FS = require("./SFile.js");
 var testHome=FS.get("../www/fs/home/0123/test/");
 //var projectSelURL='http://klab.eplang.jp/jslesson/';
 //var projectSelURL='http://localhost/?noconcat=true';
-//var projectSelURL='http://localhost/'
-var projectSelURL='http://klab.eplang.jp/jslesson/'
+var projectSelURL='http://localhost/'
+//var projectSelURL='http://klab.eplang.jp/jslesson/'
 var loggedin=false;
 var SLP=500;
 
@@ -26,17 +26,20 @@ rmDir(testHome.rel("TJStes/"));
 copyDir(testHome.rel("TJSTmpl/"), testHome.rel("TJStes/") );
 rmDir(testHome.rel("DtlTes/"));
 copyDir(testHome.rel("DtlTmpl/"), testHome.rel("DtlTes/") );
-
+var createdCCode;
 driver.sleep(100).
 then(openProjectSel).then(testC).
 then(openProjectSel).then(testJS).
 then(openProjectSel).then(testDtl).
 then(function () {
+    if (testHome.rel("Ctes/Test1.c").text()!=createdCCode.code) {
+        throw new Error("Asserion failed"+testHome.rel("Ctes/Test1.c").text()+"!="+createdCCode.code);
+    }
     driver.quit();
 });
 
 function testC() {
-    var c=genTestCode();
+    var c=createdCCode=genTestCode();
     return driver.sleep(3000).then(function () {
         selectLinkByText("Ctes/");
         driver.sleep(1000);
@@ -178,8 +181,8 @@ function runTJSCode(expect) {
 	return getOutputBodyHTML().then(function (tx) {
 	    tx=trimspace(tx);
     	console.log("The output", tx);
-    	console.log(tx,expect);
-    	if (tx!==expect) throw new Error("Asserion failed"+tx+"!="+expect);
+    	//console.log(tx,expect);
+    	if (tx.indexOf(expect)<0) throw new Error("Asserion failed: the output does not contain"+expect);
     	clickByText("OK");
     });
 }
