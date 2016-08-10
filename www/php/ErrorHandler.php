@@ -15,8 +15,17 @@ if (!function_exists('http_response_code'))
 }
 function h_err($errno, $errstr, $errfile, $errline) {
     http_response_code(500);
-    //print_r(debug_backtrace());
-    die ("SERVER ERROR!\n$errno $errstr $errfile:$errline\nSERVER ERROR END!");
+    $buf="\n";
+    if (function_exists('debug_backtrace')) {
+        $tr=debug_backtrace();
+        foreach ($tr as $t) {
+            if (isset($t["function"]) && 
+            isset($t["file"]) && isset($t["line"])) {
+                $buf.="at ".$t["function"]." ".$t["file"].":".$t["line"]."\n";
+            }
+        }
+    }
+    die ("SERVER ERROR!\n$errno $errstr $errfile:$errline$buf\nSERVER ERROR END!");
     //exit(1);
 }
 set_error_handler("h_err");

@@ -32,8 +32,8 @@ then(openProjectSel).then(testC).
 then(openProjectSel).then(testJS).
 then(openProjectSel).then(testDtl).
 then(function () {
-    if (testHome.rel("Ctes/Test1.c").text()!=createdCCode.code) {
-        throw new Error("Asserion failed"+testHome.rel("Ctes/Test1.c").text()+"!="+createdCCode.code);
+    if (testHome.rel("Ctes/Test1.c").text()!=createdCCode.cont) {
+        throw new Error("Asserion failed"+testHome.rel("Ctes/Test1.c").text()+"!="+createdCCode.cont);
     }
     driver.quit();
 });

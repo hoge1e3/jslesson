@@ -47,7 +47,11 @@ MinimalParser= function () {
         return arr;
     }
 	//    ↓ 空白またはコメントを解析するパーサ
-	var space=sp.reg(/^(\s*(\/\*([^\/]|[^*]\/|\r|\n)*\*\/)*(\/\/.*\n)*)*/);
+	var space=sp.reg(/^(\s*(\/\*([^\/]|[^*]\/|\r|\n)*\*\/)*(\/\/[^\r\n]*\r?\n)*)*/);/*.ret(function (a) {
+	    //console.log("READ space ! ",a.pos,a.len, a.src.str.substring( a.pos));
+    	 //   console.log("READ space ! ",a.pos,a.len, a.src.str.substring( a.pos, a.pos+a.len ));
+	    return a;
+	});*/
 	// トークナイザ： 空白またはコメントを読み飛ばし，次に rで指定されたトークンがあれば解析が成功．
 	function token(r) {
 		var str;
@@ -58,8 +62,9 @@ MinimalParser= function () {
 		}
 		//    ↓ 空白またはコメントにつづいてstr  がきたら
 		return space.and(str).ret(function(a, b) {
-			// a=空白またはコメント   b=読み込んだトークン
+		    // a=空白またはコメント   b=読み込んだトークン
 			// テキストと位置情報をつけて返す．
+    	    //console.log("READ ! ",b.pos,b.len, b.src.str.substring( b.pos, b.pos+b.len ));
 			return {pos:b.pos, 
 					text: b.src.str.substring( b.pos, b.pos+b.len ) ,
 					toString: function (){
@@ -312,6 +317,7 @@ MinimalParser= function () {
 		var output="";
 		var line=1;
 		ctx=context();
+	    //console.log("INP",input,input.length);
 		var result = program.parseStr(input);
 		if(result.success){
 			output=result.result[0];

@@ -1,14 +1,14 @@
 <?php
 class SFile{
-    private $_path, $fs, $perm;
-    public function SFile($fs, $path, $perm) {
+    private $_path, $fs;
+    public function SFile($fs, $path) {
         $this->_path=$path;
         $this->fs=$fs;
-        $this->perm=$perm;
+        //$this->perm=$perm;
     }
-    private function check($opr) {
+    /*private function check($opr) {
         return $this->perm->check($this,$opr);
-    }
+    }*/
     public function rootFS() {
     }
     public function fs() {
@@ -24,7 +24,7 @@ class SFile{
         return this.resolve(this.path());
     }
     private function resolve($path) {
-        return new SFile($this->fs,$path,$this->perm);
+        return new SFile($this->fs,$path);//,$this->perm);
     }
     public function contains() {
     }
@@ -86,12 +86,12 @@ class SFile{
     public function setContent() {
     }
     public function setText($s) {
-        $this->check("write");
+        //$this->check("write");
         $this->fs->setContent($this->path(), $s);
         return $this;
     }
     public function getText() {
-        $this->check("read");
+        //$this->check("read");
         //echo "open ".$this->path();
         return $this->fs->getContent($this->path());
     }
@@ -99,7 +99,7 @@ class SFile{
         if (func_num_args()==0) {
             return $this->getText();
         } else {
-            return $this->setText(func_get_args(0));
+            return $this->setText(func_get_arg(0));
         }
     }
     public function isText() {
