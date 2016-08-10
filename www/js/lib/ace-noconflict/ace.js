@@ -34,7 +34,7 @@
  * @param payload a function to call with (require, exports, module) params
  */
 
-var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
+var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;//added by @hoge1e3
 (function() {
 var ACE_NAMESPACE = "ace";
 
@@ -2276,7 +2276,7 @@ var TextInput = function(parentNode, host) {
         if (e.type == "compositionend" && c.range) {
             host.selection.setRange(c.range);
         }
-        if (isChrome53) onInput();
+        if (isChrome53) onInput();//added by @hoge1e3
     };
     
     
