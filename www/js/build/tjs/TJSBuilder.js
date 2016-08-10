@@ -45,13 +45,13 @@ function (A,DU,wget,Sync) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
             nn.setAttribute("src",WebSite.runtime+src);
-            head.appendChild(nn);
+            body.appendChild(nn);
         });
         var nn=document.createElement("script");
         nn.setAttribute("charset","utf-8");
         var ns=this.prj.getNamespace();
         nn.appendChild(document.createTextNode("run('"+ns+"."+name+"');"));
-        head.appendChild(nn);
+        body.appendChild(nn);
         var dstHTMLF=dst.rel(curHTMLFile.name());
         dstHTMLF.text("<html>"+html.innerHTML+"</html>");
     };

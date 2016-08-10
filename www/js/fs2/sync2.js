@@ -122,12 +122,15 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
         var user;
         var classid;
         var localDelta;
+        // local.json exists / remote.json not exists -> download / no upload   -> remote.json did not create
+        // local.json not exists / remote.json exists -> no download / upload   -> local.json did not create
         var localDirInfoFile=syncInfoDir.rel("local.json");
         var remoteDirInfoFile=syncInfoDir.rel("remote.json");
         var lastLocalDirInfo=localDirInfoFile.exists()?localDirInfoFile.obj():{};
         var lastRemoteDirInfo=remoteDirInfoFile.exists()?remoteDirInfoFile.obj():{};
         status("getLocalDirInfo", req);
         var curLocalDirInfo=getLocalDirInfo();
+        var curRemoteDirInfo;
         //if (options.v) sh.echo("last/cur LocalDirInfo",lastLocalDirInfo, curLocalDirInfo);
         localDelta=getDelta(lastLocalDirInfo, curLocalDirInfo);
         if (options.v) sh.echo("localDelta",localDelta);
@@ -137,20 +140,21 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
             type:"get",
             url:A(WebSite.url.getDirInfo),
             data:req
-        }).then(F(function n1(curRemoteDirInfo) {
+        }).then(F(function n1(gd) {
+            curRemoteDirInfo=gd.data;
             var d;
-            if (options.v) sh.echo("getDirInfo",curRemoteDirInfo);
-            if (curRemoteDirInfo.NOT_LOGGED_IN) {
+            if (options.v) sh.echo("getDirInfo",gd);
+            if (gd.NOT_LOGGED_IN) {
                 d = new $.Deferred;
                 setTimeout(function(){
                   d.reject(Sync.NOT_LOGGED_IN);
                 }, 0);
                 return d.promise();
             }
-            user=curRemoteDirInfo.user;
-            classid=curRemoteDirInfo["class"];
-            var base=local;//FS.get(curRemoteDirInfo.base);
-            var remoteDelta=getDelta(lastRemoteDirInfo, curRemoteDirInfo.data);
+            user=gd.user;
+            classid=gd["class"];
+            var base=local;
+            var remoteDelta=getDelta(lastRemoteDirInfo, curRemoteDirInfo);
             if (options.v) sh.echo("remoteDelta",remoteDelta);
             var dd=getDeltaDelta(localDelta,remoteDelta);
             var o,f,m;
@@ -187,7 +191,6 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
                 data:req
             });
         })).then(F(function n2(dlData) {
-            sh.echo("dlData=",dlData);
             //dlData=JSON.parse(dlData);
             if (options.v) sh.echo("dlData:",dlData);
             var base=local;//FS.get(dlData.base);
@@ -223,10 +226,14 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
             if (!downloadSkipped) {
                 var newLocalDirInfo=getLocalDirInfo();
                 localDirInfoFile.obj(newLocalDirInfo);
+            } else {
+                localDirInfoFile.obj(curLocalDirInfo);
             }
             if (!uploadSkipped) {
                 var newRemoteDirInfo=res.data;
                 remoteDirInfoFile.obj(newRemoteDirInfo);
+            } else {
+                remoteDirInfoFile.obj(curRemoteDirInfo);
             }
             var upds=[];
             for (var i in uploads) upds.push(i);

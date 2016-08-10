@@ -12320,12 +12320,15 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
         var user;
         var classid;
         var localDelta;
+        // local.json exists / remote.json not exists -> download / no upload   -> remote.json did not create
+        // local.json not exists / remote.json exists -> no download / upload   -> local.json did not create
         var localDirInfoFile=syncInfoDir.rel("local.json");
         var remoteDirInfoFile=syncInfoDir.rel("remote.json");
         var lastLocalDirInfo=localDirInfoFile.exists()?localDirInfoFile.obj():{};
         var lastRemoteDirInfo=remoteDirInfoFile.exists()?remoteDirInfoFile.obj():{};
         status("getLocalDirInfo", req);
         var curLocalDirInfo=getLocalDirInfo();
+        var curRemoteDirInfo;
         //if (options.v) sh.echo("last/cur LocalDirInfo",lastLocalDirInfo, curLocalDirInfo);
         localDelta=getDelta(lastLocalDirInfo, curLocalDirInfo);
         if (options.v) sh.echo("localDelta",localDelta);
@@ -12335,7 +12338,8 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             type:"get",
             url:A(WebSite.url.getDirInfo),
             data:req
-        }).then(F(function n1(curRemoteDirInfo) {
+        }).then(F(function n1(_curRemoteDirInfo) {
+            curRemoteDirInfo=_curRemoteDirInfo;
             var d;
             if (options.v) sh.echo("getDirInfo",curRemoteDirInfo);
             if (curRemoteDirInfo.NOT_LOGGED_IN) {
@@ -12372,11 +12376,11 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                 sh.echo("uploads:",uploads);
                 sh.echo("downloads:",downloads);
             }
-            if (downloads.length==0) {
+            /*if (downloads.length==0) {
                 if (options.v) sh.echo("Skip Download");
                 downloadSkipped=true;
                 return {data:{},downloadSkipped:true};
-            }
+            }*/
             var req={base:remote.path(),paths:JSON.stringify(downloads),token:""+Math.random()};
             status("getFiles", req);
             return $.ajax({
@@ -12385,7 +12389,6 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                 data:req
             });
         })).then(F(function n2(dlData) {
-            sh.echo("dlData=",dlData);
             //dlData=JSON.parse(dlData);
             if (options.v) sh.echo("dlData:",dlData);
             var base=local;//FS.get(dlData.base);
@@ -12403,11 +12406,11 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                 delete d.text;
                 dlf.metaInfo(d);
             }
-            if (Object.keys(uploads).length==0) {
+            /*if (Object.keys(uploads).length==0) {
                 if (options.v) sh.echo("Skip Upload");
                 uploadSkipped=true;
                 return {uploadSkipped:true};
-            }
+            }*/
             var req={base:remote.path(),data:JSON.stringify(uploads),token:""+Math.random()};
             req.pathInfo=A(WebSite.url.putFiles);
             status("putFiles", req);
@@ -12421,10 +12424,14 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             if (!downloadSkipped) {
                 var newLocalDirInfo=getLocalDirInfo();
                 localDirInfoFile.obj(newLocalDirInfo);
+            } else if (!localDirInfoFile.exists()) {
+                localDirInfoFile.obj(curLocalDirInfo);
             }
             if (!uploadSkipped) {
                 var newRemoteDirInfo=res.data;
                 remoteDirInfoFile.obj(newRemoteDirInfo);
+            } else if (!remoteDirInfoFile.exists()) {
+                remoteDirInfoFile.obj(curRemoteDirInfo);
             }
             var upds=[];
             for (var i in uploads) upds.push(i);
