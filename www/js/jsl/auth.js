@@ -24,12 +24,12 @@ define(["FS"], function (FS) {
             return FS.resolve("${tonyuHome}/Projects/");//changeHOME
         },
         remoteProjects: function () {
-            //return FS.get("/home/").rel(this.class+"/").rel(this.user+"/") //changeHOME (1)
-            return FS.get("/");//changeHOME
+            return FS.get("/home/").rel(this.class+"/").rel(this.user+"/") //changeHOME(1)
+            //return FS.get("/");//changeHOME
         },
         remotePublics: function () {
-            //return this.remoteProjects().rel("public/") //changeHOME (1)
-            return FS.get("/public/");//changeHOME
+            return this.remoteProjects().rel("public/") //changeHOME(1)
+            //return FS.get("/public/");//changeHOME
         }
     };
     return Auth;
