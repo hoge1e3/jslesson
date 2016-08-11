@@ -1,7 +1,7 @@
 requirejs(["FS","Shell","Shell2","ProjectCompiler",
            "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog",
            "assert","DeferredUtil"],
-  function (FS, sh,sh2,TPRC,
+    function(FS, sh,sh2,TPRC,
            NPD, UI, Auth,zip,Sync,NSD,
            A,DU) {
     if (location.href.match(/localhost/)) {
@@ -10,7 +10,7 @@ requirejs(["FS","Shell","Shell2","ProjectCompiler",
         A.setMode(A.MODE_DEFENSIVE);
     }
     $.when(DU.documentReady(),Auth.check()).then(ready);
-function ready() {
+function ready() {//-------------------------
     console.log("AUth",Auth.user,Auth.class);
     if(!Auth.loggedIn()) {
         alert("ログインしていません。ログインページに移動します。");
@@ -100,7 +100,7 @@ function ready() {
     }
     function sync() {
         $("#syncMesg").text("同期しています....");
-        return Sync.sync(projects, Auth.remoteProjects()/*FS.get("/")*/,{v:true}).then(function (e) {//changeHOME
+        return Sync.sync(projects, Auth.remoteProjects()/*FS.get("/")*/,{v:true}).then(function (e) {
             $("#syncMesg").append("ファイル保存完了");
             ls();
 	    //alert(e.classid+" クラスの "+e.user+" と同期しました。");
@@ -148,5 +148,5 @@ function ready() {
         });
     });
     ls();
-}//of function ready()
+}//------of function ready()-----------
 });
