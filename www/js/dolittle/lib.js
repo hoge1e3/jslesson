@@ -275,7 +275,13 @@ Object.defineProperty(Array.prototype,"要素数?",{
 });
 Object.defineProperty(Array.prototype,"連結",{
 	enumerable:false,configurable:true,
-	value:function(arr){Array.prototype.push.apply(this,arr);return this;}
+	value:function(){
+		for(var i in arguments){
+			if(Array.isArray(arguments[i]))Array.prototype.push.apply(this,arguments[i]);
+			else this.push(arguments[i]);
+		}
+		return this;
+	}
 });
 Object.defineProperty(Array.prototype,"クリア",{
 	enumerable:false,configurable:true,

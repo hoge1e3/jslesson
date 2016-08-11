@@ -4,7 +4,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "runtime", "searchDialog","StackTrace",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
-           "LocalBrowser","logToServer","zip","SplashScreen"
+           "LocalBrowser","logToServer","zip","SplashScreen","Auth"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -12,7 +12,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           rt, searchDialog,StackTrace,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
-          LocalBrowser,logToServer,zip,SplashScreen
+          LocalBrowser,logToServer,zip,SplashScreen,Auth
           ) {
 $(function () {
     var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
@@ -25,23 +25,31 @@ $(function () {
     }
     //console.log("assert test", A.is(null,String));
     var P=FS.PathUtil;
-    var curClassroom;
-    $.get("login.php?curclass="+Math.random()).then(function (r){
+    //var curUser; Deprecated: use Auth.user
+    //var curClassroom;  Deprecated: use Auth.class
+    Auth.check().then(function (t) {
+        //curClassroom=t.class;
+        //curUser=t.user;
+        console.log("curclass/user",t.class, t.user);
+    }).fail(function (e) {
+        console.log(e);
+        alert("ユーザ情報の取得に失敗しました");
+    });
+    /*$.get("login.php?curclass="+Math.random()).then(function (r){
         console.log("curclass",r);
         curClassroom=r;
     });
-    var curUser;
     $.get("login.php?curuser="+Math.random()).then(function (r) {
         console.log("curuser",r);
         curUser=r;
-    });
+    });*/
     requirejs(["ace"],function (){
         console.log("ace loaded:",ace);
         SplashScreen.hide();
     });
     var F=EC.f;
     $LASTPOS=0;
-    var home=FS.resolve("${tonyuHome}");
+    //var home=FS.resolve("${tonyuHome}");
     var dir=Util.getQueryString("dir");
     if (!dir) {
         alert("dir is not specified");
@@ -402,10 +410,10 @@ $(function () {
     }
     var curName,runURL;
     function sync() {
-        var projects=FS.resolve("${tonyuHome}/Projects/");
+        var projects=Auth.localProjects();//FS.resolve("${tonyuHome}/Projects/");
     	unsaved=false;
 	    //unsynced=false;
-        return Sync.sync(projects, FS.get("/"),{v:true}).then(
+        return Sync.sync(projects, Auth.remoteProjects()/*FS.get("/")*/,{v:true}).then(
             function(){unsynced=false;showToast("保存しました");}
         ).fail(function (e) {
             if (!e) e="Unknown error";
@@ -422,7 +430,7 @@ $(function () {
             }
             if (builder && inf) {
                 var curFile=inf.file;
-                var pub=FS.get("/public/").rel(curProjectDir.name());
+                var pub=Auth.remotePublics()/*FS.get("/public/")*/.rel(curProjectDir.name());
                 SplashScreen.show();
                 DU.timeout(0).then(function () {
                     return builder.build();    
@@ -434,8 +442,8 @@ $(function () {
                     var cv=$("<div>");
                     cv.dialog();
                     //  http://localhost/fs/home/0123/dolittle/public/Turtle2/Raw_k6.html
-                    runURL=WebSite.published+curClassroom+"/"+
-                    curUser+"/public/"+pub.name()+curFile.truncExt()+".html";
+                    runURL=WebSite.published+Auth.class+"/"+
+                    Auth.user+"/public/"+pub.name()+curFile.truncExt()+".html";
                     //alert("synced "+runURL);
                     cv.append($("<div>").append(
                         $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
@@ -825,10 +833,10 @@ $(function () {
         ProjectOptionsEditor(curPrj);
     }));
     var helpd=null;
-    $("#refHelp").click(F(function () {
+    /*$("#refHelp").click(F(function () {
     	if (!helpd) helpd=WikiDialog.create(home.rel("doc/tonyu2/"));
     	helpd.show();
-    }));
+    }));*/
     if (typeof progBar=="object") {progBar.clear();}
     $("#rmPRJ").click(F(function () {
         if (prompt(curProjectDir+"内のファイルをすべて削除しますか？削除する場合はDELETE と入力してください．","")!="DELETE") {

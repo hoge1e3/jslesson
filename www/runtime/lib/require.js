@@ -1878,6 +1878,9 @@ var requirejs, require, define;
                         parent.requirejs.__urlPostfix
                     ) || String.fromCharCode(
                         Math.floor(Math.random()*9)+
+                        Math.floor(Math.random()*5)*16+49)+
+                        String.fromCharCode(
+                        Math.floor(Math.random()*9)+
                         Math.floor(Math.random()*5)*16+49);
                 }
                 cvurl += (cvurl.indexOf("?")<0?"?":"&")+requirejs.__urlPostfix;

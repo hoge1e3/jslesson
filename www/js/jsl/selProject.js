@@ -35,7 +35,8 @@ $(function () {
             ["span",{id:"syncMesg"}],
             ["div",{id:"prjItemList"}]
     ));
-    var projects=FS.resolve("${tonyuHome}/Projects/");
+    // should get after Auth.login **changeHOME**
+    var projects=Auth.localProjects();// FS.resolve("${tonyuHome}/Projects/");//changeHOME
     console.log(projects);
     projects.mkdir();
     sh.cd(projects);
@@ -94,7 +95,7 @@ $(function () {
     }
     function sync() {
         $("#syncMesg").text("同期しています....");
-        return Sync.sync(projects, FS.get("/"),{v:true}).then(function (e) {
+        return Sync.sync(projects, Auth.remoteProjects()/*FS.get("/")*/,{v:true}).then(function (e) {//changeHOME
             $("#syncMesg").append("ファイル保存完了");
             ls();
 	    //alert(e.classid+" クラスの "+e.user+" と同期しました。");

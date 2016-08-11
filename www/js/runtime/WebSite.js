@@ -25,7 +25,7 @@ define([], function () {
     WS.sampleImg=WS.top+"/images";
     WS.isNW=(typeof process=="object" && process.__node_webkit);
     //WS.fsHome="";
-    WS.tonyuHome="/Tonyu/";
+    WS.tonyuHome="/Tonyu/";//changeHOME
     WS.JSLKer="fs/Tonyu/Projects/JSLKer";
     WS.serverTop=location.href.replace(/\?.*$/,"").replace(/[^/]*$/,"");//"."; // includes /
     WS.phpTop=WS.serverTop+"";//php/";

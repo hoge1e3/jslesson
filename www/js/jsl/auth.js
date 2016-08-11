@@ -1,8 +1,30 @@
-define([], function () {
+define(["FS"], function (FS) {
     Auth={
-            currentUser:function (r) {
-                r();
-            }
+        check:function () {
+            var self=this;
+            //console.log("CHK");
+            return $.when(
+                $.get("login.php?curclass="+Math.random()),
+                $.get("login.php?curuser="+Math.random())
+            ).then(function (c,u) {
+                //console.log("CHKE",c[0],u[0]);
+                self.login(c[0],u[0]);
+                return self;
+            });
+        },
+        login:function (_class,user) {
+            this.class=_class;
+            this.user=user;
+        },
+        localProjects:function ( ){
+            return FS.resolve("${tonyuHome}/Projects/");//changeHOME
+        },
+        remoteProjects: function () {
+            return FS.get("/");//changeHOME
+        },
+        remotePublics: function () {
+            return FS.get("/public/");//changeHOME
+        }
     };
     return Auth;
 });

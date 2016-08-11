@@ -2,6 +2,8 @@
 require_once __DIR__."/fs/NativeFS.php";
 require_once __DIR__."/json.php";
 require_once __DIR__."/MySession.php";
+require_once __DIR__."/fs/AuthInfo.php";
+require_once __DIR__."/fs/Permission.php";
 
 //session_save_path("/tmp");
 //ini_set('session.gc_maxlifetime',60*60*24);
@@ -82,7 +84,9 @@ class Auth {
 	    $class=self::curClass();
    	    $user=self::curUser();
    	    if ($user && $class) {
-	   	    return new NativeFS("fs/home/$class/$user");
+   	        $ap=new Permission(new AuthInfo($class,$user));
+            return new NativeFS("fs/home/$class/$user");//changeHOME
+            //return new NativeFS("fs/");//changeHOME
 	   	} else {
 	   	    return null;
 	   	}

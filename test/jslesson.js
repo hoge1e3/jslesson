@@ -150,8 +150,8 @@ function genTestCode() {
     var cont=[
     "#include<stdio.h>",
     "int main(void){",
-    "   int x="+num+";",
-    '   printf("%d",x*2);',
+    "    int x="+num+";",
+    '    printf("%d",x*2);',
     '}'
     ].join("\n");
     return {cont:cont, expect:""+num*2};
