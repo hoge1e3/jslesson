@@ -85,7 +85,7 @@ class Auth {
    	    $user=self::curUser();
    	    if ($user && $class) {
    	        $ap=new Permission(new AuthInfo($class,$user));
-            return new NativeFS("fs/");//changeHOME(1)
+            return new NativeFS("fs/",$ap);//changeHOME(1)
             //return new NativeFS("fs/home/$class/$user/");//changeHOME
 	   	} else {
 	   	    return null;

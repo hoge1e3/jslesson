@@ -131,7 +131,7 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
         status("getLocalDirInfo", req);
         var curLocalDirInfo=getLocalDirInfo();
         var curRemoteDirInfo;
-        //if (options.v) sh.echo("last/cur LocalDirInfo",lastLocalDirInfo, curLocalDirInfo);
+        if (options.v) sh.echo("last/cur LocalDirInfo",lastLocalDirInfo, curLocalDirInfo);
         localDelta=getDelta(lastLocalDirInfo, curLocalDirInfo);
         if (options.v) sh.echo("localDelta",localDelta);
         var req={base:remote.path(),excludes:JSON.stringify(options.excludes),token:""+Math.random()};
@@ -198,6 +198,7 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
             for (var rel in dlData.data) {
                 var dlf=base.rel(rel);
                 if (dlf.isDir()) continue;
+                if (dlf.path().indexOf(".sync/")>=0) continue;
                 var d=dlData.data[rel];
                 //if (options.v) sh.echo(dlf.path(), d);
                 if (d.trashed) {
