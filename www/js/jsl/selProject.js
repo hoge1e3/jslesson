@@ -1,15 +1,21 @@
 requirejs(["FS","Shell","Shell2","ProjectCompiler",
            "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog",
-           "assert"],
+           "assert","DeferredUtil"],
   function (FS, sh,sh2,TPRC,
-           NPD,           UI, Auth,zip,Sync,NSD,
-           A) {
+           NPD, UI, Auth,zip,Sync,NSD,
+           A,DU) {
     if (location.href.match(/localhost/)) {
         A.setMode(A.MODE_STRICT);
     } else {
         A.setMode(A.MODE_DEFENSIVE);
     }
-$(function () {
+    $.when(DU.documentReady(),Auth.check()).then(ready);
+function ready() {
+    console.log("AUth",Auth.user,Auth.class);
+    if(!Auth.loggedIn()) {
+        alert("ログインしていません。ログインページに移動します。");
+        location.href="login.php";
+    }
     $("body").append(UI("div",
             ["h1","プロジェクト一覧"],
             ["div",
@@ -35,8 +41,7 @@ $(function () {
             ["span",{id:"syncMesg"}],
             ["div",{id:"prjItemList"}]
     ));
-    // should get after Auth.login **changeHOME**
-    var projects=Auth.localProjects();// FS.resolve("${tonyuHome}/Projects/");//changeHOME
+    var projects=Auth.localProjects();// FS.resolve("${tonyuHome}/Projects/");
     console.log(projects);
     projects.mkdir();
     sh.cd(projects);
@@ -104,7 +109,7 @@ $(function () {
                 $("#syncMesg").append(UI("a",{href:"login.php"},"他ユーザでログイン"));
             },3000);
         }).fail(function (e) {
-            if (e==Sync.NOT_LOGGED_IN) {
+            if (e==Sync.NOT_LOGGED_IN) {//Deprecated
                 $("#syncMesg").empty().append(UI("a",{href:"login.php"},"ログイン"));
                 if(confirm("ログインしていません。ログインページに移動します。")){
                     location.href="login.php";
@@ -143,5 +148,5 @@ $(function () {
         });
     });
     ls();
-});
+}//of function ready()
 });

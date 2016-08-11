@@ -12,6 +12,10 @@ define(["FS"], function (FS) {
                 return self;
             });
         },
+        loggedIn:function () {
+            return (typeof this.class)==="string" && this.class.length>0 &&
+                   (typeof this.user) ==="string" && this.user.length>0;
+        },
         login:function (_class,user) {
             this.class=_class;
             this.user=user;

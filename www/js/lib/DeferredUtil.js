@@ -40,11 +40,15 @@ define([], function () {
             },
             funcPromise:function (f) {
                 var d=new $.Deferred;
-                f(function (v) {
-                    d.resolve(v);
-                },function (e) {
+                try {
+                    f(function (v) {
+                        d.resolve(v);
+                    },function (e) {
+                        d.reject(e);
+                    });
+                }catch(e) {
                     d.reject(e);
-                });
+                }
                 return d.promise();
             },
             throwPromise:function (e) {
@@ -113,6 +117,15 @@ define([], function () {
             },
             tryEach: function (s,f) {
                 return DU.loop(s,DU.tr(f));
+            },
+            documentReady:function () {
+                return DU.callbackToPromise(function (s) {$(s);});
+            },
+            requirejs:function (modules) {
+                if (!window.requirejs) throw new Error("requirejs is not loaded");
+                return DU.callbackToPromise(function (s) {
+                    window.requirejs(modules,s);
+                });
             }
     };
     DU.begin=DU.try=DU.tr=DU.throwF;
