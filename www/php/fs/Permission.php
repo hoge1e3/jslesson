@@ -27,6 +27,7 @@ class Permission {
     }  
     public function check($p,$opr) {
         if ($this->isAccessible($p,$opr)) return $this;
+        http_response_code(403);
         throw new Exception("Cannot $opr to $p");
     }
 }

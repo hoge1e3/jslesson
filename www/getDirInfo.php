@@ -17,11 +17,13 @@ if (!isset($_GET["base"])) {
 }
 $base=$_GET["base"];
 require_once "php/getDirInfoLib.php";
-
-//print $json->encode( $fs->ls("Tonyu/Projects/") );
-$inf=getDirInfo($base, $base);
-$inf["user"]=Auth::curUser();
-$inf["class"]=Auth::curClass();
-print $json->encode( $inf );
-
+//try {
+    //print $json->encode( $fs->ls("Tonyu/Projects/") );
+    $inf=getDirInfo($base, $base);
+    $inf["user"]=Auth::curUser();
+    $inf["class"]=Auth::curClass();
+    print $json->encode( $inf );
+/*}catch(Exception $e) { 
+    die($e);
+}*/
 ?>

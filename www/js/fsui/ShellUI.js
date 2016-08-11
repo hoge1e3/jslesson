@@ -48,6 +48,10 @@ function (shParent,UI,FS,Util,shp) {
                 }
             //});
         },err:function (e) {
+            if (typeof e=="object") {
+                if (e.responseText) e=e.responseText;
+                else e=JSON.stringify(e);
+            }
             out.append(UI("div",{"class": "shell error"},e,["br"],["pre",e.stack]));
         }});
         return;// d.promise();
