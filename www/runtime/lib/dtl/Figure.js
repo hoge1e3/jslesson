@@ -14,10 +14,24 @@ return this['setLocalShapeAsLines']();
 }))['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;
 this['element']=this['createSVGElem']("g");
-return this['copySVGElem']((this['element']),(this['__proto__']['element']));
+this['copySVGElem']((this['element']),(this['__proto__']['element']));
+this['polygonElem']=this['undef'];
+return this['findPolygonElem']();
 }));
-this['setTrans']();
+this['isShowing']=this['false'];
 return this['appear']();
+});
+this['Figure']['findPolygonElem']=dtlbind(this,function(){
+var self=this;var 自分=self;
+var p;
+p=this['element']['find']("polygon");
+return dtlbind(this,function(){
+var self=this;var 自分=self;
+return (p['length']>(0));
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['polygonElem']=p;
+}));
 });
 this['Figure']['setLocalShapeAsPolygon']=dtlbind(this,function(){
 var self=this;var 自分=self;

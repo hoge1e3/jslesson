@@ -23,8 +23,7 @@ m['pos']=m['pos']['sub']((this['pos']));
 this['add']((m));
 return m['setTrans']();
 }));
-this['appear']();
-return this['setTrans']();
+return this['appear']();
 });
 }).checkerror().apply(root,[]);
 //# sourceMappingURL=Group.js.map

@@ -673,7 +673,7 @@ $(function () {
                 //if (isChrome) { s=bytes(s); console.log("CONV",s); }
             }
             if (isFirefox) {
-                e.stack=(e+e.stack).replace(/\\u([0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])/g,function (_,c) {
+                e.stack=(e+"\n"+e.stack).replace(/\\u([0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])/g,function (_,c) {
                     return String.fromCharCode("0x"+c);
                 });
             }

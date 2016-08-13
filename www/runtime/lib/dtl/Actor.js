@@ -48,12 +48,17 @@ return t['copySVGElem']((n),(s));
 });
 this['Actor']['appear']=dtlbind(this,function(){
 var self=this;var 自分=self;
-return this['group']['add']((this));
+this['group']['add']((this));
+this['setTrans']();
+this['isShowing']=this['true'];
+return this;
 });
 this['Actor']['die']=dtlbind(this,function(){
 var self=this;var 自分=self;
 var i;
-return this['group']['remove']((this));
+this['group']['remove']((this));
+this['isShowing']=this['false'];
+return this;
 });
 this['Actor']['group']=this['Actor']['create']();
 this['Actor']['group']['members']=this['Array']['create']();
@@ -172,13 +177,18 @@ this['Actor']['crashTo']=dtlbind(this,function(o){
 var self=this;var 自分=self;
 return (this['getCrashShape']())['intersects']((o['getCrashShape']()));
 });
-this['Actor']['setTrans']=dtlbind(this,function(){
+this['Actor']['setTrans']=dtlbind(this,function(str){
 var self=this;var 自分=self;
-var str;
 str=(((("translate("+(this['pos']['x']))+" ")+(this['pos']['y']))+") ");
 str=(((str+"rotate(")+this['dir'])+") ");
 this['element']['attr']("transform",(str))['attr']("data-trans",((((((this['pos']['x'])+",")+(this['pos']['y']))+",")+this['dir'])));
-this['checkCrash']();
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['isShowing'];
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['checkCrash']();
+}));
 return this;
 });
 this['Actor']['moveTo']=dtlbind(this,function(dx,dy){
@@ -201,7 +211,7 @@ return this['setTrans']();
 });
 this['Actor']['getDir']=dtlbind(this,function(){
 var self=this;var 自分=self;
-return this['dir'];
+return (this['dir']%(360));
 });
 this['Actor']['collision']=dtlbind(this,function(){
 var self=this;var 自分=self;

@@ -74,6 +74,7 @@ return d;
 }));
 return self;
 });
+this['Timer']['next_execute']=this['Timer']['execute'];
 return this['Timer']['after_execute']=dtlbind(this,function(f){
 var self=this;var 自分=self;
 self['d']['then'](dtlbind(this,function(){

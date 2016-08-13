@@ -5,13 +5,14 @@ this['Turtle']['img']="ayumi.gif";
 this['turtle']['initialize']=dtlbind(this,function(){
 var self=this;var 自分=self;
 this['element']=this['createSVGElem']("image");
-this['element']['get']((0))['setAttributeNS']("http://www.w3.org/1999/xlink","href",((this['baseURL']+self['img'])));
+this['element']['get']((0))['setAttributeNS']("http://www.w3.org/1999/xlink","href",((this['baseURL']+this['img'])));
 this['adjustImage']();
+this['getImageSize'](((this['baseURL']+this['img'])));
 this['element']['attr']("transform","scale(1,-1)");
 this['lineColor']("black");
-this['appear']();
 this['newLineG']();
-return this['setTrans']();
+this['isShowing']=this['false'];
+return this['appear']();
 });
 this['turtle']['width']=(32);
 this['turtle']['height']=(32);
@@ -148,7 +149,13 @@ str=(((("translate("+(this['pos']['x']))+" ")+(this['pos']['y']))+") ");
 str=(((str+"rotate(")+this['dir'])+") ");
 str=(str+"scale(1 -1) ");
 this['element']['attr']("transform",(str))['attr']("data-trans",((((((this['pos']['x'])+",")+(this['pos']['y']))+",")+this['dir'])));
-this['checkCrash']();
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['isShowing'];
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['checkCrash']();
+}));
 return this;
 });
 }).checkerror().apply(root,[]);
