@@ -215,7 +215,10 @@ Object.defineProperty(Array.prototype,"add",{
 });
 Object.defineProperty(Array.prototype,"書く",{
 	enumerable:false,configurable:true,
-	value:function(value){this.push(value);return this;}
+	value:function(){
+		for(var i in arguments)this.push(arguments[i]);
+		return this;
+	}
 });
 Object.defineProperty(Array.prototype,"remove",{
 	enumerable:false,configurable:true,
@@ -314,7 +317,7 @@ root.or=or;
 Boolean.prototype.then=function(){return (this)?True:False;};
 Boolean.prototype["反対"]=function(){return (false==this);};
 //Number
-["atan","abs","floor","sqrt"].forEach(function (k) {
+["atan","acos","asin","abs","floor","sqrt","round","ceil","exp"].forEach(function (k) {
     Number.prototype[k]=function () {
         return Math[k](this);
     };
@@ -324,6 +327,23 @@ Boolean.prototype["反対"]=function(){return (false==this);};
         return Math[k](this.radian());
     };
 });
+/*["atan","acos","asin"].forEach(function(k){
+	Number.prototype[k]=function(){
+		return parseInt(Math[k](this).degree());
+	};
+});*/
+Number.prototype.atan2=function(y){
+	return Math.atan2(y,this);
+};
+Number.prototype.pow=function(m){
+	return Math.pow(this,m);
+};
+Number.prototype.log=function(){
+	return Math.log10(this);
+};
+Number.prototype.ln=function(){
+	return Math.log(this);
+};
 Number.prototype.radian=function() {
     return this/180*Math.PI;
 };

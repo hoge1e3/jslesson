@@ -80,6 +80,11 @@ class Auth {
         if (!MySession::has("class")) return null;
         return MySession::get("class");
    }
+    static function loggedIn() {
+	    $class=self::curClass();
+   	    $user=self::curUser();
+   	    return ($user && $class);
+    }
    static function getFS() {
 	    $class=self::curClass();
    	    $user=self::curUser();

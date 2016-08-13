@@ -74,6 +74,7 @@ class SFile{
         return $m["lastUpdate"];
     }
     public function exists() {
+        return $this->fs->exists($this->path());
     }
     public function rm() {
     }

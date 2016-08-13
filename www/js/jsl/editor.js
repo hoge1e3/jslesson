@@ -15,6 +15,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           LocalBrowser,logToServer,zip,SplashScreen,Auth
           ) {
 $(function () {
+    var isChrome=navigator.userAgent.indexOf("Chrome")>=0;
     var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -625,6 +626,19 @@ $(function () {
         if (!e) return;
         return Tonyu.onRuntimeError(e);
     };
+    var bytes=function(s) {
+        try {
+            var r="";
+            for(var i=0;i<s.length;i++) {
+                r+="%"+(s.charCodeAt(i).toString(16)); 
+            } 
+            return decodeURIComponent(r); 
+        }catch(e) {
+            console.log(e, s);
+            return s;
+        }
+    };
+    var reDialog=0;
     EC.handleException=Tonyu.onRuntimeError=function (e) {
         Tonyu.globals.$lastError=e;
         //A.is(e,Error);// This will fail when error from iframe.
@@ -653,6 +667,10 @@ $(function () {
             stop();
             logToServer("JS Runtime Error!\n"+te.src+":"+te.pos+"\n"+te.mesg+"\nJS Runtime Error End!");
         } else {
+            if (isChrome) {
+                e.stack=e.stack.split("\n").map(bytes).join("\n");
+                //if (isChrome) { s=bytes(s); console.log("CONV",s); }
+            }
             var stack = e.stack.split("\n");
             var cve;
             var rc=/:([0-9]+):([0-9]+)/;
@@ -668,8 +686,9 @@ $(function () {
                 }
             });
             UI("div",{title:"Error"},"["+(cve||e)+"]",
-            ["button",{on:{click:function(){console.log("clicked");$("#reConsole").text(e.stack);}}},"詳細"],
-            ["pre",{id:"reConsole"},stack[0]+"\n"+stack[1]]).dialog({width:800});
+            ["button",{on:{click:function(){console.log("clicked");$("#reConsole"+reDialog).text(e.stack);}}},"詳細"],
+            ["pre",{id:"reConsole"+reDialog},stack[0]+"\n"+stack[1]]).dialog({width:800});
+            reDialog++;
             stop();
             logToServer(e.stack || e);
         }
