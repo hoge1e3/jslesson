@@ -2295,7 +2295,7 @@ define('WebSite',[], function () {
     WS.sampleImg=WS.top+"/images";
     WS.isNW=(typeof process=="object" && process.__node_webkit);
     //WS.fsHome="";
-    WS.tonyuHome="/Tonyu/";
+    WS.tonyuHome="/Tonyu/";//changeHOME
     WS.JSLKer="fs/Tonyu/Projects/JSLKer";
     WS.serverTop=location.href.replace(/\?.*$/,"").replace(/[^/]*$/,"");//"."; // includes /
     WS.phpTop=WS.serverTop+"";//php/";
@@ -3221,11 +3221,15 @@ define('DeferredUtil',[], function () {
             },
             funcPromise:function (f) {
                 var d=new $.Deferred;
-                f(function (v) {
-                    d.resolve(v);
-                },function (e) {
+                try {
+                    f(function (v) {
+                        d.resolve(v);
+                    },function (e) {
+                        d.reject(e);
+                    });
+                }catch(e) {
                     d.reject(e);
-                });
+                }
                 return d.promise();
             },
             throwPromise:function (e) {
@@ -3294,6 +3298,15 @@ define('DeferredUtil',[], function () {
             },
             tryEach: function (s,f) {
                 return DU.loop(s,DU.tr(f));
+            },
+            documentReady:function () {
+                return DU.callbackToPromise(function (s) {$(s);});
+            },
+            requirejs:function (modules) {
+                if (!window.requirejs) throw new Error("requirejs is not loaded");
+                return DU.callbackToPromise(function (s) {
+                    window.requirejs(modules,s);
+                });
             }
     };
     DU.begin=DU.try=DU.tr=DU.throwF;
@@ -3553,6 +3566,10 @@ function (shParent,UI,FS,Util,shp) {
                 }
             //});
         },err:function (e) {
+            if (typeof e=="object") {
+                if (e.responseText) e=e.responseText;
+                else e=JSON.stringify(e);
+            }
             out.append(UI("div",{"class": "shell error"},e,["br"],["pre",e.stack]));
         }});
         return;// d.promise();
@@ -11596,11 +11613,39 @@ define('NewProjectDialog',["UI"], function (UI) {
     return res;
 });
 
-define('Auth',[], function () {
+define('Auth',["FS"], function (FS) {
     Auth={
-            currentUser:function (r) {
-                r();
-            }
+        check:function () {
+            var self=this;
+            //console.log("CHK");
+            return $.when(
+                $.get("login.php?curclass="+Math.random()),
+                $.get("login.php?curuser="+Math.random())
+            ).then(function (c,u) {
+                //console.log("CHKE",c[0],u[0]);
+                self.login(c[0],u[0]);
+                return self;
+            });
+        },
+        loggedIn:function () {
+            return (typeof this.class)==="string" && this.class.length>0 &&
+                   (typeof this.user) ==="string" && this.user.length>0;
+        },
+        login:function (_class,user) {
+            this.class=_class;
+            this.user=user;
+        },
+        localProjects:function ( ){
+            return FS.resolve("${tonyuHome}/Projects/");//changeHOME
+        },
+        remoteProjects: function () {
+            return FS.get("/home/").rel(this.class+"/").rel(this.user+"/") //changeHOME(1)
+            //return FS.get("/");//changeHOME
+        },
+        remotePublics: function () {
+            return this.remoteProjects().rel("public/") //changeHOME(1)
+            //return FS.get("/public/");//changeHOME
+        }
     };
     return Auth;
 });
@@ -11789,7 +11834,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
         status("getLocalDirInfo", req);
         var curLocalDirInfo=getLocalDirInfo();
         var curRemoteDirInfo;
-        //if (options.v) sh.echo("last/cur LocalDirInfo",lastLocalDirInfo, curLocalDirInfo);
+        if (options.v) sh.echo("last/cur LocalDirInfo",lastLocalDirInfo, curLocalDirInfo);
         localDelta=getDelta(lastLocalDirInfo, curLocalDirInfo);
         if (options.v) sh.echo("localDelta",localDelta);
         var req={base:remote.path(),excludes:JSON.stringify(options.excludes),token:""+Math.random()};
@@ -11798,21 +11843,21 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             type:"get",
             url:A(WebSite.url.getDirInfo),
             data:req
-        }).then(F(function n1(_curRemoteDirInfo) {
-            curRemoteDirInfo=_curRemoteDirInfo;
+        }).then(F(function n1(gd) {
+            curRemoteDirInfo=gd.data;
             var d;
-            if (options.v) sh.echo("getDirInfo",curRemoteDirInfo);
-            if (curRemoteDirInfo.NOT_LOGGED_IN) {
+            if (options.v) sh.echo("getDirInfo",gd);
+            if (gd.NOT_LOGGED_IN) {
                 d = new $.Deferred;
                 setTimeout(function(){
                   d.reject(Sync.NOT_LOGGED_IN);
                 }, 0);
                 return d.promise();
             }
-            user=curRemoteDirInfo.user;
-            classid=curRemoteDirInfo["class"];
-            var base=local;//FS.get(curRemoteDirInfo.base);
-            var remoteDelta=getDelta(lastRemoteDirInfo, curRemoteDirInfo.data);
+            user=gd.user;
+            classid=gd["class"];
+            var base=local;
+            var remoteDelta=getDelta(lastRemoteDirInfo, curRemoteDirInfo);
             if (options.v) sh.echo("remoteDelta",remoteDelta);
             var dd=getDeltaDelta(localDelta,remoteDelta);
             var o,f,m;
@@ -11836,11 +11881,11 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                 sh.echo("uploads:",uploads);
                 sh.echo("downloads:",downloads);
             }
-            /*if (downloads.length==0) {
+            if (downloads.length==0) {
                 if (options.v) sh.echo("Skip Download");
                 downloadSkipped=true;
                 return {data:{},downloadSkipped:true};
-            }*/
+            }
             var req={base:remote.path(),paths:JSON.stringify(downloads),token:""+Math.random()};
             status("getFiles", req);
             return $.ajax({
@@ -11856,6 +11901,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             for (var rel in dlData.data) {
                 var dlf=base.rel(rel);
                 if (dlf.isDir()) continue;
+                if (dlf.path().indexOf(".sync/")>=0) continue;
                 var d=dlData.data[rel];
                 //if (options.v) sh.echo(dlf.path(), d);
                 if (d.trashed) {
@@ -11866,11 +11912,11 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                 delete d.text;
                 dlf.metaInfo(d);
             }
-            /*if (Object.keys(uploads).length==0) {
+            if (Object.keys(uploads).length==0) {
                 if (options.v) sh.echo("Skip Upload");
                 uploadSkipped=true;
                 return {uploadSkipped:true};
-            }*/
+            }
             var req={base:remote.path(),data:JSON.stringify(uploads),token:""+Math.random()};
             req.pathInfo=A(WebSite.url.putFiles);
             status("putFiles", req);
@@ -11884,13 +11930,13 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             if (!downloadSkipped) {
                 var newLocalDirInfo=getLocalDirInfo();
                 localDirInfoFile.obj(newLocalDirInfo);
-            } else if (!localDirInfoFile.exists()) {
+            } else {
                 localDirInfoFile.obj(curLocalDirInfo);
             }
             if (!uploadSkipped) {
                 var newRemoteDirInfo=res.data;
                 remoteDirInfoFile.obj(newRemoteDirInfo);
-            } else if (!remoteDirInfoFile.exists()) {
+            } else {
                 remoteDirInfoFile.obj(curRemoteDirInfo);
             }
             var upds=[];
@@ -11990,16 +12036,22 @@ define('NewSampleDialog',["UI"], function (UI) {
 
 requirejs(["FS","Shell","Shell2","ProjectCompiler",
            "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog",
-           "assert"],
-  function (FS, sh,sh2,TPRC,
-           NPD,           UI, Auth,zip,Sync,NSD,
-           A) {
+           "assert","DeferredUtil"],
+    function(FS, sh,sh2,TPRC,
+           NPD, UI, Auth,zip,Sync,NSD,
+           A,DU) {
     if (location.href.match(/localhost/)) {
         A.setMode(A.MODE_STRICT);
     } else {
         A.setMode(A.MODE_DEFENSIVE);
     }
-$(function () {
+    $.when(DU.documentReady(),Auth.check()).then(ready);
+function ready() {//-------------------------
+    console.log("AUth",Auth.user,Auth.class);
+    if(!Auth.loggedIn()) {
+        alert("ログインしていません。ログインページに移動します。");
+        location.href="login.php";
+    }
     $("body").append(UI("div",
             ["h1","プロジェクト一覧"],
             ["div",
@@ -12025,7 +12077,7 @@ $(function () {
             ["span",{id:"syncMesg"}],
             ["div",{id:"prjItemList"}]
     ));
-    var projects=FS.resolve("${tonyuHome}/Projects/");
+    var projects=Auth.localProjects();// FS.resolve("${tonyuHome}/Projects/");
     console.log(projects);
     projects.mkdir();
     sh.cd(projects);
@@ -12084,7 +12136,7 @@ $(function () {
     }
     function sync() {
         $("#syncMesg").text("同期しています....");
-        return Sync.sync(projects, FS.get("/"),{v:true}).then(function (e) {
+        return Sync.sync(projects, Auth.remoteProjects()/*FS.get("/")*/,{v:true}).then(function (e) {
             $("#syncMesg").append("ファイル保存完了");
             ls();
 	    //alert(e.classid+" クラスの "+e.user+" と同期しました。");
@@ -12093,7 +12145,7 @@ $(function () {
                 $("#syncMesg").append(UI("a",{href:"login.php"},"他ユーザでログイン"));
             },3000);
         }).fail(function (e) {
-            if (e==Sync.NOT_LOGGED_IN) {
+            if (e==Sync.NOT_LOGGED_IN) {//Deprecated
                 $("#syncMesg").empty().append(UI("a",{href:"login.php"},"ログイン"));
                 if(confirm("ログインしていません。ログインページに移動します。")){
                     location.href="login.php";
@@ -12132,7 +12184,7 @@ $(function () {
         });
     });
     ls();
-});
+}//------of function ready()-----------
 });
 
 define("jsl_selProject", function(){});

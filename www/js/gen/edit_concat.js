@@ -3057,7 +3057,7 @@ define('WebSite',[], function () {
     WS.sampleImg=WS.top+"/images";
     WS.isNW=(typeof process=="object" && process.__node_webkit);
     //WS.fsHome="";
-    WS.tonyuHome="/Tonyu/";
+    WS.tonyuHome="/Tonyu/";//changeHOME
     WS.JSLKer="fs/Tonyu/Projects/JSLKer";
     WS.serverTop=location.href.replace(/\?.*$/,"").replace(/[^/]*$/,"");//"."; // includes /
     WS.phpTop=WS.serverTop+"";//php/";
@@ -10962,11 +10962,15 @@ define('DeferredUtil',[], function () {
             },
             funcPromise:function (f) {
                 var d=new $.Deferred;
-                f(function (v) {
-                    d.resolve(v);
-                },function (e) {
+                try {
+                    f(function (v) {
+                        d.resolve(v);
+                    },function (e) {
+                        d.reject(e);
+                    });
+                }catch(e) {
                     d.reject(e);
-                });
+                }
                 return d.promise();
             },
             throwPromise:function (e) {
@@ -11035,6 +11039,15 @@ define('DeferredUtil',[], function () {
             },
             tryEach: function (s,f) {
                 return DU.loop(s,DU.tr(f));
+            },
+            documentReady:function () {
+                return DU.callbackToPromise(function (s) {$(s);});
+            },
+            requirejs:function (modules) {
+                if (!window.requirejs) throw new Error("requirejs is not loaded");
+                return DU.callbackToPromise(function (s) {
+                    window.requirejs(modules,s);
+                });
             }
     };
     DU.begin=DU.try=DU.tr=DU.throwF;
@@ -11905,6 +11918,10 @@ function (shParent,UI,FS,Util,shp) {
                 }
             //});
         },err:function (e) {
+            if (typeof e=="object") {
+                if (e.responseText) e=e.responseText;
+                else e=JSON.stringify(e);
+            }
             out.append(UI("div",{"class": "shell error"},e,["br"],["pre",e.stack]));
         }});
         return;// d.promise();
@@ -12329,7 +12346,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
         status("getLocalDirInfo", req);
         var curLocalDirInfo=getLocalDirInfo();
         var curRemoteDirInfo;
-        //if (options.v) sh.echo("last/cur LocalDirInfo",lastLocalDirInfo, curLocalDirInfo);
+        if (options.v) sh.echo("last/cur LocalDirInfo",lastLocalDirInfo, curLocalDirInfo);
         localDelta=getDelta(lastLocalDirInfo, curLocalDirInfo);
         if (options.v) sh.echo("localDelta",localDelta);
         var req={base:remote.path(),excludes:JSON.stringify(options.excludes),token:""+Math.random()};
@@ -12338,21 +12355,21 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             type:"get",
             url:A(WebSite.url.getDirInfo),
             data:req
-        }).then(F(function n1(_curRemoteDirInfo) {
-            curRemoteDirInfo=_curRemoteDirInfo;
+        }).then(F(function n1(gd) {
+            curRemoteDirInfo=gd.data;
             var d;
-            if (options.v) sh.echo("getDirInfo",curRemoteDirInfo);
-            if (curRemoteDirInfo.NOT_LOGGED_IN) {
+            if (options.v) sh.echo("getDirInfo",gd);
+            if (gd.NOT_LOGGED_IN) {
                 d = new $.Deferred;
                 setTimeout(function(){
                   d.reject(Sync.NOT_LOGGED_IN);
                 }, 0);
                 return d.promise();
             }
-            user=curRemoteDirInfo.user;
-            classid=curRemoteDirInfo["class"];
-            var base=local;//FS.get(curRemoteDirInfo.base);
-            var remoteDelta=getDelta(lastRemoteDirInfo, curRemoteDirInfo.data);
+            user=gd.user;
+            classid=gd["class"];
+            var base=local;
+            var remoteDelta=getDelta(lastRemoteDirInfo, curRemoteDirInfo);
             if (options.v) sh.echo("remoteDelta",remoteDelta);
             var dd=getDeltaDelta(localDelta,remoteDelta);
             var o,f,m;
@@ -12376,11 +12393,11 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                 sh.echo("uploads:",uploads);
                 sh.echo("downloads:",downloads);
             }
-            /*if (downloads.length==0) {
+            if (downloads.length==0) {
                 if (options.v) sh.echo("Skip Download");
                 downloadSkipped=true;
                 return {data:{},downloadSkipped:true};
-            }*/
+            }
             var req={base:remote.path(),paths:JSON.stringify(downloads),token:""+Math.random()};
             status("getFiles", req);
             return $.ajax({
@@ -12396,6 +12413,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             for (var rel in dlData.data) {
                 var dlf=base.rel(rel);
                 if (dlf.isDir()) continue;
+                if (dlf.path().indexOf(".sync/")>=0) continue;
                 var d=dlData.data[rel];
                 //if (options.v) sh.echo(dlf.path(), d);
                 if (d.trashed) {
@@ -12406,11 +12424,11 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                 delete d.text;
                 dlf.metaInfo(d);
             }
-            /*if (Object.keys(uploads).length==0) {
+            if (Object.keys(uploads).length==0) {
                 if (options.v) sh.echo("Skip Upload");
                 uploadSkipped=true;
                 return {uploadSkipped:true};
-            }*/
+            }
             var req={base:remote.path(),data:JSON.stringify(uploads),token:""+Math.random()};
             req.pathInfo=A(WebSite.url.putFiles);
             status("putFiles", req);
@@ -12424,13 +12442,13 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             if (!downloadSkipped) {
                 var newLocalDirInfo=getLocalDirInfo();
                 localDirInfoFile.obj(newLocalDirInfo);
-            } else if (!localDirInfoFile.exists()) {
+            } else {
                 localDirInfoFile.obj(curLocalDirInfo);
             }
             if (!uploadSkipped) {
                 var newRemoteDirInfo=res.data;
                 remoteDirInfoFile.obj(newRemoteDirInfo);
-            } else if (!remoteDirInfoFile.exists()) {
+            } else {
                 remoteDirInfoFile.obj(curRemoteDirInfo);
             }
             var upds=[];
@@ -12989,13 +13007,49 @@ define("SplashScreen", (function (global) {
     };
 }(this)));
 
+define('Auth',["FS"], function (FS) {
+    Auth={
+        check:function () {
+            var self=this;
+            //console.log("CHK");
+            return $.when(
+                $.get("login.php?curclass="+Math.random()),
+                $.get("login.php?curuser="+Math.random())
+            ).then(function (c,u) {
+                //console.log("CHKE",c[0],u[0]);
+                self.login(c[0],u[0]);
+                return self;
+            });
+        },
+        loggedIn:function () {
+            return (typeof this.class)==="string" && this.class.length>0 &&
+                   (typeof this.user) ==="string" && this.user.length>0;
+        },
+        login:function (_class,user) {
+            this.class=_class;
+            this.user=user;
+        },
+        localProjects:function ( ){
+            return FS.resolve("${tonyuHome}/Projects/");//changeHOME
+        },
+        remoteProjects: function () {
+            return FS.get("/home/").rel(this.class+"/").rel(this.user+"/") //changeHOME(1)
+            //return FS.get("/");//changeHOME
+        },
+        remotePublics: function () {
+            return this.remoteProjects().rel("public/") //changeHOME(1)
+            //return FS.get("/public/");//changeHOME
+        }
+    };
+    return Auth;
+});
 requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "showErrorPos", "fixIndent",  "ProjectCompiler",
            "Shell","ShellUI","KeyEventChecker",
            "runtime", "searchDialog","StackTrace",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
-           "LocalBrowser","logToServer","zip","SplashScreen"
+           "LocalBrowser","logToServer","zip","SplashScreen","Auth"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -13003,9 +13057,10 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           rt, searchDialog,StackTrace,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
-          LocalBrowser,logToServer,zip,SplashScreen
+          LocalBrowser,logToServer,zip,SplashScreen,Auth
           ) {
 $(function () {
+    var isChrome=navigator.userAgent.indexOf("Chrome")>=0;
     var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -13016,23 +13071,31 @@ $(function () {
     }
     //console.log("assert test", A.is(null,String));
     var P=FS.PathUtil;
-    var curClassroom;
-    $.get("login.php?curclass="+Math.random()).then(function (r){
+    //var curUser; Deprecated: use Auth.user
+    //var curClassroom;  Deprecated: use Auth.class
+    Auth.check().then(function (t) {
+        //curClassroom=t.class;
+        //curUser=t.user;
+        console.log("curclass/user",t.class, t.user);
+    }).fail(function (e) {
+        console.log(e);
+        alert("ユーザ情報の取得に失敗しました");
+    });
+    /*$.get("login.php?curclass="+Math.random()).then(function (r){
         console.log("curclass",r);
         curClassroom=r;
     });
-    var curUser;
     $.get("login.php?curuser="+Math.random()).then(function (r) {
         console.log("curuser",r);
         curUser=r;
-    });
+    });*/
     requirejs(["ace"],function (){
         console.log("ace loaded:",ace);
         SplashScreen.hide();
     });
     var F=EC.f;
     $LASTPOS=0;
-    var home=FS.resolve("${tonyuHome}");
+    //var home=FS.resolve("${tonyuHome}");
     var dir=Util.getQueryString("dir");
     if (!dir) {
         alert("dir is not specified");
@@ -13393,10 +13456,10 @@ $(function () {
     }
     var curName,runURL;
     function sync() {
-        var projects=FS.resolve("${tonyuHome}/Projects/");
+        var projects=Auth.localProjects();//FS.resolve("${tonyuHome}/Projects/");
     	unsaved=false;
 	    //unsynced=false;
-        return Sync.sync(projects, FS.get("/"),{v:true}).then(
+        return Sync.sync(projects, Auth.remoteProjects()/*FS.get("/")*/,{v:true}).then(
             function(){unsynced=false;showToast("保存しました");}
         ).fail(function (e) {
             if (!e) e="Unknown error";
@@ -13413,7 +13476,7 @@ $(function () {
             }
             if (builder && inf) {
                 var curFile=inf.file;
-                var pub=FS.get("/public/").rel(curProjectDir.name());
+                var pub=Auth.remotePublics()/*FS.get("/public/")*/.rel(curProjectDir.name());
                 SplashScreen.show();
                 DU.timeout(0).then(function () {
                     return builder.build();    
@@ -13425,8 +13488,8 @@ $(function () {
                     var cv=$("<div>");
                     cv.dialog();
                     //  http://localhost/fs/home/0123/dolittle/public/Turtle2/Raw_k6.html
-                    runURL=WebSite.published+curClassroom+"/"+
-                    curUser+"/public/"+pub.name()+curFile.truncExt()+".html";
+                    runURL=WebSite.published+Auth.class+"/"+
+                    Auth.user+"/public/"+pub.name()+curFile.truncExt()+".html";
                     //alert("synced "+runURL);
                     cv.append($("<div>").append(
                         $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
@@ -13608,6 +13671,19 @@ $(function () {
         if (!e) return;
         return Tonyu.onRuntimeError(e);
     };
+    var bytes=function(s) {
+        try {
+            var r="";
+            for(var i=0;i<s.length;i++) {
+                r+="%"+(s.charCodeAt(i).toString(16)); 
+            } 
+            return decodeURIComponent(r); 
+        }catch(e) {
+            console.log(e, s);
+            return s;
+        }
+    };
+    var reDialog=0;
     EC.handleException=Tonyu.onRuntimeError=function (e) {
         Tonyu.globals.$lastError=e;
         //A.is(e,Error);// This will fail when error from iframe.
@@ -13636,6 +13712,10 @@ $(function () {
             stop();
             logToServer("JS Runtime Error!\n"+te.src+":"+te.pos+"\n"+te.mesg+"\nJS Runtime Error End!");
         } else {
+            if (isChrome) {
+                e.stack=e.stack.split("\n").map(bytes).join("\n");
+                //if (isChrome) { s=bytes(s); console.log("CONV",s); }
+            }
             var stack = e.stack.split("\n");
             var cve;
             var rc=/:([0-9]+):([0-9]+)/;
@@ -13651,8 +13731,9 @@ $(function () {
                 }
             });
             UI("div",{title:"Error"},"["+(cve||e)+"]",
-            ["button",{on:{click:function(){console.log("clicked");$("#reConsole").text(e.stack);}}},"詳細"],
-            ["pre",{id:"reConsole"},stack[0]+"\n"+stack[1]]).dialog({width:800});
+            ["button",{on:{click:function(){console.log("clicked");$("#reConsole"+reDialog).text(e.stack);}}},"詳細"],
+            ["pre",{id:"reConsole"+reDialog},stack[0]+"\n"+stack[1]]).dialog({width:800});
+            reDialog++;
             stop();
             logToServer(e.stack || e);
         }
@@ -13816,10 +13897,10 @@ $(function () {
         ProjectOptionsEditor(curPrj);
     }));
     var helpd=null;
-    $("#refHelp").click(F(function () {
+    /*$("#refHelp").click(F(function () {
     	if (!helpd) helpd=WikiDialog.create(home.rel("doc/tonyu2/"));
     	helpd.show();
-    }));
+    }));*/
     if (typeof progBar=="object") {progBar.clear();}
     $("#rmPRJ").click(F(function () {
         if (prompt(curProjectDir+"内のファイルをすべて削除しますか？削除する場合はDELETE と入力してください．","")!="DELETE") {
