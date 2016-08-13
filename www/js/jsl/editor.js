@@ -15,6 +15,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           LocalBrowser,logToServer,zip,SplashScreen,Auth
           ) {
 $(function () {
+    var isFirefox=navigator.userAgent.indexOf("Firefox")>=0;
     var isChrome=navigator.userAgent.indexOf("Chrome")>=0;
     var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
     if (location.href.match(/localhost/)) {
@@ -148,7 +149,8 @@ $(function () {
                   ]*/},
                   {label:"保存",id:"save"},
                   {label:"設定",sub:[
-                      {label:"エディタの文字の大きさ",id:"textsize",action:textSize}
+                      {label:"エディタの文字の大きさ",id:"textsize",action:textSize}/*,
+                      {label:"エディタモード切替",id:"editorType",action:editorType}*/
                   ]}
                 ]
         );
@@ -638,7 +640,6 @@ $(function () {
             return s;
         }
     };
-    var reDialog=0;
     EC.handleException=Tonyu.onRuntimeError=function (e) {
         Tonyu.globals.$lastError=e;
         //A.is(e,Error);// This will fail when error from iframe.
@@ -671,6 +672,11 @@ $(function () {
                 e.stack=e.stack.split("\n").map(bytes).join("\n");
                 //if (isChrome) { s=bytes(s); console.log("CONV",s); }
             }
+            if (isFirefox) {
+                e.stack=(e+e.stack).replace(/\\u([0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])/g,function (_,c) {
+                    return String.fromCharCode("0x"+c);
+                });
+            }
             var stack = e.stack.split("\n");
             var cve;
             var rc=/:([0-9]+):([0-9]+)/;
@@ -686,9 +692,10 @@ $(function () {
                 }
             });
             UI("div",{title:"Error"},"["+(cve||e)+"]",
-            ["button",{on:{click:function(){console.log("clicked");$("#reConsole"+reDialog).text(e.stack);}}},"詳細"],
-            ["pre",{id:"reConsole"+reDialog},stack[0]+"\n"+stack[1]]).dialog({width:800});
-            reDialog++;
+            //["button",{on:{click:function(){console.log("clicked");$("#reConsole"+reDialog).text(e.stack);}}},"詳細"],
+            //["pre",{id:"reConsole"+reDialog},stack[0]+"\n"+stack[1]]).dialog({width:800});
+            ["button",{on:{click:function(){console.log("clicked");$(this).parent("div").children("pre").text(e.stack);}}},"詳細"],
+            ["pre",{id:"reConsole"},stack[0]+"\n"+stack[1]]).dialog({width:800});
             stop();
             logToServer(e.stack || e);
         }
@@ -747,19 +754,23 @@ $(function () {
         fl.setModified(false);
     }
     function watchModified() {
-        var inf=getCurrentEditorInfo();
-        if (!inf) return;
-        var curFile=inf.file; //fl.curFile();
-    	var prog=inf.editor;//getCurrentEditor();
-    	var mod=(curFile.exists()?curFile.text():"")!=prog.getValue();
-    	fl.setModified(mod);
-	    $("#modLabel").text(mod?"(変更あり)":"");
-	    if(mod){
-	        unsaved=true;
-	        unsynced=true;
-	    }else{
-	        unsaved=false;
-	    }
+        try {
+            var inf=getCurrentEditorInfo();
+            if (!inf) return;
+            var curFile=inf.file; //fl.curFile();
+        	var prog=inf.editor;//getCurrentEditor();
+        	var mod=(curFile.exists()?curFile.text():"")!=prog.getValue();
+        	fl.setModified(mod);
+    	    $("#modLabel").text(mod?"(変更あり)":"");
+    	    if(mod){
+    	        unsaved=true;
+    	        unsynced=true;
+    	    }else{
+    	        unsaved=false;
+    	    }
+        }catch(e) {
+            console.log(e);            
+        }
     }
     function fileSet(c) {
         A.is(c,"SFile");
@@ -806,6 +817,9 @@ $(function () {
 	    else prog.setFontSize(18);
             //prog.setFontSize(20);
             prog.setTheme("ace/theme/eclipse");
+            defaultKeyboard=prog.getKeyboardHandler();
+            //prog.setKeyboardHandler("ace/keyboard/emacs");
+            //prog.setKeyboardHandler(defaultKeyboard);
             if (f.ext()==EXT && lang=="c") {
                 prog.getSession().setMode("ace/mode/c_cpp");
             }
@@ -884,6 +898,17 @@ $(function () {
         if (prog) prog.setFontSize(desktopEnv.editorFontSize||18);
         saveDesktopEnv();
     }
+    /*var editorMode=0;
+    function editorType() {
+        var prog=getCurrentEditor();
+        if(editorMode%2==0){
+            prog.setKeyboardHandler("ace/keyboard/emacs");
+        }else{
+            prog.setKeyboardHandler(defaultKeyboard);
+        }
+        editorMode++;
+        desktopEnv.editorKeyboardMode=
+    }*/
     function showToast(msg){
 	$("#toastArea").text(msg);
 	setTimeout(function(){

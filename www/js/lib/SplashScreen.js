@@ -59,7 +59,7 @@ window.SplashScreen=window.SplashScreen||(function () {
     SS.hide=function () {
     	if (SS.state===false) return;
     	console.log("Hide");
-    	//s.remove();
+    	s.remove();
     	SS.state="away";
     };
     return SS;
