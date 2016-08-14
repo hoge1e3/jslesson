@@ -92,6 +92,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
                 src:{html:html,dtl:dtl},
                 dst:{
                     html:dst.rel(name+".html"),
+                    dtlvm:isVM(dtl.text())?dst.rel(name+".dtlvm"):null,
                     js:dst.rel(name+".js"),
                     map: dst.rel(name+".js.map")
                 }
@@ -101,6 +102,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
             return DU.each(files,function (f) {
                 t.progress("Transpile "+f.src.dtl.name());
                 if (isNewer(f.dst.js, f.src.dtl)) return SplashScreen.waitIfBusy();
+                if (f.dst.dtlvm) return compileVM(f);
                 var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
                 buf.setSrcFile(f.src.dtl);
                 var js=dtlParser.parse(f.src.dtl.text(),{indentBuffer:buf,src:f.src.dtl.name()});
@@ -115,6 +117,20 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
             });
         }));         
     };
+    function isVM(src) {
+        return src.match(/RUN_AT_SERVER/);
+    }
+    function compileVM(f) {
+        return DU.requirejs(["dolittle/dtlvm"]).then(function () {
+			var dtlNode=dtlParser.parseAsNode(f.src.dtl.text());
+    		var vmc=dtlParser.node2vm(dtlNode);
+    		var vmcj=JSON.stringify(vmc);
+    		f.dst.dtlvm.text(vmcj);
+			console.log("VM Code", vmcj);
+			f.dst.js.text("alert('このファイルはサーバで実行してください');");
+			return SplashScreen.waitIfBusy();
+        });
+    }
     p.upload=function (pub) {
         return Sync.sync(this.dst,pub);  
     };

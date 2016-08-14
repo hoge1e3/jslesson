@@ -3,7 +3,7 @@ require_once __DIR__."/PathUtil.php";
 
 class NativeFS {
    var $top,$permission;
-   function NativeFS($top,$permission=null) {
+   function NativeFS($top=null,$permission=null) {
        $this->top=$top;
        //if (isset($permission)) 
        $this->permission=$permission;
@@ -15,6 +15,7 @@ class NativeFS {
        return $this;
    }
    public function resolve($path) {
+        if (is_null($this->top)) return $path;
         if (is_null($path)) throw new Exception("path is null!");
         if (PathUtil::startsWith($path, PathUtil::SEP)) {
            $path=substr($path,1);
@@ -23,7 +24,7 @@ class NativeFS {
         if (PathUtil::startsWith($r,$this->top)) { 
             return $r; 
         }
-        throw new Exception("Canno access to $path");
+        throw new Exception("Cannot access to $path");
    }
    public function getContent($path) {
        $this->check($path,"read");

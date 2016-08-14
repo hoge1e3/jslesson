@@ -16,8 +16,17 @@ class DtlBlock {
         $res=$this->execute();
         return $res ? (new DtlTrue): (new DtlFalse);
     }
+    public function repeat($i) {
+        for ($c=0 ; $c<$i; $c++) {
+            $r=$this->execute($c);
+        }
+        return $r;
+    }
     public function _while() {
         return new DtlWhile($this);
+    }
+    public function __toString() {
+        return "DtlBlock";
     }
 }
 class DtlWhile {
@@ -30,6 +39,9 @@ class DtlWhile {
 		}
     	return $res;
 	}
+    public function __toString() {
+        return "DtlWhile";
+    }
 }
 class DtlTrue {
     public function _else($func) {

@@ -53,7 +53,7 @@ root.system={
 			(new Function(window.parent.MinimalParser.parse(data)))();
 		},function(){alert("setup.iniの読み込みに失敗しました");});
 	},
-	throw:function(e){throw new Error(e);},
+	throw:function(e){throw e;},
 	"システム秒?":function(){return new Date().getTime();},
 	"時刻?":function(){
 		var date = new Date();

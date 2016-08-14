@@ -4,7 +4,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "runtime", "searchDialog","StackTrace",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
-           "LocalBrowser","logToServer","zip","SplashScreen","Auth"
+           "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -12,7 +12,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           rt, searchDialog,StackTrace,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
-          LocalBrowser,logToServer,zip,SplashScreen,Auth
+          LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth
           ) {
 $(function () {
     var isFirefox=navigator.userAgent.indexOf("Firefox")>=0;
@@ -482,7 +482,7 @@ $(function () {
         save();
         displayMode("run");
         if(lang=="js"){
-    	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
+    	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
             SplashScreen.show();
             //RunDialog2 (new version)
             try {
@@ -499,7 +499,7 @@ $(function () {
     	                console.log("showErr: run",e);
     	                showErrorPos($("#errorPos"),e);
     	                displayMode("compile_error");
-                        logToServer("JS Compile Error!\n"+e.src+":"+e.pos+"\n"+e.mesg+"\nJS Compile Error End!");
+                        logToServer2(curJSFile.path(),"//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text(),"JS Compile Error",e.src+":"+e.pos+"\n"+e.mesg,"JS");
     	            }else{
     	                Tonyu.onRuntimeError(e);
     	            }

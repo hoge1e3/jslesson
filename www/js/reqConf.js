@@ -242,6 +242,7 @@ var reqConf={
             DtlBuilder:"build/dolittle/DtlBuilder",
             wget:"fs2/wget",
             logToServer: "jsl/logToServer",
+            logToServer2: "jsl/logToServer2",
             "foo":"bar"
         },
         "baseUrl": "js"
