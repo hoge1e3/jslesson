@@ -52,5 +52,8 @@ class PathUtil {
   public static function name($path) {
         return array_pop(self::splitPath($path));
   }
+  public function __toString() {
+      return "PathUtil";
+  }
 }
 ?>

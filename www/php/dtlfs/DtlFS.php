@@ -13,6 +13,9 @@ class DtlFS {
         *///$root=Dtl::init();
         $root->auth=new DtlAuth();
         $root->homeDir=$root->auth->homeDir();
+        $root->FS=$root->auth->getFS();
+        $root->homeDirPath=$root->auth->homeDirPath();
+        $root->PathUtil=new PathUtil();
         //$root->system=new DtlSys($root,$rootDir->rel("scripts/"));
         //$root->rootDir=$rootDir;
         return $root;

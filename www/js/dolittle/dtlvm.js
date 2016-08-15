@@ -7,6 +7,10 @@ MinimalParser.node2vm=function (node) {
        "+":"positive","-":"neg"
     };
     var v=Visitor({
+        ERROR: function (node) {
+            add(["pushi",node.message]);
+            add(["ret"]);
+        },
         paren: function (node) {
             v.visit(node.subnodes[1]);
         },

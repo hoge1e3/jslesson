@@ -26,11 +26,15 @@ class DtlObj {
             if (preg_match("/^__/",$name)) return null;
             return $obj->$name=$val;
         }
-        throw new Exception("$obj には、属性$nameを書き込めません");
+        throw new Exception("$obj には、属性$name を書き込めません");
     }
     public function create() {
         $this->IDSeq++;
         $r=new DtlObj($this,$this->ID."->".$this->IDSeq);
+        $init=self::s_get($r,"initialize");
+        if (!is_null($init)) {
+            DtlThread::run($r,$init,func_get_args());
+        }
         return $r;
     }
     public function __toString() {

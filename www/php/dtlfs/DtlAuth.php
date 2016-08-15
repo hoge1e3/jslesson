@@ -10,11 +10,15 @@ class DtlAuth {
     public function loggedIn() {
         return Auth::loggedIn();
     }
-    public function homeDir() {
+    public function homeDir() {//deprecated?
+        return new SFile($this->getFS(),$this->homeDirPath());
+    }
+    public function homeDirPath() {
         if (!$this->loggedIn()) throw new Exception("Not logged in");
-        $fs=Auth::getFS();
-        $rootDir=new SFile($fs,"/home/");
-        return $rootDir->rel($this->curClass()."/")->rel($this->curUser()."/");
+        return "/home/".$this->curClass()."/".$this->curUser()."/";   
+    }
+    public function getFS() {
+        return Auth::getFS();
     }
 }
 ?>

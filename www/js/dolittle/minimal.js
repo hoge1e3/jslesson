@@ -26,9 +26,9 @@ MinimalParser= function () {
 	        //console.log("entering",depth);
 	        var s=Object.create(ctx.scope||{});
 					//修正点１
-	        ["self","this","自分","arguments"].forEach(function (k) {
+	        /*["self","this","自分","arguments"].forEach(function (k) {
 	            s[k]={type:"self", depth:depth};  
-	        });
+	        });*/
 	        return {scope: s ,depth:depth };
 	    },parser);
 	}
@@ -256,6 +256,7 @@ MinimalParser= function () {
     varbuild.element(simple.or(token_name.ret(function (n) {
         if (ctx.scope[n]) {
             var s=ctx.scope[n];
+            //if (s.seq===undefined) throw new Error(s.type);
             return extend([n],{
                 type:"localVar",
                 name:n,
@@ -330,10 +331,10 @@ MinimalParser= function () {
 				var line=(str.substr(0,result.src.maxPos)).match(/\n/g);
 				line=(line)?line.length:0;
 				//alert("エラーが発生しました。\n"+line+"行目付近を確認してください。");
-				return [
+				return extend([
 				"throw new Error('",de,"エラーが発生しました。\\n",line,
 				"行目付近を確認してください。');"
-				];
+				],{type:"ERROR",message:de+"エラー "+line+"行目"});
 			}
 		}
         return output;

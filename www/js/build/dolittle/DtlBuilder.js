@@ -127,7 +127,15 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
     		var vmcj=JSON.stringify(vmc);
     		f.dst.dtlvm.text(vmcj);
 			console.log("VM Code", vmcj);
-			f.dst.js.text("alert('このファイルはサーバで実行してください');");
+			var scr=function () {
+			    $.post("runDtl.php",DATA).then(function (res) {
+			        alert(res);
+			    }).fail(function (e) {
+			        alert("エラー："+e.responseText);
+			    });
+			};
+			scr=("("+scr+")()").replace(/DATA/,JSON.stringify({script:vmcj}));
+			f.dst.js.text(scr);//"alert('このファイルはサーバで実行してください');");
 			return SplashScreen.waitIfBusy();
         });
     }

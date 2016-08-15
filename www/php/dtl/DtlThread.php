@@ -30,7 +30,7 @@ class DtlThread {
                 break;
             case "push1":
                 $name=$c[1];
-                if ($name=="self") {
+                if ($name=="self" || $name=="this") {
                     $stack->push($self);
                 } else {
                     $stack->push(DtlObj::s_get($self,$name));

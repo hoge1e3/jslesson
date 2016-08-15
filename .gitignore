@@ -43,6 +43,7 @@ Temporary Items
 .apdisk
 www/user/list.txt
 www/fs/home
+www/log/*.log
 www/log/*.txt
 *.swp
 www/js/ctrans/a.out

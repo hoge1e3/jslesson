@@ -478,6 +478,9 @@ $(function () {
         var curFiles=fileSet(curFile);
         var curHTMLFile=curFiles[0];
         var curJSFile=curFiles[1];
+	    window.sendResult=function(resDetail){
+            logToServer2(curJSFile.path(),"//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text(),"C Run",resDetail,"C");
+        }
         stop();
         save();
         displayMode("run");
@@ -493,13 +496,14 @@ $(function () {
                     var indexF=ram.rel(curHTMLFile.name());
                     RunDialog2.show(indexF,
                     {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+                    logToServer2(curJSFile.path(),"//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text(),"JS Run","実行しました","JavaScript");
                 }).fail(function (e) {
                     console.log(e.stack);
     	            if (e.isTError) {
     	                console.log("showErr: run",e);
     	                showErrorPos($("#errorPos"),e);
     	                displayMode("compile_error");
-                        logToServer2(curJSFile.path(),"//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text(),"JS Compile Error",e.src+":"+e.pos+"\n"+e.mesg,"JS");
+                        logToServer2(curJSFile.path(),"//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text(),"JS Compile Error",e.src+":"+e.pos+"\n"+e.mesg,"JavaScript");
     	            }else{
     	                Tonyu.onRuntimeError(e);
     	            }
@@ -552,7 +556,7 @@ $(function () {
 	            }
 	        });*/
     	}else if(lang=="c"){
-    	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text());
+    	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text());
     		var compiledFile=curPrj.getOutputFile();
     		var log={};
     		try{
@@ -565,19 +569,21 @@ $(function () {
     		        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
     		        $("#qr").text("QR");
     		}catch(e){
-    			logToServer("COMPILE ERROR!\n"+e+"\nCOMPILE ERROR END!");
+    			//logToServer("COMPILE ERROR!\n"+e+"\nCOMPILE ERROR END!");
+    			logToServer2(curJSFile.path(),"//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text(),"C Compile Error",e,"C");
     			alert(e);
     		}
             return sync();
     	}else if(lang=="dtl"){
     	    try {
                 SplashScreen.show();
-        	    logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
+        	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
     	        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
                 DU.timeout(0).then(function () {
                     return builder.build();    
                 }).then(function () {
                     var indexF=ram.rel(curHTMLFile.name());
+                    logToServer2(curJSFile.path(),"//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text(),"Dolittle Run","実行しました","Dolittle");
                     return RunDialog2.show(indexF,
                     {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
                 }).fail(function (e) {
@@ -641,6 +647,11 @@ $(function () {
         }
     };
     EC.handleException=Tonyu.onRuntimeError=function (e) {
+        var inf=getCurrentEditorInfo();
+        var curFile=inf.file;
+        var curFiles=fileSet(curFile);
+        var curHTMLFile=curFiles[0];
+        var curJSFile=curFiles[1];
         Tonyu.globals.$lastError=e;
         //A.is(e,Error);// This will fail when error from iframe.
         A(e,"Error is empty");
@@ -666,7 +677,8 @@ $(function () {
                         }}},"診断モードで実行しなおす"));*/
             }
             stop();
-            logToServer("JS Runtime Error!\n"+te.src+":"+te.pos+"\n"+te.mesg+"\nJS Runtime Error End!");
+            //logToServer("JS Runtime Error!\n"+te.src+":"+te.pos+"\n"+te.mesg+"\nJS Runtime Error End!");
+            logToServer2(curJSFile.path(),"//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text(),langList[lang]+" Runtime Error",te.src+":"+te.pos+"\n"+te.mesg,langList[lang]);
         } else {
             if (isChrome) {
                 e.stack=e.stack.split("\n").map(bytes).join("\n");
@@ -697,7 +709,8 @@ $(function () {
             ["button",{on:{click:function(){console.log("clicked");$(this).parent("div").children("pre").text(e.stack);}}},"詳細"],
             ["pre",{id:"reConsole"},stack[0]+"\n"+stack[1]]).dialog({width:800});
             stop();
-            logToServer(e.stack || e);
+            //logToServer(e.stack || e);
+            logToServer2(curJSFile.path(),"//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text(),langList[lang]+" Runtime Error",e.stack || e,langList[lang]);
         }
     };
     $("#search").click(F(function () {
