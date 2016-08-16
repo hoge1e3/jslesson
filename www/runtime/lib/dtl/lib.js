@@ -266,7 +266,7 @@ Object.defineProperty(Array.prototype,"each",{
 });*/
 Object.defineProperty(Array.prototype,"それぞれ実行",{
 	enumerable:false,configurable:true,
-	value:Array.prototype.forEach
+	value:Array.prototype.each
 });
 Object.defineProperty(Array.prototype,"length?",{
 	enumerable:false,configurable:true,
@@ -289,6 +289,62 @@ Object.defineProperty(Array.prototype,"連結",{
 Object.defineProperty(Array.prototype,"クリア",{
 	enumerable:false,configurable:true,
 	value:function(){var length=this.length;for(var i=0;i<=length;i++)this.removepos(1);return this;}
+});
+Object.defineProperty(Array.prototype,"randomSelect",{
+	enumerable:false,configurable:true,
+	value:function(){
+		return this[this.length.random()];
+	}
+});
+Object.defineProperty(Array.prototype,"select",{
+	enumerable:false,configurable:true,
+	value:function(f){
+		var res=[];
+		for(var i in this){
+			if(f.execute(this[i])==true){
+				res.push(this[i]);
+			}
+		}
+		return res;
+	}
+});
+Object.defineProperty(Array.prototype,"process",{
+	enumerable:false,configurable:true,
+	value:function(f){
+		for(var i in this){
+			this[i]=f.execute(this[i]);
+		}
+	}
+});
+Object.defineProperty(Array.prototype,"bond",{
+	enumerable:false,configurable:true,
+	value:function(j){
+		return this.join((j)?j:"");
+	}
+});
+Object.defineProperty(Array.prototype,"max",{
+	enumerable:false,configurable:true,
+	value:function(){
+		var max=this[0];
+		for(var i in this){
+			if(max<this[i]){
+				max=this[i];
+			}
+		}
+		return max;
+	}
+});
+Object.defineProperty(Array.prototype,"min",{
+	enumerable:false,configurable:true,
+	value:function(){
+		var min=this[0];
+		for(var i in this){
+			if(min>this[i]){
+				min=this[i];
+			}
+		}
+		return min;
+	}
 });
 root["配列"]=Array;
 root.Array=Array;
