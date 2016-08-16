@@ -29,13 +29,6 @@ root.addAlias=function () {
 
 root.system={
 	localize: localize,
-	gui_posx:10,
-	gui_posy:10,
-	"timestamp?":function(){return new Date().getTime();},
-	"time?":function(){
-		var date = new Date();
-		return (date.getHours()+":"+date.getMinutes()+":"+date.getSeconds());
-	},
 	new:function(obj){
 		return new(Function.prototype.bind.apply(obj,arguments));
 	},
@@ -46,36 +39,7 @@ root.system={
 			if((new Date().getTime())>=end)break;
 		}
 	},
-	log:function(param){return console.log(param.valueOf());},
-	use:function(lib){
-		return $.ajax({url:"http://oecu-edu.sakura.ne.jp/honda/"+lib}).then(function(data){
-			console.log(data);
-			(new Function(window.parent.MinimalParser.parse(data)))();
-		},function(){alert("setup.iniの読み込みに失敗しました");});
-	},
 	throw:function(e){throw new Error(e);},
-	"システム秒?":function(){return new Date().getTime();},
-	"時刻?":function(){
-		var date = new Date();
-		return (date.getHours()+":"+date.getMinutes()+":"+date.getSeconds());
-	},
-	"日時?":function(){return (new Date).toString();},
-	"曜日?":function(){var num=(new Date).getDay();var res=null;
-		if(num==0)return "日";
-		else if(num==1)res= "月";
-		else if(num==2)res= "火";
-		else if(num==3)res= "水";
-		else if(num==4)res= "木";
-		else if(num==5)res= "金";
-		else res="土";
-		return res;
-	},
-	"年?":function(){return (new Date).getFullYear();},
-	"月?":function(){return (new Date).getMonth();},
-	"日?":function(){return (new Date).getDate();},
-	"時?":function(){return (new Date).getHours();},
-	"分?":function(){return (new Date).getMinutes();},
-	"秒?":function(){return (new Date).getSeconds();},
 	"try": function (t,c,f) {
 	    try {
 	        return t.execute();
@@ -87,7 +51,6 @@ root.system={
 	}
 };
 localize(root, {system:"システム", create:"作る"});
-localize(root.system, {"time?":"時刻?"  ,use: "使う"});
 
 root.random=function(param){
 	var res=Math.random();
@@ -255,7 +218,7 @@ Object.defineProperty(Array.prototype,"挿入",{
 Object.defineProperty(Array.prototype,"each",{
 	enumerable:false,configurable:true,
 	value:function(func){
-		for(var i in this){
+		for(var i=0;i<this.length;i++){
 			func.execute(this[i]);
 		}
 	},
@@ -293,14 +256,14 @@ Object.defineProperty(Array.prototype,"クリア",{
 Object.defineProperty(Array.prototype,"randomSelect",{
 	enumerable:false,configurable:true,
 	value:function(){
-		return this[this.length.random()];
+		return this[this.length.random()-1];
 	}
 });
 Object.defineProperty(Array.prototype,"select",{
 	enumerable:false,configurable:true,
 	value:function(f){
 		var res=[];
-		for(var i in this){
+		for(var i=0;i<this.length;i++){
 			if(f.execute(this[i])==true){
 				res.push(this[i]);
 			}
@@ -311,9 +274,10 @@ Object.defineProperty(Array.prototype,"select",{
 Object.defineProperty(Array.prototype,"process",{
 	enumerable:false,configurable:true,
 	value:function(f){
-		for(var i in this){
+		for(var i=0;i<this.length;i++){
 			this[i]=f.execute(this[i]);
 		}
+		return this;
 	}
 });
 Object.defineProperty(Array.prototype,"bond",{
@@ -326,7 +290,7 @@ Object.defineProperty(Array.prototype,"max",{
 	enumerable:false,configurable:true,
 	value:function(){
 		var max=this[0];
-		for(var i in this){
+		for(var i=0;i<this.length;i++){
 			if(max<this[i]){
 				max=this[i];
 			}
@@ -338,7 +302,7 @@ Object.defineProperty(Array.prototype,"min",{
 	enumerable:false,configurable:true,
 	value:function(){
 		var min=this[0];
-		for(var i in this){
+		for(var i=0;i<this.length;i++){
 			if(min>this[i]){
 				min=this[i];
 			}
@@ -373,7 +337,7 @@ root.or=or;
 Boolean.prototype.then=function(){return (this)?True:False;};
 Boolean.prototype["反対"]=function(){return (false==this);};
 //Number
-["atan","acos","asin","abs","floor","sqrt","round","ceil","exp"].forEach(function (k) {
+["abs","floor","sqrt","round","ceil","exp"].forEach(function (k) {
     Number.prototype[k]=function () {
         return Math[k](this);
     };
@@ -383,11 +347,11 @@ Boolean.prototype["反対"]=function(){return (false==this);};
         return Math[k](this.radian());
     };
 });
-/*["atan","acos","asin"].forEach(function(k){
+["atan","acos","asin"].forEach(function(k){
 	Number.prototype[k]=function(){
-		return parseInt(Math[k](this).degree());
+		return Math[k](this).degree();
 	};
-});*/
+});
 Number.prototype.atan2=function(y){
 	return Math.atan2(y,this);
 };

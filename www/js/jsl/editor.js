@@ -479,7 +479,7 @@ $(function () {
         var curHTMLFile=curFiles[0];
         var curJSFile=curFiles[1];
 	    window.sendResult=function(resDetail){
-            logToServer2(curJSFile.path(),"//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text(),"C Run",resDetail,"C");
+            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Run",resDetail,"C");
         }
         stop();
         save();
@@ -496,14 +496,14 @@ $(function () {
                     var indexF=ram.rel(curHTMLFile.name());
                     RunDialog2.show(indexF,
                     {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
-                    logToServer2(curJSFile.path(),"//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text(),"JS Run","実行しました","JavaScript");
+                    logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"JS Run","実行しました","JavaScript");
                 }).fail(function (e) {
                     console.log(e.stack);
     	            if (e.isTError) {
     	                console.log("showErr: run",e);
     	                showErrorPos($("#errorPos"),e);
     	                displayMode("compile_error");
-                        logToServer2(curJSFile.path(),"//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text(),"JS Compile Error",e.src+":"+e.pos+"\n"+e.mesg,"JavaScript");
+                        logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"JS Compile Error",e.src+":"+e.pos+"\n"+e.mesg,"JavaScript");
     	            }else{
     	                Tonyu.onRuntimeError(e);
     	            }
@@ -570,7 +570,7 @@ $(function () {
     		        $("#qr").text("QR");
     		}catch(e){
     			//logToServer("COMPILE ERROR!\n"+e+"\nCOMPILE ERROR END!");
-    			logToServer2(curJSFile.path(),"//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text(),"C Compile Error",e,"C");
+    			logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Compile Error",e,"C");
     			alert(e);
     		}
             return sync();
@@ -583,7 +583,7 @@ $(function () {
                     return builder.build();    
                 }).then(function () {
                     var indexF=ram.rel(curHTMLFile.name());
-                    logToServer2(curJSFile.path(),"//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text(),"Dolittle Run","実行しました","Dolittle");
+                    logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"Dolittle Run","実行しました","Dolittle");
                     return RunDialog2.show(indexF,
                     {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
                 }).fail(function (e) {
@@ -678,7 +678,7 @@ $(function () {
             }
             stop();
             //logToServer("JS Runtime Error!\n"+te.src+":"+te.pos+"\n"+te.mesg+"\nJS Runtime Error End!");
-            logToServer2(curJSFile.path(),"//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text(),langList[lang]+" Runtime Error",te.src+":"+te.pos+"\n"+te.mesg,langList[lang]);
+            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",te.src+":"+te.pos+"\n"+te.mesg,langList[lang]);
         } else {
             if (isChrome) {
                 e.stack=e.stack.split("\n").map(bytes).join("\n");
@@ -710,7 +710,7 @@ $(function () {
             ["pre",{id:"reConsole"},stack[0]+"\n"+stack[1]]).dialog({width:800});
             stop();
             //logToServer(e.stack || e);
-            logToServer2(curJSFile.path(),"//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text(),langList[lang]+" Runtime Error",e.stack || e,langList[lang]);
+            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",e.stack || e,langList[lang]);
         }
     };
     $("#search").click(F(function () {

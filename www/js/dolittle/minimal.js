@@ -26,9 +26,10 @@ MinimalParser= function () {
 	        //console.log("entering",depth);
 	        var s=Object.create(ctx.scope||{});
 					//修正点１
-	        ["self","this","自分","arguments"].forEach(function (k) {
+	        ["self","this","自分"].forEach(function (k) {
 	            s[k]={type:"self", depth:depth};  
 	        });
+	        s["arguments"]={type:"arguments", depth:depth};
 	        return {scope: s ,depth:depth };
 	    },parser);
 	}
@@ -132,8 +133,8 @@ MinimalParser= function () {
 	var deq=token(/^[=＝][=＝]/).ret(function(){return "===";});
 	var add=token(/^[+＋]/).ret(function(){return "+";});
 	var sub=token(/^[-−–－]/).ret(function(){return "-";});
-	var mul=token(/^[*×]/).ret(function(){return "*";}); 
-	var div=token(/^[/÷]/).ret(function(){return "/";});
+	var mul=token(/^[*×＊∗]/).ret(function(){return "*";}); 
+	var div=token(/^[/÷／]/).ret(function(){return "/";});
 	var gt=token(/^[>＞]/).ret(function(){return ">";});
 	var ge=token(/^(?:[>＞][=＝])|≧/).ret(function(){return ">=";});
 	var lt=token(/^[<＜]/).ret(function(){return "<";});
@@ -256,13 +257,45 @@ MinimalParser= function () {
     varbuild.element(simple.or(token_name.ret(function (n) {
         if (ctx.scope[n]) {
             var s=ctx.scope[n];
+            switch(s.type) {
+                case "local":
+                    return extend([n],{
+                        type:"localVar",
+                        name:n,
+                        depth:s.depth,
+                        vmname: "_local"+s.seq
+                    });
+                case "param":
+                    return extend([n],{
+                        type:"localVar",
+                        name:n,
+                        depth:s.depth,
+                        vmname: "_param"+s.seq
+                    });
+                case "self":
+                    return extend(["this"],{
+                        type:"localVar",
+                        name:"this",
+                        depth:s.depth,
+                        vmname: "self"
+                    });
+                case "arguments":
+                    return extend(["arguments"],{
+                        type:"localVar",
+                        name:"arguments",
+                        depth:s.depth,
+                        vmname: "arguments"
+                    });
+                default:
+                    throw new Exception("Invalid scope type:"+s.type);
+            }
             //if (s.seq===undefined) throw new Error(s.type);
-            return extend([n],{
+            /*return extend([n],{
                 type:"localVar",
                 name:n,
                 depth:s.depth,
                 vmname: (s.type=="local"?"_local":"_param")+s.seq
-            });
+            });*/
         } else {
             return extend(["this['"+n+"']"],{type:"field",name:n});
         }

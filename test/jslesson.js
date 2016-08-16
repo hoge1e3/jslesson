@@ -37,6 +37,7 @@ then(function () {
     }
     driver.quit();
 });
+// CHECK copySample
 
 function testC() {
     var c=createdCCode=genTestCode();

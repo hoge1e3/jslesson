@@ -13,6 +13,10 @@ class Permission {
         }
         if (count($ps)>=3) $class=$ps[2]; else $class="";
         if (count($ps)>=4) $user=$ps[3]; else $user="";
+        // lesson_samples
+        if ($class=="lesson_samples") {// ls, read 
+            return true;
+        }
         // other class
         if ($class!==$this->authInfo->class) {
             return false;

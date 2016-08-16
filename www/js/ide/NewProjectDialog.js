@@ -27,10 +27,10 @@ define(["UI"], function (UI) {
         			 ["option",{value:"dtl"},"ドリトル"],
         			 ["option",{value:"c"},"C"]]
 				],
-         			["div",
+         			["div",{css:{"display":"none"}},
         			 ["span","親フォルダ"],
         			 ["input",{$edit:{name:"parentDir",type:FType}}]],
-        			 ["div",
+        			 ["div",{css:{"display":"none"}},
         			   ["span","作成先フォルダ："],
         			   ["span",{$var:"dstDir"}]
         			  ],

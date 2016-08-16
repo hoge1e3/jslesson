@@ -62,7 +62,7 @@ define(["UI"], function (UI) {
                     onOK(model);
                     d.dialog("close");
                 }).fail(function (e) {
-                    alert(e);
+                    alert(e.responseText||e);
                 });
     	    }
     	};

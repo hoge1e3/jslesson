@@ -7,7 +7,7 @@ class DtlThread {
         $stack=new DtlArray;
         $scope=$block->__scope->create();//DtlObj::create($block->scope);
         $scope->self=$self;
-        //$scope->arguments=$args;
+        $scope->arguments=$args;
         for ($i=0;$i<count($args);$i++) {
             DtlObj::s_set($scope,"_param$i",$args[$i]);
         }

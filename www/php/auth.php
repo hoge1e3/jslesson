@@ -85,6 +85,10 @@ class Auth {
    	    $user=self::curUser();
    	    return ($user && $class);
     }
+    static function homeDir(){
+        if (!self::loggedIn()) throw new Exception("Not logged in");
+        return "/home/".self::curClass()."/".self::curUser()."/";   
+    }
    static function getFS() {
 	    $class=self::curClass();
    	    $user=self::curUser();

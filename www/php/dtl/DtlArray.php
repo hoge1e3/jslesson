@@ -24,6 +24,15 @@ class DtlArray {
         }
         return $a;
     }
+    public function select($b) {
+        $a=new DtlArray;
+        foreach ($this->raw as $k=>$v) {
+            if ($b->execute($v,is_int($k) ? $k+1 : $k)) {
+                $a->push($v);
+            }
+        }
+        return $a;
+    }
 
     public function push($e) {
         array_push($this->raw, $e);

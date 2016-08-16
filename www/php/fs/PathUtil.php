@@ -50,7 +50,8 @@ class PathUtil {
         return join(self::SEP,$ps).self::SEP;
   }
   public static function name($path) {
-        return array_pop(self::splitPath($path));
+        $a=self::splitPath($path);
+        return array_pop($a);
   }
   public function __toString() {
       return "PathUtil";

@@ -1,9 +1,12 @@
 define([],function () {
     var c=0,time=(new Date().getTime());
-    function logToServer2(filePath,code,result,detail,lang) {
+    function logToServer2(filePath,codeL,codeH,result,detail,lang) {
         var d=new Date();
 		var t=(new Date().getTime());
 		c+=1/time-t;
+		code={};
+		code[lang]=codeL;
+		code["HTML"]=codeH;
 		return $.post("dump2.php",{data:JSON.stringify({date:d.getFullYear()+"/"+dataPadding(d.getMonth()+1)+"/"+dataPadding(d.getDate()),time:dataPadding(d.getHours())+":"+dataPadding(d.getMinutes())+":"+dataPadding(d.getSeconds()),lang:lang,filename:filePath,result:result,detail:detail,code:code})}).then(function (r) {
 			console.log(r);
 		}).fail(function(e){

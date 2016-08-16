@@ -2,17 +2,21 @@
 require_once __DIR__."/../json.php";
 
 class DtlSys {
-    public $scriptDir,$root;
-    public function DtlSys($root,$scriptDir) {
+    public $root,$fs;
+    public function DtlSys($root,$fs) {
         $this->root=$root;
-        $this->scriptDir=$scriptDir;
+        $this->fs=$fs;
     }
-    public function _use($file){
-        $f=$this->scriptDir->rel("$file.dtl.json");
+    public function _use($path){
+        $scr=$this->fs->getContent($path);
+        $j=new Services_JSON;
+        $vmc=$j->decode($scr);
         $root=$this->root;
-        $b=new DtlBlock($root, $f->getObj() );
-        return $b->execute();
+        return Dtl::run($root,$vmc);
     }
     public function __toString() {return "system";}
+    public static function initRoot($root) {// should call after DtlFS::initRoot
+        $root->system=new DtlSys($root,$root->FS);
+    }
 }
 ?>

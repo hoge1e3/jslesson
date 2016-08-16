@@ -18,7 +18,7 @@ class DtlObj {
                 return null;
             }
         }
-        throw new Exception("$obj から属性$nameを取得できません");
+        throw new Exception("$obj から属性$name を取得できません");
     }
     public static function s_set($obj,$name,$val) {
         if (is_null($name)) throw new Exception("名前が空です");
