@@ -18,7 +18,7 @@ root.addAlias=function () {
     var t=this;
     a.forEach(function (al) {
         Object.defineProperty(t,al,{
-	        enumerable:true,configurable:true,
+	        enumerable:false,configurable:true,
 	        get:function() { return this[orig]; },
 	        set:function(v) { return this[orig]=v; }
         });
@@ -53,7 +53,7 @@ root.system={
 			(new Function(window.parent.MinimalParser.parse(data)))();
 		},function(){alert("setup.iniの読み込みに失敗しました");});
 	},
-	throw:function(e){throw e;},
+	throw:function(e){if (e instanceof Error) throw e; else throw new Error(e);},
 	"システム秒?":function(){return new Date().getTime();},
 	"時刻?":function(){
 		var date = new Date();

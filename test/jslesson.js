@@ -5,8 +5,8 @@ var FS = require("./SFile.js");
 var testHome=FS.get("../www/fs/home/0123/test/");
 //var projectSelURL='http://klab.eplang.jp/jslesson/';
 //var projectSelURL='http://localhost/?noconcat=true';
-var projectSelURL='http://localhost/'
-//var projectSelURL='http://klab.eplang.jp/jslesson/'
+//var projectSelURL='http://localhost/'
+var projectSelURL='http://klab.eplang.jp/jslesson/'
 var loggedin=false;
 var SLP=500;
 
@@ -70,7 +70,7 @@ function testC() {
 function testJS() {
     return driver.sleep(3000).then(function () {
         selectLinkByText("TJStes/");
-        driver.sleep(1000);
+        driver.sleep(2000);
         clickByText("Test1");
         driver.sleep(SLP);
         return runTJSCode('<span name="val">55</span>');
@@ -79,7 +79,7 @@ function testJS() {
 function testDtl() {
     return driver.sleep(3000).then(function () {
         selectLinkByText("DtlTes/");
-        driver.sleep(1000);
+        driver.sleep(2000);
         clickByText("Test");
         driver.sleep(SLP);
         return runDtlCode();

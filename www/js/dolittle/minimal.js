@@ -26,9 +26,9 @@ MinimalParser= function () {
 	        //console.log("entering",depth);
 	        var s=Object.create(ctx.scope||{});
 					//修正点１
-	        /*["self","this","自分","arguments"].forEach(function (k) {
+	        ["self","this","自分","arguments"].forEach(function (k) {
 	            s[k]={type:"self", depth:depth};  
-	        });*/
+	        });
 	        return {scope: s ,depth:depth };
 	    },parser);
 	}
