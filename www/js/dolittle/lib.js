@@ -353,7 +353,7 @@ Boolean.prototype["反対"]=function(){return (false==this);};
 	};
 });
 Number.prototype.atan2=function(y){
-	return Math.atan2(y,this);
+	return Math.atan2(y,this).degree();
 };
 Number.prototype.pow=function(m){
 	return Math.pow(this,m);

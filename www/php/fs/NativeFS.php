@@ -1,8 +1,9 @@
 <?php
 require_once __DIR__."/PathUtil.php";
+require_once __DIR__."/Permission.php";
 
 class NativeFS {
-   var $top,$permission;
+   private $top,$permission;
    function NativeFS($top=null,$permission=null) {
        $this->top=$top;
        //if (isset($permission)) 
@@ -27,7 +28,7 @@ class NativeFS {
         throw new Exception("Cannot access to $path");
    }
    public function getContent($path) {
-       $this->check($path,"read");
+       $this->check($path,Permission::READ);
        if (!$this->exists($path)) $this->notFound($path);
        $filename = $this->resolve($path);
        $sz=filesize($filename);
@@ -38,19 +39,19 @@ class NativeFS {
 	   return $contents;
    }
    function rm($path) {
-       $this->check($path,"write");
+       $this->check($path,Permission::WRITE);
         $rp=$this->resolve($path);
         unlink($rp);
    }
    function mkdir($path) {
-       $this->check($path,"write");
+       $this->check($path,Permission::WRITE);
         if ($this->exists($path)) return;
         if (!mkdir($this->resolve($path), 0777, true)) {
             throw new Exception("Failed to create $path");
         }
    }
    function setContent($path, $cont) {
-       $this->check($path,"write");
+       $this->check($path,Permission::WRITE);
        $filename = $this->resolve($path);
        $this->mkdir(PathUtil::up($path));
        $handle = fopen($filename, "w");
@@ -61,25 +62,25 @@ class NativeFS {
        throw new Exception("$path not found");
    }
    function exists($path) {
-       $this->check($path,"readmeta");
+       $this->check($path,Permission::READMETA);
        return file_exists($this->resolve($path));
    }
    function isDir($path) {
         return is_dir($this->resolve($path));
    }
    function getMetaInfo($path) {
-       $this->check($path,"readmeta");
+       $this->check($path,Permission::READMETA);
         //if (preg_match("/Ireizu/",$path)) return array(lastUpdate=>FALSE);
         return array( "lastUpdate"=>filemtime($this->resolve($path))*1000 );
    }
    function setMetaInfo($path, $info) {
-       $this->check($path,"writemeta");
+       $this->check($path,Permission::WRITEMETA);
         if (isset($info["lastUpdate"])) {
             touch($this->resolve($path), round($info["lastUpdate"]/1000) );
         }
    }
    public function ls($path) {
-       $this->check($path,"ls");
+       $this->check($path,Permission::LS);
         $res=array();
         if ($handle = opendir($this->resolve($path))) {
 		    while (false !== ($entry = readdir($handle))) {

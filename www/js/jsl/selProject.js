@@ -17,7 +17,10 @@ function ready() {//-------------------------
         location.href="login.php";
     }
     $("body").append(UI("div",
-            ["h1","プロジェクト一覧"],
+            ["h1","Bit Arrow"],
+            ["div",{id:"userInfo",align:"right"},"同期中..."],
+            ["hr",{color:"#000000",size:"4"}],
+            ["h2","プロジェクト一覧"],
             ["div",
 	        ["a",{href:"http://bitarrow.eplang.jp/",target:"wikiTab"},"Bit Arrow説明ページ"],"Bit Arrowの解説などを掲載しています"
 	    ],/*
@@ -105,12 +108,15 @@ function ready() {//-------------------------
             ls();
 	    //alert(e.classid+" クラスの "+e.user+" と同期しました。");
             setTimeout(function () {
-                $("#syncMesg").text(e.classid+" クラスの"+e.user+"でログインしています。");
-                $("#syncMesg").append(UI("a",{href:"login.php"},"他ユーザでログイン"));
+                //$("#syncMesg").text(e.classid+" クラスの"+e.user+"でログインしています。");
+                //$("#syncMesg").append(UI("a",{href:"login.php"},"他ユーザでログイン"));
+                $("#syncMesg").empty();
+                $("#userInfo").text(e.classid+" クラスの"+e.user+"さん、こんにちは");
+                $("#userInfo").append(UI("a",{href:"login.php"},"他ユーザでログイン"));
             },3000);
         }).fail(function (e) {
             if (e==Sync.NOT_LOGGED_IN) {//Deprecated
-                $("#syncMesg").empty().append(UI("a",{href:"login.php"},"ログイン"));
+                $("#userInfo").empty().append(UI("a",{href:"login.php"},"ログイン"));
                 if(confirm("ログインしていません。ログインページに移動します。")){
                     location.href="login.php";
                 }

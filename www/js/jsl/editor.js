@@ -135,7 +135,7 @@ $(function () {
     function makeMenu() {
         Menu.make("Bit Arrow",
                 [
-                  {label:"Home"/*,href:"index.html"*/,id:"home"},
+                  {label:"Bit Arrow"/*,href:"index.html"*/,id:"home"},
                   {label:"ファイル",sub:[
                       {label:"新規",id:"newFile"},
                       {label:"名前変更",id:"mvFile"},
@@ -156,7 +156,9 @@ $(function () {
         );
     }
     makeMenu();
-
+    setTimeout(function(){
+        $("[label='Bit Arrow']").attr("id","home");
+    },1000);
     var screenH;
     function onResize() {
         var h=$(window).height()-$("#navBar").height()-$("#tabTop").height();
