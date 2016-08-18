@@ -140,7 +140,7 @@ function (sh,FS,DU,UI,S) {
                 }
             };
             iwin.onerror=function (message, source, lineno, colno,ex) {
-                source=iwin.LocalBrowserInfo.blob2originalURL(source);
+                source=iwin.LocalBrowserInfo.blob2originalURL(source+"");
                 iwin.LocalBrowserInfo.originalStackTrace(ex);
                 if (window.onerror) window.onerror(message, source, lineno, colno,ex);
             };

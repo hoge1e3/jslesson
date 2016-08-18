@@ -8,9 +8,14 @@
 <script src="js/lib/jquery-1.12.1.js"></script>
 <script src="js/ide/showTimeline.js"></script>
 <script><?php
+require_once __DIR__."/php/auth.php";
 require_once __DIR__."/php/fs/NativeFS.php";
+if (!Auth::isTeacher()) {
+    echo ("alert('study more!');</script>");
+    exit(0);
+}
 $min=("2016-04-01T00:00:00");
-$max=("2016-08-01T00:00:00");
+$max=("2016-08-24T00:00:00");
 
 if (isset($_GET["min"])) {
     $min=$_GET["min"];
@@ -18,11 +23,12 @@ if (isset($_GET["min"])) {
 if (isset($_GET["max"])) {
     $max=$_GET["max"];
 }
+$class=Auth::curClass();
 echo "setRange('$min','$max');\n";
 $fs=new NativeFS("./log/");
 foreach ($fs->ls("/") as $n) {
     $n="/$n";
-    if (preg_match("/-data-time/",$n)) {
+    if (strpos($n,$class)!=FALSE && preg_match("/-data-time/",$n)) {
         $er=preg_replace("/-data-time/","-data-error",$n);
         if ($fs->exists($er)) {
             readLog($n,$er);

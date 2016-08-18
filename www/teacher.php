@@ -7,6 +7,7 @@ if (isset($_POST["class"])) {
 	$pass=$_POST["pass"];
 	$mesg=Auth::loginTeacher($class,$pass);
 	if ($mesg===true) {
+	    ?><a href="showTimeline.php">Show timeline</a><hr/><?php
 	    $mesg="";
 	    //print "$mesg";
             //echo "login successful";

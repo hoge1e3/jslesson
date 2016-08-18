@@ -18,7 +18,7 @@ function ready() {//-------------------------
     }
     $("body").append(UI("div",
             ["h1","Bit Arrow"],
-            ["div",{id:"userInfo",align:"right"},"同期中..."],
+            ["div",{id:"userInfo",align:"right"},""],
             ["hr",{color:"#000000",size:"4"}],
             ["h2","プロジェクト一覧"],
             ["div",
@@ -112,6 +112,7 @@ function ready() {//-------------------------
                 //$("#syncMesg").append(UI("a",{href:"login.php"},"他ユーザでログイン"));
                 $("#syncMesg").empty();
                 $("#userInfo").text(e.classid+" クラスの"+e.user+"さん、こんにちは");
+                $("#userInfo").append(UI("br"));
                 $("#userInfo").append(UI("a",{href:"login.php"},"他ユーザでログイン"));
             },3000);
         }).fail(function (e) {
@@ -140,7 +141,8 @@ function ready() {//-------------------------
                     outputFile:"js/concat.js",
                     defaultSuperClass:"jslker.Parent",
                     dependingProjects:[
-                         {"namespace":"jslker", "compiledURL":"${JSLKer}/js/concat.js"}
+                         {"namespace":"jslker", "compiledURL":"${JSLKer}"}
+                        // {"namespace":"jslker", "compiledURL":"${JSLKer}/js/concat.js"}
                     ]
                 },
         		language:model.lang

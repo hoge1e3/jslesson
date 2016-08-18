@@ -4,6 +4,14 @@ var min=str2date("2016-04-01T00:00:00");
 var max=str2date("2016-08-01T00:00:00");
 var WIDTH=800,HEIGHT=30;
 var queue=[];
+var lineY;
+var curUser;
+var userInfo={};// "file"->{pos2str:[x->datestr]};
+function getUserInfo(file) {
+    file=file||curUser;
+    if (userInfo[file]) return userInfo[file];
+    return userInfo[file]={pos2str:[]};
+}
 setInterval(function () {
     var f=queue.shift();
     if (f) f();
@@ -45,15 +53,21 @@ function duration() {
 function pos2date(x) {
     return min.add(x/WIDTH*duration());
 }
+function date2pos(d) {
+    return d.sub(min)/max.sub(min)*WIDTH;
+}
 function setRange(i,a) {
     min=str2date(i);max=str2date(a);
-    var ctx=$("#scale")[0].getContext("2d");
+    setScale($("#scale"));
+}
+function setScale(cv) {
+    var ctx=cv[0].getContext("2d");
     for (i=0; i<10 ;i++) {
         var d=pos2date(WIDTH/10*i);
         ctx.fillText(d.format("M/D"),WIDTH*i/10,HEIGHT/3);
         ctx.fillText(d.format("h:m"),WIDTH*i/10,HEIGHT/3*2);
     }
-    addZoomListener($("#scale"));
+    addZoomListener(cv);
 }
 function addZoomListener(cv) {
     cv.click(function (e) {
@@ -89,17 +103,27 @@ function showLine(time) {
 //2016-05-08T20:51:17+09:00  
     var ctx=curcv[0].getContext("2d");
     var d=str2date(time);
-    ctx.fillRect(d.sub(min)/max.sub(min)*WIDTH,0,1,HEIGHT);
+    var x=Math.floor(date2pos(d));
+    ctx.fillRect(x,lineY,1,HEIGHT);
+    var inf=getUserInfo();
+    inf.pos2str[x]=time;
 }
 function setUser(file) {
+    curUser=file;
     //0123-cho-data-time.txt
     var row=$("<tr>").appendTo("#tl");
     $("<td>").text(file).appendTo(row);
-    curcv=$("<canvas>").attr({width:800,height:30});
+    curcv=$("<canvas>").attr({width:800,height:30,"data-user":file});
+    var inf=getUserInfo();
+    curcv.click(function (e) {
+        //console.log(inf.pos2str);
+        var x=(e.clientX-curcv.offset().left);
+        alert(inf.pos2str[x]);
+    });
     $("<td>").append(curcv).appendTo(row);
-    
 }
 function setColor(col) {
     var ctx=curcv[0].getContext("2d");
     ctx.fillStyle=col;
+    lineY=(col=="red"?HEIGHT/2:0);
 }

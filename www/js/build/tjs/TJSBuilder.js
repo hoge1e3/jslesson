@@ -40,7 +40,7 @@ function (A,DU,wget,Sync) {
         metacharset.setAttribute("charset","UTF-8");
         head.appendChild(metacharset);*/
         $(head).append($("<meta>").attr("charset","UTF-8"));
-        $(head).append($("<script>").text("window.runtimePath='"+WebSite.runtime+"';"));
+        $(head).append($("<script>").text("window.$LASTPOS=0;window.runtimePath='"+WebSite.runtime+"';"));
         ["lib/jquery-1.12.1.js","lib/require.js","lib/tjs/run.js"].forEach(function (src) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");

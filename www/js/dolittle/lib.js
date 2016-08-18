@@ -25,7 +25,10 @@ root.addAlias=function () {
     });
     return this;
 };
-
+ var and={true:function(){var arr=Array.prototype.slice.call(arguments);var res=Boolean(arr[0]);$.each(arr,function(key,value){res=(res&&value);});return res;}};
+ var or={true:function(){var arr=Array.prototype.slice.call(arguments);var res=Boolean(arr[0]);$.each(arr,function(key,value){res=(res||value);});return res;}};
+ root.and=and;
+ root.or=or;
 
 root.system={
 	localize: localize,
@@ -189,6 +192,7 @@ Object.defineProperty(Array.prototype,"remove",{
 		for(var i=0;i<this.length;i++){
 			if(this[i]===obj){this.removepos(i+1);break;}
 		}
+		return this;
 	}
 });
 Object.defineProperty(Array.prototype,"消す",{
@@ -197,6 +201,7 @@ Object.defineProperty(Array.prototype,"消す",{
 		for(var i=0;i<this.length;i++){
 			if(this[i]===obj){this.removepos(i+1);break;}
 		}
+		return this;
 	}
 });
 Object.defineProperty(Array.prototype,"removepos",{
@@ -314,28 +319,27 @@ root["配列"]=Array;
 root.Array=Array;
 
 //Stringオブジェクト
-String.prototype.add=function(_param){return this.valueOf()+ _param;};
-String.prototype["連結"]=String.prototype.add;
+String.prototype.add=String.prototype.concat;
+String.prototype["連結"]=String.prototype.concat;
 String.prototype["contain?"]=function(_param){return -1!=this.valueOf().search(RegExp(_param));};
 String.prototype["含む?"]=String.prototype["contain?"];
+String.prototype["isPosition?"]=function(p){return this.valueOf().search(RegExp(p))+1};
 String.prototype["何文字目?"]=function(_param){return this.valueOf().search(RegExp(_param))+1};
 String.prototype["substr"]=function(){return ((arguments.length==1)?substr1:substr2).apply(this,arguments);};
-String.prototype["部分?"]=String.prototype.substr;
+String.prototype["部分"]=String.prototype.substr;
 String.prototype["length?"]=function(){return this.length;};
 String.prototype["長さ?"]=String.prototype["length?"];
 String.prototype["分割"]=String.prototype.split;
 String.prototype["置き換える"]=String.prototype.replace;
-String.prototype["全部置き換える"]=function(_pattern,_replacement){return this.valueOf().replace((new RegExp(_pattern,"g")),_replacement);};
+String.prototype.allReplace=function(_pattern,_replacement){return this.valueOf().replace((new RegExp(_pattern,"g")),_replacement);};
+String.prototype["全部置き換える"]=String.prototype.allReplace;
 var substr1=function(param){return this.substring(param-1);};
 var substr2=function(param1,param2){return this.substring(param1-1,param2);}
 
-var and={true:function(){var arr=Array.prototype.slice.call(arguments);var res=Boolean(arr[0]);$.each(arr,function(key,value){res=(res&&value);});return res;}};
-var or={true:function(){var arr=Array.prototype.slice.call(arguments);var res=Boolean(arr[0]);$.each(arr,function(key,value){res=(res||value);});return res;}};
-root.and=and;
-root.or=or;
 //Booleanオブジェクト
 Boolean.prototype.then=function(){return (this)?True:False;};
-Boolean.prototype["反対"]=function(){return (false==this);};
+Boolean.prototype.not=function(){return (false==this);};
+Boolean.prototype["反対"]=Boolean.prototype.not;
 //Number
 ["abs","floor","sqrt","round","ceil","exp"].forEach(function (k) {
     Number.prototype[k]=function () {
@@ -383,7 +387,7 @@ Function.prototype.repeat=function(param){
 	return res;
 };
 Function.prototype.while=function(){return (new While(this));};
-Function.prototype.then=function(){return (this.execute(this,arguments))?True:False;};
+Function.prototype.then=function(){return (this.execute(this,arguments))?root._true:root._false;};
 Function.prototype.checkerror=function () {
     var f=this;
     return dtlbind(f.bound, function () {
@@ -411,11 +415,8 @@ Function.prototype.or=function(){
 			objs[objs.length-1].params.push(args.shift());
 		}
 	}while(args.length>0);
-	console.log(objs);
 	for(i in objs){
-		console.log(objs[i]);
 		res=objs[i].func.execute.apply(objs[i].func,objs[i].params);
-		console.log(res);
 		if(res)break;
 	}
 	return ((res)?res:root.false);
@@ -452,68 +453,67 @@ While=function(func){
 	};
 };
 
-True={
-	else: function (func) {
-		return (new Done(func.execute()));
-	},
-	"そうでなければ": function(func){
-		return (new Done(func.execute()));
-	},
-	execute: function (func) {
-		return func.execute();
-	},
-	"実行":function(func){
-		return func.execute();
-	},
-	then: function(func){
-		return (func).then();
-	},
-	"なら":function(func){
-		return (func).then();
-	},
+root._true=root.create();
+root._true["else"]= function (func) {
+	return (root._done.create(func.execute()));
+};
+root._true["そうでなければ"]= function(func){
+	return (root._done.create(func.execute()));
+};
+root._true.execute= function (func) {
+	return func.execute();
+};
+root._true["実行"]=function(func){
+	return func.execute();
+};
+root._true.then= function(func){
+	return (func).then();
+};
+root._true["なら"]=function(func){
+	return (func).then();
 };
 
-False={
-	else: function(func){
-		return True;
-	},
-	"そうでなければ":function(func){
-		return True;
-	},
-	execute: function(func){
-		return undefined;
-	},
-	"実行":function(func){
-		return undefined;
-	},
-	then: function(func){
-		return (func).then();
-	},
-	"なら":function(func){
-		return (func).then();
-	},
+root._false=root.create();
+root._false["else"]= function(func){
+	return root._true;
+};
+root._false["そうでなければ"]=function(func){
+	return root._true;
+};
+root._false.execute= function(func){
+	return undefined;
+};
+root._false["実行"]=function(func){
+	return undefined;
+};
+root._false.then= function(func){
+	return (func).then();
+};
+root._false["なら"]=function(func){
+	return (func).then();
 };
 
-Done= function(param){
-	this._self=param;
-	this.else= function(func){
-		return this;
-	};
-	this["そうでなければ"]=function(func){
-		return this;
-	};
-	this.execute=function(func){
-		return this._self;
-	};
-	this["実行"]=function(func){
-		return this._self;
-	};
-	this.then=function(func){
-		return this;
-	};
-	this["なら"]=function(func){
-		return this;
-	};
+root._done= root.create();
+root._done.initialize=function(p){
+	this._self=p;
+};
+root._done["else"]= function(func){
+	return this;
+};
+root._done["そうでなければ"]=function(func){
+	return this;
+};
+root._done.execute=function(func){
+	return this._self;
+};
+root._done["実行"]=function(func){
+	return this._self;
+};
+root._done.then=function(func){
+	return this;
+};
+root._done["なら"]=function(func){
+	return this;
 };
 root["ブロック"]=Function;
 localize(Function.prototype,{then:"なら", repeat:"繰り返す", "while":"の間"});

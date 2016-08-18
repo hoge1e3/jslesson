@@ -12,13 +12,14 @@ require_once __DIR__."/fs/Permission.php";
 //ini_set('session.gc_probability',1);
 
 class Auth {
+    const TEACHER="teacher";
    static function login($class,$user) {
         if (!$class)return "クラス名を入力してください。";
 	    if (!$user)return "ユーザ名を入力してください。";
 	    if (!file_exists("fs/home/$class")){
            return "存在しないクラスIDが入力されています。";
 	    }
-        if (preg_match('/^[a-zA-Z0-9\\-_]+$/',$user)) {
+        if (preg_match('/^[a-zA-Z0-9\\-_]+$/',$user) && $user!=self::TEACHER) {
 	        //setcookie("class",$class, time()+60*60*24*30*6);
             //setcookie("user",$user, time()+60*60*24*30*6);
             /*if(session_id() == '') {
@@ -51,6 +52,8 @@ class Auth {
     	fclose($fp);
 	   if(isset($classlist) && $classlist["pass"]==$pass){
 	       // Success
+            MySession::set("class",$class);
+            MySession::set("user",self::TEACHER);
 	       setcookie("class",$class, time()+60*60*24*30);
 	       return true;
 	   }else{
@@ -59,6 +62,9 @@ class Auth {
         } else {
            return "パスワードは半角英数とハイフン、アンダースコアだけが使えます。";
         }
+   }
+   static function isTeacher() {
+        return self::curUser()==self::TEACHER;       
    }
    static function curUser() {
         /*if(session_id() == '') {
