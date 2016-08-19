@@ -84,6 +84,15 @@ return m['element']['remove']();
 this['Actor']['group']['add']=dtlbind(this,function(m){
 var self=this;var 自分=self;
 var i;
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return m['getCrashShape'];
+})['then']()['else'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return }))['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['system']['throw']((("NO"+m)));
+}));
 i=this['members']['indexOf']((m));
 return dtlbind(this,function(){
 var self=this;var 自分=self;
@@ -127,7 +136,7 @@ return (this['svg_g']['length']===(0));
 var self=this;var 自分=self;
 return this['svg_g']=this['createSVGElem']("g")['attr']("transform",((((("translate("+((svgw/(2))))+",")+((svgh/(2))))+") scale(1,-1)")))['appendTo']((this['svg']));
 }));
-t=self;
+t=this;
 wndj['resize'](dtlbind(this,function(){
 var self=this;var 自分=self;
 svgw=((wndj['width']())-(10));
@@ -175,6 +184,15 @@ return this['Polygon']['create']()['addVertex'](((-this['width']/(2))),((-this['
 });
 this['Actor']['crashTo']=dtlbind(this,function(o){
 var self=this;var 自分=self;
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return o['getCrashShape'];
+})['then']()['else'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return }))['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['system']['throw']((("NO"+o)));
+}));
 return (this['getCrashShape']())['intersects']((o['getCrashShape']()));
 });
 this['Actor']['setTrans']=dtlbind(this,function(str){
@@ -211,7 +229,7 @@ return this['setTrans']();
 });
 this['Actor']['getDir']=dtlbind(this,function(){
 var self=this;var 自分=self;
-return (this['dir']%(360));
+return this['dir'];
 });
 this['Actor']['collision']=dtlbind(this,function(){
 var self=this;var 自分=self;
@@ -290,7 +308,7 @@ this['dir']=ld;
 return this['turnLeft']((180));
 }));
 }));
-return self;
+return this;
 });
 this['Actor']['xpos?']=dtlbind(this,function(){
 var self=this;var 自分=self;

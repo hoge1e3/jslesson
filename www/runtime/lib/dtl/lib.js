@@ -232,7 +232,9 @@ Object.defineProperty(Array.prototype,"位置で消す",{
 });
 Object.defineProperty(Array.prototype,"insert",{
 	enumerable:false,configurable:true,
-	value:function(index,value){this.splice(index-1,0,value);return this;}
+	value:function(index,value){
+	    this.splice(index-1,0,value);return this;
+	}
 });
 Object.defineProperty(Array.prototype,"挿入",{
 	enumerable:false,configurable:true,

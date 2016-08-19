@@ -18,7 +18,7 @@ root.addAlias=function () {
     var t=this;
     a.forEach(function (al) {
         Object.defineProperty(t,al,{
-	        enumerable:true,configurable:true,
+	        enumerable:false,configurable:true,
 	        get:function() { return this[orig]; },
 	        set:function(v) { return this[orig]=v; }
         });

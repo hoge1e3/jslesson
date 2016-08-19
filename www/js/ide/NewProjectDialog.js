@@ -20,7 +20,7 @@ define(["UI"], function (UI) {
         			     on:{enterkey:function () {
                 		     res.d.done();
 				 }}}]],
-				["div",
+				["div",{css:{"display":(options.ren?"none":"run-in")}},
         			 ["span","プログラミング言語"],
         			 ["select",{$edit:"lang",id:"prjLang"},
         			 ["option",{selected:true,value:"js"},"JavaScript"],

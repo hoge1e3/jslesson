@@ -127,7 +127,7 @@ return this;
 });
 this['turtle']['change']=dtlbind(this,function(url){
 var self=this;var 自分=self;
-self['img']=url;
+this['img']=url;
 url=dtlbind(this,function(){
 var self=this;var 自分=self;
 return url['match']("https?");

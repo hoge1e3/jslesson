@@ -22,7 +22,7 @@ g=root['window']['parseInt']((((s['shift']())+(s['shift']()))),(16));
 return b=root['window']['parseInt']((((s['shift']())+(s['shift']()))),(16));
 }))['then'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return root['and']['true'](((args['length']===(1))),(((this['typeof']((arg1)))==="number")));
+return this['and']['true'](((args['length']===(1))),(((this['typeof']((arg1)))==="number")));
 }))['else'](dtlbind(this,function(){
 var self=this;var 自分=self;
 b=(arg1%(256));
@@ -33,6 +33,9 @@ r=(arg1%(256));
 return arg1=root['window']['parseInt'](((arg1/(256))));
 }))['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;
+arg1=root['window']['Math']['floor']((arg1));
+arg2=root['window']['Math']['floor']((arg2));
+arg3=root['window']['Math']['floor']((arg3));
 dtlbind(this,function(){
 var self=this;var 自分=self;
 return (arg1>(255));
@@ -82,9 +85,9 @@ var self=this;var 自分=self;
 return b=arg3;
 }));
 }));
-self['r']=r;
-self['g']=g;
-return self['b']=b;
+this['r']=r;
+this['g']=g;
+return this['b']=b;
 });
 this['Color']['randomCreate']=dtlbind(this,function(){
 var self=this;var 自分=self;
@@ -92,15 +95,70 @@ return this['Color']['create']((((255)).random()),(((255)).random()),(((255)).ra
 });
 this['Color']['darken']=dtlbind(this,function(){
 var self=this;var 自分=self;
-return this['Color']['create'](((self['r']-(50))),((self['g']-(50))),((self['b']-(50))));
+return this['Color']['create'](((this['r']-(50))),((this['g']-(50))),((this['b']-(50))));
 });
 this['Color']['brighten']=dtlbind(this,function(){
 var self=this;var 自分=self;
-return this['Color']['create'](((self['r']+(50))),((self['g']+(50))),((self['b']+(50))));
+return this['Color']['create'](((this['r']+(50))),((this['g']+(50))),((this['b']+(50))));
 });
 this['Color']['toString']=dtlbind(this,function(){
 var self=this;var 自分=self;
-return (((((("rgb("+self['r'])+",")+self['g'])+",")+self['b'])+")");
+return (((((("rgb("+this['r'])+",")+this['g'])+",")+this['b'])+")");
+});
+this['Color']['setCMYK']=dtlbind(this,function(){
+var self=this;var 自分=self;
+this['black']=(this['window']['Math'])['min']((((1)-(this['r']/(255)))),(((1)-(this['g']/(255)))),(((1)-(this['b']/(255)))));
+this['cyan']=(((((1)-((this['r']/(255))))-this['black']))/(((1)-this['black'])));
+this['magenta']=(((((1)-((this['g']/(255))))-this['black']))/(((1)-this['black'])));
+this['yellow']=(((((1)-((this['b']/(255))))-this['black']))/(((1)-this['black'])));
+return this;
+});
+this['Color']['fromCMYK']=dtlbind(this,function(cyan,magenta,yellow,black){
+var self=this;var 自分=self;
+return this['Color']['create']((((((1)-((this['window']['Math'])['min']((1),(((cyan*(((1)-black)))+black))))))*(255))),(((((1)-((this['window']['Math'])['min']((1),(((magenta*(((1)-black)))+black))))))*(255))),(((((1)-((this['window']['Math'])['min']((1),(((yellow*(((1)-black)))+black))))))*(255))));
+});
+this['Color']['mixParam']=(1.1);
+this['Light']=this['create']();
+this['Light']['mix']=dtlbind(this,function(){
+var self=this;var 自分=self;
+var r;
+var g;
+var b;
+var l;
+r=(0);
+g=(0);
+b=(0);
+(this['Array']['prototype']['slice'])['call']((arguments))['each'](dtlbind(this,function(e){
+var self=this;var 自分=self;
+r=(r+(e['r']));
+g=(g+(e['g']));
+return b=(b+(e['b']));
+}));
+l=arguments['length'];
+return this['Color']['create']((this['window']['Math']['min']((((r/l)*this['Color']['mixParam'])),(255))),(this['window']['Math']['min']((((g/l)*this['Color']['mixParam'])),(255))),(this['window']['Math']['min']((((b/l)*this['Color']['mixParam'])),(255))));
+});
+this['Ink']=this['create']();
+this['Ink']['mix']=dtlbind(this,function(){
+var self=this;var 自分=self;
+var c;
+var m;
+var y;
+var k;
+var l;
+c=(0);
+m=(0);
+y=(0);
+k=(0);
+(this['Array']['prototype']['slice'])['call']((arguments))['each'](dtlbind(this,function(e){
+var self=this;var 自分=self;
+e['setCMYK']();
+c=(c+(e['cyan']));
+m=(m+(e['magenta']));
+y=(y+(e['yellow']));
+return k=(k+(e['black']));
+}));
+l=arguments['length'];
+return this['Color']['fromCMYK']((this['window']['Math']['min']((((c/l)*this['Color']['mixParam'])),(1))),(this['window']['Math']['min']((((m/l)*this['Color']['mixParam'])),(1))),(this['window']['Math']['min']((((y/l)*this['Color']['mixParam'])),(1))),(this['window']['Math']['min']((((k/l)*this['Color']['mixParam'])),(1))));
 });
 this['black']=this['Color']['create']((0),(0),(0));
 this['white']=this['Color']['create']((255),(255),(255));
