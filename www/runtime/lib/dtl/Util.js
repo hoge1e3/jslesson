@@ -115,9 +115,10 @@ this['system']['minutes']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return this['new']((root['window']['Date']))['getMinutes']();
 });
-return this['system']['seconds']=dtlbind(this,function(){
+this['system']['seconds']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return this['new']((root['window']['Date']))['getSeconds']();
 });
+return this['pi']=root['window']['Math']['PI'];
 }).checkerror().apply(root,[]);
 //# sourceMappingURL=Util.js.map

@@ -2,6 +2,7 @@
 this['ルート']=this['root'];
 this['はい']=root['true'];
 this['いいえ']=root['false'];
+this['addAlias']("pi","円周率");
 this['色名']=dtlbind(this,function(x){
 var self=this;var 自分=self;
 dtlbind(this,function(){
@@ -164,6 +165,8 @@ this['addAlias']("and","全部");
 this['aa']['call']((this['and']),"true","本当");
 this['addAlias']("or","どれか");
 this['aa']['call']((this['or']),"true","本当");
+this['addAlias']("Dict","辞書");
+this['Dict']['addAlias']("write","書く")['addAlias']("read","読む")['addAlias']("has?","含む?")['addAlias']("each","それぞれ実行")['addAlias']("delete","削除");
 this['システム']=this['system'];
 this['aa']['call']((this['system']),"systemTime","システム時間?");
 this['aa']['call']((this['system']),"systemTIme","システム時間");
