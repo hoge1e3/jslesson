@@ -2296,7 +2296,8 @@ define('WebSite',[], function () {
     WS.isNW=(typeof process=="object" && process.__node_webkit);
     //WS.fsHome="";
     WS.tonyuHome="/Tonyu/";//changeHOME
-    WS.JSLKer="fs/Tonyu/Projects/JSLKer";
+    WS.JSLKer="runtime/lib/tjs/kernel.js";
+    //WS.JSLKer="fs/Tonyu/Projects/JSLKer";
     WS.serverTop=location.href.replace(/\?.*$/,"").replace(/[^/]*$/,"");//"."; // includes /
     WS.phpTop=WS.serverTop+"";//php/";
     WS.url={
@@ -11566,17 +11567,18 @@ define('NewProjectDialog',["UI"], function (UI) {
         			     on:{enterkey:function () {
                 		     res.d.done();
 				 }}}]],
-				["div",
+				["div",{css:{"display":(options.ren?"none":"run-in")}},
         			 ["span","プログラミング言語"],
         			 ["select",{$edit:"lang",id:"prjLang"},
         			 ["option",{selected:true,value:"js"},"JavaScript"],
         			 ["option",{value:"dtl"},"ドリトル"],
-        			 ["option",{value:"c"},"C"]]
+        			 ["option",{value:"c"},"C"]],
+        			 ["span","言語を選択してください"]
 				],
-         			["div",
+         			["div",{css:{"display":"none"}},
         			 ["span","親フォルダ"],
         			 ["input",{$edit:{name:"parentDir",type:FType}}]],
-        			 ["div",
+        			 ["div",{css:{"display":"none"}},
         			   ["span","作成先フォルダ："],
         			   ["span",{$var:"dstDir"}]
         			  ],
@@ -12019,7 +12021,7 @@ define('NewSampleDialog',["UI"], function (UI) {
                     onOK(model);
                     d.dialog("close");
                 }).fail(function (e) {
-                    alert(e);
+                    alert(e.responseText||e);
                 });
     	    }
     	};
@@ -12034,11 +12036,81 @@ define('NewSampleDialog',["UI"], function (UI) {
     return res;
 });
 
+define('RenameProjectDialog',["UI"], function (UI) {
+    var res={};
+	res.show=function (prjDir, onOK,options) {
+    	var d=res.embed(prjDir,onOK,options);
+    	d.dialog({width:600});
+	};
+	res.embed=function (prjDir, onOK, options) {
+	    if (!options) options={};
+        if (!res.d) {
+            var FType={
+                    fromVal: function (val){
+                        return val=="" ? null : FS.get(val);
+                    },
+                    toVal: function (v){ return v ? v.path() : "";}
+            };
+        	res.d=UI("div",{title:"プロジェクト名の変更"},
+        			["div",
+        			 ["span","プロジェクト名"],
+        			 ["input",{$edit:"name",id:"prjName",value:options.defName||"",
+        			     on:{enterkey:function () {
+                		     res.d.done();
+				 }}}]],
+				["div",{css:{"display":"none"}},
+        			 ["span","プログラミング言語"],
+        			 ["select",{$edit:"lang",id:"prjLang"},
+        			 ["option",{selected:true,value:"js"},"JavaScript"],
+        			 ["option",{value:"dtl"},"ドリトル"],
+        			 ["option",{value:"c"},"C"]],
+        			 ["span","言語を選択してください"]
+				],
+         			["div",{css:{"display":"none"}},
+        			 ["span","親フォルダ"],
+        			 ["input",{$edit:{name:"parentDir",type:FType}}]],
+        			 ["div",{css:{"display":"none"}},
+        			   ["span","作成先フォルダ："],
+        			   ["span",{$var:"dstDir"}]
+        			  ],
+                 ["div", {$var:"validationMessage", css:{color:"red"}}],
+                 ["button", {$var:"OKButton", on:{click: function () {
+                	 res.d.done();
+                 }}}, "OK"]
+            );
+        }
+        var d=res.d;
+        var model={name:options.defName||"",lang:"js", parentDir:prjDir};
+        d.$edits.load(model);
+    	d.$edits.validator.on.validate=function (model) {
+    		if (model.name=="") {
+    			this.addError("name","名前を入力してください");
+    			return;
+    		}
+    		model.dstDir=model.parentDir.rel(model.name+"/");
+            if (model.dstDir.rel("options.json").exists() ) {
+                this.addError("name","このフォルダはすでに存在します");
+                return;
+            }
+    		this.allOK();
+    		d.$vars.dstDir.text(model.dstDir+"");
+    	};
+    	d.done=function () {
+    	    if (d.$edits.validator.isValid()) {
+                onOK(model);
+                d.dialog("close");
+    	    }
+    	};
+    	return d;
+    };
+    return res;
+});
+
 requirejs(["FS","Shell","Shell2","ProjectCompiler",
-           "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog",
+           "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog","RenameProjectDialog",
            "assert","DeferredUtil"],
     function(FS, sh,sh2,TPRC,
-           NPD, UI, Auth,zip,Sync,NSD,
+           NPD, UI, Auth,zip,Sync,NSD,RPD,
            A,DU) {
     if (location.href.match(/localhost/)) {
         A.setMode(A.MODE_STRICT);
@@ -12053,7 +12125,10 @@ function ready() {//-------------------------
         location.href="login.php";
     }
     $("body").append(UI("div",
-            ["h1","プロジェクト一覧"],
+            ["h1","Bit Arrow"],
+            ["div",{id:"userInfo",align:"right"},"ようこそ",["br"],["div","同期中です..."]],
+            ["hr",{color:"#000000",size:"4"}],
+            ["h2","プロジェクト一覧"],
             ["div",
 	        ["a",{href:"http://bitarrow.eplang.jp/",target:"wikiTab"},"Bit Arrow説明ページ"],"Bit Arrowの解説などを掲載しています"
 	    ],/*
@@ -12116,7 +12191,7 @@ function ready() {//-------------------------
     }
     function ren(f) {
         return function () {
-            NPD.show(projects, function (prjDir) {
+            RPD.show(projects, function (prjDir) {
                 //console.log(prjDir);
                 prjDir.dstDir.moveFrom(f);
                 ls();
@@ -12141,12 +12216,16 @@ function ready() {//-------------------------
             ls();
 	    //alert(e.classid+" クラスの "+e.user+" と同期しました。");
             setTimeout(function () {
-                $("#syncMesg").text(e.classid+" クラスの"+e.user+"でログインしています。");
-                $("#syncMesg").append(UI("a",{href:"login.php"},"他ユーザでログイン"));
+                //$("#syncMesg").text(e.classid+" クラスの"+e.user+"でログインしています。");
+                //$("#syncMesg").append(UI("a",{href:"login.php"},"他ユーザでログイン"));
+                $("#syncMesg").empty();
+                $("#userInfo").text(e.classid+" クラスの"+e.user+"さん、こんにちは");
+                $("#userInfo").append(UI("br"));
+                $("#userInfo").append(UI("a",{href:"login.php"},"他ユーザでログイン"));
             },3000);
         }).fail(function (e) {
             if (e==Sync.NOT_LOGGED_IN) {//Deprecated
-                $("#syncMesg").empty().append(UI("a",{href:"login.php"},"ログイン"));
+                $("#userInfo").empty().append(UI("a",{href:"login.php"},"ログイン"));
                 if(confirm("ログインしていません。ログインページに移動します。")){
                     location.href="login.php";
                 }
@@ -12170,7 +12249,8 @@ function ready() {//-------------------------
                     outputFile:"js/concat.js",
                     defaultSuperClass:"jslker.Parent",
                     dependingProjects:[
-                         {"namespace":"jslker", "compiledURL":"${JSLKer}/js/concat.js"}
+                         {"namespace":"jslker", "compiledURL":"${JSLKer}"}
+                        // {"namespace":"jslker", "compiledURL":"${JSLKer}/js/concat.js"}
                     ]
                 },
         		language:model.lang
