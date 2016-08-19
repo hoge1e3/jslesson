@@ -57,6 +57,16 @@ function (A,DU,wget,Sync) {
     };
     p.build=function () {
         var curPrj=this.prj;
+        var opt=curPrj.getOptions();
+        console.log("opT",opt);
+        if (opt.compiler && 
+        opt.compiler.dependingProjects && 
+        opt.compiler.dependingProjects[0]){
+            if (opt.compiler.dependingProjects[0].compiledURL=="${JSLKer}/js/concat.js") {
+                opt.compiler.dependingProjects[0].compiledURL="${JSLKer}";
+                curPrj.setOptions(opt);
+            }
+        }
         var dst=this.dst;
         var t=this;
         return /*this.dlFiles()*/$.when().then(function () {

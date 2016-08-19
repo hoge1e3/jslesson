@@ -101,6 +101,7 @@ function str2date(s) {
 }
 function showLine(time) {
 //2016-05-08T20:51:17+09:00  
+    time=time.replace(/\+.*/,"");
     var ctx=curcv[0].getContext("2d");
     var d=str2date(time);
     var x=Math.floor(date2pos(d));
@@ -109,16 +110,24 @@ function showLine(time) {
     inf.pos2str[x]=time;
 }
 function setUser(file) {
-    curUser=file;
+    var files=file.replace(/^\//,"").split("-");
+    var user=files[0]+"-"+files[1]
+    curUser=user;
     //0123-cho-data-time.txt
     var row=$("<tr>").appendTo("#tl");
-    $("<td>").text(file).appendTo(row);
-    curcv=$("<canvas>").attr({width:800,height:30,"data-user":file});
+    $("<td>").text(curUser).appendTo(row);
+    curcv=$("<canvas>").attr({width:800,height:30,"data-user":curUser});
     var inf=getUserInfo();
     curcv.click(function (e) {
         //console.log(inf.pos2str);
         var x=(e.clientX-curcv.offset().left);
-        alert(inf.pos2str[x]);
+        for (var i=1;i<10; i++) {
+            if (inf.pos2str[x]) {
+                window.open("grep.php?file="+user+"&word="+inf.pos2str[x]);
+                break;
+            }
+            x+=i*(i%2*2-1);
+        }
     });
     $("<td>").append(curcv).appendTo(row);
 }

@@ -149,8 +149,8 @@ $(function () {
                   ]*/},
                   {label:"保存",id:"save"},
                   {label:"設定",sub:[
-                      {label:"エディタの文字の大きさ",id:"textsize",action:textSize}/*,
-                      {label:"エディタモード切替",id:"editorType",action:editorType}*/
+                      {label:"エディタの文字の大きさ",id:"textsize",action:textSize},
+                      {label:"エディタモード切替",id:"editorType",action:editorType}
                   ]}
                 ]
         );
@@ -831,7 +831,7 @@ $(function () {
             //prog.setFontSize(20);
             prog.setTheme("ace/theme/eclipse");
             defaultKeyboard=prog.getKeyboardHandler();
-            //prog.setKeyboardHandler("ace/keyboard/emacs");
+            if(desktopEnv.editorMode=="emacs") prog.setKeyboardHandler("ace/keyboard/emacs");
             //prog.setKeyboardHandler(defaultKeyboard);
             if (f.ext()==EXT && lang=="c") {
                 prog.getSession().setMode("ace/mode/c_cpp");
@@ -854,6 +854,8 @@ $(function () {
             inf.dom.show();
             inf.editor.focus();
             curDOM=inf.dom;
+            if(desktopEnv.editorMode=="emacs") inf.editor.setKeyboardHandler("ace/keyboard/emacs");
+            else inf.editor.setKeyboardHandler(defaultKeyboard);
         }
         $("#curFileLabel").text(f.truncExt());
     }
@@ -911,17 +913,18 @@ $(function () {
         if (prog) prog.setFontSize(desktopEnv.editorFontSize||18);
         saveDesktopEnv();
     }
-    /*var editorMode=0;
     function editorType() {
         var prog=getCurrentEditor();
-        if(editorMode%2==0){
+        if(prog.getKeyboardHandler()==defaultKeyboard){
             prog.setKeyboardHandler("ace/keyboard/emacs");
+            desktopEnv.editorMode="emacs";
         }else{
             prog.setKeyboardHandler(defaultKeyboard);
+            desktopEnv.editorMode="ace-default";
         }
-        editorMode++;
-        desktopEnv.editorKeyboardMode=
-    }*/
+        saveDesktopEnv();
+        focusToEditor();
+    }
     function showToast(msg){
 	$("#toastArea").text(msg);
 	setTimeout(function(){

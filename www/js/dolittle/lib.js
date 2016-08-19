@@ -73,6 +73,8 @@ root.background={
 
 root.true=true;
 root.false=false;
+root.undefined=undefined;
+root.null=null;
 root.instanceof=function(f,s){
 	if(typeof f!="object")throw new Error("instanceofの第一引数にはオブジェクトを渡して下さい。");
 	if(typeof s!="function")throw new Error("instanceofの第二引数には関数を渡して下さい。");
@@ -146,6 +148,22 @@ root["タイマー"]=root.timer;
 localize(root.timer, {times:"回数",interval:"間隔", execute:"実行", 
 create:"作る",duration:"時間"});
 //Array
+
+/* --- hoge1e3 : @honda-y  Objectに新しいプロトタイプを実装するのは危険です。
+Object.defineProperty(Object.prototype,"write",{
+	enumerable:false,configurable:true,
+	value:function(k,v){
+		this[k]=v;
+		return this;
+	}
+});
+Object.defineProperty(Object.prototype,"read",{
+	enumerable:false,configurable:true,
+	value:function(k){
+		return this[k];
+	}
+});
+*/
 
 Object.defineProperty(Array,"create",{
 	enumerable:false,configurable:true,
@@ -386,7 +404,9 @@ Function.prototype.repeat=function(param){
 	for(var i=1;i<=param;++i)res=this.execute(i);
 	return res;
 };
-Function.prototype.while=function(){return (new While(this));};
+Function.prototype.while=function(){
+	return root._while.create(this);
+};
 Function.prototype.then=function(){return (this.execute(this,arguments))?root._true:root._false;};
 Function.prototype.checkerror=function () {
     var f=this;
@@ -415,7 +435,9 @@ Function.prototype.or=function(){
 			objs[objs.length-1].params.push(args.shift());
 		}
 	}while(args.length>0);
-	for(i in objs){
+	var keys=Object.keys(objs);
+	for(var i=0;i<keys.length;i++){
+		i=keys[i];
 		res=objs[i].func.execute.apply(objs[i].func,objs[i].params);
 		if(res)break;
 	}
@@ -443,15 +465,18 @@ function dtlbind(bound, f) {
     return f;
 };
 window.dtlbind=dtlbind;
-While=function(func){
-	this._self=func;
-	this.execute=function(func){
-		while(this._self()){
-			func.execute();
-		};
-	return undefined;
-	};
+root._while=root.create();
+root._while.initialize=function(f){
+	this.s=f;
 };
+root._while.execute=function(f){
+	var res=undefined;
+	while(this.s()){
+		res=f.execute();
+	}
+	return res;
+};
+root._while["実行"]=root._while.execute;
 
 root._true=root.create();
 root._true["else"]= function (func) {
