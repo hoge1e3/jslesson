@@ -1,8 +1,8 @@
 requirejs(["FS","Shell","Shell2","ProjectCompiler",
-           "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog",
+           "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog","RenameProjectDialog",
            "assert","DeferredUtil"],
     function(FS, sh,sh2,TPRC,
-           NPD, UI, Auth,zip,Sync,NSD,
+           NPD, UI, Auth,zip,Sync,NSD,RPD,
            A,DU) {
     if (location.href.match(/localhost/)) {
         A.setMode(A.MODE_STRICT);
@@ -18,7 +18,7 @@ function ready() {//-------------------------
     }
     $("body").append(UI("div",
             ["h1","Bit Arrow"],
-            ["div",{id:"userInfo",align:"right"},""],
+            ["div",{id:"userInfo",align:"right"},"ようこそ",["br"],["div","同期中です..."]],
             ["hr",{color:"#000000",size:"4"}],
             ["h2","プロジェクト一覧"],
             ["div",
@@ -83,7 +83,7 @@ function ready() {//-------------------------
     }
     function ren(f) {
         return function () {
-            NPD.show(projects, function (prjDir) {
+            RPD.show(projects, function (prjDir) {
                 //console.log(prjDir);
                 prjDir.dstDir.moveFrom(f);
                 ls();

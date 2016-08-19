@@ -51,7 +51,18 @@ root.system={
 	    } finally {
 	        if (f) return t.execute();
 	    }
-	}
+	},
+	write:function(o,k,v){
+		o[k]=v;
+		return o;
+	},
+	read:function(o,k){
+		return o[k]
+	},
+	delete:function(o,k){
+		delete o[k];
+		return o;
+	},
 };
 localize(root, {system:"システム", create:"作る"});
 
@@ -150,6 +161,7 @@ create:"作る",duration:"時間"});
 //Array
 
 /* --- hoge1e3 : @honda-y  Objectに新しいプロトタイプを実装するのは危険です。
+honda-y :@hoge1e3 失礼致しました。他の方法を考えてみます。
 Object.defineProperty(Object.prototype,"write",{
 	enumerable:false,configurable:true,
 	value:function(k,v){
@@ -241,9 +253,11 @@ Object.defineProperty(Array.prototype,"挿入",{
 Object.defineProperty(Array.prototype,"each",{
 	enumerable:false,configurable:true,
 	value:function(func){
+		var res=undefined;
 		for(var i=0;i<this.length;i++){
-			func.execute(this[i]);
+			res=func.execute(this[i]);
 		}
+		return res;
 	},
 });
 /*Object.defineProperty(Array.prototype,"foreach",{

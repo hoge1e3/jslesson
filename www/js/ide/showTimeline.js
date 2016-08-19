@@ -123,7 +123,7 @@ function setUser(file) {
         var x=(e.clientX-curcv.offset().left);
         for (var i=1;i<10; i++) {
             if (inf.pos2str[x]) {
-                window.open("grep.php?file="+user+"&word="+inf.pos2str[x]);
+                window.open("grep.php?file="+user+"&word="+inf.pos2str[x]+"#center");
                 break;
             }
             x+=i*(i%2*2-1);

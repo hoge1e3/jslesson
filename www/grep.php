@@ -23,13 +23,13 @@ $lines=explode("\n",$fs->getContent("$file-data.txt"));
 $a=array();
 $found=FALSE;
 foreach($lines as $line) {
-    array_push($a,"<code>". preg_replace("/ /","&nbsp;",htmlspecialchars ($line) )."\n</code><BR>");
+    array_push($a,"<code>". mkTimeLink(preg_replace("/ /","&nbsp;",htmlspecialchars ($line) ))."\n</code><BR>");
     if ($found) {
         if (count($a)>$around*2) break;
     } else {
         if (count($a)>$around) array_shift($a);
         if (strpos($line, $word)!==FALSE) {
-            array_push($a,"<font color=red>-----------------------------------</font><BR>");
+            array_push($a,"<a name='center'/><font color=red>-----------------------------------</font><BR>");
             $found=TRUE;
         }
     }
@@ -40,5 +40,9 @@ if ($found) {
 } else {
     echo "Not found :$word";
 }
-
+function mkTimeLink($s) {
+    global $file;
+    return preg_replace("/[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+/",
+    "<a href='grep.php?file=$file&word=\\0#center'>\\0</a>",$s);
+}
 ?>
