@@ -25,17 +25,13 @@ root.addAlias=function () {
     });
     return this;
 };
-
+ var and={true:function(){var arr=Array.prototype.slice.call(arguments);var res=Boolean(arr[0]);$.each(arr,function(key,value){res=(res&&value);});return res;}};
+ var or={true:function(){var arr=Array.prototype.slice.call(arguments);var res=Boolean(arr[0]);$.each(arr,function(key,value){res=(res||value);});return res;}};
+ root.and=and;
+ root.or=or;
 
 root.system={
 	localize: localize,
-	gui_posx:10,
-	gui_posy:10,
-	"timestamp?":function(){return new Date().getTime();},
-	"time?":function(){
-		var date = new Date();
-		return (date.getHours()+":"+date.getMinutes()+":"+date.getSeconds());
-	},
 	new:function(obj){
 		return new(Function.prototype.bind.apply(obj,arguments));
 	},
@@ -46,36 +42,7 @@ root.system={
 			if((new Date().getTime())>=end)break;
 		}
 	},
-	log:function(param){return console.log(param.valueOf());},
-	use:function(lib){
-		return $.ajax({url:"http://oecu-edu.sakura.ne.jp/honda/"+lib}).then(function(data){
-			console.log(data);
-			(new Function(window.parent.MinimalParser.parse(data)))();
-		},function(){alert("setup.iniの読み込みに失敗しました");});
-	},
-	throw:function(e){if (e instanceof Error) throw e; else throw new Error(e);},
-	"システム秒?":function(){return new Date().getTime();},
-	"時刻?":function(){
-		var date = new Date();
-		return (date.getHours()+":"+date.getMinutes()+":"+date.getSeconds());
-	},
-	"日時?":function(){return (new Date).toString();},
-	"曜日?":function(){var num=(new Date).getDay();var res=null;
-		if(num==0)return "日";
-		else if(num==1)res= "月";
-		else if(num==2)res= "火";
-		else if(num==3)res= "水";
-		else if(num==4)res= "木";
-		else if(num==5)res= "金";
-		else res="土";
-		return res;
-	},
-	"年?":function(){return (new Date).getFullYear();},
-	"月?":function(){return (new Date).getMonth();},
-	"日?":function(){return (new Date).getDate();},
-	"時?":function(){return (new Date).getHours();},
-	"分?":function(){return (new Date).getMinutes();},
-	"秒?":function(){return (new Date).getSeconds();},
+	throw:function(e){throw new Error(e);},
 	"try": function (t,c,f) {
 	    try {
 	        return t.execute();
@@ -87,7 +54,6 @@ root.system={
 	}
 };
 localize(root, {system:"システム", create:"作る"});
-localize(root.system, {"time?":"時刻?"  ,use: "使う"});
 
 root.random=function(param){
 	var res=Math.random();
@@ -107,6 +73,8 @@ root.background={
 
 root.true=true;
 root.false=false;
+root.undefined=undefined;
+root.null=null;
 root.instanceof=function(f,s){
 	if(typeof f!="object")throw new Error("instanceofの第一引数にはオブジェクトを渡して下さい。");
 	if(typeof s!="function")throw new Error("instanceofの第二引数には関数を渡して下さい。");
@@ -181,6 +149,22 @@ localize(root.timer, {times:"回数",interval:"間隔", execute:"実行",
 create:"作る",duration:"時間"});
 //Array
 
+/* --- hoge1e3 : @honda-y  Objectに新しいプロトタイプを実装するのは危険です。
+Object.defineProperty(Object.prototype,"write",{
+	enumerable:false,configurable:true,
+	value:function(k,v){
+		this[k]=v;
+		return this;
+	}
+});
+Object.defineProperty(Object.prototype,"read",{
+	enumerable:false,configurable:true,
+	value:function(k){
+		return this[k];
+	}
+});
+*/
+
 Object.defineProperty(Array,"create",{
 	enumerable:false,configurable:true,
 	value:function(){
@@ -226,6 +210,7 @@ Object.defineProperty(Array.prototype,"remove",{
 		for(var i=0;i<this.length;i++){
 			if(this[i]===obj){this.removepos(i+1);break;}
 		}
+		return this;
 	}
 });
 Object.defineProperty(Array.prototype,"消す",{
@@ -234,6 +219,7 @@ Object.defineProperty(Array.prototype,"消す",{
 		for(var i=0;i<this.length;i++){
 			if(this[i]===obj){this.removepos(i+1);break;}
 		}
+		return this;
 	}
 });
 Object.defineProperty(Array.prototype,"removepos",{
@@ -255,7 +241,7 @@ Object.defineProperty(Array.prototype,"挿入",{
 Object.defineProperty(Array.prototype,"each",{
 	enumerable:false,configurable:true,
 	value:function(func){
-		for(var i in this){
+		for(var i=0;i<this.length;i++){
 			func.execute(this[i]);
 		}
 	},
@@ -293,14 +279,14 @@ Object.defineProperty(Array.prototype,"クリア",{
 Object.defineProperty(Array.prototype,"randomSelect",{
 	enumerable:false,configurable:true,
 	value:function(){
-		return this[this.length.random()];
+		return this[this.length.random()-1];
 	}
 });
 Object.defineProperty(Array.prototype,"select",{
 	enumerable:false,configurable:true,
 	value:function(f){
 		var res=[];
-		for(var i in this){
+		for(var i=0;i<this.length;i++){
 			if(f.execute(this[i])==true){
 				res.push(this[i]);
 			}
@@ -311,9 +297,10 @@ Object.defineProperty(Array.prototype,"select",{
 Object.defineProperty(Array.prototype,"process",{
 	enumerable:false,configurable:true,
 	value:function(f){
-		for(var i in this){
+		for(var i=0;i<this.length;i++){
 			this[i]=f.execute(this[i]);
 		}
+		return this;
 	}
 });
 Object.defineProperty(Array.prototype,"bond",{
@@ -326,7 +313,7 @@ Object.defineProperty(Array.prototype,"max",{
 	enumerable:false,configurable:true,
 	value:function(){
 		var max=this[0];
-		for(var i in this){
+		for(var i=0;i<this.length;i++){
 			if(max<this[i]){
 				max=this[i];
 			}
@@ -338,7 +325,7 @@ Object.defineProperty(Array.prototype,"min",{
 	enumerable:false,configurable:true,
 	value:function(){
 		var min=this[0];
-		for(var i in this){
+		for(var i=0;i<this.length;i++){
 			if(min>this[i]){
 				min=this[i];
 			}
@@ -350,30 +337,29 @@ root["配列"]=Array;
 root.Array=Array;
 
 //Stringオブジェクト
-String.prototype.add=function(_param){return this.valueOf()+ _param;};
-String.prototype["連結"]=String.prototype.add;
+String.prototype.add=String.prototype.concat;
+String.prototype["連結"]=String.prototype.concat;
 String.prototype["contain?"]=function(_param){return -1!=this.valueOf().search(RegExp(_param));};
 String.prototype["含む?"]=String.prototype["contain?"];
+String.prototype["isPosition?"]=function(p){return this.valueOf().search(RegExp(p))+1};
 String.prototype["何文字目?"]=function(_param){return this.valueOf().search(RegExp(_param))+1};
 String.prototype["substr"]=function(){return ((arguments.length==1)?substr1:substr2).apply(this,arguments);};
-String.prototype["部分?"]=String.prototype.substr;
+String.prototype["部分"]=String.prototype.substr;
 String.prototype["length?"]=function(){return this.length;};
 String.prototype["長さ?"]=String.prototype["length?"];
 String.prototype["分割"]=String.prototype.split;
 String.prototype["置き換える"]=String.prototype.replace;
-String.prototype["全部置き換える"]=function(_pattern,_replacement){return this.valueOf().replace((new RegExp(_pattern,"g")),_replacement);};
+String.prototype.allReplace=function(_pattern,_replacement){return this.valueOf().replace((new RegExp(_pattern,"g")),_replacement);};
+String.prototype["全部置き換える"]=String.prototype.allReplace;
 var substr1=function(param){return this.substring(param-1);};
 var substr2=function(param1,param2){return this.substring(param1-1,param2);}
 
-var and={true:function(){var arr=Array.prototype.slice.call(arguments);var res=Boolean(arr[0]);$.each(arr,function(key,value){res=(res&&value);});return res;}};
-var or={true:function(){var arr=Array.prototype.slice.call(arguments);var res=Boolean(arr[0]);$.each(arr,function(key,value){res=(res||value);});return res;}};
-root.and=and;
-root.or=or;
 //Booleanオブジェクト
 Boolean.prototype.then=function(){return (this)?True:False;};
-Boolean.prototype["反対"]=function(){return (false==this);};
+Boolean.prototype.not=function(){return (false==this);};
+Boolean.prototype["反対"]=Boolean.prototype.not;
 //Number
-["atan","acos","asin","abs","floor","sqrt","round","ceil","exp"].forEach(function (k) {
+["abs","floor","sqrt","round","ceil","exp"].forEach(function (k) {
     Number.prototype[k]=function () {
         return Math[k](this);
     };
@@ -383,13 +369,13 @@ Boolean.prototype["反対"]=function(){return (false==this);};
         return Math[k](this.radian());
     };
 });
-/*["atan","acos","asin"].forEach(function(k){
+["atan","acos","asin"].forEach(function(k){
 	Number.prototype[k]=function(){
-		return parseInt(Math[k](this).degree());
+		return Math[k](this).degree();
 	};
-});*/
+});
 Number.prototype.atan2=function(y){
-	return Math.atan2(y,this);
+	return Math.atan2(y,this).degree();
 };
 Number.prototype.pow=function(m){
 	return Math.pow(this,m);
@@ -418,8 +404,10 @@ Function.prototype.repeat=function(param){
 	for(var i=1;i<=param;++i)res=this.execute(i);
 	return res;
 };
-Function.prototype.while=function(){return (new While(this));};
-Function.prototype.then=function(){return (this.execute(this,arguments))?True:False;};
+Function.prototype.while=function(){
+	return root._while.create(this);
+};
+Function.prototype.then=function(){return (this.execute(this,arguments))?root._true:root._false;};
 Function.prototype.checkerror=function () {
     var f=this;
     return dtlbind(f.bound, function () {
@@ -447,11 +435,10 @@ Function.prototype.or=function(){
 			objs[objs.length-1].params.push(args.shift());
 		}
 	}while(args.length>0);
-	console.log(objs);
-	for(i in objs){
-		console.log(objs[i]);
+	var keys=Object.keys(objs);
+	for(var i=0;i<keys.length;i++){
+		i=keys[i];
 		res=objs[i].func.execute.apply(objs[i].func,objs[i].params);
-		console.log(res);
 		if(res)break;
 	}
 	return ((res)?res:root.false);
@@ -478,78 +465,80 @@ function dtlbind(bound, f) {
     return f;
 };
 window.dtlbind=dtlbind;
-While=function(func){
-	this._self=func;
-	this.execute=function(func){
-		while(this._self()){
-			func.execute();
-		};
+root._while=root.create();
+root._while.initialize=function(f){
+	this.s=f;
+};
+root._while.execute=function(f){
+	var res=undefined;
+	while(this.s()){
+		res=f.execute();
+	}
+	return res;
+};
+root._while["実行"]=root._while.execute;
+
+root._true=root.create();
+root._true["else"]= function (func) {
+	return (root._done.create(func.execute()));
+};
+root._true["そうでなければ"]= function(func){
+	return (root._done.create(func.execute()));
+};
+root._true.execute= function (func) {
+	return func.execute();
+};
+root._true["実行"]=function(func){
+	return func.execute();
+};
+root._true.then= function(func){
+	return (func).then();
+};
+root._true["なら"]=function(func){
+	return (func).then();
+};
+
+root._false=root.create();
+root._false["else"]= function(func){
+	return root._true;
+};
+root._false["そうでなければ"]=function(func){
+	return root._true;
+};
+root._false.execute= function(func){
 	return undefined;
-	};
+};
+root._false["実行"]=function(func){
+	return undefined;
+};
+root._false.then= function(func){
+	return (func).then();
+};
+root._false["なら"]=function(func){
+	return (func).then();
 };
 
-True={
-	else: function (func) {
-		return (new Done(func.execute()));
-	},
-	"そうでなければ": function(func){
-		return (new Done(func.execute()));
-	},
-	execute: function (func) {
-		return func.execute();
-	},
-	"実行":function(func){
-		return func.execute();
-	},
-	then: function(func){
-		return (func).then();
-	},
-	"なら":function(func){
-		return (func).then();
-	},
+root._done= root.create();
+root._done.initialize=function(p){
+	this._self=p;
 };
-
-False={
-	else: function(func){
-		return True;
-	},
-	"そうでなければ":function(func){
-		return True;
-	},
-	execute: function(func){
-		return undefined;
-	},
-	"実行":function(func){
-		return undefined;
-	},
-	then: function(func){
-		return (func).then();
-	},
-	"なら":function(func){
-		return (func).then();
-	},
+root._done["else"]= function(func){
+	return this;
 };
-
-Done= function(param){
-	this._self=param;
-	this.else= function(func){
-		return this;
-	};
-	this["そうでなければ"]=function(func){
-		return this;
-	};
-	this.execute=function(func){
-		return this._self;
-	};
-	this["実行"]=function(func){
-		return this._self;
-	};
-	this.then=function(func){
-		return this;
-	};
-	this["なら"]=function(func){
-		return this;
-	};
+root._done["そうでなければ"]=function(func){
+	return this;
+};
+root._done.execute=function(func){
+	return this._self;
+};
+root._done["実行"]=function(func){
+	return this._self;
+};
+root._done.then=function(func){
+	return this;
+};
+root._done["なら"]=function(func){
+	return this;
 };
 root["ブロック"]=Function;
 localize(Function.prototype,{then:"なら", repeat:"繰り返す", "while":"の間"});
