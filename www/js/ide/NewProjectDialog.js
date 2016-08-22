@@ -20,13 +20,13 @@ define(["UI"], function (UI) {
         			     on:{enterkey:function () {
                 		     res.d.done();
 				 }}}]],
-				["div",{css:{"display":(options.ren?"none":"run-in")}},
+				["div",
         			 ["span","プログラミング言語"],
         			 ["select",{$edit:"lang",id:"prjLang"},
-        			 ["option",{selected:true,value:"js"},"JavaScript"],
+        			 ["option",{selected:"selected",value:"select"},"言語を選択してください"],
+        			 ["option",{value:"js"},"JavaScript"],
         			 ["option",{value:"dtl"},"ドリトル"],
-        			 ["option",{value:"c"},"C"]],
-        			 ["span","言語を選択してください"]
+        			 ["option",{value:"c"},"C"]]
 				],
          			["div",{css:{"display":"none"}},
         			 ["span","親フォルダ"],

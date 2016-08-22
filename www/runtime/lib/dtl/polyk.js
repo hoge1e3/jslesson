@@ -517,6 +517,7 @@ PolyK.Intersects=function (p1,p2) {
            Math.abs(t1.y+t1.height/2-t2.y-t2.height/2)<t1.height/2+t2.height/2 ) )return false;
     //if (!( Math.abs(t1.x-t2.x)*2<t1.width+t2.width &&
     //       Math.abs(t1.y-t2.y)*2<t1.height+t2.height ) )return false;
+    if (!PolyK.IsSimple(p1) || !PolyK.IsSimple(p2)) return false;
     for (var i=0; i<p1.length;i+=2) {
         if (PolyK.ContainsPoint(p2, p1[i],p1[i+1])) return true;
     }

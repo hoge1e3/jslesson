@@ -24,7 +24,7 @@ root.加速度センサ.initialize=function(){
 			var x=((evt.accelerationIncludingGravity.x));
 			var y=((evt.accelerationIncludingGravity.y));
 			var c=self.getCalibratedXY({x:x,y:y},self.calibrated);
-			self.x=c.x;self.y=-c.y;
+			self.x=c.x;self.y=c.y;
 			/*if(window.orientation==0){
 				self.y=y,self.x=x;
 			}else if(window.orientation==180){
