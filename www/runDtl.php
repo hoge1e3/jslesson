@@ -3,6 +3,7 @@ require_once __DIR__."/php/dtl/Dtl.php";
 require_once __DIR__."/php/json.php";
 require_once __DIR__."/php/dtlfs/DtlFS.php";
 require_once __DIR__."/php/dtlfs/DtlSys.php";
+require_once __DIR__."/php/dtlfs/DtlParam.php";
 require_once __DIR__."/php/ErrorHandler.php";
 
 if (isset($_POST["script"]) || isset($_GET["file"])) {
@@ -10,6 +11,7 @@ if (isset($_POST["script"]) || isset($_GET["file"])) {
     Dtl::initRoot($root);
     DtlFS::initRoot($root);
     DtlSys::initRoot($root);
+    $root->param=new DtlParam();
     if (isset($_GET["file"])) {
         $scr=$root->FS->getContent($_GET["file"]);
     } else {

@@ -3,6 +3,7 @@ require_once"DtlNumber.php";
 require_once"DtlString.php";
 require_once"DtlObj.php";
 require_once"DtlBlock.php";
+require_once"DtlBool.php";
 require_once"DtlArray.php";
 require_once"DtlThread.php";
 require_once"DtlUtil.php";

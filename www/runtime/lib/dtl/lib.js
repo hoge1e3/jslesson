@@ -160,23 +160,6 @@ localize(root.timer, {times:"回数",interval:"間隔", execute:"実行",
 create:"作る",duration:"時間"});
 //Array
 
-/* --- hoge1e3 : @honda-y  Objectに新しいプロトタイプを実装するのは危険です。
-honda-y :@hoge1e3 失礼致しました。他の方法を考えてみます。
-Object.defineProperty(Object.prototype,"write",{
-	enumerable:false,configurable:true,
-	value:function(k,v){
-		this[k]=v;
-		return this;
-	}
-});
-Object.defineProperty(Object.prototype,"read",{
-	enumerable:false,configurable:true,
-	value:function(k){
-		return this[k];
-	}
-});
-*/
-
 Object.defineProperty(Array,"create",{
 	enumerable:false,configurable:true,
 	value:function(){
@@ -369,7 +352,7 @@ var substr1=function(param){return this.substring(param-1);};
 var substr2=function(param1,param2){return this.substring(param1-1,param2);}
 
 //Booleanオブジェクト
-Boolean.prototype.then=function(){return (this)?True:False;};
+Boolean.prototype.then=function(){return (this)?root._true:root._false;};
 Boolean.prototype.not=function(){return (false==this);};
 Boolean.prototype["反対"]=Boolean.prototype.not;
 //Number
@@ -409,7 +392,46 @@ Number.prototype.degree=function() {
 Number.prototype.random=function(){
 	return parseInt(Math.random()*this)+1;
 }
+Number.prototype.random=function(){
+	return Random.rand(this);
+};
+Number.prototype.randomInit=function(){
+	return Random.seed(this);
+};
 Number.prototype["乱数"]=Number.prototype.random;
+var Random={
+  x:598374520,
+  y:134509873,
+  z:839290344,
+};
+Random.big=function(v){
+  return ((v>100000000||v==0)?v:this.big(v*v));
+};
+Random.x=Random.big(new Date().getHours());
+Random.y=Random.big(new Date().getMinutes());
+Random.z=Random.big(new Date().getMilliseconds());
+Random.w=Random.big(new Date().getSeconds());
+
+Random.seed=function(s){
+  this.x=this.big(s);
+  this.y=this.big(s);
+  this.z=this.big(s);
+  this.w=this.big(s);
+};
+
+Random.rand=function(max){
+  var t=this.x^(this.x<<11);
+  this.x=this.y;
+  this.y=this.z;
+  this.z=this.w;
+  this.w=(this.w^(this.w>>>19))^(t^(t>>>8));
+  
+  if(max!=0){
+    return Math.abs(this.w)%max+1;
+  }else{
+    return Math.floor(Math.abs(this.w)/1000000%1*1000000)/1000000;
+  }
+};
 
 //Function
 Function.prototype.execute	=	function(){return this.apply(this.bound||this,arguments);};

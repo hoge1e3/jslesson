@@ -1,7 +1,8 @@
 <?php
 class DtlThread {
     public static $methodMap=array(
-        "else"=>"_else","while"=>"_while","use"=>"_use"
+        "else"=>"_else","while"=>"_while","use"=>"_use",
+        "and"=>"_and","_or"=>"or"
     ); 
     public static function run($self,$block,$args) {
         $stack=new DtlArray;
@@ -59,6 +60,8 @@ class DtlThread {
                     $obj=new DtlNumber($obj);
                 } else if (is_string($obj)) {
                     $obj=new DtlString($obj);
+                } else if (is_bool($obj)) {
+                    $obj=new DtlBool($obj);
                 }
                 if (!is_object($obj)) {
                     throw new Exception("オブジェクトではない値にメソッド".$name."を呼び出しています");
