@@ -9,14 +9,17 @@ require_once"../ErrorHandler.php";
 $class="classA";
 $user="userA1";
 $ap=new Permission(new AuthInfo($class,$user));
-$fs=new NativeFS("../../../fs/", $ap);
-$root=new SFile($fs,"/");
+$ap=null;
+$fs=new NativeFS("../../fs/", $ap);
+$fs->mv("/kesunayo/","/kesitemoii/");
+echo join(", ",$fs->ls("/"));
+/*$root=new SFile($fs,"/");
 $home=$root->rel("home/")->rel($class)->rel($user);
 $txt=$home->rel("myprj/test.txt");
 $txt->text("tesutou!!");
 print "Wrote to ".$txt->path()." Actual: ".$fs->resolve($txt->path());
 $otherHome=$home->rel("../userA2/");
-print $otherHome->rel("topsecret.txt")->text();
+print $otherHome->rel("topsecret.txt")->text();*/
 //$otherHome->text("hack!!");
 
 //echo "txtpath= ".$txt->path()."<BR>";

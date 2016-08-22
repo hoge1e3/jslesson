@@ -38,10 +38,22 @@ class NativeFS {
 	   fclose($handle);
 	   return $contents;
    }
+   function mv($path, $to) {
+        $this->check($path,Permission::WRITE);
+        $this->check($to,Permission::WRITE);
+        $rp=$this->resolve($path);
+        $rt=$this->resolve($to);
+        rename($rp, $rt);
+   }
    function rm($path) {
-       $this->check($path,Permission::WRITE);
+        $this->check($path,Permission::WRITE);
         $rp=$this->resolve($path);
         unlink($rp);
+   }
+   function rmdir($path) {
+        $this->check($path,Permission::WRITE);
+        $rp=$this->resolve($path);
+        rmdir($rp);
    }
    function mkdir($path) {
        $this->check($path,Permission::WRITE);
