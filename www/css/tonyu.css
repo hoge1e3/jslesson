@@ -87,6 +87,10 @@ h1 {
     font-family: "MS UI Gothic",sans-serif;
 	font-size: 20px;
 }
+.hero-unit h1 {
+    font-family: "MS UI Gothic",sans-serif;
+	font-size: 40px;
+}
 h2 {
 	font-size: 18px;
 }

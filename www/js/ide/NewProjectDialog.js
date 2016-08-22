@@ -42,7 +42,7 @@ define(["UI"], function (UI) {
             );
         }
         var d=res.d;
-        var model={name:options.defName||"",lang:"js", parentDir:prjDir};
+        var model={name:options.defName||"",lang:"select", parentDir:prjDir};
         d.$edits.load(model);
     	d.$edits.validator.on.validate=function (model) {
     		if (model.name=="") {
@@ -52,6 +52,10 @@ define(["UI"], function (UI) {
     		model.dstDir=model.parentDir.rel(model.name+"/");
             if (model.dstDir.rel("options.json").exists() ) {
                 this.addError("name","このフォルダはすでに存在します");
+                return;
+            }
+            if(model.lang=="select"){
+                this.addError("lang","言語を選択してください");
                 return;
             }
     		this.allOK();
