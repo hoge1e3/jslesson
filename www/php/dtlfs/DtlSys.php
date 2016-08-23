@@ -17,6 +17,7 @@ class DtlSys {
     public function __toString() {return "system";}
     public static function initRoot($root) {// should call after DtlFS::initRoot
         $root->system=new DtlSys($root,$root->FS);
+        $root->JSON=new Services_JSON;
     }
 }
 ?>
