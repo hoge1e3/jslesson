@@ -11567,13 +11567,13 @@ define('NewProjectDialog',["UI"], function (UI) {
         			     on:{enterkey:function () {
                 		     res.d.done();
 				 }}}]],
-				["div",{css:{"display":(options.ren?"none":"run-in")}},
+				["div",
         			 ["span","プログラミング言語"],
         			 ["select",{$edit:"lang",id:"prjLang"},
-        			 ["option",{selected:true,value:"js"},"JavaScript"],
+        			 ["option",{selected:"selected",value:"select"},"言語を選択してください"],
+        			 ["option",{value:"js"},"JavaScript"],
         			 ["option",{value:"dtl"},"ドリトル"],
-        			 ["option",{value:"c"},"C"]],
-        			 ["span","言語を選択してください"]
+        			 ["option",{value:"c"},"C"]]
 				],
          			["div",{css:{"display":"none"}},
         			 ["span","親フォルダ"],
@@ -11589,7 +11589,7 @@ define('NewProjectDialog',["UI"], function (UI) {
             );
         }
         var d=res.d;
-        var model={name:options.defName||"",lang:"js", parentDir:prjDir};
+        var model={name:options.defName||"",lang:"select", parentDir:prjDir};
         d.$edits.load(model);
     	d.$edits.validator.on.validate=function (model) {
     		if (model.name=="") {
@@ -11599,6 +11599,10 @@ define('NewProjectDialog',["UI"], function (UI) {
     		model.dstDir=model.parentDir.rel(model.name+"/");
             if (model.dstDir.rel("options.json").exists() ) {
                 this.addError("name","このフォルダはすでに存在します");
+                return;
+            }
+            if(model.lang=="select"){
+                this.addError("lang","言語を選択してください");
                 return;
             }
     		this.allOK();
@@ -12125,13 +12129,16 @@ function ready() {//-------------------------
         location.href="login.php";
     }
     $("body").append(UI("div",
-            ["h1","Bit Arrow"],
-            ["div",{id:"userInfo",align:"right"},"ようこそ",["br"],["div","同期中です..."]],
-            ["hr",{color:"#000000",size:"4"}],
-            ["h2","プロジェクト一覧"],
+            ["div",{class:"hero-unit"},
+            ["div",{id:"userInfo",css:{float:"right"},margin:"50px"},"ようこそ",["br"],["div","同期中です..."]],
+            ["h1", ["img",{src:"images/bitarrow-2.png",css:{"display":"inline"},width:"100px"}],"Bit Arrow"]],
             ["div",
-	        ["a",{href:"http://bitarrow.eplang.jp/",target:"wikiTab"},"Bit Arrow説明ページ"],"Bit Arrowの解説などを掲載しています"
-	    ],/*
+	            ["a",{href:"http://bitarrow.eplang.jp/",target:"wikiTab"},"Bit Arrow解説ページ"]," | ",
+    	    	["a",{href:"teacher.php",target:"teaTab"},"教員用ログイン"]
+	        ],
+            ["hr",{color:"#000000",size:"4"}],
+            //["h2","プロジェクト一覧"],
+	        /*
             ["div",
 	        ["a",{href:"https://docs.google.com/document/d/17_RcWbezzXf4ShnTUcS2IRYxgO03QB9--sFN4xC9Ts0/pub",target:"manTab"},"入門テキスト"],"Bit Arrowの基本的な使い方を説明します。"
 	    ],
@@ -12143,10 +12150,10 @@ function ready() {//-------------------------
 	    ],
 	    ["div",
 	    	["a",{href:"https://docs.google.com/document/d/1oLtnBKggCuOI-cyD16ZCg7JOFCi-oS8Rj9vo0uhWFvs/pub",target:"regTab"},"教員の方向け説明"],"Bit Arrowを使って授業を展開される方への説明です。"
-	    ],*/
+	    ],
 	    ["div",
 	    	["a",{href:"teacher.php",target:"teaTab"},"教員用ログイン"]
-            ],
+            ],*/
             ["button", {id:"newPrj", "class":"btn btn-primary"}, "新規プロジェクト"],
             ["button", {id:"newSample", "class":"btn btn-primary"}, "サンプルを見る"],
             ["span",{id:"syncMesg"}],

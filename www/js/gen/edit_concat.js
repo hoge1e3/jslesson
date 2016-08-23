@@ -13799,12 +13799,27 @@ $(function () {
             //alert(editors[rm.path()]);
         }
     }
+    function fixZSpace(prog) {
+        A.is(prog,"AceEditor");
+        var prev=prog.getValue();
+        var fixed=prev.replace(/　/g,"  ");
+        if (fixed!==prev) {
+            var cur=prog.getCursorPosition();
+            prog.setValue(fixed);
+            prog.clearSelection();
+            prog.moveCursorTo(cur.row, cur.column);
+        }
+    }
     function fixEditorIndent(prog) {
         A.is(prog,"AceEditor");
-        var cur=prog.getCursorPosition();
-        prog.setValue(fixIndent( prog.getValue() ));
-        prog.clearSelection();
-        prog.moveCursorTo(cur.row, cur.column);
+        var prev=prog.getValue();
+        var fixed=fixIndent( prev ).replace(/　/g,"  ");
+        if (fixed!==prev) {
+            var cur=prog.getCursorPosition();
+            prog.setValue(fixed);
+            prog.clearSelection();
+            prog.moveCursorTo(cur.row, cur.column);
+        }
     }
     function reloadFromFiles() {
         for (var path in editors) {
@@ -13824,6 +13839,7 @@ $(function () {
         var prog=inf.editor; //getCurrentEditor();
         if (curFile && prog && !curFile.isReadOnly()) {
             if (curFile.ext()==EXT) fixEditorIndent(prog);
+            else fixZSpace(prog);
             var old=curFile.text();
             var nw=prog.getValue();
             if (old!=nw) {
