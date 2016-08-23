@@ -46,12 +46,16 @@ root.加速度センサ.getCalibratedXY=function (raw,c) {
      }   
 };
 root.加速度センサ.calibrate=function () {
-      location.href=(window.WebSite&&window.WebSite.runtime || window.runtimePath)+"/cal.html";
+    var self=this;
+    startCalibration(function (a) {
+        self.calibrated=a;
+    });
+    //  location.href=(window.WebSite&&window.WebSite.runtime || window.runtimePath)+"/cal.html";
 };
 root.加速度センサ['調整']=root.加速度センサ.calibrate;
 root.加速度センサ["横の傾き?"]=function(){return this.x};
 root.加速度センサ["xの傾き?"]=root.加速度センサ["横の傾き?"];
-root.加速度センサ["縦の傾き?"]=function(){return this.y};
+root.加速度センサ["縦の傾き?"]=function(){return -this.y};
 root.加速度センサ["yの傾き?"]=root.加速度センサ["縦の傾き?"];
 
 root.傾きセンサ=root.加速度センサ;
@@ -237,34 +241,35 @@ root.ジャイロセンサー=root.ジャイロセンサ;
 
 // from http://jsdo.it/hoge1e4/47Z2/
 function startCalibration(onend) {
-    var cve=$("<canvas>").css({
+    var cve=$("<canvas>").attr({width:200,height:200}).css({
         position:"absolute",left:$(window).width()/2-100, top:$(window).height()/2-100}).appendTo("body");
-    var inter;    
+    var timer;
     // forked from hoge1e4's "傾きセンサーのキャリブレーション" http://jsdo.it/hoge1e4/E7fi
+    var hnd;
     function Accel() {
         var self=this;
-        window.$(function(){
-            window.addEventListener("devicemotion", function(evt){
-                var x=((evt.accelerationIncludingGravity.x));
-                var y=((evt.accelerationIncludingGravity.y));
-                var raw={x:x,y:y};
-                if (!self.calibrationMode) {
-                    var p=self.getCalibratedXY(raw, Accel.calibrated);
-                    self.action(p.x,p.y);
-                } else {
-                    var bestc,mind=100000;
-                    self.calibrationList.forEach(function (c,i) {
-                        var cxy=self.getCalibratedXY(raw,c);
-                        var dir=Math.atan2(cxy.y,cxy.x);
-                        //var dst={x:Math.cos( self.dstDir), y: Math.sin( self.dstDir) };
-                        var dd=Math.abs(angleDiff(self.dstDir-dir));
-                        c.dist=c.dist||0;
-                        c.dist+=dd;
-                    });
-                    self.action(raw.x,raw.y);
-                }
-            },true);
-        });
+        this.handler=function(evt){
+            var x=((evt.accelerationIncludingGravity.x));
+            var y=((evt.accelerationIncludingGravity.y));
+            var raw={x:x,y:y};
+            if (!self.calibrationMode) {
+                var p=self.getCalibratedXY(raw, Accel.calibrated);
+                self.action(p.x,p.y);
+            } else {
+                var bestc,mind=100000;
+                self.calibrationList.forEach(function (c,i) {
+                    var cxy=self.getCalibratedXY(raw,c);
+                    var dir=Math.atan2(cxy.y,cxy.x);
+                    //var dst={x:Math.cos( self.dstDir), y: Math.sin( self.dstDir) };
+                    var dd=Math.abs(angleDiff(self.dstDir-dir));
+                    c.dist=c.dist||0;
+                    c.dist+=dd;
+                });
+                self.action(raw.x,raw.y);
+            }
+        };
+        hnd=this.handler;
+        window.addEventListener("devicemotion", this.handler,true);
     }
     function dist(a,b) {
         return (a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y);
@@ -318,17 +323,23 @@ function startCalibration(onend) {
             });
             localStorage.acceleratorCalibration=JSON.stringify( Accel.calibrated);
              a.calibrationMode=false; 
-            onend( Accel.calibrated);
+        }
+        if (cnt==5) {
+            cve.remove();
+            console.log("SAME",hnd,a.handler);
+            cnt=6;
+            window.removeEventListener("devicemotion",hnd);
+            clearInterval(timer);
+            onend( Accel.calibrated);            
         }
         if (cnt>=4) {
             cv.fillStyle="black";
             cv.fillText("調整完了",20,50);
             cv.fillRect(100+x*30,100+y*30,10,10);
-            clearInterval(inter);
         }
         cv.fillStyle="red";
     };
-    inter=setInterval(function () {
+    timer=setInterval(function () {
          cnt++;   
         a.dstDir+=Math.PI/2;
     },3000);

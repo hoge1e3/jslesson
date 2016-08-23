@@ -2,6 +2,8 @@
 this['ルート']=this['root'];
 this['はい']=root['true'];
 this['いいえ']=root['false'];
+this['真']=root['true'];
+this['偽']=root['false'];
 this['addAlias']("pi","円周率");
 this['色名']=dtlbind(this,function(x){
 var self=this;var 自分=self;
@@ -148,6 +150,7 @@ this['Timer']['addAlias']("duration","時間");
 this['UI']['addAlias']("nextLine","次の行")['addAlias']("inc","増やす")['addAlias']("dec","減らす")['addAlias']("read","読む")['addAlias']("moveTo","位置")['addAlias']("moveTo","position")['addAlias']("moveBy","移動する")['addAlias']("width?","幅?")['addAlias']("height?","高さ?")['addAlias']("clear","クリア")['addAlias']("write","書く")['addAlias']("add","追加")['addAlias']("newLine","改行");
 this['ボタン']=this['Button'];
 this['Button']['addAlias']("action","動作");
+this['Button']['addAlias']("setAction","動作設定");
 this['Button']['addAlias']("width?","幅?");
 this['Button']['addAlias']("height?","高さ?");
 this['Button']['addAlias']("size","大きさ");
@@ -158,7 +161,7 @@ this['addAlias']("Label","ラベル");
 this['Label']['addAlias']("fontColor","文字色");
 this['フィールド']=this['Field'];
 this['テキストエリア']=this['TextArea'];
-this['TextArea']['addAlias']("append","追加する")['addAlias']("append","追加")['addAlias']("appendLn","追加して改行")['addAlias']("newLine","改行")['addAlias']("newLine","改行する");
+this['TextArea']['addAlias']("write","書く")['addAlias']("overwrite","上書き")['addAlias']("writeLn","書いて改行")['addAlias']("newLine","改行")['addAlias']("setRow","行数")['addAlias']("setCol","桁数")['addAlias']("setCol","文字数")['addAlias']("setCol","列数");
 this['addAlias']("Screen","画面");
 this['Screen']['addAlias']("paint","塗る")['addAlias']("width?","幅?")['addAlias']("height?","高さ?");
 this['addAlias']("and","全部");

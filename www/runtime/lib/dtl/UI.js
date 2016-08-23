@@ -308,7 +308,7 @@ var self=this;var 自分=self;
 return t['action']();
 }))['appendTo']((this['container']));
 this['autoLayout']();
-this['element']['css']("font-size","1.0em")['css']("border-style","none");
+this['element']['css']("font-size","1.0em")['css']("white-space","nowrap")['css']("border-style","none");
 return root['window']['$'](dtlbind(this,function(){
 var self=this;var 自分=self;
 return root['window']['document']['addEventListener']("keydown",dtlbind(this,function(k){
@@ -322,6 +322,11 @@ return t['action']();
 }));
 }),(root['true']));
 }));
+});
+this['Button']['setAction']=dtlbind(this,function(a){
+var self=this;var 自分=self;
+this['action']=a;
+return this;
 });
 this['Button']['paint']=dtlbind(this,function(r,g,b){
 var self=this;var 自分=self;
@@ -455,33 +460,27 @@ return "";
 }));
 });
 this['TextArea']=this['UI']['create']();
-this['TextArea']['initialize']=dtlbind(this,function(label,row,col){
+this['TextArea']['initialize']=dtlbind(this,function(){
 var self=this;var 自分=self;
-dtlbind(this,function(){
-var self=this;var 自分=self;
-return (label===this['undef']);
-})['then']()['execute'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return label=this['read']();
-}));
-row=dtlbind(this,function(){
-var self=this;var 自分=self;
-return row;
-})['or'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return (10);
-}));
-col=dtlbind(this,function(){
-var self=this;var 自分=self;
-return col;
-})['or'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return (30);
-}));
-this['element']=this['$']['create']("<textarea>")['attr']("rows",(row))['attr']("cols",(col))['val']((label))['css']("position","absolute")['appendTo']((this['container']));
-return this['autoLayout']();
+var label;
+label=this['read']();
+this['row']=(10);
+this['col']=(30);
+this['element']=this['$']['create']("<textarea>")['attr']("rows",(this['row']))['attr']("cols",(this['col']))['val']((label))['css']("position","absolute")['appendTo']((this['container']));
+this['autoLayout']();
+return (this['writeLn'])['apply']((this),(arguments));
 });
-this['TextArea']['write']=dtlbind(this,function(m){
+this['TextArea']['setRow']=dtlbind(this,function(r){
+var self=this;var 自分=self;
+this['element']['attr']("rows",(r));
+return this;
+});
+this['TextArea']['setCol']=dtlbind(this,function(c){
+var self=this;var 自分=self;
+this['element']['attr']("cols",(c));
+return this;
+});
+this['TextArea']['overwrite']=dtlbind(this,function(m){
 var self=this;var 自分=self;
 dtlbind(this,function(){
 var self=this;var 自分=self;
@@ -505,30 +504,53 @@ var self=this;var 自分=self;
 return "";
 }));
 });
-this['TextArea']['append']=dtlbind(this,function(cont){
+this['TextArea']['write']=dtlbind(this,function(){
 var self=this;var 自分=self;
-dtlbind(this,function(){
+(this['Array']['prototype']['slice'])['call']((arguments))['each'](dtlbind(this,function(cont){
+var self=this;var 自分=self;
+return dtlbind(this,function(){
 var self=this;var 自分=self;
 return cont['each'];
 })['then']()['else'](dtlbind(this,function(){
 var self=this;var 自分=self;
 return cont['each'](dtlbind(this,function(e){
 var self=this;var 自分=self;
-return this['appendLn']((e));
+return this['writeLn']((e));
 }));
 }))['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return this['write']((((this['readString']())+cont)));
+return this['overwrite']((((this['readString']())+cont)));
+}));
 }));
 return this;
 });
-this['TextArea']['appendLn']=dtlbind(this,function(cont){
+this['TextArea']['writeLn']=dtlbind(this,function(){
 var self=this;var 自分=self;
-return this['append'](((cont+"\n")));
+(this['Array']['prototype']['slice'])['call']((arguments))['each'](dtlbind(this,function(cont){
+var self=this;var 自分=self;
+return dtlbind(this,function(){
+var self=this;var 自分=self;
+return cont['each'];
+})['then']()['else'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return cont['each'](dtlbind(this,function(e){
+var self=this;var 自分=self;
+return this['writeLn']((e));
+}));
+}))['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['write']((cont))['newLine']();
+}));
+}));
+return this;
 });
-return this['TextArea']['newLine']=dtlbind(this,function(){
+this['TextArea']['newLine']=dtlbind(this,function(){
 var self=this;var 自分=self;
-return this['append'](("\n"));
+return this['write'](("\n"));
+});
+return this['TextArea']['clear']=dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['overwrite']("");
 });
 }).checkerror().apply(root,[]);
 //# sourceMappingURL=UI.js.map

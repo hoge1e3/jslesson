@@ -390,47 +390,23 @@ Number.prototype.degree=function() {
     return this/Math.PI*180;
 };
 Number.prototype.random=function(){
-	return parseInt(Math.random()*this)+1;
-}
-Number.prototype.random=function(){
-	return Random.rand(this);
+	return Random.random(this);
 };
-Number.prototype.randomInit=function(){
-	return Random.seed(this);
+Number.prototype.setSeed=function(){
+	return Random.setSeed(parseInt(this));
 };
 Number.prototype["乱数"]=Number.prototype.random;
-var Random={
-  x:598374520,
-  y:134509873,
-  z:839290344,
-};
-Random.big=function(v){
-  return ((v>100000000||v==0)?v:this.big(v*v));
-};
-Random.x=Random.big(new Date().getHours());
-Random.y=Random.big(new Date().getMinutes());
-Random.z=Random.big(new Date().getMilliseconds());
-Random.w=Random.big(new Date().getSeconds());
-
-Random.seed=function(s){
-  this.x=this.big(s);
-  this.y=this.big(s);
-  this.z=this.big(s);
-  this.w=this.big(s);
+var Random=new function(){
+	this.mtjs=new MersenneTwister();
+	
 };
 
-Random.rand=function(max){
-  var t=this.x^(this.x<<11);
-  this.x=this.y;
-  this.y=this.z;
-  this.z=this.w;
-  this.w=(this.w^(this.w>>>19))^(t^(t>>>8));
-  
-  if(max!=0){
-    return Math.abs(this.w)%max+1;
-  }else{
-    return Math.floor(Math.abs(this.w)/1000000%1*1000000)/1000000;
-  }
+Random.setSeed=function(s){
+	this.mtjs.setSeed(s);
+	return s;
+};
+Random.random=function(m){
+	return (m>0)?(this.mtjs.nextInt(1,m+1)):(this.mtjs.next());
 };
 
 //Function

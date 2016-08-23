@@ -3,6 +3,7 @@
    ["www/js/dolittle/gps.js", "www/runtime/lib/dtl/"],
    ["www/js/dolittle/devicemotion.js", "www/runtime/lib/dtl/"],
    ["www/js/dolittle/lib.js", "www/runtime/lib/dtl/"],
+   ["www/js/dolittle/mt.js", "www/runtime/lib/dtl/"],
    ["www/js/runtime/TonyuLib.js", "www/runtime/lib/tjs/"],
    ["www/fs/home/0123/dolittle/public/DtlVM/SFile.dtlvm","www/fs/scripts/"],
    ["www/fs/home/0123/dolittle/public/DtlVM/ListProjects.dtlvm","www/fs/scripts/"],

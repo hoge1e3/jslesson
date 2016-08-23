@@ -46,12 +46,16 @@ root.加速度センサ.getCalibratedXY=function (raw,c) {
      }   
 };
 root.加速度センサ.calibrate=function () {
-      location.href=(window.WebSite&&window.WebSite.runtime || window.runtimePath)+"/cal.html";
+    var self=this;
+    startCalibration(function (a) {
+        self.calibrated=a;
+    });
+    //  location.href=(window.WebSite&&window.WebSite.runtime || window.runtimePath)+"/cal.html";
 };
 root.加速度センサ['調整']=root.加速度センサ.calibrate;
 root.加速度センサ["横の傾き?"]=function(){return this.x};
 root.加速度センサ["xの傾き?"]=root.加速度センサ["横の傾き?"];
-root.加速度センサ["縦の傾き?"]=function(){return this.y};
+root.加速度センサ["縦の傾き?"]=function(){return -this.y};
 root.加速度センサ["yの傾き?"]=root.加速度センサ["縦の傾き?"];
 
 root.傾きセンサ=root.加速度センサ;
@@ -191,11 +195,11 @@ root.タッチセンサ["タッチしてる?"]=root.タッチセンサ["タッ�
 root.タッチセンサ["触れている?"]=root.タッチセンサ["タッチしている?"];
 root.タッチセンサ["触れてる?"]=root.タッチセンサ["タッチしている?"];
 root.タッチセンサ["横の位置?"]=function(){return this.x;};
-root.タッチセンサ["xの位置?"]=root.タッチセンサ["横の位置?"];
-root.タッチセンサ["x座標?"]=root.タッチセンサ["横の位置?"];
+//root.タッチセンサ["xの位置?"]=root.タッチセンサ["横の位置?"];
+//root.タッチセンサ["x座標?"]=root.タッチセンサ["横の位置?"];
 root.タッチセンサ["縦の位置?"]=function(){return this.y;};
-root.タッチセンサ["yの位置?"]=root.タッチセンサ["縦の位置?"];
-root.タッチセンサ["y座標?"]=root.タッチセンサ["縦の位置?"];
+//root.タッチセンサ["yの位置?"]=root.タッチセンサ["縦の位置?"];
+//root.タッチセンサ["y座標?"]=root.タッチセンサ["縦の位置?"];
 root.タッチセンサー=root.タッチセンサ;
 
 root.ジャイロセンサ=root.create();
@@ -234,3 +238,109 @@ root.ジャイロセンサ["横の角度?"]=function(){return this.y;};
 root.ジャイロセンサ["y軸の角度?"]=root.ジャイロセンサ["横の角度?"];
 root.ジャイロセンサ["縦軸の角度?"]=root.ジャイロセンサ["横の角度?"];
 root.ジャイロセンサー=root.ジャイロセンサ;
+
+// from http://jsdo.it/hoge1e4/47Z2/
+function startCalibration(onend) {
+    var cve=$("<canvas>").attr({width:200,height:200}).css({
+        position:"absolute",left:$(window).width()/2-100, top:$(window).height()/2-100}).appendTo("body");
+    var timer;
+    // forked from hoge1e4's "傾きセンサーのキャリブレーション" http://jsdo.it/hoge1e4/E7fi
+    var hnd;
+    function Accel() {
+        var self=this;
+        this.handler=function(evt){
+            var x=((evt.accelerationIncludingGravity.x));
+            var y=((evt.accelerationIncludingGravity.y));
+            var raw={x:x,y:y};
+            if (!self.calibrationMode) {
+                var p=self.getCalibratedXY(raw, Accel.calibrated);
+                self.action(p.x,p.y);
+            } else {
+                var bestc,mind=100000;
+                self.calibrationList.forEach(function (c,i) {
+                    var cxy=self.getCalibratedXY(raw,c);
+                    var dir=Math.atan2(cxy.y,cxy.x);
+                    //var dst={x:Math.cos( self.dstDir), y: Math.sin( self.dstDir) };
+                    var dd=Math.abs(angleDiff(self.dstDir-dir));
+                    c.dist=c.dist||0;
+                    c.dist+=dd;
+                });
+                self.action(raw.x,raw.y);
+            }
+        };
+        hnd=this.handler;
+        window.addEventListener("devicemotion", this.handler,true);
+    }
+    function dist(a,b) {
+        return (a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y);
+    }
+    function angleDiff(d) {
+        while (d>Math.PI) d-=Math.PI*2;
+        while (d<-Math.PI) d+=Math.PI*2;
+        return d;
+    }
+    var p=Accel.prototype;
+    p.getCalibratedXY=function (raw,c) {
+         if (c.f) {
+             return {x:raw.y*c.y, y:raw.x*c.x};
+         } else {
+             return {y:raw.y*c.y, x:raw.x*c.x};
+         }   
+    };
+    p.calibrationList=[
+        {f:false,x:1, y:1},   
+        {f:false,x:-1, y:1},   
+        {f:false,x:1, y:-1},   
+        {f:false,x:-1, y:-1},   
+        {f:true,x:1, y:1},   
+        {f:true,x:-1, y:1},   
+        {f:true,x:1, y:-1},   
+        {f:true,x:-1, y:-1}   
+    ];
+    
+    Accel.calibrated={f:false, x:1, y:1};
+    var a=new Accel;
+    a.calibrationMode=true;
+    a.dstDir=0;
+    var cnt=0;
+    a.action=function (x,y) {
+        var cv= cve[0].getContext("2d");
+        cv.fillStyle="white";
+        cv.fillRect(0,0,200,200);
+        cv.fillStyle="red";
+        if (cnt<4) {
+            cv.font="12px monospace";
+            cv.fillText("矢印の方向に傾けてください",20,50);
+            cv.font="30px monospace";
+            cv.fillText("→↓←↑"[cnt],100,100);//100+Math.cos(a.dstDir)*80,100+Math.sin(a.dstDir)*80,10,10);
+        }
+        if (cnt==4) {
+            var min=10000000;
+            a.calibrationList.forEach(function (c,i) {
+                c.dist=c.dist||0;
+                //console.log(c);
+                if (c.dist<min) { Accel.calibrated=c; min=c.dist;}
+            });
+            localStorage.acceleratorCalibration=JSON.stringify( Accel.calibrated);
+             a.calibrationMode=false; 
+        }
+        if (cnt==5) {
+            cve.remove();
+            console.log("SAME",hnd,a.handler);
+            cnt=6;
+            window.removeEventListener("devicemotion",hnd);
+            clearInterval(timer);
+            onend( Accel.calibrated);            
+        }
+        if (cnt>=4) {
+            cv.fillStyle="black";
+            cv.fillText("調整完了",20,50);
+            cv.fillRect(100+x*30,100+y*30,10,10);
+        }
+        cv.fillStyle="red";
+    };
+    timer=setInterval(function () {
+         cnt++;   
+        a.dstDir+=Math.PI/2;
+    },3000);
+}
