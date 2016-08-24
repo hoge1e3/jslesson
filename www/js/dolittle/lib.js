@@ -395,7 +395,40 @@ Number.prototype.random=function(){
 Number.prototype.setSeed=function(){
 	return Random.setSeed(parseInt(this));
 };
-Number.prototype["乱数"]=Number.prototype.random;
+Number.prototype.add=function(n){
+	return this+n;
+};
+Number.prototype.sub=function(n){
+	return this-n;
+};
+Number.prototype.mul=function(n){
+	return this*n;
+};
+Number.prototype.div=function(n){
+	return this/n;
+};
+Number.prototype.mod=function(n){
+	return this%n
+};
+Number.prototype.eq=function(n){
+	return this==n
+};
+Number.prototype.ne=function(n){
+	return this!=n
+};
+Number.prototype.gt=function(n){
+	return this>n
+};
+Number.prototype.ge=function(n){
+	return this>=n
+};
+Number.prototype.lt=function(n){
+	return this<n
+};
+Number.prototype.le=function(n){
+	return this<=n
+};
+
 var Random=new function(){
 	this.mtjs=new MersenneTwister();
 	

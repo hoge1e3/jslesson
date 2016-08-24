@@ -71,6 +71,7 @@ $(function () {
 	"c":"C",
 	"dtl":"Dolittle"
     };
+    var helpURL;
     var unsaved=false;
     var unsynced=false;
     var Builder;
@@ -81,6 +82,7 @@ $(function () {
     	requirejs(["cCompiler"],function(){
     	    console.log("cCom requirejsed");
     	});
+    	helpURL="http://bitarrow.eplang.jp/index.php?c_use";
     	break;
     case "js":
     	requirejs(["TJSBuilder"],function(_){
@@ -91,6 +93,7 @@ $(function () {
             FS.mount(ram.path(),"ram");
             builder=new Builder(curPrj, ram);
     	});
+    	helpURL="http://bitarrow.eplang.jp/index.php?javascript";
     	break;
     case "dtl":
     	requirejs(["DtlBuilder"],function(_){
@@ -101,6 +104,7 @@ $(function () {
             FS.mount(ram.path(),"ram");
             builder=new Builder(curPrj, ram);
     	});
+    	helpURL="http://bitarrow.eplang.jp/index.php?dolittle_use"
     	break;
     }
     function makeUI(){
@@ -151,7 +155,8 @@ $(function () {
                   {label:"設定",sub:[
                       {label:"エディタの文字の大きさ",id:"textsize",action:textSize},
                       {label:"エディタモード切替",id:"editorType",action:editorType}
-                  ]}
+                  ]},
+                  {label:"ヘルプ",id:"openHelp"}
                 ]
         );
     }
@@ -183,11 +188,11 @@ $(function () {
 	        )
 	    ) doConfirm=false;
 	    if(doConfirm){
-            UIDiag.confirm("一つ前のページに戻ります。よろしいですか？").then(function (r) {
+            /*UIDiag.confirm("一つ前のページに戻ります。よろしいですか？").then(function (r) {
                 if (r) {
                     history.back();
                 }
-            });
+            });*/
             e.stopPropagation();
             e.preventDefault();
             return false;
@@ -288,6 +293,7 @@ $(function () {
             fileSet(f).forEach(function (e) {
                 if (e.ext()==EXT && !e.exists()) {
                     e.text("// "+langList[lang]+"\n");
+                    if(lang=="js") e.text("// "+langList[lang]+"\n// ここで扱われるJavaScriptは通常のJavaScriptとは異なります。詳しくはヘルプをご覧ください。");
                 } else if (e.ext()==HEXT  && !e.exists()) {
                     e.text("<html>\n\n</html>");
                 } else {
@@ -956,6 +962,9 @@ $(function () {
 	unsynced=false;
 	location.href="index.html";
     }
+    $("#openHelp").click(function(){
+        window.open(helpURL,"helpTab");
+    });
     sh.curFile=function () {
         return fl.curFile();
     };

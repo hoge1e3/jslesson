@@ -117,48 +117,150 @@ this['Color']['fromCMYK']=dtlbind(this,function(cyan,magenta,yellow,black){
 var self=this;var 自分=self;
 return this['Color']['create']((((((1)-((this['window']['Math'])['min']((1),(((cyan*(((1)-black)))+black))))))*(255))),(((((1)-((this['window']['Math'])['min']((1),(((magenta*(((1)-black)))+black))))))*(255))),(((((1)-((this['window']['Math'])['min']((1),(((yellow*(((1)-black)))+black))))))*(255))));
 });
+this['Color']['getRed']=dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['r'];
+});
+this['Color']['getGreen']=dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['g'];
+});
+this['Color']['getBlue']=dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['b'];
+});
 this['Color']['mixParam']=(1.1);
 this['Light']=this['create']();
 this['Light']['mix']=dtlbind(this,function(){
 var self=this;var 自分=self;
-var r;
-var g;
-var b;
-var l;
-r=(0);
-g=(0);
-b=(0);
-(this['Array']['prototype']['slice'])['call']((arguments))['each'](dtlbind(this,function(e){
+var c;
+this['args']=(this['Array']['prototype']['slice'])['call']((arguments));
+this['args']=this['args']['select'](dtlbind(this,function(e){
 var self=this;var 自分=self;
-r=(r+(e['r']));
-g=(g+(e['g']));
-return b=(b+(e['b']));
+return (root['is'])['call']((e),(this['Color']));
 }));
-l=arguments['length'];
-return this['Color']['create']((this['window']['Math']['min']((((r/l)*this['Color']['mixParam'])),(255))),(this['window']['Math']['min']((((g/l)*this['Color']['mixParam'])),(255))),(this['window']['Math']['min']((((b/l)*this['Color']['mixParam'])),(255))));
+c=this['args']['shift']();
+return dtlbind(this,function(){
+var self=this;var 自分=self;
+return ((this['args']['length'])===(0));
+})['then']()['else'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return c;
+}))['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return (c['mixColor'])['apply']((c),(this['args']));
+}));
 });
 this['Ink']=this['create']();
 this['Ink']['mix']=dtlbind(this,function(){
 var self=this;var 自分=self;
 var c;
-var m;
-var y;
-var k;
-var l;
-c=(0);
-m=(0);
-y=(0);
-k=(0);
-(this['Array']['prototype']['slice'])['call']((arguments))['each'](dtlbind(this,function(e){
+this['args']=(this['Array']['prototype']['slice'])['call']((arguments));
+this['args']=this['args']['select'](dtlbind(this,function(e){
 var self=this;var 自分=self;
-e['setCMYK']();
-c=(c+(e['cyan']));
-m=(m+(e['magenta']));
-y=(y+(e['yellow']));
-return k=(k+(e['black']));
+return (root['is'])['call']((e),(this['Color']));
 }));
-l=arguments['length'];
-return this['Color']['fromCMYK']((this['window']['Math']['min']((((c/l)*this['Color']['mixParam'])),(1))),(this['window']['Math']['min']((((m/l)*this['Color']['mixParam'])),(1))),(this['window']['Math']['min']((((y/l)*this['Color']['mixParam'])),(1))),(this['window']['Math']['min']((((k/l)*this['Color']['mixParam'])),(1))));
+c=this['args']['shift']();
+return dtlbind(this,function(){
+var self=this;var 自分=self;
+return ((this['args']['length'])===(0));
+})['then']()['else'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return c;
+}))['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return (c['mixColor2'])['apply']((c),(this['args']));
+}));
+});
+this['Color']['mixColor']=dtlbind(this,function(){
+var self=this;var 自分=self;
+var args;
+var red;
+var green;
+var blue;
+var yyy;
+var m;
+args=(this['Array']['prototype']['slice'])['call']((arguments));
+args=args['select'](dtlbind(this,function(e){
+var self=this;var 自分=self;
+return (root['is'])['call']((e),(this['Color']));
+}));
+red=this['getRed']();
+green=this['getGreen']();
+blue=this['getBlue']();
+yyy=this['max']((red),(green),(blue));
+args['each'](dtlbind(this,function(arg){
+var self=this;var 自分=self;
+var r;
+var g;
+var b;
+var y;
+r=arg['getRed']();
+g=arg['getGreen']();
+b=arg['getBlue']();
+y=this['max']((r),(g),(b));
+red=(red+r);
+green=(green+g);
+blue=(blue+b);
+return yyy=(yyy+y);
+}));
+m=((yyy/(this['max']((red),(green),(blue))))/(((args['length'])+(1))));
+return this['Color']['create'](((red*m)),((green*m)),((blue*m)));
+});
+this['Color']['max']=dtlbind(this,function(r,g,b){
+var self=this;var 自分=self;
+var m;
+m=r;
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return (m<g);
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return m=g;
+}));
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return (m<b);
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return m=b;
+}));
+return m;
+});
+this['Color']['mixColor2']=dtlbind(this,function(){
+var self=this;var 自分=self;
+var args;
+var red;
+var green;
+var blue;
+var yyy;
+var m;
+args=(this['Array']['prototype']['slice'])['call']((arguments));
+args=args['select'](dtlbind(this,function(e){
+var self=this;var 自分=self;
+return (root['is'])['call']((e),(this['Color']));
+}));
+red=((255)-(this['getRed']()));
+green=((255)-(this['getGreen']()));
+blue=((255)-(this['getBlue']()));
+yyy=this['max']((red),(green),(blue));
+args['each'](dtlbind(this,function(arg){
+var self=this;var 自分=self;
+var r;
+var g;
+var b;
+var y;
+r=((255)-(arg['getRed']()));
+g=((255)-(arg['getGreen']()));
+b=((255)-(arg['getBlue']()));
+y=this['max']((r),(g),(b));
+red=(red+r);
+green=(green+g);
+blue=(blue+b);
+return yyy=(yyy+y);
+}));
+m=((yyy/(this['max']((red),(green),(blue))))/(((args['length'])+(1))));
+return this['Color']['create']((((255)-(red*m))),(((255)-(green*m))),(((255)-(blue*m))));
 });
 this['black']=this['Color']['create']((0),(0),(0));
 this['white']=this['Color']['create']((255),(255),(255));

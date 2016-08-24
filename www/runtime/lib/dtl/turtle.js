@@ -2,13 +2,22 @@
 this['Turtle']=this['turtle'];
 this['Turtle']['baseURL']=(this['window']['runtimePath']+"images/");
 this['Turtle']['img']="ayumi.gif";
+this['turtle']['action']=dtlbind(this,function(){
+var self=this;var 自分=self;
+return });
 this['turtle']['initialize']=dtlbind(this,function(){
 var self=this;var 自分=self;
+var t;
+t=this;
 this['element']=this['createSVGElem']("image");
 this['element']['get']((0))['setAttributeNS']("http://www.w3.org/1999/xlink","href",((this['baseURL']+this['img'])));
 this['adjustImage']();
 this['getImageSize'](((this['baseURL']+this['img'])));
 this['element']['attr']("transform","scale(1,-1)");
+this['element']['click'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return t['action']();
+}));
 this['lineColor']("black");
 this['newLineG']();
 this['isShowing']=this['false'];
