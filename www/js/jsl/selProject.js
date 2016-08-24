@@ -61,7 +61,7 @@ function ready() {//-------------------------
     var projectsInfo=[];
     function ls() {
         $("#prjItemList").empty();
-        RemoteProject.list().then(function (d) {
+        return RemoteProject.list().then(function (d) {
             projectsInfo=d;
             d.findProject=function (name) {
                 var res;
@@ -108,25 +108,35 @@ function ready() {//-------------------------
     }
     function ren(fromName) {//  not endswidth /
         return function () {
-            RPD.show(projectsInfo, fromName, function (toName) {// not endswidth /
+            RPD.show(projectsInfo, fromName, function (model) {
+                var toName=model.name;// not endswidth /
+                if (toName===fromName) {
+                    alert("同じ名前です");
+                    return;
+                }
                 //console.log(prjDir);
-                RemoteProjet.rename(fromName, toName).then(function () {
+                RemoteProject.rename(fromName, toName).then(function () {
                     var fromD=projectsInfo.findProject(fromName).dir;
-                    var toD=projectsInfo.findProject(toName).dir;
-                    toD.moveFrom(fromD);
-                    ls();
-                },function (){ alert("名前変更に失敗しました。"); });
+            	    var toD=projects.rel(toName+"/");
+                    //var toD=projectsInfo.findProject(toName).dir;
+                    if (fromD.exists()) toD.moveFrom(fromD);
+                    return ls();
+                }).fail(function (e){
+                    console.log(e,e.stack); alert("名前変更に失敗しました。"); 
+                });
             },{ren:true, defName:fromName});
         };
     }
     function del(name) {// not endswidth /
         return function () {
-            if (confirm(f+"を削除しますか？")) {
-                RemoteProjet.delete(name).then(function () {
+            if (confirm(name+"を削除しますか？")) {
+                RemoteProject.delete(name).then(function () {
                     var d=projectsInfo.findProject(name).dir;
-                    d.rm({r:true});
+                    if (d.exists()) d.rm({r:true});
                     ls();
-                },function (){ alert("削除に失敗しました。"); });
+                }).fail(function (e){
+                    console.log(e,e.stack); alert("削除に失敗しました。"); 
+                });
             }
         };
     }
@@ -183,10 +193,12 @@ function ready() {//-------------------------
     	});
     });
     $("#newSample").click(function (){
-        return NSD.show(projectInfo,function () {
+        return NSD.show(projectsInfo,function () {
             ls();
         });
     });
-    ls();
+    ls().then(function () {
+        if (window.SplashScreen) window.SplashScreen.hide();
+    });
 }//------of function ready()-----------
 });

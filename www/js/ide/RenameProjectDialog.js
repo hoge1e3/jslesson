@@ -27,9 +27,9 @@ define(["UI"], function (UI) {
             );
         }
         var d=res.d;
-        var model={name:options.defName||"",lang:"js", parentDir:prjDir};
-        d.$edits.load(model);
+        var model={name:options.defName||"",lang:"js"};
     	d.$edits.validator.on.validate=function (model) {
+    		console.log("MODEL",model);
     		if (model.name=="") {
     			this.addError("name","名前を入力してください");
     			return;
@@ -41,6 +41,7 @@ define(["UI"], function (UI) {
     		this.allOK();
     		//d.$vars.dstDir.text(model.dstDir+"");
     	};
+        d.$edits.load(model);
     	d.done=function () {
     	    if (d.$edits.validator.isValid()) {
                 onOK(model);

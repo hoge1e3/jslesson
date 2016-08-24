@@ -1,10 +1,10 @@
 define(["UI"], function (UI) {
     var res={};
-	res.show=function (prjDir,onOK,options) {
-    	var d=res.embed(prjDir,onOK,options);
+	res.show=function (prjInfo,onOK,options) {
+    	var d=res.embed(prjInfo,onOK,options);
     	d.dialog({width:600});
 	};
-	res.embed=function (prjDir,onOK,options) {
+	res.embed=function (prjInfo,onOK,options) {
 	    if (!options) options={};
         if (!res.d) {
         	res.d=UI("div",{title:("サンプルを見る")},
@@ -37,7 +37,7 @@ define(["UI"], function (UI) {
                     d.$vars.sample.append(UI("option",{value:n},n)); 
             });
         });
-        var model={name:options.defName||"",lang:"js", parentDir:prjDir};
+        var model={name:options.defName||"",lang:"js"};
         d.$edits.load(model);
     	d.$edits.validator.on.validate=function (model) {
     		if (model.name=="") {
@@ -45,9 +45,8 @@ define(["UI"], function (UI) {
     			return;
     		}
     		//console.log(model.parentDir);
-    		model.dstDir=model.parentDir.rel(model.name+"/");
-            if (model.dstDir.rel("options.json").exists() ) {
-                this.addError("name","このフォルダはすでに存在します");
+    		if (prjInfo.findProject(model.name) ) {
+                this.addError("name","このプロジェクトはすでに存在します");
                 return;
             }
     		this.allOK();
