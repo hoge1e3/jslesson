@@ -1,10 +1,10 @@
 define(["UI"], function (UI) {
     var res={};
-	res.show=function (prjDir, onOK,options) {
-    	var d=res.embed(prjDir,onOK,options);
+	res.show=function (prjInfo,from, onOK,options) {
+    	var d=res.embed(prjInfo,from, onOK,options);
     	d.dialog({width:600});
 	};
-	res.embed=function (prjDir, onOK, options) {
+	res.embed=function (prjInfo,from, onOK, options) {
 	    if (!options) options={};
         if (!res.d) {
             var FType={
@@ -20,21 +20,6 @@ define(["UI"], function (UI) {
         			     on:{enterkey:function () {
                 		     res.d.done();
 				 }}}]],
-				["div",{css:{"display":"none"}},
-        			 ["span","プログラミング言語"],
-        			 ["select",{$edit:"lang",id:"prjLang"},
-        			 ["option",{selected:true,value:"js"},"JavaScript"],
-        			 ["option",{value:"dtl"},"ドリトル"],
-        			 ["option",{value:"c"},"C"]],
-        			 ["span","言語を選択してください"]
-				],
-         			["div",{css:{"display":"none"}},
-        			 ["span","親フォルダ"],
-        			 ["input",{$edit:{name:"parentDir",type:FType}}]],
-        			 ["div",{css:{"display":"none"}},
-        			   ["span","作成先フォルダ："],
-        			   ["span",{$var:"dstDir"}]
-        			  ],
                  ["div", {$var:"validationMessage", css:{color:"red"}}],
                  ["button", {$var:"OKButton", on:{click: function () {
                 	 res.d.done();
@@ -49,13 +34,12 @@ define(["UI"], function (UI) {
     			this.addError("name","名前を入力してください");
     			return;
     		}
-    		model.dstDir=model.parentDir.rel(model.name+"/");
-            if (model.dstDir.rel("options.json").exists() ) {
-                this.addError("name","このフォルダはすでに存在します");
+            if (prjInfo.findProject(model.name)) {
+                this.addError("name","このプロジェクトはすでに存在します");
                 return;
             }
     		this.allOK();
-    		d.$vars.dstDir.text(model.dstDir+"");
+    		//d.$vars.dstDir.text(model.dstDir+"");
     	};
     	d.done=function () {
     	    if (d.$edits.validator.isValid()) {

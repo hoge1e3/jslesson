@@ -1,17 +1,17 @@
 define(["UI"], function (UI) {
     var res={};
-	res.show=function (prjDir, onOK,options) {
-    	var d=res.embed(prjDir,onOK,options);
+	res.show=function (prjInfo, onOK,options) {
+    	var d=res.embed(prjInfo,onOK,options);
     	d.dialog({width:600});
 	};
-	res.embed=function (prjDir, onOK, options) {
+	res.embed=function (prjInfo, onOK, options) {
 	    if (!options) options={};
         if (!res.d) {
             var FType={
-                    fromVal: function (val){
-                        return val=="" ? null : FS.get(val);
-                    },
-                    toVal: function (v){ return v ? v.path() : "";}
+                fromVal: function (val){
+                    return val=="" ? null : FS.get(val);
+                },
+                toVal: function (v){ return v ? v.path() : "";}
             };
         	res.d=UI("div",{title:(options.ren?"プロジェクト名の変更":"新規プロジェクト")},
         			["div",
@@ -28,13 +28,13 @@ define(["UI"], function (UI) {
         			 ["option",{value:"dtl"},"ドリトル"],
         			 ["option",{value:"c"},"C"]]
 				],
-         			["div",{css:{"display":"none"}},
+         		/*	["div",{css:{"display":"none"}},
         			 ["span","親フォルダ"],
         			 ["input",{$edit:{name:"parentDir",type:FType}}]],
         			 ["div",{css:{"display":"none"}},
         			   ["span","作成先フォルダ："],
         			   ["span",{$var:"dstDir"}]
-        			  ],
+        			  ],*/
                  ["div", {$var:"validationMessage", css:{color:"red"}}],
                  ["button", {$var:"OKButton", on:{click: function () {
                 	 res.d.done();
@@ -42,16 +42,15 @@ define(["UI"], function (UI) {
             );
         }
         var d=res.d;
-        var model={name:options.defName||"",lang:"select", parentDir:prjDir};
+        var model={name:options.defName||"",lang:"select"};
         d.$edits.load(model);
     	d.$edits.validator.on.validate=function (model) {
     		if (model.name=="") {
     			this.addError("name","名前を入力してください");
     			return;
     		}
-    		model.dstDir=model.parentDir.rel(model.name+"/");
-            if (model.dstDir.rel("options.json").exists() ) {
-                this.addError("name","このフォルダはすでに存在します");
+            if (prjInfo.findProject(model.name) ) {
+                this.addError("name","このプロジェクトはすでに存在します");
                 return;
             }
             if(model.lang=="select"){
@@ -59,7 +58,7 @@ define(["UI"], function (UI) {
                 return;
             }
     		this.allOK();
-    		d.$vars.dstDir.text(model.dstDir+"");
+    		//d.$vars.dstDir.text(model.dstDir+"");
     	};
     	d.done=function () {
     	    if (d.$edits.validator.isValid()) {
