@@ -42,7 +42,7 @@ then(function () {
 function testC() {
     var c=createdCCode=genTestCode();
     return driver.sleep(3000).then(function () {
-        selectLinkByText("Ctes/");
+        selectLinkByText("Ctes");
         driver.sleep(1000);
         // - create File 'Test1' and run
         return createFile("Test1");
@@ -70,7 +70,7 @@ function testC() {
 }
 function testJS() {
     return driver.sleep(3000).then(function () {
-        selectLinkByText("TJStes/");
+        selectLinkByText("TJStes");
         driver.sleep(2000);
         clickByText("Test1");
         driver.sleep(SLP);
@@ -79,7 +79,7 @@ function testJS() {
 }
 function testDtl() {
     return driver.sleep(3000).then(function () {
-        selectLinkByText("DtlTes/");
+        selectLinkByText("DtlTes");
         driver.sleep(2000);
         clickByText("Test");
         driver.sleep(SLP);
