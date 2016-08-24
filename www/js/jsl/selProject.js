@@ -1,9 +1,9 @@
 requirejs(["FS","Shell","Shell2","ProjectCompiler",
            "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog","RenameProjectDialog",
-           "assert","DeferredUtil"],
+           "assert","DeferredUtil","RemoteProject"],
     function(FS, sh,sh2,TPRC,
            NPD, UI, Auth,zip,Sync,NSD,RPD,
-           A,DU) {
+           A,DU,RemoteProject) {
     if (location.href.match(/localhost/)) {
         A.setMode(A.MODE_STRICT);
     } else {
@@ -47,13 +47,32 @@ function ready() {//-------------------------
             ["span",{id:"syncMesg"}],
             ["div",{id:"prjItemList"}]
     ));
+    setTimeout(function () {
+        $("#syncMesg").empty();
+        $("#userInfo").text(Auth.class+" クラスの"+Auth.user+"さん、こんにちは");
+        $("#userInfo").append(UI("br"));
+        $("#userInfo").append(UI("a",{href:"login.php"},"他ユーザでログイン"));
+    },3000);
     var projects=Auth.localProjects();// FS.resolve("${tonyuHome}/Projects/");
     console.log(projects);
     projects.mkdir();
     sh.cd(projects);
     var curDir=projects;
+    var projectsInfo=[];
     function ls() {
         $("#prjItemList").empty();
+        RemoteProject.list().then(function (d) {
+            projectsInfo=d;
+            d.findProject=function (name) {
+                var res;
+                d.forEach(function(i) {
+                    if (i.name===name) res=i; 
+                });
+                return res;
+            };
+            d.forEach(item);
+        });
+        /*
         var d=[];
         curDir.each(function (f) {
             if (!f.isDir()) return;
@@ -67,46 +86,56 @@ function ready() {//-------------------------
         d=d.sort(function (a,b) {
             return b[1]-a[1];
         });
-        d.forEach(function (e) {
-            var f=e[0];
-            var name=f.name();
+        */
+        function item(e) {
+            e.name=e.name.replace(/\/$/,"");
+            var f=projects.rel(e.name+"/");
+            e.dir=f;
+            var name=e.name;
 
             if (!f.isDir()) return;
-            if (!f.rel("options.json").exists()) return;
+            //if (!f.rel("options.json").exists()) return;
             var u=UI("div", {"class":"project"},
                     ["a", {href:"?r=jsl_edit&dir="+f.path()},
                      ["img",{$var:"t",src:FS.expandPath("${sampleImg}/tonyu.png")}],
                      ["div", name]],
                      ["div",
-                      ["a",{on:{click:ren(f)}},"名前変更"], ["span"," "],
-                      ["a",{on:{click:del(f)}},"削除"]]
+                      ["a",{on:{click:ren(name)}},"名前変更"], ["span"," "],
+                      ["a",{on:{click:del(name)}},"削除"]]
                   );
             u.appendTo("#prjItemList");
-        });
+        }
     }
-    function ren(f) {
+    function ren(fromName) {//  not endswidth /
         return function () {
-            RPD.show(projects, function (prjDir) {
+            RPD.show(projectsInfo, fromName, function (toName) {// not endswidth /
                 //console.log(prjDir);
-                prjDir.dstDir.moveFrom(f);
-                ls();
-            },{ren:true, defName:f.name().replace("/","")});
+                RemoteProjet.rename(fromName, toName).then(function () {
+                    var fromD=projectsInfo.findProject(fromName).dir;
+                    var toD=projectsInfo.findProject(toName).dir;
+                    toD.moveFrom(fromD);
+                    ls();
+                },function (){ alert("名前変更に失敗しました。"); });
+            },{ren:true, defName:fromName});
         };
     }
-    function del(f) {
+    function del(name) {// not endswidth /
         return function () {
             if (confirm(f+"を削除しますか？")) {
-                f.rm({r:true});
-                ls();
+                RemoteProjet.delete(name).then(function () {
+                    var d=projectsInfo.findProject(name).dir;
+                    d.rm({r:true});
+                    ls();
+                },function (){ alert("削除に失敗しました。"); });
             }
         };
     }
-    if (!WebSite.isNW) {
+    /*if (!WebSite.isNW) {
         sync();
     }
     function sync() {
         $("#syncMesg").text("同期しています....");
-        return Sync.sync(projects, Auth.remoteProjects()/*FS.get("/")*/,{v:true}).then(function (e) {
+        return Sync.sync(projects, Auth.remoteProjects(),{v:true}).then(function (e) {
             $("#syncMesg").append("ファイル保存完了");
             ls();
 	    //alert(e.classid+" クラスの "+e.user+" と同期しました。");
@@ -132,11 +161,11 @@ function ready() {//-------------------------
         }).always(function () {
             if (window.SplashScreen) window.SplashScreen.hide();
         });
-    }
+    }*/
     $("#newPrj").click(function (){
-    	NPD.show(projects, function (model) {
-	    console.log(model);
-	    prjDir=model.dstDir;
+    	NPD.show(projectsInfo, function (model) {
+    	    console.log(model);
+    	    prjDir=projects.rel(model.name+"/");
             prjDir.mkdir();
             TPRC(prjDir).setOptions({
                 compiler:{
@@ -154,8 +183,8 @@ function ready() {//-------------------------
     	});
     });
     $("#newSample").click(function (){
-        return NSD.show(projects,function () {
-            sync();
+        return NSD.show(projectInfo,function () {
+            ls();
         });
     });
     ls();

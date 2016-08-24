@@ -21,7 +21,8 @@ define(["FS"], function (FS) {
             this.user=user;
         },
         localProjects:function ( ){
-            return FS.resolve("${tonyuHome}/Projects/");//changeHOME
+            return FS.get("/home/").rel(this.class+"/").rel(this.user+"/") //changeHOME(1)
+            //return FS.resolve("${tonyuHome}/Projects/");//changeHOME
         },
         remoteProjects: function () {
             return FS.get("/home/").rel(this.class+"/").rel(this.user+"/") //changeHOME(1)
