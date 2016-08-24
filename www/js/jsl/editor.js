@@ -13,11 +13,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth
-          ) {
-$(function () {
-    var isFirefox=navigator.userAgent.indexOf("Firefox")>=0;
-    var isChrome=navigator.userAgent.indexOf("Chrome")>=0;
-    var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
+) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
         A.setMode(A.MODE_STRICT);
@@ -25,33 +21,7 @@ $(function () {
         console.log("assertion mode defensive");
         A.setMode(A.MODE_DEFENSIVE);
     }
-    //console.log("assert test", A.is(null,String));
     var P=FS.PathUtil;
-    //var curUser; Deprecated: use Auth.user
-    //var curClassroom;  Deprecated: use Auth.class
-    Auth.check().then(function (t) {
-        //curClassroom=t.class;
-        //curUser=t.user;
-        console.log("curclass/user",t.class, t.user);
-    }).fail(function (e) {
-        console.log(e);
-        alert("ユーザ情報の取得に失敗しました");
-    });
-    /*$.get("login.php?curclass="+Math.random()).then(function (r){
-        console.log("curclass",r);
-        curClassroom=r;
-    });
-    $.get("login.php?curuser="+Math.random()).then(function (r) {
-        console.log("curuser",r);
-        curUser=r;
-    });*/
-    requirejs(["ace"],function (){
-        console.log("ace loaded:",ace);
-        SplashScreen.hide();
-    });
-    var F=EC.f;
-    $LASTPOS=0;
-    //var home=FS.resolve("${tonyuHome}");
     var dir=Util.getQueryString("dir");
     if (!dir) {
         alert("dir is not specified");
@@ -59,17 +29,13 @@ $(function () {
     }
     var curProjectDir=FS.get(dir);
     var curPrj=TPRC(curProjectDir);
-    Tonyu.globals.$currentProject=curPrj;
-    Tonyu.currentProject=curPrj;
-    //var EXT=A(curPrj.EXT);
-    var EXT=curPrj.getEXT();
-    var HEXT=".html";
-    var opt=curPrj.getOptions();
-    var lang=opt.language || "js";
+    var isFirefox=navigator.userAgent.indexOf("Firefox")>=0;
+    var isChrome=navigator.userAgent.indexOf("Chrome")>=0;
+    var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
     var langList={
-	"js":"JavaScript",
-	"c":"C",
-	"dtl":"Dolittle"
+    	"js":"JavaScript",
+    	"c":"C",
+    	"dtl":"Dolittle"
     };
     var helpURL;
     var unsaved=false;
@@ -77,6 +43,41 @@ $(function () {
     var Builder;
     var builder;
     var ram;
+    function showToast(msg){
+    	$("#toastArea").text(msg);
+    	setTimeout(function(){
+    		$("#toastArea").text("");
+    	},5000);
+    }
+    function sync() {
+    	unsaved=false;
+	    //unsynced=false;
+        return Sync.sync(curProjectDir, curProjectDir,{v:true}).then(function(){
+            unsynced=false;
+            showToast("保存しました");
+        }).fail(function (e) {
+            if (!e) e="Unknown error";
+            logToServer2("SYNC ERROR!\n"+(e.stack || e.responseText || e)+"\nSYNC ERROR END!\n");
+            console.log(e);
+            alert("保存に失敗しました。");
+        });
+    }
+    function firstSync() {
+        return Auth.check().then(sync);
+    }
+    $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"])).then(ready);
+
+function ready() {
+    var F=EC.f;
+    $LASTPOS=0;
+    //var home=FS.resolve("${tonyuHome}");
+    Tonyu.globals.$currentProject=curPrj;
+    Tonyu.currentProject=curPrj;
+    //var EXT=A(curPrj.EXT);
+    var EXT=curPrj.getEXT();
+    var HEXT=".html";
+    var opt=curPrj.getOptions();
+    var lang=opt.language || "js";
     switch (lang){
     case "c":
     	requirejs(["cCompiler"],function(){
@@ -418,19 +419,6 @@ $(function () {
         displayMode("edit");
     }
     var curName,runURL;
-    function sync() {
-        var projects=Auth.localProjects();//FS.resolve("${tonyuHome}/Projects/");
-    	unsaved=false;
-	    //unsynced=false;
-        return Sync.sync(projects, Auth.remoteProjects()/*FS.get("/")*/,{v:true}).then(
-            function(){unsynced=false;showToast("保存しました");}
-        ).fail(function (e) {
-            if (!e) e="Unknown error";
-            logToServer("SYNC ERROR!\n"+(e.stack || e.responseText || e)+"\nSYNC ERROR END!\n");
-            console.log(e);
-            alert("保存に失敗しました。");
-        });
-    }
     $("#fullScr").click(function () {
         if (lang=="dtl" || lang=="js") {
             var inf=getCurrentEditorInfo();
@@ -908,7 +896,7 @@ $(function () {
     	helpd.show();
     }));*/
     if (typeof progBar=="object") {progBar.clear();}
-    $("#rmPRJ").click(F(function () {
+    /*$("#rmPRJ").click(F(function () {
         if (prompt(curProjectDir+"内のファイルをすべて削除しますか？削除する場合はDELETE と入力してください．","")!="DELETE") {
             return;
         }
@@ -927,7 +915,7 @@ $(function () {
         sh.cp(curProjectDir,npd);
         sh.rm(curProjectDir,{r:1});
         document.location.href="project.html?dir="+npd;
-    }));
+    }));*/
     function textSize() {
         var prog=getCurrentEditor();
         var s=prompt("エディタの文字の大きさ", desktopEnv.editorFontSize||18);
@@ -946,12 +934,6 @@ $(function () {
         }
         saveDesktopEnv();
         focusToEditor();
-    }
-    function showToast(msg){
-	$("#toastArea").text(msg);
-	setTimeout(function(){
-		$("#toastArea").text("");
-	    },5000);
     }
     $("#home").click(F(function () {
 	goHome();
@@ -982,7 +964,7 @@ $(function () {
         if(prog=getCurrentEditor()) prog.focus();
     }
     window.getCurrentEditorInfo=getCurrentEditorInfo;
-//    SplashScreen.hide();
-});
+    SplashScreen.hide();
+}// of ready
 //});// of load ace
 });
