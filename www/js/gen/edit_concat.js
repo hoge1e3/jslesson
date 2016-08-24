@@ -3280,6 +3280,7 @@ define('UI',["Util","exceptionCatcher"],function (Util, EC) {
             $edits.forEach(function (edit) {
                 $edits.writeToJq(edit.params.$edit, edit.jq);
             });
+            $edits.validator.on.validate.call($edits.validator, $edits.model);
         };
         $edits.writeToJq=function ($edit, jq) {
         	var m=$edits.model;
@@ -3373,13 +3374,13 @@ define('UI',["Util","exceptionCatcher"],function (Util, EC) {
         $edits.on.writeToModel= function (name, val) {};
 
         if (listeners.length>0) {
-            setTimeout(F(l),10);
+            setTimeout(F(l),50);
         }
         function l() {
             listeners.forEach(function (li) {
                 li();
             });
-            setTimeout(F(l),10);
+            setTimeout(F(l),50);
         }
         return res;
         function parse(expr) {
@@ -3419,13 +3420,14 @@ define('UI',["Util","exceptionCatcher"],function (Util, EC) {
             for (var k in o) {
                 if (k=="on") {
                     for (var e in o.on) on(e, o.on[e]);
-                } else if (k=="css") {
+                } else if (k=="css" && o[k]!=null) {//ADDJSL
                     jq.css(o[k]);
-                } else if (!Util.startsWith(k,"$")){
+                } else if (!Util.startsWith(k,"$") && o[k]!=null) {//ADDJSL
                     jq.attr(k,o[k]);
                 }
             }
             function on(eType, li) {
+                if (!li) return; //ADDJSL
                 if (eType=="enterkey") {
                     jq.on("keypress",F(function (ev) {
                         if (ev.which==13) li.apply(jq,arguments);
@@ -12134,13 +12136,51 @@ define('UIDiag',["UI"],function (UI) {
     UIDiag.confirm=function (mesg) {
         var di=UI("div",{title:"確認"},["div",mesg],
                 ["button",{on:{click:sendF(true)}},"OK"],
-                ["button",{on:{click:sendF(false)}},"キャンセル"]).dialog({close:sendF(false)});
+                ["button",{on:{click:sendF(false)}},"キャンセル"]).dialog({width:"auto",close:sendF(false)});
         var d=$.Deferred();
         function sendF(r) {
-            return function () { d.resolve(r); di.dialog("close"); };
+            return function () { d.resolve(r); di.dialog("close"); di.remove(); };
         }
         return d.promise();
     };
+    UIDiag.alert=function (mesg) {
+        var di=UI("div",{title:"確認"},["div",mesg],
+                ["button",{on:{click:sendF(true)}},"OK"]).dialog({width:"auto",close:sendF(false)});
+        var d=$.Deferred();
+        function sendF(r) {
+            return function () { d.resolve(r); di.dialog("close"); di.remove(); };
+        }
+        return d.promise();
+    };
+
+    UIDiag.prompt=function (mesg,value) {
+        var di=UI("div",{title:"入力"},["div",mesg],
+                ["input",{on:{enterkey:ok},$var:"val", value:value}],["br"],
+                ["button",{on:{click:ok}},"OK"],
+                ["button",{on:{click:cancel}},"キャンセル"]).dialog({width:"auto",close:function (){
+                    di.dialog("close");
+                    d.resolve();
+                }});
+        setTimeout(function () {
+            di.$vars.val.focus();
+            //console.log("FOcus");
+        },10);
+        var d=$.Deferred();
+        function ok() {
+            var r=di.$vars.val.val();
+            d.resolve(r);
+            di.dialog("close");
+            di.remove();
+        }
+        function cancel() {
+            di.dialog("close");
+            di.remove();
+            d.resolve();
+        }
+        return d.promise();
+
+    };
+    if (typeof window!="undefined") window.UIDiag=UIDiag;
     return UIDiag;
 });
 define('Columns',["UI"],function (UI) {
@@ -13051,7 +13091,8 @@ define('Auth',["FS"], function (FS) {
             this.user=user;
         },
         localProjects:function ( ){
-            return FS.resolve("${tonyuHome}/Projects/");//changeHOME
+            return FS.get("/home/").rel(this.class+"/").rel(this.user+"/") //changeHOME(1)
+            //return FS.resolve("${tonyuHome}/Projects/");//changeHOME
         },
         remoteProjects: function () {
             return FS.get("/home/").rel(this.class+"/").rel(this.user+"/") //changeHOME(1)
@@ -13079,11 +13120,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth
-          ) {
-$(function () {
-    var isFirefox=navigator.userAgent.indexOf("Firefox")>=0;
-    var isChrome=navigator.userAgent.indexOf("Chrome")>=0;
-    var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
+) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
         A.setMode(A.MODE_STRICT);
@@ -13091,33 +13128,7 @@ $(function () {
         console.log("assertion mode defensive");
         A.setMode(A.MODE_DEFENSIVE);
     }
-    //console.log("assert test", A.is(null,String));
     var P=FS.PathUtil;
-    //var curUser; Deprecated: use Auth.user
-    //var curClassroom;  Deprecated: use Auth.class
-    Auth.check().then(function (t) {
-        //curClassroom=t.class;
-        //curUser=t.user;
-        console.log("curclass/user",t.class, t.user);
-    }).fail(function (e) {
-        console.log(e);
-        alert("ユーザ情報の取得に失敗しました");
-    });
-    /*$.get("login.php?curclass="+Math.random()).then(function (r){
-        console.log("curclass",r);
-        curClassroom=r;
-    });
-    $.get("login.php?curuser="+Math.random()).then(function (r) {
-        console.log("curuser",r);
-        curUser=r;
-    });*/
-    requirejs(["ace"],function (){
-        console.log("ace loaded:",ace);
-        SplashScreen.hide();
-    });
-    var F=EC.f;
-    $LASTPOS=0;
-    //var home=FS.resolve("${tonyuHome}");
     var dir=Util.getQueryString("dir");
     if (!dir) {
         alert("dir is not specified");
@@ -13125,6 +13136,48 @@ $(function () {
     }
     var curProjectDir=FS.get(dir);
     var curPrj=TPRC(curProjectDir);
+    var isFirefox=navigator.userAgent.indexOf("Firefox")>=0;
+    var isChrome=navigator.userAgent.indexOf("Chrome")>=0;
+    var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
+    var langList={
+    	"js":"JavaScript",
+    	"c":"C",
+    	"dtl":"Dolittle"
+    };
+    var helpURL;
+    var unsaved=false;
+    var unsynced=false;
+    var Builder;
+    var builder;
+    var ram;
+    function showToast(msg){
+    	$("#toastArea").text(msg);
+    	setTimeout(function(){
+    		$("#toastArea").text("");
+    	},5000);
+    }
+    function sync() {
+    	unsaved=false;
+	    //unsynced=false;
+        return Sync.sync(curProjectDir, curProjectDir,{v:true}).then(function(){
+            unsynced=false;
+            showToast("保存しました");
+        }).fail(function (e) {
+            if (!e) e="Unknown error";
+            logToServer2("SYNC ERROR!\n"+(e.stack || e.responseText || e)+"\nSYNC ERROR END!\n");
+            console.log(e);
+            alert("保存に失敗しました。");
+        });
+    }
+    function firstSync() {
+        return Auth.check().then(sync);
+    }
+    $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"])).then(ready);
+
+function ready() {
+    var F=EC.f;
+    $LASTPOS=0;
+    //var home=FS.resolve("${tonyuHome}");
     Tonyu.globals.$currentProject=curPrj;
     Tonyu.currentProject=curPrj;
     //var EXT=A(curPrj.EXT);
@@ -13132,21 +13185,12 @@ $(function () {
     var HEXT=".html";
     var opt=curPrj.getOptions();
     var lang=opt.language || "js";
-    var langList={
-	"js":"JavaScript",
-	"c":"C",
-	"dtl":"Dolittle"
-    };
-    var unsaved=false;
-    var unsynced=false;
-    var Builder;
-    var builder;
-    var ram;
     switch (lang){
     case "c":
     	requirejs(["cCompiler"],function(){
     	    console.log("cCom requirejsed");
     	});
+    	helpURL="http://bitarrow.eplang.jp/index.php?c_use";
     	break;
     case "js":
     	requirejs(["TJSBuilder"],function(_){
@@ -13157,6 +13201,7 @@ $(function () {
             FS.mount(ram.path(),"ram");
             builder=new Builder(curPrj, ram);
     	});
+    	helpURL="http://bitarrow.eplang.jp/index.php?javascript";
     	break;
     case "dtl":
     	requirejs(["DtlBuilder"],function(_){
@@ -13167,6 +13212,7 @@ $(function () {
             FS.mount(ram.path(),"ram");
             builder=new Builder(curPrj, ram);
     	});
+    	helpURL="http://bitarrow.eplang.jp/index.php?dolittle_use"
     	break;
     }
     function makeUI(){
@@ -13217,7 +13263,8 @@ $(function () {
                   {label:"設定",sub:[
                       {label:"エディタの文字の大きさ",id:"textsize",action:textSize},
                       {label:"エディタモード切替",id:"editorType",action:editorType}
-                  ]}
+                  ]},
+                  {label:"ヘルプ",id:"openHelp"}
                 ]
         );
     }
@@ -13249,11 +13296,11 @@ $(function () {
 	        )
 	    ) doConfirm=false;
 	    if(doConfirm){
-            UIDiag.confirm("一つ前のページに戻ります。よろしいですか？").then(function (r) {
+            /*UIDiag.confirm("一つ前のページに戻ります。よろしいですか？").then(function (r) {
                 if (r) {
                     history.back();
                 }
-            });
+            });*/
             e.stopPropagation();
             e.preventDefault();
             return false;
@@ -13354,6 +13401,7 @@ $(function () {
             fileSet(f).forEach(function (e) {
                 if (e.ext()==EXT && !e.exists()) {
                     e.text("// "+langList[lang]+"\n");
+                    if(lang=="js") e.text("// "+langList[lang]+"\n// ここで扱われるJavaScriptは通常のJavaScriptとは異なります。詳しくはヘルプをご覧ください。");
                 } else if (e.ext()==HEXT  && !e.exists()) {
                     e.text("<html>\n\n</html>");
                 } else {
@@ -13478,19 +13526,6 @@ $(function () {
         displayMode("edit");
     }
     var curName,runURL;
-    function sync() {
-        var projects=Auth.localProjects();//FS.resolve("${tonyuHome}/Projects/");
-    	unsaved=false;
-	    //unsynced=false;
-        return Sync.sync(projects, Auth.remoteProjects()/*FS.get("/")*/,{v:true}).then(
-            function(){unsynced=false;showToast("保存しました");}
-        ).fail(function (e) {
-            if (!e) e="Unknown error";
-            logToServer("SYNC ERROR!\n"+(e.stack || e.responseText || e)+"\nSYNC ERROR END!\n");
-            console.log(e);
-            alert("保存に失敗しました。");
-        });
-    }
     $("#fullScr").click(function () {
         if (lang=="dtl" || lang=="js") {
             var inf=getCurrentEditorInfo();
@@ -13968,7 +14003,7 @@ $(function () {
     	helpd.show();
     }));*/
     if (typeof progBar=="object") {progBar.clear();}
-    $("#rmPRJ").click(F(function () {
+    /*$("#rmPRJ").click(F(function () {
         if (prompt(curProjectDir+"内のファイルをすべて削除しますか？削除する場合はDELETE と入力してください．","")!="DELETE") {
             return;
         }
@@ -13987,7 +14022,7 @@ $(function () {
         sh.cp(curProjectDir,npd);
         sh.rm(curProjectDir,{r:1});
         document.location.href="project.html?dir="+npd;
-    }));
+    }));*/
     function textSize() {
         var prog=getCurrentEditor();
         var s=prompt("エディタの文字の大きさ", desktopEnv.editorFontSize||18);
@@ -14007,12 +14042,6 @@ $(function () {
         saveDesktopEnv();
         focusToEditor();
     }
-    function showToast(msg){
-	$("#toastArea").text(msg);
-	setTimeout(function(){
-		$("#toastArea").text("");
-	    },5000);
-    }
     $("#home").click(F(function () {
 	goHome();
     }));
@@ -14022,6 +14051,9 @@ $(function () {
 	unsynced=false;
 	location.href="index.html";
     }
+    $("#openHelp").click(function(){
+        window.open(helpURL,"helpTab");
+    });
     sh.curFile=function () {
         return fl.curFile();
     };
@@ -14039,8 +14071,8 @@ $(function () {
         if(prog=getCurrentEditor()) prog.focus();
     }
     window.getCurrentEditorInfo=getCurrentEditorInfo;
-//    SplashScreen.hide();
-});
+    SplashScreen.hide();
+}// of ready
 //});// of load ace
 });
 

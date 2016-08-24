@@ -2985,6 +2985,7 @@ define('UI',["Util","exceptionCatcher"],function (Util, EC) {
             $edits.forEach(function (edit) {
                 $edits.writeToJq(edit.params.$edit, edit.jq);
             });
+            $edits.validator.on.validate.call($edits.validator, $edits.model);
         };
         $edits.writeToJq=function ($edit, jq) {
         	var m=$edits.model;
@@ -3078,13 +3079,13 @@ define('UI',["Util","exceptionCatcher"],function (Util, EC) {
         $edits.on.writeToModel= function (name, val) {};
 
         if (listeners.length>0) {
-            setTimeout(F(l),10);
+            setTimeout(F(l),50);
         }
         function l() {
             listeners.forEach(function (li) {
                 li();
             });
-            setTimeout(F(l),10);
+            setTimeout(F(l),50);
         }
         return res;
         function parse(expr) {
@@ -3124,13 +3125,14 @@ define('UI',["Util","exceptionCatcher"],function (Util, EC) {
             for (var k in o) {
                 if (k=="on") {
                     for (var e in o.on) on(e, o.on[e]);
-                } else if (k=="css") {
+                } else if (k=="css" && o[k]!=null) {//ADDJSL
                     jq.css(o[k]);
-                } else if (!Util.startsWith(k,"$")){
+                } else if (!Util.startsWith(k,"$") && o[k]!=null) {//ADDJSL
                     jq.attr(k,o[k]);
                 }
             }
             function on(eType, li) {
+                if (!li) return; //ADDJSL
                 if (eType=="enterkey") {
                     jq.on("keypress",F(function (ev) {
                         if (ev.which==13) li.apply(jq,arguments);
@@ -11547,18 +11549,18 @@ return TPRC;
 
 define('NewProjectDialog',["UI"], function (UI) {
     var res={};
-	res.show=function (prjDir, onOK,options) {
-    	var d=res.embed(prjDir,onOK,options);
+	res.show=function (prjInfo, onOK,options) {
+    	var d=res.embed(prjInfo,onOK,options);
     	d.dialog({width:600});
 	};
-	res.embed=function (prjDir, onOK, options) {
+	res.embed=function (prjInfo, onOK, options) {
 	    if (!options) options={};
         if (!res.d) {
             var FType={
-                    fromVal: function (val){
-                        return val=="" ? null : FS.get(val);
-                    },
-                    toVal: function (v){ return v ? v.path() : "";}
+                fromVal: function (val){
+                    return val=="" ? null : FS.get(val);
+                },
+                toVal: function (v){ return v ? v.path() : "";}
             };
         	res.d=UI("div",{title:(options.ren?"プロジェクト名の変更":"新規プロジェクト")},
         			["div",
@@ -11575,13 +11577,13 @@ define('NewProjectDialog',["UI"], function (UI) {
         			 ["option",{value:"dtl"},"ドリトル"],
         			 ["option",{value:"c"},"C"]]
 				],
-         			["div",{css:{"display":"none"}},
+         		/*	["div",{css:{"display":"none"}},
         			 ["span","親フォルダ"],
         			 ["input",{$edit:{name:"parentDir",type:FType}}]],
         			 ["div",{css:{"display":"none"}},
         			   ["span","作成先フォルダ："],
         			   ["span",{$var:"dstDir"}]
-        			  ],
+        			  ],*/
                  ["div", {$var:"validationMessage", css:{color:"red"}}],
                  ["button", {$var:"OKButton", on:{click: function () {
                 	 res.d.done();
@@ -11589,16 +11591,15 @@ define('NewProjectDialog',["UI"], function (UI) {
             );
         }
         var d=res.d;
-        var model={name:options.defName||"",lang:"select", parentDir:prjDir};
+        var model={name:options.defName||"",lang:"select"};
         d.$edits.load(model);
     	d.$edits.validator.on.validate=function (model) {
     		if (model.name=="") {
     			this.addError("name","名前を入力してください");
     			return;
     		}
-    		model.dstDir=model.parentDir.rel(model.name+"/");
-            if (model.dstDir.rel("options.json").exists() ) {
-                this.addError("name","このフォルダはすでに存在します");
+            if (prjInfo.findProject(model.name) ) {
+                this.addError("name","このプロジェクトはすでに存在します");
                 return;
             }
             if(model.lang=="select"){
@@ -11606,7 +11607,7 @@ define('NewProjectDialog',["UI"], function (UI) {
                 return;
             }
     		this.allOK();
-    		d.$vars.dstDir.text(model.dstDir+"");
+    		//d.$vars.dstDir.text(model.dstDir+"");
     	};
     	d.done=function () {
     	    if (d.$edits.validator.isValid()) {
@@ -11642,7 +11643,8 @@ define('Auth',["FS"], function (FS) {
             this.user=user;
         },
         localProjects:function ( ){
-            return FS.resolve("${tonyuHome}/Projects/");//changeHOME
+            return FS.get("/home/").rel(this.class+"/").rel(this.user+"/") //changeHOME(1)
+            //return FS.resolve("${tonyuHome}/Projects/");//changeHOME
         },
         remoteProjects: function () {
             return FS.get("/home/").rel(this.class+"/").rel(this.user+"/") //changeHOME(1)
@@ -11963,11 +11965,11 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
 
 define('NewSampleDialog',["UI"], function (UI) {
     var res={};
-	res.show=function (prjDir,onOK,options) {
-    	var d=res.embed(prjDir,onOK,options);
+	res.show=function (prjInfo,onOK,options) {
+    	var d=res.embed(prjInfo,onOK,options);
     	d.dialog({width:600});
 	};
-	res.embed=function (prjDir,onOK,options) {
+	res.embed=function (prjInfo,onOK,options) {
 	    if (!options) options={};
         if (!res.d) {
         	res.d=UI("div",{title:("サンプルを見る")},
@@ -12000,7 +12002,7 @@ define('NewSampleDialog',["UI"], function (UI) {
                     d.$vars.sample.append(UI("option",{value:n},n)); 
             });
         });
-        var model={name:options.defName||"",lang:"js", parentDir:prjDir};
+        var model={name:options.defName||"",lang:"js"};
         d.$edits.load(model);
     	d.$edits.validator.on.validate=function (model) {
     		if (model.name=="") {
@@ -12008,9 +12010,8 @@ define('NewSampleDialog',["UI"], function (UI) {
     			return;
     		}
     		//console.log(model.parentDir);
-    		model.dstDir=model.parentDir.rel(model.name+"/");
-            if (model.dstDir.rel("options.json").exists() ) {
-                this.addError("name","このフォルダはすでに存在します");
+    		if (prjInfo.findProject(model.name) ) {
+                this.addError("name","このプロジェクトはすでに存在します");
                 return;
             }
     		this.allOK();
@@ -12042,11 +12043,11 @@ define('NewSampleDialog',["UI"], function (UI) {
 
 define('RenameProjectDialog',["UI"], function (UI) {
     var res={};
-	res.show=function (prjDir, onOK,options) {
-    	var d=res.embed(prjDir,onOK,options);
+	res.show=function (prjInfo,from, onOK,options) {
+    	var d=res.embed(prjInfo,from, onOK,options);
     	d.dialog({width:600});
 	};
-	res.embed=function (prjDir, onOK, options) {
+	res.embed=function (prjInfo,from, onOK, options) {
 	    if (!options) options={};
         if (!res.d) {
             var FType={
@@ -12062,21 +12063,6 @@ define('RenameProjectDialog',["UI"], function (UI) {
         			     on:{enterkey:function () {
                 		     res.d.done();
 				 }}}]],
-				["div",{css:{"display":"none"}},
-        			 ["span","プログラミング言語"],
-        			 ["select",{$edit:"lang",id:"prjLang"},
-        			 ["option",{selected:true,value:"js"},"JavaScript"],
-        			 ["option",{value:"dtl"},"ドリトル"],
-        			 ["option",{value:"c"},"C"]],
-        			 ["span","言語を選択してください"]
-				],
-         			["div",{css:{"display":"none"}},
-        			 ["span","親フォルダ"],
-        			 ["input",{$edit:{name:"parentDir",type:FType}}]],
-        			 ["div",{css:{"display":"none"}},
-        			   ["span","作成先フォルダ："],
-        			   ["span",{$var:"dstDir"}]
-        			  ],
                  ["div", {$var:"validationMessage", css:{color:"red"}}],
                  ["button", {$var:"OKButton", on:{click: function () {
                 	 res.d.done();
@@ -12084,21 +12070,21 @@ define('RenameProjectDialog',["UI"], function (UI) {
             );
         }
         var d=res.d;
-        var model={name:options.defName||"",lang:"js", parentDir:prjDir};
-        d.$edits.load(model);
+        var model={name:options.defName||"",lang:"js"};
     	d.$edits.validator.on.validate=function (model) {
+    		console.log("MODEL",model);
     		if (model.name=="") {
     			this.addError("name","名前を入力してください");
     			return;
     		}
-    		model.dstDir=model.parentDir.rel(model.name+"/");
-            if (model.dstDir.rel("options.json").exists() ) {
-                this.addError("name","このフォルダはすでに存在します");
+            if (prjInfo.findProject(model.name)) {
+                this.addError("name","このプロジェクトはすでに存在します");
                 return;
             }
     		this.allOK();
-    		d.$vars.dstDir.text(model.dstDir+"");
+    		//d.$vars.dstDir.text(model.dstDir+"");
     	};
+        d.$edits.load(model);
     	d.done=function () {
     	    if (d.$edits.validator.isValid()) {
                 onOK(model);
@@ -12110,12 +12096,28 @@ define('RenameProjectDialog',["UI"], function (UI) {
     return res;
 });
 
+define('RemoteProject',[],function () {
+    RemoteProject={};
+	RemoteProject.list=function () {
+	    return $.get("runDtl.php",{file:"/scripts/ListProjects.dtlvm"});
+	};
+	RemoteProject.delete=function (n) {
+	    return $.get("runDtl.php",{file:"/scripts/DeleteProject.dtlvm",project:n+"/"});
+	};
+	RemoteProject.rename=function (from,to) {
+	    return $.get("runDtl.php",{
+	        file:"/scripts/RenameProject.dtlvm",
+	        from:from+"/",to:to+"/"
+	    });
+	};
+	return RemoteProject;
+});
 requirejs(["FS","Shell","Shell2","ProjectCompiler",
            "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog","RenameProjectDialog",
-           "assert","DeferredUtil"],
+           "assert","DeferredUtil","RemoteProject"],
     function(FS, sh,sh2,TPRC,
            NPD, UI, Auth,zip,Sync,NSD,RPD,
-           A,DU) {
+           A,DU,RemoteProject) {
     if (location.href.match(/localhost/)) {
         A.setMode(A.MODE_STRICT);
     } else {
@@ -12159,13 +12161,32 @@ function ready() {//-------------------------
             ["span",{id:"syncMesg"}],
             ["div",{id:"prjItemList"}]
     ));
+    setTimeout(function () {
+        $("#syncMesg").empty();
+        $("#userInfo").text(Auth.class+" クラスの"+Auth.user+"さん、こんにちは");
+        $("#userInfo").append(UI("br"));
+        $("#userInfo").append(UI("a",{href:"login.php"},"他ユーザでログイン"));
+    },3000);
     var projects=Auth.localProjects();// FS.resolve("${tonyuHome}/Projects/");
     console.log(projects);
     projects.mkdir();
     sh.cd(projects);
     var curDir=projects;
+    var projectsInfo=[];
     function ls() {
         $("#prjItemList").empty();
+        return RemoteProject.list().then(function (d) {
+            projectsInfo=d;
+            d.findProject=function (name) {
+                var res;
+                d.forEach(function(i) {
+                    if (i.name===name) res=i; 
+                });
+                return res;
+            };
+            d.forEach(item);
+        });
+        /*
         var d=[];
         curDir.each(function (f) {
             if (!f.isDir()) return;
@@ -12179,46 +12200,66 @@ function ready() {//-------------------------
         d=d.sort(function (a,b) {
             return b[1]-a[1];
         });
-        d.forEach(function (e) {
-            var f=e[0];
-            var name=f.name();
+        */
+        function item(e) {
+            e.name=e.name.replace(/\/$/,"");
+            var f=projects.rel(e.name+"/");
+            e.dir=f;
+            var name=e.name;
 
             if (!f.isDir()) return;
-            if (!f.rel("options.json").exists()) return;
+            //if (!f.rel("options.json").exists()) return;
             var u=UI("div", {"class":"project"},
                     ["a", {href:"?r=jsl_edit&dir="+f.path()},
                      ["img",{$var:"t",src:FS.expandPath("${sampleImg}/tonyu.png")}],
                      ["div", name]],
                      ["div",
-                      ["a",{on:{click:ren(f)}},"名前変更"], ["span"," "],
-                      ["a",{on:{click:del(f)}},"削除"]]
+                      ["a",{on:{click:ren(name)}},"名前変更"], ["span"," "],
+                      ["a",{on:{click:del(name)}},"削除"]]
                   );
             u.appendTo("#prjItemList");
-        });
+        }
     }
-    function ren(f) {
+    function ren(fromName) {//  not endswidth /
         return function () {
-            RPD.show(projects, function (prjDir) {
+            RPD.show(projectsInfo, fromName, function (model) {
+                var toName=model.name;// not endswidth /
+                if (toName===fromName) {
+                    alert("同じ名前です");
+                    return;
+                }
                 //console.log(prjDir);
-                prjDir.dstDir.moveFrom(f);
-                ls();
-            },{ren:true, defName:f.name().replace("/","")});
+                RemoteProject.rename(fromName, toName).then(function () {
+                    var fromD=projectsInfo.findProject(fromName).dir;
+            	    var toD=projects.rel(toName+"/");
+                    //var toD=projectsInfo.findProject(toName).dir;
+                    if (fromD.exists()) toD.moveFrom(fromD);
+                    return ls();
+                }).fail(function (e){
+                    console.log(e,e.stack); alert("名前変更に失敗しました。"); 
+                });
+            },{ren:true, defName:fromName});
         };
     }
-    function del(f) {
+    function del(name) {// not endswidth /
         return function () {
-            if (confirm(f+"を削除しますか？")) {
-                f.rm({r:true});
-                ls();
+            if (confirm(name+"を削除しますか？")) {
+                RemoteProject.delete(name).then(function () {
+                    var d=projectsInfo.findProject(name).dir;
+                    if (d.exists()) d.rm({r:true});
+                    ls();
+                }).fail(function (e){
+                    console.log(e,e.stack); alert("削除に失敗しました。"); 
+                });
             }
         };
     }
-    if (!WebSite.isNW) {
+    /*if (!WebSite.isNW) {
         sync();
     }
     function sync() {
         $("#syncMesg").text("同期しています....");
-        return Sync.sync(projects, Auth.remoteProjects()/*FS.get("/")*/,{v:true}).then(function (e) {
+        return Sync.sync(projects, Auth.remoteProjects(),{v:true}).then(function (e) {
             $("#syncMesg").append("ファイル保存完了");
             ls();
 	    //alert(e.classid+" クラスの "+e.user+" と同期しました。");
@@ -12244,11 +12285,11 @@ function ready() {//-------------------------
         }).always(function () {
             if (window.SplashScreen) window.SplashScreen.hide();
         });
-    }
+    }*/
     $("#newPrj").click(function (){
-    	NPD.show(projects, function (model) {
-	    console.log(model);
-	    prjDir=model.dstDir;
+    	NPD.show(projectsInfo, function (model) {
+    	    console.log(model);
+    	    prjDir=projects.rel(model.name+"/");
             prjDir.mkdir();
             TPRC(prjDir).setOptions({
                 compiler:{
@@ -12266,11 +12307,13 @@ function ready() {//-------------------------
     	});
     });
     $("#newSample").click(function (){
-        return NSD.show(projects,function () {
-            sync();
+        return NSD.show(projectsInfo,function () {
+            ls();
         });
     });
-    ls();
+    ls().then(function () {
+        if (window.SplashScreen) window.SplashScreen.hide();
+    });
 }//------of function ready()-----------
 });
 
