@@ -13172,7 +13172,12 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     function firstSync() {
         return Auth.check().then(sync);
     }
-    $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"])).then(ready);
+    $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"])).
+    then(ready).fail(function (e) {
+        alert("エラー"+e);
+        console.log(e.stack);
+        SplashScreen.hide();
+    });
 
 function ready() {
     var F=EC.f;

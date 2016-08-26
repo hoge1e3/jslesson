@@ -1,6 +1,6 @@
 requirejs(["FS","Shell","Shell2","ProjectCompiler",
            "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog","RenameProjectDialog",
-           "assert","DeferredUtil","RemoteProject"],
+           "assert","DeferredUtil","RemoteProject","SplashScreen"],
     function(FS, sh,sh2,TPRC,
            NPD, UI, Auth,zip,Sync,NSD,RPD,
            A,DU,RemoteProject) {
@@ -9,12 +9,17 @@ requirejs(["FS","Shell","Shell2","ProjectCompiler",
     } else {
         A.setMode(A.MODE_DEFENSIVE);
     }
-    $.when(DU.documentReady(),Auth.check()).then(ready);
+    $.when(DU.documentReady(),Auth.check()).then(ready).fail(function (e) {
+        alert("エラー!"+e);
+        console.log(e.stack);
+        SplashScreen.hide();
+    });
 function ready() {//-------------------------
     console.log("AUth",Auth.user,Auth.class);
     if(!Auth.loggedIn()) {
         alert("ログインしていません。ログインページに移動します。");
         location.href="login.php";
+        return;
     }
     $("body").append(UI("div",
             ["div",{class:"hero-unit"},
