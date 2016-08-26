@@ -129,6 +129,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
 			console.log("VM Code", vmcj);
 			var scr=function () {
 			    $.post("runDtl.php",DATA).then(function (res) {
+			        console.log("VMRES",res);
 			        alert(res);
 			    }).fail(function (e) {
 			        alert("エラー："+e.responseText);

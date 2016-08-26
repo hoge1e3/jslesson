@@ -299,7 +299,7 @@ function ready() {
             fileSet(f).forEach(function (e) {
                 if (e.ext()==EXT && !e.exists()) {
                     e.text("// "+langList[lang]+"\n");
-                    if(lang=="js") e.text("// "+langList[lang]+"\n// ここで扱われるJavaScriptは通常のJavaScriptとは異なります。詳しくはヘルプをご覧ください。");
+                    if(lang=="js") e.text("// "+langList[lang]+"\n// ここで扱われるJavaScriptは通常のJavaScriptとは異なります。詳しくはヘルプをご覧ください。\n");
                 } else if (e.ext()==HEXT  && !e.exists()) {
                     e.text("<html>\n\n</html>");
                 } else {

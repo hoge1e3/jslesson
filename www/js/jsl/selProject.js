@@ -75,6 +75,7 @@ function ready() {//-------------------------
                 });
                 return res;
             };
+            d.sort(function (a,b) { return b.lastUpdate-a.lastUpdate;});
             d.forEach(item);
         });
         /*
@@ -102,7 +103,7 @@ function ready() {//-------------------------
             //if (!f.rel("options.json").exists()) return;
             var u=UI("div", {"class":"project"},
                     ["a", {href:"?r=jsl_edit&dir="+f.path()},
-                     ["img",{$var:"t",src:FS.expandPath("${sampleImg}/tonyu.png")}],
+                     ["img",{$var:"t",src:FS.expandPath("${sampleImg}/"+(e.language||"js")+".png")}],
                      ["div", name]],
                      ["div",
                       ["a",{on:{click:ren(name)}},"名前変更"], ["span"," "],
