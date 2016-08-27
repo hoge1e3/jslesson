@@ -1,15 +1,17 @@
 root.加速度センサ=root.create();
 root.加速度センサ.x=0;
 root.加速度センサ.y=0;
-root.加速度センサ.動作=(function(){});
+root.加速度センサ.z=0;
 root.加速度センサ.initialize=function(){
+	this.x=0;
+	this.y=0;
+	this.z=0;
 	if (
 		(window.navigator.userAgent.indexOf('iPhone') > 0 || 
 		window.navigator.userAgent.indexOf('iPad') > 0 || 
 		window.navigator.userAgent.indexOf('iPod') > 0 || 
 		window.navigator.userAgent.indexOf('Android') > 0)==false){
-		window.alert("タブレット、スマホ専用のオブジェクトです。この端末では動作しないことがあります");
-		//return -1;
+		return -1;
 	}
 	var self=this;
     try {
@@ -23,8 +25,12 @@ root.加速度センサ.initialize=function(){
 		window.addEventListener("devicemotion", function(evt){
 			var x=((evt.accelerationIncludingGravity.x));
 			var y=((evt.accelerationIncludingGravity.y));
+			var z=((evt.accelerationIncludingGravity.z));
 			var c=self.getCalibratedXY({x:x,y:y},self.calibrated);
 			self.x=c.x;self.y=c.y;
+			//zはcalibrateされていません
+			self.z=z;
+
 			/*if(window.orientation==0){
 				self.y=y,self.x=x;
 			}else if(window.orientation==180){
@@ -34,7 +40,6 @@ root.加速度センサ.initialize=function(){
 			}else {
 				self.y=-x,self.x=y;
 			}*/
-			self["動作"].execute(self.x,self.y);
 		},true);
 	});
 };
@@ -53,35 +58,36 @@ root.加速度センサ.calibrate=function () {
     //  location.href=(window.WebSite&&window.WebSite.runtime || window.runtimePath)+"/cal.html";
 };
 root.加速度センサ['調整']=root.加速度センサ.calibrate;
-root.加速度センサ["横の傾き?"]=function(){return this.x};
-root.加速度センサ["xの傾き?"]=root.加速度センサ["横の傾き?"];
-root.加速度センサ["縦の傾き?"]=function(){return -this.y};
-root.加速度センサ["yの傾き?"]=root.加速度センサ["縦の傾き?"];
+root.加速度センサ["xの傾き?"]=function(){return this.x};
+root.加速度センサ["x?"]=root.加速度センサ["xの傾き?"];
+root.加速度センサ["yの傾き?"]=function(){return -this.y};
+root.加速度センサ["y?"]=root.加速度センサ["yの傾き?"];
+root.加速度センサ["zの傾き?"]=function(){return this.z};
+root.加速度センサ["z?"]=root.加速度センサ["zの傾き?"];
 
-root.傾きセンサ=root.加速度センサ;
-
+root.加速度センサー=root.加速度センサ;
 
 root.Compass=root.create();
 root.Compass.direction=0;
-root.Compass["動作"]=(function(){});
 root.Compass.initialize=function(){
+	this.direction=0;
 	if (
 		(window.navigator.userAgent.indexOf('iPhone') > 0 || 
 		window.navigator.userAgent.indexOf('iPad') > 0 || 
 		window.navigator.userAgent.indexOf('iPod') > 0 || 
 		window.navigator.userAgent.indexOf('Android') > 0)==false){
-		window.alert("タブレット、スマホ専用のオブジェクトです。この端末では動作しないことがあります");
-		//return -1;
+		return -1;
 	}
 	var self=this;
 	window.$(function(){
 		window.ondeviceorientation=function(evt){
 			self.direction=evt.webkitCompassHeading;
-			self["動作"].execute(self.directioin);
 		};
 	});
 };
 root.Compass["方向?"]=function(){return this.direction;};
+//BA15により削除
+/*
 root.Compass["方角?"]=function(){
 	var res;
 	if(this.direction>315)res="北";
@@ -90,12 +96,10 @@ root.Compass["方角?"]=function(){
 	else if(this.direction>45)res="東";
 	else res="北";
 	return res;
-};
+};*/
 root["磁気センサ"]=root.Compass;
 root["磁気センサー"]=root.Compass;
 root["コンパス"]=root.Compass;
-root["方位磁針"]=root.Compass;
-root["方位磁石"]=root.Compass;
 
 root.GPS=root.create();
 root.GPS.latitude=0;
@@ -107,8 +111,7 @@ root.GPS.initialize=function(){
 		window.navigator.userAgent.indexOf('iPad') > 0 || 
 		window.navigator.userAgent.indexOf('iPod') > 0 || 
 		window.navigator.userAgent.indexOf('Android') > 0)==false){
-		window.alert("タブレット、スマホ専用のオブジェクトです。この端末では動作しないことがあります");
-		//return -1;
+		return -1;
 	}
 	window.$(function(){
 		this.gps=window.navigator.geolocation.getCurrentPosition(function(position){
@@ -122,7 +125,6 @@ root.GPS.initialize=function(){
 };
 root.GPS["緯度?"]=function(){return this.latitude;};
 root.GPS["経度?"]=function(){return this.longitude;};
-root.GPS["今どこ?"]=function(){return this.latitude+"/n"+this.longitude;};
 
 root.タッチセンサ=root.create();
 root.タッチセンサ.x=0;
@@ -136,8 +138,7 @@ root.タッチセンサ.initialize=function(){
 		window.navigator.userAgent.indexOf('iPad') > 0 || 
 		window.navigator.userAgent.indexOf('iPod') > 0 || 
 		window.navigator.userAgent.indexOf('Android') > 0)==false){
-		window.alert("タブレット、スマホ専用のオブジェクトです。この端末では動作しないことがあります");
-		//return -1;
+		return -1;
 	}
 	var self=this;
 	window.$(function(){
@@ -151,10 +152,9 @@ root.タッチセンサ.initialize=function(){
 			y=evt.touches[0].clientY;	
 			self.x=x-width;
 			self.y=height-y;
+			self["動作"].execute(self.x,self.y);
 			self.touching=true;
 			self.touched=true;
-			if(evt.cancelable)e.preventDefault();
-			self["動作"].execute(self.x,self.y);
 	  }, true);
 	});
 
@@ -169,8 +169,6 @@ root.タッチセンサ.initialize=function(){
 			y=evt.touches[0].clientY;
 			self.x=x-width;
 			self.y=height-y;
-			if(evt.cancelable)e.preventDefault();
-			self["動作"].execute(self.x,self.y);	
 		}, true);
 	});
 	window.$(function(){
@@ -206,15 +204,16 @@ root.ジャイロセンサ=root.create();
 root.ジャイロセンサ.x=0;
 root.ジャイロセンサ.y=0;
 root.ジャイロセンサ.z=0;
-root.ジャイロセンサ["動作"]=(function(){});
 root.ジャイロセンサ.initialize=function(){
+	this.x=0;
+	this.y=0;
+	this.z=0;
 	if (
 		(window.navigator.userAgent.indexOf('iPhone') > 0 || 
 		window.navigator.userAgent.indexOf('iPad') > 0 || 
 		window.navigator.userAgent.indexOf('iPod') > 0 || 
 		window.navigator.userAgent.indexOf('Android') > 0)==false){
-		window.alert("タブレット、スマホ専用のオブジェクトです。この端末では動作しないことがあります");
-		//return -1;
+		return -1;
 	}
 	var self=this;
 	window.$(function(){
@@ -225,18 +224,20 @@ root.ジャイロセンサ.initialize=function(){
 			self.x=x;
 			self.y=y;
 			self.z=z;
-			self["動作"].execute(self.x,self.y,self.z);
 		},true);
 	});
 };
-root.ジャイロセンサ["回した角度?"]=function(){return this.z;};
-root.ジャイロセンサ["z軸の角度?"]=root.ジャイロセンサ["回した角度?"];
-root.ジャイロセンサ["縦の角度?"]=function(){return this.x;};
-root.ジャイロセンサ["x軸の角度?"]=root.ジャイロセンサ["縦の角度?"];
-root.ジャイロセンサ["横軸の角度?"]=root.ジャイロセンサ["縦の角度?"];
-root.ジャイロセンサ["横の角度?"]=function(){return this.y;};
-root.ジャイロセンサ["y軸の角度?"]=root.ジャイロセンサ["横の角度?"];
-root.ジャイロセンサ["縦軸の角度?"]=root.ジャイロセンサ["横の角度?"];
+root.ジャイロセンサ["zの傾き?"]=function(){return this.z;};
+root.ジャイロセンサ["z?"]=root.ジャイロセンサ["zの傾き?"];
+//root.ジャイロセンサ["z軸の角度?"]=root.ジャイロセンサ["回した角度?"];
+root.ジャイロセンサ["xの傾き?"]=function(){return this.x;};
+root.ジャイロセンサ["x?"]=root.ジャイロセンサ["xの傾き?"];
+//root.ジャイロセンサ["x軸の角度?"]=root.ジャイロセンサ["縦の角度?"];
+//root.ジャイロセンサ["横軸の角度?"]=root.ジャイロセンサ["縦の角度?"];
+root.ジャイロセンサ["yの傾き?"]=function(){return this.y;};
+root.ジャイロセンサ["y?"]=root.ジャイロセンサ["yの傾き?"];
+//root.ジャイロセンサ["y軸の?"]=root.ジャイロセンサ["横の角度?"];
+//root.ジャイロセンサ["縦軸の角度?"]=root.ジャイロセンサ["横の角度?"];
 root.ジャイロセンサー=root.ジャイロセンサ;
 
 // from http://jsdo.it/hoge1e4/47Z2/

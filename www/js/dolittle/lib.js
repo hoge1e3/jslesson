@@ -92,9 +92,17 @@ root.instanceof=function(f,s){
 	return (f instanceof s);
 };
 root.typeof=function(p){return typeof p;};
-root.is=function(p){
-	if((typeof p)!="object")throw new Error("isの引数にはオブジェクトを渡して下さい。");
-	return p.isPrototypeOf(this);
+root.is=function(){
+    var child, parent;
+    if (arguments.length>=2) {
+        child=arguments[0];
+        parent=arguments[1];
+    } else {
+        child=this;
+        parent=arguments[1];
+    }
+	if((typeof parent)!="object")throw new Error("isの引数にはオブジェクトを渡して下さい。");
+	return parent.isPrototypeOf(child);
 };
 
 //Timerオブジェクト
