@@ -6,13 +6,13 @@ root.加速度センサ.initialize=function(){
 	this.x=0;
 	this.y=0;
 	this.z=0;
-	if (
+	/*if (
 		(window.navigator.userAgent.indexOf('iPhone') > 0 || 
 		window.navigator.userAgent.indexOf('iPad') > 0 || 
 		window.navigator.userAgent.indexOf('iPod') > 0 || 
 		window.navigator.userAgent.indexOf('Android') > 0)==false){
 		return -1;
-	}
+	}*/
 	var self=this;
     try {
         self.calibrated=JSON.parse(localStorage.acceleratorCalibration);
@@ -106,13 +106,13 @@ root.GPS.latitude=0;
 root.GPS.longitude=0;
 root.GPS.gps=null;
 root.GPS.initialize=function(){
-	if (
+	/*if (
 		(window.navigator.userAgent.indexOf('iPhone') > 0 || 
 		window.navigator.userAgent.indexOf('iPad') > 0 || 
 		window.navigator.userAgent.indexOf('iPod') > 0 || 
 		window.navigator.userAgent.indexOf('Android') > 0)==false){
 		return -1;
-	}
+	}*/
 	window.$(function(){
 		this.gps=window.navigator.geolocation.getCurrentPosition(function(position){
 			var latitude=position.coords.latitude;
@@ -133,13 +133,13 @@ root.タッチセンサ.touching=false;
 root.タッチセンサ.touched=false;
 root.タッチセンサ["動作"]=(function(){});
 root.タッチセンサ.initialize=function(){
-	if (
+	/*if (
 		(window.navigator.userAgent.indexOf('iPhone') > 0 || 
 		window.navigator.userAgent.indexOf('iPad') > 0 || 
 		window.navigator.userAgent.indexOf('iPod') > 0 || 
 		window.navigator.userAgent.indexOf('Android') > 0)==false){
 		return -1;
-	}
+	}*/
 	var self=this;
 	window.$(function(){
 		window.document.addEventListener("touchstart", function(evt){
@@ -208,13 +208,13 @@ root.ジャイロセンサ.initialize=function(){
 	this.x=0;
 	this.y=0;
 	this.z=0;
-	if (
+	/*if (
 		(window.navigator.userAgent.indexOf('iPhone') > 0 || 
 		window.navigator.userAgent.indexOf('iPad') > 0 || 
 		window.navigator.userAgent.indexOf('iPod') > 0 || 
 		window.navigator.userAgent.indexOf('Android') > 0)==false){
 		return -1;
-	}
+	}*/
 	var self=this;
 	window.$(function(){
 		window.addEventListener("deviceorientation",function(evt){

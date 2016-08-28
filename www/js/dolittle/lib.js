@@ -99,7 +99,7 @@ root.is=function(){
         parent=arguments[1];
     } else {
         child=this;
-        parent=arguments[1];
+        parent=arguments[0];
     }
 	if((typeof parent)!="object")throw new Error("isの引数にはオブジェクトを渡して下さい。");
 	return parent.isPrototypeOf(child);
