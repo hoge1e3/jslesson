@@ -360,7 +360,8 @@ var substr1=function(param){return this.substring(param-1);};
 var substr2=function(param1,param2){return this.substring(param1-1,param2);}
 
 //Booleanオブジェクト
-Boolean.prototype.then=function(){return (this)?root._true:root._false;};
+Boolean.prototype.then=function(){return (this==true)?root._true:root._false;};
+Boolean.prototype.else=function(){return (this==true)?root._false:root._true;};
 Boolean.prototype.not=function(){return (false==this);};
 Boolean.prototype["反対"]=Boolean.prototype.not;
 //Number
@@ -461,6 +462,7 @@ Function.prototype.while=function(){
 	return root._while.create(this);
 };
 Function.prototype.then=function(){return (this.execute(this,arguments))?root._true:root._false;};
+Function.prototype.else=function(){return (this.execute(this,arguments))?root._false:root._true;};
 Function.prototype.checkerror=function () {
     var f=this;
     return dtlbind(f.bound, function () {
