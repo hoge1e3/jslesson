@@ -65,10 +65,14 @@ function startCalibration(onend) {
     p.saveCalibration=function () {
         var self=this;
         localStorage[self.lsKey]=JSON.stringify(self.calibration);
+        console.log("Save cal",localStorage[self.lsKey]);
     };
     p.setHome=function () {
         var self=this;
-        if (!self.raw) return;
+        if (!self.raw) {
+            console.log("Could not set home");
+            return;
+        }
         self.home={};
         self.rawKeys.forEach(function (k) {
             self.home[k]=self.raw[k];
@@ -108,7 +112,7 @@ function startCalibration(onend) {
                 maxk=k;
             }
         });
-        console.log("MAX",maxk,maxsgn);
+        console.log("MAX for ",calibratedKey," is ",maxk,maxsgn);
         return {rawkey:maxk,sgn:maxsgn*csgn};
     };
     
@@ -152,7 +156,8 @@ function startCalibration(onend) {
         cv.fillStyle="black";
         switch(state) {
         case 0:
-            mesg("端末を水平にしてください");
+            mesg("端末を水平に持ってください");
+            //mesg2("端末を水平にしてください");
             cnt+=inter;if(cnt>3000) {
                 a.setHome();g.setHome();
                 state++;cnt=0;
@@ -160,7 +165,7 @@ function startCalibration(onend) {
             }
             break;
         case 1:
-            mesg("右に軽く傾けてください");
+            mesg("右に傾けてください");
             arrow("→");
             cnt+=inter;if(cnt>3000) {
                 a.doCalibration("x",1);
@@ -188,7 +193,7 @@ function startCalibration(onend) {
             };
             break;
         case 5:
-            mesg("手前に軽く傾けてください");
+            mesg("手前に傾けてください");
             arrow("↓");
             cnt+=inter;if(cnt>3000) {
                 a.doCalibration("y",1);
@@ -207,7 +212,8 @@ function startCalibration(onend) {
             };
             break;
         case 9:
-            mesg("水平にしたまま、右に30度くらい回転させてください");
+            mesg("水平にしたまま、右に30度くらい");
+            mesg2("回転させてください");
             arrow("↻");
             cnt+=inter;if(cnt>3000) {
                 g.doCalibration("yaw",1);
@@ -264,6 +270,10 @@ function startCalibration(onend) {
         function mesg(s) {
             cv.font="12px monospace";
             cv.fillText(s,0,50);
+        }
+        function mesg2(s) {
+            cv.font="12px monospace";
+            cv.fillText(s,0,80);
         }
         function arrow(a) {
             cv.font="30px monospace";

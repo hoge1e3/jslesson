@@ -54,7 +54,7 @@ root.加速度センサ.initialize=function(){
 			self.setCalibrated();
 			//var c=self.getCalibratedXY({x:x,y:y},self.calibrated);
 			var c=self.calibrated;
-			self.x=c.x;self.y=c.y;
+			self.x=c.x;self.y=-c.y;
 			self.z=z;
 
 		},true);
@@ -78,7 +78,7 @@ root.加速度センサ.使う=function(){
 			self.setCalibrated();
 			//var c=self.getCalibratedXY({x:x,y:y},self.calibrated);
 			var c=self.calibrated;
-			self.x=c.x;self.y=c.y;
+			self.x=c.x;self.y=-c.y;
 			self.z=z;
 
 		},true);
@@ -290,7 +290,7 @@ root.gyroSensor.initialize=function(){
 			self.raw={alpha:z,beta:x,gamma:y};
 			self.setCalibrated();
 			self.x=self.calibrated.roll;
-			self.y=self.calibrated.pitch;
+			self.y=-self.calibrated.pitch;
 			self.z=self.calibrated.yaw;
 		},true);
 	});
@@ -309,7 +309,7 @@ root.gyroSensor.使う=function(){
 			self.raw={alpha:z,beta:x,gamma:y};
 			self.setCalibrated();
 			self.x=self.calibrated.roll;
-			self.y=self.calibrated.pitch;
+			self.y=-self.calibrated.pitch;
 			self.z=self.calibrated.yaw;
 		},true);
 	});
@@ -319,12 +319,15 @@ root.gyroSensor.使う=function(){
 root.gyroSensor.getYaw=function(){return this.z;};
 root.gyroSensor["ヨー?"]=root.gyroSensor.getYaw;
 root.gyroSensor["水平方向の傾き?"]=root.gyroSensor.getYaw;
+root.gyroSensor["水平の傾き?"]=root.gyroSensor.getYaw;
 root.gyroSensor.getRoll=function(){return this.x;};
 root.gyroSensor["ロール?"]=root.gyroSensor.getRoll;
 root.gyroSensor["左右方向の傾き?"]=root.gyroSensor.getRoll;
+root.gyroSensor["左右の傾き?"]=root.gyroSensor.getRoll;
 root.gyroSensor.getPitch=function(){return this.y;};
 root.gyroSensor["ピッチ?"]=root.gyroSensor.getPitch;
 root.gyroSensor["前後方向の傾き?"]=root.gyroSensor.getPitch;
+root.gyroSensor["前後の傾き?"]=root.gyroSensor.getPitch;
 
 root.gyroSensor.setCalibrated=Calibratable.setCalibrated;
 root.gyroSensor.initCalibration=Calibratable.initCalibration;
