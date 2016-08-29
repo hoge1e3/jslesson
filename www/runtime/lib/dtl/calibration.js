@@ -174,7 +174,7 @@ function startCalibration(onend) {
             };
             break;
         case 2:case 4:case 6:case 8:case 10:
-            mesg("元の姿勢に戻してください");
+            mesg("水平に戻してください");
             cnt+=inter;if(cnt>3000) {
                 a.setHome();g.setHome();
                 state++;cnt=0;

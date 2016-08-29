@@ -29,6 +29,13 @@ var Calibratable={
             });        
         }
         console.log("Calload", self.calibration);
+    },
+    calibrate:function () {
+        var self=this;
+        startCalibration(function () {
+            root.加速度センサ.initCalibration();
+            root.gyroSensor.initCalibration();
+        });
     }
 };
 
@@ -92,13 +99,13 @@ root.加速度センサ.getCalibratedXY=function (raw,c) {
          return {y:raw.y*c.y, x:raw.x*c.x};
      }   
 };
-root.加速度センサ.calibrate=function () {
+root.加速度センサ.calibrate=Calibratable.calibrate;/*function () {
     var self=this;
     startCalibration(function () {
         root.加速度センサ.initCalibration();
         root.gyroSensor.initCalibration();
     });
-};
+};*/
 root.加速度センサ['調整']=root.加速度センサ.calibrate;
 root.加速度センサ["xの傾き?"]=function(){return this.x};
 root.加速度センサ["x?"]=root.加速度センサ["xの傾き?"];
@@ -329,6 +336,8 @@ root.gyroSensor["ピッチ?"]=root.gyroSensor.getPitch;
 root.gyroSensor["前後方向の傾き?"]=root.gyroSensor.getPitch;
 root.gyroSensor["前後の傾き?"]=root.gyroSensor.getPitch;
 
+root.gyroSensor.calibrate=Calibratable.calibrate;
+root.gyroSensor['調整']=root.gyroSensor.calibrate;
 root.gyroSensor.setCalibrated=Calibratable.setCalibrated;
 root.gyroSensor.initCalibration=Calibratable.initCalibration;
 root.gyroSensor.normalize=function (k) {
