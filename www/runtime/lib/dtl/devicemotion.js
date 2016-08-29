@@ -3,16 +3,6 @@ root.加速度センサ.x=0;
 root.加速度センサ.y=0;
 root.加速度センサ.z=0;
 root.加速度センサ.initialize=function(){
-	this.x=0;
-	this.y=0;
-	this.z=0;
-	/*if (
-		(window.navigator.userAgent.indexOf('iPhone') > 0 || 
-		window.navigator.userAgent.indexOf('iPad') > 0 || 
-		window.navigator.userAgent.indexOf('iPod') > 0 || 
-		window.navigator.userAgent.indexOf('Android') > 0)==false){
-		return -1;
-	}*/
 	var self=this;
     try {
         self.calibrated=JSON.parse(localStorage.acceleratorCalibration);
@@ -23,26 +13,39 @@ root.加速度センサ.initialize=function(){
     }
 	window.$(function(){
 		window.addEventListener("devicemotion", function(evt){
-			var x=((evt.accelerationIncludingGravity.x));
-			var y=((evt.accelerationIncludingGravity.y));
-			var z=((evt.accelerationIncludingGravity.z));
+			var x=((evt.accelerationIncludingGravity.x) || 0);
+			var y=((evt.accelerationIncludingGravity.y) || 0);
+			var z=((evt.accelerationIncludingGravity.z) || 0);
 			var c=self.getCalibratedXY({x:x,y:y},self.calibrated);
 			self.x=c.x;self.y=c.y;
-			//zはcalibrateされていません
 			self.z=z;
 
-			/*if(window.orientation==0){
-				self.y=y,self.x=x;
-			}else if(window.orientation==180){
-				self.y=-y,self.x=-x;
-			}else if(window.orientation==90){
-				self.y=x,self.x=-y;
-			}else {
-				self.y=-x,self.x=y;
-			}*/
 		},true);
 	});
 };
+/*root.加速度センサ.使う=function(){
+	var self=this;
+    try {
+        self.calibrated=JSON.parse(localStorage.acceleratorCalibration);
+        console.log(self.calibrated,window.orientation);
+    }catch(e) {
+        console.log(e);
+        self.calibrated={f:false,x:1,y:1};
+    }
+	window.$(function(){
+		window.addEventListener("devicemotion", function(evt){
+			var x=((evt.accelerationIncludingGravity.x) || 0);
+			var y=((evt.accelerationIncludingGravity.y) || 0);
+			var z=((evt.accelerationIncludingGravity.z) || 0);
+			var c=self.getCalibratedXY({x:x,y:y},self.calibrated);
+			self.x=c.x;self.y=c.y;
+			self.z=z;
+
+
+		},true);
+	});
+};
+*/
 root.加速度センサ.getCalibratedXY=function (raw,c) {
      if (c.f) {
          return {x:raw.y*c.y, y:raw.x*c.x};
@@ -70,33 +73,24 @@ root.加速度センサー=root.加速度センサ;
 root.Compass=root.create();
 root.Compass.direction=0;
 root.Compass.initialize=function(){
-	this.direction=0;
-	if (
-		(window.navigator.userAgent.indexOf('iPhone') > 0 || 
-		window.navigator.userAgent.indexOf('iPad') > 0 || 
-		window.navigator.userAgent.indexOf('iPod') > 0 || 
-		window.navigator.userAgent.indexOf('Android') > 0)==false){
-		return -1;
-	}
 	var self=this;
 	window.$(function(){
 		window.ondeviceorientation=function(evt){
-			self.direction=evt.webkitCompassHeading;
+			self.direction=(evt.webkitCompassHeading || 0);
 		};
 	});
 };
-root.Compass["方向?"]=function(){return this.direction;};
-//BA15により削除
 /*
-root.Compass["方角?"]=function(){
-	var res;
-	if(this.direction>315)res="北";
-	else if(this.direction>225)res="西";
-	else if(this.direction>135)res="南";
-	else if(this.direction>45)res="東";
-	else res="北";
-	return res;
-};*/
+root.Compass.使う=function(){
+	var self=this;
+	window.$(function(){
+		window.ondeviceorientation=function(evt){
+			self.direction=(evt.webkitCompassHeading || 0);
+		};
+	});
+};
+*/
+root.Compass["方向?"]=function(){return this.direction;};
 root["磁気センサ"]=root.Compass;
 root["磁気センサー"]=root.Compass;
 root["コンパス"]=root.Compass;
@@ -106,23 +100,29 @@ root.GPS.latitude=0;
 root.GPS.longitude=0;
 root.GPS.gps=null;
 root.GPS.initialize=function(){
-	/*if (
-		(window.navigator.userAgent.indexOf('iPhone') > 0 || 
-		window.navigator.userAgent.indexOf('iPad') > 0 || 
-		window.navigator.userAgent.indexOf('iPod') > 0 || 
-		window.navigator.userAgent.indexOf('Android') > 0)==false){
-		return -1;
-	}*/
 	window.$(function(){
 		this.gps=window.navigator.geolocation.getCurrentPosition(function(position){
 			var latitude=position.coords.latitude;
 			var longitude=position.coords.longitude;
-			this.latitude=latitude;
-			this.longitude=longitude;
+			this.latitude=latitude || 0;
+			this.longitude=longitude || 0;
 			return position;
 		}	,function(){window.alert("GPSの立ち上げに失敗しました。");return -1;});
 	});
 };
+/*
+root.GPS.使う=function(){
+	window.$(function(){
+		this.gps=window.navigator.geolocation.getCurrentPosition(function(position){
+			var latitude=position.coords.latitude;
+			var longitude=position.coords.longitude;
+			this.latitude=latitude || 0;
+			this.longitude=longitude || 0;
+			return position;
+		}	,function(){window.alert("GPSの立ち上げに失敗しました。");return -1;});
+	});
+};
+*/
 root.GPS["緯度?"]=function(){return this.latitude;};
 root.GPS["経度?"]=function(){return this.longitude;};
 
@@ -133,23 +133,15 @@ root.タッチセンサ.touching=false;
 root.タッチセンサ.touched=false;
 root.タッチセンサ["動作"]=(function(){});
 root.タッチセンサ.initialize=function(){
-	/*if (
-		(window.navigator.userAgent.indexOf('iPhone') > 0 || 
-		window.navigator.userAgent.indexOf('iPad') > 0 || 
-		window.navigator.userAgent.indexOf('iPod') > 0 || 
-		window.navigator.userAgent.indexOf('Android') > 0)==false){
-		return -1;
-	}*/
+
 	var self=this;
 	window.$(function(){
 		window.document.addEventListener("touchstart", function(evt){
 			var x=0,y=0;
-			//var width=document.getElementById("canvas").width/2;
-			//var height=document.getElementById("canvas").height/2;
 			var width=window.$("#canvas").context.documentElement.clientWidth/2;
 			var height=window.$("#canvas").context.documentElement.clientHeight/2;
-			x=evt.touches[0].clientX;
-			y=evt.touches[0].clientY;	
+			x=(evt.touches[0].clientX) || 0;
+			y=(evt.touches[0].clientY) || 0;	
 			self.x=x-width;
 			self.y=height-y;
 			self["動作"].execute(self.x,self.y);
@@ -161,10 +153,8 @@ root.タッチセンサ.initialize=function(){
 	window.$(function(){
 	  window.document.addEventListener("touchmove", function(evt){
 			var x=0,y=0;
-			//var width=document.getElementById("canvas").width/2;
-			//var height=document.getElementById("canvas").height/2;
-			var width=window.$("#canvas").context.documentElement.clientWidth/2;
-			var height=window.$("#canvas").context.documentElement.clientHeight/2;
+			var width=(window.$("#canvas").context.documentElement.clientWidth/2) || 0;
+			var height=(window.$("#canvas").context.documentElement.clientHeight/2) || 0;
 			x=evt.touches[0].clientX;
 			y=evt.touches[0].clientY;
 			self.x=x-width;
@@ -182,6 +172,47 @@ root.タッチセンサ.initialize=function(){
 		}, true);
 	});
 };
+/*
+root.タッチセンサ.使う=function(){
+	var self=this;
+	window.$(function(){
+		window.document.addEventListener("touchstart", function(evt){
+			var x=0,y=0;
+			var width=window.$("#canvas").context.documentElement.clientWidth/2;
+			var height=window.$("#canvas").context.documentElement.clientHeight/2;
+			x=(evt.touches[0].clientX) || 0;
+			y=(evt.touches[0].clientY) || 0;	
+			self.x=x-width;
+			self.y=height-y;
+			self["動作"].execute(self.x,self.y);
+			self.touching=true;
+			self.touched=true;
+	  }, true);
+	});
+
+	window.$(function(){
+	  window.document.addEventListener("touchmove", function(evt){
+			var x=0,y=0;
+			var width=(window.$("#canvas").context.documentElement.clientWidth/2) || 0;
+			var height=(window.$("#canvas").context.documentElement.clientHeight/2) || 0;
+			x=evt.touches[0].clientX;
+			y=evt.touches[0].clientY;
+			self.x=x-width;
+			self.y=height-y;
+		}, true);
+	});
+	window.$(function(){
+		window.document.addEventListener("touchend", function(evt){
+			self.touching=false;
+		}, true);
+	});
+	window.$(function(){
+		window.document.addEventListener("touchcancel", function(evt){
+			self.touching=false;
+		}, true);
+	});
+};
+*/
 root.タッチセンサ["タッチした?"]=function(){
 	var res=this.touched;
 	this.touched=false;
@@ -193,11 +224,7 @@ root.タッチセンサ["タッチしてる?"]=root.タッチセンサ["タッ�
 root.タッチセンサ["触れている?"]=root.タッチセンサ["タッチしている?"];
 root.タッチセンサ["触れてる?"]=root.タッチセンサ["タッチしている?"];
 root.タッチセンサ["横の位置?"]=function(){return this.x;};
-//root.タッチセンサ["xの位置?"]=root.タッチセンサ["横の位置?"];
-//root.タッチセンサ["x座標?"]=root.タッチセンサ["横の位置?"];
 root.タッチセンサ["縦の位置?"]=function(){return this.y;};
-//root.タッチセンサ["yの位置?"]=root.タッチセンサ["縦の位置?"];
-//root.タッチセンサ["y座標?"]=root.タッチセンサ["縦の位置?"];
 root.タッチセンサー=root.タッチセンサ;
 
 root.ジャイロセンサ=root.create();
@@ -205,39 +232,43 @@ root.ジャイロセンサ.x=0;
 root.ジャイロセンサ.y=0;
 root.ジャイロセンサ.z=0;
 root.ジャイロセンサ.initialize=function(){
-	this.x=0;
-	this.y=0;
-	this.z=0;
-	/*if (
-		(window.navigator.userAgent.indexOf('iPhone') > 0 || 
-		window.navigator.userAgent.indexOf('iPad') > 0 || 
-		window.navigator.userAgent.indexOf('iPod') > 0 || 
-		window.navigator.userAgent.indexOf('Android') > 0)==false){
-		return -1;
-	}*/
 	var self=this;
 	window.$(function(){
 		window.addEventListener("deviceorientation",function(evt){
-			var x=evt.beta;
-			var y=evt.gamma;
-			var z=evt.alpha;
+			var x=evt.beta || 0;
+			var y=evt.gamma || 0;
+			var z=evt.alpha || 0;
 			self.x=x;
 			self.y=y;
 			self.z=z;
 		},true);
 	});
 };
+/*
+root.ジャイロセンサ.使う=function(){
+	this.x=0;
+	this.y=0;
+	this.z=0;
+	var self=this;
+	window.$(function(){
+		window.addEventListener("deviceorientation",function(evt){
+			var x=evt.beta || 0;
+			var y=evt.gamma || 0;
+			var z=evt.alpha || 0;
+			self.x=x;
+			self.y=y;
+			self.z=z;
+		},true);
+	});
+
+};
+*/
 root.ジャイロセンサ["zの傾き?"]=function(){return this.z;};
 root.ジャイロセンサ["z?"]=root.ジャイロセンサ["zの傾き?"];
-//root.ジャイロセンサ["z軸の角度?"]=root.ジャイロセンサ["回した角度?"];
 root.ジャイロセンサ["xの傾き?"]=function(){return this.x;};
 root.ジャイロセンサ["x?"]=root.ジャイロセンサ["xの傾き?"];
-//root.ジャイロセンサ["x軸の角度?"]=root.ジャイロセンサ["縦の角度?"];
-//root.ジャイロセンサ["横軸の角度?"]=root.ジャイロセンサ["縦の角度?"];
 root.ジャイロセンサ["yの傾き?"]=function(){return this.y;};
 root.ジャイロセンサ["y?"]=root.ジャイロセンサ["yの傾き?"];
-//root.ジャイロセンサ["y軸の?"]=root.ジャイロセンサ["横の角度?"];
-//root.ジャイロセンサ["縦軸の角度?"]=root.ジャイロセンサ["横の角度?"];
 root.ジャイロセンサー=root.ジャイロセンサ;
 
 // from http://jsdo.it/hoge1e4/47Z2/
