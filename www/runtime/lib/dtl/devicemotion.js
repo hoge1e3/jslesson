@@ -9,6 +9,7 @@ var Calibratable={
             self.calibrated[k]=self.normalize(self.raw[c.rawkey]*c.sgn);
         });
     },
+    normalize:function (x){return x;},
     initCalibration:function () {
         var self=this;
         try {
@@ -27,6 +28,7 @@ var Calibratable={
                 self.calibration[self.calibratedKeys[i]]={rawkey:k,sgn:1};
             });        
         }
+        console.log("Calload", self.calibration);
     }
 };
 
@@ -36,19 +38,22 @@ root.加速度センサ.y=0;
 root.加速度センサ.z=0;
 root.加速度センサ.initialize=function(){
 	var self=this;
-    try {
+    /*try {
         self.calibrated=JSON.parse(localStorage.acceleratorCalibration);
         console.log(self.calibrated,window.orientation);
     }catch(e) {
         console.log(e);
         self.calibrated={f:false,x:1,y:1};
-    }
+    }*/
 	window.$(function(){
 		window.addEventListener("devicemotion", function(evt){
 			var x=((evt.accelerationIncludingGravity.x) || 0);
 			var y=((evt.accelerationIncludingGravity.y) || 0);
 			var z=((evt.accelerationIncludingGravity.z) || 0);
-			var c=self.getCalibratedXY({x:x,y:y},self.calibrated);
+			self.raw={x:x,y:y,z:z};
+			self.setCalibrated();
+			//var c=self.getCalibratedXY({x:x,y:y},self.calibrated);
+			var c=self.calibrated;
 			self.x=c.x;self.y=c.y;
 			self.z=z;
 
@@ -57,22 +62,24 @@ root.加速度センサ.initialize=function(){
 };
 root.加速度センサ.使う=function(){
 	var self=this;
-    try {
+    /*try {
         self.calibrated=JSON.parse(localStorage.acceleratorCalibration);
         console.log(self.calibrated,window.orientation);
     }catch(e) {
         console.log(e);
         self.calibrated={f:false,x:1,y:1};
-    }
+    }*/
 	window.$(function(){
 		window.addEventListener("devicemotion", function(evt){
 			var x=((evt.accelerationIncludingGravity.x) || 0);
 			var y=((evt.accelerationIncludingGravity.y) || 0);
 			var z=((evt.accelerationIncludingGravity.z) || 0);
-			var c=self.getCalibratedXY({x:x,y:y},self.calibrated);
+			self.raw={x:x,y:y,z:z};
+			self.setCalibrated();
+			//var c=self.getCalibratedXY({x:x,y:y},self.calibrated);
+			var c=self.calibrated;
 			self.x=c.x;self.y=c.y;
 			self.z=z;
-
 
 		},true);
 	});
@@ -87,10 +94,10 @@ root.加速度センサ.getCalibratedXY=function (raw,c) {
 };
 root.加速度センサ.calibrate=function () {
     var self=this;
-    startCalibration(function (a) {
-        self.calibrated=a;
+    startCalibration(function () {
+        root.加速度センサ.initCalibration();
+        root.gyroSensor.initCalibration();
     });
-    //  location.href=(window.WebSite&&window.WebSite.runtime || window.runtimePath)+"/cal.html";
 };
 root.加速度センサ['調整']=root.加速度センサ.calibrate;
 root.加速度センサ["xの傾き?"]=function(){return this.x};
@@ -102,6 +109,7 @@ root.加速度センサ["z?"]=root.加速度センサ["zの傾き?"];
 root.加速度センサ.lsKey="accelCalibration";
 root.加速度センサ.setCalibrated=Calibratable.setCalibrated;
 root.加速度センサ.initCalibration=Calibratable.initCalibration;
+root.加速度センサ.normalize=Calibratable.normalize;
 root.加速度センサ.rawKeys=XYZ;
 root.加速度センサ.calibratedKeys=XYZ;
 root.加速度センサ.eventType="devicemotion";
@@ -270,15 +278,20 @@ root.gyroSensor.x=0;
 root.gyroSensor.y=0;
 root.gyroSensor.z=0;
 root.gyroSensor.initialize=function(){
+	this.x=0;
+	this.y=0;
+	this.z=0;
 	var self=this;
 	window.$(function(){
 		window.addEventListener("deviceorientation",function(evt){
 			var x=evt.beta || 0;
 			var y=evt.gamma || 0;
 			var z=evt.alpha || 0;
-			self.x=x;
-			self.y=y;
-			self.z=z;
+			self.raw={alpha:z,beta:x,gamma:y};
+			self.setCalibrated();
+			self.x=self.calibrated.roll;
+			self.y=self.calibrated.pitch;
+			self.z=self.calibrated.yaw;
 		},true);
 	});
 };
@@ -293,9 +306,11 @@ root.gyroSensor.使う=function(){
 			var x=evt.beta || 0;
 			var y=evt.gamma || 0;
 			var z=evt.alpha || 0;
-			self.x=x;
-			self.y=y;
-			self.z=z;
+			self.raw={alpha:z,beta:x,gamma:y};
+			self.setCalibrated();
+			self.x=self.calibrated.roll;
+			self.y=self.calibrated.pitch;
+			self.z=self.calibrated.yaw;
 		},true);
 	});
 
@@ -313,6 +328,11 @@ root.gyroSensor["前後方向の傾き?"]=root.gyroSensor.getPitch;
 
 root.gyroSensor.setCalibrated=Calibratable.setCalibrated;
 root.gyroSensor.initCalibration=Calibratable.initCalibration;
+root.gyroSensor.normalize=function (k) {
+    while(k<0) k+=360;
+    k=k%360;
+    return k>=180 ? k-360 : k;
+};
 root.gyroSensor.lsKey="gyroCalibration";
 root.gyroSensor.rawKeys=ABG;
 root.gyroSensor.calibratedKeys=RPY;
@@ -322,7 +342,7 @@ root.ジャイロセンサ=root.gyroSensor;
 root.ジャイロセンサー=root.gyroSensor;
 
 // from http://jsdo.it/hoge1e4/47Z2/
-function startCalibration(onend) {
+function startCalibrationOLD(onend) {
     var cve=$("<canvas>").attr({width:200,height:200}).css({
         position:"absolute",left:$(window).width()/2-100, top:$(window).height()/2-100}).appendTo("body");
     var timer;

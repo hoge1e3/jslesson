@@ -227,6 +227,8 @@ function startCalibration(onend) {
             g.saveCalibration();
             console.log(rollBase,pitchBase);
             state++;
+            cnt=0;
+            break;
         case 12:
             mesg("調整完了");
             var ac=a.calibrated;
@@ -244,7 +246,15 @@ function startCalibration(onend) {
                 cv.moveTo(W/2+Math.cos(-rad(gc.yaw))*W/2, H/2+Math.sin(-rad(gc.yaw))*H/2 );
                 cv.lineTo(W/2-Math.cos(-rad(gc.yaw))*W/2, H/2-Math.sin(-rad(gc.yaw))*H/2 );
                 cv.stroke();
-                console.log(gc.pitch,pitchBase);
+                //console.log(gc.pitch,pitchBase);
+            }
+            cnt+=inter;
+            if (cnt>3000) {
+                if (onend) onend();
+                cve.remove();
+                a.removeEventListener();
+                g.removeEventListener();
+                state++;
             }
             break;
         }
