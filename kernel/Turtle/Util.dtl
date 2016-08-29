@@ -1,0 +1,50 @@
+dq=:window:String!34 fromCharCode.
+ldq=:window:String!8220 fromCharCode.
+rdq=:window:String!8221 fromCharCode.  
+ldb=:window:String!12302 fromCharCode.
+rdb=:window:String!12303 fromCharCode.
+
+and=!create.
+/*引数が全てtrueだった場合trueを返す。
+戻り値：引数が全てtrueかどうかの真偽値*/
+and:true=[|;args f|
+    args=(window:Array:prototype:slice!(arguments)call).
+    f=:true.
+    args![|p|[p==:false]!then[f=:false]execute]each.
+    f
+].
+
+or=!create.
+/*引数にtrueが含まれた場合trueを返す。
+戻り値：引数の中にtrueが含まれるかどうかの真偽値*/
+or:true=[|;args f|
+    args=(window:Array:prototype:slice!(arguments)call).
+    f=:false.
+    args![|p|[p]!then[f=:true]execute]each.
+    f
+].
+
+system:systemTime=[self!(:window:Date)new getTime].
+system:time=[|;d|
+    d=self!(:window:Date)new.
+    (d!getHours)+":"+(d!getMinutes)+":"+(d!getSeconds)
+].
+system:today=[self!(:window:Date)new toString].
+system:day=[|;n|
+    n=self!(:window:Date)new getDay.
+    [n==0]!then["日"]
+    else [n==1] then["月"]
+    else [n==2] then["火"]
+    else [n==3] then["水"]
+    else [n==4] then["木"]
+    else [n==5] then["金"]
+    else ["土"] execute.
+].
+system:year=[self!(:window:Date)new getFullYear].
+system:month=[self!(:window:Date)new getMonth].
+system:date=[self!(:window:Date)new getDate].
+system:hours=[self!(:window:Date)new getHours].
+system:minutes=[self!(:window:Date)new getMinutes].
+system:seconds=[self!(:window:Date)new getSeconds].
+toNumber=[|n| [n]!then[n-0] else[0] execute].
+pi=:window:Math:PI.

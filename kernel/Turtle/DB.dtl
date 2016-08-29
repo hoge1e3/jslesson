@@ -1,0 +1,53 @@
+// Concept code
+product=DB!"product" table.
+
+p=product ! "id" "A012345" find1.
+
+product ! "name" "book" like "name" "price" select.
+
+product ! [price<300] where [|e|
+    e:name.
+] map.
+
+product ! "price" 300 lt [|e|
+    Dict ! "name" (e:name) "price" (e:price) create.
+] map.
+
+product ! "name" "book" like "price" average.
+
+product ! (
+Dict ! "name" "myBook" "price" 3000 create 
+) insert.
+product ! "name" "myBook" attr "price" 3000 insert.
+
+q=product ! "name" "myBook" attr.
+mybook=[q ! exists] ! then [
+    q ! find1.
+] else [
+    q ! "price" 3000 insert.
+] execute.
+
+mybook=product ! "name" "myBook" attr [
+    [! exists] ! then [
+        ! find1.
+    ] else [
+        ! "price" 3000 insert.
+    ] execute.
+] with.
+//----------------
+//表示 売上データ 
+//選択 性別 
+//女 整列 売上日
+コンビニ＝サクセス！”コンビニ” 開く。
+コンビニ！”売上データ” 表示 ”性別” ”女“ 選択 ”売上日” 整列 "日付" "<4/5" 比較 。
+
+// select * from uriage where gender=woman and date<4/5 order by date
+コンビニ！”売上データ” 表示 ”性別” ”女“ 選択 ”売上日” 整列 "日付" "4/5" より前 。
+// select * from uriage order by date
+コンビニ！”売上データ” 表示 「性別＝＝"女"」 選択 ”売上日” 整列 「日付<"4/5"」選択 .//採用！
+
+
+結果＝コンビニ！”売上データ” 表示 ”メーカ” ”なんとか製麺“ ”なんとか乳業” 選択。
+ラベル！（結果）作る。
+
+

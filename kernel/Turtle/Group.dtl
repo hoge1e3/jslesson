@@ -1,0 +1,21 @@
+// Dolittle
+Group=(Actor:group) !create.
+Group:initialize=[|_members|
+    members= Array ! create.
+    _members=(Array:prototype:slice) ! (_members) call.
+    pos=Vec2:O.
+    _members ! [|m|
+        //console ! "epos" (m ! getCrashShape center) log.
+        pos=pos! (m ! getCrashShape center) add.
+    ] each.
+    [_members:length] ! then [pos=pos!(_members:length) div] execute.
+    //console ! "pos" (pos) log.
+    element =!"g" createSVGElem.
+    _members ! [|m|
+        m:pos=m:pos ! (pos) sub.
+        (m:group) ! (m) remove.
+        ! (m) add.
+        m ! setTrans.
+    ] each.
+    ! appear.
+].
