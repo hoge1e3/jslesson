@@ -1,3 +1,35 @@
+var XYZ=["x","y","z"],ABG=["alpha","beta","gamma"],RPY=["roll","pitch","yaw"];
+var Calibratable={
+    setCalibrated:function () {
+        var self=this;
+        if (!self.calibration) self.initCalibration();
+        self.calibrated={};
+        self.calibratedKeys.forEach(function (k) {
+            var c=self.calibration[k];
+            self.calibrated[k]=self.normalize(self.raw[c.rawkey]*c.sgn);
+        });
+    },
+    initCalibration:function () {
+        var self=this;
+        try {
+            self.calibration=JSON.parse(localStorage[self.lsKey]);
+            self.calibratedKeys.forEach(function (k,i) {
+                var c=self.calibration[k];
+                if (typeof c.rawkey==="string" &&
+                    typeof c.sgn==="number") {
+                } else {
+                    throw "Invalid data";
+                }
+            });
+        } catch (e) {
+            self.calibration={};
+            self.rawKeys.forEach(function (k,i) {
+                self.calibration[self.calibratedKeys[i]]={rawkey:k,sgn:1};
+            });        
+        }
+    }
+};
+
 root.加速度センサ=root.create();
 root.加速度センサ.x=0;
 root.加速度センサ.y=0;
@@ -67,6 +99,12 @@ root.加速度センサ["yの傾き?"]=function(){return -this.y};
 root.加速度センサ["y?"]=root.加速度センサ["yの傾き?"];
 root.加速度センサ["zの傾き?"]=function(){return this.z};
 root.加速度センサ["z?"]=root.加速度センサ["zの傾き?"];
+root.加速度センサ.lsKey="accelCalibration";
+root.加速度センサ.setCalibrated=Calibratable.setCalibrated;
+root.加速度センサ.initCalibration=Calibratable.initCalibration;
+root.加速度センサ.rawKeys=XYZ;
+root.加速度センサ.calibratedKeys=XYZ;
+root.加速度センサ.eventType="devicemotion";
 
 root.加速度センサー=root.加速度センサ;
 
@@ -272,6 +310,14 @@ root.gyroSensor["左右方向の傾き?"]=root.gyroSensor.getRoll;
 root.gyroSensor.getPitch=function(){return this.y;};
 root.gyroSensor["ピッチ?"]=root.gyroSensor.getPitch;
 root.gyroSensor["前後方向の傾き?"]=root.gyroSensor.getPitch;
+
+root.gyroSensor.setCalibrated=Calibratable.setCalibrated;
+root.gyroSensor.initCalibration=Calibratable.initCalibration;
+root.gyroSensor.lsKey="gyroCalibration";
+root.gyroSensor.rawKeys=ABG;
+root.gyroSensor.calibratedKeys=RPY;
+root.gyroSensor.eventType="deviceorientation";
+
 root.ジャイロセンサ=root.gyroSensor;
 root.ジャイロセンサー=root.gyroSensor;
 
