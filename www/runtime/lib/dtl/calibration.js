@@ -32,6 +32,7 @@ function startCalibration(onend) {
         self.action();
     };
     p.action=function (){};
+    //--------- copy to devmotion ---------
     p.setCalibratedXY=function () {
         var self=this;
         if (!self.calibration) self.initCalibration();
@@ -60,6 +61,7 @@ function startCalibration(onend) {
             });        
         }
     };
+    //--------- copy to devmotion end---------
     p.saveCalibration=function () {
         var self=this;
         localStorage[self.lsKey]=JSON.stringify(self.calibration);
@@ -117,10 +119,12 @@ function startCalibration(onend) {
     p.getParamObj=function (evt) {
         return evt.accelerationIncludingGravity;
     };
+    //--------- copy to devmotion---------
     p.lsKey="accelCalibration";
     p.rawKeys=XYZ;
     p.calibratedKeys=XYZ;
     p.eventType="devicemotion";
+    //--------- copy to devmotion end---------
     function Gyro() {
         this.addEventListener();
     }
@@ -130,10 +134,12 @@ function startCalibration(onend) {
         k=k%360;
         return k>=180 ? k-360 : k;
     };
+    //--------- copy to devmotion---------
     p.lsKey="gyroCalibration";
     p.rawKeys=ABG;
     p.calibratedKeys=RPY;
     p.eventType="deviceorientation";
+    //--------- copy to devmotion end---------
 
     var a=new Accel();
     var g=new Gyro();
@@ -232,13 +238,13 @@ function startCalibration(onend) {
             if (gc) {
                 cv.fillStyle="green";
                 cv.strokeStyle="green";
-                cv.fillRect(W/2+g.normalize(gc.roll-rollBase)/180*(W), 
-                H/2+g.normalize(gc.pitch-pitchBase)/180*(H),10,10);
+                cv.fillRect(W/2+g.normalize(gc.roll-rollBase)/180*(W/2), 
+                H/2+g.normalize(gc.pitch-pitchBase)/180*(H/2),10,10);
                 cv.beginPath();
                 cv.moveTo(W/2+Math.cos(-rad(gc.yaw))*W/2, H/2+Math.sin(-rad(gc.yaw))*H/2 );
                 cv.lineTo(W/2-Math.cos(-rad(gc.yaw))*W/2, H/2-Math.sin(-rad(gc.yaw))*H/2 );
                 cv.stroke();
-                //console.log(gc.pitch,pitchBase);
+                console.log(gc.pitch,pitchBase);
             }
             break;
         }
