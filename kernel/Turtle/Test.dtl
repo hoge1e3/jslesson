@@ -1,5 +1,16 @@
-module ! "Vec2" "Actor" "Group" "UI" "Timer" "Turtle" "Figure" "DOM" "Color" "Japanese" [
-    配列データ＝配列！ 10 "20" 30 作る。
+module ! "Vec2" "Actor" "Group" "Util" "UI" "Timer" "Turtle" "Figure" "DOM" "Color" "Japanese" [
+    ボタン！"A" 作る 消える 現れる.
+    //ボタン
+    //console ! ((あ:appear)+"") log.
+    //console ! ((あ:現れる)+"") log.
+    
+    /*test=[|x y|
+        (and ! (x==5) (y==5) true) ! then [
+            "honto"    
+        ] else ["uso"] execute.
+    ].*/
+    //TextArea ! create (null) (undef) 10 writeLn.
+    /*配列データ＝配列！ 10 "20" 30 作る。
     
     記録１＝テキストエリア！1 2 3 作る。
     記録１！"4" 5 （配列データ）6 "7" 書く。
@@ -15,7 +26,7 @@ module ! "Vec2" "Actor" "Group" "UI" "Timer" "Turtle" "Figure" "DOM" "Color" "Ja
     s1=a2！読む。
     ラベル！（s1）作る。// BA。(2)1個目しか表示されない。
     ラベル！（s1！長さ？）作る。// BA。(3)「読む」の結果は文字列でない？
-    
+    */
     /*かめた＝タートル！作る。
     「かめた！９０ 左回り  １００ 歩く」！４ 繰り返す（赤）図形を作る。
     にげるボタン＝ボタン！作る 消える。

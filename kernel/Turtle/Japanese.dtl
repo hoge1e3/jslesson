@@ -78,6 +78,7 @@ Actor !
 タートル：ペンなし=turtle:penUp.
 タートル：線の色=turtle:lineColor.
 タートル：線の太さ=turtle:lineWidth.
+Turtle!"action" "動作" addAlias.
 
 turtle:歩く=turtle:forward.
 
@@ -205,6 +206,7 @@ aa!(sp) "length?" "長さ?" call.
 aa!(sp) "split" "分割" call.
 aa!(sp) "replace" "置き換える" call.
 aa!(sp) "allReplace" "全部置き換える" call.
+aa!(sp) "charCodeAt" "文字コード" call.
 
 配列=window:Array.
 ap=window:Array:prototype.

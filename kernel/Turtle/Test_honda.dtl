@@ -1,5 +1,7 @@
 module!"Vec2" "Actor" "UI" "Turtle" "Figure" "DOM" "Util"  "Timer" "Color" "Dict" "Japanese"
 [
-    
-    Turtle!create 100 forward penUp 90 turnLeft 100 forward close.
+    かめた＝タートル！作る。
+    かめた：動作＝「かめた！"tulip.png"変身する」。   
+    d="あ"。
+    ラベル！（d！0 charCodeAt）作る。
 ]require.

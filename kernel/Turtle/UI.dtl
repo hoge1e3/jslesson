@@ -353,6 +353,8 @@ TextArea:readString=[
 TextArea:read=TextArea:readString.
 TextArea:write=[
     (Array:prototype:slice) ! (arguments) call [|cont|
+        [cont==null]!then [cont=""] execute.
+        [cont==undef]!then [cont=""] execute.
         [cont:each] ! then [
             cont ! [|e| ! (e) writeLn ] each.  
         ] else [
@@ -367,6 +369,8 @@ TextArea:rawOverwrite=[|c|
 ].
 TextArea:writeLn=[
     (Array:prototype:slice) ! (arguments) call [|cont|
+        [cont==null]!then [cont=""] execute.
+        [cont==undef]!then [cont=""] execute.
         [cont:each] ! then [
             cont ! [|e| ! (e) writeLn ] each.  
         ] else [

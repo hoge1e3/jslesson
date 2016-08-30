@@ -48,3 +48,6 @@ system:minutes=[self!(:window:Date)new getMinutes].
 system:seconds=[self!(:window:Date)new getSeconds].
 toNumber=[|n| [n]!then[n-0] else[0] execute].
 pi=:window:Math:PI.
+isset=[|n| 
+    and ! (n!=undef) (n!=null) true
+].
