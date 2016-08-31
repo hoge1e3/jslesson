@@ -122,7 +122,7 @@ function ready() {
                   ["div",{id:"errorPos"}],
                   ["div",{id:"tabTop"},
                      ["button",{
-                         "class":"selTab","data-ext":HEXT
+                         "class":"selTab","data-ext":HEXT,css:{display:lang=="js"?"inline":"none"}
                      },"HTML"],
                      ["button",{
                          "class":"selTab","data-ext":EXT
@@ -150,7 +150,7 @@ function ready() {
                       {label:"新規",id:"newFile"},
                       {label:"名前変更",id:"mvFile"},
                       {label:"コピー",id:"cpFile"},
-                      {label:"閉じる",id:"closeFile"},
+                      //{label:"閉じる",id:"closeFile"},
                       {label:"削除", id:"rmFile"}
                   ]},
                   {label:"実行",id:"runMenu",action:run/*sub:[
@@ -943,7 +943,8 @@ function ready() {
         focusToEditor();
     }
     $("#home").click(F(function () {
-	goHome();
+        save();
+    	goHome();
     }));
     $("#runMenu").click(F(run));
     function goHome(){

@@ -34,7 +34,7 @@ function (UI, LocalBrowser,DA) {
                     ["div",{$var:"browser"}],
                     ["button", {type:"button",$var:"OKButton", on:{click: function () {
                         res.d.dialog("close");
-                    }}}, "OK"]
+                    }}}, "閉じる"]
             );
             res.da=new DA(res.d);
             res.da.afterResize=function (d) {

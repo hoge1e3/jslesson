@@ -77,6 +77,8 @@ function ready() {//-------------------------
             };
             d.sort(function (a,b) { return b.lastUpdate-a.lastUpdate;});
             d.forEach(item);
+        }).fail(function(e){
+            console.log("list failed",e);
         });
         /*
         var d=[];
