@@ -655,7 +655,7 @@ define('FS2',["extend","PathUtil","MIMETypes","assert"],function (extend, P, M,a
             if (this.isReadOnly(path)) this.err(path, "read only.");
         },
         getContentType: function (path, options) {
-            var e=P.ext(path);
+            var e=(P.ext(path)+"").toLowerCase();
             return M[e] || (options||{}).def || "text/plain";
         },
         getBlob: function (path, options) {
@@ -1322,6 +1322,8 @@ define('NativeFS',["FS2","assert","PathUtil","extend","MIMETypes","Content"],
                 return fs.unlinkSync(np);
             }
         },
+        // mv: is Difficult, should check dst.fs==src.fs 
+        //     and both have not subFileSystems
         exists: function (path, options) {
             var np=this.toNativePath(path);
             return fs.existsSync(np);
@@ -1995,7 +1997,7 @@ SFile.prototype={
             }
             return res;
         } else {
-            A(srcIsDir && dstIsDir);
+            A(srcIsDir && dstIsDir,"Both src and dst should be dir");
             src.each(function (s) {
                 dst.rel(s.name()).copyFrom(s, options);
             });
@@ -2189,7 +2191,7 @@ define('RootFS',["assert","FS2","PathUtil","SFile"], function (assert,FS,P,SFile
     return RootFS;
 });
 define('FS',["FS2","NativeFS","LSFS", "PathUtil","Env","assert","SFile","RootFS","Content"],
-        function (FS,NativeFS,LSFS, P,Env,A,SFile,RootFS,Content) {
+        function (FSClass,NativeFS,LSFS, P,Env,A,SFile,RootFS,Content) {
     var FS={};
     if (typeof window=="object") window.FS=FS;
     var rootFS;
@@ -2254,6 +2256,7 @@ define('FS',["FS2","NativeFS","LSFS", "PathUtil","Env","assert","SFile","RootFS"
     FS.SFile=SFile;
     FS.PathUtil=P;
     FS.Content=Content;
+    FS.Class=FSClass;
     FS.isFile=function (f) {
         return SFile.is(f);
     };

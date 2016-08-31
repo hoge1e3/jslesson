@@ -1,10 +1,13 @@
 define(["FS","Util","WebSite","plugins","Shell","Tonyu"],
         function (FS,Util,WebSite,plugins,sh,Tonyu) {
-    var MkRun={};
-    sh.mkrun=function (dest) {
-        return MkRun.run( Tonyu.currentProject, FS.get(dest));
+    var MkRun=function (prj, dst) {
+        this.prj=prj;// TPRC
+        this.dst=dst;// SFile in ramdisk
     };
-    MkRun.run=function (prj,dest,options) {
+    var p=MkRun.prototype;
+    p.build=function () {
+        var prj=this.prj;
+        var dest=this.dst;
         options=options||{};
         var prjDir=prj.getDir();
         var resc=prj.getResource();
@@ -12,10 +15,9 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu"],
         var loadFilesBuf="function loadFiles(dir){\n";
         var wwwDir=FS.get(WebSite.wwwDir);
         var jsDir=wwwDir.rel("js/");
-        //var sampleImgDir=wwwDir.rel("images/");
         if (options.copySrc) copySrc();
         return $.when(
-                copySampleImages(),
+                //copySampleImages(),
                 convertLSURL(resc.images),
                 convertLSURL(resc.sounds),
                 genFilesJS(),
@@ -50,16 +52,17 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu"],
             dest.rel("js/files.js").text(loadFilesBuf+"}");
         }
         function copyIndexHtml() {
+            //  runtime\lib\tonyu\index.html
             return wwwDir.rel("html/runtimes/index.html").copyTo(dest);
         }
         function copyScripts() {
             var usrjs=prjDir.rel("js/concat.js");
-            var kerjs=FS.get(WebSite.kernelDir).rel("js/concat.js");
-            var runScr2=jsDir.rel("gen/runScript2_concat.js");
+            //var kerjs=FS.get(WebSite.kernelDir).rel("js/concat.js");
+            //var runScr2=jsDir.rel("gen/runScript2_concat.js");
             return $.when(
-                usrjs.copyTo(dest.rel("js/concat.js")),
-                kerjs.copyTo(dest.rel("js/kernel.js")),
-                runScr2.copyTo(dest.rel("js/runScript2_concat.js"))
+                usrjs.copyTo(dest.rel("js/concat.js"))//,
+                //kerjs.copyTo(dest.rel("js/kernel.js")),
+                //runScr2.copyTo(dest.rel("js/runScript2_concat.js"))
             );
         }
         function copyPlugins() {
@@ -92,7 +95,7 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu"],
                 }
             }
         }
-        function copySampleImages() {
+        /*function copySampleImages() {
             var urlAliases= {
                 "images/Ball.png":1,
                 "images/base.png":1,
@@ -116,10 +119,13 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu"],
                 }
             }
             return $.when.apply($,args);
-        }
+        }*/
         function copySrc() {
             prjDir.copyTo(dest.rel("src/"));
         }
+    };
+    p.upload=function (pub) {
+        return Sync.sync(this.dst,pub);  
     };
     return MkRun;
 });

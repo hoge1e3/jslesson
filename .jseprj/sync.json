@@ -10,6 +10,7 @@
    ["www/fs/home/0123/dolittle/public/DtlVM/DeleteProject.dtlvm","www/fs/scripts/"],
    ["www/fs/home/0123/dolittle/public/DtlVM/RenameProject.dtlvm","www/fs/scripts/"],
    ["www/fs/home/0123/dolittle/public/DtlVM/Validator.dtlvm","www/fs/scripts/"],
+   ["www/js/fs2/FS.js", "${projects:FS.js}/www/gen/FS.js"],
    ["www/js/fsui/LocalBrowser.js", "${projects:FS.js}/www/fstools/LocalBrowser.js"],
    ["${projects:Tonyu2}/js/ui/","www/js/ui/"],
    ["www/php/dtl/", "${projects:FS.js}/www/php/dtl/"],

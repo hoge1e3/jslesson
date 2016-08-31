@@ -236,6 +236,7 @@ var reqConf={
             FSLib:"fs2/FS",
             Columns:"ui/Columns",
             Menu:"ui/Menu",
+            "jquery.binarytransport": "lib/jquery.binarytransport",
             DeferredUtil:"lib/DeferredUtil",
             "compiledProject":"lang/compiledProject",
             "selectbox":"jsl/selectbox",
