@@ -4,7 +4,7 @@ define(["FS","jquery.binarytransport","DeferredUtil"],
     var P=FS.PathUtil;
     // FS.mount(location.protocol+"//"+location.host+"/", "web");
     var WebFS=function (){};
-    var p=WebFS.prototype=new FS;
+    var p=WebFS.prototype=new FS.Class();
     FS.addFSType("web", function () {
         return new WebFS;
     });
@@ -13,7 +13,7 @@ define(["FS","jquery.binarytransport","DeferredUtil"],
     p.inMyFS=function (path) {
         return P.isURL(path);
     };
-    FS.delegateMethods(p, {
+    FS.Class.delegateMethods(p, {
         exists: function () {return true;},
         getContentAsync: function (path){
             var t=this;
