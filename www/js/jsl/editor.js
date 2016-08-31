@@ -635,11 +635,13 @@ function ready() {
     };
     var bytes=function(s) {
         try {
-            var r="";
+            var r="",noconv;
             for(var i=0;i<s.length;i++) {
-                r+="%"+(s.charCodeAt(i).toString(16)); 
+                var c=s.charCodeAt(i);
+                if (c>=256) noconv=true;
+                r+="%"+(c.toString(16)); 
             } 
-            return decodeURIComponent(r); 
+            return noconv?s:decodeURIComponent(r); 
         }catch(e) {
             console.log(e, s);
             return s;
