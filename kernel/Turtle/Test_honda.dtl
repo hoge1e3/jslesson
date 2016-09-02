@@ -1,7 +1,6 @@
 module!"Vec2" "Actor" "UI" "Turtle" "Figure" "DOM" "Util"  "Timer" "Color" "Dict" "Japanese"
-[
-    かめた＝タートル！作る。
-    かめた：動作＝「かめた！"tulip.png"変身する」。   
-    d="あ"。
-    ラベル！（d！0 charCodeAt）作る。
+[ 
+    出力＝ラベル！０  作る。
+    
+    
 ]require.
