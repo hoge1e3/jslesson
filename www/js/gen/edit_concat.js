@@ -1417,7 +1417,7 @@ define('FS2',["extend","PathUtil","MIMETypes","assert"],function (extend, P, M,a
             if (this.isReadOnly(path)) this.err(path, "read only.");
         },
         getContentType: function (path, options) {
-            var e=P.ext(path);
+            var e=(P.ext(path)+"").toLowerCase();
             return M[e] || (options||{}).def || "text/plain";
         },
         getBlob: function (path, options) {
@@ -2084,6 +2084,8 @@ define('NativeFS',["FS2","assert","PathUtil","extend","MIMETypes","Content"],
                 return fs.unlinkSync(np);
             }
         },
+        // mv: is Difficult, should check dst.fs==src.fs 
+        //     and both have not subFileSystems
         exists: function (path, options) {
             var np=this.toNativePath(path);
             return fs.existsSync(np);
@@ -2757,7 +2759,7 @@ SFile.prototype={
             }
             return res;
         } else {
-            A(srcIsDir && dstIsDir);
+            A(srcIsDir && dstIsDir,"Both src and dst should be dir");
             src.each(function (s) {
                 dst.rel(s.name()).copyFrom(s, options);
             });
@@ -2951,12 +2953,15 @@ define('RootFS',["assert","FS2","PathUtil","SFile"], function (assert,FS,P,SFile
     return RootFS;
 });
 define('FS',["FS2","NativeFS","LSFS", "PathUtil","Env","assert","SFile","RootFS","Content"],
-        function (FS,NativeFS,LSFS, P,Env,A,SFile,RootFS,Content) {
+        function (FSClass,NativeFS,LSFS, P,Env,A,SFile,RootFS,Content) {
     var FS={};
     if (typeof window=="object") window.FS=FS;
     var rootFS;
     var envVar={};
     var env=new Env(envVar);
+    FS.addFSType=FSClass.addFSType;
+    FS.availFSTypes=FSClass.availFSTypes;
+
     FS.setEnv=function (key, value) {
         if (typeof key=="object") {
             for (var k in key) {
@@ -3016,6 +3021,7 @@ define('FS',["FS2","NativeFS","LSFS", "PathUtil","Env","assert","SFile","RootFS"
     FS.SFile=SFile;
     FS.PathUtil=P;
     FS.Content=Content;
+    FS.Class=FSClass;
     FS.isFile=function (f) {
         return SFile.is(f);
     };
@@ -12882,7 +12888,7 @@ function (UI, LocalBrowser,DA) {
                     ["div",{$var:"browser"}],
                     ["button", {type:"button",$var:"OKButton", on:{click: function () {
                         res.d.dialog("close");
-                    }}}, "OK"]
+                    }}}, "閉じる"]
             );
             res.da=new DA(res.d);
             res.da.afterResize=function (d) {
@@ -13201,7 +13207,7 @@ function ready() {
     	requirejs(["TJSBuilder"],function(_){
     	    Builder=_;
     	    console.log("tjsb requirejsed");
-    	    $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+    	    $("#fullScr").attr("href","javascript:;").text("別ページで表示");
             ram=FS.get("/ram/build/");
             FS.mount(ram.path(),"ram");
             builder=new Builder(curPrj, ram);
@@ -13212,7 +13218,7 @@ function ready() {
     	requirejs(["DtlBuilder"],function(_){
     	    Builder=_;
     	    console.log("dtlb requirejsed");
-    	    $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+    	    $("#fullScr").attr("href","javascript:;").text("別ページで表示");
             ram=FS.get("/ram/build/");
             FS.mount(ram.path(),"ram");
             builder=new Builder(curPrj, ram);
@@ -13229,7 +13235,7 @@ function ready() {
                   ["div",{id:"errorPos"}],
                   ["div",{id:"tabTop"},
                      ["button",{
-                         "class":"selTab","data-ext":HEXT
+                         "class":"selTab","data-ext":HEXT,css:{display:lang=="js"?"inline":"none"}
                      },"HTML"],
                      ["button",{
                          "class":"selTab","data-ext":EXT
@@ -13257,7 +13263,7 @@ function ready() {
                       {label:"新規",id:"newFile"},
                       {label:"名前変更",id:"mvFile"},
                       {label:"コピー",id:"cpFile"},
-                      {label:"閉じる",id:"closeFile"},
+                      //{label:"閉じる",id:"closeFile"},
                       {label:"削除", id:"rmFile"}
                   ]},
                   {label:"実行",id:"runMenu",action:run/*sub:[
@@ -13671,8 +13677,11 @@ function ready() {
     	        	        "/js/ctrans/runc.html?file="+compiledFile.path()
     	        	);
     			//$("#ifrm").attr("src",runURL);
-    			    RunDialog.show("src",runURL,{height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
-    		        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+    			    RunDialog.show("src",runURL,
+    			    {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+    		        //RunDialog2.show(runURL,
+    			    //{height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+    		        $("#fullScr").attr("href","javascript:;").text("別ページで表示");
     		        $("#qr").text("QR");
     		}catch(e){
     			//logToServer("COMPILE ERROR!\n"+e+"\nCOMPILE ERROR END!");
@@ -13684,7 +13693,7 @@ function ready() {
     	    try {
                 SplashScreen.show();
         	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
-    	        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+    	        $("#fullScr").attr("href","javascript:;").text("別ページで表示");
                 DU.timeout(0).then(function () {
                     return builder.build();    
                 }).then(function () {
@@ -13742,11 +13751,13 @@ function ready() {
     };
     var bytes=function(s) {
         try {
-            var r="";
+            var r="",noconv;
             for(var i=0;i<s.length;i++) {
-                r+="%"+(s.charCodeAt(i).toString(16)); 
+                var c=s.charCodeAt(i);
+                if (c>=256) noconv=true;
+                r+="%"+(c.toString(16)); 
             } 
-            return decodeURIComponent(r); 
+            return noconv?s:decodeURIComponent(r); 
         }catch(e) {
             console.log(e, s);
             return s;
@@ -13813,7 +13824,8 @@ function ready() {
             //["button",{on:{click:function(){console.log("clicked");$("#reConsole"+reDialog).text(e.stack);}}},"詳細"],
             //["pre",{id:"reConsole"+reDialog},stack[0]+"\n"+stack[1]]).dialog({width:800});
             ["button",{on:{click:function(){console.log("clicked");$(this).parent("div").children("pre").text(e.stack);}}},"詳細"],
-            ["pre",{id:"reConsole"},stack[0]+"\n"+stack[1]]).dialog({width:800});
+            ["pre",{id:"reConsole"},stack[0]+"\n"+stack[1]],
+            ["button",{on:{click:function(){console.log("onerr");$(this).parent().parent().css("display","none");}}},"閉じる"]).dialog({width:800});
             stop();
             //logToServer(e.stack || e);
             logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",e.stack || e,langList[lang]);
@@ -14048,7 +14060,8 @@ function ready() {
         focusToEditor();
     }
     $("#home").click(F(function () {
-	goHome();
+        save();
+    	goHome();
     }));
     $("#runMenu").click(F(run));
     function goHome(){
