@@ -94,7 +94,7 @@ function ready() {
     	requirejs(["TJSBuilder"],function(_){
     	    Builder=_;
     	    console.log("tjsb requirejsed");
-    	    $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+    	    $("#fullScr").attr("href","javascript:;").text("別ページで表示");
             ram=FS.get("/ram/build/");
             FS.mount(ram.path(),"ram");
             builder=new Builder(curPrj, ram);
@@ -105,7 +105,7 @@ function ready() {
     	requirejs(["DtlBuilder"],function(_){
     	    Builder=_;
     	    console.log("dtlb requirejsed");
-    	    $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+    	    $("#fullScr").attr("href","javascript:;").text("別ページで表示");
             ram=FS.get("/ram/build/");
             FS.mount(ram.path(),"ram");
             builder=new Builder(curPrj, ram);
@@ -564,8 +564,11 @@ function ready() {
     	        	        "/js/ctrans/runc.html?file="+compiledFile.path()
     	        	);
     			//$("#ifrm").attr("src",runURL);
-    			    RunDialog.show("src",runURL,{height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
-    		        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+    			    RunDialog.show("src",runURL,
+    			    {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+    		        //RunDialog2.show(runURL,
+    			    //{height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+    		        $("#fullScr").attr("href","javascript:;").text("別ページで表示");
     		        $("#qr").text("QR");
     		}catch(e){
     			//logToServer("COMPILE ERROR!\n"+e+"\nCOMPILE ERROR END!");
@@ -577,7 +580,7 @@ function ready() {
     	    try {
                 SplashScreen.show();
         	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
-    	        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
+    	        $("#fullScr").attr("href","javascript:;").text("別ページで表示");
                 DU.timeout(0).then(function () {
                     return builder.build();    
                 }).then(function () {
@@ -708,7 +711,8 @@ function ready() {
             //["button",{on:{click:function(){console.log("clicked");$("#reConsole"+reDialog).text(e.stack);}}},"詳細"],
             //["pre",{id:"reConsole"+reDialog},stack[0]+"\n"+stack[1]]).dialog({width:800});
             ["button",{on:{click:function(){console.log("clicked");$(this).parent("div").children("pre").text(e.stack);}}},"詳細"],
-            ["pre",{id:"reConsole"},stack[0]+"\n"+stack[1]]).dialog({width:800});
+            ["pre",{id:"reConsole"},stack[0]+"\n"+stack[1]],
+            ["button",{on:{click:function(){console.log("onerr");$(this).parent().parent().css("display","none");}}},"閉じる"]).dialog({width:800});
             stop();
             //logToServer(e.stack || e);
             logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",e.stack || e,langList[lang]);

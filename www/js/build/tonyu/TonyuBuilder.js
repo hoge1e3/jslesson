@@ -13,8 +13,10 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu"],
         var resc=prj.getResource();
         var opt=prj.getOptions();
         var loadFilesBuf="function loadFiles(dir){\n";
-        var wwwDir=FS.get(WebSite.wwwDir);
-        var jsDir=wwwDir.rel("js/");
+        var runtimeDir=FS.get(location.href.
+        replace(/\?.*/,"").
+        replace(/\/[^\/]*/,"")+"runtime");//WebSite.wwwDir);
+        var jsDir=runtimeDir.rel("lib/tonyu/");
         if (options.copySrc) copySrc();
         return $.when(
                 //copySampleImages(),
@@ -53,7 +55,7 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu"],
         }
         function copyIndexHtml() {
             //  runtime\lib\tonyu\index.html
-            return wwwDir.rel("html/runtimes/index.html").copyTo(dest);
+            return runtimeDir.rel("index.html").copyTo(dest);
         }
         function copyScripts() {
             var usrjs=prjDir.rel("js/concat.js");

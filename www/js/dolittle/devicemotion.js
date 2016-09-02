@@ -107,12 +107,9 @@ root.加速度センサ.calibrate=Calibratable.calibrate;/*function () {
     });
 };*/
 root.加速度センサ['調整']=root.加速度センサ.calibrate;
-root.加速度センサ["xの傾き?"]=function(){return this.x};
-root.加速度センサ["x?"]=root.加速度センサ["xの傾き?"];
-root.加速度センサ["yの傾き?"]=function(){return -this.y};
-root.加速度センサ["y?"]=root.加速度センサ["yの傾き?"];
-root.加速度センサ["zの傾き?"]=function(){return this.z};
-root.加速度センサ["z?"]=root.加速度センサ["zの傾き?"];
+root.加速度センサ["左右の加速度?"]=function(){return this.x};
+root.加速度センサ["前後の加速度?"]=function(){return -this.y};
+root.加速度センサ["上下の加速度?"]=function(){return this.z};
 root.加速度センサ.lsKey="accelCalibration";
 root.加速度センサ.setCalibrated=Calibratable.setCalibrated;
 root.加速度センサ.initCalibration=Calibratable.initCalibration;

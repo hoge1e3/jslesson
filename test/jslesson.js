@@ -38,6 +38,7 @@ then(function () {
     driver.quit();
 });
 // CHECK copySample
+// CHECK new user
 
 function testC() {
     var c=createdCCode=genTestCode();
