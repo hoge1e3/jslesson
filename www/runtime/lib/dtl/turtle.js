@@ -89,7 +89,18 @@ return (this['Actor']['moveTo'])['call']((this),(x),(y));
 });
 this['turtle']['close']=dtlbind(this,function(){
 var self=this;var 自分=self;
-return this['addPath']((this['pos']),(this['lineOrig']));
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['isPenDown'];
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['moveTo']((this['lineOrig']['x']),(this['lineOrig']['y']));
+}));
+return this;
+});
+this['turtle']['moveCenter']=dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['moveTo']((0),(0));
 });
 this['turtle']['lineColor']=dtlbind(this,function(col){
 var self=this;var 自分=self;
@@ -98,6 +109,7 @@ return this;
 });
 this['turtle']['lineWidth']=dtlbind(this,function(w){
 var self=this;var 自分=self;
+w=this['num']((w));
 this['_lineWidth']=w;
 return this;
 });

@@ -37,8 +37,9 @@ then(function () {
     }
     driver.quit();
 });
-// CHECK copySample
 // CHECK new user
+// CHECK copySample
+// CHECK erase new user
 
 function testC() {
     var c=createdCCode=genTestCode();

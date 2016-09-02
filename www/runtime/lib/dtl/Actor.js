@@ -156,6 +156,7 @@ return this['group']['element']=this['svg_g'];
 this['Actor']['initSVG']();
 this['Actor']['forward']=dtlbind(this,function(by){
 var self=this;var 自分=self;
+by=this['num']((by));
 this['_lastPos']=this['pos'];
 this['_lastStep']=by;
 this['pos']=this['pos']['add'](((this['Vec2']['X'])['rotate']((this['dir']))['mul']((by))));
@@ -164,16 +165,19 @@ return this;
 });
 this['Actor']['backward']=dtlbind(this,function(by){
 var self=this;var 自分=self;
+by=this['num']((by));
 return this['forward']((-by));
 });
 this['Actor']['turnLeft']=dtlbind(this,function(by){
 var self=this;var 自分=self;
+by=this['num']((by));
 this['dir']=(this['dir']+by);
 this['setTrans']();
 return this;
 });
 this['Actor']['turnRight']=dtlbind(this,function(by){
 var self=this;var 自分=self;
+by=this['num']((by));
 return this['turnLeft']((-by));
 });
 this['Actor']['leftTurn']=this['Actor']['turnLeft'];

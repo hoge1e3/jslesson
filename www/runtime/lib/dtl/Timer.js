@@ -13,6 +13,13 @@ this['Timer']['i']=(100);
 this['Timer']['t']=(100);
 this['Timer']['interval']=dtlbind(this,function(i){
 var self=this;var 自分=self;
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return (i>=(0.001));
+})['or'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return i=(0.001);
+}));
 this['i']=(i*(1000));
 return this;
 });
@@ -30,6 +37,9 @@ this['Timer']['d']=root['system']['new']((root['window']['$']['Deferred']))['res
 this['Timer']['stop']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return });
+this['Timer']['abort']=dtlbind(this,function(){
+var self=this;var 自分=self;
+return });
 this['Timer']['execute']=dtlbind(this,function(f){
 var self=this;var 自分=self;
 var s;
@@ -44,6 +54,10 @@ root['alltimer']['list']['add']((s));
 s['d']=s['d']['then'](dtlbind(this,function(){
 var self=this;var 自分=self;
 var d;
+s['abort']=dtlbind(this,function(){
+var self=this;var 自分=self;
+return root['window']['clearInterval']((s['id']));
+});
 s['stop']=dtlbind(this,function(){
 var self=this;var 自分=self;
 root['window']['clearInterval']((s['id']));

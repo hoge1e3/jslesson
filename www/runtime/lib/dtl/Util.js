@@ -1,4 +1,9 @@
-(function(){this['and']=this['create']();
+(function(){this['dq']=root['window']['String']['fromCharCode']((34));
+this['ldq']=root['window']['String']['fromCharCode']((8220));
+this['rdq']=root['window']['String']['fromCharCode']((8221));
+this['ldb']=root['window']['String']['fromCharCode']((12302));
+this['rdb']=root['window']['String']['fromCharCode']((12303));
+this['and']=this['create']();
 this['and']['true']=dtlbind(this,function(){
 var self=this;var 自分=self;
 var args;
@@ -119,6 +124,23 @@ this['system']['seconds']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return this['new']((root['window']['Date']))['getSeconds']();
 });
-return this['pi']=root['window']['Math']['PI'];
+this['toNumber']=dtlbind(this,function(n){
+var self=this;var 自分=self;
+return dtlbind(this,function(){
+var self=this;var 自分=self;
+return n;
+})['then']()['else'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return (n-(0));
+}))['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return (0);
+}));
+});
+this['pi']=root['window']['Math']['PI'];
+return this['isset']=dtlbind(this,function(n){
+var self=this;var 自分=self;
+return this['and']['true'](((n!==this['undef'])),((n!==this['null'])));
+});
 }).checkerror().apply(root,[]);
 //# sourceMappingURL=Util.js.map

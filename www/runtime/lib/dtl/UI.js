@@ -581,17 +581,12 @@ this['element']['attr']("cols",(c));
 this['manualCol']=this['true'];
 return this;
 });
-this['TextArea']['overwrite']=dtlbind(this,function(m){
+this['TextArea']['overwrite']=dtlbind(this,function(){
 var self=this;var 自分=self;
-dtlbind(this,function(){
-var self=this;var 自分=self;
-return this['element'];
-})['then']()['execute'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return this['element']['val']((m));
-}));
-this['autoResize']();
-return this;
+var a;
+var buf;
+this['clear']();
+return this['writeLn']['apply']((this),(arguments));
 });
 this['TextArea']['readString']=dtlbind(this,function(){
 var self=this;var 自分=self;
@@ -606,10 +601,25 @@ var self=this;var 自分=self;
 return "";
 }));
 });
+this['TextArea']['read']=this['TextArea']['readString'];
 this['TextArea']['write']=dtlbind(this,function(){
 var self=this;var 自分=self;
 (this['Array']['prototype']['slice'])['call']((arguments))['each'](dtlbind(this,function(cont){
 var self=this;var 自分=self;
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return (cont===this['null']);
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return cont="";
+}));
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return (cont===this['undef']);
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return cont="";
+}));
 return dtlbind(this,function(){
 var self=this;var 自分=self;
 return cont['each'];
@@ -621,8 +631,19 @@ return this['writeLn']((e));
 }));
 }))['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return this['overwrite']((((this['readString']())+cont)));
+return this['rawOverwrite']((((this['readString']())+cont)));
 }));
+}));
+return this['autoResize']();
+});
+this['TextArea']['rawOverwrite']=dtlbind(this,function(c){
+var self=this;var 自分=self;
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['element'];
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['element']['val']((c));
 }));
 return this;
 });
@@ -630,6 +651,20 @@ this['TextArea']['writeLn']=dtlbind(this,function(){
 var self=this;var 自分=self;
 (this['Array']['prototype']['slice'])['call']((arguments))['each'](dtlbind(this,function(cont){
 var self=this;var 自分=self;
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return (cont===this['null']);
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return cont="";
+}));
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return (cont===this['undef']);
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return cont="";
+}));
 return dtlbind(this,function(){
 var self=this;var 自分=self;
 return cont['each'];
@@ -644,7 +679,7 @@ var self=this;var 自分=self;
 return this['write']((cont))['newLine']();
 }));
 }));
-return this;
+return this['autoResize']();
 });
 this['TextArea']['newLine']=dtlbind(this,function(){
 var self=this;var 自分=self;
@@ -652,7 +687,8 @@ return this['write'](("\n"));
 });
 return this['TextArea']['clear']=dtlbind(this,function(){
 var self=this;var 自分=self;
-return this['overwrite']("");
+this['rawOverwrite']("");
+return this['autoResize']();
 });
 }).checkerror().apply(root,[]);
 //# sourceMappingURL=UI.js.map
