@@ -33,25 +33,26 @@ var Calibratable={
     calibrate:function () {
         var self=this;
         startCalibration(function () {
-            root.加速度センサ.initCalibration();
+            root.accelerationSensor.initCalibration();
             root.gyroSensor.initCalibration();
         });
     }
 };
 
-root.加速度センサ=root.create();
-root.加速度センサ.x=0;
-root.加速度センサ.y=0;
-root.加速度センサ.z=0;
-root.加速度センサ.initialized=false;
-root.加速度センサ.initialize=function(){
+root.accelerationSensor=root.create();
+root.accelerationSensor.x=0;
+root.accelerationSensor.y=0;
+root.accelerationSensor.z=0;
+root.accelerationSensor.action=(function(){});
+root.accelerationSensor.initialized=false;
+root.accelerationSensor.initialize=function(){
 	this.init();
 };
-root.加速度センサ.使う=function(){
+root.accelerationSensor.use=function(){
 	this.init();
 	return this;
 };
-root.加速度センサ.init=function(){
+root.accelerationSensor.init=function(){
 	if(this.initialized)return this;
 	var self=this;
     /*try {
@@ -72,7 +73,7 @@ root.加速度センサ.init=function(){
 			var c=self.calibrated;
 			self.x=c.x;self.y=-c.y;
 			self.z=z;
-
+			self.action.execute(self.x,self.y,self.z);
 		},true);
 		this.initialized=true;
 		return this;
@@ -80,73 +81,99 @@ root.加速度センサ.init=function(){
 };
 
 
-root.加速度センサ.getCalibratedXY=function (raw,c) {
+root.accelerationSensor.getCalibratedXY=function (raw,c) {
      if (c.f) {
          return {x:raw.y*c.y, y:raw.x*c.x};
      } else {
          return {y:raw.y*c.y, x:raw.x*c.x};
      }   
 };
-root.加速度センサ.calibrate=Calibratable.calibrate;/*function () {
+root.accelerationSensor.calibrate=Calibratable.calibrate;/*function () {
     var self=this;
     startCalibration(function () {
-        root.加速度センサ.initCalibration();
+        root.accelerationSensor.initCalibration();
         root.gyroSensor.initCalibration();
     });
 };*/
-root.加速度センサ['調整']=root.加速度センサ.calibrate;
-root.加速度センサ["左右の加速度?"]=function(){
+root.accelerationSensor.getXAcceleration=function(){
 	if(this.initialized==false)this.init();
 	return this.x
 };
-root.加速度センサ["前後の加速度?"]=function(){
+root.accelerationSensor.getYAcceleration=function(){
 	if(this.initialized==false)this.init();
 	return -this.y
 };
-root.加速度センサ["上下の加速度?"]=function(){
+root.accelerationSensor.getZAcceleration=function(){
 	if(this.initialized==false)this.init();
 	return this.z
 };
-root.加速度センサ.lsKey="accelCalibration";
-root.加速度センサ.setCalibrated=Calibratable.setCalibrated;
-root.加速度センサ.initCalibration=Calibratable.initCalibration;
-root.加速度センサ.normalize=Calibratable.normalize;
-root.加速度センサ.rawKeys=XYZ;
-root.加速度センサ.calibratedKeys=XYZ;
-root.加速度センサ.eventType="devicemotion";
+root.accelerationSensor.setAction=function(f){
+	if(this.initialized==false)this.init();
+	if((typeof f)!="function")return this;
+	this.action=f;
+	return this;
+};
 
+root.accelerationSensor.lsKey="accelCalibration";
+root.accelerationSensor.setCalibrated=Calibratable.setCalibrated;
+root.accelerationSensor.initCalibration=Calibratable.initCalibration;
+root.accelerationSensor.normalize=Calibratable.normalize;
+root.accelerationSensor.rawKeys=XYZ;
+root.accelerationSensor.calibratedKeys=XYZ;
+root.accelerationSensor.eventType="devicemotion";
+
+root.accelerationSensor["動作設定"]=root.accelerationSensor.setAction;
+root.accelerationSensor["使う"]=root.accelerationSensor.use;
+root.accelerationSensor['調整']=root.accelerationSensor.calibrate;
+root.accelerationSensor["左右の加速度?"]=root.accelerationSensor.getXAcceleration;
+root.accelerationSensor["前後の加速度?"]=root.accelerationSensor.getYAcceleration;
+root.accelerationSensor["上下の加速度?"]=root.accelerationSensor.getZAcceleration;
+root.加速度センサ=root.accelerationSensor;
 root.加速度センサー=root.加速度センサ;
 
-root.Compass=root.create();
-root.Compass.direction=0;
-root.Compass.initialized=false;
-root.Compass.initialize=function(){
+root.compass=root.create();
+root.compass.direction=0;
+root.compass.action=(function(){});
+root.compass.initialized=false;
+root.compass.initialize=function(){
 	this.init();
 };
 
-root.Compass.使う=function(){
+root.compass.use=function(){
 	this.init();
 	return this;
 };
-root.Compass.init=function(){
+root.compass.init=function(){
 	if(this.initialized)return this;
 	var self=this;
 	window.$(function(){
 		window.ondeviceorientation=function(evt){
 			self.direction=(evt.webkitCompassHeading || 0);
+			self.action.execute(self.direction);
 		};
 	});
 	this.initialized=true;
 	return this;
 };
 
-root.Compass["方向?"]=function(){
+root.compass.getDirection=function(){
 	if(this.initialized==false)this.init();
 	return this.direction;
 };
-root["磁気センサ"]=root.Compass;
-root["磁気センサー"]=root.Compass;
-root["コンパス"]=root.Compass;
+root.compass.setAction=function(f){
+	if(this.initialized==false)this.init();
+	if((typeof f)!="function")return this;
+	this.action=f;
+	return this;
+};
+
+root.compass["動作設定"]=root.compass.setAction;
+root.compass["使う"]=root.compass.getDirection;
+root.compass["向き?"]=root.compass.getDirection;
+root.compass["方向?"]=root.compass.getDirection;
+root["磁気センサ"]=root.compass;
+root["磁気センサー"]=root.compass;
+root["コンパス"]=root.compass;
 
 root.GPS=root.create();
 root.GPS.latitude=0;
@@ -157,7 +184,7 @@ root.GPS.initialize=function(){
 	this.init();
 };
 
-root.GPS.使う=function(){
+root.GPS.use=function(){
 	this.init();
 	return this;
 };
@@ -176,30 +203,35 @@ root.GPS.init=function(){
 	return this;
 };
 
-root.GPS["緯度?"]=function(){
+root.GPS.getLatitude=function(){
 	if(this.initialized==false)this.init();
 	return this.latitude;
 };
-root.GPS["経度?"]=function(){
+root.GPS.getLongitude=function(){
 	if(this.initialized==false)this.init();
 	return this.longitude;
 };
+root.GPS["使う"]=root.GPS.use;
+root.GPS["緯度?"]=root.GPS.getLatitude;
+root.GPS["経度?"]=root.GPS.getLongitude;
 
-root.タッチセンサ=root.create();
-root.タッチセンサ.x=0;
-root.タッチセンサ.y=0;
-root.タッチセンサ.touching=false;
-root.タッチセンサ.touched=false;
-root.タッチセンサ.initialized=false;
-root.タッチセンサ["動作"]=(function(){});
-root.タッチセンサ.initialize=function(){
+
+root.touchSensor=root.create();
+root.touchSensor.x=0;
+root.touchSensor.y=0;
+root.touchSensor.touching=false;
+root.touchSensor.touched=false;
+root.touchSensor.action=(function(){});
+root.touchSensor.initialized=false;
+root.touchSensor.action=(function(){});
+root.touchSensor.initialize=function(){
 	this.init();
 };
-root.タッチセンサ.使う=function(){
+root.touchSensor.use=function(){
 	this.init();
 	return this;
 };
-root.タッチセンサ.init=function(){
+root.touchSensor.init=function(){
 	if(this.initialized)return this;
 	var self=this;
 	window.$(function(){
@@ -211,7 +243,7 @@ root.タッチセンサ.init=function(){
 			y=(evt.touches[0].clientY) || 0;	
 			self.x=x-width;
 			self.y=height-y;
-			self["動作"].execute(self.x,self.y);
+			self.action.execute(self.x,self.y);
 			self.touching=true;
 			self.touched=true;
 	  }, true);
@@ -242,45 +274,54 @@ root.タッチセンサ.init=function(){
 	return this;
 };
 
-root.タッチセンサ["タッチした?"]=function(){
+root.touchSensor.getTouched=function(){
 	if(this.initialized==false)this.init();
 	var res=this.touched;
 	this.touched=false;
 	return res;
 };
-root.タッチセンサ["触れた?"]=root.タッチセンサ["タッチした?"];
-root.タッチセンサ["タッチしている?"]=function(){
+root.touchSensor.getTouching=function(){
 	if(this.initialized==false)this.init();
 	return this.touching;
 };
-root.タッチセンサ["タッチしてる?"]=root.タッチセンサ["タッチしている?"];
-root.タッチセンサ["触れている?"]=root.タッチセンサ["タッチしている?"];
-root.タッチセンサ["触れてる?"]=root.タッチセンサ["タッチしている?"];
-root.タッチセンサ["横の位置?"]=function(){
+
+root.touchSensor.getX=function(){
 	if(this.initialized==false)this.init();
 	return this.x;
 };
-root.タッチセンサ["縦の位置?"]=function(){
+root.touchSensor.getY=function(){
 	if(this.initialized==false)this.init();
 	return this.y;
 };
-root.タッチセンサ.動作設定=function(f){
+root.touchSensor.setAction=function(f){
 	if(this.initialized==false)this.init();
 	if((typeof f)!="function")return this;
-	root.タッチセンサ.動作=f;
+	root.touchSensor.action=f;
 	return this;
 };
-root.タッチセンサー=root.タッチセンサ;
+root.touchSensor["動作設定"]=root.touchSensor.setAction;
+root.touchSensor["使う"]=root.touchSensor.use;
+root.touchSensor["タッチした?"]=root.touchSensor.getTouched;
+root.touchSensor["触れた?"]=root.touchSensor.getTouched;
+root.touchSensor["タッチしている?"]=root.touchSensor.getTouching;
+root.touchSensor["タッチしてる?"]=root.touchSensor.getTouching;
+root.touchSensor["触れている?"]=root.touchSensor.getTouching;
+root.touchSensor["触れてる?"]=root.touchSensor.getTouching;
+root.touchSensor["横の位置?"]=root.touchSensor.getX;
+root.touchSensor["縦の位置?"]=root.touchSensor.getY;
+root["タッチセンサ"]=root.touchSensor;
+root["タッチセンサー"]=root.touchSensor;
 
 root.gyroSensor=root.create();
 root.gyroSensor.x=0;
 root.gyroSensor.y=0;
 root.gyroSensor.z=0;
+root.gyroSensor.action=(function(){});
 root.gyroSensor.initialized=false;
 root.gyroSensor.initialize=function(){
 	this.init();
 };
-root.gyroSensor.使う=function(){
+root.gyroSensor.use=function(){
 	this.init();
 	return this;
 };
@@ -300,6 +341,7 @@ root.gyroSensor.init=function(){
 			self.x=self.calibrated.roll;
 			self.y=-self.calibrated.pitch;
 			self.z=self.calibrated.yaw;
+			self.action.execute(self.x,self.y,self.z);
 		},true);
 	});
 	this.initialized=true;
@@ -310,26 +352,22 @@ root.gyroSensor.getYaw=function(){
 	if(this.initialized==false)this.init();
 	return this.z;
 };
-root.gyroSensor["ヨー?"]=root.gyroSensor.getYaw;
-root.gyroSensor["水平方向の傾き?"]=root.gyroSensor.getYaw;
-root.gyroSensor["水平の傾き?"]=root.gyroSensor.getYaw;
 root.gyroSensor.getRoll=function(){
 	if(this.initialized==false)this.init();
 	return this.x;
 };
-root.gyroSensor["ロール?"]=root.gyroSensor.getRoll;
-root.gyroSensor["左右方向の傾き?"]=root.gyroSensor.getRoll;
-root.gyroSensor["左右の傾き?"]=root.gyroSensor.getRoll;
 root.gyroSensor.getPitch=function(){
 	if(this.initialized==false)this.init();
 	return this.y;
 };
-root.gyroSensor["ピッチ?"]=root.gyroSensor.getPitch;
-root.gyroSensor["前後方向の傾き?"]=root.gyroSensor.getPitch;
-root.gyroSensor["前後の傾き?"]=root.gyroSensor.getPitch;
+root.gyroSensor.setAction=function(f){
+	if(this.initialized==false)this.init();
+	if((typeof f)!="function")return this;
+	this.action=f;
+	return this;
+};
 
 root.gyroSensor.calibrate=Calibratable.calibrate;
-root.gyroSensor['調整']=root.gyroSensor.calibrate;
 root.gyroSensor.setCalibrated=Calibratable.setCalibrated;
 root.gyroSensor.initCalibration=Calibratable.initCalibration;
 root.gyroSensor.normalize=function (k) {
@@ -342,8 +380,20 @@ root.gyroSensor.rawKeys=ABG;
 root.gyroSensor.calibratedKeys=RPY;
 root.gyroSensor.eventType="deviceorientation";
 
-root.ジャイロセンサ=root.gyroSensor;
-root.ジャイロセンサー=root.gyroSensor;
+root.gyroSensor["動作設定"]=root.gyroSensor.setAction;
+root.gyroSensor["ヨー?"]=root.gyroSensor.getYaw;
+root.gyroSensor["水平方向の傾き?"]=root.gyroSensor.getYaw;
+root.gyroSensor["水平の傾き?"]=root.gyroSensor.getYaw;
+root.gyroSensor["ロール?"]=root.gyroSensor.getRoll;
+root.gyroSensor["左右方向の傾き?"]=root.gyroSensor.getRoll;
+root.gyroSensor["左右の傾き?"]=root.gyroSensor.getRoll;
+root.gyroSensor["ピッチ?"]=root.gyroSensor.getPitch;
+root.gyroSensor["前後方向の傾き?"]=root.gyroSensor.getPitch;
+root.gyroSensor["前後の傾き?"]=root.gyroSensor.getPitch;
+root.gyroSensor['調整']=root.gyroSensor.calibrate;
+root.gyroSensor["使う"]=root.gyroSensor.use;
+root["ジャイロセンサ"]=root.gyroSensor;
+root["ジャイロセンサー"]=root.gyroSensor;
 
 // from http://jsdo.it/hoge1e4/47Z2/
 function startCalibrationOLD(onend) {

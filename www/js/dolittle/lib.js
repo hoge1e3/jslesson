@@ -87,8 +87,8 @@ root.false=false;
 root.undefined=undefined;
 root.null=null;
 root.instanceof=function(f,s){
-	if(typeof f!="object")throw new Error("instanceofの第一引数にはオブジェクトを渡して下さい。");
-	if(typeof s!="function")throw new Error("instanceofの第二引数には関数を渡して下さい。");
+	//if(typeof f!="object")throw new Error("instanceofの第一引数にはオブジェクトを渡して下さい。");
+	//if(typeof s!="function")throw new Error("instanceofの第二引数には関数を渡して下さい。");
 	return (f instanceof s);
 };
 root.typeof=function(p){return typeof p;};

@@ -43,31 +43,16 @@ root.加速度センサ=root.create();
 root.加速度センサ.x=0;
 root.加速度センサ.y=0;
 root.加速度センサ.z=0;
+root.加速度センサ.initialized=false;
 root.加速度センサ.initialize=function(){
-	var self=this;
-    /*try {
-        self.calibrated=JSON.parse(localStorage.acceleratorCalibration);
-        console.log(self.calibrated,window.orientation);
-    }catch(e) {
-        console.log(e);
-        self.calibrated={f:false,x:1,y:1};
-    }*/
-	window.$(function(){
-		window.addEventListener("devicemotion", function(evt){
-			var x=((evt.accelerationIncludingGravity.x) || 0);
-			var y=((evt.accelerationIncludingGravity.y) || 0);
-			var z=((evt.accelerationIncludingGravity.z) || 0);
-			self.raw={x:x,y:y,z:z};
-			self.setCalibrated();
-			//var c=self.getCalibratedXY({x:x,y:y},self.calibrated);
-			var c=self.calibrated;
-			self.x=c.x;self.y=-c.y;
-			self.z=z;
-
-		},true);
-	});
+	this.init();
 };
 root.加速度センサ.使う=function(){
+	this.init();
+	return this;
+};
+root.加速度センサ.init=function(){
+	if(this.initialized)return this;
 	var self=this;
     /*try {
         self.calibrated=JSON.parse(localStorage.acceleratorCalibration);
@@ -89,8 +74,11 @@ root.加速度センサ.使う=function(){
 			self.z=z;
 
 		},true);
+		this.initialized=true;
+		return this;
 	});
 };
+
 
 root.加速度センサ.getCalibratedXY=function (raw,c) {
      if (c.f) {
@@ -107,9 +95,18 @@ root.加速度センサ.calibrate=Calibratable.calibrate;/*function () {
     });
 };*/
 root.加速度センサ['調整']=root.加速度センサ.calibrate;
-root.加速度センサ["左右の加速度?"]=function(){return this.x};
-root.加速度センサ["前後の加速度?"]=function(){return -this.y};
-root.加速度センサ["上下の加速度?"]=function(){return this.z};
+root.加速度センサ["左右の加速度?"]=function(){
+	if(this.initialized==false)this.init();
+	return this.x
+};
+root.加速度センサ["前後の加速度?"]=function(){
+	if(this.initialized==false)this.init();
+	return -this.y
+};
+root.加速度センサ["上下の加速度?"]=function(){
+	if(this.initialized==false)this.init();
+	return this.z
+};
 root.加速度センサ.lsKey="accelCalibration";
 root.加速度センサ.setCalibrated=Calibratable.setCalibrated;
 root.加速度センサ.initCalibration=Calibratable.initCalibration;
@@ -122,25 +119,31 @@ root.加速度センサー=root.加速度センサ;
 
 root.Compass=root.create();
 root.Compass.direction=0;
+root.Compass.initialized=false;
 root.Compass.initialize=function(){
-	var self=this;
-	window.$(function(){
-		window.ondeviceorientation=function(evt){
-			self.direction=(evt.webkitCompassHeading || 0);
-		};
-	});
+	this.init();
 };
 
 root.Compass.使う=function(){
+	this.init();
+	return this;
+};
+root.Compass.init=function(){
+	if(this.initialized)return this;
 	var self=this;
 	window.$(function(){
 		window.ondeviceorientation=function(evt){
 			self.direction=(evt.webkitCompassHeading || 0);
 		};
 	});
+	this.initialized=true;
+	return this;
 };
 
-root.Compass["方向?"]=function(){return this.direction;};
+root.Compass["方向?"]=function(){
+	if(this.initialized==false)this.init();
+	return this.direction;
+};
 root["磁気センサ"]=root.Compass;
 root["磁気センサー"]=root.Compass;
 root["コンパス"]=root.Compass;
@@ -149,19 +152,17 @@ root.GPS=root.create();
 root.GPS.latitude=0;
 root.GPS.longitude=0;
 root.GPS.gps=null;
+root.GPS.initialized=false;
 root.GPS.initialize=function(){
-	window.$(function(){
-		this.gps=window.navigator.geolocation.getCurrentPosition(function(position){
-			var latitude=position.coords.latitude;
-			var longitude=position.coords.longitude;
-			this.latitude=latitude || 0;
-			this.longitude=longitude || 0;
-			return position;
-		}	,function(){window.alert("GPSの立ち上げに失敗しました。");return -1;});
-	});
+	this.init();
 };
 
 root.GPS.使う=function(){
+	this.init();
+	return this;
+};
+root.GPS.init=function(){
+	if(this.initialized)return this;
 	window.$(function(){
 		this.gps=window.navigator.geolocation.getCurrentPosition(function(position){
 			var latitude=position.coords.latitude;
@@ -171,59 +172,35 @@ root.GPS.使う=function(){
 			return position;
 		}	,function(){window.alert("GPSの立ち上げに失敗しました。");return -1;});
 	});
+	this.initialized=true;
+	return this;
 };
 
-root.GPS["緯度?"]=function(){return this.latitude;};
-root.GPS["経度?"]=function(){return this.longitude;};
+root.GPS["緯度?"]=function(){
+	if(this.initialized==false)this.init();
+	return this.latitude;
+};
+root.GPS["経度?"]=function(){
+	if(this.initialized==false)this.init();
+	return this.longitude;
+};
 
 root.タッチセンサ=root.create();
 root.タッチセンサ.x=0;
 root.タッチセンサ.y=0;
 root.タッチセンサ.touching=false;
 root.タッチセンサ.touched=false;
+root.タッチセンサ.initialized=false;
 root.タッチセンサ["動作"]=(function(){});
 root.タッチセンサ.initialize=function(){
-
-	var self=this;
-	window.$(function(){
-		window.document.addEventListener("touchstart", function(evt){
-			var x=0,y=0;
-			var width=window.$("#canvas").context.documentElement.clientWidth/2;
-			var height=window.$("#canvas").context.documentElement.clientHeight/2;
-			x=(evt.touches[0].clientX) || 0;
-			y=(evt.touches[0].clientY) || 0;	
-			self.x=x-width;
-			self.y=height-y;
-			self["動作"].execute(self.x,self.y);
-			self.touching=true;
-			self.touched=true;
-	  }, true);
-	});
-
-	window.$(function(){
-	  window.document.addEventListener("touchmove", function(evt){
-			var x=0,y=0;
-			var width=(window.$("#canvas").context.documentElement.clientWidth/2) || 0;
-			var height=(window.$("#canvas").context.documentElement.clientHeight/2) || 0;
-			x=evt.touches[0].clientX;
-			y=evt.touches[0].clientY;
-			self.x=x-width;
-			self.y=height-y;
-		}, true);
-	});
-	window.$(function(){
-		window.document.addEventListener("touchend", function(evt){
-			self.touching=false;
-		}, true);
-	});
-	window.$(function(){
-		window.document.addEventListener("touchcancel", function(evt){
-			self.touching=false;
-		}, true);
-	});
+	this.init();
 };
-
 root.タッチセンサ.使う=function(){
+	this.init();
+	return this;
+};
+root.タッチセンサ.init=function(){
+	if(this.initialized)return this;
 	var self=this;
 	window.$(function(){
 		window.document.addEventListener("touchstart", function(evt){
@@ -261,46 +238,54 @@ root.タッチセンサ.使う=function(){
 			self.touching=false;
 		}, true);
 	});
+	this.initialized=true;
+	return this;
 };
 
 root.タッチセンサ["タッチした?"]=function(){
+	if(this.initialized==false)this.init();
 	var res=this.touched;
 	this.touched=false;
 	return res;
 };
 root.タッチセンサ["触れた?"]=root.タッチセンサ["タッチした?"];
-root.タッチセンサ["タッチしている?"]=function(){return this.touching;};
+root.タッチセンサ["タッチしている?"]=function(){
+	if(this.initialized==false)this.init();
+	return this.touching;
+};
 root.タッチセンサ["タッチしてる?"]=root.タッチセンサ["タッチしている?"];
 root.タッチセンサ["触れている?"]=root.タッチセンサ["タッチしている?"];
 root.タッチセンサ["触れてる?"]=root.タッチセンサ["タッチしている?"];
-root.タッチセンサ["横の位置?"]=function(){return this.x;};
-root.タッチセンサ["縦の位置?"]=function(){return this.y;};
+root.タッチセンサ["横の位置?"]=function(){
+	if(this.initialized==false)this.init();
+	return this.x;
+};
+root.タッチセンサ["縦の位置?"]=function(){
+	if(this.initialized==false)this.init();
+	return this.y;
+};
+root.タッチセンサ.動作設定=function(f){
+	if(this.initialized==false)this.init();
+	if((typeof f)!="function")return this;
+	root.タッチセンサ.動作=f;
+	return this;
+};
 root.タッチセンサー=root.タッチセンサ;
 
 root.gyroSensor=root.create();
 root.gyroSensor.x=0;
 root.gyroSensor.y=0;
 root.gyroSensor.z=0;
+root.gyroSensor.initialized=false;
 root.gyroSensor.initialize=function(){
-	this.x=0;
-	this.y=0;
-	this.z=0;
-	var self=this;
-	window.$(function(){
-		window.addEventListener("deviceorientation",function(evt){
-			var x=evt.beta || 0;
-			var y=evt.gamma || 0;
-			var z=evt.alpha || 0;
-			self.raw={alpha:z,beta:x,gamma:y};
-			self.setCalibrated();
-			self.x=self.calibrated.roll;
-			self.y=-self.calibrated.pitch;
-			self.z=self.calibrated.yaw;
-		},true);
-	});
+	this.init();
 };
-
 root.gyroSensor.使う=function(){
+	this.init();
+	return this;
+};
+root.gyroSensor.init=function(){
+	if(this.initialized)return this;
 	this.x=0;
 	this.y=0;
 	this.z=0;
@@ -317,18 +302,28 @@ root.gyroSensor.使う=function(){
 			self.z=self.calibrated.yaw;
 		},true);
 	});
-
+	this.initialized=true;
+	return this;
 };
 
-root.gyroSensor.getYaw=function(){return this.z;};
+root.gyroSensor.getYaw=function(){
+	if(this.initialized==false)this.init();
+	return this.z;
+};
 root.gyroSensor["ヨー?"]=root.gyroSensor.getYaw;
 root.gyroSensor["水平方向の傾き?"]=root.gyroSensor.getYaw;
 root.gyroSensor["水平の傾き?"]=root.gyroSensor.getYaw;
-root.gyroSensor.getRoll=function(){return this.x;};
+root.gyroSensor.getRoll=function(){
+	if(this.initialized==false)this.init();
+	return this.x;
+};
 root.gyroSensor["ロール?"]=root.gyroSensor.getRoll;
 root.gyroSensor["左右方向の傾き?"]=root.gyroSensor.getRoll;
 root.gyroSensor["左右の傾き?"]=root.gyroSensor.getRoll;
-root.gyroSensor.getPitch=function(){return this.y;};
+root.gyroSensor.getPitch=function(){
+	if(this.initialized==false)this.init();
+	return this.y;
+};
 root.gyroSensor["ピッチ?"]=root.gyroSensor.getPitch;
 root.gyroSensor["前後方向の傾き?"]=root.gyroSensor.getPitch;
 root.gyroSensor["前後の傾き?"]=root.gyroSensor.getPitch;
