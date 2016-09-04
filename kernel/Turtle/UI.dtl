@@ -78,7 +78,7 @@ UI:nextLine=[|;top left|
     this.
 ].
 UI:write=[|m|
-    [element] ! then [ (element ! 0 get):innerHTML= m] execute.
+    [element] ! then [ (element ! 0 get):innerHTML=! (m) num2str] execute.
     self
 ].
 UI:add=[|m|
@@ -90,20 +90,25 @@ UI:newLine=[
     self
 ].
 UI:clear=[!"" write].
-UI:int2strDigits=1000000.
-UI:int2str=[|v;r|
-    ((window:Math) ! (v*int2strDigits) round) /int2strDigits.
+UI:num2strDigits=1000000.
+UI:num2str=[|v;r|
+    [(! (v) typeof)=="number"] ! then [
+        v=((window:Math) ! (v*num2strDigits) round) /num2strDigits.
+    ] execute.
+    v+""
     //    [ (! (r-v) abs) <0.00000001 ] ! then [ r+"" ] else [v+""] execute. 
 ].
-UI:str2int=[|s;r|
+UI:int2str=UI:num2str.
+UI:str2num=[|s;r|
     r=window ! (s) parseFloat.
     [r==r] ! then [r] else [s] execute.
 ].
+UI:str2int=UI:str2num.
 UI:readString=[
     [element] ! then [element ! text] else [""] execute.
 ].
 UI:read=[
-    ! (! readString) str2int.
+    ! (! readString) str2num.
 ].
 UI:inc=[|by|
     by=[by] ! [1] or.
@@ -113,6 +118,7 @@ UI:dec=[|by|
     by=[by] ! [1] or.
     ! ( (! read)-by) write.
 ].
+
 /*UI:moveBy=[|x y;oldx oldy|
     oldx=(self:element!0 get):offsetLeft.
     oldy=(self:element!0 get):offsetTop.
@@ -176,7 +182,7 @@ Label:initialize=[|label;t|
     t=this.
     [label==undef]!then [label=! read] execute.
     element=$!"<span>"create
-    (label+"") text
+    (!(label) num2str) text
     //"position" "absolute" css
     "font-size" "1.0em" css
     "vertical-align" "top" css
@@ -208,7 +214,7 @@ Button:initialize=[|label key;t|
     t=this.
     [label==undef]!then [label=! read] execute.
     element=$!"<button>" create 
-    (label) text 
+    (! (label) num2str) text 
     "vertical-align" "top" css
     "white-space" "nowrap" css.
     //"position" "absolute" css. 
@@ -299,7 +305,7 @@ Field:initialize=[|label|
     ! autoLayout.
 ].
 Field:write=[|m|
-    [element] ! then [element ! (m) val] execute.
+    [element] ! then [element ! (! (m) num2str) val] execute.
     self
 ].
 Field:readString=[
@@ -358,7 +364,7 @@ TextArea:write=[
         [cont:each] ! then [
             cont ! [|e| ! (e) writeLn ] each.  
         ] else [
-            ! ((!readString)+cont) rawOverwrite
+            ! ((!readString)+(!(cont) num2str)) rawOverwrite
         ] execute.
     ] each.
     ! autoResize.
@@ -383,6 +389,12 @@ TextArea:newLine=[
     ! ("\n") write.
 ].
 TextArea:clear=[! "" rawOverwrite.  ! autoResize].
+
+TextArea:readAsArray=[!read  "\n"  split].
+TextArea:changeLine=[|no line| 
+    !(! readAsArray(no) (line) set) overwrite
+].
+
 
 /*Field:inc=[|by|
     by=[by] ! [1] or.

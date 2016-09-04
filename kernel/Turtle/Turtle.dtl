@@ -117,3 +117,9 @@ turtle:setTrans=[|;str|
     [isShowing] ! then [ ! checkCrash ] execute.
     this.
 ].
+turtle:setAction=[|f|
+    [(!(f)typeof)=="function"]!then[
+        self:action=f.    
+    ]execute.
+    self.
+].

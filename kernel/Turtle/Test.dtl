@@ -1,11 +1,12 @@
 module ! "Vec2" "Actor" "Group" "Util" "UI" "Timer" "Turtle" "Figure" "DOM" "Color" "Japanese" [
-    かめた＝タートル！作る。
+    /*かめた＝タートル！作る。
     ず１＝「かめた！１２０ 歩く １２０ 左回り」！３ 繰り返す （青）図形を作る。
     ず２＝ず１！作る （赤）塗る ３０ ３０ 移動する。
     ず１２＝図形 ！（ず１）（ず２）結合する ３０ 右回り。
     ず３４＝ず１２！作る ０ -150 移動する。
     タイマー！作る「ず１２！ 10 右回り。 ず３４！ 10 左回り」実行。
-    
+    */
+    //ラベル！ 作る "(sin(30))" 書く (sin(30)) 作る。
     
     /*test=[|x y|
         (and ! (x==5) (y==5) true) ! then [
@@ -13,10 +14,10 @@ module ! "Vec2" "Actor" "Group" "Util" "UI" "Timer" "Turtle" "Figure" "DOM" "Col
         ] else ["uso"] execute.
     ].*/
     //TextArea ! create (null) (undef) 10 writeLn.
-    /*配列データ＝配列！ 10 "20" 30 作る。
+    配列データ＝配列！ 10 "20" (sin(30)) 作る。
     
     記録１＝テキストエリア！1 2 3 作る。
-    記録１！"4" 5 （配列データ）6 "7" 書く。
+    記録１！"4" 5 （配列データ）6 "7" 書いて改行。
     記録１！8 書く  改行。
     記録１！9 書く。
     
@@ -29,7 +30,7 @@ module ! "Vec2" "Actor" "Group" "Util" "UI" "Timer" "Turtle" "Figure" "DOM" "Col
     s1=a2！読む。
     ラベル！（s1）作る。// BA。(2)1個目しか表示されない。
     ラベル！（s1！長さ？）作る。// BA。(3)「読む」の結果は文字列でない？
-    */
+    
     /*かめた＝タートル！作る。
     「かめた！９０ 左回り  １００ 歩く」！４ 繰り返す（赤）図形を作る。
     にげるボタン＝ボタン！作る 消える。
@@ -123,4 +124,5 @@ module ! "Vec2" "Actor" "Group" "Util" "UI" "Timer" "Turtle" "Figure" "DOM" "Col
     ].
     Button ! "Went" create.
     Button ! "Gone" create.*/
+    
 ] require.

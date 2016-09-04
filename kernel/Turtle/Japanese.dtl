@@ -78,7 +78,8 @@ Actor !
 タートル：ペンなし=turtle:penUp.
 タートル：線の色=turtle:lineColor.
 タートル：線の太さ=turtle:lineWidth.
-Turtle!"action" "動作" addAlias.
+Turtle!"action" "動作" addAlias
+"setAction" "動作設定" addAlias.
 
 turtle:歩く=turtle:forward.
 
@@ -194,6 +195,43 @@ aa!(system)"minutes" "分?" call.
 aa!(system)"minutes" "分" call.
 aa!(system)"seconds" "秒?" call.
 aa!(system)"seconds" "秒" call.
+
+//センサ類
+!"accelerationSensor" "加速度センサ" "加速度センサー" addAlias.
+accelerationSensor!"setAction" "動作設定" addAlias
+"use" "使う" addAlias
+"calibrate" "調整" addAlias
+"action" "動作" addAlias
+"getXAcceleration" "左右の加速度?" addAlias
+"getYAcceleration" "前後の加速度?" addAlias
+"getZAcceleration" "上下の加速度?" addAlias.
+
+!"compass" "コンパス" "磁気センサ" "磁気センサー" addAlias.
+compass!"setAction" "動作設定" addAlias 
+"action" "動作" addAlias
+"getDirection" "方向?" "向き?" addAlias.
+
+/*GPS!"use" "使う" addAlias
+"getLatitude" "緯度?" addAlias
+"getLongitude" "経度?" addAlias.*/
+
+!"touchSensor" "タッチセンサ" "タッチセンサー" addAlias.
+touchSensor!"setAction" "動作設定" addAlias
+"action" "動作" addAlias
+"use" "使う" addAlias
+"getTouched" "タッチした？" "触れた?" addAlias
+"getTouching" "タッチしている?" "タッチしてる?" "触れている?" "触れてる?" addAlias
+"getX" "横の位置?" addAlias
+"getY" "縦の位置?" addAlias.
+
+!"gyroSensor" "ジャイロセンサ" "ジャイロセンサー" addAlias.
+gyroSensor!"setAction" "動作設定" addAlias
+"action" "動作" addAlias
+"getYaw" "ヨー?" "水平方向の傾き?" "水平の傾き?" addAlias
+"getRoll" "ロール?" "左右方向の傾き?" "左右の傾き?" addAlias
+"getPitch" "ピッチ?" "上下方向の傾き?" "上下の傾き?" addAlias
+"calibrate" "調整" addAlias
+"use" 使う addAlias.
 
 //ネイティブオブジェクト
 文字列=window:String.

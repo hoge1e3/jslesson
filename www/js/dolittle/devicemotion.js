@@ -264,6 +264,12 @@ root.タッチセンサ["縦の位置?"]=function(){
 	if(this.initialized==false)this.init();
 	return this.y;
 };
+root.タッチセンサ.動作設定=function(f){
+	if(this.initialized==false)this.init();
+	if((typeof f)!="function")return this;
+	root.タッチセンサ.動作=f;
+	return this;
+};
 root.タッチセンサー=root.タッチセンサ;
 
 root.gyroSensor=root.create();

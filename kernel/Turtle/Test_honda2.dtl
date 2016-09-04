@@ -1,0 +1,16 @@
+
+module!"Vec2" "Actor" "UI" "Turtle" "Figure" "DOM" "Util"  "Timer" "Color" "Dict" "Japanese"
+[ 
+    test=[|obj|
+        全部 ! [obj] [obj:x] 本当 
+        // 全部 ! (obj) (obj:x) 本当 <- これだとobj==undefのときにエラー！
+    ].
+    noX=! create.
+    hasX=! create.
+    hasX:x=3.
+    TextArea ! create 
+    ( !(undef) test)//falseになってほしいけどtrueになってしまう
+    ( !(noX) test)//falseになってほしいけどtrueになってしまう
+    ( !(hasX) test)//trueになる。OK。
+    writeLn.
+]require.

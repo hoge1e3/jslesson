@@ -10,7 +10,17 @@ and=!create.
 and:true=[|;args f|
     args=(window:Array:prototype:slice!(arguments)call).
     f=:true.
-    args![|p|[p==:false]!then[f=:false]execute]each.
+    args![|p|
+        [|;res|
+            [(!(p)typeof)=="function"]!then[
+                p!execute
+            ]else[
+                p
+            ]execute.
+        ]!else[
+            f=:false
+        ]execute
+    ]each.
     f
 ].
 
@@ -20,7 +30,15 @@ or=!create.
 or:true=[|;args f|
     args=(window:Array:prototype:slice!(arguments)call).
     f=:false.
-    args![|p|[p]!then[f=:true]execute]each.
+    args![|p|
+        [
+            [(!(p)typeof)=="function"]!then[
+                p!execute
+            ]else[
+                p
+            ]execute
+        ]!then[f=:true]execute
+    ]each.
     f
 ].
 
@@ -51,3 +69,7 @@ pi=:window:Math:PI.
 isset=[|n| 
     and ! (n!=undef) (n!=null) true
 ].
+Array:prototype:toString=[
+    "["+(!" " join)+"]"  
+].
+
