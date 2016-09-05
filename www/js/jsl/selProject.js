@@ -63,7 +63,7 @@ function ready() {//-------------------------
     projects.mkdir();
     sh.cd(projects);
     var curDir=projects;
-    var projectsInfo=[];
+    var projectsInfo=[];// name not ends with / (truncated at function item() ) 
     function ls() {
         $("#prjItemList").empty();
         return RemoteProject.list().then(function (d) {
@@ -201,8 +201,13 @@ function ready() {//-------------------------
     	});
     });
     $("#newSample").click(function (){
-        return NSD.show(projectsInfo,function () {
-            ls();
+        return NSD.show(projectsInfo,function (model) {
+            var inf=projectsInfo.findProject(model.name);
+            if (inf) {
+                document.location.href="?r=jsl_edit&dir="+inf.dir.path();
+            } else {
+                ls();
+            }
         });
     });
     ls().then(function () {

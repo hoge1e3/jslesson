@@ -40,20 +40,57 @@ define(["UI"], function (UI) {
         var model={name:options.defName||"",lang:"js"};
         d.$edits.load(model);
     	d.$edits.validator.on.validate=function (model) {
-    		if (model.name=="") {
+    	    if (model.sample=="notsel") {
+    			this.addError("name","プロジェクトを選んでください");
+    			return;
+    	    } else if (model.name=="") {
     			this.addError("name","名前を入力してください");
     			return;
     		}
     		//console.log(model.parentDir);
     		if (prjInfo.findProject(model.name) ) {
-                this.addError("name","このプロジェクトはすでに存在します");
-                return;
+                //this.addError("name","このプロジェクトはすでに存在します");
+                //return;
+                model.existent=true;
+            } else {
+                model.existent=false;
             }
     		this.allOK();
     		//d.$vars.dstDir.text(model.dstDir+"");
     	};
     	d.done=function () {
+    	    var ovrd;
     	    if (d.$edits.validator.isValid()) {
+    	        if (model.existent) {
+    	            ovrd=UI("div",{title:"確認"},
+        	            ["div","サンプルプロジェクト",model.sample,"を開きます。"],
+        	            ["form",{$var:"theForm"},
+            	            ["div",
+            	                ["input",{type:"radio",name:"overwrite",value:"no",checked:true}],
+            	                "そのまま開く"
+            	            ],
+            	            ["div",
+            	                ["input",{type:"radio",name:"overwrite",value:"yes"}],
+            	                "最初の状態に戻す(以前に",model.sample,"で行った変更が取り消されます)"
+            	            ],
+        	            ],
+        	            ["div",
+        	                ["button",{on:{click:handle}},"OK"]
+        	            ]
+    	            );
+    	            ovrd.dialog({modal:true,width:600});
+    	        } else doCopy();
+    	    } 
+    	    function handle() {
+    	        //alert(ovrd.$vars.theForm[0].overwrite.value);
+    	        //return;
+    	        if (ovrd.$vars.theForm[0].overwrite.value=="yes") doCopy();
+    	        else {
+                    onOK(model);
+                    d.dialog("close");
+    	        }
+    	    }
+    	    function doCopy() {
                 d.$vars.OKButton.attr("disabled", true);
     	        d.$vars.OKButton.text("コピー中...");
                 $.get("copySample.php",{src:model.sample,dst:model.name}).then(function (r) {
