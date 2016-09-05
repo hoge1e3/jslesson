@@ -7,39 +7,41 @@ rdb=:window:String!12303 fromCharCode.
 and=!create.
 /*引数が全てtrueだった場合trueを返す。
 戻り値：引数が全てtrueかどうかの真偽値*/
-and:true=[|;args f|
+and:true=[|;args res flag|
     args=(window:Array:prototype:slice!(arguments)call).
-    f=:true.
+    flag=:true.
     args![|p|
-        [|;res|
-            [(!(p)typeof)=="function"]!then[
-                p!execute
-            ]else[
-                p
-            ]execute.
-        ]!else[
-            f=:false
+        [flag]!then[
+            [
+                res=[(!(p)typeof)=="function"]!then[
+                    p!execute
+                ]else[
+                    p
+                ]execute.
+                res
+            ]!else[
+                flag=:false
+            ]execute
         ]execute
     ]each.
-    f
+    res
 ].
 
 or=!create.
 /*引数にtrueが含まれた場合trueを返す。
 戻り値：引数の中にtrueが含まれるかどうかの真偽値*/
-or:true=[|;args f|
+or:true=[|;args res|
     args=(window:Array:prototype:slice!(arguments)call).
-    f=:false.
-    args![|p|
+    args![|p;tmp|
         [
             [(!(p)typeof)=="function"]!then[
-                p!execute
+                tmp=p!execute
             ]else[
-                p
+                tmp=p
             ]execute
-        ]!then[f=:true]execute
+        ]!then[res=tmp]execute
     ]each.
-    f
+    res
 ].
 
 system:systemTime=[self!(:window:Date)new getTime].

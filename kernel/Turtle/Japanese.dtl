@@ -145,14 +145,21 @@ Button ! "fontColor" "文字色" addAlias.
 Label!"fontColor" "文字色" addAlias.
 フィールド=Field.
 テキストエリア=TextArea.
-TextArea ! "write" "書く" addAlias 
+リスト=ListBox.
+TextArea ! 
+"write" "書く" addAlias 
 "overwrite" "上書き" addAlias
 "writeLn" "書いて改行" addAlias
+"readOnly" "読むだけ" addAlias
+"writable" "読み書き" addAlias
+"autoBR" "自動改行" addAlias
 "newLine" "改行" addAlias
 "setRow" "行数" addAlias
 "setCol" "桁数" addAlias
 "setCol" "文字数" addAlias
 "setCol" "列数" addAlias
+"readAsArray" "配列で読む" addAlias
+"changeLine" "行修正" addAlias
 .
 
 !"Screen" "画面" addAlias.
@@ -237,9 +244,12 @@ gyroSensor!"setAction" "動作設定" addAlias
 文字列=window:String.
 sp=window:String:prototype.
 aa!(sp) "add" "連結" call.
+//aa!(sp) "isContain" "含む?" call.
 aa!(sp) "contain?" "含む?" call.
+//aa!(sp) "isPosition" "何文字目?" call.
 aa!(sp) "isPosition?" "何文字目?" call.
 aa!(sp) "substr" "部分" call.
+//aa!(sp) "isLength" "長さ?" call. 
 aa!(sp) "length?" "長さ?" call.
 aa!(sp) "split" "分割" call.
 aa!(sp) "replace" "置き換える" call.
@@ -248,7 +258,7 @@ aa!(sp) "charCodeAt" "文字コード" call.
 
 配列=window:Array.
 ap=window:Array:prototype.
-aa!(ap) "create" "作る" call.
+aa!(window:Array) "create" "作る" call.
 aa!(ap) "get" "読む" call.
 aa!(ap) "set" "上書き" call.
 aa!(ap) "add" "書く" call.
@@ -256,7 +266,9 @@ aa!(ap) "remove" "消す" call.
 aa!(ap) "removepos" "位置で消す" call.
 aa!(ap) "insert" "挿入" call.
 aa!(ap) "each" "それぞれ実行" call.
+//aa!(ap) "isLength" "要素数?" call.
 aa!(ap) "length?" "要素数?" call.
+aa!(ap) "clear" "クリア" call.
 aa!(ap) "concat" "連結" call.
 aa!(ap) "randomSelect" "ランダムに選ぶ" call.
 aa!(ap) "each" "それぞれ実行" call.
@@ -282,7 +294,9 @@ _false!"else" "そうでなければ" addAlias
 _done!"else" "そうでなければ" addAlias
 "execute" "実行" addAlias
 "then" "なら" addAlias.
+_while!"execute" "実行" addAlias.
 
+数値=window:Number.
 np=window:Number:prototype.
 aa!(np) "setSeed" "乱数初期化" call.
 aa!(np) "random" "乱数" call.
@@ -297,7 +311,7 @@ aa!(np) "div" "わる" call.
 aa!(np) "mod" "余り" call.
 aa!(np) "mod" "あまり" call.
 
-
+真偽値=window:Boolean.
 bp=window:Boolean:prototype.
 aa!(bp) "then" "なら" call.
 aa!(bp) "else" "そうでなければ" call.
