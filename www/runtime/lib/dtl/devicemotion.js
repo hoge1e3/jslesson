@@ -299,6 +299,7 @@ root.touchSensor.setAction=function(f){
 	root.touchSensor.action=f;
 	return this;
 };
+
 root.touchSensor["動作設定"]=root.touchSensor.setAction;
 root.touchSensor["使う"]=root.touchSensor.use;
 root.touchSensor["タッチした?"]=root.touchSensor.getTouched;
