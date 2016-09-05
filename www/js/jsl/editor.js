@@ -159,8 +159,8 @@ function ready() {
                   ]*/},
                   {label:"保存",id:"save"},
                   {label:"設定",sub:[
-                      {label:"エディタの文字の大きさ",id:"textsize",action:textSize},
-                      {label:"エディタモード切替",id:"editorType",action:editorType}
+                      {label:"エディタの文字の大きさ",id:"textsize",action:textSize}/*,
+                      {label:"エディタモード切替",id:"editorType",action:editorType}*/
                   ]},
                   {label:"ヘルプ",id:"openHelp"}
                 ]
