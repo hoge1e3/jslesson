@@ -4503,7 +4503,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
 .navbar-inverse .navbar-brand:hover,
 .navbar-inverse .navbar-brand:focus {
   color: #ffffff;
-  background-color: #808080;
+  background: linear-gradient(to bottom, #808080, #404040);
 }
 
 .navbar-inverse .navbar-text {
@@ -4519,7 +4519,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
 .navbar-inverse .navbar-nav > li > a:focus {
   color: #ffffff;
   /*background-color: transparent;*/
-  background-color: #808080;
+  background: linear-gradient(to bottom, #808080, #404040);
 }
 
 .navbar-inverse .navbar-nav > .active > a,

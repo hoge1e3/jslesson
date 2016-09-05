@@ -60,6 +60,8 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
         var body=dom.getElementsByTagName("body")[0];
         $(head).append($("<meta>").attr("charset","UTF-8"));
         $(head).append($("<script>").text("window.runtimePath='"+WebSite.runtime+"';"));
+        $(head).append($("<script>").text("window.onerror=window.onerror||"+
+        function (e) {alert(e);}+";"));
 
         libs.concat(dtlibs).map(function (r) {
             return WebSite.runtime+r;
