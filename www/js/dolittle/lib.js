@@ -263,7 +263,7 @@ Object.defineProperty(Array.prototype,"each",{
 	enumerable:false,configurable:true,
 	value:Array.prototype.each
 });*/
-Object.defineProperty(Array.prototype,"isLength",{
+Object.defineProperty(Array.prototype,"length?",{
 	enumerable:false,configurable:true,
 	value:function(){return this.length;}
 });
@@ -354,8 +354,8 @@ String.prototype.isPosition=function(p){return this.valueOf().search(RegExp(p))+
 String.prototype["何文字目?"]=String.prototype.isPosition;
 String.prototype["substr"]=function(){return ((arguments.length==1)?substr1:substr2).apply(this,arguments);};
 //String.prototype["部分"]=String.prototype.substr;
-String.prototype.isLength=function(){return this.length;};
-String.prototype["長さ?"]=String.prototype.isLength;
+String.prototype["length?"]=function(){return this.length;};
+//String.prototype["長さ?"]=String.prototype["length?"];
 //String.prototype["分割"]=String.prototype.split;
 //String.prototype["置き換える"]=String.prototype.replace;
 String.prototype.allReplace=function(_pattern,_replacement){return this.valueOf().replace((new RegExp(_pattern,"g")),_replacement);};

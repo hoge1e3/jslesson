@@ -163,7 +163,7 @@ this['element']['get']((0))['setAttributeNS']("http://www.w3.org/1999/xlink","hr
 this['getImageSize']((url));
 return this;
 });
-return this['turtle']['setTrans']=dtlbind(this,function(){
+this['turtle']['setTrans']=dtlbind(this,function(){
 var self=this;var 自分=self;
 var str;
 str=(((("translate("+(this['pos']['x']))+" ")+(this['pos']['y']))+") ");
@@ -176,6 +176,17 @@ return this['isShowing'];
 })['then']()['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;
 return this['checkCrash']();
+}));
+return this;
+});
+return this['turtle']['setAction']=dtlbind(this,function(f){
+var self=this;var 自分=self;
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return ((this['typeof']((f)))==="function");
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['action']=f;
 }));
 return this;
 });

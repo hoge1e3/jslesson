@@ -7,39 +7,65 @@ this['and']=this['create']();
 this['and']['true']=dtlbind(this,function(){
 var self=this;var 自分=self;
 var args;
-var f;
+var res;
+var flag;
 args=(this['window']['Array']['prototype']['slice']['call']((arguments)));
-f=root['true'];
+flag=root['true'];
 args['each'](dtlbind(this,function(p){
 var self=this;var 自分=self;
 return dtlbind(this,function(){
 var self=this;var 自分=self;
-return (p===root['false']);
+return flag;
 })['then']()['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return f=root['false'];
+return dtlbind(this,function(){
+var self=this;var 自分=self;
+res=dtlbind(this,function(){
+var self=this;var 自分=self;
+return ((this['typeof']((p)))==="function");
+})['then']()['else'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return p['execute']();
+}))['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return p;
+}));
+return res;
+})['else']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return flag=root['false'];
 }));
 }));
-return f;
+}));
+return res;
 });
 this['or']=this['create']();
 this['or']['true']=dtlbind(this,function(){
 var self=this;var 自分=self;
 var args;
-var f;
+var res;
 args=(this['window']['Array']['prototype']['slice']['call']((arguments)));
-f=root['false'];
 args['each'](dtlbind(this,function(p){
+var self=this;var 自分=self;
+var tmp;
+return dtlbind(this,function(){
 var self=this;var 自分=self;
 return dtlbind(this,function(){
 var self=this;var 自分=self;
-return p;
+return ((this['typeof']((p)))==="function");
+})['then']()['else'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return tmp=p['execute']();
+}))['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return tmp=p;
+}));
 })['then']()['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return f=root['true'];
+return res=tmp;
 }));
 }));
-return f;
+return res;
 });
 this['system']['systemTime']=dtlbind(this,function(){
 var self=this;var 自分=self;
@@ -138,9 +164,13 @@ return (0);
 }));
 });
 this['pi']=root['window']['Math']['PI'];
-return this['isset']=dtlbind(this,function(n){
+this['isset']=dtlbind(this,function(n){
 var self=this;var 自分=self;
 return this['and']['true'](((n!==this['undef'])),((n!==this['null'])));
+});
+return this['Array']['prototype']['toString']=dtlbind(this,function(){
+var self=this;var 自分=self;
+return (("["+(this['join'](" ")))+"]");
 });
 }).checkerror().apply(root,[]);
 //# sourceMappingURL=Util.js.map
