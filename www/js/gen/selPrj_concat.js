@@ -12004,7 +12004,7 @@ define('NewSampleDialog',["UI"], function (UI) {
             d.$vars.sample.empty();
             d.$vars.sample.append(UI("option",{$var:"loading",selected:true,value:"notsel"},"選択してください"));
             d.$vars.loading.text("選択してください");
-            r.forEach(function (n) {
+            r.sort().forEach(function (n) {
                     d.$vars.sample.append(UI("option",{value:n},n)); 
             });
         });
@@ -12432,12 +12432,17 @@ function ready() {//-------------------------
     });
     $("#newSample").click(function (){
         return NSD.show(projectsInfo,function (model) {
-            var inf=projectsInfo.findProject(model.name);
-            if (inf) {
-                document.location.href="?r=jsl_edit&dir="+inf.dir.path();
-            } else {
-                ls();
-            }
+            DU.loop(function (i) {
+                var inf=projectsInfo.findProject(model.name);
+                if (inf) {
+                    document.location.href="?r=jsl_edit&dir="+inf.dir.path();
+                    return DU.brk();
+                } 
+                if (i==1) return DU.brk();
+                return ls().then(function () {
+                    return i+1;
+                });
+            },0);
         });
     });
     ls().then(function () {

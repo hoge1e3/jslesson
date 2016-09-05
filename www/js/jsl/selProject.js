@@ -202,12 +202,17 @@ function ready() {//-------------------------
     });
     $("#newSample").click(function (){
         return NSD.show(projectsInfo,function (model) {
-            var inf=projectsInfo.findProject(model.name);
-            if (inf) {
-                document.location.href="?r=jsl_edit&dir="+inf.dir.path();
-            } else {
-                ls();
-            }
+            DU.loop(function (i) {
+                var inf=projectsInfo.findProject(model.name);
+                if (inf) {
+                    document.location.href="?r=jsl_edit&dir="+inf.dir.path();
+                    return DU.brk();
+                } 
+                if (i==1) return DU.brk();
+                return ls().then(function () {
+                    return i+1;
+                });
+            },0);
         });
     });
     ls().then(function () {

@@ -33,7 +33,7 @@ define(["UI"], function (UI) {
             d.$vars.sample.empty();
             d.$vars.sample.append(UI("option",{$var:"loading",selected:true,value:"notsel"},"選択してください"));
             d.$vars.loading.text("選択してください");
-            r.forEach(function (n) {
+            r.sort().forEach(function (n) {
                     d.$vars.sample.append(UI("option",{value:n},n)); 
             });
         });
