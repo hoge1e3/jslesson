@@ -232,6 +232,7 @@ var reqConf={
             "SandBoxFile":"fs2/SandBoxFile",
             "SFile":"fs2/SFile",
             Env:"fs2/Env",*/
+            md5:"lib/md5",
             FS:"fs/fs2stub",
             FSLib:"fs2/FS",
             Columns:"ui/Columns",

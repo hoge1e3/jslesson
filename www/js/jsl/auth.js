@@ -1,4 +1,4 @@
-define(["FS"], function (FS) {
+define(["FS","md5"], function (FS,md5) {
     Auth={
         check:function () {
             var self=this;
@@ -28,8 +28,20 @@ define(["FS"], function (FS) {
             return FS.get("/home/").rel(this.class+"/").rel(this.user+"/") //changeHOME(1)
             //return FS.get("/");//changeHOME
         },
+        genHash:function (projectName) {
+            return md5(this.class+"/"+this.user+"/"+projectName).substring(0,8)+"/";
+        },
+        publishedDir: function (projectName) {
+            return FS.get("/pub/"+this.genHash(projectName));
+            //return this.remotePublics().rel(projectName);
+        },
+        publishedURL: function (projectName) {
+            return WebSite.published+this.genHash(projectName);
+            // http://localhost/fs/home/0123/dolittle/public/Turtle2/Raw_k6.html
+            //return WebSite.published+this.class+"/"+this.user+"/public/"+projectName;
+        },
         remotePublics: function () {
-            return this.remoteProjects().rel("public/") //changeHOME(1)
+            return this.remoteProjects().rel("public/"); //changeHOME(1)
             //return FS.get("/public/");//changeHOME
         }
     };

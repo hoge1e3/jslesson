@@ -24,6 +24,9 @@ class Permission {
         if (count($ps)>=2 && $ps[1]=="scripts" && ($opr & $anyRead)) {
             return true;
         }
+        if (count($ps)>=2 && $ps[1]=="pub") {
+            return true;
+        }
         if (count($ps)<2 || $ps[1]!=="home") {
             return false;    
         }

@@ -436,36 +436,27 @@ function ready() {
                 var curHTMLFile=curFiles[0];
                 var curLogicFile=curFiles[1];
 
-                var pub=Auth.remotePublics()/*FS.get("/public/")*/.rel(curProjectDir.name());
+                var pub=Auth.publishedDir(curProjectDir.name());
+                //var pub=Auth.remotePublics()/*FS.get("/public/")*/.rel(curProjectDir.name());
                 SplashScreen.show();
                 DU.timeout(0).then(function () {
                     //alert(curLogicFile.path());
                     return builder.build({mainFile:curLogicFile});    
                 }).then(function () {
-                    /*var ceor=/COMPILE_ERROR_ON_RUNTIME((.|\r|\n)*)\*\//;
-                    var curCompiledLogicFile=ram.rel(curLogicFile.name());
-                    console.log(curCompiledLogicFile.path());
-                    var m;
-                    if (curCompiledLogicFile.exists()) {
-                        m=ceor.exec(curCompiledLogicFile.text());
-                        if (m) {
-                            throw new Error(m[1]);
-                        }
-                    }*/
                     //if (window.SplashScreen) window.SplashScreen.progress("Upload contents...");
                     return builder.upload(pub);                    
                 }).then(function () {
                     SplashScreen.hide();
                     var cv=$("<div>");
                     cv.dialog();
-                    //  http://localhost/fs/home/0123/dolittle/public/Turtle2/Raw_k6.html
-                    runURL=WebSite.published+Auth.class+"/"+
-                    Auth.user+"/public/"+pub.name()+curHTMLFile.name();
+                    runURL=Auth.publishedURL(curProjectDir.name())+curHTMLFile.name();
+                    //runURL=WebSite.published+Auth.class+"/"+
+                    //Auth.user+"/public/"+pub.name()+curHTMLFile.name();
                     //alert("synced "+runURL);
                     cv.append($("<div>").append(
                         $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
                     ));
-                    cv.append($("<div>").qrcode(runURL));
+                    cv.append($("<div>").qrcode({width:200,height:200,text:runURL}));
                     return sync();
                 }).fail(function (e) {
                     Tonyu.onRuntimeError(e);

@@ -36,7 +36,8 @@ define([], function () {
             putFiles:WS.phpTop+"putFiles.php"
     };
     WS.runtime=WS.serverTop+"runtime/";
-    WS.published=WS.serverTop+"fs/home/";
+    //WS.published=WS.serverTop+"fs/home/";
+    WS.published=WS.serverTop+"fs/pub/";
     
     /*if (WS.isNW) {
         if (process.env.TONYU_HOME) {
