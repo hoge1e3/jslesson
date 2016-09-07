@@ -10,6 +10,7 @@ and=!create.
 and:true=[|;args res flag|
     args=(window:Array:prototype:slice!(arguments)call).
     flag=:true.
+    res=:false.
     args![|p|
         [flag]!then[
             [
@@ -30,16 +31,20 @@ and:true=[|;args res flag|
 or=!create.
 /*引数にtrueが含まれた場合trueを返す。
 戻り値：引数の中にtrueが含まれるかどうかの真偽値*/
-or:true=[|;args res|
+or:true=[|;args res flag|
     args=(window:Array:prototype:slice!(arguments)call).
-    args![|p;tmp|
-        [
-            [(!(p)typeof)=="function"]!then[
-                tmp=p!execute
-            ]else[
-                tmp=p
-            ]execute
-        ]!then[res=tmp]execute
+    flag=:true.
+    res=:false.
+    args![|p|
+        [flag]!then[
+            [
+                res=[(!(p)typeof)=="function"]!then[
+                    p!execute
+                ]else[
+                    p
+                ]execute.
+            ]!then[flag=:false]execute
+        ]execute
     ]each.
     res
 ].

@@ -852,7 +852,7 @@ function ready() {
             //prog.setFontSize(20);
             prog.setTheme("ace/theme/eclipse");
             defaultKeyboard=prog.getKeyboardHandler();
-            if(desktopEnv.editorMode=="emacs") prog.setKeyboardHandler("ace/keyboard/emacs");
+            //if(desktopEnv.editorMode=="emacs") prog.setKeyboardHandler("ace/keyboard/emacs");
             //prog.setKeyboardHandler(defaultKeyboard);
             if (f.ext()==EXT && lang=="c") {
                 prog.getSession().setMode("ace/mode/c_cpp");
@@ -875,8 +875,8 @@ function ready() {
             inf.dom.show();
             inf.editor.focus();
             curDOM=inf.dom;
-            if(desktopEnv.editorMode=="emacs") inf.editor.setKeyboardHandler("ace/keyboard/emacs");
-            else inf.editor.setKeyboardHandler(defaultKeyboard);
+            //if(desktopEnv.editorMode=="emacs") inf.editor.setKeyboardHandler("ace/keyboard/emacs");
+            //else inf.editor.setKeyboardHandler(defaultKeyboard);
         }
         $("#curFileLabel").text(f.truncExt());
     }

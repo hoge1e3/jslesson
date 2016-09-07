@@ -227,9 +227,12 @@ Button:initialize=[|label key;t|
     element! "font-size" "1.0em" css
     "white-space" "nowrap" css
     "border-style" "none" css.
-    :window![:window:document!"keydown"[|k|
-            [k:keyCode==(:Button!(key)toKeyCode)]!then[t!action]execute.
-    ](:true)addEventListener.]$.
+    [key]!then[
+        :window![:window:document!"keydown"[|k|
+                [k:keyCode==(:Button:keyCodeDict!
+                ((key+"")!toUpperCase)read)]!then[t!action]execute.
+        ](:true)addEventListener.]$.
+    ]execute.
     /*以上*/
 ].
 Button:setAction=[|a|
@@ -271,14 +274,54 @@ Button:size=[|w h|
     "height" (h+"px") css.
     self
 ].
-Button:toKeyCode=[|k|
+Button:keyCodeDict=Dict!create.
+[|;arr|
+    arr=Array!"0" "1" "2" "3" "4" "5" "6" "7" "8" "9"create. 
+    [|n|
+        Button:keyCodeDict!(arr!(n)get)(n+47)write
+    ]!(arr!isLength)repeat.
+    arr=Array!"A" "B" "C" "D" "E" "F" "G" "H" "I" "J"
+    "K" "L" "M" "N" "O" "P" "Q" "R" "S" "T" "U"
+    "V" "W" "X" "Y" "Z" create.
+    [|n|
+        Button:keyCodeDict!(arr!(n)get)(n+64)write
+    ]!(arr!isLength)repeat.
+    arr=Array!"F1" "F2" "F3" "F4" "F5" "F6" "F7" "F8"
+    "F9" "F10" "F11" "F12"create.
+    [|n|
+        Button:keyCodeDict!(arr!(n)get)(n+111)write
+    ]!(arr!isLength)repeat.
+    Button:keyCodeDict!
+    "ESCAPE" 27 write
+    "MINUS" 189 write
+    "BACK_SLASH" 220 write
+    "OPEN_BRACKET" 219 write
+    "CLOSE_BRACKET" 221 write
+    "SEMICOLON" 186 write
+    "COMMA" 188 write 
+    "PERIOD" 190 write
+    "SLASH" 191 write 
+    "ENTER" 13 write
+    "PAGE_UP" 33 write
+    "PAGE_DOWN" 34 write
+    "END" 35 write
+    "HOME" 36 write
+    "LEFT" 37 write
+    "UP" 38 write
+    "RIGHT" 39 write
+    "DOWN" 40 write
+    "SPACE" 32 write
+    "SHIFT" 16 write
+    "CTRL" 17 write.
+]!execute.
+/*Button:keyCodeDict![|k|
     k=(k+"") ! toUpperCase.
     [k=="LEFT"]!then[37]
     else[k=="UP"]then[38]
     else[k=="RIGHT"]then[39]
     else[k=="DOWN"]then[40]
     else[k=="SPACE"]then[32]execute.
-].
+].*/
 Button:inc=[|;label|
     label=(self:element!0 get):innerHTML.
     [label!(:window!"^([0-9０-９]+)$"RegExp)match]!then[
