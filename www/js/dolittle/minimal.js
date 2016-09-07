@@ -364,10 +364,14 @@ MinimalParser= function () {
 				var line=(str.substr(0,result.src.maxPos)).match(/\n/g);
 				line=(line)?line.length:0;
 				//alert("エラーが発生しました。\n"+line+"行目付近を確認してください。");
-				return extend([
-				"throw new Error('",de,"エラーが発生しました。\\n",line,
-				"行目付近を確認してください。');"
-				],{type:"ERROR",message:de+"エラー "+line+"行目"});
+				var mesg=de+"エラーが発生しました。\n"+line+"行目付近を確認してください。";
+				if (options.throwCompileErrorOnRuntime) {
+    				return extend([
+    				"throw new Error('"+mesg.replace(/\n/g,"\\n")+"');"
+    				],{type:"ERROR",message:mesg});
+				} else {
+				    throw new Error(mesg);
+				}
 			}
 		}
         return output;

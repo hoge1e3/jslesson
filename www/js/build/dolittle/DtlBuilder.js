@@ -77,7 +77,9 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
         if (!a.exists()) return false;
         return a.lastUpdate()>b.lastUpdate();
     }   
-    p.build=function () {
+    p.build=function (options) {
+        options=options||{};
+        var mainFilePath=options.mainFile && options.mainFile.path();
         var curPrj=this.prj;
         var dst=this.dst;
         var t=this;
@@ -107,7 +109,8 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
                 if (f.dst.dtlvm) return compileVM(f);
                 var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
                 buf.setSrcFile(f.src.dtl);
-                var js=dtlParser.parse(f.src.dtl.text(),{indentBuffer:buf,src:f.src.dtl.name()});
+                var js=dtlParser.parse(f.src.dtl.text(),{indentBuffer:buf,src:f.src.dtl.name(),
+                throwCompileErrorOnRuntime:f.src.dtl.path()!=mainFilePath});
                 buf.close();
                 return SplashScreen.waitIfBusy();
             });

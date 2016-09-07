@@ -432,11 +432,26 @@ function ready() {
             }
             if (builder && inf) {
                 var curFile=inf.file;
+                var curFiles=fileSet(curFile);
+                var curHTMLFile=curFiles[0];
+                var curLogicFile=curFiles[1];
+
                 var pub=Auth.remotePublics()/*FS.get("/public/")*/.rel(curProjectDir.name());
                 SplashScreen.show();
                 DU.timeout(0).then(function () {
-                    return builder.build();    
+                    //alert(curLogicFile.path());
+                    return builder.build({mainFile:curLogicFile});    
                 }).then(function () {
+                    /*var ceor=/COMPILE_ERROR_ON_RUNTIME((.|\r|\n)*)\*\//;
+                    var curCompiledLogicFile=ram.rel(curLogicFile.name());
+                    console.log(curCompiledLogicFile.path());
+                    var m;
+                    if (curCompiledLogicFile.exists()) {
+                        m=ceor.exec(curCompiledLogicFile.text());
+                        if (m) {
+                            throw new Error(m[1]);
+                        }
+                    }*/
                     //if (window.SplashScreen) window.SplashScreen.progress("Upload contents...");
                     return builder.upload(pub);                    
                 }).then(function () {
@@ -445,13 +460,16 @@ function ready() {
                     cv.dialog();
                     //  http://localhost/fs/home/0123/dolittle/public/Turtle2/Raw_k6.html
                     runURL=WebSite.published+Auth.class+"/"+
-                    Auth.user+"/public/"+pub.name()+curFile.truncExt()+".html";
+                    Auth.user+"/public/"+pub.name()+curHTMLFile.name();
                     //alert("synced "+runURL);
                     cv.append($("<div>").append(
                         $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
                     ));
                     cv.append($("<div>").qrcode(runURL));
                     return sync();
+                }).fail(function (e) {
+                    Tonyu.onRuntimeError(e);
+                    SplashScreen.hide();
                 });
             }
         } else {
@@ -489,7 +507,7 @@ function ready() {
             //RunDialog2 (new version)
             try {
                 DU.timeout(0).then(function () {
-                    return builder.build();    
+                    return builder.build({mainFile:curJSFile});    
                 }).then(function () {
                     //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
@@ -519,41 +537,6 @@ function ready() {
             sync
             */
             
-            /*var name=curPrj.getClassName(curJSFile);
-            A.is(name,String);
-            if (!curClassroom || !curUser) {
-                alert("ログインしていないので実行できません");
-                return;
-            }
-	        runURL=location.href.replace(/\/[^\/]*\?.*$/,
-	                "/run.html?classroom="+curClassroom+"&usr="+curUser+
-	                "&prj="+curProjectDir.name().replace("/","")+
-	                "&class="+name.replace("user.","")
-	        );
-	        $("#fullScr").attr("href","javascript:;").text("別ページで実行");
-	        $("#qr").text("QR");
-	        curPrj.loadClasses().then(DU.throwF(function() {
-	            curName=name;
-	            if (curFrameRun) {
-	                window.setupFrame(curFrameRun);
-	                RunDialog.show("src","run.html",{height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
-	            } else {
-	                //$("#ifrm").attr("src","run.html");
-	                RunDialog.show("src","run.html",{height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
-	            }
-	            return sync();
-	        }), function (e) {
-	            A(e);
-	            SplashScreen.hide();
-	            if (e.isTError) {
-	                console.log("showErr: run",e);
-	                showErrorPos($("#errorPos"),e);
-	                displayMode("compile_error");
-                    logToServer("JS Compile Error!\n"+e.src+":"+e.pos+"\n"+e.mesg+"\nJS Compile Error End!");
-	            }else{
-	                Tonyu.onRuntimeError(e);
-	            }
-	        });*/
     	}else if(lang=="c"){
     	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text());
     		var compiledFile=curPrj.getOutputFile();
@@ -582,7 +565,7 @@ function ready() {
         	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
     	        $("#fullScr").attr("href","javascript:;").text("別ページで表示");
                 DU.timeout(0).then(function () {
-                    return builder.build();    
+                    return builder.build({mainFile:curJSFile});    
                 }).then(function () {
                     var indexF=ram.rel(curHTMLFile.name());
                     logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"Dolittle Run","実行しました","Dolittle");
