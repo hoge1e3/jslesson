@@ -244,11 +244,10 @@ gyroSensor!"setAction" "動作設定" addAlias
 文字列=window:String.
 sp=window:String:prototype.
 aa!(sp) "add" "連結" call.
-aa!(sp) "isContain" "含む?" call.
-aa!(sp) "isPosition" "何文字目?" call.
+aa!(sp) "contain?" "含む?" call.
+aa!(sp) "position?" "何文字目?" call.
 aa!(sp) "substr" "部分" call.
-aa!(sp) "isLength" "長さ?" call. 
-//aa!(sp) "length?" "長さ?" call.
+aa!(sp) "length?" "長さ?" call.
 aa!(sp) "partition" "分割" call.
 aa!(sp) "oneReplace" "置き換える" call.
 aa!(sp) "allReplace" "全部置き換える" call.
@@ -264,8 +263,7 @@ aa!(ap) "remove" "消す" call.
 aa!(ap) "removepos" "位置で消す" call.
 aa!(ap) "insert" "挿入" call.
 aa!(ap) "each" "それぞれ実行" call.
-aa!(ap) "isLength" "要素数?" call.
-//aa!(ap) "length?" "要素数?" call.
+aa!(ap) "length?" "要素数?" call.
 aa!(ap) "clear" "クリア" call.
 aa!(ap) "concat" "連結" call.
 aa!(ap) "randomSelect" "ランダムに選ぶ" call.

@@ -1,5 +1,7 @@
 module!"Vec2" "Actor" "UI" "Turtle" "Figure" "DOM" "Util"  "Timer" "Color" "Dict" "Japanese"
 [ 
+    
+    
     出力＝テキストエリア！作る．
     ボタン！"0" "0" 作る 「出力！"0"上書き」動作設定．
     ボタン！"1" "1" 作る 「出力！"1"上書き」動作設定．
@@ -70,6 +72,7 @@ module!"Vec2" "Actor" "UI" "Turtle" "Figure" "DOM" "Util"  "Timer" "Color" "Dict
     ボタン！"SPACE" "SPACE" 作る 「出力！"SPACE"上書き」動作設定．
     ボタン！"SHIFT" "SHIFT" 作る 「出力！"SHIFT"上書き」動作設定．
     ボタン！"CTRL" "CTRL" 作る 「出力！"CTRL"上書き」動作設定．
+    
     /*
     テキストエリア！作る
     （！（システム）typeof）

@@ -364,18 +364,24 @@ return label=this['read']();
 this['element']=this['$']['create']("<button>")['text']((this['num2str']((label))))['css']("vertical-align","top")['css']("white-space","nowrap");
 this['autoLayout']();
 this['element']['css']("font-size","1.0em")['css']("white-space","nowrap")['css']("border-style","none");
+return dtlbind(this,function(){
+var self=this;var 自分=self;
+return key;
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
 return root['window']['$'](dtlbind(this,function(){
 var self=this;var 自分=self;
 return root['window']['document']['addEventListener']("keydown",dtlbind(this,function(k){
 var self=this;var 自分=self;
 return dtlbind(this,function(){
 var self=this;var 自分=self;
-return (k['keyCode']===(root['Button']['toKeyCode']((key))));
+return (k['keyCode']===(root['Button']['keyCodeDict']['read']((((key+""))['toUpperCase']()))));
 })['then']()['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;
 return t['action']();
 }));
 }),(root['true']));
+}));
 }));
 });
 this['Button']['setAction']=dtlbind(this,function(a){
@@ -429,41 +435,27 @@ var self=this;var 自分=self;
 this['element']['css']("width",((w+"px")))['css']("height",((h+"px")));
 return this;
 });
-this['Button']['toKeyCode']=dtlbind(this,function(k){
+this['Button']['keyCodeDict']=this['Dict']['create']();
+dtlbind(this,function(){
 var self=this;var 自分=self;
-k=((k+""))['toUpperCase']();
-return dtlbind(this,function(){
+var arr;
+arr=this['Array']['create']("0","1","2","3","4","5","6","7","8","9");
+dtlbind(this,function(n){
 var self=this;var 自分=self;
-return (k==="LEFT");
-})['then']()['else'](dtlbind(this,function(){
+return this['Button']['keyCodeDict']['write']((arr['get']((n))),((n+(47))));
+})['repeat']((arr['length?']()));
+arr=this['Array']['create']("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z");
+dtlbind(this,function(n){
 var self=this;var 自分=self;
-return (37);
-}))['then'](dtlbind(this,function(){
+return this['Button']['keyCodeDict']['write']((arr['get']((n))),((n+(64))));
+})['repeat']((arr['length?']()));
+arr=this['Array']['create']("F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12");
+dtlbind(this,function(n){
 var self=this;var 自分=self;
-return (k==="UP");
-}))['else'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return (38);
-}))['then'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return (k==="RIGHT");
-}))['else'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return (39);
-}))['then'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return (k==="DOWN");
-}))['else'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return (40);
-}))['then'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return (k==="SPACE");
-}))['execute'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return (32);
-}));
-});
+return this['Button']['keyCodeDict']['write']((arr['get']((n))),((n+(111))));
+})['repeat']((arr['length?']()));
+return this['Button']['keyCodeDict']['write']("ESCAPE",(27))['write']("MINUS",(189))['write']("BACK_SLASH",(220))['write']("OPEN_BRACKET",(219))['write']("CLOSE_BRACKET",(221))['write']("SEMICOLON",(186))['write']("COMMA",(188))['write']("PERIOD",(190))['write']("SLASH",(191))['write']("ENTER",(13))['write']("PAGE_UP",(33))['write']("PAGE_DOWN",(34))['write']("END",(35))['write']("HOME",(36))['write']("LEFT",(37))['write']("UP",(38))['write']("RIGHT",(39))['write']("DOWN",(40))['write']("SPACE",(32))['write']("SHIFT",(16))['write']("CTRL",(17));
+})['execute']();
 this['Button']['inc']=dtlbind(this,function(){
 var self=this;var 自分=self;
 var label;

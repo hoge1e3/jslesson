@@ -279,18 +279,18 @@ Button:keyCodeDict=Dict!create.
     arr=Array!"0" "1" "2" "3" "4" "5" "6" "7" "8" "9"create. 
     [|n|
         Button:keyCodeDict!(arr!(n)get)(n+47)write
-    ]!(arr!isLength)repeat.
+    ]!(arr!length?)repeat.
     arr=Array!"A" "B" "C" "D" "E" "F" "G" "H" "I" "J"
     "K" "L" "M" "N" "O" "P" "Q" "R" "S" "T" "U"
     "V" "W" "X" "Y" "Z" create.
     [|n|
         Button:keyCodeDict!(arr!(n)get)(n+64)write
-    ]!(arr!isLength)repeat.
+    ]!(arr!length?)repeat.
     arr=Array!"F1" "F2" "F3" "F4" "F5" "F6" "F7" "F8"
     "F9" "F10" "F11" "F12"create.
     [|n|
         Button:keyCodeDict!(arr!(n)get)(n+111)write
-    ]!(arr!isLength)repeat.
+    ]!(arr!length?)repeat.
     Button:keyCodeDict!
     "ESCAPE" 27 write
     "MINUS" 189 write

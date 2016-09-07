@@ -11,6 +11,7 @@ var res;
 var flag;
 args=(this['window']['Array']['prototype']['slice']['call']((arguments)));
 flag=root['true'];
+res=root['false'];
 args['each'](dtlbind(this,function(p){
 var self=this;var 自分=self;
 return dtlbind(this,function(){
@@ -44,25 +45,33 @@ this['or']['true']=dtlbind(this,function(){
 var self=this;var 自分=self;
 var args;
 var res;
+var flag;
 args=(this['window']['Array']['prototype']['slice']['call']((arguments)));
+flag=root['true'];
+res=root['false'];
 args['each'](dtlbind(this,function(p){
 var self=this;var 自分=self;
-var tmp;
 return dtlbind(this,function(){
 var self=this;var 自分=self;
+return flag;
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
 return dtlbind(this,function(){
+var self=this;var 自分=self;
+return res=dtlbind(this,function(){
 var self=this;var 自分=self;
 return ((this['typeof']((p)))==="function");
 })['then']()['else'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return tmp=p['execute']();
+return p['execute']();
 }))['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return tmp=p;
+return p;
 }));
 })['then']()['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return res=tmp;
+return flag=root['false'];
+}));
 }));
 }));
 return res;
