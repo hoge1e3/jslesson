@@ -396,6 +396,7 @@ root.gyroSensor["使う"]=root.gyroSensor.use;
 root["ジャイロセンサ"]=root.gyroSensor;
 root["ジャイロセンサー"]=root.gyroSensor;
 
+
 // from http://jsdo.it/hoge1e4/47Z2/
 function startCalibrationOLD(onend) {
     var cve=$("<canvas>").attr({width:200,height:200}).css({

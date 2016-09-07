@@ -267,10 +267,10 @@ Object.defineProperty(Array.prototype,"length?",{
 	enumerable:false,configurable:true,
 	value:function(){return this.length;}
 });
-/*Object.defineProperty(Array.prototype,"要素数?",{
+Object.defineProperty(Array.prototype,"要素数?",{
 	enumerable:false,configurable:true,
 	value:function(){return this.length;}
-});*/
+});
 /*Object.defineProperty(Array.prototype,"連結",{
 	enumerable:false,configurable:true,
 	value:function(){
@@ -348,16 +348,18 @@ root.Array=Array;
 //Stringオブジェクト
 String.prototype.add=String.prototype.concat;
 //String.prototype["連結"]=String.prototype.concat;
-String.prototype.isContain=function(_param){return -1!=this.valueOf().search(RegExp(_param));};
-String.prototype["含む?"]=String.prototype.isContain;
-String.prototype.isPosition=function(p){return this.valueOf().search(RegExp(p))+1};
-String.prototype["何文字目?"]=String.prototype.isPosition;
-String.prototype["substr"]=function(){return ((arguments.length==1)?substr1:substr2).apply(this,arguments);};
+String.prototype["contain?"]=function(_param){return -1!=this.valueOf().search(RegExp(_param));};
+String.prototype["含む?"]=String.prototype["contain?"];
+String.prototype["position?"]=function(p){return this.valueOf().search(RegExp(p))+1};
+String.prototype["何文字目?"]=String.prototype["position?"];
+String.prototype.substr=function(){return ((arguments.length==1)?substr1:substr2).apply(this,arguments);};
 //String.prototype["部分"]=String.prototype.substr;
 String.prototype["length?"]=function(){return this.length;};
-//String.prototype["長さ?"]=String.prototype["length?"];
+String.prototype["長さ?"]=String.prototype["length?"];
+String.prototype.partition=function(s){return this.split(RegExp(s));};
 //String.prototype["分割"]=String.prototype.split;
 //String.prototype["置き換える"]=String.prototype.replace;
+String.prototype.oneReplace=function(_pattern,_replacement){return this.valueOf().replace((new RegExp(_pattern)),_replacement);};
 String.prototype.allReplace=function(_pattern,_replacement){return this.valueOf().replace((new RegExp(_pattern,"g")),_replacement);};
 //String.prototype["全部置き換える"]=String.prototype.allReplace;
 var substr1=function(param){return this.substring(param-1);};
@@ -440,6 +442,9 @@ Number.prototype.lt=function(n){
 };
 Number.prototype.le=function(n){
 	return this<=n
+};
+Number.prototype.fromCharCode=function(){
+	return String.fromCharCode(this);
 };
 
 var Random=new function(){
