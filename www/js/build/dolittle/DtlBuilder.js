@@ -105,12 +105,13 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
         }).then(DU.tr(function () {
             return DU.each(files,function (f) {
                 t.progress("Transpile "+f.src.dtl.name());
-                if (isNewer(f.dst.js, f.src.dtl)) return SplashScreen.waitIfBusy();
+                var isMainFile=(f.src.dtl.path()==mainFilePath);
+                if (!isMainFile && isNewer(f.dst.js, f.src.dtl)) return SplashScreen.waitIfBusy();
                 if (f.dst.dtlvm) return compileVM(f);
                 var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
                 buf.setSrcFile(f.src.dtl);
                 var js=dtlParser.parse(f.src.dtl.text(),{indentBuffer:buf,src:f.src.dtl.name(),
-                throwCompileErrorOnRuntime:f.src.dtl.path()!=mainFilePath});
+                throwCompileErrorOnRuntime:!isMainFile});
                 buf.close();
                 return SplashScreen.waitIfBusy();
             });
