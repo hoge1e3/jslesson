@@ -55,6 +55,7 @@ system:time=[|;d|
     (d!getHours)+":"+(d!getMinutes)+":"+(d!getSeconds)
 ].
 system:today=[self!(:window:Date)new toString].
+system:dayStr="日月火水木金土".
 system:day=[|;n|
     n=self!(:window:Date)new getDay.
     [n==0]!then["日"]

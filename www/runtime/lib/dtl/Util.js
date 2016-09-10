@@ -90,6 +90,7 @@ this['system']['today']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return this['new']((root['window']['Date']))['toString']();
 });
+this['system']['dayStr']="日月火水木金土";
 this['system']['day']=dtlbind(this,function(){
 var self=this;var 自分=self;
 var n;
