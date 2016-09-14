@@ -1112,17 +1112,21 @@ PathUtil={
 		assert.is(arguments,[Path]);
         return endsWith(path,SEP);
     },
-    fixSep: function (path) {
+    hasBackslashSep:function (path) {
+        return path.indexOf("\\")>=0;   
+    },
+    fixSep: function (path,to) {
+        to=to||"/";
         assert.is(arguments,[String]);
-        return assert.is( path.replace(/\\/g,"/"), Path);
+        return assert.is( path.replace(/[\\\/]/g,to), Path);
     },
     directorify: function (path) {
-        path=PathUtil.fixSep(path);
+        //path=PathUtil.fixSep(path);
         if (PathUtil.isDir(path)) return path;
         return assert.is(path+SEP, Dir);
     },
     filify: function (path) {
-        path=PathUtil.fixSep(path);
+        //path=PathUtil.fixSep(path);
         if (!PathUtil.isDir(path)) return path;
         return assert.is(path.substring(0,path.length-1),File);
     },
@@ -1197,13 +1201,34 @@ PathUtil={
         return path.substring(base.length);
     },
     up: function(path) {
-        path=PathUtil.fixSep(path);
+        //path=PathUtil.fixSep(path);
         if (path==SEP) return null;
         var ps=PathUtil.splitPath(path);
         ps.pop();
         return ps.join(SEP)+SEP;
     }
 };
+["directorify", "filify", "splitPath", "name", "rel", "relPath", "up"].forEach(function (k) {
+    var old=PathUtil[k];
+    PathUtil[k]=function () {
+        var backslashifyAfter=false;
+        var a=Array.prototype.slice.call(arguments).map(function (e) {
+            if (PathUtil.hasBackslashSep(e)) {
+                backslashifyAfter=true; 
+                return PathUtil.fixSep(e);
+            } else {
+                return e;
+            }
+        });
+        var res=old.apply(PathUtil,a);
+        if (backslashifyAfter) {
+            return PathUtil.fixSep(res,"\\");
+        } else {
+            return res;
+        }
+    };
+});
+
 PathUtil.isAbsolute=PathUtil.isAbsolutePath;
 PathUtil.isRelative=PathUtil.isRelativePath;
 if (typeof window=="object") window.PathUtil=PathUtil;
@@ -12591,6 +12616,9 @@ function (sh,FS,DU,UI,S) {
             this.iframeAttr.height=h;
         }
     };
+    p.focus=function () {
+        if (this.iframe) this.iframe.focus();
+    };
     var urlparam=/\?.*$/;
     p.open=function (f,options) {    
         options=options||{};
@@ -12716,6 +12744,15 @@ function (sh,FS,DU,UI,S) {
                 if (window.onerror) window.onerror(message, source, lineno, colno,ex);
             };
             idoc=iwin.document;
+            idoc.write=function () {
+                Array.prototype.slice.call(arguments).forEach(function (e) {
+                    idoc.body.innerHTML+=e;//appendChild(idoc.createTextNode(e));
+                });
+            };
+            idoc.writeln=function () {
+                idoc.write.apply(idoc,arguments);
+                idoc.write("\n");
+            };
             return $.when().then(F(function () {
                 return appendTo(src.getElementsByTagName("html")[0], 
                 idoc.getElementsByTagName("html")[0]);
@@ -12768,13 +12805,15 @@ function (sh,FS,DU,UI,S) {
                     return $.when(d && d.promise()).then(function () {
                         return appendTo(n ,nn);
                     }).then (function () {
-                        return DU.timeout(0,i+1);
+                        //return DU.timeout(100,i+1);
+                        return i+1;//DU.timeout(0,i+1);
                     });
                 case Node.TEXT_NODE:
                     dst.appendChild(idoc.createTextNode(n.textContent));
                     break;
                 }
-                return DU.timeout(0,i+1);
+                //return DU.timeout(100,i+1);
+                return i+1;//DU.timeout(0,i+1);
             },0);
         }
     };
@@ -12905,6 +12944,9 @@ function (UI, LocalBrowser,DA) {
                 height:400
             });
         }
+        setTimeout(function () {
+            res.b.focus();
+        },100);
         res.b.open(runFile,{
             onload:function () {
                 console.log(this);
@@ -14245,6 +14287,7 @@ function ready() {
             if (f.ext()==HEXT) {
                 prog.getSession().setMode("ace/mode/html");
             }
+            prog.getSession().setUseWrapMode(true);
             editors[f.path()]={file:f , editor: prog, dom:progDOM};
             progDOM.click(F(function () {
                 displayMode("edit");
