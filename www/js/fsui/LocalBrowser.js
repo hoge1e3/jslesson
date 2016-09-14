@@ -20,6 +20,9 @@ function (sh,FS,DU,UI,S) {
             this.iframeAttr.height=h;
         }
     };
+    p.focus=function () {
+        if (this.iframe) this.iframe.focus();
+    };
     var urlparam=/\?.*$/;
     p.open=function (f,options) {    
         options=options||{};
@@ -145,6 +148,15 @@ function (sh,FS,DU,UI,S) {
                 if (window.onerror) window.onerror(message, source, lineno, colno,ex);
             };
             idoc=iwin.document;
+            idoc.write=function () {
+                Array.prototype.slice.call(arguments).forEach(function (e) {
+                    idoc.body.innerHTML+=e;//appendChild(idoc.createTextNode(e));
+                });
+            };
+            idoc.writeln=function () {
+                idoc.write.apply(idoc,arguments);
+                idoc.write("\n");
+            };
             return $.when().then(F(function () {
                 return appendTo(src.getElementsByTagName("html")[0], 
                 idoc.getElementsByTagName("html")[0]);
@@ -197,13 +209,15 @@ function (sh,FS,DU,UI,S) {
                     return $.when(d && d.promise()).then(function () {
                         return appendTo(n ,nn);
                     }).then (function () {
-                        return DU.timeout(0,i+1);
+                        //return DU.timeout(100,i+1);
+                        return i+1;//DU.timeout(0,i+1);
                     });
                 case Node.TEXT_NODE:
                     dst.appendChild(idoc.createTextNode(n.textContent));
                     break;
                 }
-                return DU.timeout(0,i+1);
+                //return DU.timeout(100,i+1);
+                return i+1;//DU.timeout(0,i+1);
             },0);
         }
     };

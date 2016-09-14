@@ -34,7 +34,7 @@
  * @param payload a function to call with (require, exports, module) params
  */
 
-var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;//added by @hoge1e3
+var isChrome53=navigator.userAgent.match(/Chrome\/5[3-9]/);//>=0;//added by @hoge1e3
 (function() {
 var ACE_NAMESPACE = "ace";
 

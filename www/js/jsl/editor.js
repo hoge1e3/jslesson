@@ -837,6 +837,7 @@ function ready() {
             if (f.ext()==HEXT) {
                 prog.getSession().setMode("ace/mode/html");
             }
+            prog.getSession().setUseWrapMode(true);
             editors[f.path()]={file:f , editor: prog, dom:progDOM};
             progDOM.click(F(function () {
                 displayMode("edit");

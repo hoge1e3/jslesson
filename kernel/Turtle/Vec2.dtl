@@ -48,6 +48,21 @@ Polygon:fromPolyKArray=[|a;x y res|
     res.
 ].
 
+Polygon:originPoint=[
+    and ! [v2ary] [(v2ary! length?)>0] true then [
+        v2ary ! 1 get
+    ] execute.
+].
+Polygon:lastPoint=[
+    and ! [v2ary] [(v2ary! length?)>0] true then [
+        v2ary ! (v2ary! length?) get
+    ] execute.
+].
+Polygon:isPathClosed=[|;o l|
+    o=!originPoint.
+    l=!lastPoint.
+    and ! [o] [l] [(o ! (l) sub len)<0.1] true 
+].
 Polygon:addVertex=[|x y|
     v2ary! (Vec2 !(x) (y) create) push.
     this.
@@ -59,6 +74,7 @@ Polygon:toPolyKArray=[|;res|
         res ! (e:x) push.
         res ! (e:y) push.
     ] forEach.
+    [!isPathClosed] ! then [res ! pop. res ! pop] execute.
     (window:PolyK) ! (res) FixDirection.
 ].
 Polygon:transform=[|deg pos;res|

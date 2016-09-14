@@ -350,17 +350,21 @@ PathUtil={
 		assert.is(arguments,[Path]);
         return endsWith(path,SEP);
     },
-    fixSep: function (path) {
+    hasBackslashSep:function (path) {
+        return path.indexOf("\\")>=0;   
+    },
+    fixSep: function (path,to) {
+        to=to||"/";
         assert.is(arguments,[String]);
-        return assert.is( path.replace(/\\/g,"/"), Path);
+        return assert.is( path.replace(/[\\\/]/g,to), Path);
     },
     directorify: function (path) {
-        path=PathUtil.fixSep(path);
+        //path=PathUtil.fixSep(path);
         if (PathUtil.isDir(path)) return path;
         return assert.is(path+SEP, Dir);
     },
     filify: function (path) {
-        path=PathUtil.fixSep(path);
+        //path=PathUtil.fixSep(path);
         if (!PathUtil.isDir(path)) return path;
         return assert.is(path.substring(0,path.length-1),File);
     },
@@ -435,13 +439,34 @@ PathUtil={
         return path.substring(base.length);
     },
     up: function(path) {
-        path=PathUtil.fixSep(path);
+        //path=PathUtil.fixSep(path);
         if (path==SEP) return null;
         var ps=PathUtil.splitPath(path);
         ps.pop();
         return ps.join(SEP)+SEP;
     }
 };
+["directorify", "filify", "splitPath", "name", "rel", "relPath", "up"].forEach(function (k) {
+    var old=PathUtil[k];
+    PathUtil[k]=function () {
+        var backslashifyAfter=false;
+        var a=Array.prototype.slice.call(arguments).map(function (e) {
+            if (PathUtil.hasBackslashSep(e)) {
+                backslashifyAfter=true; 
+                return PathUtil.fixSep(e);
+            } else {
+                return e;
+            }
+        });
+        var res=old.apply(PathUtil,a);
+        if (backslashifyAfter) {
+            return PathUtil.fixSep(res,"\\");
+        } else {
+            return res;
+        }
+    };
+});
+
 PathUtil.isAbsolute=PathUtil.isAbsolutePath;
 PathUtil.isRelative=PathUtil.isRelativePath;
 if (typeof window=="object") window.PathUtil=PathUtil;

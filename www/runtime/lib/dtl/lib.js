@@ -17,6 +17,7 @@ root.addAlias=function () {
     var orig=a.shift();
     var t=this;
     a.forEach(function (al) {
+        //if (t in al) return;
         Object.defineProperty(t,al,{
 	        enumerable:false,configurable:true,
 	        get:function() { return this[orig]; },
@@ -24,6 +25,34 @@ root.addAlias=function () {
         });
     });
     return this;
+};
+root.addAliasFromTable=function () {
+    // objects, methods....
+    var a=Array.prototype.slice.call(arguments).map(function (e) {
+        return e.replace(/\s/g,"");
+    });
+    var objects=a.shift().split(",");
+    var methods=a.join(",").split(",");
+    objects.forEach(function (obj) {
+        if (!root[obj]) {
+            console.log("Warning! object ",obj," not found");
+            return;
+        }
+        var originalMethod,cnt=0;
+        for (var i=0 ;i<methods.length; i++) {
+            //console.log("METHIN",methods[i],"in",root[obj],"->",methods[i] in root[obj]);
+            if (methods[i] in root[obj]) {
+                originalMethod=methods.splice(i,1);
+                methods.unshift(originalMethod[0]);
+                cnt++;
+            }
+        }
+        if (cnt==1) {
+            root.addAlias.apply(root[obj], methods);
+        } else {
+            console.log("Warning! addalias2 count=",cnt,"obj=",obj,"meth=",methods);
+        }
+    });
 };
  var and={true:function(){var arr=Array.prototype.slice.call(arguments);var res=Boolean(arr[0]);$.each(arr,function(key,value){res=(res&&value);});return res;}};
  var or={true:function(){var arr=Array.prototype.slice.call(arguments);var res=Boolean(arr[0]);$.each(arr,function(key,value){res=(res||value);});return res;}};

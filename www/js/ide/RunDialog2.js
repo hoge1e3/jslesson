@@ -50,6 +50,9 @@ function (UI, LocalBrowser,DA) {
                 height:400
             });
         }
+        setTimeout(function () {
+            res.b.focus();
+        },100);
         res.b.open(runFile,{
             onload:function () {
                 console.log(this);

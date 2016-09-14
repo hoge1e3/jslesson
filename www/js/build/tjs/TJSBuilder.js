@@ -29,7 +29,7 @@ function (A,DU,wget,Sync) {
         var body=dom.getElementsByTagName("body")[0];
         $(body).find("img").each(function () {
             var url=$(this).attr("src");
-            if (!url.match(/^http/)) {
+            if ( (typeof url=="string") && !url.match(/^http/)) {
                 $(this).attr("src",WebSite.runtime+url);
             }
         });
