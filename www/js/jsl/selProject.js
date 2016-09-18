@@ -48,7 +48,7 @@ function ready() {//-------------------------
 	    	["a",{href:"teacher.php",target:"teaTab"},"教員用ログイン"]
             ],*/
             ["button", {id:"newPrj", "class":"btn btn-primary"}, "新規プロジェクト"],
-            ["button", {id:"newSample", "class":"btn btn-primary"}, "サンプルを見る"],
+            ["button", {id:"newSample", "class":"btn btn-primary"}, "サンプルプロジェクト"],
             ["span",{id:"syncMesg"}],
             ["div",{id:"prjItemList"}]
     ));

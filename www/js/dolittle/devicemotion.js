@@ -122,14 +122,14 @@ root.accelerationSensor.rawKeys=XYZ;
 root.accelerationSensor.calibratedKeys=XYZ;
 root.accelerationSensor.eventType="devicemotion";
 
-root.accelerationSensor["動作設定"]=root.accelerationSensor.setAction;
+/*root.accelerationSensor["動作設定"]=root.accelerationSensor.setAction;
 root.accelerationSensor["使う"]=root.accelerationSensor.use;
 root.accelerationSensor['調整']=root.accelerationSensor.calibrate;
 root.accelerationSensor["左右の加速度?"]=root.accelerationSensor.getXAcceleration;
 root.accelerationSensor["前後の加速度?"]=root.accelerationSensor.getYAcceleration;
 root.accelerationSensor["上下の加速度?"]=root.accelerationSensor.getZAcceleration;
 root.加速度センサ=root.accelerationSensor;
-root.加速度センサー=root.加速度センサ;
+root.加速度センサー=root.加速度センサ;*/
 
 root.compass=root.create();
 root.compass.direction=0;
@@ -167,13 +167,13 @@ root.compass.setAction=function(f){
 	return this;
 };
 
-root.compass["動作設定"]=root.compass.setAction;
+/*root.compass["動作設定"]=root.compass.setAction;
 root.compass["使う"]=root.compass.getDirection;
 root.compass["向き?"]=root.compass.getDirection;
 root.compass["方向?"]=root.compass.getDirection;
 root["磁気センサ"]=root.compass;
 root["磁気センサー"]=root.compass;
-root["コンパス"]=root.compass;
+root["コンパス"]=root.compass;*/
 
 root.GPS=root.create();
 root.GPS.latitude=0;
@@ -211,9 +211,9 @@ root.GPS.getLongitude=function(){
 	if(this.initialized==false)this.init();
 	return this.longitude;
 };
-root.GPS["使う"]=root.GPS.use;
+/*root.GPS["使う"]=root.GPS.use;
 root.GPS["緯度?"]=root.GPS.getLatitude;
-root.GPS["経度?"]=root.GPS.getLongitude;
+root.GPS["経度?"]=root.GPS.getLongitude;*/
 
 
 root.touchSensor=root.create();
@@ -300,7 +300,7 @@ root.touchSensor.setAction=function(f){
 	return this;
 };
 
-root.touchSensor["動作設定"]=root.touchSensor.setAction;
+/*root.touchSensor["動作設定"]=root.touchSensor.setAction;
 root.touchSensor["使う"]=root.touchSensor.use;
 root.touchSensor["タッチした?"]=root.touchSensor.getTouched;
 root.touchSensor["触れた?"]=root.touchSensor.getTouched;
@@ -311,7 +311,7 @@ root.touchSensor["触れてる?"]=root.touchSensor.getTouching;
 root.touchSensor["横の位置?"]=root.touchSensor.getX;
 root.touchSensor["縦の位置?"]=root.touchSensor.getY;
 root["タッチセンサ"]=root.touchSensor;
-root["タッチセンサー"]=root.touchSensor;
+root["タッチセンサー"]=root.touchSensor;*/
 
 root.gyroSensor=root.create();
 root.gyroSensor.x=0;
@@ -381,7 +381,7 @@ root.gyroSensor.rawKeys=ABG;
 root.gyroSensor.calibratedKeys=RPY;
 root.gyroSensor.eventType="deviceorientation";
 
-root.gyroSensor["動作設定"]=root.gyroSensor.setAction;
+/*root.gyroSensor["動作設定"]=root.gyroSensor.setAction;
 root.gyroSensor["ヨー?"]=root.gyroSensor.getYaw;
 root.gyroSensor["水平方向の傾き?"]=root.gyroSensor.getYaw;
 root.gyroSensor["水平の傾き?"]=root.gyroSensor.getYaw;
@@ -394,7 +394,7 @@ root.gyroSensor["前後の傾き?"]=root.gyroSensor.getPitch;
 root.gyroSensor['調整']=root.gyroSensor.calibrate;
 root.gyroSensor["使う"]=root.gyroSensor.use;
 root["ジャイロセンサ"]=root.gyroSensor;
-root["ジャイロセンサー"]=root.gyroSensor;
+root["ジャイロセンサー"]=root.gyroSensor;*/
 
 
 // from http://jsdo.it/hoge1e4/47Z2/

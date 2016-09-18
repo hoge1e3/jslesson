@@ -1,5 +1,5 @@
-// * ‚Írep0A  ?‚Íopt
-// . sep(t(","))  ƒJƒ“ƒ}‹æØ‚è
+// * ã¯rep0ã€  ?ã¯opt
+// . sep(t(","))  ã‚«ãƒ³ãƒåŒºåˆ‡ã‚Š
 
 translation-unit:
 	external-declaration*
@@ -10,19 +10,19 @@ external-declaration:
 
 function-definition:
 	declaration-specifiers? declarator declaration-list? compound-statement
-//           int                main(void)  ‚±‚±‚Íg‚í‚È‚¢¦  {   ......   }
-//¦Ì‚Í‚±‚¤‚â‚Á‚ÄŠÖ”’è‹`‚µ‚Ä‚½:
+//           int                main(void)  ã“ã“ã¯ä½¿ã‚ãªã„â€»  {   ......   }
+//â€»æ˜”ã¯ã“ã†ã‚„ã£ã¦é–¢æ•°å®šç¾©ã—ã¦ãŸ:
 int a(x,y) 
-int x,y  //<- ‚±‚±I
+int x,y  //<- ã“ã“ï¼
 {  return x+y; }
 //---------------
 
 declaration:
 	declaration-specifiers init-declarator-list?  ;
-//      static   const  int    *x=NULL,   y,    a[5]  ;  // •Ï”éŒ¾
-//                int          func(int x)            ;  // ƒvƒƒgƒ^ƒCƒvéŒ¾
-//                int          func(int)              ;  // ƒvƒƒgƒ^ƒCƒvéŒ¾(ˆø”‚ÌŒ^‚Ì‚İ)
-//                int      foo(int), bar(int)         ;  // ©‚±‚ñ‚È‘‚«•û‚à‚Å‚«‚éi’m‚ç‚È‚©‚Á‚½...)
+//      static   const  int    *x=NULL,   y,    a[5]  ;  // å¤‰æ•°å®£è¨€
+//                int          func(int x)            ;  // ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ—å®£è¨€
+//                int          func(int)              ;  // ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ—å®£è¨€(å¼•æ•°ã®å‹ã®ã¿)
+//                int      foo(int), bar(int)         ;  // â†ã“ã‚“ãªæ›¸ãæ–¹ã‚‚ã§ãã‚‹ï¼ˆçŸ¥ã‚‰ãªã‹ã£ãŸ...)
 
 declaration-list:
 	declaration*
@@ -43,7 +43,7 @@ type-specifier: one of
 type-qualifier: one of
 	const volatile
 
-// structÈ—ª	
+// structçœç•¥	
 
 init-declarator-list:
 	init-declarator .sep(t(","))
@@ -53,9 +53,9 @@ init-declarator:
 	declarator
 //	    x      =    5
 //         *y
-//      func(int x) ©‚±‚ÌŠ‡ŒÊ‚Ì•”•ª‚Ü‚ÅŠÜ‚ß‚Ädeclarator
+//      func(int x) â†ã“ã®æ‹¬å¼§ã®éƒ¨åˆ†ã¾ã§å«ã‚ã¦declarator
 
-// struct enum ŠÖ˜AÈ—ª
+// struct enum é–¢é€£çœç•¥
 
 declarator:
 	pointer? direct-declarator
@@ -66,19 +66,19 @@ direct-declarator:
 	direct-declarator [ constant-expression? ]
 	direct-declarator ( parameter-type-list )
 	direct-declarator ( identifier-list? ) 
-	// ªÅŒã‚Ì‚Íæ’ö‚Ì‹Œ®‚ÌéŒ¾—p‚¾‚¯‚ÇA main() ‚Ì‚Æ‚«‚É‚Íg‚¤
+	// â†‘æœ€å¾Œã®ã¯å…ˆç¨‹ã®æ—§å¼ã®å®£è¨€ç”¨ã ã‘ã©ã€ main() ã®ã¨ãã«ã¯ä½¿ã†
 
 pointer:
-	* type-qualifier-list?   (‚ÌŒJ‚è•Ô‚µ)
-//      ª ‚±‚ê‚ÍŒJ‚è•Ô‚µ‹L†‚¶‚á‚È‚­‚Ä–{“–‚ÌƒAƒXƒ^ƒŠƒXƒNiƒ|ƒCƒ“ƒ^‚ÌƒAƒŒj
-//      * ‚ÌŒã‚ë‚Éconst‚â‚çvolatile‚â‚ç‚ğ‚Â‚¯‚Ä‚¢‚¢‚ñ‚¾‚Á‚ÄBŒ©‚½‚±‚Æ–³‚¢B
-//      ’P‚É  * ‚ÌŒJ‚è•Ô‚µ‚Å‚¢‚¢‚Æv‚¤  char **a;
+	* type-qualifier-list?   (ã®ç¹°ã‚Šè¿”ã—)
+//      â†‘ ã“ã‚Œã¯ç¹°ã‚Šè¿”ã—è¨˜å·ã˜ã‚ƒãªãã¦æœ¬å½“ã®ã‚¢ã‚¹ã‚¿ãƒªã‚¹ã‚¯ï¼ˆãƒã‚¤ãƒ³ã‚¿ã®ã‚¢ãƒ¬ï¼‰
+//      * ã®å¾Œã‚ã«constã‚„ã‚‰volatileã‚„ã‚‰ã‚’ã¤ã‘ã¦ã„ã„ã‚“ã ã£ã¦ã€‚è¦‹ãŸã“ã¨ç„¡ã„ã€‚
+//      å˜ã«  * ã®ç¹°ã‚Šè¿”ã—ã§ã„ã„ã¨æ€ã†  char **a;
 	
 type-qualifier-list:
-	type-qualifier*  (‚ÌŒJ‚è•Ô‚µ)
+	type-qualifier*  (ã®ç¹°ã‚Šè¿”ã—)
 	
 parameter-type-list:
-	parameter-list , ....  // ‰Â•Ï’·ˆø”—pB‚¢‚ç‚È‚¢H
+	parameter-list , ....  // å¯å¤‰é•·å¼•æ•°ç”¨ã€‚ã„ã‚‰ãªã„ï¼Ÿ
 	parameter-list
 
 parameter-list:
@@ -86,9 +86,9 @@ parameter-list:
 
 parameter-declaration:
 	declaration-specifiers declarator
-//             int                 x               <- func(int x,int y) ‚Ì int x ‚Ì•”•ª
-	declaration-specifiers abstract-declarator?    <- func(int)  ƒvƒƒgƒ^ƒCƒvéŒ¾‚Å‚Í•Ï”–¼È—ª‰Â”\
-	// abstract-decl‚Í‚Ü‚¾’²‚×‚Ä‚¢‚È‚¢
+//             int                 x               <- func(int x,int y) ã® int x ã®éƒ¨åˆ†
+	declaration-specifiers abstract-declarator?    <- func(int)  ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ—å®£è¨€ã§ã¯å¤‰æ•°åçœç•¥å¯èƒ½
+	// abstract-declã¯ã¾ã èª¿ã¹ã¦ã„ãªã„
 
 identifier-list:
 	identifier . sep(t(","))
@@ -96,13 +96,13 @@ identifier-list:
 initializer:
 	assignment-expression
 	{ initializer-list  }
-	{ initializer-list , } // ©ÅŒã‚ÉƒJƒ“ƒ}‚ª—ˆ‚Ä‚à‚¢‚¢HH ‚±‚ê‚¢‚é‚©‚ÈH
+	{ initializer-list , } // â†æœ€å¾Œã«ã‚«ãƒ³ãƒãŒæ¥ã¦ã‚‚ã„ã„ï¼Ÿï¼Ÿ ã“ã‚Œã„ã‚‹ã‹ãªï¼Ÿ
 
 initializer-list:
 	initializer .sep(t(","))
 	
 type-name:
-	specifier-qualifier-list abstract-declarator*   // ‚±‚ê‚Ç‚±‚Åg‚í‚ê‚Ä‚¢‚é‚ÌH
+	specifier-qualifier-list abstract-declarator*   // ã“ã‚Œã©ã“ã§ä½¿ã‚ã‚Œã¦ã„ã‚‹ã®ï¼Ÿ
 	
 abstract-declarator:
 	pointer 

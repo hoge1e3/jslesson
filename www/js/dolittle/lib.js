@@ -93,7 +93,6 @@ root.system={
 		return o;
 	},
 };
-//localize(root, {system:"システム", create:"作る"});
 
 root.random=function(param){
 	var res=Math.random();
@@ -138,108 +137,25 @@ root.is=function(){
 	return parent.isPrototypeOf(child);
 };
 
-//Timerオブジェクト
-/*root.timer=new (function(){
-	var timer_list=[];
-	this.allreset=function(){timer_list.each(function(e){e.stop();});};
-	this.last_func=new $.Deferred;
-	this.last_func.resolve();
-	this.interval_val=100;
-	this.times_val=100;
-	this.cnt=1;
-	this.create=function(){
-	    var obj=Object.create(this);
-	    //if (!obj.__proto__) obj.__proto__=this;
-	    return obj;
-	};
-	this.interval=function(num){this.interval_val=num*1000;return this;};
-	this.times=function(num){this.times_val=num;return this;};
-	//this.wait=function(){var end_flag=false;this.last_func.then(function(){end_flag=true;});for(;;){if(end_flag)break;system.sleep(1);console.log("a");}};
-	this["完了時実行"]=function(func){this.last_func=this.last_func.then(func);};
-	this.execute=function(func,times){
-		var self=this;
-		var timer_func=function(){
-			var d=new $.Deferred;
-			if(times)self.times_val=times;
-			var flg=true;
-			self.id=setInterval(function(){
-				if(flg){
-					self.stop=function(){clearInterval(self.id);};
-					timer_list.push(self);console.log(timer_list);
-					flg=false;
-				}
-				try {
-    				func.execute(self.cnt);
-				} catch (e) {
-				    self.stop();
-				    if (onerror) onerror(e.message,"timer",0,0,e);
-				}
-				if(++self.cnt>self.times_val){
-					self.cnt=1;
-					clearInterval(self.id);
-					if(self.last_func==d)alert("test");
-					d.resolve();
-				}
-			},self.interval_val);
-			return d;
-		};
-		//if(this.exe_flag){
-			this.last_func=this.last_func.then(timer_func);
-		//}else{
-			//this.last_func=timer_func();
-			//this.exe_flag=true;
-		//}
-		return this;
-	};
-	this.duration=function(time){
-		this.times_val=time/(this.interval_val/1000);
-		return this;
-	}
-});
-root["タイマー"]=root.timer;
-localize(root.timer, {times:"回数",interval:"間隔", execute:"実行", 
-create:"作る",duration:"時間"});*/
 //Array
-
 Object.defineProperty(Array,"create",{
 	enumerable:false,configurable:true,
 	value:function(){
 		return Array.prototype.slice.call(arguments);
 	}
 });
-/*Object.defineProperty(Array,"作る",{
-	enumerable:false,configurable:true,
-	value:function(){
-		return Array.prototype.slice.call(arguments);
-	}
-});*/
 Object.defineProperty(Array.prototype,"get",{
 	enumerable:false,configurable:true,
 	value:function(index){return (this[index-1])?(this[index-1]):(null);}
 });
-/*Object.defineProperty(Array.prototype,"読む",{
-	enumerable:false,configurable:true,
-	value:function(index){return (this[index-1])?(this[index-1]):(null);}
-});*/
 Object.defineProperty(Array.prototype,"set",{
 	enumerable:false,configurable:true,
 	value:function(index,value){this[index-1]=value;return this;}
 });
-/*Object.defineProperty(Array.prototype,"上書き",{
-	enumerable:false,configurable:true,
-	value:function(index,value){this[index-1]=value;return this;}
-});*/
 Object.defineProperty(Array.prototype,"add",{
 	enumerable:false,configurable:true,
 	value:function(value){this.push(value);return this;}
 });
-/*Object.defineProperty(Array.prototype,"書く",{
-	enumerable:false,configurable:true,
-	value:function(){
-		for(var i in arguments)this.push(arguments[i]);
-		return this;
-	}
-});*/
 Object.defineProperty(Array.prototype,"remove",{
 	enumerable:false,configurable:true,
 	value:function(obj){
@@ -249,31 +165,14 @@ Object.defineProperty(Array.prototype,"remove",{
 		return this;
 	}
 });
-/*Object.defineProperty(Array.prototype,"消す",{
-	enumerable:false,configurable:true,
-	value:function(obj){
-		for(var i=0;i<this.length;i++){
-			if(this[i]===obj){this.removepos(i+1);break;}
-		}
-		return this;
-	}
-});*/
 Object.defineProperty(Array.prototype,"removepos",{
 	enumerable:false,configurable:true,
 	value:function(index){this.splice(index-1,1);return this;}
 });
-/*Object.defineProperty(Array.prototype,"位置で消す",{
-	enumerable:false,configurable:true,
-	value:function(index){this.splice(index-1,1);return this;}
-});*/
 Object.defineProperty(Array.prototype,"insert",{
 	enumerable:false,configurable:true,
 	value:function(index,value){this.splice(index-1,0,value);return this;}
 });
-/*Object.defineProperty(Array.prototype,"挿入",{
-	enumerable:false,configurable:true,
-	value:function(index,value){this.splice(index-1,0,value);return this;}
-});*/
 Object.defineProperty(Array.prototype,"each",{
 	enumerable:false,configurable:true,
 	value:function(func){
@@ -284,32 +183,10 @@ Object.defineProperty(Array.prototype,"each",{
 		return res;
 	},
 });
-/*Object.defineProperty(Array.prototype,"foreach",{
-	enumerable:false,configurable:true,
-	value:Array.prototype.forEach
-});*/
-/*Object.defineProperty(Array.prototype,"それぞれ実行",{
-	enumerable:false,configurable:true,
-	value:Array.prototype.each
-});*/
 Object.defineProperty(Array.prototype,"length?",{
 	enumerable:false,configurable:true,
 	value:function(){return this.length;}
 });
-Object.defineProperty(Array.prototype,"要素数?",{
-	enumerable:false,configurable:true,
-	value:function(){return this.length;}
-});
-/*Object.defineProperty(Array.prototype,"連結",{
-	enumerable:false,configurable:true,
-	value:function(){
-		for(var i in arguments){
-			if(Array.isArray(arguments[i]))Array.prototype.push.apply(this,arguments[i]);
-			else this.push(arguments[i]);
-		}
-		return this;
-	}
-});*/
 Object.defineProperty(Array.prototype,"clear",{
 	enumerable:false,configurable:true,
 	value:function(){var length=this.length;for(var i=0;i<=length;i++)this.removepos(1);return this;}
@@ -376,21 +253,13 @@ root.Array=Array;
 
 //Stringオブジェクト
 String.prototype.add=String.prototype.concat;
-//String.prototype["連結"]=String.prototype.concat;
 String.prototype["contain?"]=function(_param){return -1!=this.valueOf().search(RegExp(_param));};
-String.prototype["含む?"]=String.prototype["contain?"];
 String.prototype["position?"]=function(p){return this.valueOf().search(RegExp(p))+1};
-String.prototype["何文字目?"]=String.prototype["position?"];
 String.prototype.substr=function(){return ((arguments.length==1)?substr1:substr2).apply(this,arguments);};
-//String.prototype["部分"]=String.prototype.substr;
 String.prototype["length?"]=function(){return this.length;};
-String.prototype["長さ?"]=String.prototype["length?"];
 String.prototype.partition=function(s){return this.split(RegExp(s));};
-//String.prototype["分割"]=String.prototype.split;
-//String.prototype["置き換える"]=String.prototype.replace;
 String.prototype.oneReplace=function(_pattern,_replacement){return this.valueOf().replace((new RegExp(_pattern)),_replacement);};
 String.prototype.allReplace=function(_pattern,_replacement){return this.valueOf().replace((new RegExp(_pattern,"g")),_replacement);};
-//String.prototype["全部置き換える"]=String.prototype.allReplace;
 var substr1=function(param){return this.substring(param-1);};
 var substr2=function(param1,param2){return this.substring(param1-1,param2);}
 
@@ -398,7 +267,6 @@ var substr2=function(param1,param2){return this.substring(param1-1,param2);}
 Boolean.prototype.then=function(){return (this==true)?root._true:root._false;};
 Boolean.prototype.else=function(){return (this==true)?root._false:root._true;};
 Boolean.prototype.not=function(){return (false==this);};
-//Boolean.prototype["反対"]=Boolean.prototype.not;
 //Number
 ["abs","floor","sqrt","round","ceil","exp"].forEach(function (k) {
     Number.prototype[k]=function () {
@@ -569,47 +437,28 @@ root._while.execute=function(f){
 	}
 	return res;
 };
-root._while["実行"]=root._while.execute;
 
 root._true=root.create();
 root._true.else= function (func) {
 	return (root._done.create(func.execute()));
 };
-/*root._true["そうでなければ"]= function(func){
-	return (root._done.create(func.execute()));
-};*/
 root._true.execute= function (func) {
 	return func.execute();
 };
-/*root._true["実行"]=function(func){
-	return func.execute();
-};*/
 root._true.then= function(func){
 	return (func).then();
 };
-/*root._true["なら"]=function(func){
-	return (func).then();
-};*/
-
 root._false=root.create();
 root._false.else= function(func){
 	return root._true;
 };
-/*root._false["そうでなければ"]=function(func){
-	return root._true;
-};*/
 root._false.execute= function(func){
 	return undefined;
 };
-/*root._false["実行"]=function(func){
-	return undefined;
-};*/
 root._false.then= function(func){
 	return (func).then();
 };
-/*root._false["なら"]=function(func){
-	return (func).then();
-};*/
+
 
 root._done= root.create();
 root._done.initialize=function(p){
@@ -618,23 +467,12 @@ root._done.initialize=function(p){
 root._done.else= function(func){
 	return this;
 };
-/*root._done["そうでなければ"]=function(func){
-	return this;
-};*/
 root._done.execute=function(func){
 	return this._self;
 };
-/*root._done["実行"]=function(func){
-	return this._self;
-};*/
 root._done.then=function(func){
 	return this;
 };
-/*root._done["なら"]=function(func){
-	return this;
-};*/
-//root["ブロック"]=Function;
-//localize(Function.prototype,{then:"なら", repeat:"繰り返す", "while":"の間"});
 
 root.module={
     require: function () {

@@ -260,9 +260,9 @@ MinimalParser= function () {
     		return $;
 	    }
 	);
-    //\declarator
+    //\declarator = pointer? direct-declarator  (pointer? まだ)
 	declarator=direct_declarator.ret(function(e){return e;});
-
+	
 	var parameter_declaration=declaration_specifiers.and(declarator)
 		.ret(function(declaration_specifiers,declarator){return [declaration_specifiers,declarator];});
     //\parameter_type_list
@@ -328,13 +328,6 @@ MinimalParser= function () {
 		}).or(calc_expression);
 
 	expression=assign;
-	/*var initializer_part=t(",").and(assign).ret(function(comma,assign){return [",",assign];});
-	initializer_part=assign.and(initializer_part.rep0())
-		.ret(function(assign,assigns){return [assign,assigns];});
-	initializer=assign.or(t("{").and(initializer_part.opt()).and(t("}"))
-		.ret(function(lcb,initializer_part,rcb){
-		    return extend(["[",initializer_part,"]"],{type:"arrayInit"});
-		}));*/ 
 	var array_initializer=t("{").and(initializer_lazy.sep0(t(","),true)).and(t("}")).
 	ret(function(lcb,initializers,rcb){
 	    return extend(["[",ajoin(",",initializers),"]"],{type:"arrayInit"});
@@ -515,21 +508,8 @@ MinimalParser= function () {
 	});*/
 	// \var_identifier
 	var var_identifier=identifier.ret(function(identifier){
-	    //var d=ctx.depth;
 	    var s=findVariable(identifier);
 	    return extend( [variableName(identifier)], extend(s,{vname:identifier+""}));
-		/*return ["scopes[",function(){
-			//defineで変更されていて、識別子であればscopesから探す。数値とかであればそのまま返す。
-			if(identifier.changeble)if(!identifier.text.match(/^(?:[a-zA-Z_][a-zA-Z0-9_]*)$/)){
-				console.log(!identifier.text.match(/^(?:[a-zA-Z_][a-zA-Z0-9_]*)$/));
-				return identifier;
-			}
-			var i=vars.length-1;
-			for(;i>=0;i--)if(vars[i][identifier.text])break;
-			if(i==-1)throw(identifier+"は未定義です。");
-			//return i;
-			return "search_scope_level(\""+identifier+"\")";
-		},"].",identifier];*/
 	});
 
 	primary_expression=var_identifier.or(constant).or(string).or(
@@ -554,10 +534,6 @@ MinimalParser= function () {
 	    }));
 	postfix_expression.postfix(4,t("++"));
 	postfix_expression.postfix(4,t("--"));
-	//なぜかpostfix_expressionにprefix。why
-	//postfix_expression.prefix(4,t("++"));
-	//postfix_expression.prefix(4,t("--"));
-	//postfix_expression.prefix(3,unary_operator);
 	postfix_expression.postfix(5,t(".").and(identifier)
 		.ret(function(peri,identifier){return [".",identifier];}));
 	postfix_expression.postfix(5,t(/^->/).and(identifier)
@@ -684,20 +660,6 @@ MinimalParser= function () {
             return r;
         });
 
-	/*var func_part=t("(").and(func_param_list.opt()).and(t(")")).and(t("{")).
-	    and(compound_statement_part).
-	and(t("}")).ret(function(lp,params,rp,lcb,states,rcb){
-			return [function(){vars.push({});},"(){",
-				"var ",curScopesName(),"={};",
-                params,
-				states,
-			"}",function(){vars.pop();}];
-		});
-	var func=(func_type.opt()).and(identifier).and(func_part).ret(function(type,identifier,part){
-	    ctx.scope[identifier+""]={vtype:"function", depth: ctx.depth};
-	    return ["function ",identifier,part];
-	});
-	func=newScope(func);*/
 	//control
 	var filename=t(/^[a-zA-Z][a-zA-Z0-9]*\.?[a-zA-Z0-9]+/);
 	var control_line=t("#").and(t("define")).and(identifier).and(t(/^.+/)).ret(function(s,def,befor,after){
