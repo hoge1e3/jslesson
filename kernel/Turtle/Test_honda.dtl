@@ -1,5 +1,15 @@
 module!"Vec2" "Actor" "UI" "Turtle" "Figure" "DOM" "Util"  "Timer" "Color" "Dict" "Japanese"
 [ 
+    //角形  後ほど自分でBacklogに登録して対応したいと思います．
+    /*turtle:square=[|size n|
+        [!(size)forward (360/n)turnRight]!(n)repeat.
+        self
+    ].
+    図形＝タートル！作る   ５０ ４ square  図形を作る．
+    マイカラー＝色！１２５  ０  ２５５  作る  半透明にする．
+    図形！（マイカラー）塗る．
+    */
+    /*
     出力＝テキストエリア！作る．
     ボタン！"0" "0" 作る 「出力！"0"上書き」動作設定．
     ボタン！"1" "1" 作る 「出力！"1"上書き」動作設定．
@@ -70,7 +80,8 @@ module!"Vec2" "Actor" "UI" "Turtle" "Figure" "DOM" "Util"  "Timer" "Color" "Dict
     ボタン！"SPACE" "SPACE" 作る 「出力！"SPACE"上書き」動作設定．
     ボタン！"SHIFT" "SHIFT" 作る 「出力！"SHIFT"上書き」動作設定．
     ボタン！"CTRL" "CTRL" 作る 「出力！"CTRL"上書き」動作設定．
-    /*
+    */
+    
     テキストエリア！作る
     （！（システム）typeof）
     （！（root:作る）typeof）
@@ -165,5 +176,5 @@ module!"Vec2" "Actor" "UI" "Turtle" "Figure" "DOM" "Util"  "Timer" "Color" "Dict
     （！（ジャイロセンサ：前後の傾き？）typeof）
     （！（ジャイロセンサ：調整）typeof）
     （！（ジャイロセンサ：使う）typeof）
-    writeLn.*/
+    writeLn.
 ]require.

@@ -60,7 +60,7 @@ turtle:addPath=[|pos1 pos2;line|// pos:world coord
 turtle:addPathAfterAction=[|a;pos1|
     pos1=pos.
     a ! execute.
-    [isPenDown] ! then [
+    [[isShowing]![isPendown]or] ! then [
         ! (pos1) (pos) addPath.
     ] execute.
     this.

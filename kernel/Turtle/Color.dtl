@@ -3,6 +3,7 @@ Color=root!create.
 Color:r=0.
 Color:g=0.
 Color:b=0.
+Color:a=1.
 Color:initialize=[|arg1 arg2 arg3;args r g b|
     args=arguments.
     [(arg1!toString)!(:window!"^#[0-9A-F]{6}$"RegExp)match]!then[|;s|
@@ -29,13 +30,16 @@ Color:initialize=[|arg1 arg2 arg3;args r g b|
     self:r=r.
     self:g=g.
     self:b=b.
+    self:a=1.
 ].
 Color:randomCreate=[Color!(random(255))(random(255))(random(255))create].
 Color:darken=[Color!(self:r-50) (self:g-50) (self:b-50) create].
 Color:brighten=[Color!(self:r+50) (self:g+50) (self:b+50) create].
 Color:toString=[
-    "rgb("+self:r+","+self:g+","+self:b+")"
+    "rgba("+self:r+","+self:g+","+self:b+","+self:a+")"
 ].
+Color:toHalfOpacity=[self:a=0.5.self].
+Color:toFullOpacity=[self:a=1.self].
 Color:setCMYK=[
     black = (window:Math)! (1 - r / 255) (1 - g / 255) (1 - b / 255) min.
     cyan = (1 - (r / 255) - black) / (1 - black).
@@ -54,6 +58,7 @@ Color:getRed=[r].
 Color:getGreen=[g].
 Color:getBlue=[b].
 Color:mixParam=1.1.
+
 Light=! create.
 Light:mix=[|;c|
     args=(Array:prototype:slice) ! (arguments) call.

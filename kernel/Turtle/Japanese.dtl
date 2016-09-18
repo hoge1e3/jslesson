@@ -5,6 +5,7 @@ aa=root:addAlias.
 いいえ＝:false。
 真=:true。
 偽=:false。
+!"initialize" "初期化" addAlias.
 !"pi" "円周率" addAlias.
 !"dq" "ダブルクォート" "ダブルクォーテーション" addAlias.
 !"dq" "ダブルクオート" "ダブルクオーテーション" addAlias.
@@ -42,7 +43,9 @@ x」。
 !"Color" "色" addAlias.
 Color!"darken" "暗くする" addAlias.
 Color!"brighten" "明るくする" addAlias.
-Color!"randomCreate" "ランダムに作る" addAlias.
+Color!"randomCreate" "ランダムに作る" addAlias
+"toHalfOpacity" "半透明にする" addAlias
+"toFullOpacity" "不透明にする" addAlias.
 !"Ink" "絵の具" addAlias.
 Ink! "mix" "混ぜる" addAlias.
 !"Light" "光" addAlias.
@@ -226,7 +229,7 @@ compass!"setAction" "動作設定" addAlias
 touchSensor!"setAction" "動作設定" addAlias
 "action" "動作" addAlias
 "use" "使う" addAlias
-"getTouched" "タッチした？" "触れた?" addAlias
+"getTouched" "タッチした?" "触れた?" addAlias
 "getTouching" "タッチしている?" "タッチしてる?" "触れている?" "触れてる?" addAlias
 "getX" "横の位置?" addAlias
 "getY" "縦の位置?" addAlias.
