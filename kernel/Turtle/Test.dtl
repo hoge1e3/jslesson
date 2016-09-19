@@ -1,4 +1,5 @@
 module ! "Vec2" "Actor" "Group" "Util" "UI" "Timer" "Turtle" "Figure" "DOM" "Color" "Japanese" [
+    タートル！作る 100 歩く。
     /*かめた＝タートル！作る。
     ず１＝「かめた！１２０ 歩く １２０ 左回り」！３ 繰り返す （青）図形を作る。
     ず２＝ず１！作る （赤）塗る ３０ ３０ 移動する。
@@ -14,7 +15,7 @@ module ! "Vec2" "Actor" "Group" "Util" "UI" "Timer" "Turtle" "Figure" "DOM" "Col
         ] else ["uso"] execute.
     ].*/
     //TextArea ! create (null) (undef) 10 writeLn.
-    配列データ＝配列！ 10 "20" (sin(30)) 作る。
+    /*配列データ＝配列！ 10 "20" (sin(30)) 作る。
     
     記録１＝リスト！1 2 3 作る。
     記録１！"4" 5 （配列データ）6 "7" 書いて改行。
@@ -32,6 +33,7 @@ module ! "Vec2" "Actor" "Group" "Util" "UI" "Timer" "Turtle" "Figure" "DOM" "Col
     ラベル！（s1）作る。// BA。(2)1個目しか表示されない。
     ラベル！（s1！長さ？）作る。// BA。(3)「読む」の結果は文字列でない？
     ボタン！”けし”作る「記録１！クリア」動作設定。
+    */
     /*かめた＝タートル！作る。
     「かめた！９０ 左回り  １００ 歩く」！４ 繰り返す（赤）図形を作る。
     にげるボタン＝ボタン！作る 消える。

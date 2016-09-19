@@ -217,7 +217,9 @@ accelerationSensor!"setAction" "動作設定" addAlias
 "getZAcceleration" "上下の加速度?" addAlias.
 
 !"compass" "コンパス" "磁気センサ" "磁気センサー" addAlias.
-compass!"setAction" "動作設定" addAlias 
+compass!
+"use" "使う" addAlias
+"setAction" "動作設定" addAlias 
 "action" "動作" addAlias
 "getDirection" "方向?" "向き?" addAlias.
 
@@ -237,6 +239,7 @@ touchSensor!"setAction" "動作設定" addAlias
 !"gyroSensor" "ジャイロセンサ" "ジャイロセンサー" addAlias.
 gyroSensor!"setAction" "動作設定" addAlias
 "action" "動作" addAlias
+"use" "使う" addAlias
 "getYaw" "ヨー?" "水平方向の傾き?" "水平の傾き?" addAlias
 "getRoll" "ロール?" "左右方向の傾き?" "左右の傾き?" addAlias
 "getPitch" "ピッチ?" "上下方向の傾き?" "上下の傾き?" addAlias
