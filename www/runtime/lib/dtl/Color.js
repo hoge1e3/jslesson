@@ -2,6 +2,7 @@
 this['Color']['r']=(0);
 this['Color']['g']=(0);
 this['Color']['b']=(0);
+this['Color']['a']=(1);
 this['Color']['initialize']=dtlbind(this,function(arg1,arg2,arg3){
 var self=this;var 自分=self;
 var args;
@@ -87,7 +88,8 @@ return b=arg3;
 }));
 this['r']=r;
 this['g']=g;
-return this['b']=b;
+this['b']=b;
+return this['a']=(1);
 });
 this['Color']['randomCreate']=dtlbind(this,function(){
 var self=this;var 自分=self;
@@ -103,7 +105,17 @@ return this['Color']['create'](((this['r']+(50))),((this['g']+(50))),((this['b']
 });
 this['Color']['toString']=dtlbind(this,function(){
 var self=this;var 自分=self;
-return (((((("rgb("+this['r'])+",")+this['g'])+",")+this['b'])+")");
+return (((((((("rgba("+this['r'])+",")+this['g'])+",")+this['b'])+",")+this['a'])+")");
+});
+this['Color']['toHalfOpacity']=dtlbind(this,function(){
+var self=this;var 自分=self;
+this['a']=(0.5);
+return this;
+});
+this['Color']['toFullOpacity']=dtlbind(this,function(){
+var self=this;var 自分=self;
+this['a']=(1);
+return this;
 });
 this['Color']['setCMYK']=dtlbind(this,function(){
 var self=this;var 自分=self;

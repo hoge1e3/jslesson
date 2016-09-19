@@ -66,7 +66,13 @@ pos1=this['pos'];
 a['execute']();
 dtlbind(this,function(){
 var self=this;var 自分=self;
-return this['isPenDown'];
+return dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['isShowing'];
+})['or'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['isPendown'];
+}));
 })['then']()['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;
 return this['addPath']((pos1),(this['pos']));

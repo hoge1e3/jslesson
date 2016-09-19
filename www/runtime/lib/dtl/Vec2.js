@@ -88,6 +88,49 @@ return res['addVertex']((x),(y));
 }));
 return res;
 });
+this['Polygon']['originPoint']=dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['and']['true'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['v2ary'];
+}),dtlbind(this,function(){
+var self=this;var 自分=self;
+return ((this['v2ary']['length?']())>(0));
+}))['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['v2ary']['get']((1));
+}));
+});
+this['Polygon']['lastPoint']=dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['and']['true'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['v2ary'];
+}),dtlbind(this,function(){
+var self=this;var 自分=self;
+return ((this['v2ary']['length?']())>(0));
+}))['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['v2ary']['get']((this['v2ary']['length?']()));
+}));
+});
+this['Polygon']['isPathClosed']=dtlbind(this,function(){
+var self=this;var 自分=self;
+var o;
+var l;
+o=this['originPoint']();
+l=this['lastPoint']();
+return this['and']['true'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return o;
+}),dtlbind(this,function(){
+var self=this;var 自分=self;
+return l;
+}),dtlbind(this,function(){
+var self=this;var 自分=self;
+return ((o['sub']((l))['len']())<(0.1));
+}));
+});
 this['Polygon']['addVertex']=dtlbind(this,function(x,y){
 var self=this;var 自分=self;
 this['v2ary']['push']((this['Vec2']['create']((x),(y))));
@@ -102,6 +145,14 @@ this['v2ary']['forEach'](dtlbind(this,function(e){
 var self=this;var 自分=self;
 res['push']((e['x']));
 return res['push']((e['y']));
+}));
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['isPathClosed']();
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+res['pop']();
+return res['pop']();
 }));
 return (this['window']['PolyK'])['FixDirection']((res));
 });
