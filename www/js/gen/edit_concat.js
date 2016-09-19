@@ -13612,7 +13612,7 @@ function ready() {
                       {label:"エディタの文字の大きさ",id:"textsize",action:textSize}/*,
                       {label:"エディタモード切替",id:"editorType",action:editorType}*/
                   ]},
-                  {label:"ヘルプ",id:"openHelp"}
+                  {label:"使用方法",id:"openHelp"}
                 ]
         );
     }
@@ -13749,7 +13749,7 @@ function ready() {
             fileSet(f).forEach(function (e) {
                 if (e.ext()==EXT && !e.exists()) {
                     e.text("// "+langList[lang]+"\n");
-                    if(lang=="js") e.text("// "+langList[lang]+"\n// ここで扱われるJavaScriptは通常のJavaScriptとは異なります。詳しくはヘルプをご覧ください。\n");
+                    if(lang=="js") e.text("// "+langList[lang]+"\n// ここで扱われるJavaScriptは通常のJavaScriptとは異なります。詳しくは使用方法をご覧ください。\n");
                 } else if (e.ext()==HEXT  && !e.exists()) {
                     e.text("<html>\n\n</html>");
                 } else {
@@ -13880,6 +13880,8 @@ function ready() {
             if (!inf) {
                 alert("実行したファイルを選んでください");
             }
+            save();
+            sync();
             if (builder && inf) {
                 var curFile=inf.file;
                 var curFiles=fileSet(curFile);
@@ -13941,6 +13943,8 @@ function ready() {
         }
         stop();
         save();
+        // display=none
+        $("[name=runtimeErrorDialog]").parent().css("display","none");
         displayMode("run");
         if(lang=="js"){
     	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
@@ -14131,7 +14135,7 @@ function ready() {
                     console.log("ERT",s.substring(0,m.index), m[1], m[2]);
                 }
             });
-            UI("div",{title:"Error"},"["+(cve||e)+"]",
+            UI("div",{title:"Error",name:"runtimeErrorDialog"},"["+(cve||e)+"]",
             //["button",{on:{click:function(){console.log("clicked");$("#reConsole"+reDialog).text(e.stack);}}},"詳細"],
             //["pre",{id:"reConsole"+reDialog},stack[0]+"\n"+stack[1]]).dialog({width:800});
             ["button",{on:{click:function(){console.log("clicked");$(this).parent("div").children("pre").text(e.stack);}}},"詳細"],

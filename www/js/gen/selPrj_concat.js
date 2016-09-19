@@ -11630,6 +11630,10 @@ define('NewProjectDialog',["UI"], function (UI) {
     			this.addError("name","名前を入力してください");
     			return;
     		}
+    		if (model.name.match(/[^a-zA-Z0-9_]+/)) {
+    			this.addError("name","プロジェクト名は英数字とアンダーバー(_)を組み合わせたものにしてください");
+    			return;
+    		}
             if (prjInfo.findProject(model.name) ) {
                 this.addError("name","このプロジェクトはすでに存在します");
                 return;
@@ -12598,7 +12602,7 @@ function ready() {//-------------------------
 	    	["a",{href:"teacher.php",target:"teaTab"},"教員用ログイン"]
             ],*/
             ["button", {id:"newPrj", "class":"btn btn-primary"}, "新規プロジェクト"],
-            ["button", {id:"newSample", "class":"btn btn-primary"}, "サンプルを見る"],
+            ["button", {id:"newSample", "class":"btn btn-primary"}, "サンプルプロジェクト"],
             ["span",{id:"syncMesg"}],
             ["div",{id:"prjItemList"}]
     ));
