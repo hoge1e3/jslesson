@@ -14130,9 +14130,11 @@ function ready() {
                 if (idx>0) {
                     s=s.substring(idx);
                     var m=rc.exec(s);
-                    cve=FS.PathUtil.name(s.substring(0,m.index))+"の"+
-                    m[1]+"行目"+m[2]+"文字目付近でエラーが発生しました";
-                    console.log("ERT",s.substring(0,m.index), m[1], m[2]);
+                    if (m) {
+                        cve=FS.PathUtil.name(s.substring(0,m.index))+"の"+
+                        m[1]+"行目"+m[2]+"文字目付近でエラーが発生しました";
+                        console.log("ERT",s.substring(0,m.index), m[1], m[2]);
+                    }
                 }
             });
             UI("div",{title:"Error",name:"runtimeErrorDialog"},"["+(cve||e)+"]",

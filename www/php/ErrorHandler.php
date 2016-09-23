@@ -14,6 +14,8 @@ if (!function_exists('http_response_code'))
     }
 }
 function h_err($errno, $errstr, $errfile, $errline) {
+    global $errStatus;
+    if (!isset($errStatus)) $errStatus=""; 
     http_response_code(500);
     $buf="\n";
     if (function_exists('debug_backtrace')) {
@@ -25,7 +27,7 @@ function h_err($errno, $errstr, $errfile, $errline) {
             }
         }
     }
-    die ("SERVER ERROR!\n$errno $errstr $errfile:$errline$buf\nSERVER ERROR END!");
+    die ("SERVER ERROR!\n$errStatus $errno $errstr $errfile:$errline$buf\nSERVER ERROR END!");
     //exit(1);
 }
 set_error_handler("h_err");

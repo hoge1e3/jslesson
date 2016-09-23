@@ -11,20 +11,203 @@ root.create=function () {
     init.apply(r,arguments);
     return r;
 };
+root.extend=function (o) {
+    for (var k in o) {
+        this[k]=o[k];
+    }  
+    return this;
+};
+root.showAliasState=function (dst) {
+    /*if (sw) {
+        "Number,String,Boolean,Array,Function".split(",").forEach(function (f) {
+            window[f].prototype.__NAME=f;
+        });
+        for (var k in root) {
+            if (!(k.match(/^[a-zA-Z0-9_$]+$/))) continue;
+            if (root[k]) root[k].__NAME=k;
+        }
+        console.log("RAA sw",sw);
+        root.aalog=[];
+    } else {
+        console.log(root.aalog.map(function(a) {
+            return a.join("\t");   
+        }).join("\n"));
+        root.aalog=null;
+    }*/
+    var buf=[];
+    var names=[];
+    for (var on in root) names.push(on);
+    names=names.sort();
+    names.forEach(function (on) {
+        var o=root[on];
+        if (o===window || o===console || o===document) return;
+        if (o===null || o===undefined) {
+            buf.push(on+"="+o);
+        } else if ((typeof o!=="object") && (typeof o!=="function")) {
+            buf.push(on+"="+o);
+        } else {
+            if (o.__VISITED) return;
+            for (var k in o) {
+                //if (!o.hasOwnProperty(k)) continue;
+                buf.push(on+"."+k);
+            }
+            o.__VISITED=true;
+        }
+    });
+    buf=buf.sort();
+    var str=buf.join("\n");
+    return str;
+    //$("<textarea>").attr({rows:10}).css("position","absolute").val(str).appendTo("body");
+};
 
+/*root.getAllDtlObjs=function (res,path) {
+    var first;
+    if (!res) {
+        res=[];
+        first=true;
+        path="root";
+    }
+    if (this.hasOwnProperty("__MARKED")) return;
+    this.__MARKED=true;
+    this.__name__=path;
+    res.push(this);
+    for (var k in this) {
+        var e=this[k];
+        if (root.isPrototypeOf(e)) {
+            //console.log(e,"is an dtl obj");
+            e.getAllDtlObjs(res,path+":"+k);
+        } else {
+            //console.log(e,"is not an dtl obj");
+        }
+    }
+    if (first) {
+        res.forEach(function (e) {
+            delete e.__MARKED;
+        });
+    }
+    return res;
+};*/
+root.getAllDtlObjs=function (res,path) {
+    var first,resv=[];
+    if (!res) {
+        res=[];
+        first=true;
+        path="root";
+        this.markDtlObj(path);
+    } else {
+        path=this.__name__;
+    }
+    res.push(this);
+    for (var k in this) {
+        var e=this[k];
+        if (root.isPrototypeOf(e)) {
+            if (e.markDtlObj(path+":"+k)) {
+                resv.push(e);
+            }
+        } else {
+            if (typeof e=="object" && e!==root && e!==null &&
+            e!==window && e!==console && e!==document) {
+                console.log("Warning: not a dtl obj",path+":"+k);
+            }
+        }
+    }
+    resv.forEach(function (e) {
+        e.getAllDtlObjs(res);
+    });
+    return res;
+};
+root.markDtlObj=function (path) {
+    if (this.hasOwnProperty("__name__")) return false;
+    this.__name__=path;
+    return true;
+};
+
+root.makeCaseInsensitiveAll=function () {
+    [Number,String,Boolean,Array,Function].map(function (f) {
+        return f.prototype;
+    }).concat(root.getAllDtlObjs()).forEach(function (e) {
+        root.makeCaseInsensitive(e);
+    });
+};
+root.makeCaseInsensitive=function (obj) {
+    var m={};
+    for (var k in obj) {
+        if (! obj.hasOwnProperty(k)) continue;
+        var l=k.toLowerCase();
+        if (k!==l) {
+            (m[l]=m[l]||[]).push(k);
+        }
+    }
+    for (var l in m) {
+        root.addAlias2.apply(obj,m[l].concat(l));
+    }
+};
+root.addAlias2=function () {
+    var methods=Array.prototype.slice.call(arguments);
+    var o=this;
+    var emp=[];
+    var has=[];
+    var parentHas=[];
+    for (var i=0 ;i<methods.length; i++) {
+        if (methods[i] in o && o.hasOwnProperty(methods[i])) {
+            has.push(methods[i]);
+            if (has.length>=2) {
+                if (o[has[has.length-1]]!==o[has[0]]) {
+                    console.log("Warning! diferrent method ",
+                    has[has.length-1], has[0],o[has[has.length-1]], o[has[0]]);
+                    return;
+                } 
+            }
+        } else {
+            if (methods[i] in o) {
+                parentHas.push(methods[i]);
+            } else {
+                emp.push(methods[i]);
+            }
+        }
+    }
+    if (has.length>0 && emp.length>0 && parentHas.length>0) {
+        console.log("Warning Complecated! ",has,emp,parentHas);
+        return ;
+    }
+    if (has.length>0) {
+        if (emp.length>0) root.addAlias.apply(o, [has[0]].concat(emp));
+        return o[has[0]];
+    } else {
+        console.log("Warning! method not found obj=",o.__name__,"meth=",methods);
+    }
+    return;
+};
 root.addAlias=function () {
     var a=Array.prototype.slice.call(arguments);
     var orig=a.shift();
     var t=this;
+    /*if (root.aalog && !(t.__NAME)) {
+        console.log("RAA no name",t);
+    }*/
     a.forEach(function (al) {
+        /*if (root.aalog) {
+            root.aalog.push([t.__NAME,orig,al]);
+        }*/
         //if (t in al) return;
         Object.defineProperty(t,al,{
-	        enumerable:false,configurable:true,
+	        enumerable:true,configurable:true,
 	        get:function() { return this[orig]; },
 	        set:function(v) { return this[orig]=v; }
         });
     });
     return this;
+};
+root.findObject=function (obj) {
+    if (!root[obj]) {
+        obj=obj[0].toUpperCase()+obj.substring(1);
+        //console.log("Retrying by",obj);
+    }
+    if (!root[obj]) {
+        obj=obj[0].toLowerCase()+obj.substring(1);
+        //console.log("Retrying by",obj);
+    }
+    return root[obj];    
 };
 root.addAliasFromTable=function () {
     // objects, methods....
@@ -34,32 +217,48 @@ root.addAliasFromTable=function () {
     var objects=a.shift().split(",");
     var methods=a.join(",").split(",");
     objects.forEach(function (obj) {
-        if (!root[obj]) {
+        var o=root[obj];//root.findObject(obj);
+        if (!o) {
             console.log("Warning! object ",obj," not found");
             return;
         }
-        var originalMethod,cnt=0;
+        if (typeof o === "boolean") return;
+        if (typeof o === "function") o=o.prototype;
+        root.addAlias2.apply(o, methods);
+        /*var originalMethod,cnt=0;
+        var emp=[];
+        var has=[];
         for (var i=0 ;i<methods.length; i++) {
             //console.log("METHIN",methods[i],"in",root[obj],"->",methods[i] in root[obj]);
-            if (methods[i] in root[obj]) {
-                originalMethod=methods.splice(i,1);
-                methods.unshift(originalMethod[0]);
-                cnt++;
+            if (methods[i] in o) {
+                has.push(methods[i]);
+                if (has.length>=2) {
+                    if (o[has[has.length-1]]!==o[has[0]]) {
+                        console.log("Warning! diferrent method ",has[has.length-1], has[0],o[has[has.length-1]], o[has[0]]);
+                        return;
+                    } 
+                }
+            } else {
+                emp.push(methods[i]);
             }
         }
-        if (cnt==1) {
-            root.addAlias.apply(root[obj], methods);
+        if (has.length>0) {
+            if (emp.length>0) root.addAlias.apply(o, [has[0]].concat(emp));
         } else {
-            console.log("Warning! addalias2 count=",cnt,"obj=",obj,"meth=",methods);
-        }
+            console.log("Warning! method not found obj=",obj,"meth=",methods);
+        }*/
     });
 };
- var and={true:function(){var arr=Array.prototype.slice.call(arguments);var res=Boolean(arr[0]);$.each(arr,function(key,value){res=(res&&value);});return res;}};
- var or={true:function(){var arr=Array.prototype.slice.call(arguments);var res=Boolean(arr[0]);$.each(arr,function(key,value){res=(res||value);});return res;}};
- root.and=and;
- root.or=or;
+var and=root.create().extend(
+    {true:function(){var arr=Array.prototype.slice.call(arguments);var res=Boolean(arr[0]);$.each(arr,function(key,value){res=(res&&value);});return res;}}
+);
+var or=root.create().extend(
+    {true:function(){var arr=Array.prototype.slice.call(arguments);var res=Boolean(arr[0]);$.each(arr,function(key,value){res=(res||value);});return res;}}
+);
+root.and=and;
+root.or=or;
 
-root.system={
+root.system=root.create().extend({
 	localize: localize,
 	new:function(obj){
 		return new(Function.prototype.bind.apply(obj,arguments));
@@ -91,8 +290,8 @@ root.system={
 	delete:function(o,k){
 		delete o[k];
 		return o;
-	},
-};
+	}
+});
 
 root.random=function(param){
 	var res=Math.random();
@@ -105,10 +304,9 @@ root.cos=function(param){return Math.cos(param);};
 root.tan=function(param){return Math.tan(param);};
 root.abs=function(param){return Math.abs(param);};
 
-root.background={
+root.background=root.create().extend({
 	paint:function(color){$(document.body).css("background",color);}
-
-};
+});
 
 root.true=true;
 root.false=false;
@@ -474,7 +672,7 @@ root._done.then=function(func){
 	return this;
 };
 
-root.module={
+root.module=root.create().extend({
     require: function () {
         var a=Array.prototype.slice.call(arguments);
         var reqs=[],func;
@@ -491,6 +689,10 @@ root.module={
             if (func) return func.checkerror().execute(arguments);
         });
     }
-};
+});
+"Number,String,Boolean,Array,Function".split(",").forEach(function (f) {
+    root[f]=window[f];
+    root[f].prototype.__name__=f+":prototype";
+});
 
 })();

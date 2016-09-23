@@ -64,15 +64,10 @@ var self=this;var 自分=self;
 var pos1;
 pos1=this['pos'];
 a['execute']();
+this['console']['log']("PEND",(this['isPenDown']));
 dtlbind(this,function(){
 var self=this;var 自分=self;
-return dtlbind(this,function(){
-var self=this;var 自分=self;
-return this['isShowing'];
-})['or'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return this['isPendown'];
-}));
+return this['isPenDown'];
 })['then']()['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;
 return this['addPath']((pos1),(this['pos']));

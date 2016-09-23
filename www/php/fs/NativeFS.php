@@ -86,8 +86,10 @@ class NativeFS {
         return array( "lastUpdate"=>filemtime($this->resolve($path))*1000 );
    }
    function setMetaInfo($path, $info) {
+       global $errStatus;
        $this->check($path,Permission::WRITEMETA);
         if (isset($info["lastUpdate"])) {
+            $errStatus=$this->resolve($path).", ".round($info["lastUpdate"]/1000);
             touch($this->resolve($path), round($info["lastUpdate"]/1000) );
         }
    }
