@@ -180,6 +180,12 @@ return this['checkCrash']();
 }));
 return this;
 });
+root['action']=dtlbind(this,function(){
+var self=this;var 自分=self;
+return });
+root['click']=dtlbind(this,function(){
+var self=this;var 自分=self;
+return });
 return this['turtle']['setAction']=dtlbind(this,function(f){
 var self=this;var 自分=self;
 dtlbind(this,function(){

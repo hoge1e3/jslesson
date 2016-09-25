@@ -34,12 +34,13 @@ this['t']=((t*(1000))/this['i']);
 return this;
 });
 this['Timer']['d']=root['system']['new']((root['window']['$']['Deferred']))['resolve']();
-this['Timer']['stop']=dtlbind(this,function(){
+this['Timer']['skip']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return });
 this['Timer']['abort']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return });
+this['Timer']['addAlias']("abort","stop");
 this['Timer']['execute']=dtlbind(this,function(f){
 var self=this;var 自分=self;
 var s;
@@ -58,7 +59,7 @@ s['abort']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return root['window']['clearInterval']((s['id']));
 });
-s['stop']=dtlbind(this,function(){
+s['skip']=dtlbind(this,function(){
 var self=this;var 自分=self;
 root['window']['clearInterval']((s['id']));
 return d['resolve']();
@@ -71,7 +72,7 @@ var self=this;var 自分=self;
 return f['execute']((c));
 })['try']()['catch'](dtlbind(this,function(e){
 var self=this;var 自分=self;
-s['stop']();
+s['abort']();
 return this['window']['onerror']("","","","",(e));
 }));
 c=(c+(1));
@@ -80,8 +81,7 @@ var self=this;var 自分=self;
 return (c>t);
 })['then']()['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;
-s['stop']();
-return d['resolve']();
+return s['skip']();
 }));
 }),(i));
 return d;

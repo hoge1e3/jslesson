@@ -235,7 +235,7 @@ this['Actor']['getDir']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return this['dir'];
 });
-this['Actor']['collision']=dtlbind(this,function(){
+root['collision']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return });
 this['Actor']['checkCrash']=dtlbind(this,function(){

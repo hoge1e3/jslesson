@@ -292,6 +292,7 @@ root.system=root.create().extend({
 		return o;
 	}
 });
+root.System=root.system;
 
 root.random=function(param){
 	var res=Math.random();
@@ -694,5 +695,6 @@ root.module=root.create().extend({
     root[f]=window[f];
     root[f].prototype.__name__=f+":prototype";
 });
+root.Block=root.Function;
 
 })();

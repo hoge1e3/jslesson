@@ -25,7 +25,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
     var libs=["jquery-1.12.1","require"].map(function (n) {
         return "lib/"+n+".js";
     });
-    var dtlibs=["mt","lib","polyk","calibration","devicemotion","gps",
+    var dtlibs=["mt","lib","polyk","calibration","devicemotion",
     "Dict","Vec2","Actor","Group","UI","Color","Timer","Util","Turtle","Figure","DOM","Japanese"].map(
         function (n) {
             return "lib/dtl/"+n+".js";

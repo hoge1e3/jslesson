@@ -161,7 +161,7 @@ return this['move']((x),(y));
 this['addAlias']("Timer","タイマー");
 this['Timer']['addAlias']("execute","実行");
 this['Timer']['addAlias']("next_execute","次に実行");
-this['Timer']['addAlias']("stop","中断");
+this['Timer']['addAlias']("skip","中断");
 this['Timer']['addAlias']("abort","停止");
 this['Timer']['addAlias']("after_execute","完了時実行");
 this['Timer']['addAlias']("after_execute","終了時実行");
