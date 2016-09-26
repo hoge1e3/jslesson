@@ -19,7 +19,7 @@ str=(((("postion:absolute;left:"+(this['pos']['x']))+";top:")+(this['pos']['y'])
 this['element']['attr']("transform",(str))['attr']("data-trans",((((this['pos']['x'])+",")+(this['pos']['y']))));
 return this;
 });
-this['UI']['appear']=dtlbind(this,function(){
+this['UI']['hide']=dtlbind(this,function(){
 var self=this;var 自分=self;
 dtlbind(this,function(){
 var self=this;var 自分=self;
@@ -30,7 +30,7 @@ return this['element']['show']();
 }));
 return this;
 });
-this['UI']['die']=dtlbind(this,function(){
+this['UI']['show']=dtlbind(this,function(){
 var self=this;var 自分=self;
 dtlbind(this,function(){
 var self=this;var 自分=self;
@@ -155,6 +155,7 @@ return (this['element']['get']((0)))['innerHTML']=this['num2str']((m));
 }));
 return this;
 });
+this['UI']['addAlias']("write","set");
 this['UI']['add']=dtlbind(this,function(m){
 var self=this;var 自分=self;
 dtlbind(this,function(){
@@ -236,6 +237,7 @@ this['UI']['read']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return this['str2num']((this['readString']()));
 });
+this['UI']['addAlias']("read","get");
 this['UI']['inc']=dtlbind(this,function(by){
 var self=this;var 自分=self;
 by=dtlbind(this,function(){
@@ -247,6 +249,7 @@ return (1);
 }));
 return this['write'](((((this['read']())-(0))+by)));
 });
+this['UI']['addAlias']("inc","increment");
 this['UI']['dec']=dtlbind(this,function(by){
 var self=this;var 自分=self;
 by=dtlbind(this,function(){
@@ -258,6 +261,7 @@ return (1);
 }));
 return this['write']((((this['read']())-by)));
 });
+this['UI']['addAlias']("dec","decrement");
 this['UI']['attachEvent']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return });
@@ -520,7 +524,7 @@ this['autoResize']();
 this['autoLayout']();
 return this['writeLn']['apply']((this),(arguments));
 });
-this['TextArea']['autoBR']=dtlbind(this,function(f){
+this['TextArea']['autoNewLine']=dtlbind(this,function(f){
 var self=this;var 自分=self;
 dtlbind(this,function(){
 var self=this;var 自分=self;
@@ -532,6 +536,7 @@ return f=this['true'];
 this['isAutoBR']=f;
 return this;
 });
+this['TextArea']['addAlias']("autoNewLine","autoBR");
 this['TextArea']['setReadOnly']=dtlbind(this,function(f){
 var self=this;var 自分=self;
 this['isReadOnly']=f;
@@ -552,6 +557,7 @@ this['TextArea']['writable']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return this['setReadOnly']((this['false']));
 });
+this['TextArea']['addAlias']("writable","readWrite");
 this['ListBox']['readOnly']()['autoBR']();
 this['TextArea']['mblen']=dtlbind(this,function(s){
 var self=this;var 自分=self;

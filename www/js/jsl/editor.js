@@ -228,7 +228,7 @@ function ready() {
         topDir: curProjectDir,
         on:{
             select: F(open),
-            displayName: dispName
+            displayName: dispNameFL
         }
     });
     var FM=FileMenu();
@@ -312,7 +312,7 @@ function ready() {
     };
     FM.on.displayName=function (f) {
         A.is(f,String);
-        var r=dispName(f);
+        var r=dispNameFM(f);
         if (r) {
             return r;
         }
@@ -352,12 +352,24 @@ function ready() {
     function ls(){
         fl.ls(curProjectDir);
     }
-    function dispName(name) {
+    function dispNameFL(name) {
         A.is(name,String);
         //var name=f.name();
         if (P.startsWith(name,".")) return null;
         if (P.isDir(name)) return name;
-        if (P.endsWith(name,EXT) /*|| f.endsWith(HEXT)*/) return P.truncExt(name);
+        //                          Why commented out??
+        //  in dtl mode, if A.html is newer than A.dtl, "A" will be bound to "A.html"
+        //      but html tab is not shown  -> cannot edit A.dtl, kowareta!!
+        if (P.endsWith(name,EXT) /*|| P.endsWith(name,HEXT)*/) return P.truncExt(name);
+        return null;
+    }
+    function dispNameFM(name) {
+        A.is(name,String);
+        //var name=f.name();
+        if (P.startsWith(name,".")) return null;
+        if (P.isDir(name)) return name;
+        //      this is used for mvdiag, both A.js and A.html shoud be "A"
+        if (P.endsWith(name,EXT) || P.endsWith(name,HEXT)) return P.truncExt(name);
         return null;
     }
     function fixName(name, options) {
@@ -808,12 +820,12 @@ function ready() {
     setInterval(watchModified,1000);
     var curDOM;
     function open(f) {
+	// do not call directly !!  it doesnt change fl.curFile. use fl.select instead
         A.is(f,"SFile");
         if (!window.ace) {
             alert("しばらくしてからもう一度開いてください");
             return true;
         }
-	// do not call directly !!  it doesnt change fl.curFile. use fl.select instead
         if (f.isDir()) {
             return;
         }
@@ -828,7 +840,7 @@ function ready() {
             progDOM.attr("data-file",f.name());
             var prog=ace.edit(progDOM[0]);
             if (typeof desktopEnv.editorFontSize=="number") prog.setFontSize(desktopEnv.editorFontSize);
-	    else prog.setFontSize(18);
+    	    else prog.setFontSize(18);
             //prog.setFontSize(20);
             prog.setTheme("ace/theme/eclipse");
             defaultKeyboard=prog.getKeyboardHandler();

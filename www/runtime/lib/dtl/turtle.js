@@ -88,7 +88,7 @@ var self=this;var 自分=self;
 return (this['Actor']['moveTo'])['call']((this),(x),(y));
 }));
 });
-this['turtle']['close']=dtlbind(this,function(){
+this['turtle']['closePath']=dtlbind(this,function(){
 var self=this;var 自分=self;
 dtlbind(this,function(){
 var self=this;var 自分=self;
@@ -99,10 +99,12 @@ return this['moveTo']((this['lineOrig']['x']),(this['lineOrig']['y']));
 }));
 return this;
 });
-this['turtle']['moveCenter']=dtlbind(this,function(){
+this['turtle']['addAlias']("closePath","close");
+this['turtle']['moveToCenter']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return this['moveTo']((0),(0));
 });
+this['turtle']['addAlias']("moveToCenter","moveCenter");
 this['turtle']['lineColor']=dtlbind(this,function(col){
 var self=this;var 自分=self;
 this['_lineCol']=col;
@@ -147,7 +149,7 @@ var self=this;var 自分=self;
 this['isPenDown']=this['false'];
 return this;
 });
-this['turtle']['change']=dtlbind(this,function(url){
+this['turtle']['setShape']=dtlbind(this,function(url){
 var self=this;var 自分=self;
 this['img']=url;
 url=dtlbind(this,function(){
@@ -164,6 +166,7 @@ this['element']['get']((0))['setAttributeNS']("http://www.w3.org/1999/xlink","hr
 this['getImageSize']((url));
 return this;
 });
+this['turtle']['addAlias']("setShape","change");
 this['turtle']['setTrans']=dtlbind(this,function(){
 var self=this;var 自分=self;
 var str;

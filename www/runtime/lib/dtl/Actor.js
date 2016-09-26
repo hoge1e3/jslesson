@@ -46,20 +46,21 @@ dst['append']((n));
 return t['copySVGElem']((n),(s));
 }));
 });
-this['Actor']['appear']=dtlbind(this,function(){
+this['Actor']['show']=dtlbind(this,function(){
 var self=this;var 自分=self;
 this['group']['add']((this));
 this['setTrans']();
 this['isShowing']=this['true'];
 return this;
 });
-this['Actor']['die']=dtlbind(this,function(){
+this['Actor']['hide']=dtlbind(this,function(){
 var self=this;var 自分=self;
 var i;
 this['group']['remove']((this));
 this['isShowing']=this['false'];
 return this;
 });
+this['Actor']['addAlias']("show","appear")['addAlias']("hide","die");
 this['Actor']['group']=this['Actor']['create']();
 this['Actor']['group']['members']=this['Array']['create']();
 this['Actor']['group']['remove']=dtlbind(this,function(m){
@@ -231,10 +232,12 @@ var self=this;var 自分=self;
 this['dir']=this['num']((d));
 return this['setTrans']();
 });
+this['Actor']['addAlias']("setDir","direction");
 this['Actor']['getDir']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return this['dir'];
 });
+this['Actor']['addAlias']("getDir","direction?");
 root['collision']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return });

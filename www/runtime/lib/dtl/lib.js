@@ -147,9 +147,9 @@ root.addAlias2=function () {
     var o=this;
     var emp=[];
     var has=[];
-    var parentHas=[];
+    //var parentHas=[];
     for (var i=0 ;i<methods.length; i++) {
-        if (methods[i] in o && o.hasOwnProperty(methods[i])) {
+        if (methods[i] in o/* && o.hasOwnProperty(methods[i])*/) {
             has.push(methods[i]);
             if (has.length>=2) {
                 if (o[has[has.length-1]]!==o[has[0]]) {
@@ -159,17 +159,17 @@ root.addAlias2=function () {
                 } 
             }
         } else {
-            if (methods[i] in o) {
+            /*if (methods[i] in o) {
                 parentHas.push(methods[i]);
-            } else {
+            } else {*/
                 emp.push(methods[i]);
-            }
+            //}
         }
     }
-    if (has.length>0 && emp.length>0 && parentHas.length>0) {
+    /*if (has.length>0 && emp.length>0 && parentHas.length>0) {
         console.log("Warning Complecated! ",has,emp,parentHas);
         return ;
-    }
+    }*/
     if (has.length>0) {
         if (emp.length>0) root.addAlias.apply(o, [has[0]].concat(emp));
         return o[has[0]];
@@ -382,6 +382,7 @@ Object.defineProperty(Array.prototype,"each",{
 		return res;
 	},
 });
+root.addAlias.call(Array.prototype,"each","foreach");
 Object.defineProperty(Array.prototype,"length?",{
 	enumerable:false,configurable:true,
 	value:function(){return this.length;}
@@ -459,6 +460,12 @@ String.prototype["length?"]=function(){return this.length;};
 String.prototype.partition=function(s){return this.split(RegExp(s));};
 String.prototype.oneReplace=function(_pattern,_replacement){return this.valueOf().replace((new RegExp(_pattern)),_replacement);};
 String.prototype.allReplace=function(_pattern,_replacement){return this.valueOf().replace((new RegExp(_pattern,"g")),_replacement);};
+String.prototype.toNumber=function () {
+    return parseFloat(this)||0;
+};
+String.prototype.mul=function (s) {return this.toNumber()*(s+"").toNumber();};
+String.prototype.div=function (s) {return this.toNumber()/(s+"").toNumber();};
+String.prototype.mod=function (s) {return this.toNumber()%(s+"").toNumber();};
 var substr1=function(param){return this.substring(param-1);};
 var substr2=function(param1,param2){return this.substring(param1-1,param2);}
 
