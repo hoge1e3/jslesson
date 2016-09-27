@@ -64,7 +64,6 @@ var self=this;var 自分=self;
 var pos1;
 pos1=this['pos'];
 a['execute']();
-this['console']['log']("PEND",(this['isPenDown']));
 dtlbind(this,function(){
 var self=this;var 自分=self;
 return this['isPenDown'];

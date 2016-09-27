@@ -11187,7 +11187,7 @@ define('compiledProject',[], function () {
                 var d=new $.Deferred;
                 var head = document.getElementsByTagName("head")[0] || document.documentElement;
                 var script = document.createElement("script");
-                script.src = url;
+                script.src = url+"?"+(requirejs.__urlPostfix||Math.random());
                 var done = false;
                 script.onload = script.onreadystatechange = function() {
                     if ( !done && (!this.readyState ||

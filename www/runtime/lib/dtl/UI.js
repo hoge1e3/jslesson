@@ -11,6 +11,7 @@ this['Screen']['paint']=dtlbind(this,function(c){
 var self=this;var 自分=self;
 return this['$']['create']("body")['css']("background-color",((c+"")));
 });
+this['addAlias']("Screen","Panel");
 this['UI']=this['Actor']['create']();
 this['UI']['setTrans']=dtlbind(this,function(){
 var self=this;var 自分=self;

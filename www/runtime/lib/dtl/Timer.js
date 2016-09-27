@@ -89,7 +89,7 @@ return d;
 return this;
 });
 this['Timer']['next_execute']=this['Timer']['execute'];
-return this['Timer']['after_execute']=dtlbind(this,function(f){
+this['Timer']['after_execute']=dtlbind(this,function(f){
 var self=this;var 自分=self;
 this['d']['then'](dtlbind(this,function(){
 var self=this;var 自分=self;
@@ -97,5 +97,6 @@ return f['execute']();
 }));
 return this;
 });
+return this['addAlias']("Timer","timer");
 }).checkerror().apply(root,[]);
 //# sourceMappingURL=Timer.js.map

@@ -2,6 +2,7 @@
 var root={window:window,document:document, console:console};
 window.root=root;
 root.root=root;
+root.Root=root;
 var localize=function (obj, map) {
     for (var k in map) if (obj[k]) obj[map[k]]=obj[k];
 };
@@ -18,40 +19,29 @@ root.extend=function (o) {
     return this;
 };
 root.showAliasState=function (dst) {
-    /*if (sw) {
-        "Number,String,Boolean,Array,Function".split(",").forEach(function (f) {
-            window[f].prototype.__NAME=f;
-        });
-        for (var k in root) {
-            if (!(k.match(/^[a-zA-Z0-9_$]+$/))) continue;
-            if (root[k]) root[k].__NAME=k;
-        }
-        console.log("RAA sw",sw);
-        root.aalog=[];
-    } else {
-        console.log(root.aalog.map(function(a) {
-            return a.join("\t");   
-        }).join("\n"));
-        root.aalog=null;
-    }*/
     var buf=[];
-    var names=[];
-    for (var on in root) names.push(on);
-    names=names.sort();
-    names.forEach(function (on) {
-        var o=root[on];
+    //var names=[];
+    var a=root.allDtlObjsAndBuiltins;/*.sort(function (a,b) {
+        return (a.__name__>b.__name__ ? 1: a.__name__<b.__name__ ? -1:0);
+    });*/
+    //for (var on in root) names.push(on);
+    //names=names.sort();
+    a.forEach(function (o) {
+        //var o=root[on];
+        var on=o.__name__;
+        console.log("NAME",on,o);
         if (o===window || o===console || o===document) return;
         if (o===null || o===undefined) {
             buf.push(on+"="+o);
         } else if ((typeof o!=="object") && (typeof o!=="function")) {
             buf.push(on+"="+o);
         } else {
-            if (o.__VISITED) return;
+            //if (o.__VISITED) return;
             for (var k in o) {
                 //if (!o.hasOwnProperty(k)) continue;
                 buf.push(on+"."+k);
             }
-            o.__VISITED=true;
+            //o.__VISITED=true;
         }
     });
     buf=buf.sort();
@@ -60,33 +50,6 @@ root.showAliasState=function (dst) {
     //$("<textarea>").attr({rows:10}).css("position","absolute").val(str).appendTo("body");
 };
 
-/*root.getAllDtlObjs=function (res,path) {
-    var first;
-    if (!res) {
-        res=[];
-        first=true;
-        path="root";
-    }
-    if (this.hasOwnProperty("__MARKED")) return;
-    this.__MARKED=true;
-    this.__name__=path;
-    res.push(this);
-    for (var k in this) {
-        var e=this[k];
-        if (root.isPrototypeOf(e)) {
-            //console.log(e,"is an dtl obj");
-            e.getAllDtlObjs(res,path+":"+k);
-        } else {
-            //console.log(e,"is not an dtl obj");
-        }
-    }
-    if (first) {
-        res.forEach(function (e) {
-            delete e.__MARKED;
-        });
-    }
-    return res;
-};*/
 root.getAllDtlObjs=function (res,path) {
     var first,resv=[];
     if (!res) {
@@ -123,11 +86,14 @@ root.markDtlObj=function (path) {
 };
 
 root.makeCaseInsensitiveAll=function () {
-    [Number,String,Boolean,Array,Function].map(function (f) {
-        return f.prototype;
-    }).concat(root.getAllDtlObjs()).forEach(function (e) {
-        root.makeCaseInsensitive(e);
-    });
+    if (!root.allDtlObjsAndBuiltins) {
+        root.allDtlObjsAndBuiltins=[Number,String,Boolean,Array,Function].map(function (f) {
+            return f.prototype;
+        }).concat(root.getAllDtlObjs());
+        root.allDtlObjsAndBuiltins.forEach(function (e) {
+            root.makeCaseInsensitive(e);
+        });
+    }
 };
 root.makeCaseInsensitive=function (obj) {
     var m={};
@@ -387,6 +353,7 @@ Object.defineProperty(Array.prototype,"length?",{
 	enumerable:false,configurable:true,
 	value:function(){return this.length;}
 });
+root.addAlias.call(Array.prototype,"length?","size?");
 Object.defineProperty(Array.prototype,"clear",{
 	enumerable:false,configurable:true,
 	value:function(){var length=this.length;for(var i=0;i<=length;i++)this.removepos(1);return this;}
@@ -397,6 +364,7 @@ Object.defineProperty(Array.prototype,"randomSelect",{
 		return this[this.length.random()-1];
 	}
 });
+root.addAlias.call(Array.prototype,"randomSelect","random");
 Object.defineProperty(Array.prototype,"select",{
 	enumerable:false,configurable:true,
 	value:function(f){
@@ -409,6 +377,8 @@ Object.defineProperty(Array.prototype,"select",{
 		return res;
 	}
 });
+root.addAlias.call(Array.prototype,"select","grep");
+// 破壊的？非破壊的？
 Object.defineProperty(Array.prototype,"process",{
 	enumerable:false,configurable:true,
 	value:function(f){
@@ -418,6 +388,7 @@ Object.defineProperty(Array.prototype,"process",{
 		return this;
 	}
 });
+root.addAlias.call(Array.prototype,"process","replace");
 Object.defineProperty(Array.prototype,"bond",{
 	enumerable:false,configurable:true,
 	value:function(j){

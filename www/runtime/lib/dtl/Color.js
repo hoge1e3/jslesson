@@ -99,10 +99,12 @@ this['Color']['darken']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return this['Color']['create'](((this['r']-(50))),((this['g']-(50))),((this['b']-(50))));
 });
+this['Color']['addAlias']("darken","darker");
 this['Color']['brighten']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return this['Color']['create'](((this['r']+(50))),((this['g']+(50))),((this['b']+(50))));
 });
+this['Color']['addAlias']("brighten","brighter");
 this['Color']['toString']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return (((((((("rgba("+this['r'])+",")+this['g'])+",")+this['b'])+",")+this['a'])+")");
@@ -112,6 +114,7 @@ var self=this;var 自分=self;
 this['a']=(0.5);
 return this;
 });
+this['Color']['addAlias']("toHalfOpacity","setTransparency");
 this['Color']['toFullOpacity']=dtlbind(this,function(){
 var self=this;var 自分=self;
 this['a']=(1);

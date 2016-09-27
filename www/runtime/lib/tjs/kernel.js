@@ -1088,6 +1088,35 @@ Tonyu.klass.define({
       
       _thread.retVal=_this;return;
     },
+    angle :function _trc_Parent_angle(x,y) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      
+      return _this.deg(_this.Math.atan2(y,x));
+    },
+    fiber$angle :function _trc_Parent_f_angle(_thread,x,y) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      _thread.retVal=_this.deg(_this.Math.atan2(y,x));return;
+      
+      
+      _thread.retVal=_this;return;
+    },
+    rad :function _trc_Parent_rad(d) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      
+      return d/180*_this.Math.PI;
+    },
+    deg :function _trc_Parent_deg(d) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      
+      return d/_this.Math.PI*180;
+    },
     sqrt :function _trc_Parent_sqrt(x) {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
@@ -1109,7 +1138,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      return _this.Math.sin(x);
+      return _this.Math.sin(_this.rad(x));
     },
     fiber$sin :function _trc_Parent_f_sin(_thread,x) {
       "use strict";
@@ -1117,7 +1146,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      _thread.retVal=_this.Math.sin(x);return;
+      _thread.retVal=_this.Math.sin(_this.rad(x));return;
       
       
       _thread.retVal=_this;return;
@@ -1126,7 +1155,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      return _this.Math.cos(x);
+      return _this.Math.cos(_this.rad(x));
     },
     fiber$cos :function _trc_Parent_f_cos(_thread,x) {
       "use strict";
@@ -1134,7 +1163,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      _thread.retVal=_this.Math.cos(x);return;
+      _thread.retVal=_this.Math.cos(_this.rad(x));return;
       
       
       _thread.retVal=_this;return;
@@ -1143,7 +1172,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      return _this.Math.tan(x);
+      return _this.Math.tan(_this.rad(x));
     },
     fiber$tan :function _trc_Parent_f_tan(_thread,x) {
       "use strict";
@@ -1151,7 +1180,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      _thread.retVal=_this.Math.tan(x);return;
+      _thread.retVal=_this.Math.tan(_this.rad(x));return;
       
       
       _thread.retVal=_this;return;
@@ -1163,15 +1192,15 @@ Tonyu.klass.define({
       var methodName;
       var t;
       
-      $LASTPOS=1007398;//jslker.Parent:7398
+      $LASTPOS=1007561;//jslker.Parent:7561
       a = Array.prototype.slice.call(arguments);
-      $LASTPOS=1007448;//jslker.Parent:7448
+      $LASTPOS=1007611;//jslker.Parent:7611
       methodName = a.shift();
-      $LASTPOS=1007479;//jslker.Parent:7479
+      $LASTPOS=1007642;//jslker.Parent:7642
       t = Tonyu.thread();
-      $LASTPOS=1007506;//jslker.Parent:7506
+      $LASTPOS=1007669;//jslker.Parent:7669
       t.apply(_this,methodName,a);
-      $LASTPOS=1007539;//jslker.Parent:7539
+      $LASTPOS=1007702;//jslker.Parent:7702
       t.steps();
     },
     fiber$parallel :function _trc_Parent_f_parallel(_thread) {
@@ -1183,15 +1212,15 @@ Tonyu.klass.define({
       var methodName;
       var t;
       
-      $LASTPOS=1007398;//jslker.Parent:7398
+      $LASTPOS=1007561;//jslker.Parent:7561
       a = Array.prototype.slice.call(_arguments);
-      $LASTPOS=1007448;//jslker.Parent:7448
+      $LASTPOS=1007611;//jslker.Parent:7611
       methodName = a.shift();
-      $LASTPOS=1007479;//jslker.Parent:7479
+      $LASTPOS=1007642;//jslker.Parent:7642
       t = Tonyu.thread();
-      $LASTPOS=1007506;//jslker.Parent:7506
+      $LASTPOS=1007669;//jslker.Parent:7669
       t.apply(_this,methodName,a);
-      $LASTPOS=1007539;//jslker.Parent:7539
+      $LASTPOS=1007702;//jslker.Parent:7702
       t.steps();
       
       _thread.retVal=_this;return;
@@ -1202,23 +1231,23 @@ Tonyu.klass.define({
       var clicked;
       var _func;
       
-      $LASTPOS=1007577;//jslker.Parent:7577
+      $LASTPOS=1007740;//jslker.Parent:7740
       clicked = 0;
-      $LASTPOS=1007597;//jslker.Parent:7597
-      _func = (function anonymous_7607() {
+      $LASTPOS=1007760;//jslker.Parent:7760
+      _func = (function anonymous_7770() {
         
-        $LASTPOS=1007628;//jslker.Parent:7628
+        $LASTPOS=1007791;//jslker.Parent:7791
         clicked=1;
       });
-      $LASTPOS=1007652;//jslker.Parent:7652
+      $LASTPOS=1007815;//jslker.Parent:7815
       _this.onClick(elem,_func);
-      $LASTPOS=1007678;//jslker.Parent:7678
+      $LASTPOS=1007841;//jslker.Parent:7841
       while (clicked==0) {
-        $LASTPOS=1007706;//jslker.Parent:7706
+        $LASTPOS=1007869;//jslker.Parent:7869
         _this.wait(10);
         
       }
-      $LASTPOS=1007728;//jslker.Parent:7728
+      $LASTPOS=1007891;//jslker.Parent:7891
       $("[name="+elem+"]").off("click","",_func);
     },
     fiber$waitClick :function _trc_Parent_f_waitClick(_thread,elem) {
@@ -1229,12 +1258,12 @@ Tonyu.klass.define({
       var clicked;
       var _func;
       
-      $LASTPOS=1007577;//jslker.Parent:7577
+      $LASTPOS=1007740;//jslker.Parent:7740
       clicked = 0;
-      $LASTPOS=1007597;//jslker.Parent:7597
-      _func = (function anonymous_7607() {
+      $LASTPOS=1007760;//jslker.Parent:7760
+      _func = (function anonymous_7770() {
         
-        $LASTPOS=1007628;//jslker.Parent:7628
+        $LASTPOS=1007791;//jslker.Parent:7791
         clicked=1;
       });
       
@@ -1243,15 +1272,15 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1007652;//jslker.Parent:7652
+            $LASTPOS=1007815;//jslker.Parent:7815
             _this.fiber$onClick(_thread, elem, _func);
             __pc=1;return;
           case 1:
             
-            $LASTPOS=1007678;//jslker.Parent:7678
+            $LASTPOS=1007841;//jslker.Parent:7841
           case 2:
             if (!(clicked==0)) { __pc=4; break; }
-            $LASTPOS=1007706;//jslker.Parent:7706
+            $LASTPOS=1007869;//jslker.Parent:7869
             _this.fiber$wait(_thread, 10);
             __pc=3;return;
           case 3:
@@ -1259,7 +1288,7 @@ Tonyu.klass.define({
             __pc=2;break;
           case 4:
             
-            $LASTPOS=1007728;//jslker.Parent:7728
+            $LASTPOS=1007891;//jslker.Parent:7891
             $("[name="+elem+"]").off("click","",_func);
             _thread.exit(_this);return;
           }
@@ -1268,6 +1297,6 @@ Tonyu.klass.define({
     },
     __dummy: false
   },
-  decls: {"methods":{"main":{"nowait":false},"__getter__Math":{"nowait":true},"__getter__document":{"nowait":true},"setInterval":{"nowait":false},"setTimeout":{"nowait":false},"catchException":{"nowait":false},"addText":{"nowait":false},"setText":{"nowait":false},"onClick":{"nowait":false},"onTouch":{"nowait":false},"setCanvas":{"nowait":false},"searchCanvas":{"nowait":false},"setColor":{"nowait":false},"fillRect":{"nowait":false},"getNumber":{"nowait":false},"getText":{"nowait":false},"setNumber":{"nowait":false},"changeImage":{"nowait":false},"move":{"nowait":false},"transform":{"nowait":false},"rotate":{"nowait":false},"resize":{"nowait":false},"wait":{"nowait":false},"rnd":{"nowait":false},"setBGColor":{"nowait":false},"newElement":{"nowait":false},"fillOval":{"nowait":false},"drawLine":{"nowait":false},"clearRect":{"nowait":false},"fillText":{"nowait":false},"new":{"nowait":false},"getkey":{"nowait":false},"dist":{"nowait":false},"sqrt":{"nowait":false},"sin":{"nowait":false},"cos":{"nowait":false},"tan":{"nowait":false},"parallel":{"nowait":false},"waitClick":{"nowait":false}}}
+  decls: {"methods":{"main":{"nowait":false},"__getter__Math":{"nowait":true},"__getter__document":{"nowait":true},"setInterval":{"nowait":false},"setTimeout":{"nowait":false},"catchException":{"nowait":false},"addText":{"nowait":false},"setText":{"nowait":false},"onClick":{"nowait":false},"onTouch":{"nowait":false},"setCanvas":{"nowait":false},"searchCanvas":{"nowait":false},"setColor":{"nowait":false},"fillRect":{"nowait":false},"getNumber":{"nowait":false},"getText":{"nowait":false},"setNumber":{"nowait":false},"changeImage":{"nowait":false},"move":{"nowait":false},"transform":{"nowait":false},"rotate":{"nowait":false},"resize":{"nowait":false},"wait":{"nowait":false},"rnd":{"nowait":false},"setBGColor":{"nowait":false},"newElement":{"nowait":false},"fillOval":{"nowait":false},"drawLine":{"nowait":false},"clearRect":{"nowait":false},"fillText":{"nowait":false},"new":{"nowait":false},"getkey":{"nowait":false},"dist":{"nowait":false},"angle":{"nowait":false},"rad":{"nowait":true},"deg":{"nowait":true},"sqrt":{"nowait":false},"sin":{"nowait":false},"cos":{"nowait":false},"tan":{"nowait":false},"parallel":{"nowait":false},"waitClick":{"nowait":false}}}
 });
 //# sourceMappingURL=concat.js.map
