@@ -221,6 +221,11 @@ dy=this['num']((dy));
 this['pos']=this['Vec2']['create']((dx),(dy));
 return this['setTrans']();
 });
+this['Actor']['moveToCenter']=dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['moveTo']((0),(0));
+});
+this['Actor']['addAlias']("moveToCenter","moveCenter");
 this['Actor']['moveBy']=dtlbind(this,function(dx,dy){
 var self=this;var 自分=self;
 dx=this['num']((dx));

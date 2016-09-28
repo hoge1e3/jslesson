@@ -12,7 +12,7 @@ var self=this;var 自分=self;
 return this['$']['create']("body")['css']("background-color",((c+"")));
 });
 this['addAlias']("Screen","Panel");
-this['UI']=this['Actor']['create']();
+this['UI']=this['create']();
 this['UI']['setTrans']=dtlbind(this,function(){
 var self=this;var 自分=self;
 var str;
@@ -42,6 +42,8 @@ return this['element']['hide']();
 }));
 return this;
 });
+this['UI']['addAlias']("hide","die");
+this['UI']['addAlias']("show","appear");
 this['UI']['top']=((((this['Screen']['height?']())/(2)))-(20));
 this['UI']['autoLayout']=dtlbind(this,function(){
 var self=this;var 自分=self;
@@ -69,6 +71,7 @@ var self=this;var 自分=self;
 return (0);
 }));
 });
+this['UI']['addAlias']("left?","xpos?");
 this['UI']['right?']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return ((this['left?']())+(this['width?']()));
@@ -86,6 +89,7 @@ var self=this;var 自分=self;
 return (0);
 }));
 });
+this['UI']['addAlias']("top?","ypos?");
 this['UI']['bottom?']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return ((this['top?']())-(this['height?']()));

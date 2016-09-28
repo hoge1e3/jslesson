@@ -99,11 +99,6 @@ return this['moveTo']((this['lineOrig']['x']),(this['lineOrig']['y']));
 return this;
 });
 this['turtle']['addAlias']("closePath","close");
-this['turtle']['moveToCenter']=dtlbind(this,function(){
-var self=this;var 自分=self;
-return this['moveTo']((0),(0));
-});
-this['turtle']['addAlias']("moveToCenter","moveCenter");
 this['turtle']['lineColor']=dtlbind(this,function(col){
 var self=this;var 自分=self;
 this['_lineCol']=col;
