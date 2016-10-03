@@ -1,0 +1,5 @@
+// Dolittle
+module ! "Vec2"  "Actor" "UI" "Turtle" "Figure" "DOM" "Japanese" [
+    かめた＝タートル！作る。
+    「かめた！１００  歩く  １４４  右回り」！５  repeat。
+] require。
