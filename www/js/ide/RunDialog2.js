@@ -9,7 +9,6 @@ function (UI, LocalBrowser,DA) {
         d.dialog({
             width:16*((options.height+10)/9),
             position: { my: "center top", at: "right bottom"},
-            //width:600,
             close:function(){
                 window.dialogClosed=true;
                 if (res.b) res.b.close();
@@ -21,6 +20,7 @@ function (UI, LocalBrowser,DA) {
         function handleResize() {
             if (res.b/* && res.b.iframe*/) {
                 res.b.resize(d.width(),d.height()-d.$vars.OKButton.height());
+                console.log("height",d.height());
                 /*res.b.iframe.attr({
                     width:d.width(),
                     height:d.height()-d.$vars.OKButton.height()});*/
