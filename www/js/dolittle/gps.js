@@ -1,4 +1,4 @@
-root.GPS=new (function(){
+/*root.GPS=new (function(){
 	var gps;
 	this.緯度__question=function(){
 		return gps.coords.latitude;
@@ -19,3 +19,4 @@ root.GPS=new (function(){
 		return obj;
 	}
 });
+*/
