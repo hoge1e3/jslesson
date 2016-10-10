@@ -73,6 +73,13 @@ turtle:forward=[|by|
 turtle:moveTo=[|x y|
     ! [(Actor:moveTo) ! (this) (x) (y) call.] addPathAfterAction.
 ].
+turtle:circle=[|r;d|
+    d=r * 0.1745328.
+    !(d/2)backward.
+    [!(d)forward 10 rightTurn] !36 repeat。
+    !(d/2)forward
+].
+
 turtle:closePath=[
     [isPenDown]!then[
         //! (pos) (lineOrig) addPath.

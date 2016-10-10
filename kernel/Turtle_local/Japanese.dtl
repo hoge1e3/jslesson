@@ -19,7 +19,7 @@
     !"rdb" "右二重鉤括弧" "右二重かぎ括弧" addAlias.
     
     
-    色名＝「｜x｜
+    /*色名＝「｜x｜
         「x=="黒"」！なら「x=black」実行。
         「x=="赤"」！なら「x=red」実行。
         「x=="緑"」！なら「x=green」実行。
@@ -29,7 +29,7 @@
         「x=="水色"」！なら「x=cyan」実行。
         「x=="黄色"」！なら「x=yellow」実行。
         「x=="白"」！なら「x=white」実行。
-    x」。
+    x」。*/
     !"Blue" "blue" "青" addAlias.
     !"Red" "red" "赤" addAlias.
     !"Green" "green" "緑" addAlias.
@@ -54,7 +54,7 @@
     //----ローカライズの仕方
     // obj ! "eng" "jpn" addAlias. メソッド jpnが呼ばれたらengを呼ぶように設定
     ! "create" "作る" addAlias.
-    ! "create" "만들다" addAlias.//１命令に複数のエイリアスを指定可能
+    //! "create" "만들다" addAlias.//１命令に複数のエイリアスを指定可能
     //Actor:作る=Actor:create.
     Actor ! 
     "forward" "歩く" addAlias
@@ -75,7 +75,7 @@
     ! "turtle" "タートル" addAlias.
     //タートル＝turtle.
     //タートル:作る＝[!create].
-    タートル:図形を作る＝[|x| !(!(x)色名)makeFigure].
+    タートル! "makeFigure" "図形を作る" addAlias.//＝[|x| !(!(x)色名)makeFigure].
     タートル：戻る＝[|x| !(-x)forward].
     タートル：ペンあり=turtle:penDown.
     タートル：ペンなし=turtle:penUp.
@@ -101,7 +101,7 @@
     図形＝Figure.
     //図形：左回り＝[|x| !(x)turnLeft.].
     //図形：右回り＝[|x| !(x)turnRight].
-    図形：塗る＝[|x| !(！(x)色名)paint].
+    図形! "paint" "塗る" addAlias.//＝[|x| !(！(x)色名)paint].
     図形：結合する=Figure:makeGroup.
     図形：結合＝Figure:makeGroup.
     HTML：読む＝[|x| !(x)get].
