@@ -26,7 +26,8 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
         return "lib/"+n+".js";
     });
     var dtlibs=["mt","lib","polyk","calibration","devicemotion",
-    "Dict","Vec2","Actor","Group","UI","Color","Timer","Util","Turtle","Figure","DOM","Japanese"].map(
+    "Dict","Vec2","Actor","Group","UI","Color","Timer",
+    "Util","Turtle","Figure","DOM","Japanese2"].map(
         function (n) {
             return "lib/dtl/"+n+".js";
         }

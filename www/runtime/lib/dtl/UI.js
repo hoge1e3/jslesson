@@ -267,6 +267,52 @@ return (1);
 return this['write']((((this['read']())-by)));
 });
 this['UI']['addAlias']("dec","decrement");
+this['UI']['paint']=dtlbind(this,function(r,g,b){
+var self=this;var 自分=self;
+var args;
+var c;
+args=root['window']['Array']['prototype']['slice']['call']((arguments));
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return (args['length']===(1));
+})['then']()['else'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return c=r;
+}))['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return c=this['Color']['create']((r),(g),(b));
+}));
+this['element']['css']("background-color",(c));
+return this;
+});
+this['UI']['fontColor']=dtlbind(this,function(r,g,b){
+var self=this;var 自分=self;
+var args;
+var c;
+args=root['window']['Array']['prototype']['slice']['call']((arguments));
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return (args['length']===(1));
+})['then']()['else'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return c=r;
+}))['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return c=this['Color']['create']((r),(g),(b));
+}));
+this['element']['css']("color",(c));
+return this;
+});
+this['UI']['fontSize']=dtlbind(this,function(s){
+var self=this;var 自分=self;
+this['element']['css']("font-size",(((s/(10))+"em")));
+return this;
+});
+this['UI']['size']=dtlbind(this,function(w,h){
+var self=this;var 自分=self;
+this['element']['css']("width",((w+"px")))['css']("height",((h+"px")));
+return this;
+});
 this['UI']['attachEvent']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return });
@@ -396,52 +442,6 @@ return t['action']();
 this['Button']['setAction']=dtlbind(this,function(a){
 var self=this;var 自分=self;
 this['action']=a;
-return this;
-});
-this['Button']['paint']=dtlbind(this,function(r,g,b){
-var self=this;var 自分=self;
-var args;
-var c;
-args=root['window']['Array']['prototype']['slice']['call']((arguments));
-dtlbind(this,function(){
-var self=this;var 自分=self;
-return (args['length']===(1));
-})['then']()['else'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return c=r;
-}))['execute'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return c=this['Color']['create']((r),(g),(b));
-}));
-this['element']['css']("background-color",(c));
-return this;
-});
-this['Button']['fontColor']=dtlbind(this,function(r,g,b){
-var self=this;var 自分=self;
-var args;
-var c;
-args=root['window']['Array']['prototype']['slice']['call']((arguments));
-dtlbind(this,function(){
-var self=this;var 自分=self;
-return (args['length']===(1));
-})['then']()['else'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return c=r;
-}))['execute'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return c=this['Color']['create']((r),(g),(b));
-}));
-this['element']['css']("color",(c));
-return this;
-});
-this['Button']['fontSize']=dtlbind(this,function(s){
-var self=this;var 自分=self;
-this['element']['css']("font-size",(((s/(10))+"em")));
-return this;
-});
-this['Button']['size']=dtlbind(this,function(w,h){
-var self=this;var 自分=self;
-this['element']['css']("width",((w+"px")))['css']("height",((h+"px")));
 return this;
 });
 this['Button']['keyCodeDict']=this['Dict']['create']();

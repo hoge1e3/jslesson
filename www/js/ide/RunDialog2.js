@@ -8,6 +8,7 @@ function (UI, LocalBrowser,DA) {
         var d=res.embed(runFile, options);
         d.dialog({
             width:16*((options.height+10)/9),
+            //height:options.height,
             position: { my: "center top", at: "right bottom"},
             close:function(){
                 window.dialogClosed=true;
@@ -20,7 +21,6 @@ function (UI, LocalBrowser,DA) {
         function handleResize() {
             if (res.b/* && res.b.iframe*/) {
                 res.b.resize(d.width(),d.height()-d.$vars.OKButton.height());
-                console.log("height",d.height());
                 /*res.b.iframe.attr({
                     width:d.width(),
                     height:d.height()-d.$vars.OKButton.height()});*/

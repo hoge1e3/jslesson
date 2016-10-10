@@ -25,73 +25,6 @@ this['addAlias']("rdq","右ダブルクォート","右ダブルクォーテー�
 this['addAlias']("rdq","右ダブルクオート","右ダブルクオーテーション");
 this['addAlias']("ldb","左二重鉤括弧","左二重かぎ括弧");
 this['addAlias']("rdb","右二重鉤括弧","右二重かぎ括弧");
-this['色名']=dtlbind(this,function(x){
-var self=this;var 自分=self;
-dtlbind(this,function(){
-var self=this;var 自分=self;
-return (x==="黒");
-})['なら']()['実行'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return x=this['black'];
-}));
-dtlbind(this,function(){
-var self=this;var 自分=self;
-return (x==="赤");
-})['なら']()['実行'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return x=this['red'];
-}));
-dtlbind(this,function(){
-var self=this;var 自分=self;
-return (x==="緑");
-})['なら']()['実行'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return x=this['green'];
-}));
-dtlbind(this,function(){
-var self=this;var 自分=self;
-return (x==="青");
-})['なら']()['実行'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return x=this['blue'];
-}));
-dtlbind(this,function(){
-var self=this;var 自分=self;
-return (x==="ピンク");
-})['なら']()['実行'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return x=this['pink'];
-}));
-dtlbind(this,function(){
-var self=this;var 自分=self;
-return (x==="紫");
-})['なら']()['実行'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return x=this['magenta'];
-}));
-dtlbind(this,function(){
-var self=this;var 自分=self;
-return (x==="水色");
-})['なら']()['実行'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return x=this['cyan'];
-}));
-dtlbind(this,function(){
-var self=this;var 自分=self;
-return (x==="黄色");
-})['なら']()['実行'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return x=this['yellow'];
-}));
-dtlbind(this,function(){
-var self=this;var 自分=self;
-return (x==="白");
-})['なら']()['実行'](dtlbind(this,function(){
-var self=this;var 自分=self;
-return x=this['white'];
-}));
-return x;
-});
 this['addAlias']("Blue","blue","青");
 this['addAlias']("Red","red","赤");
 this['addAlias']("Green","green","緑");
@@ -110,13 +43,9 @@ this['Ink']['addAlias']("mix","混ぜる");
 this['addAlias']("Light","光");
 this['Light']['addAlias']("mix","混ぜる");
 this['addAlias']("create","作る");
-this['addAlias']("create","만들다");
 this['Actor']['addAlias']("forward","歩く")['addAlias']("turnRight","右回り")['addAlias']("turnLeft","左回り")['addAlias']("moveTo","位置")['addAlias']("moveBy","移動する")['addAlias']("setDir","向き")['addAlias']("getDir","向き?")['addAlias']("bounce","跳ね返る")['addAlias']("xpos?","横の位置?")['addAlias']("ypos?","縦の位置?")['addAlias']("die","消える")['addAlias']("appear","現れる")['addAlias']("collision","衝突")['addAlias']("moveCenter","中心に戻る");
 this['addAlias']("turtle","タートル");
-this['タートル']['図形を作る']=dtlbind(this,function(x){
-var self=this;var 自分=self;
-return this['makeFigure']((this['色名']((x))));
-});
+this['タートル']['addAlias']("makeFigure","図形を作る");
 this['タートル']['戻る']=dtlbind(this,function(x){
 var self=this;var 自分=self;
 return this['forward']((-x));
@@ -142,10 +71,7 @@ return this['歩く'](((d/(2))));
 this['turtle']['circle']=this['タートル']['円'];
 this['turtle']['閉じる']=this['turtle']['close'];
 this['図形']=this['Figure'];
-this['図形']['塗る']=dtlbind(this,function(x){
-var self=this;var 自分=self;
-return this['paint']((this['色名']((x))));
-});
+this['図形']['addAlias']("paint","塗る");
 this['図形']['結合する']=this['Figure']['makeGroup'];
 this['図形']['結合']=this['Figure']['makeGroup'];
 this['HTML']['読む']=dtlbind(this,function(x){

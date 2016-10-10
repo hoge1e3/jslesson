@@ -29,7 +29,7 @@ root.showAliasState=function (dst) {
     a.forEach(function (o) {
         //var o=root[on];
         var on=o.__name__;
-        console.log("NAME",on,o);
+        //console.log("NAME",on,o);
         if (o===window || o===console || o===document) return;
         if (o===null || o===undefined) {
             buf.push(on+"="+o);

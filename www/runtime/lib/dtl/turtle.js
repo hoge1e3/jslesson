@@ -87,6 +87,17 @@ var self=this;var 自分=self;
 return (this['Actor']['moveTo'])['call']((this),(x),(y));
 }));
 });
+this['turtle']['circle']=dtlbind(this,function(r){
+var self=this;var 自分=self;
+var d;
+d=(r*(0.1745328));
+this['backward'](((d/(2))));
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return this['forward']((d))['rightTurn']((10));
+})['repeat']((36));
+return this['forward'](((d/(2))));
+});
 this['turtle']['closePath']=dtlbind(this,function(){
 var self=this;var 自分=self;
 dtlbind(this,function(){
