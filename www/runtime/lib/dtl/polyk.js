@@ -526,12 +526,24 @@ PolyK.Intersects=function (p1,p2) {
     }
     for (var i=0; i<p1.length;i+=2) {
         var n=(i+2)%p1.length;
-        var sl=PolyK.Slice(p2,p1[i],p1[i+1],p1[n],p1[n+1]);
+        var sl;
+        try{
+            sl=PolyK.Slice(p2,p1[i],p1[i+1],p1[n],p1[n+1]);
+        }catch(e){
+            console.log("Slice ERR",p2,p1[i],p1[i+1],p1[n],p1[n+1]);
+            return false;
+        }
         if (sl.length>1) return true;
     }
     for (var i=0; i<p2.length;i+=2) {
         var n=(i+2)%p2.length;
-        var sl=PolyK.Slice(p1,p2[i],p2[i+1],p2[n],p2[n+1]);
+        var sl;
+        try{
+            sl=PolyK.Slice(p1,p2[i],p2[i+1],p2[n],p2[n+1]);
+        }catch(e){
+            console.log("Slice ERR2",p2,p1[i],p1[i+1],p1[n],p1[n+1]);
+            return false;
+        }
         if (sl.length>1) return true;
     }
     return false;

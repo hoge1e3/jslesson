@@ -135,6 +135,10 @@ return r['paint']((col));
 this['newLineG']();
 return r;
 });
+this['turtle']['paint']=dtlbind(this,function(col){
+var self=this;var 自分=self;
+return this['makeFigure']((col));
+});
 this['turtle']['penDown']=dtlbind(this,function(){
 var self=this;var 自分=self;
 dtlbind(this,function(){
@@ -191,9 +195,11 @@ return this;
 root['action']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return });
+root['action']['isEventHandler']=this['true'];
 root['click']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return });
+root['click']['isEventHandler']=this['true'];
 return this['turtle']['setAction']=dtlbind(this,function(f){
 var self=this;var 自分=self;
 dtlbind(this,function(){

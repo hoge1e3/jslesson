@@ -246,6 +246,7 @@ this['Actor']['addAlias']("getDir","direction?");
 root['collision']=dtlbind(this,function(){
 var self=this;var 自分=self;
 return });
+root['collision']['isEventHandler']=this['true'];
 this['Actor']['checkCrash']=dtlbind(this,function(){
 var self=this;var 自分=self;
 var t;
