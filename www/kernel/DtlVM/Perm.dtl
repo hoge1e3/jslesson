@@ -1,0 +1,4 @@
+//RUN_AT_SERVER
+//FS:top=undef.
+FS ! "/home/lesson_samples/lesson_samples/aho"  "baka" setContent.
+

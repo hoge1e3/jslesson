@@ -1,0 +1,73 @@
+//RUN_AT_SERVER
+SFile=! create.
+SFile:initialize=[|fs path|
+    self:_fs=fs.
+    self:_path=path.
+].
+SFile:path=[_path].
+SFile:getText=[_fs ! (! path) getContent].
+SFile:getObj=[JSON ! (!getText) decode].
+SFile:listFiles=[
+    ! ls [|p|  ! (p) rel ] map.
+].
+SFile:name=[
+    PathUtil ! (!path) name.  
+].
+/*SFile:ext=[
+    PathUtil !(!path) ext.
+].
+SFile:truncExt=[|e|
+    PathUtil !(!path) (e) truncExt.
+].*/
+SFile:relPath=[|base|
+    PathUtil ! (!path) (base) relPath.
+].
+SFile:rel=[|r| 
+    SFile !(_fs) (PathUtil! (! path) (r) rel) create.
+].
+SFile:parent=[
+    SFile ! (_fs) (PathUtil! (!path) up) create.
+].
+SFile:up=SFile:parent.
+SFile:ls=[
+    _fs!(! path) ls  
+].
+SFile:exists=[
+    _fs!(!path) exists.    
+].
+SFile:setText=[|s|
+    _fs ! (!path) (s) setText. this.
+].
+SFile:setObj=[|o| ! (JSON ! (o) encode)setText ].
+SFile:each=[|it|
+    ! listFiles [|f| it ! (f) execute] each.    
+].
+SFile:mkdir=[
+    _fs ! (!path) mkdir. this.
+].
+SFile:rm=[
+    _fs ! (!path) rm. this.
+].
+SFile:mv=[|to|
+    _fs ! (!path) (to ! path) mv.this.
+].
+SFile:rmdir=[
+    _fs ! (!path) rmdir.
+].
+SFile:rmdirForce=[
+    ! [|f|
+        [f! isDir] ! then [ f ! rmdirForce ] 
+        else[ f ! rm ] execute.
+    ] each.
+    ! rmdir.
+].
+SFile:lastUpdate=[
+    ! getMetaInfo "lastUpdate" get
+].
+SFile:isDir=[
+    _fs ! (!path) isDir
+].
+SFile:getMetaInfo=[
+    _fs ! (!path) getMetaInfo
+].
+homeDir=SFile ! (FS) (homeDirPath) create.

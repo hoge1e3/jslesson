@@ -1,0 +1,9 @@
+//RUN_AT_SERVER
+system ! "/scripts/SFile.dtlvm" use.
+system ! "/scripts/Validator.dtlvm" use.
+project=param! "project" get.
+Validator ! 
+[project] ["specify project"] check
+[projectf=homeDir !(project) rel] do
+[projectf ! exists] [(projectf!path)+" not exists"] check
+[projectf ! rmdirForce. ("Succ delete "+(projectf!path))] done.

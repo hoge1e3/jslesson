@@ -1,0 +1,15 @@
+//RUN_AT_SERVER
+//「別ページで実行」を選択
+// klabにログインして、 % sh runDtlVM.sh
+led=! create.
+//led:on= [ Shell ! "echo 1 > /sys/class/gpio/gpio5/value " exec  ].
+//led:off=[ Shell ! "echo 0 > /sys/class/gpio/gpio5/value " exec  ].
+led:on= [ Shell ! "echo 12 " exec  ].
+led:off=[ Shell ! "echo 0 " exec  ].
+[
+    led ! on.
+    Shell ! 0.5 sleep.
+    led ! off.
+    Shell ! 0.5 sleep.
+] ! 10 repeat.
+

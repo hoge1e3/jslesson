@@ -11,6 +11,7 @@
    ["www/fs/pub/e0dc9998/RenameProject.dtlvm","www/fs/scripts/"],
    ["www/fs/pub/e0dc9998/Validator.dtlvm","www/fs/scripts/"],
    ["www/fs/home/0123/dolittle/Turtle/","www/kernel/Turtle/"],
+   ["www/fs/home/0123/dolittle/DtlVM/","www/kernel/DtlVM/"],
    ["www/fs/home/devel/devel/JSLKer/","www/kernel/JSLKer/"],
    ["www/js/fs2/FS.js", "${projects:FS.js}/www/gen/FS.js"],
    ["www/js/fsui/LocalBrowser.js", "${projects:FS.js}/www/fstools/LocalBrowser.js"],

@@ -1,0 +1,5 @@
+//RUN_AT_SERVER
+
+add=[|x y|
+    x+y 
+].

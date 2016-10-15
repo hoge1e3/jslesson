@@ -1,0 +1,4 @@
+//RUN_AT_SERVER
+四則演算=root! create.
+四則演算:exec= [Shell! "python3 aaa.py 6 8" exec].
+四則演算!exec.

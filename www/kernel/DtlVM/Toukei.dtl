@@ -1,0 +1,4 @@
+//RUN_AT_SERVER
+DF=root! create.
+DF:exec=[Shell! "python pandas" exec].
+ret=DF!exec.
