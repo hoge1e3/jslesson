@@ -1,321 +1,324 @@
 // Dolittle
-aa=root:addAlias.
-ルート=root.
-はい＝:true。
-いいえ＝:false。
-真=:true。
-偽=:false。
-!"initialize" "初期化" addAlias.
-!"pi" "円周率" addAlias.
-!"dq" "ダブルクォート" "ダブルクォーテーション" addAlias.
-!"dq" "ダブルクオート" "ダブルクオーテーション" addAlias.
-!"ldq" "左ダブルクォート" "左ダブルクォーテーション" addAlias.
-!"ldq" "左ダブルクオート" "左ダブルクオーテーション" addAlias.
-!"rdq" "右ダブルクォート" "右ダブルクォーテーション" addAlias.
-!"rdq" "右ダブルクオート" "右ダブルクオーテーション" addAlias.
-!"ldb" "左二重鉤括弧" "左二重かぎ括弧" addAlias.
-!"rdb" "右二重鉤括弧" "右二重かぎ括弧" addAlias.
-
-
-色名＝「｜x｜
-    「x=="黒"」！なら「x=black」実行。
-    「x=="赤"」！なら「x=red」実行。
-    「x=="緑"」！なら「x=green」実行。
-    「x=="青"」！なら「x=blue」実行。
-    「x=="ピンク"」！なら「x=pink」実行。
-    「x=="紫"」！なら「x=magenta」実行。
-    「x=="水色"」！なら「x=cyan」実行。
-    「x=="黄色"」！なら「x=yellow」実行。
-    「x=="白"」！なら「x=white」実行。
-x」。
-!"blue" "青" addAlias.
-!"red" "赤" addAlias.
-!"green" "緑" addAlias.
-!"pink" "ピンク" addAlias.
-!"magenta" "紫" addAlias.
-!"cyan" "水色" addAlias.
-!"cyan" "水" addAlias.
-!"yellow" "黄色" addAlias.
-!"yellow" "黄" addAlias.
-!"white" "白" addAlias.
-!"black" "黒" addAlias.
-
-!"Color" "色" addAlias.
-Color!"darken" "暗くする" addAlias.
-Color!"brighten" "明るくする" addAlias.
-Color!"randomCreate" "ランダムに作る" addAlias
-"toHalfOpacity" "半透明にする" addAlias
-"toFullOpacity" "不透明にする" addAlias.
-!"Ink" "絵の具" addAlias.
-Ink! "mix" "混ぜる" addAlias.
-!"Light" "光" addAlias.
-Light ! "mix" "混ぜる" addAlias.
-
-//----ローカライズの仕方
-// obj ! "eng" "jpn" addAlias. メソッド jpnが呼ばれたらengを呼ぶように設定
-! "create" "作る" addAlias.
-! "create" "만들다" addAlias.//１命令に複数のエイリアスを指定可能
-//Actor:作る=Actor:create.
-Actor ! 
-"forward" "歩く" addAlias
-"turnRight" "右回り" addAlias
-"turnLeft" "左回り" addAlias
-"moveTo" "位置" addAlias
-"moveBy" "移動する" addAlias
-"setDir" "向き" addAlias
-"getDir" "向き?" addAlias
-"bounce" "跳ね返る"  addAlias
-"xpos?" "横の位置?" addAlias
-"ypos?" "縦の位置?" addAlias
-"die" "消える" addAlias
-"appear" "現れる" addAlias
-"collision" "衝突" addAlias
-"moveCenter" "中心に戻る" addAlias.
-//↑イベントハンドラに対しても同じように設定可能。
-! "turtle" "タートル" addAlias.
-//タートル＝turtle.
-//タートル:作る＝[!create].
-タートル:図形を作る＝[|x| !(!(x)色名)makeFigure].
-タートル：戻る＝[|x| !(-x)forward].
-タートル：ペンあり=turtle:penDown.
-タートル：ペンなし=turtle:penUp.
-タートル：線の色=turtle:lineColor.
-タートル：線の太さ=turtle:lineWidth.
-Turtle!"action" "動作" addAlias
-"setAction" "動作設定" addAlias.
-
-turtle:歩く=turtle:forward.
-
-turtle:変身する=turtle:change.
-//タートル：左回り＝[|x| !(x)turnLeft].
-//タートル：右回り＝[|x| !(x)turnRight].
-タートル：円＝「|r;d|
-    d=r * 0.1745328。
-    !(d/2)戻る。
-    「!(d)歩く 10 右回り」!36 repeat。
-    !(d/2)歩く
-」。
-turtle:circle=タートル:円。
-turtle:閉じる=turtle:close.
-
-図形＝Figure.
-//図形：左回り＝[|x| !(x)turnLeft.].
-//図形：右回り＝[|x| !(x)turnRight].
-図形：塗る＝[|x| !(！(x)色名)paint].
-図形：結合する=Figure:makeGroup.
-図形：結合＝Figure:makeGroup.
-HTML：読む＝[|x| !(x)get].
-HTML：位置＝[|x y| !(x)(y)move].
-!"Timer" "タイマー" addAlias.
-Timer! "execute" "実行" addAlias.
-Timer! "next_execute" "次に実行" addAlias.
-Timer! "stop" "中断" addAlias.
-Timer! "abort" "停止" addAlias.
-Timer! "after_execute" "完了時実行" addAlias.
-Timer! "after_execute" "終了時実行" addAlias.
-Timer! "after_execute" "最後に実行" addAlias.
-Timer! "times" "回数" addAlias.
-Timer! "interval" "間隔" addAlias.
-Timer! "duration" "時間" addAlias.
-
-UI ! "nextLine" "次の行" addAlias
-"inc" "増やす" addAlias
-"dec" "減らす" addAlias
-"read" "読む" addAlias
-"moveTo" "位置" addAlias
-"moveTo" "position" addAlias
-"moveBy" "移動する" addAlias
-"width?" "幅?" addAlias
-"height?" "高さ?" addAlias
-"width" "幅" addAlias
-"height" "高さ" addAlias
-"clear" "クリア" addAlias
-"write" "書く" addAlias
-"add" "追加" addAlias
-"newLine" "改行" addAlias.
-//ブロック＝Block.
-//ブロック:なら＝[!then].
-ボタン=Button.
-Button ! "action" "動作" addAlias.
-Button ! "setAction" "動作設定" addAlias.
-Button ! "width?" "幅?" addAlias.
-Button ! "height?" "高さ?" addAlias.
-Button ! "size" "大きさ" addAlias.
-Button ! "fontSize" "文字サイズ" addAlias.
-Button ! "paint" "塗る" addAlias.
-Button ! "fontColor" "文字色" addAlias.
-!"Label" "ラベル" addAlias.
-Label!"fontColor" "文字色" addAlias.
-フィールド=Field.
-テキストエリア=TextArea.
-リスト=ListBox.
-TextArea ! 
-"write" "書く" addAlias 
-"overwrite" "上書き" addAlias
-"writeLn" "書いて改行" addAlias
-"readOnly" "読むだけ" addAlias
-"writable" "読み書き" addAlias
-"autoBR" "自動改行" addAlias
-"newLine" "改行" addAlias
-"setRow" "行数" addAlias
-"setCol" "桁数" addAlias
-"setCol" "文字数" addAlias
-"setCol" "列数" addAlias
-"readAsArray" "配列で読む" addAlias
-"changeLine" "行修正" addAlias
-.
-
-!"Screen" "画面" addAlias.
-Screen ! "paint" "塗る" addAlias "width?" "幅?"  addAlias "height?" "高さ?" addAlias.
-
-//以下、本多追加分
-//Util内オブジェクト
-!"and" "全部" "ぜんぶ" addAlias.
-aa!(and) "true" "本当" "ほんとう" call.
-
-!"or" "どれか" addAlias.
-aa!(or) "true" "本当" "ほんとう" call.
-
-!"Dict" "辞書" addAlias.
-Dict!"write" "書く" addAlias
-"read" "読む" addAlias
-"has?" "含む?" addAlias
-"each" "それぞれ実行" addAlias
-"delete" "削除" addAlias.
-
-//システムオブジェクト
-システム=system.
-aa!(system)"systemTime" "システム時間?" call.
-aa!(system)"systemTIme" "システム時間" call.
-aa!(system)"time" "時刻?" call.
-aa!(system)"time" "時刻" call.
-aa!(system)"today" "日時?" call.
-aa!(system)"today" "日時" call.
-aa!(system)"day" "曜日?" call.
-aa!(system)"day" "曜日" call.
-aa!(system)"year" "年?" call.
-aa!(system)"year" "年" call.
-aa!(system)"month" "月?" call.
-aa!(system)"month" "月" call.
-aa!(system)"date" "日?" call.
-aa!(system)"date" "日" call.
-aa!(system)"hours" "時?" call.
-aa!(system)"hours" "時" call.
-aa!(system)"minutes" "分?" call.
-aa!(system)"minutes" "分" call.
-aa!(system)"seconds" "秒?" call.
-aa!(system)"seconds" "秒" call.
-
-//センサ類
-!"accelerationSensor" "加速度センサ" "加速度センサー" addAlias.
-accelerationSensor!"setAction" "動作設定" addAlias
-"use" "使う" addAlias
-"calibrate" "調整" addAlias
-"action" "動作" addAlias
-"getXAcceleration" "左右の加速度?" addAlias
-"getYAcceleration" "前後の加速度?" addAlias
-"getZAcceleration" "上下の加速度?" addAlias.
-
-!"compass" "コンパス" "磁気センサ" "磁気センサー" addAlias.
-compass!
-"use" "使う" addAlias
-"setAction" "動作設定" addAlias 
-"action" "動作" addAlias
-"getDirection" "方向?" "向き?" addAlias.
-
-/*GPS!"use" "使う" addAlias
-"getLatitude" "緯度?" addAlias
-"getLongitude" "経度?" addAlias.*/
-
-!"touchSensor" "タッチセンサ" "タッチセンサー" addAlias.
-touchSensor!"setAction" "動作設定" addAlias
-"action" "動作" addAlias
-"use" "使う" addAlias
-"getTouched" "タッチした?" "触れた?" addAlias
-"getTouching" "タッチしている?" "タッチしてる?" "触れている?" "触れてる?" addAlias
-"getX" "横の位置?" addAlias
-"getY" "縦の位置?" addAlias.
-
-!"gyroSensor" "ジャイロセンサ" "ジャイロセンサー" addAlias.
-gyroSensor!"setAction" "動作設定" addAlias
-"action" "動作" addAlias
-"use" "使う" addAlias
-"getYaw" "ヨー?" "水平方向の傾き?" "水平の傾き?" addAlias
-"getRoll" "ロール?" "左右方向の傾き?" "左右の傾き?" addAlias
-"getPitch" "ピッチ?" "上下方向の傾き?" "上下の傾き?" addAlias
-"calibrate" "調整" addAlias
-"use" "使う" addAlias.
-
-//ネイティブオブジェクト
-文字列=window:String.
-sp=window:String:prototype.
-aa!(sp) "add" "連結" call.
-aa!(sp) "contain?" "含む?" call.
-aa!(sp) "position?" "何文字目?" call.
-aa!(sp) "substr" "部分" call.
-aa!(sp) "length?" "長さ?" call.
-aa!(sp) "partition" "分割" call.
-aa!(sp) "oneReplace" "置き換える" call.
-aa!(sp) "allReplace" "全部置き換える" call.
-aa!(sp) "charCodeAt" "文字コード" call.
-
-配列=window:Array.
-ap=window:Array:prototype.
-aa!(window:Array) "create" "作る" call.
-aa!(ap) "get" "読む" call.
-aa!(ap) "set" "上書き" call.
-aa!(ap) "add" "書く" call.
-aa!(ap) "remove" "消す" call.
-aa!(ap) "removepos" "位置で消す" call.
-aa!(ap) "insert" "挿入" call.
-aa!(ap) "each" "それぞれ実行" call.
-aa!(ap) "length?" "要素数?" call.
-aa!(ap) "clear" "クリア" call.
-aa!(ap) "concat" "連結" call.
-aa!(ap) "randomSelect" "ランダムに選ぶ" call.
-aa!(ap) "each" "それぞれ実行" call.
-aa!(ap) "select" "選ぶ" call.
-aa!(ap) "max" "最大" call.
-aa!(ap) "min" "最小" call.
-aa!(ap) "bond" "結合" call.
-aa!(ap) "process" "加工" call.
-
-ブロック=window:Function.
-fp=window:Function:prototype.
-aa!(fp) "execute" "実行" call.
-aa!(fp) "repeat" "繰り返す" call.
-aa!(fp) "while" "の間" call.
-aa!(fp) "then" "なら" call.
-aa!(fp) "else" "そうでなければ" call.
-_true!"else" "そうでなければ" addAlias
-"execute" "実行" addAlias
-"then" "なら" addAlias.
-_false!"else" "そうでなければ" addAlias
-"execute" "実行" addAlias
-"then" "なら" addAlias.
-_done!"else" "そうでなければ" addAlias
-"execute" "実行" addAlias
-"then" "なら" addAlias.
-_while!"execute" "実行" addAlias.
-
-数値=window:Number.
-np=window:Number:prototype.
-aa!(np) "setSeed" "乱数初期化" call.
-aa!(np) "random" "乱数" call.
-aa!(np) "add" "足す" call.
-aa!(np) "add" "たす" call.
-aa!(np) "sub" "引く" call.
-aa!(np) "sub" "ひく" call.
-aa!(np) "mul" "掛ける" call.
-aa!(np) "mul" "かける" call.
-aa!(np) "div" "割る" call.
-aa!(np) "div" "わる" call.
-aa!(np) "mod" "余り" call.
-aa!(np) "mod" "あまり" call.
-aa!(np) "fromCharCode" "コード文字" call.
-
-真偽値=window:Boolean.
-bp=window:Boolean:prototype.
-aa!(bp) "then" "なら" call.
-aa!(bp) "else" "そうでなければ" call.
-aa!(bp) "not" "反対" call.
+//window ! (window:localStorage:noLocalize) alert.
+[(window:localStorage:noLocalize)!="1"] ! then [|;aa fp ap bp np sp|
+    aa=root:addAlias.
+    ルート=root.
+    はい＝:true。
+    いいえ＝:false。
+    真=:true。
+    偽=:false。
+    !"initialize" "初期化" addAlias.
+    !"pi" "円周率" addAlias.
+    !"dq" "ダブルクォート" "ダブルクォーテーション" addAlias.
+    !"dq" "ダブルクオート" "ダブルクオーテーション" addAlias.
+    !"ldq" "左ダブルクォート" "左ダブルクォーテーション" addAlias.
+    !"ldq" "左ダブルクオート" "左ダブルクオーテーション" addAlias.
+    !"rdq" "右ダブルクォート" "右ダブルクォーテーション" addAlias.
+    !"rdq" "右ダブルクオート" "右ダブルクオーテーション" addAlias.
+    !"ldb" "左二重鉤括弧" "左二重かぎ括弧" addAlias.
+    !"rdb" "右二重鉤括弧" "右二重かぎ括弧" addAlias.
+    
+    
+    /*色名＝「｜x｜
+        「x=="黒"」！なら「x=black」実行。
+        「x=="赤"」！なら「x=red」実行。
+        「x=="緑"」！なら「x=green」実行。
+        「x=="青"」！なら「x=blue」実行。
+        「x=="ピンク"」！なら「x=pink」実行。
+        「x=="紫"」！なら「x=magenta」実行。
+        「x=="水色"」！なら「x=cyan」実行。
+        「x=="黄色"」！なら「x=yellow」実行。
+        「x=="白"」！なら「x=white」実行。
+    x」。*/
+    !"Blue" "blue" "青" addAlias.
+    !"Red" "red" "赤" addAlias.
+    !"Green" "green" "緑" addAlias.
+    !"Pink" "pink" "ピンク" addAlias.
+    !"Magenta" "magenta" "紫" addAlias.
+    !"Cyan" "cyan" "水色" "水" addAlias.
+    !"Yellow" "yellow" "黄色" "黄" addAlias.
+    !"White" "white" "白" addAlias.
+    !"Black" "black" "黒" addAlias.
+    
+    !"Color" "色" addAlias.
+    Color!"darken" "暗くする" addAlias.
+    Color!"brighten" "明るくする" addAlias.
+    Color!"randomCreate" "ランダムに作る" addAlias
+    "toHalfOpacity" "半透明にする" addAlias
+    "toFullOpacity" "不透明にする" addAlias.
+    !"Ink" "絵の具" addAlias.
+    Ink! "mix" "混ぜる" addAlias.
+    !"Light" "光" addAlias.
+    Light ! "mix" "混ぜる" addAlias.
+    
+    //----ローカライズの仕方
+    // obj ! "eng" "jpn" addAlias. メソッド jpnが呼ばれたらengを呼ぶように設定
+    ! "create" "作る" addAlias.
+    //! "create" "만들다" addAlias.//１命令に複数のエイリアスを指定可能
+    //Actor:作る=Actor:create.
+    Actor ! 
+    "forward" "歩く" addAlias
+    "turnRight" "右回り" addAlias
+    "turnLeft" "左回り" addAlias
+    "moveTo" "位置" addAlias
+    "moveBy" "移動する" addAlias
+    "setDir" "向き" addAlias
+    "getDir" "向き?" addAlias
+    "bounce" "跳ね返る"  addAlias
+    "xpos?" "横の位置?" addAlias
+    "ypos?" "縦の位置?" addAlias
+    "die" "消える" addAlias
+    "appear" "現れる" addAlias
+    "collision" "衝突" addAlias
+    "moveCenter" "中心に戻る" addAlias.
+    //↑イベントハンドラに対しても同じように設定可能。
+    ! "turtle" "タートル" addAlias.
+    //タートル＝turtle.
+    //タートル:作る＝[!create].
+    タートル! "makeFigure" "図形を作る" addAlias.//＝[|x| !(!(x)色名)makeFigure].
+    タートル：戻る＝[|x| !(-x)forward].
+    タートル：ペンあり=turtle:penDown.
+    タートル：ペンなし=turtle:penUp.
+    タートル：線の色=turtle:lineColor.
+    タートル：線の太さ=turtle:lineWidth.
+    Turtle!"action" "動作" addAlias
+    "setAction" "動作設定" addAlias.
+    
+    turtle:歩く=turtle:forward.
+    
+    turtle:変身する=turtle:change.
+    //タートル：左回り＝[|x| !(x)turnLeft].
+    //タートル：右回り＝[|x| !(x)turnRight].
+    タートル：円＝「|r;d|
+        d=r * 0.1745328。
+        !(d/2)戻る。
+        「!(d)歩く 10 右回り」!36 repeat。
+        !(d/2)歩く
+    」。
+    turtle:circle=タートル:円。
+    turtle:閉じる=turtle:close.
+    
+    図形＝Figure.
+    //図形：左回り＝[|x| !(x)turnLeft.].
+    //図形：右回り＝[|x| !(x)turnRight].
+    図形! "paint" "塗る" addAlias.//＝[|x| !(！(x)色名)paint].
+    図形：結合する=Figure:makeGroup.
+    図形：結合＝Figure:makeGroup.
+    HTML：読む＝[|x| !(x)get].
+    HTML：位置＝[|x y| !(x)(y)move].
+    !"Timer" "タイマー" addAlias.
+    Timer! "execute" "実行" addAlias.
+    Timer! "next_execute" "次に実行" addAlias.
+    Timer! "skip" "中断" addAlias.
+    Timer! "abort" "停止" addAlias.
+    Timer! "after_execute" "完了時実行" addAlias.
+    Timer! "after_execute" "終了時実行" addAlias.
+    Timer! "after_execute" "最後に実行" addAlias.
+    Timer! "times" "回数" addAlias.
+    Timer! "interval" "間隔" addAlias.
+    Timer! "duration" "時間" addAlias.
+    
+    UI ! "nextLine" "次の行" addAlias
+    "inc" "増やす" addAlias
+    "dec" "減らす" addAlias
+    "read" "読む" addAlias
+    "moveTo" "位置" addAlias
+    "moveTo" "position" addAlias
+    "moveBy" "移動する" addAlias
+    "width?" "幅?" addAlias
+    "height?" "高さ?" addAlias
+    "width" "幅" addAlias
+    "height" "高さ" addAlias
+    "clear" "クリア" addAlias
+    "write" "書く" addAlias
+    "add" "追加" addAlias
+    "newLine" "改行" addAlias.
+    //ブロック＝Block.
+    //ブロック:なら＝[!then].
+    ボタン=Button.
+    Button ! "action" "動作" addAlias.
+    Button ! "setAction" "動作設定" addAlias.
+    Button ! "width?" "幅?" addAlias.
+    Button ! "height?" "高さ?" addAlias.
+    Button ! "size" "大きさ" addAlias.
+    Button ! "fontSize" "文字サイズ" addAlias.
+    Button ! "paint" "塗る" addAlias.
+    Button ! "fontColor" "文字色" addAlias.
+    !"Label" "ラベル" addAlias.
+    Label!"fontColor" "文字色" addAlias.
+    フィールド=Field.
+    テキストエリア=TextArea.
+    リスト=ListBox.
+    TextArea ! 
+    "write" "書く" addAlias 
+    "overwrite" "上書き" addAlias
+    "writeLn" "書いて改行" addAlias
+    "readOnly" "読むだけ" addAlias
+    "writable" "読み書き" addAlias
+    "autoBR" "自動改行" addAlias
+    "newLine" "改行" addAlias
+    "setRow" "行数" addAlias
+    "setCol" "桁数" addAlias
+    "setCol" "文字数" addAlias
+    "setCol" "列数" addAlias
+    "readAsArray" "配列で読む" addAlias
+    "changeLine" "行修正" addAlias
+    .
+    
+    !"Screen" "画面" addAlias.
+    Screen ! "paint" "塗る" addAlias "width?" "幅?"  addAlias "height?" "高さ?" addAlias.
+    
+    //以下、本多追加分
+    //Util内オブジェクト
+    !"and" "全部" "ぜんぶ" addAlias.
+    aa!(and) "true" "本当" "ほんとう" call.
+    
+    !"or" "どれか" addAlias.
+    aa!(or) "true" "本当" "ほんとう" call.
+    
+    !"Dict" "辞書" addAlias.
+    Dict!"write" "書く" addAlias
+    "read" "読む" addAlias
+    "has?" "含む?" addAlias
+    "each" "それぞれ実行" addAlias
+    "delete" "削除" addAlias.
+    
+    //システムオブジェクト
+    システム=system.
+    aa!(system)"systemTime" "システム時間?" call.
+    aa!(system)"systemTIme" "システム時間" call.
+    aa!(system)"dateTime" "日時?" "日時" call.
+    aa!(system)"time" "時刻?" call.
+    aa!(system)"time" "時刻" call.
+    aa!(system)"today" "日付?" call.
+    aa!(system)"today" "日付" call.
+    aa!(system)"dayOfWeek" "曜日?" call.
+    aa!(system)"dayOfWeek" "曜日" call.
+    aa!(system)"year" "年?" call.
+    aa!(system)"year" "年" call.
+    aa!(system)"month" "月?" call.
+    aa!(system)"month" "月" call.
+    aa!(system)"day" "日?" call.
+    aa!(system)"day" "日" call.
+    aa!(system)"hours" "時?" call.
+    aa!(system)"hours" "時" call.
+    aa!(system)"minutes" "分?" call.
+    aa!(system)"minutes" "分" call.
+    aa!(system)"seconds" "秒?" call.
+    aa!(system)"seconds" "秒" call.
+    
+    //センサ類
+    !"accelerationSensor" "加速度センサ" "加速度センサー" addAlias.
+    accelerationSensor!"setAction" "動作設定" addAlias
+    "use" "使う" addAlias
+    "calibrate" "調整" addAlias
+    "action" "動作" addAlias
+    "getXAcceleration" "左右の加速度?" addAlias
+    "getYAcceleration" "前後の加速度?" addAlias
+    "getZAcceleration" "上下の加速度?" addAlias.
+    
+    !"compass" "コンパス" "磁気センサ" "磁気センサー" addAlias.
+    compass!
+    "use" "使う" addAlias
+    "setAction" "動作設定" addAlias 
+    "action" "動作" addAlias
+    "getDirection" "方向?" "向き?" addAlias.
+    
+    /*GPS!"use" "使う" addAlias
+    "getLatitude" "緯度?" addAlias
+    "getLongitude" "経度?" addAlias.*/
+    
+    !"touchSensor" "タッチセンサ" "タッチセンサー" addAlias.
+    touchSensor!"setAction" "動作設定" addAlias
+    "action" "動作" addAlias
+    "use" "使う" addAlias
+    "getTouched" "タッチした?" "触れた?" addAlias
+    "getTouching" "タッチしている?" "タッチしてる?" "触れている?" "触れてる?" addAlias
+    "getX" "横の位置?" addAlias
+    "getY" "縦の位置?" addAlias.
+    
+    !"gyroSensor" "ジャイロセンサ" "ジャイロセンサー" addAlias.
+    gyroSensor!"setAction" "動作設定" addAlias
+    "action" "動作" addAlias
+    "use" "使う" addAlias
+    "getYaw" "ヨー?" "水平方向の傾き?" "水平の傾き?" addAlias
+    "getRoll" "ロール?" "左右方向の傾き?" "左右の傾き?" addAlias
+    "getPitch" "ピッチ?" "上下方向の傾き?" "上下の傾き?" addAlias
+    "calibrate" "調整" addAlias
+    "use" "使う" addAlias.
+    
+    //ネイティブオブジェクト
+    文字列=window:String.
+    sp=window:String:prototype.
+    aa!(sp) "add" "連結" call.
+    aa!(sp) "contain?" "含む?" call.
+    aa!(sp) "position?" "何文字目?" call.
+    aa!(sp) "substr" "部分" call.
+    aa!(sp) "length?" "長さ?" call.
+    aa!(sp) "partition" "分割" call.
+    aa!(sp) "oneReplace" "置き換える" call.
+    aa!(sp) "allReplace" "全部置き換える" call.
+    aa!(sp) "charCodeAt" "文字コード" call.
+    
+    配列=window:Array.
+    ap=window:Array:prototype.
+    aa!(window:Array) "create" "作る" call.
+    aa!(ap) "get" "読む" call.
+    aa!(ap) "set" "上書き" call.
+    aa!(ap) "add" "書く" call.
+    aa!(ap) "remove" "消す" call.
+    aa!(ap) "removepos" "位置で消す" call.
+    aa!(ap) "insert" "挿入" call.
+    aa!(ap) "each" "それぞれ実行" call.
+    aa!(ap) "length?" "要素数?" call.
+    aa!(ap) "clear" "クリア" call.
+    aa!(ap) "concat" "連結" call.
+    aa!(ap) "randomSelect" "ランダムに選ぶ" call.
+    aa!(ap) "each" "それぞれ実行" call.
+    aa!(ap) "select" "選ぶ" call.
+    aa!(ap) "max" "最大" call.
+    aa!(ap) "min" "最小" call.
+    aa!(ap) "bond" "結合" call.
+    aa!(ap) "process" "加工" call.
+    
+    ブロック=window:Function.
+    fp=window:Function:prototype.
+    aa!(fp) "execute" "実行" call.
+    aa!(fp) "repeat" "繰り返す" call.
+    aa!(fp) "while" "の間" call.
+    aa!(fp) "then" "なら" call.
+    aa!(fp) "else" "そうでなければ" call.
+    _true!"else" "そうでなければ" addAlias
+    "execute" "実行" addAlias
+    "then" "なら" addAlias.
+    _false!"else" "そうでなければ" addAlias
+    "execute" "実行" addAlias
+    "then" "なら" addAlias.
+    _done!"else" "そうでなければ" addAlias
+    "execute" "実行" addAlias
+    "then" "なら" addAlias.
+    _while!"execute" "実行" addAlias.
+    
+    数値=window:Number.
+    np=window:Number:prototype.
+    aa!(np) "setSeed" "乱数初期化" call.
+    aa!(np) "random" "乱数" call.
+    aa!(np) "add" "足す" call.
+    aa!(np) "add" "たす" call.
+    aa!(np) "sub" "引く" call.
+    aa!(np) "sub" "ひく" call.
+    aa!(np) "mul" "掛ける" call.
+    aa!(np) "mul" "かける" call.
+    aa!(np) "div" "割る" call.
+    aa!(np) "div" "わる" call.
+    aa!(np) "mod" "余り" call.
+    aa!(np) "mod" "あまり" call.
+    aa!(np) "fromCharCode" "コード文字" call.
+    
+    真偽値=window:Boolean.
+    bp=window:Boolean:prototype.
+    aa!(bp) "then" "なら" call.
+    aa!(bp) "else" "そうでなければ" call.
+    aa!(bp) "not" "反対" call.
+] execute.
+//[jpAliasVer==1] ! then [! showAliasState.] execute.

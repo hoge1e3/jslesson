@@ -12,6 +12,8 @@ root.create=function () {
     init.apply(r,arguments);
     return r;
 };
+root.initialize=function () {};
+root.initialize.isEventHandler=true;
 root.extend=function (o) {
     for (var k in o) {
         this[k]=o[k];
@@ -148,20 +150,29 @@ root.addAlias=function () {
     var a=Array.prototype.slice.call(arguments);
     var orig=a.shift();
     var t=this;
-    /*if (root.aalog && !(t.__NAME)) {
-        console.log("RAA no name",t);
-    }*/
-    a.forEach(function (al) {
-        /*if (root.aalog) {
-            root.aalog.push([t.__NAME,orig,al]);
-        }*/
-        //if (t in al) return;
-        Object.defineProperty(t,al,{
-	        enumerable:true,configurable:true,
-	        get:function() { return this[orig]; },
-	        set:function(v) { return this[orig]=v; }
+    if (t[orig] && t[orig].isEventHandler) {
+        //console.log("Is event handler:",orig);
+        a.forEach(function (al) {
+            Object.defineProperty(t,al,{
+    	        enumerable:true,configurable:true,
+    	        get:function() { return this[orig]; },
+    	        set:function(v) { return this[orig]=v; }
+            });
         });
-    });
+    } else {
+        a.forEach(function (al) {
+            var key="_KEY_"+al;
+            Object.defineProperty(t,al,{
+    	        enumerable:true,configurable:true,
+    	        get:function() { 
+    	            return (key in this ?this[key]:this[orig]); 
+    	        },
+    	        set:function(v) {
+    	            return this[key]=v; 
+    	        }
+            });
+        });
+    }
     return this;
 };
 root.findObject=function (obj) {

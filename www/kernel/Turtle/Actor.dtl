@@ -27,17 +27,18 @@ Actor:copySVGElem=[|dst src;t n a s|
         t ! (n) (s) copySVGElem.
     ] each.
 ].
-Actor:appear=[
+Actor:show=[
     group ! (this) add.
     !setTrans.
     isShowing=true.
     this.
 ].
-Actor:die=[|;i|
+Actor:hide=[|;i|
     group ! (this) remove.
     isShowing=false.
     this.
 ].
+Actor!"show" "appear" addAlias "hide" "die" addAlias.
 Actor:group=Actor !create.
 Actor:group:members=Array!create.
 Actor:group:remove=[|m;i|
@@ -145,6 +146,11 @@ Actor:moveTo=[|dx dy|
     pos=Vec2 !(dx)(dy) create. 
     ! setTrans
 ].
+Actor:moveToCenter=[
+    !0 0 moveTo.
+].
+Actor!"moveToCenter" "moveCenter" addAlias.
+
 Actor:moveBy=[|dx dy|
     dx=!(dx) num.dy=!(dy) num.
     ! (pos:x+dx) (pos:y+dy) moveTo
@@ -153,9 +159,13 @@ Actor:setDir=[|d|
     dir=!(d) num.
     !setTrans
 ].
+Actor ! "setDir" "direction" addAlias.
 Actor:getDir=[dir].
+Actor ! "getDir" "direction?" addAlias.
 //Actor ! "collision" addEventType.// ★
-Actor:collision=[].
+:collision=[].
+:collision:isEventHandler=true.
+
 Actor:checkCrash=[|;t|
     [Actor:_doingCheckCrash] ! then [] else [
         Actor:_doingCheckCrash=1.//TODO:true

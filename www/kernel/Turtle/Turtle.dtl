@@ -60,7 +60,7 @@ turtle:addPath=[|pos1 pos2;line|// pos:world coord
 turtle:addPathAfterAction=[|a;pos1|
     pos1=pos.
     a ! execute.
-    console ! "PEND" (isPenDown) log.
+    //console ! "PEND" (isPenDown) log.
     //[[isShowing]![isPendown]or] ! then  // <-これだとペンなしが効かなくなるよー
     [isPenDown] ! then [
         ! (pos1) (pos) addPath.
@@ -73,16 +73,21 @@ turtle:forward=[|by|
 turtle:moveTo=[|x y|
     ! [(Actor:moveTo) ! (this) (x) (y) call.] addPathAfterAction.
 ].
-turtle:close=[
+turtle:circle=[|r;d|
+    d=r * 0.1745328.
+    !(d/2)backward.
+    [!(d)forward 10 rightTurn] !36 repeat。
+    !(d/2)forward
+].
+
+turtle:closePath=[
     [isPenDown]!then[
         //! (pos) (lineOrig) addPath.
         ! (lineOrig:x)(lineOrig:y)moveTo.
     ]execute.
     self.
 ].
-turtle:moveCenter=[
-    !0 0 moveTo.
-].
+turtle!"closePath" "close" addAlias.
 turtle:lineColor=[|col|
     _lineCol=col.this.
 ].
@@ -96,12 +101,15 @@ turtle:makeFigure=[|col;r|
     ! newLineG.
     r.
 ].
+turtle:paint=[|col|
+    !(col) makeFigure.
+].
 turtle:penDown=[
     [isPenDown]!then [] else [isPenDown=true. !newLineG] execute. 
     this
 ].
 turtle:penUp=[isPenDown=false.this.].
-turtle:change=[|url|
+turtle:setShape=[|url|
     self:img=url.
     url=[url ! "https?" match] ! then [url] else [baseURL+url] execute.
     element ! 0 get 
@@ -110,6 +118,7 @@ turtle:change=[|url|
     ! (url) getImageSize.
     this.
 ].
+turtle ! "setShape" "change" addAlias.
 turtle:setTrans=[|;str|
     str="translate("+(pos:x)+" "+(pos:y)+") ".
     str=str+"rotate("+dir+") ".
@@ -119,6 +128,10 @@ turtle:setTrans=[|;str|
     [isShowing] ! then [ ! checkCrash ] execute.
     this.
 ].
+:action=[].
+:action:isEventHandler=true.
+:click=[].
+:click:isEventHandler=true.
 turtle:setAction=[|f|
     [(!(f)typeof)=="function"]!then[
         self:action=f.    
