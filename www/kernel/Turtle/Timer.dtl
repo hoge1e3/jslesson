@@ -17,8 +17,9 @@ Timer:interval=[|i|
 Timer:times=[|t|self:t=t.self].
 Timer:duration=[|t|self:t=t*1000/self:i.self].
 Timer:d=:system!(:window:$:Deferred)new resolve.
-Timer:stop=[].
+Timer:skip=[].
 Timer:abort=[].
+Timer ! "abort" "stop" addAlias.
 Timer:execute=[|f;s t i c|
     s=self.
     t=s:t.
@@ -27,18 +28,17 @@ Timer:execute=[|f;s t i c|
     :alltimer:list!(s)add.
     s:d=s:d![|;d|
         s:abort=[:window!(s:id)clearInterval].
-        s:stop=[:window!(s:id)clearInterval.d!resolve].
+        s:skip=[:window!(s:id)clearInterval.d!resolve].
         d=:system!(:window:$:Deferred)new.
         s:id=(:window)![
             [f!(c)execute.]!try[|e|
-                s!stop.
+                s!abort.
                 window ! "" "" "" "" (e) onerror.
                 //:system!(e)throw.
             ]catch.
             c=c+1.
             [c>t]!then[
-                s!stop.
-                d!resolve.
+                s!skip.
             ]execute.
         ] (i) setInterval.
         d.
@@ -50,3 +50,4 @@ Timer:after_execute=[|f|
     self:d![f!execute]then.
     self.
 ].
+! "Timer" "timer" addAlias.

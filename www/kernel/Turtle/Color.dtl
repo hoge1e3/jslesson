@@ -34,11 +34,14 @@ Color:initialize=[|arg1 arg2 arg3;args r g b|
 ].
 Color:randomCreate=[Color!(random(255))(random(255))(random(255))create].
 Color:darken=[Color!(self:r-50) (self:g-50) (self:b-50) create].
+Color ! "darken" "darker" addAlias.
 Color:brighten=[Color!(self:r+50) (self:g+50) (self:b+50) create].
+Color ! "brighten" "brighter" addAlias.
 Color:toString=[
     "rgba("+self:r+","+self:g+","+self:b+","+self:a+")"
 ].
 Color:toHalfOpacity=[self:a=0.5.self].
+Color ! "toHalfOpacity" "setTransparency" addAlias.
 Color:toFullOpacity=[self:a=1.self].
 Color:setCMYK=[
     black = (window:Math)! (1 - r / 255) (1 - g / 255) (1 - b / 255) min.
@@ -157,13 +160,13 @@ Color:mixColor2=[|;args red green blue yyy m|
     Color ! (255-red*m) (255-green*m) (255-blue*m) create.
 ].
 
-black=Color!0 0 0 create.
-white=Color!255 255 255 create.
-blue=Color!8 8 255 create.
-red=Color!255 8 8 create.
-green=Color!8 255 8 create.
-pink=Color!255 0 255 create.
-magenta=Color!255 0 255 create.
-cyan=Color!0 255 255 create.
-yellow=Color!255 255 0 create.
+Black=Color!0 0 0 create.
+White=Color!255 255 255 create.
+Blue=Color!8 8 255 create.
+Red=Color!255 8 8 create.
+Green=Color!8 255 8 create.
+Pink=Color!255 0 255 create.
+Magenta=Color!255 0 255 create.
+Cyan=Color!0 255 255 create.
+Yellow=Color!255 255 0 create.
 

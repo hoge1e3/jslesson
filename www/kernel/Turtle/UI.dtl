@@ -9,22 +9,26 @@ Screen:height?=[
 Screen:paint=[|c| 
     $ ! "body" create "background-color" (c+"") css.
 ].
+! "Screen" "Panel" addAlias.
 
-UI=Actor ! create.
+UI=! create.
 UI:setTrans=[|;str|
     str="postion:absolute;left:"+(pos:x)+";top:"+(pos:y)+";".
     element ! "transform" (str) attr
     "data-trans" ((pos:x)+","+(pos:y)) attr.
     this.
 ].
-UI:appear=[
+UI:hide=[
     [element] ! then [ element ! show] execute.
     this.
 ].
-UI:die=[
+UI:show=[
     [element] ! then [ element ! hide] execute.
     this.
 ].
+UI!"hide" "die" addAlias.
+UI!"show" "appear" addAlias.
+
 UI:top=((Screen! height?)/2) - 20.
 UI:autoLayout=[
     UILayout! (this) add.
@@ -45,12 +49,14 @@ UI:moveBy=[|dx dy|
 UI:left?=[
     [element] ! then [ (element ! offset):left-(Screen ! width?)/2 ] else [0] execute.  
 ].
+UI ! "left?" "xpos?" addAlias.
 UI:right?=[
     (! left?) + (! width?)
 ].
 UI:top?=[
     [element] ! then [ -((element ! offset):top-(Screen ! height?)/2) ] else [0] execute.  
 ].
+UI ! "top?" "ypos?" addAlias.
 UI:bottom?=[
     (! top?) - (! height?)
 ].
@@ -81,6 +87,7 @@ UI:write=[|m|
     [element] ! then [ (element ! 0 get):innerHTML=! (m) num2str] execute.
     self
 ].
+UI ! "write" "set" addAlias.
 UI:add=[|m|
     [element]!then[!(((element!0 get):innerHTML)+m)write]execute.
     self
@@ -112,29 +119,50 @@ UI:readString=[
 UI:read=[
     ! (! readString) str2num.
 ].
+UI ! "read" "get" addAlias.
 UI:inc=[|by|
     by=[by] ! [1] or.
     ! ( (! read)-0+by) write.
 ].
+UI! "inc" "increment" addAlias.
 UI:dec=[|by|
     by=[by] ! [1] or.
     ! ( (! read)-by) write.
 ].
-
-/*UI:moveBy=[|x y;oldx oldy|
-    oldx=(self:element!0 get):offsetLeft.
-    oldy=(self:element!0 get):offsetTop.
-    self!(oldx+x) (oldy-y)position.
+UI! "dec" "decrement" addAlias.
+/*本多追加分*/
+UI:paint=[|r g b;args c|
+    args=:window:Array:prototype:slice!(arguments)call.
+    [args:length==1]!then[
+        c=r.    
+    ]else[
+        c=Color!(r)(g)(b)create.
+    ]execute.
+    self:element!"background-color" (c)css .
     self
 ].
-UI:moveTo=[|x y;w h|
-    w=0.//($ ! (window) create width)/2.
-    h=0.//($ ! (window) create height)/2.
-    //console ! "WIDH" (w) (h) log.
-    self:element!"top" ((h-y)+"px") css
-    "left" ((w+x)+"px") css.
+UI:fontColor=[|r g b;args c|
+    args=:window:Array:prototype:slice!(arguments)call.
+    [args:length==1]!then[
+        c=r.    
+    ]else[
+        c=Color!(r)(g)(b)create.
+    ]execute.
+    self:element!"color" (c)css.
     self
-].*/
+].
+UI:fontSize=[|s|
+    self:element!"font-size" (s/10+"em")css.
+    self
+].
+
+UI:size=[|w h|
+    self:element!"width" (w+"px") css
+    "height" (h+"px") css.
+    self
+].
+/*以上*/
+
 UI:attachEvent=[].
 UI:container=$ ! "<div>" create "body" appendTo 
 "position" "absolute" css 
@@ -238,42 +266,7 @@ Button:initialize=[|label key;t|
 Button:setAction=[|a|
     action=a.this.
 ].
-/*本多追加分*/
-Button:paint=[|r g b;args c|
-    args=:window:Array:prototype:slice!(arguments)call.
-    [args:length==1]!then[
-        c=r.    
-    ]else[
-        c=Color!(r)(g)(b)create.
-    ]execute.
-    self:element!"background-color" (c)css .
-    self
-].
-Button:fontColor=[|r g b;args c|
-    args=:window:Array:prototype:slice!(arguments)call.
-    [args:length==1]!then[
-        c=r.    
-    ]else[
-        c=Color!(r)(g)(b)create.
-    ]execute.
-    self:element!"color" (c)css.
-    self
-].
-Button:fontSize=[|s|
-    self:element!"font-size" (s/10+"em")css.
-    self
-].
-/*Button:width?=[
-    (self:element!0 get):offsetWidth.
-].
-Button:height?=[
-    (self:element!0 get):offsetHeight.
-].*/
-Button:size=[|w h|
-    self:element!"width" (w+"px") css
-    "height" (h+"px") css.
-    self
-].
+
 Button:keyCodeDict=Dict!create.
 [|;arr|
     arr=Array!"0" "1" "2" "3" "4" "5" "6" "7" "8" "9"create. 
@@ -329,7 +322,6 @@ Button:inc=[|;label|
     ]execute.
     self
 ].
-/*以上*/
 /*Button:write=[|m|
     [element] ! then [element ! (m) val] execute.
     self
@@ -374,11 +366,12 @@ TextArea:initialize=[|;label|
     ! autoLayout.
     writeLn ! (self) (arguments) apply.
 ].
-TextArea:autoBR=[|f| 
+TextArea:autoNewLine=[|f| 
     [f==undef] ! then [f=true] execute.
     isAutoBR=f.
     this.
 ].
+TextArea ! "autoNewLine" "autoBR" addAlias.
 TextArea:setReadOnly=[|f| 
     isReadOnly=f.
     [element]!then[element ! "readonly" (f) attr]execute.
@@ -386,6 +379,7 @@ TextArea:setReadOnly=[|f|
 ].
 TextArea:readOnly=[!(true) setReadOnly].
 TextArea:writable=[!(false) setReadOnly].
+TextArea ! "writable" "readWrite" addAlias.
 ListBox ! readOnly autoBR.
 TextArea:mblen=[|s;i c r| 
     i=0.r=0.

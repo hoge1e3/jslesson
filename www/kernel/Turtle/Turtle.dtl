@@ -1,4 +1,5 @@
 // system ! "Actor" use.
+//test3
 turtle=Actor ! create.
 Turtle=turtle.
 Turtle:baseURL=window:runtimePath+"images/".
@@ -79,7 +80,6 @@ turtle:circle=[|r;d|
     [!(d)forward 10 rightTurn] !36 repeat。
     !(d/2)forward
 ].
-
 turtle:closePath=[
     [isPenDown]!then[
         //! (pos) (lineOrig) addPath.
