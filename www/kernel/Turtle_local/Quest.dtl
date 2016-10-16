@@ -1,7 +1,0 @@
-// Dolittle
-module ! "Vec2" "Actor" "UI" "Turtle" "Figure" "DOM"  "Japanese"[
-    かめた＝タートル！作る。
-    かめた！3０ 歩く ３０ 右回り。
-    window ! (かめた！getDir) alert.
-    
-] require.

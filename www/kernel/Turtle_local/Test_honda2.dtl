@@ -1,8 +1,0 @@
-
-module!"Vec2" "Actor" "UI" "Turtle" "Figure" "DOM" "Util"  "Timer" "Color" "Dict" "Japanese"
-[ 
-    obj = どれか！[obj][5]本当。
-    Label!(obj)create.
-    
-    
-]require.
