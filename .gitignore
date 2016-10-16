@@ -42,7 +42,6 @@ Network Trash Folder
 Temporary Items
 .apdisk
 www/user/list.txt
-www/fs/home
 www/fs/pub
 www/log/*.log
 www/log/*.txt
@@ -58,3 +57,4 @@ www/fs/Tonyu/Projects/JSLKer/js/concat_old.js
 www/js/dolittle/lib.js.bak
 www/runtime/lib/tjs/kernel_old.js
 www/runtime/lib/tjs/kernel_old.js.map
+/private

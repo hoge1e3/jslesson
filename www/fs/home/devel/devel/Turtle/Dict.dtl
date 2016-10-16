@@ -1,0 +1,40 @@
+// Dolittle
+Dict=!create.
+Dict:initialize=[|;args k v|
+    myDict=root!create.
+    args=:window:Array:prototype:slice!(arguments)call.
+    [
+        and!
+        ([k=([args!shift]![undefined]or)]!execute)
+        ([v=([args!shift]![undefined]or)]!execute)
+        true.
+    ]!while[!(k)(v)write.]execute.
+].
+Dict:write=[|k v|
+    system!(myDict)(k)(v)write.
+    self
+].
+Dict:read=[|k|
+    system!(myDict)(k)read.
+].
+Dict:delete=[|k|
+    system!(myDict)(k)delete.
+].
+Dict:has?=[|k|
+    (system!(myDict)(k)read)!=undefined.
+].
+Dict:each=[|f;keys|
+    keys=:window:Object!(myDict)keys.
+    keys![|k|f!(k)(!(k)read)execute]each.
+].
+
+Dict:toString=[|;res keys kvs|
+    res=Array!"["create.
+        keys=:window:Object!(myDict)keys.
+        kvs=Array!create.
+        
+        keys![|k|kvs!(Array!(k)"=>"(!(k)read)create " " join)add]each.
+        res!(kvs!" , "join)add.
+    res!"]" add.
+    res!" " join
+].

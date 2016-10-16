@@ -1,0 +1,10 @@
+system ! "Auth" use.
+[ param! "curclass" get ] ! then [
+   auth ! curClass.
+] else [ param ! "curuser" get ] then [
+   auth ! curUser.
+] else [ param ! "class" get ! (param ! "user" get) and ] then [
+   class=param ! "class" get.
+   user=param ! "user" get.
+   mesg=auth ! (class) (user) login.
+] execute.

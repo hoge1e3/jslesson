@@ -1,0 +1,7 @@
+//RUN_AT_SERVER
+Hello=root! create.
+Hello:exec = [Shell! "python3 hello.py 1 2" exec.].
+
+Shell! "python3 hello.py" exec.
+
+Hello!exec.

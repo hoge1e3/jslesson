@@ -1,0 +1,15 @@
+// Dolittle
+module ! "Vec2" "Actor" "UI" "Turtle" "Figure" "DOM"  [
+    kame=Turtle! create 2 lineWidth.
+    //kame! 100 forward 90 leftTurn.
+    kame:act=[
+        console ! (pos:x) (pos:y) log.
+        timer ! create 3.6 duration [
+            !10 forward 10 turnLeft.    
+        ] execute [!die ] execute.   
+    ].    
+    timer! create 0.1 interval 1 duration [
+        kame! 50 forward 36 turnRight create act.
+    ] execute.
+    
+] require.

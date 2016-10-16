@@ -1,0 +1,17 @@
+//RUN_AT_SERVER
+Validator=! create.
+Validator:initialize=[failmesg=undef].
+Validator:check=[|cond fm|
+    [failmesg] ! then [] else [     
+        [cond ! execute] ! then [] else [failmesg=fm ! execute] execute. 
+    ] execute.
+    this.
+].
+Validator:do=[|action|
+    !(action) done. this.
+].
+Validator:done=[|action|
+    [failmesg] ! then [failmesg] else [     
+        action!execute.
+    ] execute.
+]

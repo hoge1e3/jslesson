@@ -1,0 +1,32 @@
+// Javascript
+// 左右移動
+
+x=100;
+y=300;
+bx=100;
+by=0;
+onClick("right",right);
+onClick("left",left);
+while(true) {
+    move("neko",x,y);
+    moveBall();
+    wait(50);
+}
+function moveBall() {
+    move("ball",bx,by);
+    by+=10;
+    if (by>400) {
+        by=0;
+        bx=rnd(300);
+    }
+    if (bx>x-30 && bx<x+30 && 
+    by>y-30 && by<y+30) {
+        y=-1000;
+    }
+}
+function left() {
+    x-=10;
+}
+function right() {
+    x+=10;
+}

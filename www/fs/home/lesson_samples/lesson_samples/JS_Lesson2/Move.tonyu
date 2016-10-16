@@ -1,0 +1,7 @@
+// Javascript
+// 文字を動かす例
+move("moji",100,100);
+wait(1000);
+move("moji",110,100);
+wait(1000);
+move("moji",120,100);

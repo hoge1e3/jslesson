@@ -1,0 +1,140 @@
+// system ! "Actor" use.
+//test3
+turtle=Actor ! create.
+Turtle=turtle.
+Turtle:baseURL=window:runtimePath+"images/".
+Turtle:img="ayumi.gif".
+turtle:action=[/*:window!"aa"alert*/].
+turtle:initialize=[|;t|
+    t=this.//@hoge1e3
+    element= ! "image" createSVGElem.
+    element ! 0 get 
+    "http://www.w3.org/1999/xlink" "href" 
+    (baseURL+img) setAttributeNS.
+    !adjustImage.
+    ! (baseURL+img) getImageSize .
+    element ! "transform" "scale(1,-1)" attr.
+    element ! [t!action] click.//@hoge1e3
+    ! "black" lineColor.
+    !newLineG.
+    isShowing=false.
+    !appear.
+].
+turtle:width=32.
+turtle:height=32.
+turtle:_lineWidth=3.
+turtle:isPenDown=true.
+
+turtle:adjustImage=[
+    element ! "width" (width+"px") attr
+    "height" (height+"px") attr
+    "x" (-width/2) attr
+    "y" (-height/2) attr.
+].
+turtle:getImageSize=[|url;t|
+    t=this.
+    $ ! "<img>" create "display" "none" css [|;j|
+        j=(t:$) ! (this) create.
+        t:width=j ! width.
+        t:height=j ! height.
+        //(t:console) ! "getims" (t:width) (t:height) log.
+        t!adjustImage.
+        j!remove.
+    ] load "src" (url) attr "body" appendTo.
+].
+turtle:newLineG=[
+    lineG=! "g" createSVGElem (svg_g) appendTo.
+    lineG ! "transform" ("translate("+(pos:x)+" "+(pos:y)+")") attr.
+    lineOrig=pos.
+].
+turtle:addPath=[|pos1 pos2;line|// pos:world coord
+    pos1=pos1 ! (lineOrig) sub.
+    pos2=pos2 ! (lineOrig) sub.
+    line=! "line" createSVGElem
+    "x1" (pos1:x) attr "y1" (pos1:y) attr
+    "x2" (pos2:x) attr "y2" (pos2:y) attr 
+    "style" ("stroke:"+_lineCol+";stroke-width:"+_lineWidth) attr
+    "data-width" (_lineWidth) attr
+    (lineG) appendTo.
+    this.
+].
+turtle:addPathAfterAction=[|a;pos1|
+    pos1=pos.
+    a ! execute.
+    //console ! "PEND" (isPenDown) log.
+    //[[isShowing]![isPendown]or] ! then  // <-これだとペンなしが効かなくなるよー
+    [isPenDown] ! then [
+        ! (pos1) (pos) addPath.
+    ] execute.
+    this.
+].
+turtle:forward=[|by|
+    ! [(Actor:forward) ! (this) (by) call.] addPathAfterAction.
+].
+turtle:moveTo=[|x y|
+    ! [(Actor:moveTo) ! (this) (x) (y) call.] addPathAfterAction.
+].
+turtle:circle=[|r;d|
+    d=r * 0.1745328.
+    !(d/2)backward.
+    [!(d)forward 10 rightTurn] !36 repeat。
+    !(d/2)forward
+].
+turtle:closePath=[
+    [isPenDown]!then[
+        //! (pos) (lineOrig) addPath.
+        ! (lineOrig:x)(lineOrig:y)moveTo.
+    ]execute.
+    self.
+].
+turtle!"closePath" "close" addAlias.
+turtle:lineColor=[|col|
+    _lineCol=col.this.
+].
+turtle:lineWidth=[|w|
+    w=!(w)num.
+    _lineWidth=w.this.
+].
+turtle:makeFigure=[|col;r|
+    r=Figure ! (this) create.
+    [col]! then[r!(col) paint]execute.
+    ! newLineG.
+    r.
+].
+turtle:paint=[|col|
+    !(col) makeFigure.
+].
+turtle:penDown=[
+    [isPenDown]!then [] else [isPenDown=true. !newLineG] execute. 
+    this
+].
+turtle:penUp=[isPenDown=false.this.].
+turtle:setShape=[|url|
+    self:img=url.
+    url=[url ! "https?" match] ! then [url] else [baseURL+url] execute.
+    element ! 0 get 
+    "http://www.w3.org/1999/xlink" "href" 
+    (url) setAttributeNS.
+    ! (url) getImageSize.
+    this.
+].
+turtle ! "setShape" "change" addAlias.
+turtle:setTrans=[|;str|
+    str="translate("+(pos:x)+" "+(pos:y)+") ".
+    str=str+"rotate("+dir+") ".
+    str=str+"scale(1 -1) ".
+    element ! "transform" (str) attr
+    "data-trans" ((pos:x)+","+(pos:y)+","+dir) attr.
+    [isShowing] ! then [ ! checkCrash ] execute.
+    this.
+].
+:action=[].
+:action:isEventHandler=true.
+:click=[].
+:click:isEventHandler=true.
+turtle:setAction=[|f|
+    [(!(f)typeof)=="function"]!then[
+        self:action=f.    
+    ]execute.
+    self.
+].

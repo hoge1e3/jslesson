@@ -1,0 +1,172 @@
+// Dolittle
+Color=root!create.
+Color:r=0.
+Color:g=0.
+Color:b=0.
+Color:a=1.
+Color:initialize=[|arg1 arg2 arg3;args r g b|
+    args=arguments.
+    [(arg1!toString)!(:window!"^#[0-9A-F]{6}$"RegExp)match]!then[|;s|
+        s=arg1!toString ""split.
+        s!shift.
+        r=:window!((s!shift)+(s!shift)) 16 parseInt.
+        g=:window!((s!shift)+(s!shift)) 16 parseInt.
+        b=:window!((s!shift)+(s!shift)) 16 parseInt.
+    ]else[and!(args:length==1)((!(arg1)typeof)=="number")true]then[
+        b=arg1%0x100.
+        arg1=:window!(arg1/0x100)parseInt.
+        g=arg1%0x100.
+        arg1=:window!(arg1/0x100)parseInt.
+        r=arg1%0x100.
+        arg1=:window!(arg1/0x100)parseInt.
+    ]else[
+        arg1=:window:Math! (arg1) floor. 
+        arg2=:window:Math! (arg2) floor. 
+        arg3=:window:Math! (arg3) floor. 
+        [arg1>255]!then[r=255]else[arg1<0]then[r=0]else[r=arg1]execute.
+        [arg2>255]!then[g=255]else[arg2<0]then[g=0]else[g=arg2]execute.
+        [arg3>255]!then[b=255]else[arg3<0]then[b=0]else[b=arg3]execute.
+    ]execute.
+    self:r=r.
+    self:g=g.
+    self:b=b.
+    self:a=1.
+].
+Color:randomCreate=[Color!(random(255))(random(255))(random(255))create].
+Color:darken=[Color!(self:r-50) (self:g-50) (self:b-50) create].
+Color ! "darken" "darker" addAlias.
+Color:brighten=[Color!(self:r+50) (self:g+50) (self:b+50) create].
+Color ! "brighten" "brighter" addAlias.
+Color:toString=[
+    "rgba("+self:r+","+self:g+","+self:b+","+self:a+")"
+].
+Color:toHalfOpacity=[self:a=0.5.self].
+Color ! "toHalfOpacity" "setTransparency" addAlias.
+Color:toFullOpacity=[self:a=1.self].
+Color:setCMYK=[
+    black = (window:Math)! (1 - r / 255) (1 - g / 255) (1 - b / 255) min.
+    cyan = (1 - (r / 255) - black) / (1 - black).
+    magenta = (1 - (g / 255) - black) / (1 - black).
+    yellow = (1 - (b / 255) - black) / (1 - black).
+    this.
+].
+Color:fromCMYK=[|cyan magenta yellow black|
+    Color!
+    ((1 - ((window:Math) ! 1  (cyan * (1 - black) + black) min)) * 255)
+    ((1 - ((window:Math) ! 1  (magenta * (1 - black) + black) min)) * 255)
+    ((1 - ((window:Math) ! 1  (yellow * (1 - black) + black) min)) * 255)
+    create.
+].
+Color:getRed=[r].
+Color:getGreen=[g].
+Color:getBlue=[b].
+Color:mixParam=1.1.
+
+Light=! create.
+Light:mix=[|;c|
+    args=(Array:prototype:slice) ! (arguments) call.
+    args=args ! [|e|
+        (:is) ! (e) (Color) call.
+    ] select.
+    c=args ! shift.
+    [(args:length)==0] ! then [
+        c
+    ] else [    
+        (c:mixColor) ! (c) (args) apply
+    ] execute
+].
+/*Light:mix=[|;r g b l|
+    r=0.g=0.b=0.
+    (Array:prototype:slice) ! (arguments) call [|e|
+        r=r+(e:r).
+        g=g+(e:g).
+        b=b+(e:b).
+    ] each.
+    l=arguments:length.
+    Color ! 
+    (window:Math ! (r/l*Color:mixParam) 255 min) 
+    (window:Math ! (g/l*Color:mixParam) 255 min)
+    (window:Math ! (b/l*Color:mixParam) 255 min) create.
+].*/
+
+Ink=! create.
+Ink:mix=[|;c|
+    args=(Array:prototype:slice) ! (arguments) call.
+    args=args ! [|e|
+        (:is) ! (e) (Color) call.
+    ] select.
+    c=args ! shift.
+    [(args:length)==0] ! then [
+        c
+    ] else [    
+        (c:mixColor2) ! (c) (args) apply
+    ] execute
+].
+/*Ink:mix=[|;c m y k l|
+    c=0.m=0.y=0.k=0.
+    (Array:prototype:slice) ! (arguments) call [|e|
+        e! setCMYK.
+        c=c+(e:cyan).
+        m=m+(e:magenta).
+        y=y+(e:yellow).
+        k=k+(e:black).
+    ] each.
+    l=arguments:length.
+    Color ! 
+    (window:Math ! (c/l*Color:mixParam) 1 min) 
+    (window:Math ! (m/l*Color:mixParam) 1 min)
+    (window:Math ! (y/l*Color:mixParam) 1 min)
+    (window:Math ! (k/l*Color:mixParam) 1 min) fromCMYK.
+].*/
+Color:mixColor=[|;args red green blue yyy m|
+    args=(Array:prototype:slice) ! (arguments) call.
+    args=args ! [|e|
+        (:is) ! (e) (Color) call.
+    ] select.
+    red = ! getRed. green = ! getGreen. blue = ! getBlue.
+    yyy = ! (red) (green) (blue) max.
+    args ! [|arg; r g b y|
+        r=arg ! getRed.
+        g=arg ! getGreen.
+        b=arg ! getBlue.
+        y=! (r) (g) (b) max.
+        red = red+r. green = green+g. blue = blue+b. yyy = yyy+y.
+    ] each.
+    
+    m = yyy / (! (red) (green) (blue) max) / ((args:length)+1).
+    Color ! (red*m) (green*m) (blue*m) create.
+].
+Color:max=[|r g b;m|
+    m = r.
+    [m < g] ! then [m = g] execute.
+    [m < b] ! then [m = b] execute.
+    m
+].
+Color:mixColor2=[|;args red green blue yyy m|
+    args=(Array:prototype:slice) ! (arguments) call.
+    args=args ! [|e|
+        (:is) ! (e) (Color) call.
+    ] select.
+    red = 255-(! getRed). green = 255-(! getGreen). blue = 255-(! getBlue).
+    yyy = ! (red) (green) (blue) max.
+    args ! [|arg; r g b y|
+        r=255-(arg ! getRed).
+        g=255-(arg ! getGreen).
+        b=255-(arg ! getBlue).
+        y=! (r) (g) (b) max.
+        red = red+r. green = green+g. blue = blue+b. yyy = yyy+y.
+    ] each.
+    m = yyy / (! (red) (green) (blue) max) / ((args:length)+1).
+    Color ! (255-red*m) (255-green*m) (255-blue*m) create.
+].
+
+Black=Color!0 0 0 create.
+White=Color!255 255 255 create.
+Blue=Color!8 8 255 create.
+Red=Color!255 8 8 create.
+Green=Color!8 255 8 create.
+Pink=Color!255 0 255 create.
+Magenta=Color!255 0 255 create.
+Cyan=Color!0 255 255 create.
+Yellow=Color!255 255 0 create.
+
