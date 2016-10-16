@@ -1,5 +1,0 @@
-//RUN_AT_SERVER
-system ! "/home/0123/dolittle/public/DtlVM/SFile.dtlvm" use.
-(homeDir ! "DtlVM/options.json" rel getObj) ! "language" get.
-
-

@@ -1,3 +1,0 @@
-//RUN_AT_SERVER
-system ! "/home/0123/dolittle/public/DtlVM/LibA.dtlvm" use.
-! 10 23 add.

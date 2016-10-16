@@ -1,4 +1,0 @@
-//RUN_AT_SERVER
-統計=root! create.
-統計:exec = [Shell! "python aaa.py 6 7 " exec.].
-統計!exec.
