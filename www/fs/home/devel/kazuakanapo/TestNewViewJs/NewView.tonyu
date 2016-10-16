@@ -1,0 +1,68 @@
+// JavaScript
+move("s",10,100);
+newElement("canvas","added");
+newElement("button","addedButton");
+setText("addedButton","PUSHIT!");
+setCanvas("added");
+fillRect(50,50,20,20);
+drawLine(5,5,40,40);
+drawLine(10,2,40,10);
+clearRect(0,0,100,100);
+setColor(255,0,0);
+fillText("Test Canvas",50,50);
+fillRect(0,0,500,500);
+var x=0,y=0,w=60,h=20;
+clearRect(x,y,w,h);
+fillOval(x,y,w,h);
+onClick("addedButton",test);
+function test(){
+    move("addedButton",10,200);
+}
+//feelOval(x,y,w,h);
+//setText("added","hello!");
+//test
+//test2
+document.forms.peach.cider.value="PEACHCIDER!";
+
+var teki=document.getElementById("tekitou");
+teki.setAttribute("data-teki","20");
+setText("s",teki.getAttribute("data-teki"));
+
+\newElement(elem,n){
+    var e= document.createElement(elem);
+    e.setAttribute("name", n);
+    document.body.appendChild(e);
+}
+\fillOval(x,y,w,h){
+    if(canvas){
+        ctx=canvas.getContext("2d");
+        ctx.save();
+        ctx.beginPath();
+        ctx.translate(x+w/2,y+h/2);
+        ctx.scale(w/w, h/w);
+        ctx.arc(0, 0, w/2, 0, 2 * Math.PI, false);
+        ctx.fill();
+        ctx.restore();
+    }
+}
+\drawLine(x1,y1,x2,y2){
+    if(canvas){
+        ctx=canvas.getContext("2d");
+        ctx.beginPath();
+        ctx.moveTo(x1,y1);
+        ctx.lineTo(x2,y2);
+        ctx.stroke();
+    }
+}
+\clearRect(x,y,w,h){
+    if(canvas){
+        ctx=canvas.getContext("2d");
+        ctx.clearRect(x,y,w,h);
+    }
+}
+\fillText(t,x,y){
+    if(canvas){
+        ctx=canvas.getContext("2d");
+        ctx.fillText(t,x,y);
+    }
+}
