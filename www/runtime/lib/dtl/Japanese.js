@@ -146,7 +146,7 @@ this['compass']['addAlias']("use","使う")['addAlias']("setAction","動作設�
 this['addAlias']("touchSensor","タッチセンサ","タッチセンサー");
 this['touchSensor']['addAlias']("setAction","動作設定")['addAlias']("action","動作")['addAlias']("use","使う")['addAlias']("getTouched","タッチした?","触れた?")['addAlias']("getTouching","タッチしている?","タッチしてる?","触れている?","触れてる?")['addAlias']("getX","横の位置?")['addAlias']("getY","縦の位置?");
 this['addAlias']("gyroSensor","ジャイロセンサ","ジャイロセンサー");
-this['gyroSensor']['addAlias']("setAction","動作設定")['addAlias']("action","動作")['addAlias']("use","使う")['addAlias']("getYaw","ヨー?","水平方向の傾き?","水平の傾き?")['addAlias']("getRoll","ロール?","左右方向の傾き?","左右の傾き?")['addAlias']("getPitch","ピッチ?","上下方向の傾き?","上下の傾き?")['addAlias']("calibrate","調整")['addAlias']("use","使う");
+this['gyroSensor']['addAlias']("setAction","動作設定")['addAlias']("action","動作")['addAlias']("use","使う")['addAlias']("getYaw","ヨー?","水平方向の傾き?","水平の傾き?")['addAlias']("getRoll","ロール?","左右方向の傾き?","左右の傾き?")['addAlias']("getPitch","ピッチ?","前後方向の傾き?","前後の傾き?")['addAlias']("calibrate","調整")['addAlias']("use","使う");
 this['文字列']=this['window']['String'];
 sp=this['window']['String']['prototype'];
 aa['call']((sp),"add","連結");

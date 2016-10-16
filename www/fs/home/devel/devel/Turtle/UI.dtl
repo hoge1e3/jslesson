@@ -47,14 +47,18 @@ UI:moveBy=[|dx dy|
     ! ((!left?)+dx) ((!top?)+dy) moveTo
 ].
 UI:left?=[
-    [element] ! then [ (element ! offset):left-(Screen ! width?)/2 ] else [0] execute.  
+    [element] ! then [ 
+        (element ! offset):left-((UI:container ! offset):left)
+    ] else [0] execute.  
 ].
 UI ! "left?" "xpos?" addAlias.
 UI:right?=[
     (! left?) + (! width?)
 ].
 UI:top?=[
-    [element] ! then [ -((element ! offset):top-(Screen ! height?)/2) ] else [0] execute.  
+    [element] ! then [ 
+        -((element ! offset):top-((UI:container ! offset):top)) 
+    ] else [0] execute.  
 ].
 UI ! "top?" "ypos?" addAlias.
 UI:bottom?=[
@@ -174,17 +178,18 @@ $ ! (window) create ([
     "top" ( (Screen!height?) / 2) css.
 ] ! (this) bind) resize.
 UILayout=!create.
+UILayout:space=20.
 UILayout:initElem=[
     element=$!"<div>" create (UI:container) appendTo.
     element ! 
     "white-space" "nowrap" css
     "position" "absolute" css
-    "left" (-(Screen ! width?)/2 +20) css 
-    "top" (-(Screen! height?)/2+20) css. 
+    "left" (-(Screen ! width?)/2 +space) css 
+    "top" (-(Screen! height?)/2+space) css. 
     $ ! (window) create ([
         element ! 
-        "left" (-(Screen ! width?)/2 +20) css 
-        "top" (-(Screen! height?)/2+20) css. 
+        "left" (-(Screen ! width?)/2 +space) css 
+        "top" (-(Screen! height?)/2+space) css. 
     ] ! (this) bind ) resize.
 ].
 UILayout ! initElem.
@@ -196,10 +201,12 @@ UILayout:add=[|ui|
     ui:element ! "position" "static" css.
 ].
 UILayout:remove=[|ui left top|
-    ui:element ! remove.
-    ui:inUILayout=false.
-    UI:container ! (ui:element) append.
-    ui ! attachEvent.
+    [ui:inUILayout] ! then [ 
+        ui:element ! remove.
+        ui:inUILayout=false.
+        UI:container ! (ui:element) append.
+        ui ! attachEvent.
+    ] execute.
     ui:element ! "position" "absolute" css "left" (left) css "top" (-top) css.
 ].
 UILayout:br=[|ui|

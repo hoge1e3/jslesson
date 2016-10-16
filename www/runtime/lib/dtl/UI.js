@@ -322,13 +322,14 @@ var self=this;var 自分=self;
 return this['UI']['container']['css']("left",(((this['Screen']['width?']())/(2))))['css']("top",(((this['Screen']['height?']())/(2))));
 })['bind']((this))));
 this['UILayout']=this['create']();
+this['UILayout']['space']=(20);
 this['UILayout']['initElem']=dtlbind(this,function(){
 var self=this;var 自分=self;
 this['element']=this['$']['create']("<div>")['appendTo']((this['UI']['container']));
-this['element']['css']("white-space","nowrap")['css']("position","absolute")['css']("left",(((-(this['Screen']['width?']())/(2))+(20))))['css']("top",(((-(this['Screen']['height?']())/(2))+(20))));
+this['element']['css']("white-space","nowrap")['css']("position","absolute")['css']("left",(((-(this['Screen']['width?']())/(2))+this['space'])))['css']("top",(((-(this['Screen']['height?']())/(2))+this['space'])));
 return this['$']['create']((this['window']))['resize']((dtlbind(this,function(){
 var self=this;var 自分=self;
-return this['element']['css']("left",(((-(this['Screen']['width?']())/(2))+(20))))['css']("top",(((-(this['Screen']['height?']())/(2))+(20))));
+return this['element']['css']("left",(((-(this['Screen']['width?']())/(2))+this['space'])))['css']("top",(((-(this['Screen']['height?']())/(2))+this['space'])));
 })['bind']((this))));
 });
 this['UILayout']['initElem']();
@@ -342,10 +343,16 @@ return ui['element']['css']("position","static");
 });
 this['UILayout']['remove']=dtlbind(this,function(ui,left,top){
 var self=this;var 自分=self;
+dtlbind(this,function(){
+var self=this;var 自分=self;
+return ui['inUILayout'];
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
 ui['element']['remove']();
 ui['inUILayout']=this['false'];
 this['UI']['container']['append']((ui['element']));
-ui['attachEvent']();
+return ui['attachEvent']();
+}));
 return ui['element']['css']("position","absolute")['css']("left",(left))['css']("top",(-top));
 });
 this['UILayout']['br']=dtlbind(this,function(ui){

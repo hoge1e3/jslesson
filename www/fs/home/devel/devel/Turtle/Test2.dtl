@@ -1,10 +1,25 @@
 // Dolittle
-(window:localStorage:noLocalize)=0.
-module ! "Japanese2" [|;r|
+//(window:localStorage:noLocalize)=0.
+//:allDtlObjsAndBuiltins=null.
+module ! "UI" "Japanese2" [|;r|
+    //ぼ＝ラベル！”ぼ” 作る．
+    顔＝ラベル！”・＿・”  作る  ２０  文字サイズ。
+    顔！６０  １１０  位置。
+    //テキストエリア！( 顔！left?  ) (顔！top?) 作る．
+    ざ＝ラベル！作る.
+    ざ２＝ラベル！作る.
+    X=ラベル！"X" 作る 100 -150 位置．
+    タートル！作る．
+    タイマー！ 20 時間 「
+        顔！５ 0 移動する．
+        X！１ -2 移動する．
+        ざ！(((Screen!width?)/2)+" "+((Screen!height?)/2)) 書く．
+        ざ２！(((UI:container ! offset):left)+" "+((UI:container ! offset):top)) 
+        書く．
+    」実行．
+    //かめた＝タートル！作る．
+    //「かめた！９０ 歩く ９０ 右回り」！４ 繰り返す．
+    //かめた！（赤）図形にする．
     
-    かめた＝タートル！作る．
-    「かめた！９０ 歩く ９０ 右回り」！４ 繰り返す．
-    かめた！（赤）図形にする．
-    
-    (window:localStorage:noLocalize)=1.
+    //(window:localStorage:noLocalize)=1.
 ] require.
