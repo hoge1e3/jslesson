@@ -122,7 +122,7 @@ turtle ! "setShape" "change" addAlias.
 turtle:setTrans=[|;str|
     str="translate("+(pos:x)+" "+(pos:y)+") ".
     str=str+"rotate("+dir+") ".
-    str=str+"scale(1 -1) ".
+    str=str+"scale("+_scale+" "+(0-_scale)+") ".
     element ! "transform" (str) attr
     "data-trans" ((pos:x)+","+(pos:y)+","+dir) attr.
     [isShowing] ! then [ ! checkCrash ] execute.

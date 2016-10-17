@@ -200,10 +200,12 @@ return this['system']['throw']((("NO"+o)));
 }));
 return (this['getCrashShape']())['intersects']((o['getCrashShape']()));
 });
+this['Actor']['_scale']=(1);
 this['Actor']['setTrans']=dtlbind(this,function(str){
 var self=this;var 自分=self;
 str=(((("translate("+(this['pos']['x']))+" ")+(this['pos']['y']))+") ");
 str=(((str+"rotate(")+this['dir'])+") ");
+str=(((((str+"scale(")+this['_scale'])+" ")+this['_scale'])+") ");
 this['element']['attr']("transform",(str))['attr']("data-trans",((((((this['pos']['x'])+",")+(this['pos']['y']))+",")+this['dir'])));
 dtlbind(this,function(){
 var self=this;var 自分=self;
@@ -213,6 +215,11 @@ var self=this;var 自分=self;
 return this['checkCrash']();
 }));
 return this;
+});
+this['Actor']['scale']=dtlbind(this,function(s){
+var self=this;var 自分=self;
+this['_scale']=(this['_scale']*s);
+return this['setTrans']();
 });
 this['Actor']['moveTo']=dtlbind(this,function(dx,dy){
 var self=this;var 自分=self;

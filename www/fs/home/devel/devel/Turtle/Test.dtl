@@ -1,9 +1,11 @@
-module ! "Vec2" "Actor" "Group" "Util" "UI" "Timer" "Turtle" "Figure" "DOM" "Color" "Japanese" [
-    て＝リスト！作る "cyan" paint "white" fontColor 20 fontSize。
+module ! "Vec2" "Actor" "Group" "Util" "UI" "Timer" "Turtle" "Figure" "DOM" "Color" "Japanese2" [
+    かめた＝タートル！作る 100 歩く ２ 拡大する。
+    
+    /*て＝リスト！作る "cyan" paint "white" fontColor 20 fontSize。
     て！（システム！日付）書く。
     て！（システム！時刻）書く。
     て！（システム！日時）書く。
-    て！（システム！月）書く。
+    て！（システム！月）書く。*/
     /*かめた＝タートル！作る。
     時計＝タイマー！作る  20 回数。
     時計！「かめた！10  歩く。」実行。

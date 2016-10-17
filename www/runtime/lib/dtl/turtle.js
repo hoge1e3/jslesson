@@ -181,7 +181,7 @@ var self=this;var 自分=self;
 var str;
 str=(((("translate("+(this['pos']['x']))+" ")+(this['pos']['y']))+") ");
 str=(((str+"rotate(")+this['dir'])+") ");
-str=(str+"scale(1 -1) ");
+str=(((((str+"scale(")+this['_scale'])+" ")+(((0)-this['_scale'])))+") ");
 this['element']['attr']("transform",(str))['attr']("data-trans",((((((this['pos']['x'])+",")+(this['pos']['y']))+",")+this['dir'])));
 dtlbind(this,function(){
 var self=this;var 自分=self;

@@ -65,7 +65,7 @@ var self=this;var 自分=self;
 return this['element'];
 })['then']()['else'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return ((this['element']['offset']())['left']-((this['Screen']['width?']())/(2)));
+return ((this['element']['offset']())['left']-((this['UI']['container']['offset']())['left']));
 }))['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;
 return (0);
@@ -83,7 +83,7 @@ var self=this;var 自分=self;
 return this['element'];
 })['then']()['else'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return -(((this['element']['offset']())['top']-((this['Screen']['height?']())/(2))));
+return -(((this['element']['offset']())['top']-((this['UI']['container']['offset']())['top'])));
 }))['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;
 return (0);

@@ -50,4 +50,5 @@ Timer:after_execute=[|f|
     self:d![f!execute]then.
     self.
 ].
+Timer ! "after_execute" "execute_once" addAlias. 
 ! "Timer" "timer" addAlias.

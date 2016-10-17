@@ -97,6 +97,7 @@ return f['execute']();
 }));
 return this;
 });
+this['Timer']['addAlias']("after_execute","execute_once");
 return this['addAlias']("Timer","timer");
 }).checkerror().apply(root,[]);
 //# sourceMappingURL=Timer.js.map

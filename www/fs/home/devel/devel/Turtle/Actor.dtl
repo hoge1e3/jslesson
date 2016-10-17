@@ -133,14 +133,17 @@ Actor:crashTo=[|o|
     (!getCrashShape) ! (o ! getCrashShape) intersects.
     //    (window:PolyK) ! (! getCrashPolygon) (o ! getCrashPolygon) Intersects.
 ].
+Actor:_scale=1.
 Actor:setTrans=[|str|
     str="translate("+(pos:x)+" "+(pos:y)+") ".
     str=str+"rotate("+dir+") ".
+    str=str+"scale("+_scale+" "+_scale+") ".
     element ! "transform" (str) attr
     "data-trans" ((pos:x)+","+(pos:y)+","+dir) attr.
     [isShowing] !then [! checkCrash] execute.
     this.
 ].
+Actor:scale=[|s| _scale=_scale*s.!setTrans].
 Actor:moveTo=[|dx dy| 
     dx=!(dx) num.dy=!(dy) num.
     pos=Vec2 !(dx)(dy) create. 
