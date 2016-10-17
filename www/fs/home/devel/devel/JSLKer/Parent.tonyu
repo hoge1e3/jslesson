@@ -127,6 +127,9 @@ native Error;
 }
 
 \changeImage(elem,newsrc){
+    if (!(newsrc+"").match(/^http/)) {
+        newsrc=window.runtimePath+newsrc;
+    }
     $("[name="+elem+"]").attr("src",newsrc);
 }
 
