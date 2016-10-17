@@ -41,6 +41,11 @@ function (A,DU,wget,Sync) {
         head.appendChild(metacharset);*/
         $(head).append($("<meta>").attr("charset","UTF-8"));
         $(head).append($("<script>").text("window.$LASTPOS=0;window.runtimePath='"+WebSite.runtime+"';"));
+        var nn=document.createElement("script");
+        nn.setAttribute("charset","utf-8");
+        nn.setAttribute("src",WebSite.runtime+"lib/tjs/documentWrite.js");
+        head.appendChild(nn);
+
         ["lib/jquery-1.12.1.js","lib/require.js","lib/tjs/run.js"].forEach(function (src) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");

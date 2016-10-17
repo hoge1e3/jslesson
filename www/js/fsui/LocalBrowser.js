@@ -148,15 +148,18 @@ function (sh,FS,DU,UI,S) {
                 if (window.onerror) window.onerror(message, source, lineno, colno,ex);
             };
             idoc=iwin.document;
-            idoc.write=function () {
+            /*idoc.write=function () {
                 Array.prototype.slice.call(arguments).forEach(function (e) {
-                    idoc.body.innerHTML+=e;//appendChild(idoc.createTextNode(e));
+                    var dp=new DOMParser;
+                    var r=dp.parseFromString(e,"text/html");
+                    appendTo(r.body,idoc.body);
+                    //idoc.body.innerHTML+=e;//appendChild(idoc.createTextNode(e));
                 });
             };
             idoc.writeln=function () {
                 idoc.write.apply(idoc,arguments);
                 idoc.write("\n");
-            };
+            };*/
             return $.when().then(F(function () {
                 return appendTo(src.getElementsByTagName("html")[0], 
                 idoc.getElementsByTagName("html")[0]);

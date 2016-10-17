@@ -12585,10 +12585,10 @@ define('RunDialog',["UI"],function (UI) {
 	    
         $("#ifrmDlg").attr(src,runURL);
         //if($("#ifrmDlg")[0]) console.log($("#ifrmDlg")[0].contentWindow.document.body);
-        if($("#ifrmDlg")[0]) {
+        setTimeout(function(){if($("#ifrmDlg")[0]) {
             var cons=$("#ifrmDlg")[0].contentWindow.document.getElementById("console");
             if (cons) cons.style.fontSize=options.font+"px";
-        }
+        }},100);
         var d=res.d;
         return d;
     };
@@ -12744,15 +12744,18 @@ function (sh,FS,DU,UI,S) {
                 if (window.onerror) window.onerror(message, source, lineno, colno,ex);
             };
             idoc=iwin.document;
-            idoc.write=function () {
+            /*idoc.write=function () {
                 Array.prototype.slice.call(arguments).forEach(function (e) {
-                    idoc.body.innerHTML+=e;//appendChild(idoc.createTextNode(e));
+                    var dp=new DOMParser;
+                    var r=dp.parseFromString(e,"text/html");
+                    appendTo(r.body,idoc.body);
+                    //idoc.body.innerHTML+=e;//appendChild(idoc.createTextNode(e));
                 });
             };
             idoc.writeln=function () {
                 idoc.write.apply(idoc,arguments);
                 idoc.write("\n");
-            };
+            };*/
             return $.when().then(F(function () {
                 return appendTo(src.getElementsByTagName("html")[0], 
                 idoc.getElementsByTagName("html")[0]);
@@ -12903,7 +12906,6 @@ function (UI, LocalBrowser,DA) {
         d.dialog({
             width:16*((options.height+10)/9),
             position: { my: "center top", at: "right bottom"},
-            //width:600,
             close:function(){
                 window.dialogClosed=true;
                 if (res.b) res.b.close();
@@ -12913,6 +12915,7 @@ function (UI, LocalBrowser,DA) {
         });//,height:options.height?options.height-50:400});
         handleResize();
         function handleResize() {
+            console.log(d.height());
             if (res.b/* && res.b.iframe*/) {
                 res.b.resize(d.width(),d.height()-d.$vars.OKButton.height());
                 /*res.b.iframe.attr({
