@@ -232,6 +232,7 @@
     Timer! "after_execute" "完了時実行" addAlias.
     Timer! "after_execute" "終了時実行" addAlias.
     Timer! "after_execute" "最後に実行" addAlias.
+    Timer! "after_execute" "単発実行" addAlias.
     
     
     // for group

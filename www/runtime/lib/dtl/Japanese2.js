@@ -153,6 +153,7 @@ this['addAlias']("gyroSensor","ジャイロセンサ","ジャイロセンサー"
 this['Timer']['addAlias']("after_execute","完了時実行");
 this['Timer']['addAlias']("after_execute","終了時実行");
 this['Timer']['addAlias']("after_execute","最後に実行");
+this['Timer']['addAlias']("after_execute","単発実行");
 this['addAliasFromTable']("actor","右回り,右回転,右に回る","みぎまわり,みぎかいてん,みぎにまわる","rightturn");
 this['addAliasFromTable']("actor","左回り,左回転,左に回る","ひだりまわり,ひだりかいてん,ひだりにまわる","leftturn");
 this['addAliasFromTable']("actor","移動する,移動","いどうする,いどう","moveby");
