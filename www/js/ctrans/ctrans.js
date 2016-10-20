@@ -1,4 +1,5 @@
 MinimalParser= function () {
+    //test-ctrans
 	var parser={};
 	var ctx=context();
 	var startSeq=0;
