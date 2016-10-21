@@ -80,10 +80,10 @@ var reqConf={
             SplashScreen: {
                 exports: "SplashScreen"
             },
-            "ctrans/ctrans": {
+            /*"ctrans/ctrans": {
                 deps:["Parser"],
                 exports:"MinimalParser"
-            },
+            },*/
             "dolittle/minimal": {
                 deps:["Parser"],
                 exports:"MinimalParser"
@@ -153,6 +153,8 @@ var reqConf={
             "Util": "lib/util",
             "Profiler": "lib/profiler",
             "TextUtil": "lib/TextUtil",
+            "Klass": "lib/Klass",
+            "Cons":"lib/Cons",
             "ObjectMatcher": "lang/ObjectMatcher",
             "Arrow": "help/Arrow",
             "context": "lang/context",

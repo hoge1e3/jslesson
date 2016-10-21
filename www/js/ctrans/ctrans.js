@@ -1,4 +1,5 @@
-MinimalParser= function () {
+define(["ctrans/ctype","Cons","Parser"],function (T,Cons,Parser) {
+window.MinimalParser= function () {
     //test-ctrans
 	var parser={};
 	var ctx=context();
@@ -224,7 +225,7 @@ MinimalParser= function () {
 	    last_decl_type=types;
 	    return types.join(" ");
 	});
-
+	
 	var identifier_list=t(",").and(identifier).ret(function(comma,identifier){return [",",identifier];});
 	identifier_list=identifier.and(identifier_list.rep0())
 		.ret(function(identifier,identifiers){return [identifier,identifiers];});
@@ -737,7 +738,9 @@ MinimalParser= function () {
 			parseErr.lineNo=line+1;
 			throw parseErr;
 		}
-	return output;
+    	return output;
 	};
 	return parser;
 }();
+return window.MinimalParser;
+});
