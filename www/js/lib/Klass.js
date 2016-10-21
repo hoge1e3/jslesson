@@ -20,6 +20,16 @@ define([],function () {
                 }
             }
         };
+        var fldinit;
+        if (init instanceof Array) {
+            fldinit=init;
+            init=function () {
+                var a=Array.prototype.slice.call(arguments);
+                for (var i=0;i<fldinit.length;i++) {
+                    if (a.length>0) this[fldinit[i]]=a.shift();
+                }
+            };
+        }
         var klass;
         klass=function () {
             if (! (this instanceof klass)) {
@@ -48,3 +58,12 @@ define([],function () {
     Klass.Function=function () {throw new Exception("Abstract");}
     return Klass;
 });
+/*
+requirejs(["Klass"],function (k) {
+  P=k.define ({
+     $:["x","y"]
+  });    
+  p=P(2,3);
+  console.log(p.x,p.y);
+});
+*/
