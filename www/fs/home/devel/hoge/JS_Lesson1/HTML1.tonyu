@@ -1,0 +1,7 @@
+// Javascript
+
+for(i=0;i<10;i++) {
+    if (i==5) setText("bun","<image src=images/crab.png >");
+    else addText("bun","<image src=images/crab.png >");
+    wait(500);
+}

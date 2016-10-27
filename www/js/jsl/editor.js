@@ -194,11 +194,11 @@ function ready() {
 	        )
 	    ) doConfirm=false;
 	    if(doConfirm){
-            /*UIDiag.confirm("一つ前のページに戻ります。よろしいですか？").then(function (r) {
+            UIDiag.confirm("一つ前のページに戻ります。よろしいですか？").then(function (r) {
                 if (r) {
                     history.back();
                 }
-            });*/
+            });
             e.stopPropagation();
             e.preventDefault();
             return false;

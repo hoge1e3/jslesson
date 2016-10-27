@@ -7,16 +7,20 @@ document.writeDestination=function writeDestination() {
     return s && s.parentNode  || document.body;
 };
 document.write = function() {
-    Array.prototype.slice.call(arguments).forEach(function(e) {
+    var dst=document.writeDestination();
+    Array.prototype.slice.call(arguments).forEach(function (e) {
+        document.baWriteTo(dst,e);
+    });
+};
+document.baWriteTo = function(dst,content) {
+    var e=content;
+    if (e=="\n") {
+        dst.appendChild(document.createTextNode(e));
+    } else {
         var dp = new DOMParser();
         var r = dp.parseFromString(e, "text/html");
-        var dst = document.writeDestination();
-        if (e=="\n") {
-            dst.appendChild(document.createTextNode(e));
-        } else {
-            appendTo(r.body, dst);
-        }
-    });
+        appendTo(r.body, dst);
+    }
 
     function appendTo(src, dst) {
         var c = src.childNodes;

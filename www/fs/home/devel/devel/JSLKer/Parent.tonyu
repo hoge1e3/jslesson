@@ -30,11 +30,18 @@ native Error;
 }
 \addText(elem,val){
     //document.getElementById(elem).innerHTML+=val;
-    $("[name="+elem+"]").append(val);
+    if (document.baWriteTo) {
+        var dst=$("[name="+elem+"]")[0];
+        if (dst) document.baWriteTo(dst, val);
+    } else {
+        $("[name="+elem+"]").append(val);
+    }
 }
 \setText(elem,val){
+    $("[name="+elem+"]").empty();
+    addText(elem,val);
     //document.getElementById(elem).innerHTML=val;
-    $("[name="+elem+"]").text(val);
+    //$("[name="+elem+"]").text(val);
 }
 \onClick(elem,func){
     var usepara,fname;
