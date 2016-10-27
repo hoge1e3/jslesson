@@ -164,6 +164,10 @@ return Tonyu=function () {
                 step();
             }
             fb.preempted= (!fSuspended) && isAlive();
+            if (fb.preempted) {
+                //console.log("pREEMPTED!");
+                setTimeout(steps,0);
+            }
             //stpd--;
             Tonyu.currentThread=sv;
         }

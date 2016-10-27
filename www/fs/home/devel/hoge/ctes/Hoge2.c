@@ -1,5 +1,7 @@
 // C
 #include<stdio.h>
 main() {
-    printf("Hoge");
+    int a;
+    scanf("%d",&a);
+    printf("Hoge %d",a*2);
 }
