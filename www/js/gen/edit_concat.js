@@ -377,6 +377,10 @@ return Tonyu=function () {
                 step();
             }
             fb.preempted= (!fSuspended) && isAlive();
+            if (fb.preempted) {
+                //console.log("pREEMPTED!");
+                setTimeout(steps,0);
+            }
             //stpd--;
             Tonyu.currentThread=sv;
         }
@@ -13647,11 +13651,11 @@ function ready() {
 	        )
 	    ) doConfirm=false;
 	    if(doConfirm){
-            /*UIDiag.confirm("一つ前のページに戻ります。よろしいですか？").then(function (r) {
+            UIDiag.confirm("一つ前のページに戻ります。よろしいですか？").then(function (r) {
                 if (r) {
                     history.back();
                 }
-            });*/
+            });
             e.stopPropagation();
             e.preventDefault();
             return false;

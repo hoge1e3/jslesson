@@ -88,14 +88,14 @@ root.markDtlObj=function (path) {
 };
 
 root.makeCaseInsensitiveAll=function () {
-    if (!root.allDtlObjsAndBuiltins) {
+    //if (!root.allDtlObjsAndBuiltins) {
         root.allDtlObjsAndBuiltins=[Number,String,Boolean,Array,Function].map(function (f) {
             return f.prototype;
         }).concat(root.getAllDtlObjs());
         root.allDtlObjsAndBuiltins.forEach(function (e) {
             root.makeCaseInsensitive(e);
         });
-    }
+    //}
 };
 root.makeCaseInsensitive=function (obj) {
     var m={};
