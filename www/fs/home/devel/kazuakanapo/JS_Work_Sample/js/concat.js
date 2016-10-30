@@ -173,10 +173,6 @@ Tonyu.klass.define({
           _this.num=_this.num*3+1;
           
         }
-        $LASTPOS=3000175;//user.Colatz:175
-        _this.addText("r",_this.num);
-        $LASTPOS=3000197;//user.Colatz:197
-        _this.addText("r","<br>");
         
       }
     },
@@ -196,29 +192,21 @@ Tonyu.klass.define({
           case 0:
             $LASTPOS=3000081;//user.Colatz:81
           case 1:
-            if (!(_this.num!=1)) { __pc=4; break; }
-            $LASTPOS=3000100;//user.Colatz:100
-            if (_this.num%2==0) {
-              $LASTPOS=3000122;//user.Colatz:122
-              _this.num=_this.num/2;
-              
-            } else {
-              $LASTPOS=3000152;//user.Colatz:152
-              _this.num=_this.num*3+1;
-              
+            if (!(_this.num!=1)) { __pc=2; break; }
+            {
+              $LASTPOS=3000100;//user.Colatz:100
+              if (_this.num%2==0) {
+                $LASTPOS=3000122;//user.Colatz:122
+                _this.num=_this.num/2;
+                
+              } else {
+                $LASTPOS=3000152;//user.Colatz:152
+                _this.num=_this.num*3+1;
+                
+              }
             }
-            $LASTPOS=3000175;//user.Colatz:175
-            _this.fiber$addText(_thread, "r", _this.num);
-            __pc=2;return;
-          case 2:
-            
-            $LASTPOS=3000197;//user.Colatz:197
-            _this.fiber$addText(_thread, "r", "<br>");
-            __pc=3;return;
-          case 3:
-            
             __pc=1;break;
-          case 4:
+          case 2:
             
             _thread.exit(_this);return;
           }
