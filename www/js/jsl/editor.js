@@ -322,7 +322,10 @@ function ready() {
     FM.on.rm=function (f) {
         var fs=fileSet(f);
         for (var i=0;i<fs.length;i++) {
-            if (fs[i].exists()) fs[i].rm();
+            if (fs[i].exists()) {
+                fs[i].rm();
+                logToServer2(fs[i].path(),"REMOVED","REMOVED","remove","remove",lang);
+            }
             close(fs[i]);
         }
         ls();
@@ -337,6 +340,10 @@ function ready() {
             if (olds[i].equals(old)) ci=i;
             if (olds[i].exists() && !news[i].exists()) {
                 news[i].moveFrom(olds[i]);
+                try {
+                    logToServer2(olds[i].path(),"MOVED","MOVED","rename",
+                    olds[i].path()+"->"+news[i].path()  ,lang);
+                }catch(e){console.log(e.stack);}
             }
             close(olds[i]);
         }

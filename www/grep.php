@@ -79,7 +79,7 @@ function json($file) {
 }
 function toHTML($e) {
     $code=$e["code"];
-    $c="";
+    $c="";$h="";
     if (is_string($code)) $c=$code;
     else {
         foreach (array("Dolittle","JavaScript","C") as $lang) {
@@ -87,13 +87,17 @@ function toHTML($e) {
                 $c.=$code[$lang];
             }
         }
+        if (isset($code["HTML"])) {
+            $h=$code["HTML"];
+        }
     }
     $time=preg_replace("/\\//","-",$e["date"])."T".$e["time"];
     return "<pre>". 
         mkTimeLink($time)."<BR>".
         "<font color=red>".$e["detail"]."</font><BR>".
         "<font color=green>".$e["filename"]."</font><BR>".
-        preg_replace("/ /","&nbsp;",htmlspecialchars ($c) ).
+        preg_replace("/ /","&nbsp;",htmlspecialchars ($c) )."<br>HTML:<BR>".
+        preg_replace("/ /","&nbsp;",htmlspecialchars ($h) )."<BR>".
     "\n</pre><BR>";
             
 }
