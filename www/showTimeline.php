@@ -15,8 +15,8 @@ if (!Auth::isTeacher()) {
     echo ("alert('study more!');</script>");
     exit(0);
 }
-$min=("2016-04-01T00:00:00");
-$max=("2016-08-24T00:00:00");
+$min=("2016-10-01T00:00:00");
+$max=("2016-10-30T00:00:00");
 
 if (isset($_GET["min"])) {
     $min=$_GET["min"];
