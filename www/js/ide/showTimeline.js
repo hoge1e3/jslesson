@@ -93,6 +93,7 @@ function addZoomListener(cv) {
             setScale($("#scale"));
             $("tr.user").remove();
             queue=oldQ;oldQ=[];
+            userInfo={};
         } else {
             location.href="showTimeline.php?min="+date2str(nmin)+"&max="+date2str(nmax);
         }
