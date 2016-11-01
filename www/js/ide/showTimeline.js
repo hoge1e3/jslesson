@@ -2,19 +2,25 @@ var curcv;
 var pat=/([0-9]+)-([0-9]+)-([0-9]+)T([0-9]+):([0-9]+):([0-9]+)/;
 var min=str2date("2016-04-01T00:00:00");
 var max=str2date("2016-08-01T00:00:00");
+var omin,omax;
 var WIDTH=800,HEIGHT=30;
-var queue=[];
+var queue=[],oldQ=[];
 var lineY;
 var curUser;
 var userInfo={};// "file"->{pos2str:[x->datestr]};
+var     zoomListenerAdded;
 function getUserInfo(file) {
     file=file||curUser;
     if (userInfo[file]) return userInfo[file];
-    return userInfo[file]={pos2str:[]};
+    userInfo[file]={pos2str:[]};
+    return userInfo[file];
 }
 setInterval(function () {
     var f=queue.shift();
-    if (f) f();
+    if (f) {
+        f();
+        oldQ.push(f);
+    }
 },0);
 Date.prototype.add=function (o) {
     if (typeof o=="number") {
@@ -57,11 +63,12 @@ function date2pos(d) {
     return d.sub(min)/max.sub(min)*WIDTH;
 }
 function setRange(i,a) {
-    min=str2date(i);max=str2date(a);
+    omin=min=str2date(i);omax=max=str2date(a);
     setScale($("#scale"));
 }
 function setScale(cv) {
     var ctx=cv[0].getContext("2d");
+    ctx.clearRect(0,0,WIDTH,HEIGHT);
     for (i=0; i<10 ;i++) {
         var d=pos2date(WIDTH/10*i);
         ctx.fillText(d.format("M/D"),WIDTH*i/10,HEIGHT/3);
@@ -70,16 +77,25 @@ function setScale(cv) {
     addZoomListener(cv);
 }
 function addZoomListener(cv) {
+    if (zoomListenerAdded) return;
+    zoomListenerAdded=true;
     cv.click(function (e) {
         var x=(e.clientX-cv.offset().left);
-        // 0.5 -> 2
+        // 0.5 -> 5
         // 0.25 -> 1
-        // 0 -> 0.5
-        var zoom=0.5+Math.abs(x/WIDTH-0.5)*3;
-        var center=pos2date(x)
+        // 0 -> 1/5
+        var zoom=1/5+Math.abs(x/WIDTH-0.5)*(5-1/5)*2;
+        var center=pos2date(x);
         var nmin=center.sub(duration()*zoom/2);
         var nmax=center.add(duration()*zoom/2);
-        location.href="showTimeline.php?min="+date2str(nmin)+"&max="+date2str(nmax);
+        if (nmin.sub(omin)>=0 && nmax.sub(omax)<=0) {
+            min=nmin;max=nmax;
+            setScale($("#scale"));
+            $("tr.user").remove();
+            queue=oldQ;oldQ=[];
+        } else {
+            location.href="showTimeline.php?min="+date2str(nmin)+"&max="+date2str(nmax);
+        }
         //alert(date2str(nmin)+" - "+date2str(nmax));
     });
 }
@@ -111,10 +127,10 @@ function showLine(time) {
 }
 function setUser(file) {
     var files=file.replace(/^\//,"").split("-");
-    var user=files[0]+"-"+files[1]
+    var user=files[0]+"-"+files[1];
     curUser=user;
     //0123-cho-data-time.txt
-    var row=$("<tr>").appendTo("#tl");
+    var row=$("<tr>").appendTo("#tl").addClass("user");
     $("<td>").text(curUser).appendTo(row);
     curcv=$("<canvas>").attr({width:800,height:30,"data-user":curUser});
     var inf=getUserInfo();
