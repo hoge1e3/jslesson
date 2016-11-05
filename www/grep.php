@@ -104,6 +104,6 @@ function toHTML($e) {
 function mkTimeLink($s) {
     global $file;
     return preg_replace("/[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+/",
-    "<a href='grep.php?file=$file&word=\\0#center'>\\0</a>",$s);
+    "<a href='action.php?action=grep&file=$file&word=\\0#center'>\\0</a>",$s);
 }
 ?>

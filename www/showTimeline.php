@@ -7,16 +7,17 @@
 </body>
 <script src="js/lib/jquery-1.12.1.js"></script>
 <script src="js/ide/showTimeline.js"></script>
-<script><?php
+<?php
 require_once __DIR__."/php/json.php";
 require_once __DIR__."/php/auth.php";
 require_once __DIR__."/php/fs/NativeFS.php";
 if (!Auth::isTeacher()) {
-    echo ("alert('study more!');</script>");
+    echo ("<script>alert('study more!');</script>");
     exit(0);
 }
-$min=("2016-10-01T00:00:00");
-$max=("2016-10-30T00:00:00");
+date_default_timezone_set("Asia/Tokyo");
+$min=date('Y-m-d\TH:i:s',strtotime("-4 week"));;
+$max=date('Y-m-d\TH:i:s');
 
 if (isset($_GET["min"])) {
     $min=$_GET["min"];
@@ -25,7 +26,7 @@ if (isset($_GET["max"])) {
     $max=$_GET["max"];
 }
 $class=Auth::curClass();
-echo "setRange('$min','$max');\n";
+echo "<script>setRange('$min','$max');\n</script>";
 $fs=new NativeFS("./log/");
 foreach ($fs->ls("/") as $n) {
     $n="/$n";
@@ -43,7 +44,7 @@ foreach ($fs->ls("/") as $n) {
 
 function readLog($time, $error) {
     global $fs,$min,$max;
-    echo ("queue.push(function () {\n");
+    echo ("<script>queue.push(function () {\n");
     echo ("setUser('$time');\n");
     echo ("setColor('green');\n");
     $tlines=explode("\n",$fs->getContent($time));
@@ -61,14 +62,14 @@ function readLog($time, $error) {
             echo("showLine('$eline');\n");
         }
     }
-    echo ("});\n");
+    echo ("});</script>\n");
     
 }
 function readJSONLog($file) {
     global $fs,$min,$max;
     $tlines=explode("\n",$fs->getContent($file));
     $j=new Services_JSON;
-    echo ("queue.push(function () {\n");
+    echo ("<script>queue.push(function () {\n");
     echo ("setUser('$file');\n");
     $es=array();
     foreach($tlines as $tline) {
@@ -97,6 +98,6 @@ function readJSONLog($file) {
             echo("showLine('$tltime');\n");
         }
     }    
-    echo ("});\n");
+    echo ("});</script>\n");
 }
-?></script>
+?>

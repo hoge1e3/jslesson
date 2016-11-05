@@ -34,11 +34,11 @@ class Auth {
            return "ユーザ名は半角英数とハイフン、アンダースコアだけが使えます。";
         }
     }
-    static function loginTeacher($class,$pass) {
+    static function loginTeacher($class,$pass,$ignoreNonexistent=false) {
 	    $json = new Services_JSON();
         if (!$class)return "クラス名を入力してください。";
 	    if (!$pass)return "パスワードを入力してください。";
-    	if (!file_exists("fs/home/$class")){
+    	if (!file_exists("fs/home/$class") && !$ignoreNonexistent){
                return "存在しないクラスIDが入力されています。";
     	}
         if (preg_match('/^[a-zA-Z0-9\\-_]+$/',$pass)) {

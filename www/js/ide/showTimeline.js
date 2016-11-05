@@ -88,6 +88,8 @@ function addZoomListener(cv) {
         var center=pos2date(x);
         var nmin=center.sub(duration()*zoom/2);
         var nmax=center.add(duration()*zoom/2);
+        //var pnow=new Date().sub(1000*60*5);
+        //if (nmax.sub(pnow)>0) nmax=pnow; 
         if (nmin.sub(omin)>=0 && nmax.sub(omax)<=0) {
             min=nmin;max=nmax;
             setScale($("#scale"));
@@ -95,7 +97,7 @@ function addZoomListener(cv) {
             queue=oldQ;oldQ=[];
             userInfo={};
         } else {
-            location.href="showTimeline.php?min="+date2str(nmin)+"&max="+date2str(nmax);
+            location.href="action.php?action=showTimeline&min="+date2str(nmin)+"&max="+date2str(nmax);
         }
         //alert(date2str(nmin)+" - "+date2str(nmax));
     });
@@ -140,7 +142,7 @@ function setUser(file) {
         var x=(e.clientX-curcv.offset().left);
         for (var i=1;i<10; i++) {
             if (inf.pos2str[x]) {
-                window.open("grep.php?file="+user+"&word="+inf.pos2str[x]+"#center");
+                window.open("action.php?action=grep&file="+user+"&word="+inf.pos2str[x]+"#center");
                 break;
             }
             x+=i*(i%2*2-1);

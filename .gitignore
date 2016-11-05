@@ -45,8 +45,11 @@ Temporary Items
 www/user/list.txt
 www/fs/pub
 www/fs/home/devel/test
+www/fs/home/lesson_samples/hk2016
 www/log/*.log
 www/log/*.txt
+www/log/*.js
+www/log/*.json
 *.swp
 www/js/ctrans/a.out
 www/js/ctrans/runtimeerrors.txt
@@ -59,4 +62,4 @@ www/fs/Tonyu/Projects/JSLKer/js/concat_old.js
 www/js/dolittle/lib.js.bak
 www/runtime/lib/tjs/kernel_old.js
 www/runtime/lib/tjs/kernel_old.js.map
-/private
+private
