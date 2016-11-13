@@ -8,7 +8,7 @@ if (isset($_POST["class"])) {
 	$ignoreNonexistent=isset($_POST["ignoreNonexistent"]);
 	$mesg=Auth::loginTeacher($class,$pass,$ignoreNonexistent);
 	if ($mesg===true) {
-	    ?><a href="showTimeline.php">Show timeline</a><hr/><?php
+	    ?><a href="a.php?showTimeline">Show timeline</a><hr/><?php
 	    if (!$ignoreNonexistent) {
     	    $mesg="";
     	    $handle=opendir("fs/home/$class/");
@@ -25,7 +25,7 @@ if (isset($_POST["class"])) {
     	    $sortedKeys=array_keys($files);
     	    for($i=0;$i<count($files);$i++){
             ?>
-	            <a href="login.php?class=<?=$class?>&user=<?=$files[$sortedKeys[$i]]?>" 
+	            <a href="a.php?login&class=<?=$class?>&user=<?=$files[$sortedKeys[$i]]?>" 
 	            target="stutab">
 	                <?php print $files[$sortedKeys[$i]]; ?>
 	            </a><br/>
@@ -36,7 +36,7 @@ if (isset($_POST["class"])) {
 }
 ?>
 		<meta charset="UTF-8">
-	<form action="teacher.php" method="POST">
+	<form action="a.php?teacher" method="POST">
 	  クラスID<input name="class"></br>
 	  パスワード<input name="pass" type="password">
 	  <?php if (isset($_GET["ignoreNonexistent"])) { ?>

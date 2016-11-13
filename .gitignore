@@ -50,6 +50,8 @@ www/log/*.log
 www/log/*.txt
 www/log/*.js
 www/log/*.json
+www/log/scoreSheet
+www/log/new
 *.swp
 www/js/ctrans/a.out
 www/js/ctrans/runtimeerrors.txt

@@ -17,13 +17,13 @@ function h_err($errno, $errstr, $errfile, $errline) {
     global $errStatus;
     if (!isset($errStatus)) $errStatus=""; 
     http_response_code(500);
-    $buf="\n";
+    $buf="<BR>\n";
     if (function_exists('debug_backtrace')) {
         $tr=debug_backtrace();
         foreach ($tr as $t) {
             if (isset($t["function"]) && 
             isset($t["file"]) && isset($t["line"])) {
-                $buf.="at ".$t["function"]." ".$t["file"].":".$t["line"]."\n";
+                $buf.="at ".$t["function"]." ".$t["file"].":".$t["line"]."<BR>\n";
             }
         }
     }

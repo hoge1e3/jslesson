@@ -114,6 +114,7 @@ define('SERVICES_JSON_SUPPRESS_ERRORS', 32);
  */
 class Services_JSON
 {
+    static $instance;
    /**
     * constructs a new JSON instance
     *
@@ -802,3 +803,14 @@ if (class_exists('PEAR_Error')) {
     }
 
 }
+Services_JSON::$instance=new Services_JSON(); 
+if (!function_exists('json_encode')) {
+    function json_encode($o) {
+        return Services_JSON::$instance->encode($o);
+    }
+}
+//if (!function_exists('json_decode')) {
+    function json2array($s) {
+        return Services_JSON::$instance->decode($s);
+    }
+//}

@@ -11,6 +11,8 @@
 require_once __DIR__."/php/json.php";
 require_once __DIR__."/php/auth.php";
 require_once __DIR__."/php/fs/NativeFS.php";
+require_once __DIR__."/php/fs/PathUtil.php";
+require_once __DIR__."/php/analysis/LogUtil.php";
 if (!Auth::isTeacher()) {
     echo ("<script>alert('study more!');</script>");
     exit(0);
@@ -88,14 +90,16 @@ function readJSONLog($file) {
     foreach($es as $e) {
         if (!$e["isError"]) {
             $tltime=$e["tltime"];
-            echo("showLine('$tltime');\n");
+            $fname=LogUtil::getFileName($e);
+            echo("showLine('$tltime','$fname');\n");
         }
     }    
     echo ("setColor('red');\n");
     foreach($es as $e) {
         if ($e["isError"]) {
             $tltime=$e["tltime"];
-            echo("showLine('$tltime');\n");
+            $fname=LogUtil::getFileName($e);
+            echo("showLine('$tltime','$fname');\n");
         }
     }    
     echo ("});</script>\n");

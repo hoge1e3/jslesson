@@ -3,6 +3,7 @@
 require_once __DIR__."/php/auth.php";
 require_once __DIR__."/php/fs/NativeFS.php";
 require_once __DIR__."/php/json.php";
+require_once __DIR__."/php/analysis/LogUtil.php";
 if (!Auth::isTeacher()) {
     echo ("Study more!");
     exit(0);
@@ -92,10 +93,12 @@ function toHTML($e) {
         }
     }
     $time=preg_replace("/\\//","-",$e["date"])."T".$e["time"];
+    $n=LogUtil::getFileName($e);
     return "<pre>". 
         mkTimeLink($time)."<BR>".
         "<font color=red>".$e["detail"]."</font><BR>".
         "<font color=green>".$e["filename"]."</font><BR>".
+        "<font color=blue>Estimated as:".$n."</font><BR>".
         preg_replace("/ /","&nbsp;",htmlspecialchars ($c) )."<br>HTML:<BR>".
         preg_replace("/ /","&nbsp;",htmlspecialchars ($h) )."<BR>".
     "\n</pre><BR>";
@@ -104,6 +107,6 @@ function toHTML($e) {
 function mkTimeLink($s) {
     global $file;
     return preg_replace("/[0-9]+-[0-9]+-[0-9]+T[0-9]+:[0-9]+:[0-9]+/",
-    "<a href='action.php?action=grep&file=$file&word=\\0#center'>\\0</a>",$s);
+    "<a href='a.php?grep&file=$file&word=\\0#center'>\\0</a>",$s);
 }
 ?>
