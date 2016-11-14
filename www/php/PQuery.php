@@ -47,17 +47,17 @@ class PQuery {
     public function resolve() {
         if ($this->key==null) {
             return $this->obj;
-        } else if ($this->obj instanceof PQuery) {
-            return self::_resolve($this->obj->resolve(),$this->key);
-        } else {
-            return self::_resolve($this->obj,$this->key);
         }
-    }
-    public static function _resolve($obj,$key) { 
-        if (is_array($obj)) {
-            return $obj[$key];
+        $key=$this->key;
+        if ($this->obj instanceof PQuery) {
+            $this->obj=$this->obj->resolve();
+        }
+        if (is_array($this->obj)) {
+            return $this->obj[$key];
         } else if (is_object($this->obj)) {
-            return $obj->$key;
+            return $this->obj->$key;
+        } else {
+            throw new Exception("Cannot resolve");
         }
     }
     public function resolveDef($def) {
@@ -71,9 +71,9 @@ class PQuery {
         if (func_num_args()==1) {    
             return $this->rel($key)->resolve();
         } else {
-            self::_val($this->obj, $this->key,$val);
+            //self::_val($this->resolve(), $key,$val);
+            $this->rel($key)->val($val);
             return $this;
-            //return $this->rel($key)->val($val);
         }
         
     }
@@ -81,19 +81,18 @@ class PQuery {
         if (func_num_args()==0) {    
             return $this->resolve();
         } else if ($this->key!=null) {
-            self::_val($this->resolve(),$this->key,$val);
+            $key=$this->key;
+            if ($this->obj instanceof PQuery) {
+                $this->obj=$this->obj->resolve();
+            }
+            if (is_array($this->obj)) {
+                $this->obj[$key]=$val;
+            } else if (is_object($this->obj)) {
+                $this->$key=$val;
+            }
             return $this;
         } else {
-            throw new Error("Cannot set");
-        }
-    }
-    public static function _val($obj,$key,$val) { 
-        if (is_array($obj)) {
-            return $obj[$key]=$val;
-        } else if (is_object($this->obj)) {
-            return $obj->$key=$val;
-        } else {
-            throw new Error("Cannot _val");
+            throw new Error("Cannot val");
         }
     }
 

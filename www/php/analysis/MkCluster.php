@@ -3,6 +3,7 @@ require_once __DIR__."/VecUtil.php";
 require_once __DIR__."/LogUtil.php";
 require_once __DIR__."/../json.php";
 require_once __DIR__."/../PQuery.php";
+require_once __DIR__."/../Progress.php";
 
 $get=new PQuery($_GET);
 $vecs=array();
@@ -11,6 +12,7 @@ $logFiles=LogUtil::getLogFiles();
 $cntmax=count($logFiles);
 $cnt=0;
 foreach ($logFiles as $logFile) {
+    showProgress("Process $cnt/$cntmax");
     foreach (LogUtil::readLog($logFile) as $i=>$log) {
         $prog=LogUtil::detectProgram($log);
         $vec=VecUtil::mkvec2($prog);
@@ -19,14 +21,8 @@ foreach ($logFiles as $logFile) {
         $vecs[]=$vec;
     }
     if ($cnt++>$filesLimit) break;
-    //break;
-    echo "Process $cnt/$cntmax<BR>";
-    flush();
-    ob_flush() ;
 }
-echo "Kmeans...<BR>";
-flush();
-ob_flush();
+showProgress("Starting kmeans");
 VecUtil::$verbose=1;
 $cluster=VecUtil::kmeans($get->attrDef("k",20), $vecs);
 
@@ -39,6 +35,9 @@ $logD=LogUtil::getLogDir();
 $class=Auth::curClass();
 $vecFile=$logD->rel("$class-vector.json");
 $vecFile->obj($res);
+?>
+<script>location.href="a.php?DetectFile";</script>
+<?php
 
 function nameOf($vec) {
     /*foreach ($vec->ary as $word=>$freq) {

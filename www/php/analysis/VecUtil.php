@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__."/../Progress.php";
+
 class VecUtil {
     static $verbose=0;
     
@@ -66,8 +68,7 @@ class VecUtil {
                 }
             }
             if (self::$verbose) {
-                echo "kmeans: $changed samples changed. Retrying...<BR>";
-                flush();ob_flush();
+                showProgress("kmeans: $changed samples changed. Retrying...");
             }
         }
         return $cl;

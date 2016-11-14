@@ -50,7 +50,7 @@ www/log/*.log
 www/log/*.txt
 www/log/*.js
 www/log/*.json
-www/log/scoreSheet
+www/scoreSheet
 www/log/new
 *.swp
 www/js/ctrans/a.out

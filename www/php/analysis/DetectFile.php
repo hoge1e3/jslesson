@@ -14,7 +14,7 @@ $logD=new SFile($fs,"/");
 $files=$logD->listFiles();
 $j=new Services_JSON();
 $class=Auth::curClass();
-print $class;
+#print $class;
 
 $vec=$logD->rel("$class-vector.json");
 if (!$vec->exists()) {
@@ -58,5 +58,5 @@ foreach ($files as $file) {
         $file->sibling("new/")->rel($file->name())->lines($data);
 	}
 }
-
+print "Done! Check log/new/*.log and copy them to log/";
 ?>

@@ -3,7 +3,10 @@ require_once __DIR__."/LogUtil.php";
 require_once __DIR__."/../PQuery.php";
 require_once __DIR__."/../Progress.php";
 require_once __DIR__."/../auth.php";
+require_once __DIR__."/../fs/NativeFS.php";
+require_once __DIR__."/../fs/SFile.php";
 
+$scoreSheetDir=new SFile(new NativeFS("./"),"scoreSheet/");
 $class=Auth::curClass();
 $files=LogUtil::getLogFiles();
 $progss=array(); // nearest=>[Prog]
@@ -15,7 +18,8 @@ foreach($files as $file) {
     foreach($log as $l) {
         $l=new PQuery($l);
         $n=$l->attrDef("nearest","UNKNOWN");
-        $l->attr("user", $file->name());
+        $l->obj["user"]=$file->name();
+        //if ($l->obj["user"]!==$file->name()) throw new Exception("Why!");
         if (preg_match("/Error/",$l->attrDef("result",""))) {
         } else {
             if (!isset($progss[$n])) {
@@ -33,7 +37,7 @@ foreach ($progss as $n=>$progs) {
 echo "Nonerror/All=$nonError/$allC <HR>";
 //exit;
 $indexBuf="";
-$scoreSheetDir=LogUtil::getLogDir()->rel("scoreSheet/");
+//$scoreSheetDir=LogUtil::getLogDir()->rel("scoreSheet/");
 foreach ($progss as $n=>$progs) {
     showProgress("Making Scoresheet... $n/".count($progss));
     usort($progs,function ($a,$b) {
@@ -45,17 +49,39 @@ foreach ($progss as $n=>$progs) {
     //echo "<a name='$n' />";
     //echo "<h1>$n</h1>";
     $shown=array();
-    $buf="";$dup=0;$cnt=0;
+    $buf=<<<EOF
+<link rel="stylesheet" href="scoreSheet.css"/>
+<script src="jquery-1.10.1.js"></script>
+<script src="scoreSheet.js"></script>
+EOF
+;
+    $dup=0;$cnt=0;
     foreach ($progs as $p) {
         $d=digest($p);
         if (isset($shown[$d])) {$dup++;continue;}
         $shown[$d]=1;
         if (isset($p["filename"])) $fn=$p["filename"]; else $fn="unknown";
+        if (isset($p["user"])) $user=$p["user"]; else $user="unknown";
+        if (isset($p["date"]) && isset($p["time"])) {
+            $time=$p["date"]." ".$p["time"];
+        } else $time="unknown";
+        $dh=htmlspecialchars($d);
         $buf.=
             "<a href='#".($cnt-1)."'>Prev</a> |".
-            "<a name='$cnt'/> ".
             "<a href='#".($cnt+1)."'>Next</a>".
-            "<h2>Dist=".$p["dist"]." / Filename=$fn </h2>".
+            <<<EOF
+<span class=form>
+<a class=anchor name='$cnt'/>
+<input class=diy type=checkbox name=d> D 
+<input class=diy type=checkbox name=i> I 
+<input class=diy type=checkbox name=y> Y
+<button class=check>Check</button>   
+<button class=allok>All OK</button>   
+com:<input class=com size="80"/>
+<div class=digest>$dh</div>
+</span>
+EOF
+.           "<h2>Dist=".$p["dist"]." User=$user Filename=$fn Time=$time </h2>".
             "<div>result:".$p["result"]."</div>".
             putCode($p);
             $cnt++;
@@ -77,7 +103,24 @@ function digest($p) {
     return digestStr($code);
 }
 function digestStr($s) {
-    return preg_replace("/\\s+/"," ",$s);
+    if (preg_match('/<script/', $s, $matches, PREG_OFFSET_CAPTURE)) {
+        $s=substr($s,$matches[0][1]);
+    }
+    $s=preg_replace("/\\r/","",$s);
+    $s=preg_replace("/\\n/"," ",$s);
+    $s=preg_replace_callback("/([0-9A-Za-z_])\\s+([0-9A-Za-z_])/",
+    function ($m) {
+        return $m[1]."__SPC__".$m[2];
+    },$s);
+	$s=preg_replace("/\\s+/","",$s);
+    $s=preg_replace("/__SPC__/"," ",$s);
+    
+    //$s=preg_replace("/\\n\\s*/","\n",$s);
+    //$s=preg_replace("/\\n+/","\n",$s);
+    $s=preg_replace_callback("/bgcolor\\s*=[\"']?(#?[a-zA-Z0-9]+)[\"']?/",function ($m) {
+        return 'bgcolor="COLOR"';
+    },$s);
+    return $s;
 }
 function putCode($p) {
     $buf="";
