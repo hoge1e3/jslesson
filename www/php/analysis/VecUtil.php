@@ -37,36 +37,79 @@ class VecUtil {
         }
         return array_keys($keys);
     }
+    public static function centroidFile() {
+        $logD=LogUtil::getLogDir();
+        $class=Auth::curClass();
+        return $logD->rel("$class-vector.json");
+    }
+    public static function loadCentroids() {
+        $f=self::centroidFile();
+        $res=array();
+        foreach ($f->obj() as $label=>$a) {
+            $v=new Vec($a);
+            $v->label=$label;
+        }
+        return $res;        
+    }
+    public static function saveCentroids($vecs) {// [Vec]
+        $f=self::centroidFile();
+        $res=array();
+        foreach ($vecs as $v) {
+            $res[$v->label]=$v->ary;
+        }
+        $f->obj($res);
+    }
+    
     public static function kmeans($k,$vecs) {// $vecs:[Vec]
-        foreach ($vecs as $vec) {
-            $vec->label=rand(0,$k-1);
+        $cfile=self::centroidFile();
+        if ($cfile->exists()) {
+            if (self::$verbose) {
+                showProgress("kmeans: Loading prev centroids");
+            }
+            $centroids=self::loadCentroids();    
+            $skip=true;
+        } else {
+            if (self::$verbose) {
+                showProgress("kmeans: setting random group");
+            }
+            foreach ($vecs as $vec) {
+                $vec->label=rand(0,$k-1);
+            }
+            $skip=false;
         }
         $changed=1;
         while ($changed>0) {
             $changed=0;
-            $centroids=array();
-            for ($i=0;$i<$k; $i++) {
-                $centroid=new Vec();
-                $centroid->cnt=0;
-                $centroid->label=$i;
-                $centroids[]=$centroid;
-            }
-            foreach ($vecs as $vec) {
-                $centroid=$centroids[$vec->label];
-                $centroid->addX($vec);
-                $centroid->cnt++;
-            }
-            foreach ($centroids as $centroid) {
-                if ($centroid->cnt>0) $centroid->mulX(1/$centroid->cnt);
+            if ($skip) {
+                $skip=false;
+            } else {
+                $centroids=array();// [Vec]
+                for ($i=0;$i<$k; $i++) {
+                    $centroid=new Vec();
+                    $centroid->cnt=0;
+                    $centroid->label=$i;
+                    $centroids[]=$centroid;
+                }
+                $ccnt=count($vecs);
+                foreach ($vecs as $i=>$vec) {
+                    $centroid=$centroids[$vec->label];
+                    $centroid->addX($vec);
+                    $centroid->cnt++;
+                }
+                foreach ($centroids as $centroid) {
+                    if ($centroid->cnt>0) $centroid->mulX(1/$centroid->cnt);
+                }
             }
             $cl=new VecCluster2($centroids);
-            foreach ($vecs as $vec) {
+            $ccnt=count($vecs);
+            foreach ($vecs as $i=>$vec) {
                 $n=$cl->nearest($vec);
                 if ($vec->label!=$n->label) {
                     $vec->label=$n->label;
                     $changed++;
                 }
             }
+            self::saveCentroids($centroids);
             if (self::$verbose) {
                 showProgress("kmeans: $changed samples changed. Retrying...");
             }

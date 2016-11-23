@@ -131,16 +131,21 @@ function str2date(s) {
     }
     return res;
 }
-function showLine(time,file) {
+var stcolor={"NG":"yellow","OK":"lime","Error":"red"};
+function showLine(time,file,status) {
 //2016-05-08T20:51:17+09:00  
     time=time.replace(/\+.*/,"");
     var ctx=curcv[0].getContext("2d");
     var d=str2date(time);
     var x=Math.floor(date2pos(d));
-    ctx.fillStyle=curCol=="red"?"red":getColor(file);
-    ctx.fillRect(x,lineY,1,HEIGHT);
+    ctx.fillStyle=/*curCol=="red"?"red":*/getColor(file);
+    ctx.fillRect(x,0,1,HEIGHT/2);
     var inf=getUserInfo();
     inf.pos2str[x]=time;
+    if (status!="NonError") {
+        ctx.fillStyle=stcolor[status];
+        ctx.fillRect(x,HEIGHT/2,1,HEIGHT/2);
+    }
     //inf.file[x]=file;
 }
 function setUser(file) {

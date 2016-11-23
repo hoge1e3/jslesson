@@ -11,11 +11,13 @@ $actions=array(
     "DetectFile"=>"php/analysis/DetectFile.php",
     "MkScoreSheet"=>"php/analysis/MkScoreSheet.php",
     "MkCluster"=>"php/analysis/MkCluster.php",
+    "Score"=>"php/analysis/Score.php",
+    "AddScoreInfo"=>"php/analysis/AddScoreInfo.php",
     "dummy"=>"hoge"
 );
 if (isset($actions[$action])) {
     require_once $actions[$action];
 } else {
-    echo "Action $action not found";
+    echo "Action $action not found. Add '$action' to \$actions in a.php";
 }
 ?>

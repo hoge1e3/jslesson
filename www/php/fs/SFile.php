@@ -191,7 +191,13 @@ class SFile{
     public function isLink() {
     }
     public function getResolvedLinkPath() {
-    }    
+    }   
+    public function openAppend() {
+        return fopen($this->nativePath(),"a");
+    }
+    public function openWrite() {
+        return fopen($this->nativePath(),"w");
+    }
     
 }
 

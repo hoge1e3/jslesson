@@ -77,31 +77,48 @@ function readJSONLog($file) {
     foreach($tlines as $tline) {
         $e=$j->decode($tline);
         if ($e) {
+            $e["status"]="NonError";
             if (isset($e["result"]) && strpos($e["result"],"Error")) {
                 $e["isError"]=true;
+                $e["status"]="Error";
             } else {
                 $e["isError"]=false;
+            }
+            if (isset($e["score"])) {
+                if (isset($e["score"]["d"]) && $e["score"]["d"]) {
+                    $e["status"]="OK";
+                } else {
+                    $e["status"]="NG";
+                }
             }
             $e["tltime"]=preg_replace("/\\//","-",$e["date"])."T".$e["time"];
             $es[]=$e;
         }
     }
-    echo ("setColor('green');\n");
+    //echo ("setColor('green');\n");
     foreach($es as $e) {
-        if (!$e["isError"]) {
+        //if (!$e["isError"]) {
             $tltime=$e["tltime"];
             $fname=LogUtil::getFileName($e);
-            echo("showLine('$tltime','$fname');\n");
-        }
+            $status=$e["status"];
+            echo("showLine('$tltime','$fname','$status');\n");
+        //}
     }    
-    echo ("setColor('red');\n");
-    foreach($es as $e) {
+    /*foreach($es as $e) {
         if ($e["isError"]) {
             $tltime=$e["tltime"];
             $fname=LogUtil::getFileName($e);
+            //echo ("setColor('red');\n");
+            echo("showLine('$tltime','$fname');\n");
+        } else if (isset($e["score"])) {
+            if (isset($e["score"]["d"]) && $e["score"]["d"]) {
+                echo ("setColor('blue');\n");
+            } else {
+                echo ("setColor('yellow');\n");
+            }
             echo("showLine('$tltime','$fname');\n");
         }
-    }    
+    } */   
     echo ("});</script>\n");
 }
 ?>

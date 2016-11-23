@@ -58,7 +58,22 @@ class LogUtil {
         return $res;
     }
     static function readLog($file) {
-        return array_map("json2array",$file->lines());
+        return self::readJSONLines($file);
+        //return array_map("json2array",$file->lines());
+    }
+    static function readJSONLines($file) {
+        $res=array();
+        foreach ($file->lines() as $line) {
+            if ($line) $res[]=json2array($line);
+        }
+        return $res;//array_map("json2array",$file->lines());
+    }
+    static function writeJSONLines($file,$lines) {
+        $buf="";
+        foreach ($lines as $line) {
+            $buf.=json_encode($line)."\n";
+        }
+        $file->text($buf);
     }
 }
 ?>

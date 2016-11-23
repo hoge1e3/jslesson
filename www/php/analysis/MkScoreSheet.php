@@ -5,8 +5,10 @@ require_once __DIR__."/../Progress.php";
 require_once __DIR__."/../auth.php";
 require_once __DIR__."/../fs/NativeFS.php";
 require_once __DIR__."/../fs/SFile.php";
+require_once __DIR__."/ScoreUtil.php";
 
-$scoreSheetDir=new SFile(new NativeFS("./"),"scoreSheet/");
+$scoreSheetDir=ScoreUtil::$scoreSheetDir;
+//$scoreSheetDir=new SFile(new NativeFS("./"),"scoreSheet/");
 $class=Auth::curClass();
 $files=LogUtil::getLogFiles();
 $progss=array(); // nearest=>[Prog]
@@ -52,12 +54,13 @@ foreach ($progss as $n=>$progs) {
     $buf=<<<EOF
 <link rel="stylesheet" href="scoreSheet.css"/>
 <script src="jquery-1.10.1.js"></script>
+<script src="beautify.js"></script>
 <script src="scoreSheet.js"></script>
 EOF
 ;
     $dup=0;$cnt=0;
     foreach ($progs as $p) {
-        $d=digest($p);
+        $d=ScoreUtil::digest($p);
         if (isset($shown[$d])) {$dup++;continue;}
         $shown[$d]=1;
         if (isset($p["filename"])) $fn=$p["filename"]; else $fn="unknown";
@@ -67,7 +70,7 @@ EOF
         } else $time="unknown";
         $dh=htmlspecialchars($d);
         $buf.=
-            "<a href='#".($cnt-1)."'>Prev</a> |".
+            "<HR><a href='#".($cnt-1)."'>Prev</a> |".
             "<a href='#".($cnt+1)."'>Next</a>".
             <<<EOF
 <span class=form>
@@ -98,7 +101,7 @@ function pickIndex($n,$p) {
     $indexBuf.=putCode($p);
     $indexBuf.="<HR>";
 }
-function digest($p) {
+/*function digest($p) {
     $code=LogUtil::detectProgram($p);
     return digestStr($code);
 }
@@ -115,13 +118,11 @@ function digestStr($s) {
 	$s=preg_replace("/\\s+/","",$s);
     $s=preg_replace("/__SPC__/"," ",$s);
     
-    //$s=preg_replace("/\\n\\s*/","\n",$s);
-    //$s=preg_replace("/\\n+/","\n",$s);
     $s=preg_replace_callback("/bgcolor\\s*=[\"']?(#?[a-zA-Z0-9]+)[\"']?/",function ($m) {
         return 'bgcolor="COLOR"';
     },$s);
     return $s;
-}
+}*/
 function putCode($p) {
     $buf="";
     if (is_array($p["code"])) {
