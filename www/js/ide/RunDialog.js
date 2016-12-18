@@ -19,6 +19,12 @@ define(["UI"],function (UI) {
                 //if (res.da) res.da.handleResize();
             }
         });//,height:options.height?options.height-50:400});
+        if($("#ifrmDlg")[0]) {
+            $("#ifrmDlg")[0].contentWindow.onload=function(){
+                var cons=$("#ifrmDlg")[0].contentWindow.document.getElementById("console");
+                if (cons) cons.style.fontSize=options.font+"px";
+            }
+        }
     };
     res.embed=function (src, runURL, options) {
         if (!options) options={};
@@ -43,10 +49,11 @@ define(["UI"],function (UI) {
 	    
         $("#ifrmDlg").attr(src,runURL);
         //if($("#ifrmDlg")[0]) console.log($("#ifrmDlg")[0].contentWindow.document.body);
-        setTimeout(function(){if($("#ifrmDlg")[0]) {
+        /*setTimeout(function(){if($("#ifrmDlg")[0]) {
             var cons=$("#ifrmDlg")[0].contentWindow.document.getElementById("console");
             if (cons) cons.style.fontSize=options.font+"px";
-        }},100);
+        }},100);*/
+        
         var d=res.d;
         return d;
     };

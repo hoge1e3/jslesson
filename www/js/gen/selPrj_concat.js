@@ -590,6 +590,18 @@ define('FS2',["extend","PathUtil","MIMETypes","assert"],function (extend, P, M,a
                 return $.when(t.setContent(path,content,options));
             });
         },
+        appendContent: function (path, content, options) {
+            //var nc=this.getContent(path,options).toPlainText()+content.toPlainText();
+            //return this.setContent(path, Content.fromPlainText(nc) , options);
+            stub("");
+        },
+        appendContentAsync: function (path, content, options) {
+            var t=this;
+            if (!t.supportsSync()) stub("appendContentAsync");
+            return $.when(content).then(function (content) {
+                return $.when(t.appendContent(path,content,options));
+            });
+        },
         getMetaInfo: function (path, options) {
             stub("");
         },
@@ -1287,6 +1299,18 @@ define('NativeFS',["FS2","assert","PathUtil","extend","MIMETypes","Content"],
                 fs.writeFileSync(np, content.toPlainText());
             }
         },
+        appendContent: function (path,content) {
+            A.is(arguments,[P.Absolute,Content]);
+            var pa=P.up(path);
+            if (pa) this.getRootFS().resolveFS(pa).mkdir(pa);
+            var np=this.toNativePath(path);
+            if (content.hasBin() || !content.hasPlainText() ) {
+                fs.appendFileSync(np, content.toNodeBuffer() );
+            } else {
+                // !hasBin && hasText
+                fs.appendFileSync(np, content.toPlainText());
+            }
+        },
         getMetaInfo: function(path, options) {
             this.assertExist(path, options);
             var s=this.stat(path);
@@ -1326,13 +1350,17 @@ define('NativeFS',["FS2","assert","PathUtil","extend","MIMETypes","Content"],
         },
         opendir: function (path, options) {
             assert.is(arguments,[String]);
+            options=options||{};
             var np=this.toNativePath(path);
             var ts=P.truncSEP(np);
-            var r=fs.readdirSync(np).map(function (e) {
-                var s=fs.statSync(ts+SEP+e);
-                var ss=s.isDirectory()?SEP:"";
-                return e+ss;
-            });
+            var r=fs.readdirSync(np);
+            if (!options.nosep) {
+                r=r.map(function (e) {
+                    var s=fs.statSync(ts+SEP+e);
+                    var ss=s.isDirectory()?SEP:"";
+                    return e+ss;
+                });
+            }
             var res=[]; //this.dirFromFstab(path);
             return assert.is(res.concat(r),Array);
         },
@@ -1946,6 +1974,14 @@ SFile.prototype={
             this.act.fs.setContent(this.act.path, Content.plainText(t));
         } else {
             this.act.fs.setContent(this.act.path, Content.url(t));
+        }
+    },
+    appendText:function (t) {
+        A.is(t,String);
+        if (this.isText()) {
+            this.act.fs.appendContent(this.act.path, Content.plainText(t));
+        } else {
+            throw new Error("append only for text file");
         }
     },
     getContent: function (f) {

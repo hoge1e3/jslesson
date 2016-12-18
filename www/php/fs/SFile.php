@@ -192,6 +192,9 @@ class SFile{
     }
     public function getResolvedLinkPath() {
     }   
+    public function append($t) {
+        return $this->fs->appendContent($this->path(), $t);
+    }
     public function openAppend() {
         return fopen($this->nativePath(),"a");
     }

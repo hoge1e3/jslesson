@@ -13,6 +13,7 @@ $actions=array(
     "MkCluster"=>"php/analysis/MkCluster.php",
     "Score"=>"php/analysis/Score.php",
     "AddScoreInfo"=>"php/analysis/AddScoreInfo.php",
+    "runit"=>"php/runit.php",
     "dummy"=>"hoge"
 );
 if (isset($actions[$action])) {

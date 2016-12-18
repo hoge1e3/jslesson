@@ -237,32 +237,32 @@ Tonyu.klass.define({
   },
   decls: {"methods":{"main":{"nowait":false}}}
 });Tonyu.klass.define({
-  fullName: 'user.Jyan',
-  shortName: 'Jyan',
+  fullName: 'user.Jyanpoi',
+  shortName: 'Jyanpoi',
   namespace: 'user',
   superclass: Tonyu.classes.jslker.Parent,
   includes: [],
   methods: {
-    main :function _trc_Jyan_main() {
+    main :function _trc_Jyanpoi_main() {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=3000075;//user.Jyan:75
+      $LASTPOS=3000075;//user.Jyanpoi:75
       _this.onClick("b",Tonyu.bindFunc(_this,_this.judge));
     },
-    fiber$main :function _trc_Jyan_f_main(_thread) {
+    fiber$main :function _trc_Jyanpoi_f_main(_thread) {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
       
-      _thread.enter(function _trc_Jyan_ent_main(_thread) {
+      _thread.enter(function _trc_Jyanpoi_ent_main(_thread) {
         if (_thread.lastEx) __pc=_thread.catchPC;
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=3000075;//user.Jyan:75
+            $LASTPOS=3000075;//user.Jyanpoi:75
             _this.fiber$onClick(_thread, "b", Tonyu.bindFunc(_this,_this.judge));
             __pc=1;return;
           case 1:
@@ -272,72 +272,72 @@ Tonyu.klass.define({
         }
       });
     },
-    judge :function _trc_Jyan_judge() {
+    judge :function _trc_Jyanpoi_judge() {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=3000121;//user.Jyan:121
+      $LASTPOS=3000121;//user.Jyanpoi:121
       _this.jcode=_this.rnd(3);
-      $LASTPOS=3000167;//user.Jyan:167
+      $LASTPOS=3000167;//user.Jyanpoi:167
       if (_this.jcode==0) {
-        $LASTPOS=3000190;//user.Jyan:190
+        $LASTPOS=3000190;//user.Jyanpoi:190
         _this.setText("j","ぐー");
         
       } else {
-        $LASTPOS=3000221;//user.Jyan:221
+        $LASTPOS=3000221;//user.Jyanpoi:221
         if (_this.jcode==1) {
-          $LASTPOS=3000234;//user.Jyan:234
+          $LASTPOS=3000234;//user.Jyanpoi:234
           _this.setText("j","ちょき");
           
         } else {
-          $LASTPOS=3000276;//user.Jyan:276
+          $LASTPOS=3000276;//user.Jyanpoi:276
           if (_this.jcode==2) {
-            $LASTPOS=3000289;//user.Jyan:289
+            $LASTPOS=3000289;//user.Jyanpoi:289
             _this.setText("j","ぱー");
             
           }
         }
       }
     },
-    fiber$judge :function _trc_Jyan_f_judge(_thread) {
+    fiber$judge :function _trc_Jyanpoi_f_judge(_thread) {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
       
-      _thread.enter(function _trc_Jyan_ent_judge(_thread) {
+      _thread.enter(function _trc_Jyanpoi_ent_judge(_thread) {
         if (_thread.lastEx) __pc=_thread.catchPC;
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=3000121;//user.Jyan:121
+            $LASTPOS=3000121;//user.Jyanpoi:121
             _this.fiber$rnd(_thread, 3);
             __pc=1;return;
           case 1:
             _this.jcode=_thread.retVal;
             
-            $LASTPOS=3000167;//user.Jyan:167
+            $LASTPOS=3000167;//user.Jyanpoi:167
             if (!(_this.jcode==0)) { __pc=3; break; }
-            $LASTPOS=3000190;//user.Jyan:190
+            $LASTPOS=3000190;//user.Jyanpoi:190
             _this.fiber$setText(_thread, "j", "ぐー");
             __pc=2;return;
           case 2:
             
             __pc=9;break;
           case 3:
-            $LASTPOS=3000221;//user.Jyan:221
+            $LASTPOS=3000221;//user.Jyanpoi:221
             if (!(_this.jcode==1)) { __pc=5; break; }
-            $LASTPOS=3000234;//user.Jyan:234
+            $LASTPOS=3000234;//user.Jyanpoi:234
             _this.fiber$setText(_thread, "j", "ちょき");
             __pc=4;return;
           case 4:
             
             __pc=8;break;
           case 5:
-            $LASTPOS=3000276;//user.Jyan:276
+            $LASTPOS=3000276;//user.Jyanpoi:276
             if (!(_this.jcode==2)) { __pc=7; break; }
-            $LASTPOS=3000289;//user.Jyan:289
+            $LASTPOS=3000289;//user.Jyanpoi:289
             _this.fiber$setText(_thread, "j", "ぱー");
             __pc=6;return;
           case 6:

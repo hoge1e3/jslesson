@@ -8,9 +8,11 @@ require_once __DIR__."/php/ErrorHandler.php";
 
 if (isset($_POST["script"]) || isset($_GET["file"])) {
     $root=Dtl::createEmptyRoot();
+    //----Load Builtin Libraries----
     Dtl::initRoot($root);
     DtlFS::initRoot($root);
     DtlSys::initRoot($root);
+    //--------------------------
     $root->param=new DtlParam();
     if (isset($_GET["file"])) {
         $scr=$root->FS->getContent($_GET["file"]);

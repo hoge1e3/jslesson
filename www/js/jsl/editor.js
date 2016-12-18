@@ -87,6 +87,7 @@ function ready() {
     case "c":
     	requirejs(["cCompiler"],function(){
     	    console.log("cCom requirejsed");
+    	    builderReady();
     	});
     	helpURL="http://bitarrow.eplang.jp/index.php?c_use";
     	break;
@@ -98,6 +99,8 @@ function ready() {
             ram=FS.get("/ram/build/");
             FS.mount(ram.path(),"ram");
             builder=new Builder(curPrj, ram);
+    	    console.log("builderready");
+    	    builderReady();
     	});
     	helpURL="http://bitarrow.eplang.jp/index.php?javascript";
     	break;
@@ -109,6 +112,7 @@ function ready() {
             ram=FS.get("/ram/build/");
             FS.mount(ram.path(),"ram");
             builder=new Builder(curPrj, ram);
+    	    builderReady();
     	});
     	helpURL="http://bitarrow.eplang.jp/index.php?dolittle_use"
     	break;
@@ -356,6 +360,17 @@ function ready() {
     console.log("listing", curProjectDir.path());
     fl.ls(curProjectDir);
     console.log("listing", curProjectDir.path(),"done");
+    function builderReady() {
+        autoexec();
+    }
+    function autoexec() {
+        var autoexec=Util.getQueryString("autoexec",null);
+        console.log("AE",autoexec);
+        if (autoexec) {
+            fl.select(curProjectDir.rel(autoexec));
+            run();
+        }
+    }
     function ls(){
         fl.ls(curProjectDir);
     }
@@ -649,6 +664,10 @@ function ready() {
     };
     EC.handleException=Tonyu.onRuntimeError=function (e) {
         var inf=getCurrentEditorInfo();
+        if (!inf) {
+            console.log(e.stack);
+            alert(e.stack);
+        }
         var curFile=inf.file;
         var curFiles=fileSet(curFile);
         var curHTMLFile=curFiles[0];
@@ -977,6 +996,7 @@ function ready() {
     }
     window.getCurrentEditorInfo=getCurrentEditorInfo;
     SplashScreen.hide();
+    
 }// of ready
 //});// of load ace
 });

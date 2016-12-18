@@ -38,7 +38,7 @@ foreach ($progss as $n=>$progs) {
 }
 echo "Nonerror/All=$nonError/$allC <HR>";
 //exit;
-$indexBuf="";
+$indexBuf='<link rel="stylesheet" href="scoreSheet.css"/>';
 //$scoreSheetDir=LogUtil::getLogDir()->rel("scoreSheet/");
 foreach ($progss as $n=>$progs) {
     showProgress("Making Scoresheet... $n/".count($progss));
@@ -70,7 +70,7 @@ EOF
         } else $time="unknown";
         $dh=htmlspecialchars($d);
         $buf.=
-            "<HR><a href='#".($cnt-1)."'>Prev</a> |".
+            "<div class=item><HR><a href='#".($cnt-1)."'>Prev</a> |".
             "<a href='#".($cnt+1)."'>Next</a>".
             <<<EOF
 <span class=form>
@@ -86,7 +86,8 @@ com:<input class=com size="80"/>
 EOF
 .           "<h2>Dist=".$p["dist"]." User=$user Filename=$fn Time=$time </h2>".
             "<div>result:".$p["result"]."</div>".
-            putCode($p);
+            putCode($p).
+            "</div>";
             $cnt++;
     }
     $buf.="<HR>Duplicates=$dup";
@@ -128,10 +129,18 @@ function putCode($p) {
     if (is_array($p["code"])) {
         foreach ($p["code"] as $lang=>$body) {
             $buf.="<h3>$lang</h3>".
-            "<pre>".htmlspecialchars($body)."</pre>";
+            "<pre class=$lang>".htmlspecialchars($body)."</pre>";
         }
+        $buf.="<div class=code>".
+        htmlspecialchars(
+            json_encode($p["code"])
+        )."</div>";
     } else {
-        $buf.="<pre>".htmlspecialchars($p["code"])."</pre>";
+        $buf.="<pre class=HTML>".htmlspecialchars($p["code"])."</pre>".
+        "<div class=code>".
+        htmlspecialchars(
+            json_encode(array("HTML"=>$p["code"],"JavaScript"=>""))
+        )."</div>";
     }
     return $buf;
 }

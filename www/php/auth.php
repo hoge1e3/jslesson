@@ -4,6 +4,7 @@ require_once __DIR__."/json.php";
 require_once __DIR__."/MySession.php";
 require_once __DIR__."/fs/AuthInfo.php";
 require_once __DIR__."/fs/Permission.php";
+require_once __DIR__."/fs/SFile.php";
 
 //session_save_path("/tmp");
 //ini_set('session.gc_maxlifetime',60*60*24);
@@ -94,6 +95,9 @@ class Auth {
     static function homeDir(){
         if (!self::loggedIn()) throw new Exception("Not logged in");
         return "/home/".self::curClass()."/".self::curUser()."/";   
+    }
+    static function home() {
+        return new SFile(self::getFS(),self::homeDir());
     }
    static function getFS() {
 	    $class=self::curClass();

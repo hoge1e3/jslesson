@@ -70,6 +70,14 @@ class NativeFS {
        $contents = fwrite($handle, $cont);
        fclose($handle);
    }
+   function appendContent($path, $cont) {
+       $this->check($path,Permission::WRITE);
+       $filename = $this->resolve($path);
+       $this->mkdir(PathUtil::up($path));
+       $handle = fopen($filename, "a");
+       $contents = fwrite($handle, $cont);
+       fclose($handle);
+   }
    public function notFound($path) {
        throw new Exception("$path not found");
    }

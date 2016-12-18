@@ -94,11 +94,20 @@ function toHTML($e) {
     }
     $time=preg_replace("/\\//","-",$e["date"])."T".$e["time"];
     $n=LogUtil::getFileName($e);
+    if (isset($e["score"])) {
+        $s=$e["score"];
+        $diy=($s["d"]?"D":"");
+        $diy.=($s["i"]?"I":"");
+        $diy.=($s["y"]?"Y":"");
+        $com=$s["com"];
+        $score="<font color=blue>$diy $com</font><BR>";
+    }else $score="";
     return "<pre>". 
         mkTimeLink($time)."<BR>".
         "<font color=red>".$e["detail"]."</font><BR>".
         "<font color=green>".$e["filename"]."</font><BR>".
-        "<font color=blue>Estimated as:".$n."</font><BR>".
+        $score.
+        //"<font color=blue>Estimated as:".$n."</font><BR>".
         preg_replace("/ /","&nbsp;",htmlspecialchars ($c) )."<br>HTML:<BR>".
         preg_replace("/ /","&nbsp;",htmlspecialchars ($h) )."<BR>".
     "\n</pre><BR>";

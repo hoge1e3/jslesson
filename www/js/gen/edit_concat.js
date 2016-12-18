@@ -1356,6 +1356,18 @@ define('FS2',["extend","PathUtil","MIMETypes","assert"],function (extend, P, M,a
                 return $.when(t.setContent(path,content,options));
             });
         },
+        appendContent: function (path, content, options) {
+            //var nc=this.getContent(path,options).toPlainText()+content.toPlainText();
+            //return this.setContent(path, Content.fromPlainText(nc) , options);
+            stub("");
+        },
+        appendContentAsync: function (path, content, options) {
+            var t=this;
+            if (!t.supportsSync()) stub("appendContentAsync");
+            return $.when(content).then(function (content) {
+                return $.when(t.appendContent(path,content,options));
+            });
+        },
         getMetaInfo: function (path, options) {
             stub("");
         },
@@ -2053,6 +2065,18 @@ define('NativeFS',["FS2","assert","PathUtil","extend","MIMETypes","Content"],
                 fs.writeFileSync(np, content.toPlainText());
             }
         },
+        appendContent: function (path,content) {
+            A.is(arguments,[P.Absolute,Content]);
+            var pa=P.up(path);
+            if (pa) this.getRootFS().resolveFS(pa).mkdir(pa);
+            var np=this.toNativePath(path);
+            if (content.hasBin() || !content.hasPlainText() ) {
+                fs.appendFileSync(np, content.toNodeBuffer() );
+            } else {
+                // !hasBin && hasText
+                fs.appendFileSync(np, content.toPlainText());
+            }
+        },
         getMetaInfo: function(path, options) {
             this.assertExist(path, options);
             var s=this.stat(path);
@@ -2092,13 +2116,17 @@ define('NativeFS',["FS2","assert","PathUtil","extend","MIMETypes","Content"],
         },
         opendir: function (path, options) {
             assert.is(arguments,[String]);
+            options=options||{};
             var np=this.toNativePath(path);
             var ts=P.truncSEP(np);
-            var r=fs.readdirSync(np).map(function (e) {
-                var s=fs.statSync(ts+SEP+e);
-                var ss=s.isDirectory()?SEP:"";
-                return e+ss;
-            });
+            var r=fs.readdirSync(np);
+            if (!options.nosep) {
+                r=r.map(function (e) {
+                    var s=fs.statSync(ts+SEP+e);
+                    var ss=s.isDirectory()?SEP:"";
+                    return e+ss;
+                });
+            }
             var res=[]; //this.dirFromFstab(path);
             return assert.is(res.concat(r),Array);
         },
@@ -2712,6 +2740,14 @@ SFile.prototype={
             this.act.fs.setContent(this.act.path, Content.plainText(t));
         } else {
             this.act.fs.setContent(this.act.path, Content.url(t));
+        }
+    },
+    appendText:function (t) {
+        A.is(t,String);
+        if (this.isText()) {
+            this.act.fs.appendContent(this.act.path, Content.plainText(t));
+        } else {
+            throw new Error("append only for text file");
         }
     },
     getContent: function (f) {
@@ -12565,6 +12601,12 @@ define('RunDialog',["UI"],function (UI) {
                 //if (res.da) res.da.handleResize();
             }
         });//,height:options.height?options.height-50:400});
+        if($("#ifrmDlg")[0]) {
+            $("#ifrmDlg")[0].contentWindow.onload=function(){
+                var cons=$("#ifrmDlg")[0].contentWindow.document.getElementById("console");
+                if (cons) cons.style.fontSize=options.font+"px";
+            }
+        }
     };
     res.embed=function (src, runURL, options) {
         if (!options) options={};
@@ -12589,10 +12631,11 @@ define('RunDialog',["UI"],function (UI) {
 	    
         $("#ifrmDlg").attr(src,runURL);
         //if($("#ifrmDlg")[0]) console.log($("#ifrmDlg")[0].contentWindow.document.body);
-        setTimeout(function(){if($("#ifrmDlg")[0]) {
+        /*setTimeout(function(){if($("#ifrmDlg")[0]) {
             var cons=$("#ifrmDlg")[0].contentWindow.document.getElementById("console");
             if (cons) cons.style.fontSize=options.font+"px";
-        }},100);
+        }},100);*/
+        
         var d=res.d;
         return d;
     };
@@ -13544,6 +13587,7 @@ function ready() {
     case "c":
     	requirejs(["cCompiler"],function(){
     	    console.log("cCom requirejsed");
+    	    builderReady();
     	});
     	helpURL="http://bitarrow.eplang.jp/index.php?c_use";
     	break;
@@ -13555,6 +13599,8 @@ function ready() {
             ram=FS.get("/ram/build/");
             FS.mount(ram.path(),"ram");
             builder=new Builder(curPrj, ram);
+    	    console.log("builderready");
+    	    builderReady();
     	});
     	helpURL="http://bitarrow.eplang.jp/index.php?javascript";
     	break;
@@ -13566,6 +13612,7 @@ function ready() {
             ram=FS.get("/ram/build/");
             FS.mount(ram.path(),"ram");
             builder=new Builder(curPrj, ram);
+    	    builderReady();
     	});
     	helpURL="http://bitarrow.eplang.jp/index.php?dolittle_use"
     	break;
@@ -13779,7 +13826,10 @@ function ready() {
     FM.on.rm=function (f) {
         var fs=fileSet(f);
         for (var i=0;i<fs.length;i++) {
-            if (fs[i].exists()) fs[i].rm();
+            if (fs[i].exists()) {
+                fs[i].rm();
+                logToServer2(fs[i].path(),"REMOVED","REMOVED","remove","remove",lang);
+            }
             close(fs[i]);
         }
         ls();
@@ -13794,6 +13844,10 @@ function ready() {
             if (olds[i].equals(old)) ci=i;
             if (olds[i].exists() && !news[i].exists()) {
                 news[i].moveFrom(olds[i]);
+                try {
+                    logToServer2(olds[i].path(),"MOVED","MOVED","rename",
+                    olds[i].path()+"->"+news[i].path()  ,lang);
+                }catch(e){console.log(e.stack);}
             }
             close(olds[i]);
         }
@@ -13806,6 +13860,17 @@ function ready() {
     console.log("listing", curProjectDir.path());
     fl.ls(curProjectDir);
     console.log("listing", curProjectDir.path(),"done");
+    function builderReady() {
+        autoexec();
+    }
+    function autoexec() {
+        var autoexec=Util.getQueryString("autoexec",null);
+        console.log("AE",autoexec);
+        if (autoexec) {
+            fl.select(curProjectDir.rel(autoexec));
+            run();
+        }
+    }
     function ls(){
         fl.ls(curProjectDir);
     }
@@ -14099,6 +14164,10 @@ function ready() {
     };
     EC.handleException=Tonyu.onRuntimeError=function (e) {
         var inf=getCurrentEditorInfo();
+        if (!inf) {
+            console.log(e.stack);
+            alert(e.stack);
+        }
         var curFile=inf.file;
         var curFiles=fileSet(curFile);
         var curHTMLFile=curFiles[0];
@@ -14427,6 +14496,7 @@ function ready() {
     }
     window.getCurrentEditorInfo=getCurrentEditorInfo;
     SplashScreen.hide();
+    
 }// of ready
 //});// of load ace
 });
