@@ -13,6 +13,7 @@ $class=Auth::curClass();
 $files=LogUtil::getLogFiles();
 $progss=array(); // nearest=>[Prog]
 $allC=0;$nonError=0;
+$targetItems=0;
 foreach($files as $file) {
     $log=LogUtil::readLog($file);
     showProgress("Reading... ".$file->name());
@@ -90,10 +91,12 @@ EOF
             "</div>";
             $cnt++;
     }
+    $targetItems+=$cnt;
     $buf.="<HR>Duplicates=$dup";
     $scoreSheetDir->rel("$class-$n.html")->text($buf);
 }
 $scoreSheetDir->rel("$class-index.html")->text($indexBuf);
+echo "targetItems=$targetItems<BR>";
 echo "Done";
 echo "Open Log file at local";
 function pickIndex($n,$p) {
