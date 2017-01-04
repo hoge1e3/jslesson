@@ -7,7 +7,7 @@ int main(void) {
         switch(i) {
             case 0:
             i=1;
-            printf("ごめ");
+            printf("ごめ?");
             break;
             case 1:
             i=-1;

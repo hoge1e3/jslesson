@@ -1,0 +1,87 @@
+﻿<html>
+<script src="jquery-2.1.0.js"></script>
+<script src="require.js"></script>
+<script>
+    requirejs.config({
+        shim: {
+            "tester": {
+                exports:"tester"
+            }
+        },
+        paths: {
+            "ctrans/ctrans":"ctrans"
+        }
+    })
+</script>
+
+<script>
+var util=require("util");
+var print=util.print;
+try {
+    //Macでコピペができるようにするためのおまじない
+    var gui = require('nw.gui');
+    win = gui.Window.get();
+    var nativeMenuBar = new gui.Menu({ type: "menubar" });
+    nativeMenuBar.createMacBuiltin("My App");
+    win.menu = nativeMenuBar;
+} catch (ex) {
+    //console.log(ex.message);
+}
+requirejs(["FS","ctrans/ctrans"],function (FS,MinimalParser) {
+    //  ここは、自分のテストしたいC言語ファイルのあるディレクトリを指定
+	var d=FS.get("C:/bin/Dropbox/tuat/tcc_test2");
+	while (!d.exists()) {
+	    d=FS.get(prompt("not found. input other:", d.path()) );
+	}
+	var summary=d.rel("summary.txt");
+	var sumbuf=["file\tresult"];
+    d.recursive(function (f) {// ディレクトリ内の全ファイルをサブフォルダを含めて繰り返し
+		if(f.ext()!=".c")return;
+		var program;
+		try{
+		    //console.log("Test:", f.path());
+        	var buf="";
+        	printf.STDOUT={append:function (s) {buf+=s;},text:function(){return buf;}};
+			var tree=MinimalParser.parse(f.text());
+			program=js_beautify(js_gen(tree));
+			var output=f.up().rel(f.truncExt()+".js");
+			output.text(program);
+			var func=new Function(program);
+			func();
+			var expect=f.up().rel(f.truncExt()+".expect");
+			var expectxt=expect.text().replace(/[\s\r\n]*$/,"").replace(/\r/g,"");
+			buf=buf.replace(/[\s\r\n]*$/,"").replace(/\r/g,"");
+			if (buf===expectxt) {
+			    console.log("Pass:", f.path());
+			    sumbuf.push(f.relPath(d)+"\tPass");
+			} else {
+    			console.log("Fail:", f.path());
+    			console.log("Output:",buf,str_to_ch_arr(buf));
+    			console.log("Expected:",expectxt);// ,str_to_ch_arr(expectxt));
+			    sumbuf.push(f.relPath(d)+"\tFail");
+			}
+		}catch(e){
+			//print(f.path()+"\n");
+			//print(e)+"\n";
+			console.log("Err", f.path());
+			if ((typeof (e.lineNo))=="number") {
+    		    sumbuf.push(f.relPath(d)+"\tCompErr");
+    			console.log(e);
+    			console.log(HERE(f.text(),e.lineNo));
+			} else {
+    		    sumbuf.push(f.relPath(d)+"\tRunErr");
+    			console.log("Src",f.text());
+    			console.log("JS",program);
+    			console.log(e);
+	    		console.log(e.stack);
+			}
+		}
+    });
+    summary.text(sumbuf.join("\r\n"));
+    function HERE(src,ln) {
+        var a=src.split("\n");
+        a.splice(ln-1,0,"↓!!!HERE!!!↓");
+        return a.join("\n");        
+    }
+});
+</script>

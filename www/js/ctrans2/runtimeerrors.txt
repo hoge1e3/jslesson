@@ -1,0 +1,307 @@
+-----------------code---------------------
+///Tonyu/Projects/hcp1/Date20160411no_1.c
+// C
+
+#include<stdio.h>
+
+int main(void){
+    int x,y,z,i;
+    
+    x=2;
+    y=3;
+    z=4;
+    
+    for(i=0;i<8;i++){
+        
+        x=i*x;
+        y=i*y;
+        z=i*z;
+        
+        printf(x);
+        printf(y);
+        printf(z);
+        
+    }
+    
+    return 0;
+}
+----------------result--------------------
+TypeError: line.match is not a function
+-----------------code---------------------
+///Tonyu/Projects/第2回/L2part1.c
+#include<stdio.h>
+
+int main(void){
+    return 0;   
+}
+// C
+
+----------------result--------------------
+Error: /Tonyu/Projects/%E7%AC%AC2%E5%9B%9E/js/concat.js: : No such file
+-----------------code---------------------
+///Tonyu/Projects/hcp1/P20160414_1.c
+#include <stdio.h>
+int main(void){
+    printf("へ");
+    rintf("ひ");
+    return 0;
+}
+----------------result--------------------
+ReferenceError: rintf is not defined
+-----------------code---------------------
+///Tonyu/Projects/hcp1/P0414_1.c
+#include <stdio.h>
+int main(void){
+    printf("Kyoto\");
+    printf("Osaka");
+    return 0;
+}
+----------------result--------------------
+SyntaxError: missing ) after argument list
+-----------------code---------------------
+///Tonyu/Projects/hcp1/P0414_1.c
+#include <stdio.h>
+int main(void){
+    printf("Kyoto,\n");
+    printf("%f
+    ",(3+4)*2+3*(4.2/1.5));
+    return 0;
+}
+
+----------------result--------------------
+SyntaxError: Unexpected token ILLEGAL
+-----------------code---------------------
+///Tonyu/Projects/hcp1/P0414a.c
+#include <stdio.h>
+int main(void){    
+    printf("%f",1++);
+    return 0;
+}
+----------------result--------------------
+ReferenceError: Invalid left-hand side expression in postfix operation
+-----------------code---------------------
+///Tonyu/Projects/CPractice3/L2_1.c
+#include<stdio.h>
+
+int main(void){
+    long x;
+    long y;
+    x=1;
+    y=111111111111111111111111;
+    printf("%f\n",x+y);
+    printf("abc\n");
+    printf("%f",1.1+2.2*3);
+    return 0;
+}
+----------------result--------------------
+TypeError: casts[("to" + type)] is not a function
+-----------------code---------------------
+///Tonyu/Projects/hcp1/P0414_2.c
+#include <stdio.h>
+int main(void)
+{
+    int a;
+    a=3;
+    scanf("%d,&a");
+    printf("%d",a);
+    return 0;
+} 
+----------------result--------------------
+TypeError: Cannot read property 'write' of undefined
+-----------------code---------------------
+///Tonyu/Projects/hcp1/B2016414_1.c
+// C
+#include<stdio.h>
+int main(void){
+    printf("Kyoto,\n");
+    printf("%d\n",3*9/(8+1)-4);
+    printf("%d\n",3.6);
+    printf("%f\n",9.999999999999999999);
+    printf("%f\n",9999999999999999999);
+    printf("%f\n",1.1+2.2*3);
+    printf("\n");
+    return 0;
+}
+#include <stdio.h>
+int main(void){
+    int x;
+    double y;
+    x=3;
+    y=4.5;
+    printf("%d",x*y);
+    return 0;
+}
+----------------result--------------------
+SyntaxError: Unexpected token ]
+-----------------code---------------------
+///Tonyu/Projects/hcp1/P160414_1.c
+#include <stdio.h>
+int main(void){
+    int x,y;
+    printf("x?");
+    scanf("%d",&x);
+    printf("y?");
+    scanf("%d\n",x*y);
+    return 0;
+}
+
+----------------result--------------------
+TypeError: dest.write is not a function
+-----------------code---------------------
+///Tonyu/Projects/hcp1/A160414_3.c
+#include <stdio.h>
+int main(void){
+    int R1,R2;
+    printf("R1");
+    scanf("%d",&x);
+    printf("R2");
+    scanf("%d",&y);
+    printf("%d\n",x*y);
+    return 0;
+    
+----------------result--------------------
+ReferenceError: main is not defined
+-----------------code---------------------
+#include <stdio.h>
+
+int main(void){
+    int x,y;
+    printf("x?");
+    scanf("%d",&x);
+    printf("y?");
+    scanf("%d",&y);
+    printf("%d\n",x*y);
+    return 0;
+}
+----------------result--------------------
+ReferenceError: 'cast' は定義されていません。
+
+
+------------ここから4/18------------------
+
+-----------------code---------------------
+///Tonyu/Projects/hcp1/A160414_3.c
+#include <stdio.h>
+int main(void){
+    int R1,R2;
+    printf("R1? ");
+    scanf("%d",&R1);
+    printf("R2? ");
+    scanf("%d",&R2);
+    printf("%f",(R1*R2)/(R1+R2));
+    return 0;
+}
+----------------result--------------------
+TypeError: type is undefined
+-----------------code---------------------
+#include <stdio.h>
+int main(void){
+    double a,b,c,d;
+    printf("a=");
+    scanf("%f",&a);
+    printf("b=");
+    scanf("%f",&b);
+    printf("c=");
+    scanf("%f",&c);
+    printf("d=");
+    scanf("%f",&d);
+    printf("和(a+bi)+(c+di)=");
+    printf("%f",a+c);
+    printf("+(");
+    printf("%f",b+d);
+    printf(")i\n");
+    printf("差(a+bi)-(c+di)=");
+    printf("%f",a-c);
+    printf("+(");
+    printf("%f",b-d); 
+    printf(")i\n");   
+    printf("積(a+bi)*(c+di)=");
+    printf("%f",a*c-b*d);
+    printf("+(");
+    printf("%f",c*b+a*d);
+    printf(")i\n");    
+    printf("商(a+bi)/(c+di)=");
+    printf("%f",(a*c+b*d)/(c*c+d*d));
+    printf("+(");
+    printf("%f",(c*b-a*d)/(c*c+d*d));
+    printf(")i");
+}
+----------------result--------------------
+TypeError: Cannot read property 'replace' of undefined
+-----------------code---------------------
+#include <stdio.h>
+int main(void){
+    double x;
+    printf("inchは？ ");
+    scanf("",&x);
+    printf("%d inch\n",x);
+    x=x*2.54;
+    printf("%f cm",x);
+    return 0;
+}
+----------------result--------------------
+変数xは定義されていません。
+-----------------code---------------------
+#include <stdio.h>
+int main(void){
+    double x,y;
+    y=2.54;
+    printf("x?");
+    scanf("%f"&x);
+    printf("%d",y*x);
+    return 0;
+}
+----------------result--------------------
+TypeError: Cannot read property 'write' of undefined
+-----------------code---------------------
+#include <stdio.h>
+int main(void){
+    int x;
+    scanf("%d",&x);
+    printf("%d",x);
+    
+    return 0;
+}// C
+----------------result--------------------
+ReferenceError: 'str_to_ch_arr' は定義されていません。
+-----------------code---------------------
+#include<stdio.h>
+int main(void){
+    double x;
+    printf("金額をどうぞ\n");
+    scanf("%f",&x);
+    printf("税込み%dです。",x*1.08);
+    openwindow(500,500);
+    return 0;
+}
+----------------result--------------------
+ReferenceError: openwindow is not defined
+-----------------code---------------------
+#include <stdio.h>
+int main(void){
+    int x;
+    printf("値段は?");
+    scanf("%d".x);
+    printf("%d",x*1.02);
+    return 0;
+}
+----------------result--------------------
+TypeError: Cannot read property 'length' of undefined
+-----------------code---------------------
+#include <stdio.h>
+int main(void){
+    int m,n;
+    printf("m? ");
+    scanf("%d", &m);
+    printf("n? ");
+    scanf("%d",&n);
+    printf("%d\",m/-1);
+    printf("%d\",n/-1);
+    if (m<n){
+        printf("mのほうが大きい");
+    }
+    return 0;
+    return 0;
+}
+----------------result--------------------
+SyntaxError: missing ) after argument list
