@@ -46,6 +46,18 @@ foreach ($progss as $n=>$progs) {
     usort($progs,function ($a,$b) {
         if ($a["dist"]>$b["dist"]) return 1;
         if ($a["dist"]<$b["dist"]) return -1;
+        if (isset($a["user"]) && isset($b["user"])) {
+            $c=strcmp($a["user"],$b["user"]);
+            if ($c!=0) return $c;
+        }
+        if (isset($a["date"]) && isset($b["date"])) {
+            $c=strcmp($a["date"],$b["date"]);
+            if ($c!=0) return $c;
+        }
+        if (isset($a["time"]) && isset($b["time"])) {
+            $c=strcmp($a["time"],$b["time"]);
+            if ($c!=0) return $c;
+        }
         return 0;
     });
     pickIndex($n,$progs[0]);
@@ -76,9 +88,9 @@ EOF
             <<<EOF
 <span class=form>
 <a class=anchor name='$cnt'/>
-<input class=diy type=checkbox name=d> D 
+<!--<input class=diy type=checkbox name=d> D 
 <input class=diy type=checkbox name=i> I 
-<input class=diy type=checkbox name=y> Y
+<input class=diy type=checkbox name=y> Y-->
 <button class=check>Check</button>   
 <button class=allok>All OK</button>   
 com:<input class=com size="80"/>

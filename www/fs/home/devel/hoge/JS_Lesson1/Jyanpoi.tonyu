@@ -6,11 +6,11 @@ function judge(){
     jcode=rnd(3);
     //setText("j",jcode);
     if(jcode==0){
-        setText("j","ぐー"); 
-    }else if(jcode==1){setText("j","ちょき"); 
-        
-    }else if(jcode==2){setText("j","ぱー"); 
-        
+        setText("j","ぐー0"); 
+    }else if(jcode==1){
+        setText("j","ちょき2"); 
+    }else if(jcode==2){
+        setText("j","ぱー5"); 
     }
 }
 // JavaScript

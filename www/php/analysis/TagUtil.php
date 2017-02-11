@@ -12,6 +12,18 @@ class TagUtil {
             self::$comFile->append("$com\n");
         }
     }
+    static function com2tags($com) {
+        $v=array();
+        $tags=explode("，",$com);
+        $res=array();
+        foreach ($tags as $tag) {
+            if (!isset($v[$tag])) {
+                array_push($res,$tag);
+            }
+            $v[$tag]=1;
+        }
+        return $res;
+	}
     static function tagList($com) {
         $scores=array();
         $tags=explode("，",$com);

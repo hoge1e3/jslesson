@@ -8,7 +8,9 @@ if (isset($_POST["class"])) {
 	$ignoreNonexistent=isset($_POST["ignoreNonexistent"]);
 	$mesg=Auth::loginTeacher($class,$pass,$ignoreNonexistent);
 	if ($mesg===true) {
-	    ?><a href="a.php?showTimeline">Show timeline</a><hr/><?php
+	    ?><a href="a.php?showTimeline">Show timeline</a><hr/>
+	    <!--a href="a.php?resetRequests">再発行リクエスト一覧</a><hr/-->
+	    <?php
 	    if (!$ignoreNonexistent) {
     	    $mesg="";
     	    $handle=opendir("fs/home/$class/");

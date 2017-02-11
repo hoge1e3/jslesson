@@ -1,4 +1,5 @@
-define(["ctrans/ctype","Parser"],function (T,Parser) {
+define(["ctrans/ctype","Parser","context","ExpressionParser","assert"],
+function (T,Parser,context,ExpressionParser,assert) {
 window.MinimalParser= function () {
     //test-ctrans
 	var parser={};
@@ -65,6 +66,13 @@ window.MinimalParser= function () {
 	}
 	function lit(s) {
 	    return '"'+s+'"';
+	}
+	function typeLit(t) {
+	    if (!t.toLiteral) {
+	        console.log(t);
+	        throw new Error(t+" is not type");
+	    }
+	    return t.toLiteral();
 	}
     function extend(arr,obj) {
         for (var k in obj) arr[k]=obj[k];
@@ -146,8 +154,8 @@ window.MinimalParser= function () {
 	var type_qualifiers=type_qualifier.rep1();
 	var unary_operator=t(/^(?:\*|\+|\-|\~|\!|\&)/);//&
 	var assignment_operator=t(/^(?:=|\*\=|\/=|\%\=|\+=|\-\=|<<=|>>=|\&=|\^=|\|=)/);
-	var var_type=t("unsigned").opt().and(_int.or(float).or(char).or(double))
-		.ret(function(u,type){return [((u)?u+" ":""),type];});
+	/*var var_type=t("unsigned").opt().and(_int.or(float).or(char).or(double))
+		.ret(function(u,type){return [((u)?u+" ":""),type];});*/
 	var func_type=_int.or(float).or(char).or(double).or(_void);
 	var reg_str = RegExp("^[^\"^\”]*");
 	//文字列の正規表現
@@ -218,13 +226,12 @@ window.MinimalParser= function () {
 	direct_abstract_declarator=direct_abstract_declarator.rep0();
 
 	var abstract_declarator=direct_abstract_declarator;
-    var last_decl_type, baseType; 
+    var baseType; 
 	// \declaration_specifiers
 	var declaration_specifier=storage_class_specifier.or(type_specifier).or(type_qualifier);
 	declaration_specifiers=declaration_specifier.rep1().ret(function(types){
-	    last_decl_type=types;
-	    for (var i=types.length-1;i>=0;i--) {
-	        type=types[i];
+	    /*for (var i=types.length-1;i>=0;i--) {
+	        var type=types[i];
 	        switch (type.text) {
 	            case "int": baseType=T.int;break;
 	            case "float": baseType=T.float;break;
@@ -232,11 +239,32 @@ window.MinimalParser= function () {
 	            case "byte": baseType=T.byte;break;
 	            case "char": baseType=T.char;break;
 	            case "void": baseType=T.void;break;
-	            case "unsigned": baseType=T.Unsigned(baseType||T.int);
+	            case "unsigned": baseType=T.Unsigned(baseType||T.int);break;
+	            default:throw new Error(type.text+" is not a valid type");
 	        }
 	    }
-	    return types.join(" ");
+	    assert.is(baseType,T.Base);*/
+	    baseType=typeNamesToType(types);
+	    return {vtype:baseType,type:"declaration_specifiers"};
 	});
+	function typeNamesToType(types) {
+	    var baseType=null;
+	    for (var i=types.length-1;i>=0;i--) {
+	        var type=types[i];
+	        switch (type.text) {
+	            case "int": baseType=T.int;break;
+	            case "float": baseType=T.float;break;
+	            case "double": baseType=T.double;break;
+	            case "byte": baseType=T.byte;break;
+	            case "char": baseType=T.char;break;
+	            case "void": baseType=T.void;break;
+	            case "unsigned": baseType=T.Unsigned(baseType||T.int);break;
+	            default:throw new Error(type.text+" is not a valid type");
+	        }
+	    }
+	    assert.is(baseType,T.Base);
+	    return baseType;
+	}
 	
 	var identifier_list=t(",").and(identifier).ret(function(comma,identifier){return [",",identifier];});
 	identifier_list=identifier.and(identifier_list.rep0())
@@ -251,10 +279,7 @@ window.MinimalParser= function () {
 	var direct_declarator_tail=t("[").and(constant_expression.opt()).and(t("]")).ret(
 	    function(lsb,const_expr,rsb){
 			var $=["[",const_expr,"]"];
-			//配列であることと、深さを保存。このあとこれをどう活用するかは不明。
 			$.type="decl_array";
-			$.isArray=true;
-			$.isLength=const_expr;
 			$.elementLength=const_expr;
 			return $;
 		}).or(t("(").and(parameter_type_list_lazy).and(t(")")).ret(
@@ -271,11 +296,14 @@ window.MinimalParser= function () {
     direct_declarator=direct_declarator_head.and(direct_declarator_tail.rep0()).ret(
         function(identifier,direct_decl_tails){
     		var $=[identifier,direct_decl_tails];
-    		if(direct_decl_tails.isArray)$.isArray=true;
-    		$.vtype=last_decl_type;
-    		$.vtype2=baseType;
+    		$.vtype=baseType;
+    		direct_decl_tails.forEach(function (tail) {
+    		    switch(tail.type) {
+		        case "decl_array":
+		            $.vtype=T.Array($.vtype,$.elementLength);
+    		    }    
+    		});
     		$.vname=identifier.vname;
-    		
     		return $;
 	    }
 	);
@@ -328,9 +356,8 @@ window.MinimalParser= function () {
 	function mkpost(left,op){
 	    var t=left.vtype;
 	    if (op.isIndex) {
-	        if (t[0]=="array") {
-	            t=t.slice();
-	            t.shift();
+	        if (t instanceof T.Array) {
+	            t=t.e;
 	        }
 	    }
 	    return extend([left,op],{vtype:t});
@@ -343,7 +370,7 @@ window.MinimalParser= function () {
 
 	assign=unary_expression_lazy.and(assignment_operator)
 		.and(calc_expression).ret(function(unary_expr,op,calc_expr){
-			return [unary_expr,op,"cast(",lit(unary_expr.vtype),",",calc_expr,")"];
+			return [unary_expr,op,"cast(",typeLit(unary_expr.vtype),",",calc_expr,")"];
 		}).or(calc_expression);
 
 	expression=assign;
@@ -355,7 +382,7 @@ window.MinimalParser= function () {
 	// \init_declarator
 	var init_declarator=declarator.and(t("=").and(initializer).opt())
 		.ret(function(declarator,eq,initializer){
-			var $=[declarator,"=",initializer?["cast(",lit(declarator.vtype),",",initializer,")"]:"0"];
+			var $=[declarator,"=",initializer?["cast(",typeLit(declarator.vtype),",",initializer,")"]:"0"];
 			if(declarator.isArray){
 				$.isArray=declarator.isArray;
 				$.isLength=declarator.isLength;
@@ -370,13 +397,18 @@ window.MinimalParser= function () {
 		.ret(function(decl_specifiers,init_decl_list,semicolon){
 			var identifier_list=[];
 			init_decl_list.forEach(function(e){});
+			var baseType=decl_specifiers.vtype;
+			if (!baseType) {
+			    console.log("declSpec",decl_specifiers,typeof decl_specifiers);
+			    throw new Error("baseType is not found");
+			}
 			return (function(){
 				var $=[];
 				for(var i=0;i<init_decl_list.length;i++){
 					var $$=init_decl_list[i];
 					var declarator=$$.declarator;
 					var identifier=declarator.vname;
-					var type=[];
+					var type=baseType;
 					var tmp=[];
                     //$$01  = init_decl's  decl's  decltails   int x[2][3] の [2][3]
                     //	init_declarator:= declarator = initializer
@@ -385,7 +417,7 @@ window.MinimalParser= function () {
                     var hasParams=false;
 					for(var n=0;n<declarator_tails.length;n++){
 						if (declarator_tails[n].type=="decl_array") {
-    						type.push("array");
+    						type=T.Array(type, declarator_tails[n][1]  );
     						tmp.push(declarator_tails[n][1]);//添字
     						declarator_tails[n]=[];//???
 						} else if (declarator_tails[n].type=="decl_params" || 
@@ -393,7 +425,7 @@ window.MinimalParser= function () {
 						    hasParams=true;    
                         }
 					}
-					type.push(decl_specifiers);
+					//type.push(decl_specifiers);
                     ctx.scope[identifier+""]={vtype:type, depth: ctx.depth};
 					if (hasParams) {
 					    // prototype宣言はコードを生成しない
@@ -560,11 +592,14 @@ window.MinimalParser= function () {
 	postfix_expression.mkPostfix(mkpost);
 	postfix_expression.mkPrefix(mkpre);
 	postfix_expression=postfix_expression.build();
-
+    //\unary_expression
 	unary_expression=postfix_expression.or(
-	    t("++").or(t("--")).and(unary_expression_lazy).ret(MKARY)
+	    t("++").or(t("--")).and(unary_expression_lazy).ret(function (op,right) {
+	        return extend([op,right], {vtype:right.vtype});
+	    })
 	).or(
 	    unary_operator.and(cast_expression_lazy).ret(function (op,right) {
+	        assert(right.vtype,"right.vtype not set at cast_expr (from unary_expr)");
 	        // PTR
     	    if (op.text=="&") {
     	        //console.log("OP",right,right.vname);
@@ -573,12 +608,12 @@ window.MinimalParser= function () {
     	            right[1] && right[1].isIndex) {
     	                // right[1]  : [ "[", expr, "]" ]
 	                return extend( ["pointer(",right[0],",",right[1][1],")"] ,
-	                {vtype: ["array",right.vtype]} );
+	                {vtype: T.Array(right.vtype)} );
     	        } else if (right.vname) {
                  	var s=findVariable(right.vname);
         			return extend(["pointer(",
-        			    ["scopes_"+s.depth, lit(right.vname), lit(s.vtype)].join(","),
-        			")"],{vtype:["array",s.vtype]} ); 
+        			    ["scopes_"+s.depth, lit(right.vname), typeLit(s.vtype)].join(","),
+        			")"],{vtype: T.Array(s.vtype)} ); 
     	        }
     	    }
     	    return extend([op,right], {vtype:right.vtype});
@@ -586,7 +621,11 @@ window.MinimalParser= function () {
 	);
 
 	cast_expression=unary_expression.or(t("(").and(type_name).and(t(")")).and(cast_expression_lazy)
-	.ret(function(lp,type_name,rp,cast_expr){return ["(",type_name,")",cast_expr];}));
+	.ret(function(lp,type_name,rp,cast_expr){
+	    var t=typeNamesToType([type_name+""]);
+	    return extend(["(",typeLit(t),")",cast_expr],{vtype:t});
+	    //***
+	}));
 
 	var init_param=declarator.and(t("=").and(initializer).opt()).ret(MKARY);
 	var func_param=declaration_specifiers.and(init_param).ret(MKARY);
@@ -595,7 +634,7 @@ window.MinimalParser= function () {
 		    if (!(params instanceof Array)) return "";//void
 		    function genparam(n,declarator, initializer){
 				var $=[declarator,"=",
-				["cast(",lit(declarator.vtype),",param_init(","arguments["+n+"]",",",
+				["cast(",typeLit(declarator.vtype),",param_init(","arguments["+n+"]",",",
 					(initializer||"null"),"))"]];
 				if(declarator.isArray){
 					$.isArray=declarator.isArray;
@@ -657,7 +696,7 @@ window.MinimalParser= function () {
             var name=st.result[1];
             var params=st.result[2];
             //console.log("TNP",type,name,params);
-            ctx.scope[name+""]={vtype:"function", depth: ctx.depth};
+            ctx.scope[name+""]={vtype:T.Function() , depth: ctx.depth};
             var depth=ctx.depth;
             var rst;
             newScope(function () {

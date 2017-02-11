@@ -5,6 +5,8 @@ require_once __DIR__."/MySession.php";
 require_once __DIR__."/fs/AuthInfo.php";
 require_once __DIR__."/fs/Permission.php";
 require_once __DIR__."/fs/SFile.php";
+require_once __DIR__."/data/JSONLines.php";
+
 
 //session_save_path("/tmp");
 //ini_set('session.gc_maxlifetime',60*60*24);
@@ -12,28 +14,67 @@ require_once __DIR__."/fs/SFile.php";
 //ini_set('session.gc_divisor',1);
 //ini_set('session.gc_probability',1);
 
+$fs=new NativeFS(); 
+$userDir=new SFile($fs,"user/");
 class Auth {
     const TEACHER="teacher";
-   static function login($class,$user) {
+    static function login($class,$user,$pass=null) {
+        // 戻り値：
+        // ユーザ登録が必要 "register"
+        // パスワード入力が必要 "requirepass"
         if (!$class)return "クラス名を入力してください。";
 	    if (!$user)return "ユーザ名を入力してください。";
 	    if (!file_exists("fs/home/$class")){
            return "存在しないクラスIDが入力されています。";
 	    }
         if (preg_match('/^[a-zA-Z0-9\\-_]+$/',$user) && $user!=self::TEACHER) {
-	        //setcookie("class",$class, time()+60*60*24*30*6);
-            //setcookie("user",$user, time()+60*60*24*30*6);
-            /*if(session_id() == '') {
-                session_start();
-            }
-            $_SESSION['class']=$class;
-            $_SESSION['user']=$user;*/
             MySession::set("class",$class);
             MySession::set("user",$user);
            return true;
         } else {
            return "ユーザ名は半角英数とハイフン、アンダースコアだけが使えます。";
         }
+    }
+    static function setPass($class,$user,$pass) {
+        //パスワードを登録する．users_$class$.txtに書く
+        // request_$class$.txt から $userに関するエントリを全削除
+    }
+    static function resetRequest($class,$user) {
+        //再発行リクエストを行なう   
+        //PINを生成して，request_$class$.txt と セッションに書き込む
+        //PINが他とかぶらないように！
+    }
+    static function permitReset($class,$user,$pin) {
+        //$class/$userのユーザで，$pinをもっているユーザ（セッション）に対して
+        //再発行を許可する（request_$class$.txt に allowed:trueを書き込む
+    }
+    static function resetPermitted() {
+        //再発行を許可されているか？
+        //セッション情報からpin取得->該当pin がallowed:trueとなっているか？
+        
+    }
+    static function getRequests($class) {
+        // $class の再発行リクエスト一覧を取得
+    }
+    static function userDir() {
+        global $userDir;
+        return $userDir;
+    }
+    static function classList() {
+        // list.txtを取得
+        /*使い方：
+        $classList=self::classList();
+        $classObj=$classList->find1("classid",$classid);
+        $newClass=new stdClass;
+        $newClass->classid="newclass";
+        $newClass->pass="newpass";
+        $classList->add($newClass);
+        $classList->del($classObj);
+        $classObj->pass=$newPass;
+        $classList->save();
+        */
+        $classList=new JSONLines(self::userDir()->rel("list.txt"));
+        return $classList;
     }
     static function loginTeacher($class,$pass,$ignoreNonexistent=false) {
 	    $json = new Services_JSON();
@@ -42,48 +83,25 @@ class Auth {
     	if (!file_exists("fs/home/$class") && !$ignoreNonexistent){
                return "存在しないクラスIDが入力されています。";
     	}
-        if (preg_match('/^[a-zA-Z0-9\\-_]+$/',$pass)) {
-    	$fp=fopen("user/list.txt", "r");
-    	while($line=fgets($fp)){
-    	       $classlist=$json->decode($line);
-    	       if($classlist["classid"] == $class){
-    	           break;
-    	       }
-    	}
-    	fclose($fp);
-	   if(isset($classlist) && $classlist["pass"]==$pass){
-	       // Success
+        $classObj=self::classList()->find1("classid",$class);
+	    if($classObj!=null && $classObj->pass==$pass){
+	        // Success
             MySession::set("class",$class);
             MySession::set("user",self::TEACHER);
-	       setcookie("class",$class, time()+60*60*24*30);
-	       return true;
-	   }else{
-	       return "クラスIDかパスワードが間違っています。";
-           }
-        } else {
-           return "パスワードは半角英数とハイフン、アンダースコアだけが使えます。";
+	        //setcookie("class",$class, time()+60*60*24*30);
+	        return true;
+	    }else{
+	        return "クラスIDかパスワードが間違っています。";
         }
    }
    static function isTeacher() {
         return self::curUser()==self::TEACHER;       
    }
    static function curUser() {
-        /*if(session_id() == '') {
-            session_start();
-        }
-        if (!isset($_SESSION['user'])) return null;
-        //return $_COOKIE["user"];
-        return $_SESSION['user'];*/
         if (!MySession::has("user")) return null;
         return MySession::get("user");
    }
    static function curClass() {
-        /*if(session_id() == '') {
-            session_start();
-        }
-        //return $_COOKIE["class"];
-        if (!isset($_SESSION['class'])) return null;
-        return $_SESSION['class'];*/
         if (!MySession::has("class")) return null;
         return MySession::get("class");
    }
@@ -99,16 +117,15 @@ class Auth {
     static function home() {
         return new SFile(self::getFS(),self::homeDir());
     }
-   static function getFS() {
+    static function getFS() {
 	    $class=self::curClass();
    	    $user=self::curUser();
    	    if ($user && $class) {
    	        $ap=new Permission(new AuthInfo($class,$user));
-            return new NativeFS("fs/",$ap);//changeHOME(1)
-            //return new NativeFS("fs/home/$class/$user/");//changeHOME
+            return new NativeFS("fs/",$ap);
 	   	} else {
 	   	    return null;
 	   	}
-   }
+    }
 }
 ?>

@@ -11,7 +11,7 @@ foreach ($fs as $f) {
     foreach ($ls as $i=>$l) {
         $d=ScoreUtil::digest($l);
         $sf=ScoreUtil::scoreFile($d);
-        if ($sf->exists()) {
+	    if ($sf->exists()) {
             $ls[$i]["score"]=$sf->obj();
             $mod=true;
         }

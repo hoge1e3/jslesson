@@ -1,0 +1,5 @@
+{"userid":"0x0001","pass":"xxxx"}
+{"userid":"0x0002","pass":"zzzz"}
+{"userid":"0x0003","pass":"yyyy"}
+{"userid":"0x0004","pass":"xxxx","mail":"0x0004@example.com"}
+{"userid":"0x0005","pass":"xxxx"}

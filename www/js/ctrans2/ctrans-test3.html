@@ -1,4 +1,7 @@
 ﻿<html>
+<!--
+file:///C:/bin/Dropbox/workspace/jslesson/www/js/ctrans2/ctrans-test3.html
+-->
 <script src="jquery-2.1.0.js"></script>
 <script src="require.js"></script>
 <script>
@@ -6,13 +9,25 @@
         shim: {
             "tester": {
                 exports:"tester"
-            }
+            },
+            Parser:{exports:"Parser"},
+            ExpressionParser:{exports:"ExpressionParser"},
+            jsgen:{exports:"js_gen"},
+            hoge:{exports:"fuga"}
         },
         paths: {
-            "ctrans/ctrans":"ctrans"
+            "assert": "../lib/assert",
+            "ctrans/ctrans":"ctrans",
+            "ctrans/ctype":"ctype",
+            "Klass":"../lib/Klass",
+            "Parser":"parser",
+            "ExpressionParser":"ExpressionParser2",
+            "hoge":"fuga"
         }
     })
 </script>
+<script src="lib.js"></script>
+<script src="util.js"></script>
 
 <script>
 var util=require("util");
@@ -27,7 +42,8 @@ try {
 } catch (ex) {
     //console.log(ex.message);
 }
-requirejs(["FS","ctrans/ctrans"],function (FS,MinimalParser) {
+requirejs(["FS","ctrans/ctrans","beautify","jsgen"],
+function (FS,MinimalParser,beautify,js_gen) {
     //  ここは、自分のテストしたいC言語ファイルのあるディレクトリを指定
 	var d=FS.get("C:/bin/Dropbox/tuat/tcc_test2");
 	while (!d.exists()) {
@@ -43,7 +59,7 @@ requirejs(["FS","ctrans/ctrans"],function (FS,MinimalParser) {
         	var buf="";
         	printf.STDOUT={append:function (s) {buf+=s;},text:function(){return buf;}};
 			var tree=MinimalParser.parse(f.text());
-			program=js_beautify(js_gen(tree));
+			program=beautify.js_beautify(js_gen(tree));
 			var output=f.up().rel(f.truncExt()+".js");
 			output.text(program);
 			var func=new Function(program);

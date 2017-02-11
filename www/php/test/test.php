@@ -1,5 +1,26 @@
 <?php
-echo $_COOKIE["mysessionID"];
+require_once "../fs/NativeFS.php";
+require_once "../fs/SFile.php";
+require_once "../data/JSONLines.php";
+
+$fs=new NativeFS("../../");
+$f=new SFile($fs,"user/users_classA.txt");
+//echo $f->text();
+$l=new JSONLines($f);
+echo "<HR>";
+$l->delAll(function ($o) {
+    return $o->pass=="xxxx";
+});
+foreach ($l as $ent) {
+    echo "<hr>";
+    var_dump($ent);
+}
+//var_dump($e);
+//unset($e->reset);
+//->pass="zzzz";
+//$l->save();
+
+//echo $_COOKIE["mysessionID"];
 /*
 require_once"ErrorHandler.php";
 require_once"MySession.php";

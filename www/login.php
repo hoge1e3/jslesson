@@ -18,6 +18,11 @@ if (isset($_GET["curuser"])) {
 	    $showForm=false;
 	    header("Location: .");
 	    //print "$mesg";
+	} else if ($mesg==="requirepass") {
+	    //TODO:パスワード入力
+	} else if ($mesg==="register") {
+	    //TODO:ユーザ登録
+	    
 	}
 } else if (isset($_GET["class"])) {
     $class=$_GET["class"];

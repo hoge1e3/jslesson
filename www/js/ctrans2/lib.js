@@ -62,7 +62,7 @@ console.log(dest);
 	}
 	
 	if(dest && typeof dest.write=="function") {
-	    if (typeof (dest.type)=="string") {
+	    if (dest.type instanceof CType.Base) {
     		dest.write(cast(dest.type,val));
 	    } else {
     		dest.write(val);
@@ -83,7 +83,7 @@ function printf() {
 			var res="0";
 			switch(typeof arg){
 			case "number": case "boolean":
-				res=cast("int",arg);
+				res=cast(CType.int,arg);
 				break;
 			}
 			return res;
