@@ -64,4 +64,5 @@ www/fs/Tonyu/Projects/JSLKer/js/concat_old.js
 www/js/dolittle/lib.js.bak
 www/runtime/lib/tjs/kernel_old.js
 www/runtime/lib/tjs/kernel_old.js.map
+www/db/*
 private

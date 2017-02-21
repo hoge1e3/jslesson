@@ -1,8 +1,33 @@
 <?php
-require_once "../fs/NativeFS.php";
-require_once "../fs/SFile.php";
-require_once "../data/JSONLines.php";
+require_once "php/fs/PathUtil.php";
+echo PathUtil::rel("","/home/hoge/../test.txt");
+exit;
 
+//require_once "../fs/NativeFS.php";
+//require_once "../fs/SFile.php";
+//require_once "../data/JSONLines.php";
+
+try {
+    $pdo = new PDO('sqlite:db/db.sqlite3');
+    //$pdo = new PDO('pgsql:host=localhost;port=5432;dbname=ddb2013',"ddb","");
+    //require_once "db/db.php";
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
+    // デフォルトのフェッチモードを連想配列形式に設定 
+    // (毎回PDO::FETCH_ASSOCを指定する必要が無くなる)
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    foreach ($pdo->query("select * from fruit") as $rec) {
+    //foreach ($pdo->query("select * from 商品") as $rec) {
+    	var_dump($rec);
+    }
+    $pdo->close();
+}catch(Exception $e) {
+    //echo "えらー";
+    header("Content-Type:text/plain;charset=shift_jis");
+    echo $e->getMessage();
+}
+
+/*
 $fs=new NativeFS("../../");
 $f=new SFile($fs,"user/users_classA.txt");
 //echo $f->text();
@@ -14,7 +39,7 @@ $l->delAll(function ($o) {
 foreach ($l as $ent) {
     echo "<hr>";
     var_dump($ent);
-}
+}*/
 //var_dump($e);
 //unset($e->reset);
 //->pass="zzzz";

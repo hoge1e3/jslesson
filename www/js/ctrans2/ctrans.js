@@ -160,9 +160,12 @@ window.MinimalParser= function () {
 	var reg_str = RegExp("^[^\"^\”]*");
 	//文字列の正規表現
 	var string = t(/^\"[^\"]*\"/).ret(function(str){
-		return extend(["str_to_ch_arr(",str,")"],{type:"string"});
+		return extend(["str_to_ch_arr(",str,")"],{type:"string",vtype:T.Array(T.char)});
 	});
-	var integer_constant=t(/^0[xX][0-9a-fA-F]+/).or(t(/^0[bB][01]+/)).or(t(/^[0-9]+/));
+	var integer_constant=t(/^0[xX][0-9a-fA-F]+/).or(t(/^0[bB][01]+/)).or(t(/^[0-9]+/)).
+	ret(function (r) {
+	    return extend(r,{vtype:T.int});
+	});
 	var character_constant=t(/^\'[^\'\\]\'/).ret(function (s) {
     	return parse_char_const(s.text);
 	}).or(t(/^\'\\.\'/).ret(function (s) {
@@ -173,7 +176,8 @@ window.MinimalParser= function () {
     	return parse_char_const(s.text);
 	}));
 	function parse_char_const(s) {
-	    return eval(s).charCodeAt(0);
+	    var v=eval(s).charCodeAt(0);
+	    return {value:v, vtype:T.char,toString:function(){return v+"";}};
 	}
 	var floating_constant=t(/^[0-9]+\.[0-9]*/);
 	var constant=floating_constant.or(character_constant).or(integer_constant)/*.or(enumeration_constant)*/;
@@ -351,20 +355,31 @@ window.MinimalParser= function () {
 	calc_expression.infixl(14,token("%"));
 	calc_expression.mkInfixl(mk);
 	function mk(left,op,right){
+	    chkTypeIsSet("mk")(left);
 	    return extend(["(",left,op,right,")"],{vtype:left.vtype});
 	}
 	function mkpost(left,op){
 	    var t=left.vtype;
+	    chkTypeIsSet("mkpost")(left);
 	    if (op.isIndex) {
 	        if (t instanceof T.Array) {
+	            if (!t.e) {
+	                console.log(t, t===T.int,"t=int?");
+	                failWithCon(left,op,t,"Cannot resolve type of left[op]");
+	            }
 	            t=t.e;
 	        }
 	    }
 	    return extend([left,op],{vtype:t});
 	}
 	function mkpre(op,right){
-	    
+	    chkTypeIsSet("mkpre")(right);
 	    return extend([op,right],{vtype:right.vtype} );
+	}
+	function failWithCon() {
+	    var a=Array.prototype.slice.call(arguments);
+	    console.log.apply(console,a);
+	    throw new Error(a.join(" "));
 	}
 	calc_expression = calc_expression.build();
 
@@ -568,7 +583,7 @@ window.MinimalParser= function () {
 	        return ["(",expr,")"];
 	    })
 	);
-
+    // \postfix_expression
 	postfix_expression=ExpressionParser();
 	postfix_expression.element(primary_expression);
 	//postfix_expression.element(ptr_identifier);
@@ -586,14 +601,18 @@ window.MinimalParser= function () {
 	postfix_expression.postfix(4,t("++"));
 	postfix_expression.postfix(4,t("--"));
 	postfix_expression.postfix(5,t(".").and(identifier)
-		.ret(function(peri,identifier){return [".",identifier];}));
+		.ret(function(peri,identifier){
+		    return [".",identifier];
+		}));
 	postfix_expression.postfix(5,t(/^->/).and(identifier)
-		.ret(function(arrow,identifier){return ["->",identifier];}));
+		.ret(function(arrow,identifier){
+		    return ["->",identifier];
+		}));
 	postfix_expression.mkPostfix(mkpost);
 	postfix_expression.mkPrefix(mkpre);
 	postfix_expression=postfix_expression.build();
     //\unary_expression
-	unary_expression=postfix_expression.or(
+	unary_expression=postfix_expression.ret(chkTypeIsSet("postf600")).or(
 	    t("++").or(t("--")).and(unary_expression_lazy).ret(function (op,right) {
 	        return extend([op,right], {vtype:right.vtype});
 	    })
@@ -619,13 +638,25 @@ window.MinimalParser= function () {
     	    return extend([op,right], {vtype:right.vtype});
 	    })
 	);
-
-	cast_expression=unary_expression.or(t("(").and(type_name).and(t(")")).and(cast_expression_lazy)
-	.ret(function(lp,type_name,rp,cast_expr){
-	    var t=typeNamesToType([type_name+""]);
-	    return extend(["(",typeLit(t),")",cast_expr],{vtype:t});
-	    //***
-	}));
+    // \cast_expression
+	cast_expression=unary_expression.ret(chkTypeIsSet("unary")).or(
+	    t("(").and(type_name).and(t(")")).and(cast_expression_lazy)
+	    .ret(function(lp,type_name,rp,cast_expr){
+    	    var t=typeNamesToType([type_name+""]);
+    	    if (!t) throw new Error("Type for "+type_name+" not found");
+    	    return extend(["(",typeLit(t),")",cast_expr],{vtype:t});
+    	    //***
+	    })
+	);
+	function chkTypeIsSet(unary) {
+	    return (function (r) {
+    	    if (!(r.vtype)) {
+    	        console.log("Type is not set at:",r);
+    	        throw new Error("type is not set at "+unary);
+    	    } 
+    	    return r;
+	    });
+	}
 
 	var init_param=declarator.and(t("=").and(initializer).opt()).ret(MKARY);
 	var func_param=declaration_specifiers.and(init_param).ret(MKARY);

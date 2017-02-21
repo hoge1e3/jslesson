@@ -1,4 +1,11 @@
 <?php
+/*define('CURRY_PATH', realpath(dirname(__FILE__) . '/php/curry'));
+set_include_path(implode(PATH_SEPARATOR, array(
+	CURRY_PATH,
+	get_include_path(),
+)));*/
+
+
 $qs=$_SERVER["QUERY_STRING"];
 $action=preg_replace("/&.*/","",$qs);
 if (isset($_POST["action"])) $action=$_POST["action"];
@@ -15,6 +22,7 @@ $actions=array(
     "AddScoreInfo"=>"php/analysis/AddScoreInfo.php",
     "TagVsCluster"=>"php/analysis/TagVsCluster.php",
     "runit"=>"php/runit.php",
+    "test"=>"php/test/test.php",
     "resetRequests"=>"php/auth/resetRequests.php",
     "dummy"=>"hoge"
 );

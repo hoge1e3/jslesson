@@ -17,6 +17,8 @@ class Permission {
         $this->authInfo=$authInfo;
     }
     public function isAccessible($p,$opr) {// $p:Path String
+        $p=PathUtil::resolveDotDot($p);
+        if (PathUtil::endsWith($p,".php")) return false;
         $anyRead=(self::READ|self::LS|self::READMETA);
         //$p=$f.path();
         $ps=explode(PathUtil::SEP,$p);
