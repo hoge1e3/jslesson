@@ -1,6 +1,8 @@
 define(["ctrans/ctype","Parser","context","ExpressionParser","assert"],
 function (T,Parser,context,ExpressionParser,assert) {
 window.MinimalParser= function () {
+    //a=T.Array({});
+    //console.log("ARY",a);
     //test-ctrans
 	var parser={};
 	var ctx=context();
@@ -727,7 +729,10 @@ window.MinimalParser= function () {
             var name=st.result[1];
             var params=st.result[2];
             //console.log("TNP",type,name,params);
-            ctx.scope[name+""]={vtype:T.Function() , depth: ctx.depth};
+            ctx.scope[name+""]={
+                vtype:T.Function(type?typeNamesToType([type]):T.int,params), 
+                depth: ctx.depth
+            };
             var depth=ctx.depth;
             var rst;
             newScope(function () {

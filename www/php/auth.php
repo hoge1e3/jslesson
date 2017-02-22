@@ -6,7 +6,7 @@ require_once __DIR__."/fs/AuthInfo.php";
 require_once __DIR__."/fs/Permission.php";
 require_once __DIR__."/fs/SFile.php";
 require_once __DIR__."/data/JSONLines.php";
-
+require_once __DIR__."/data/pdo.php";
 
 //session_save_path("/tmp");
 //ini_set('session.gc_maxlifetime',60*60*24);
@@ -94,8 +94,35 @@ class Auth {
 	        return "クラスIDかパスワードが間違っています。";
         }
    }
+    static function loginTeacher2($name,$pass,$ignoreNonexistent=false) {
+	    $json = new Services_JSON();
+        if (!$name)return "メールアドレスを入力してください。";
+	    if (!$pass)return "パスワードを入力してください。";
+	    $pdo = pdo();
+    	$sth=$pdo->prepare("select * from user where class = ? and name = ? and pass = ?");
+    	$sth->execute(array(self::TEACHER,$name,$pass));
+    	if (count($sth->fetchAll())==0){
+	        return "メールアドレスかパスワードが間違っています。";
+    	}else{
+	        // Success
+	        MySession::set("class",self::TEACHER);
+	        MySession::set("user",$name);
+	        //setcookie("class",$class, time()+60*60*24*30);
+	        return true;
+	    }
+   }
    static function isTeacher() {
         return self::curUser()==self::TEACHER;       
+   }
+   static function isTeacherOf($class){
+        $pdo = pdo();
+    	$sth=$pdo->prepare("select * from role where class = ? and user = ? and type = ?");
+    	$sth->execute(array($class,self::curUser(),self::TEACHER));
+    	if (count($sth->fetchAll())==0){
+	        return false;
+    	}else{
+    	    return true;
+    	}
    }
    static function curUser() {
         if (!MySession::has("user")) return null;
@@ -116,6 +143,16 @@ class Auth {
     }
     static function home() {
         return new SFile(self::getFS(),self::homeDir());
+    }
+    static function mkdir($class) {
+        if (!self::isTeacherOf($class)) {
+            throw new Error(" You are not the teacher of $class");
+        }
+        $fs=new NativeFS("fs/");
+        $f=new SFile($fs,"/home/".$class."/");
+        if (!$f->exists()) {
+            $f->mkdir();
+        }
     }
     static function getFS() {
 	    $class=self::curClass();

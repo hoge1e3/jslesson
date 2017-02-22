@@ -53,7 +53,7 @@ define(["Klass"],function (Klass) {
     t.float=t.Number({name:"float",numOrd:9});
     t.double=t.Number({name:"double",numOrd:10});
     t.Unsigned=t.Base.inherit({
-        init:["e"],
+        $:["e"],
         $fields: {e:t.Base},
         toLiteral: function () {
             return CTYPE_NAME+".Unsigned("+this.e.toLiteral()+")";
@@ -77,22 +77,22 @@ define(["Klass"],function (Klass) {
     //  a[i]: Array(int,5)    
 
     t.Array=t.Base.inherit({
-        init:["e","length"],
-        $fields: {e:t.Base, length:Number}, // null for []
+        $:["e","length"],
+        $fields: {e:t.Base, length:Klass.opt(Number)}, // null for []
         toLiteral: function () {
             return CTYPE_NAME+".Array("+this.e.toLiteral()+","+this.length+")";
         }
     }); 
     t.Pointer=t.Base.inherit({
-        init:["e"],
+        $:["e"],
         $fields: {e:t.Base},
         toLiteral: function () {
             return CTYPE_NAME+".Pointer("+this.e.toLiteral()+")";
         }
     });
     t.Function=t.Base.inherit({
-        init:["ret","args"],
-        $fields: {ret:t.Base, args:[t.Base]},        
+        $:["ret","args"],
+        $fields: {ret:t.Base, args:Array/*[t.Base]*/},        
         toLiteral: function () {
             return CTYPE_NAME+".Function("+
                 this.ret.toLiteral(), 

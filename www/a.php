@@ -12,7 +12,10 @@ if (isset($_POST["action"])) $action=$_POST["action"];
 $actions=array(
     "login"=>"login.php",
     "teacher"=>"teacher.php",
+    "teacher2"=>"php/teacher/teacher2.php",
     "showTimeline"=>"showTimeline.php",
+    "showClass"=>"php/teacher/showClass.php",
+    "makeClass"=>"php/teacher/makeClass.php",
     "grep"=>"grep.php",
     "Mkvec"=>"php/analysis/Mkvec.php",
     "DetectFile"=>"php/analysis/DetectFile.php",
@@ -23,7 +26,7 @@ $actions=array(
     "TagVsCluster"=>"php/analysis/TagVsCluster.php",
     "runit"=>"php/runit.php",
     "test"=>"php/test/test.php",
-    "resetRequests"=>"php/auth/resetRequests.php",
+    "resetRequests"=>"php/teacher/resetRequests.php",
     "dummy"=>"hoge"
 );
 if (isset($actions[$action])) {

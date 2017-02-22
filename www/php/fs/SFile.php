@@ -183,6 +183,7 @@ class SFile{
     public function convertOptions() {
     }
     public function mkdir() {
+        $this->fs->mkdir($this->path());
     }
     public function link() {
     }

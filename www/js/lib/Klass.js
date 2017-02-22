@@ -1,4 +1,4 @@
-define([],function () {
+define(["assert"],function (A) {
     var Klass={};
     Klass.define=function (pd) {
         var p,parent;
@@ -21,6 +21,7 @@ define([],function () {
             }
         };
         var fldinit;
+        var check;
         if (init instanceof Array) {
             fldinit=init;
             init=function () {
@@ -31,13 +32,21 @@ define([],function () {
             };
         }
         var klass;
+        function checkSchema(self) {
+            if (pd.$fields) {
+                //console.log("Checking schema",self,pd.$fields);
+                A.is(self,pd.$fields);
+            }
+        }
         klass=function () {
             if (! (this instanceof klass)) {
                 var res=Object.create(p);
                 init.apply(res,arguments);
+                checkSchema(res);
                 return res;
             }
             init.apply(this,arguments);
+            checkSchema(this);
         };
         klass.inherit=function (pd) {
             pd.$parent=klass;
@@ -56,6 +65,7 @@ define([],function () {
         return klass;
     };
     Klass.Function=function () {throw new Exception("Abstract");}
+    Klass.opt=A.opt;
     return Klass;
 });
 /*

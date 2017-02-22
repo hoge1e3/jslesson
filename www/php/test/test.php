@@ -1,14 +1,17 @@
 <?php
-require_once "php/fs/PathUtil.php";
-echo PathUtil::rel("","/home/hoge/../test.txt");
-exit;
+//phpinfo();
+//require_once "php/fs/PathUtil.php";
+//echo PathUtil::rel("","/home/hoge/../test.txt");
+//exit;
 
 //require_once "../fs/NativeFS.php";
 //require_once "../fs/SFile.php";
 //require_once "../data/JSONLines.php";
+require_once __DIR__."/../data/pdo.php";
 
 try {
-    $pdo = new PDO('sqlite:db/db.sqlite3');
+    $pdo = pdo();
+    // new PDO('sqlite:db/db.sqlite3');
     //$pdo = new PDO('pgsql:host=localhost;port=5432;dbname=ddb2013',"ddb","");
     //require_once "db/db.php";
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -20,7 +23,7 @@ try {
     //foreach ($pdo->query("select * from 商品") as $rec) {
     	var_dump($rec);
     }
-    $pdo->close();
+    //$pdo->close();
 }catch(Exception $e) {
     //echo "えらー";
     header("Content-Type:text/plain;charset=shift_jis");
