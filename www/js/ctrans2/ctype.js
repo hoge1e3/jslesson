@@ -66,6 +66,20 @@ define(["Klass"],function (Klass) {
             return v;
         }
     });
+    t.Long=t.Number.inherit({
+        $:["e"],
+        $fields:{e:t.Number} ,
+        toLiteral: function () {
+            return CTYPE_NAME+".Long("+this.e.toLiteral()+")";
+        }
+    });
+    t.Short=t.Number.inherit({
+        $:["e"],
+        $fields:{e:t.Number},
+        toLiteral: function () {
+            return CTYPE_NAME+".Short("+this.e.toLiteral()+")";
+        }
+    });
     //  int a[3][5];    a: Array(Array(int,5) ,3)
     //  a[i]: Array(int,5)    
 

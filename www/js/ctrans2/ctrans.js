@@ -1,6 +1,14 @@
 define(["ctrans/ctype","Parser","context","ExpressionParser","assert"],
 function (T,Parser,context,ExpressionParser,assert) {
 window.MinimalParser= function () {
+    function GEFUNC() {/*
+        return !!(function*(){});
+    */}
+    var gefstr=(GEFUNC+"").replace(/.*\/\*/,"").replace(/\*\/.*/,"");
+    var supportsGenerator=false;
+    try { supportsGenerator=(new Function(gefstr))(); } 
+    catch(e) {}
+
     //a=T.Array({});
     //console.log("ARY",a);
     //test-ctrans
@@ -181,7 +189,10 @@ window.MinimalParser= function () {
 	    var v=eval(s).charCodeAt(0);
 	    return {value:v, vtype:T.char,toString:function(){return v+"";}};
 	}
-	var floating_constant=t(/^[0-9]+\.[0-9]*/);
+	var floating_constant=t(/^[0-9]+\.[0-9]*/).
+	ret(function (r) {
+	    return extend(r,{vtype:T.float});
+	});
 	var constant=floating_constant.or(character_constant).or(integer_constant)/*.or(enumeration_constant)*/;
 	var identifier=t(/^[a-zA-Z_][a-zA-Z0-9_]*/).except(function(identifier){
 			return ((identifier.text).match(reserved_word));
@@ -254,22 +265,25 @@ window.MinimalParser= function () {
 	    return {vtype:baseType,type:"declaration_specifiers"};
 	});
 	function typeNamesToType(types) {
-	    var baseType=null;
+	    var res=null;
 	    for (var i=types.length-1;i>=0;i--) {
 	        var type=types[i];
 	        switch (type.text) {
-	            case "int": baseType=T.int;break;
-	            case "float": baseType=T.float;break;
-	            case "double": baseType=T.double;break;
-	            case "byte": baseType=T.byte;break;
-	            case "char": baseType=T.char;break;
-	            case "void": baseType=T.void;break;
-	            case "unsigned": baseType=T.Unsigned(baseType||T.int);break;
+	            case "int": res=T.int;break;
+	            case "float": res=T.float;break;
+	            case "double": res=T.double;break;
+	            case "byte": res=T.byte;break;
+	            case "char": res=T.char;break;
+	            case "void": res=T.void;break;
+	            case "unsigned": res=T.Unsigned(res||T.int);break;
+	            case "long": res=T.Long(res||T.int);break;
+	            case "short": res=T.Short(res||T.int);break;
+	            case "static": break;//TODO
 	            default:throw new Error(type.text+" is not a valid type");
 	        }
 	    }
-	    assert.is(baseType,T.Base);
-	    return baseType;
+	    assert.is(res,T.Base);
+	    return res;
 	}
 	
 	var identifier_list=t(",").and(identifier).ret(function(comma,identifier){return [",",identifier];});
@@ -366,7 +380,6 @@ window.MinimalParser= function () {
 	    if (op.isIndex) {
 	        if (t instanceof T.Array) {
 	            if (!t.e) {
-	                console.log(t, t===T.int,"t=int?");
 	                failWithCon(left,op,t,"Cannot resolve type of left[op]");
 	            }
 	            t=t.e;
@@ -387,7 +400,10 @@ window.MinimalParser= function () {
 
 	assign=unary_expression_lazy.and(assignment_operator)
 		.and(calc_expression).ret(function(unary_expr,op,calc_expr){
-			return [unary_expr,op,"cast(",typeLit(unary_expr.vtype),",",calc_expr,")"];
+			return extend(
+			    [unary_expr,op,"cast(",typeLit(unary_expr.vtype),",",calc_expr,")"],
+			    {vtype:unary_expr.vtype}
+			);
 		}).or(calc_expression);
 
 	expression=assign;
@@ -581,8 +597,8 @@ window.MinimalParser= function () {
 	});
 
 	primary_expression=var_identifier.or(constant).or(string).or(
-	    t("(").and(expression).and(t(")")).ret(function(lp,expr,rp){
-	        return ["(",expr,")"];
+	    t("(").and(expression.ret(chkTypeIsSet("ln.585"))).and(t(")")).ret(function(lp,expr,rp){
+	        return extend(["(",expr,")"],{vtype:expr.vtype});
 	    })
 	);
     // \postfix_expression
@@ -664,7 +680,7 @@ window.MinimalParser= function () {
 	var func_param=declaration_specifiers.and(init_param).ret(MKARY);
 	var func_param_list=_void.or(func_param.sep0(t(","),true))
 		.ret(function(params){
-		    if (!(params instanceof Array)) return "";//void
+		    if (!(params instanceof Array)) return [];//void
 		    function genparam(n,declarator, initializer){
 				var $=[declarator,"=",
 				["cast(",typeLit(declarator.vtype),",param_init(","arguments["+n+"]",",",
