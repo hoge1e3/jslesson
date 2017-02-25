@@ -1,17 +1,7 @@
-function GEFUNC() {/*
-    var GeneratorFunction = ((function*(){})()).constructor;
-    window.generatorize=function (v) {
-        if (GeneratorFunction.prototype.isPrototypeOf(v)) {
-            return v;
-        }
-        return (function*(){yield v;})();
-    };
-    return true;
-*/}
-var gefstr=(GEFUNC+"").replace(/.*\/\*/,"").replace(/\*\/.*/,"");
-var supportsGenerator=false;
-try { supportsGenerator=(new Function(gefstr))(); } 
-catch(e) {}
+/*function promisize(p) {
+    if (p instanceof Promise) return p;
+    return new Promise(function (succ) {succ(p);});
+}*/
 
 function search_scope_level(key,chk){
 	var i=scopes.length-1;

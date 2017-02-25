@@ -1,14 +1,7 @@
 define(["ctrans/ctype","Parser","context","ExpressionParser","assert"],
 function (T,Parser,context,ExpressionParser,assert) {
 window.MinimalParser= function () {
-    function GEFUNC() {/*
-        return !!(function*(){});
-    */}
-    var gefstr=(GEFUNC+"").replace(/.*\/\*/,"").replace(/\*\/.*/,"");
-    var supportsGenerator=false;
-    try { supportsGenerator=(new Function(gefstr))(); } 
-    catch(e) {}
-
+    var supportsPromise=(typeof Promise==="function");
     //a=T.Array({});
     //console.log("ARY",a);
     //test-ctrans
@@ -106,7 +99,7 @@ window.MinimalParser= function () {
 
 	var localVars={};
 	var paren_expr;
-	var func_call;
+	//var func_call;
 	var control_syntax;
 	var if_state;
 	var terms;
@@ -146,7 +139,7 @@ window.MinimalParser= function () {
 	var declaration_specifiers_lazy=Parser.lazy(function(){return declaration_specifiers;});
 	var declarator_lazy=Parser.lazy(function(){return declarator;});
 	var paren_expr_lazy=Parser.lazy(function(){return paren_expr;});
-	var func_call_lazy=Parser.lazy(function(){return func_call;});
+	//var func_call_lazy=Parser.lazy(function(){return func_call;});
 	var if_state_lazy=Parser.lazy(function(){return if_state;});
 	var terms_lazy=Parser.lazy(function(){return terms;});
 	var declaration_lazy=Parser.lazy(function(){return declaration;});
@@ -385,6 +378,9 @@ window.MinimalParser= function () {
 	            t=t.e;
 	        }
 	    }
+	    if (op.type==="func_call" && supportsPromise) {
+    	    return extend(["await(",left,op,")"],{vtype:t});
+	    }
 	    return extend([left,op],{vtype:t});
 	}
 	function mkpre(op,right){
@@ -577,8 +573,8 @@ window.MinimalParser= function () {
 		param.forEach(function(e){res.push(e);res.push(",");});res.pop();
 		return res;
 	});
-	func_call=identifier.and(t("(")).and(argument_expressions.opt()).and(t(")"))
-		.ret(function(identifier,lp,args,rp){return [identifier,"(",args,")"];});
+	//func_call=identifier.and(t("(")).and(argument_expressions.opt()).and(t(")"))
+	//	.ret(function(identifier,lp,args,rp){return [identifier,"(",args,")"];});
 	var arr_expression=identifier.and(t("[")).and(expression).and(t("]"))
 		.ret(function(identifier,lsb,expr,rsb){return [identifier,lsb,expr,rsb];});
     // PTR
@@ -614,7 +610,7 @@ window.MinimalParser= function () {
 		}));
 	postfix_expression.postfix(5,t("(").and(argument_expressions.opt()).and(t(")")).ret(
 	    function(lp,args,rp){
-	        return ["(",args,")"];
+	        return extend(["(",args,")"],{type:"func_call"});
 	    }));
 	postfix_expression.postfix(4,t("++"));
 	postfix_expression.postfix(4,t("--"));
@@ -756,7 +752,8 @@ window.MinimalParser= function () {
                     ctx.scope[param.pname+""]={vtype:param.ptype, depth: ctx.depth};
                 });
                 rst=t("{").and(compound_statement_part).and(t("}")).ret(function (_,states) {
-                    return ["scopes_"+depth,".",name,"=function ",name,"(){",
+                    return ["scopes_"+depth,".",name,"=",
+                    (supportsPromise?"async":"") ," function ",name,"(){",
         				"var ",curScopesName(),"={};",
                         params,
 				        states,
