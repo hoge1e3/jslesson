@@ -291,4 +291,10 @@ function memcpy(dst, src,n) {
     }
     return r;
 }
+function sleep(msec) {
+    return new Promise(function (succ) {
+        console.log("Sleeping for ",msec);
+        setTimeout(succ,msec); 
+    });
+}
 window.print=function() {throw new Error("print関数はありません。printfの間違いではないですか？");};

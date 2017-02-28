@@ -777,7 +777,7 @@ window.MinimalParser= function () {
 	    //console.log("filename",filename);
 	    switch (filename.text) {
 	        case "stdio.h":
-	            return ["printf","scanf"].map(function (n) {
+	            return ["printf","scanf","sleep"].map(function (n) {
 	                return "void "+n+"();\n";
 	            }).join("\n");
 	        case "string.h":

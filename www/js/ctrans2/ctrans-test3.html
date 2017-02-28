@@ -44,6 +44,8 @@ try {
 }
 requirejs(["FS","ctrans/ctrans","beautify","jsgen"],
 function (FS,MinimalParser,beautify,js_gen) {
+    loop();
+async function loop() {
     //  ここは、自分のテストしたいC言語ファイルのあるディレクトリを指定
 	var d=FS.get("C:/bin/Dropbox/tuat/tcc_test2");
 	while (!d.exists()) {
@@ -51,8 +53,12 @@ function (FS,MinimalParser,beautify,js_gen) {
 	}
 	var summary=d.rel("summary.txt");
 	var sumbuf=["file\tresult"];
+    var files=[];
     d.recursive(function (f) {// ディレクトリ内の全ファイルをサブフォルダを含めて繰り返し
 		if(f.ext()!=".c")return;
+		files.push(f);
+    });
+    for (var f of files) {
 		var program;
 		try{
 		    //console.log("Test:", f.path());
@@ -63,7 +69,7 @@ function (FS,MinimalParser,beautify,js_gen) {
 			var output=f.up().rel(f.truncExt()+".js");
 			output.text(program);
 			var func=new Function(program);
-			func();
+			await func();
 			var expect=f.up().rel(f.truncExt()+".expect");
 			var expectxt=expect.text().replace(/[\s\r\n]*$/,"").replace(/\r/g,"");
 			buf=buf.replace(/[\s\r\n]*$/,"").replace(/\r/g,"");
@@ -92,12 +98,13 @@ function (FS,MinimalParser,beautify,js_gen) {
 	    		console.log(e.stack);
 			}
 		}
-    });
+    }
     summary.text(sumbuf.join("\r\n"));
     function HERE(src,ln) {
         var a=src.split("\n");
         a.splice(ln-1,0,"↓!!!HERE!!!↓");
         return a.join("\n");        
     }
+}
 });
 </script>
