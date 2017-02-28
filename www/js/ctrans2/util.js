@@ -1,7 +1,11 @@
-/*function promisize(p) {
-    if (p instanceof Promise) return p;
-    return new Promise(function (succ) {succ(p);});
-}*/
+function promisize(p) {
+    if (typeof Promise==="function") {
+        if (p instanceof Promise) return p;
+        return new Promise(function (succ) {succ(p);});
+    } else {
+        return $.when(p);
+    }
+}
 
 function search_scope_level(key,chk){
 	var i=scopes.length-1;
