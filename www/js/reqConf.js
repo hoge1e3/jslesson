@@ -208,6 +208,7 @@ var reqConf={
             syncWithKernel:"fs/syncWithKernel",
             typeCheck:"lang/typeCheck",
             zip: "fs/zip",
+            ctype: "ctrans/ctype",
             requestFragment: "fs/requestFragment",
             Blob: "fs/blob",
             exportToExe: "social/exportToExe",

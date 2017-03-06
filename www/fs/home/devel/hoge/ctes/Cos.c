@@ -9,6 +9,7 @@ main() {
         for (i=0;i<a*30;i++) {
             printf("-");
         }
+        sleep(100);
         printf("%f\n",a=cos(a));
     }
 }

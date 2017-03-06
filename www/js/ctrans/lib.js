@@ -62,7 +62,7 @@ console.log(dest);
 	}
 	
 	if(dest && typeof dest.write=="function") {
-	    if (typeof (dest.type)=="string") {
+	    if (dest.type instanceof CType.Base) {
     		dest.write(cast(dest.type,val));
 	    } else {
     		dest.write(val);
@@ -83,7 +83,7 @@ function printf() {
 			var res="0";
 			switch(typeof arg){
 			case "number": case "boolean":
-				res=cast("int",arg);
+				res=cast(CType.int,arg);
 				break;
 			}
 			return res;
@@ -290,5 +290,11 @@ function memcpy(dst, src,n) {
         dst=dst.offset(1);
     }
     return r;
+}
+function sleep(msec) {
+    return new Promise(function (succ) {
+        console.log("Sleeping for ",msec);
+        setTimeout(succ,msec); 
+    });
 }
 window.print=function() {throw new Error("print関数はありません。printfの間違いではないですか？");};

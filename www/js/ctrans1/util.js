@@ -1,12 +1,3 @@
-function promisize(p) {
-    if (typeof Promise==="function") {
-        if (p instanceof Promise) return p;
-        return new Promise(function (succ) {succ(p);});
-    } else {
-        return $.when(p);
-    }
-}
-
 function search_scope_level(key,chk){
 	var i=scopes.length-1;
 	for(;i>=0;i--)
@@ -50,7 +41,7 @@ function loop_chk(start){
 
 function str_to_ch_arr(str){
 	var $=[];
-	for(var i=0;i<str.length;i++){$.push(cast(CType.char,str.charCodeAt(i)));}
+	for(var i=0;i<str.length;i++){$.push(cast("char",str.charCodeAt(i)));}
 	$.push(0);
 	return $;
 }
@@ -92,13 +83,7 @@ function arrInit(){
 }
 
 function cast(type,data){
-    if (!(type instanceof CType.Base)) {
-        console.log("ERR",type,": not a type");
-        throw new Error(type+": not a type");
-    } 
-    return type.cast(data);
-    
-	/*type=type.replace(/ /g,"_");
+	type=type.replace(/ /g,"_");
 	type=type.charAt(0).toUpperCase()+type.slice(1);
 
 	if(typeof data == "string")data=data.charCodeAt(0);
@@ -107,7 +92,7 @@ function cast(type,data){
     if (!castf) return data;
 	var res=castf(data);
 
-	return res;*/
+	return res;
 }
 
 var casts={

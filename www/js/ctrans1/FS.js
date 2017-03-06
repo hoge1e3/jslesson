@@ -1239,7 +1239,7 @@ requirejs(["Content"], function (C) {
 */;
 define('NativeFS',["FS2","assert","PathUtil","extend","MIMETypes","DataURL","Content"],
         function (FS,A,P,extend,MIME,DataURL,Content) {
-    var available=(typeof process=="object"/* && process.__node_webkit*/);
+    var available=(typeof process=="object" && process.__node_webkit);
     if (!available) {
         return function () {
             throw new Error("This system not suppert native FS");
