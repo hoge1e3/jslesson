@@ -152,7 +152,8 @@ window.MinimalParser= function () {
 	var _void=t("void");
 	var reserved_word=/^(?:void|char|short|int|long|float|double|auto|static|const|signed|unsigned|extern|volatile|register|return|goto|if|else|switch|case|default|break|for|while|do|continue|typeof|struct|enum|union|sizeof)$/;
 	var storage_class_specifier=t(/^(?:auto|register|static|extern|typedef)/);
-	var type_specifier=t(/^(?:void|char|short|int|long|float|double|signed|unsigned)\b/)/*.or(struct_or_union_specifier_lazy).or(enum_specifier_lazy).or(typedef_name_lazy)*/;
+	var type_specifier=t(/^(?:void|char|short|int|long|float|double|signed|unsigned)\b/).
+	    or(struct_or_union_specifier_lazy)/*.or(enum_specifier_lazy).or(typedef_name_lazy)*/;
 	var type_qualifier=t(/^(?:const|volatile)/);
 	var type_qualifiers=type_qualifier.rep1();
 	var unary_operator=t(/^(?:\*|\+|\-|\~|\!|\&)/);//&
@@ -205,14 +206,20 @@ window.MinimalParser= function () {
 		.ret(function(comma,struct_declarator){return [",",struct_declarator];});
 	struct_declarator_list=struct_declarator.and(struct_declarator.rep0())
 		.ret(function(struct_declarator,struct_declarators){return [struct_declarator,struct_declarators];});
+	//\struct_declaration
 	var struct_declaration=specifier_qualifier_list_lazy.and(struct_declarator_list)
-		.ret(function(specifier_qualifier_list,struct_declarator){return [specifier_qualifier_list,struct_declarator];});
-	struct_or_union_specifier=struct_or_union.and(identifier.opt()).and(t("{")).and(struct_declaration.rep1()).and(t("}"))
+		.ret(function(specifier_qualifier_list,struct_declarator){
+		    return [specifier_qualifier_list,struct_declarator];
+		});
+	//\struct_or_union_specifier
+	struct_or_union_specifier=struct_or_union.and(identifier.opt()).
+    	and(t("{")).and(struct_declaration.rep1()).and(t("}"))
 		.ret(function(struct_or_union,identifier,lcb,stract_declaration,rcb){
 			return [struct_or_union,identifier,"{",stract_declaration,"}"];
-		});
-	struct_or_union_specifier=struct_or_union_specifier.or(struct_or_union.and(identifier)
-		.ret(function(struct_or_union,identifier){return [struct_or_union,identifier];}));
+		}).or(
+		    struct_or_union.and(identifier).ret(function(struct_or_union,identifier){
+		        return [struct_or_union,identifier];
+		    }));
 
 
 
@@ -793,7 +800,7 @@ window.MinimalParser= function () {
 	                return "double "+n+"();";
 	            }).join("\n");
 	        case "x.h":
-                return ["fillRect"].map(function (n) {
+                return ["fillRect","clear","update","setColor"].map(function (n) {
 	                return "void "+n+"();";
 	            }).join("\n");
 	    }

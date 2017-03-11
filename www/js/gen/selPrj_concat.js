@@ -2556,6 +2556,11 @@ define('assert',[],function () {
             _assert_func: f
         };
     };
+    assert.opt=function (t) {
+        return assert.f(function (v) {
+            return v==null || v instanceof t;
+        });
+    };
     assert.and=function () {
         var types=$a(arguments);
         assert(types instanceof Array);

@@ -9,8 +9,9 @@ scopes_0.main = async function main() {
         (scopes_1.i < 100); scopes_1.i++) {
         loop_chk2(start0); {
             var scopes_2 = {};
+            await (scopes_0.clear());
             await (scopes_0.fillRect(scopes_1.i, scopes_1.y, 50, 50));
-            await (scopes_0.sleep(20));
+            await (scopes_0.update());
         }
     }
 };

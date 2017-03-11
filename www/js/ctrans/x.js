@@ -3,7 +3,11 @@ function fillRect(x,y,w,h) {
     ctx.fillRect(x,y,w,h);
 }
 function clear() {
-    fillRect(x,y,400,400);
+    var ctx=initX()[0].getContext("2d");
+    var saveFillStyle=ctx.fillStyle;
+    ctx.fillStyle="white";
+    fillRect(0,0,400,400);
+    ctx.fillStyle=saveFillStyle;
 }
 function update(){
     var msec=16;
@@ -17,4 +21,8 @@ function initX() {
     window.xCanvas=$("<canvas>").attr({width:400,height:400});
     $("body").append(window.xCanvas);
     return window.xCanvas;
+}
+function setColor(r,g,b) {
+    var ctx=initX()[0].getContext("2d");
+    ctx.fillStyle="rgb("+[Math.floor(r-0),Math.floor(g-0),Math.floor(b-0)].join(",")+")";
 }

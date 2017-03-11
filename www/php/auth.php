@@ -7,6 +7,8 @@ require_once __DIR__."/fs/Permission.php";
 require_once __DIR__."/fs/SFile.php";
 require_once __DIR__."/data/JSONLines.php";
 require_once __DIR__."/data/pdo.php";
+require_once __DIR__."/user/BAClass.php";
+require_once __DIR__."/user/BAUser.php";
 
 //session_save_path("/tmp");
 //ini_set('session.gc_maxlifetime',60*60*24);
@@ -19,7 +21,7 @@ $userDir=new SFile($fs,"user/");
 class Auth {
     const TEACHER="teacher";
     static function login($class,$user,$pass=null) {
-        // 戻り値：
+        // TODO 戻り値：
         // ユーザ登録が必要 "register"
         // パスワード入力が必要 "requirepass"
         if (!$class)return "クラス名を入力してください。";
@@ -35,48 +37,18 @@ class Auth {
            return "ユーザ名は半角英数とハイフン、アンダースコアだけが使えます。";
         }
     }
-    static function setPass($class,$user,$pass) {
-        //パスワードを登録する．users_$class$.txtに書く
-        // request_$class$.txt から $userに関するエントリを全削除
-    }
-    static function resetRequest($class,$user) {
-        //再発行リクエストを行なう   
-        //PINを生成して，request_$class$.txt と セッションに書き込む
-        //PINが他とかぶらないように！
-    }
-    static function permitReset($class,$user,$pin) {
-        //$class/$userのユーザで，$pinをもっているユーザ（セッション）に対して
-        //再発行を許可する（request_$class$.txt に allowed:trueを書き込む
-    }
     static function resetPermitted() {
-        //再発行を許可されているか？
-        //セッション情報からpin取得->該当pin がallowed:trueとなっているか？
-        
-    }
-    static function getRequests($class) {
-        // $class の再発行リクエスト一覧を取得
+        curUser2()->resetPermitted(MySession::get("pin"));
     }
     static function userDir() {
         global $userDir;
         return $userDir;
     }
-    static function classList() {
-        // list.txtを取得
-        /*使い方：
-        $classList=self::classList();
-        $classObj=$classList->find1("classid",$classid);
-        $newClass=new stdClass;
-        $newClass->classid="newclass";
-        $newClass->pass="newpass";
-        $classList->add($newClass);
-        $classList->del($classObj);
-        $classObj->pass=$newPass;
-        $classList->save();
-        */
+    static function classList() {//旧
         $classList=new JSONLines(self::userDir()->rel("list.txt"));
         return $classList;
     }
-    static function loginTeacher($class,$pass,$ignoreNonexistent=false) {
+    static function loginTeacher($class,$pass,$ignoreNonexistent=false) {//旧
 	    $json = new Services_JSON();
         if (!$class)return "クラス名を入力してください。";
 	    if (!$pass)return "パスワードを入力してください。";
@@ -93,7 +65,7 @@ class Auth {
 	    }else{
 	        return "クラスIDかパスワードが間違っています。";
         }
-   }
+    }
     static function loginTeacher2($name,$pass,$ignoreNonexistent=false) {
 	    $json = new Services_JSON();
         if (!$name)return "メールアドレスを入力してください。";
@@ -110,28 +82,58 @@ class Auth {
 	        //setcookie("class",$class, time()+60*60*24*30);
 	        return true;
 	    }
-   }
-   static function isTeacher() {
+    }
+    static function isTeacher() {//旧バージョン
         return self::curUser()==self::TEACHER;       
-   }
-   static function isTeacherOf($class){
-        $pdo = pdo();
+    }
+    static function isTeacher2() {//新バージョン
+        return self::curUser2()->isTeacher();
+    }
+
+    static function selectClass($class) {
+        //(教員用) クラスを選択する
+        $class=self::getClass($class);
+        if (self::isTeacherOf($class)) {
+            if (!is_string($class->id)) {
+                throw new Exception("selClass: fail ".$class->id);
+            }
+            MySession::set("class",$class->id);
+        } else {
+            throw new Exception("You are not teacher of ".$class->id);
+        }
+    } 
+    static function isTeacherOf($class){
+        //現在ログインしているユーザは$class の教員roleを持つか？
+        return self::curUser2()->isTeacherOf(self::getClass($class));
+        /*$pdo = pdo();
     	$sth=$pdo->prepare("select * from role where class = ? and user = ? and type = ?");
     	$sth->execute(array($class,self::curUser(),self::TEACHER));
     	if (count($sth->fetchAll())==0){
 	        return false;
     	}else{
     	    return true;
-    	}
-   }
-   static function curUser() {
+    	}*/
+    }
+    static function getClass($class) {
+        if ($class instanceof BAClass) return $class;
+        return new BAClass($class);
+    }
+    static function curUser2() {
+        if (!MySession::has("user")) return null;
+        return self::curClass2()->getUser(MySession::get("user"));
+    }
+    static function curUser() {
         if (!MySession::has("user")) return null;
         return MySession::get("user");
-   }
-   static function curClass() {
+    }
+    static function curClass2() {
+        if (!MySession::has("class")) return null;
+        return new BAClass( MySession::get("class") );
+    }
+    static function curClass() {
         if (!MySession::has("class")) return null;
         return MySession::get("class");
-   }
+    }
     static function loggedIn() {
 	    $class=self::curClass();
    	    $user=self::curUser();
@@ -143,16 +145,6 @@ class Auth {
     }
     static function home() {
         return new SFile(self::getFS(),self::homeDir());
-    }
-    static function mkdir($class) {
-        if (!self::isTeacherOf($class)) {
-            throw new Error(" You are not the teacher of $class");
-        }
-        $fs=new NativeFS("fs/");
-        $f=new SFile($fs,"/home/".$class."/");
-        if (!$f->exists()) {
-            $f->mkdir();
-        }
     }
     static function getFS() {
 	    $class=self::curClass();

@@ -38,6 +38,11 @@ class PathUtil {
       }
       return $path;
   }
+  public static function truncExt($path) {
+        $r=self::name($path);
+        $r = preg_replace("/\.[a-zA-Z0-9]+$/","",$r);
+        return $r;
+  }
   public static function splitPath($path) {
         $res=explode(self::SEP,$path);
         if ($res[count($res)-1]=="") {

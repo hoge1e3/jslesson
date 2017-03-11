@@ -115,6 +115,13 @@ define(["Klass"],function (Klass) {
                 }).join(",")+")";
         }
     });
+    t.Struct=t.Base.inherit({
+        $:["members","name"],
+        $fields: {members:Array, name:Klass.opt(String)},
+        toLiteral: function () {
+            return CTYPE_NAME+".Struct([])";    
+        }
+    });
     return t;
 });
 /*
