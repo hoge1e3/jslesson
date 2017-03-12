@@ -2,7 +2,11 @@
 class BAUser {
     var $_class;
     var $name;
+    var $password;
     function BAUser($class,$name) {
+        if (!$class instanceof BAClass) {
+            throw new Exception("class should be BAClass");
+        }
         $this->_class=$class;
         $this->name=$name;
         if (!is_string($this->name)) {
@@ -33,6 +37,12 @@ class BAUser {
         //該当$pin がallowed:trueとなっているか？
         
     }
+    function make(){
+        $pdo = pdo();
+	    $sth=$pdo->prepare("insert into user(class,name,pass) values( ? , ? , ? )");
+	    $sth->execute(array($this->_class->id,$this->name,$this->password));
+	    
+    }
 
     function isTeacherOf($class) {
         //このユーザは$class の教員roleを持つか？
@@ -47,6 +57,16 @@ class BAUser {
     }
     function isTeacher() {
         return $this->_class->id==Auth::TEACHER;       
+    }
+    function exists(){
+        $pdo = pdo();
+        $sth=$pdo->prepare("select * from user where class = ? and name = ?");
+    	$sth->execute(array($this->_class->id,$this->name));
+    	if (count($sth->fetchAll())==0){
+	        return false;
+    	}else{
+    	    return true;
+    	}
     }
 }
 ?>

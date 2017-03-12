@@ -1,4 +1,5 @@
 <?php
+require_once("php/Modules.php");
 require_once("php/auth.php");
 $showForm=true;
 $class="";

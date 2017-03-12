@@ -60,6 +60,7 @@ class BAClass{
         //TODO
         return true;
     }
+
     function exists() {
         $pdo=pdo();
         $sth=$pdo->prepare("select * from class where id = ?");

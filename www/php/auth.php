@@ -9,6 +9,7 @@ require_once __DIR__."/data/JSONLines.php";
 require_once __DIR__."/data/pdo.php";
 require_once __DIR__."/user/BAClass.php";
 require_once __DIR__."/user/BAUser.php";
+require_once __DIR__."/Modules.php";
 req("BATeacher");
 //session_save_path("/tmp");
 //ini_set('session.gc_maxlifetime',60*60*24);
@@ -30,15 +31,11 @@ class Auth {
 	    if (!$c->exists()){
            return "存在しないクラスIDが入力されています。";
 	    }
-	    /*$pdo=pdo();
-        $sth=$pdo->prepare("select name from role where class = ?");
-        $sth->execute(array($class));
-	    $role=$sth->fetchAll();
-	    if($role)*/
-	    if(isUserOf($class)){
+	    $u=new BAUser($c,$user);
+	    if($u->exists()){
 	        if(!$c->passwordRequired()){
-	            //MySession::set("class",$class);
-	            //MySession::set("user",$user);
+	            MySession::set("class",$class);
+	            MySession::set("user",$user);
 	            return true;
 	        }else{
 	            return "requirepass";
@@ -100,6 +97,9 @@ class Auth {
 	        //setcookie("class",$class, time()+60*60*24*30);
 	        return true;
 	    }
+    }
+    function loginUser(){
+        
     }
     static function isTeacher() {//旧バージョン
         return self::curUser()==self::TEACHER;       

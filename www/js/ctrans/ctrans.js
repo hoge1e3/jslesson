@@ -758,7 +758,9 @@ window.MinimalParser= function () {
     	            throw new Error("&の使い方がまちがっています");
     	        }
     	    } else if (op.text=="*") {
-    	        assert.is(right.vtype,T.Pointer);
+    	        if (!((right.vtype) instanceof T.Pointer)) {
+    	            throw new Error("* はポインタ型にしか使いません");
+    	        }
     	        return extend(["(",right,").read()"], {
     	            type:"pointerDeref",
     	            vtype: right.vtype.e,
@@ -792,7 +794,7 @@ window.MinimalParser= function () {
 	var func_param=declaration_specifiers.and(init_param).ret(
 	    function (decl_spec, declarator) {
 	        var $=["scopes_"+(ctx.depth+1)+".", //TODO
-				declarator,"=","ARGS.shift();"];
+				declarator,"=","ARGS.shift();","/*", typeLit(declarator.vtype),"*/"];
 			$.pname=declarator.vname;
 			$.ptype=declarator.vtype;//ctx.depth+1;
 		    return $;

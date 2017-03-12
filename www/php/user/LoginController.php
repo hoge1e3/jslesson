@@ -52,14 +52,83 @@ class LoginController {
     	    self::form();
     	}
     } 
+    static function checkPass() {
+        if (!isset($_POST["password"])) {
+            self::$mesg="パスワードが入力されていません";
+            return self::passForm();
+        }
+    	$class=$_POST["class"];
+    	$user=$_POST["user"];
+    	$password=$_POST["password"];
+    	self::$mesg=Auth::loginUser($class,$user,$password);
+    	if (self::$mesg===true) {
+    	    $showForm=false;
+    	    header("Location: index.html");
+    	    //print "$mesg";
+    	} else {
+    	    self::passForm();
+    	}
+    } 
     static function passForm() {
         $class=$_POST["class"];
+        $user=$_POST["user"];
     	//TODO:パスワード入力
-    	
+    	?>
+    	<meta charset="UTF-8">
+    	<h1>Bit Arrow ログイン</h1>
+    	<form action="a.php?Login/checkPass" method="POST">
+    	  クラスID: <?= $class ?></br>
+    	  ユーザ名: <?= $user ?></br>
+    	  パスワード <input name="password" type="password"/>
+    	  <br/>
+    	  <input type="submit" value="OK"/>
+    	</form>
+    	<?php
     }
     static function register() {
         $class=$_POST["class"];
+        $user=$_POST["user"];
+        $c=new BAClass($class);
     	//TODO:ユーザ登録(パスワードの登録)
+    	?>
+    	<meta charset="UTF-8">
+    	<h1><?= $class?> クラス新規ユーザ登録</h1>
+    	<form action="a.php?Login/registerConfirm" method="POST">
+    	  クラスID: <input type="hidden" name="class" value="<?= $class ?>"><?= $class ?></br>
+    	  ユーザ名<input name="user" value="<?= $user?>"></br>
+    	  <?php
+    	  if($c->passwordRequired()){
+    	      echo 'パスワード <input name="password" type="password"/>';
+    	      echo 'パスワード(確認用) <input name="passwordconf" type="password"/>';
+    	  }
+    	  ?>
+    	  <br/>
+    	  <input type="submit" value="OK"/>
+    	</form>
+    	<?php
+    }
+    static function registerConfirm(){
+        $class=$_POST["class"];
+        $user=$_POST["user"];
+        if(isset($_POST["password"])){
+            $pass=$_POST["password"];
+        }else{
+            $pass="";
+        }
+        $c=new BAClass($class);
+        $u=new BAUser($c,$user);
+        $u->password=$pass;
+        $u->make();
+    	$mesg=Auth::login($class,$user);
+        if($mesg){
+    ?>
+    	<meta charset="UTF-8">
+    	<h1><?= $class?> 新規ユーザ登録成功</h1>
+    	  <br/>
+    	<?php
+            
+            //header("Location: index.html");
+        }
     	
     }
 }
