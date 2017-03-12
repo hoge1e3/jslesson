@@ -60,6 +60,16 @@ window.MinimalParser= function () {
 	        return {scope: Object.create(ctx.scope||{}) ,depth:depth };
 	    },parser);
 	}
+	function inject(parser, injector/*:(void->void)->void*/) {
+	    return Parser.create(function (st) {
+	        var res;
+	        var parseAction/*:(void->void)*/=function () {
+    	        res=parser.parse(st);
+	        };
+	        injector(parseAction);
+	        return res;
+	    });
+	}
 	function ajoin(sep,a) {
 	    a=a.slice();
 	    for (var i=a.length-1;i>0 ;i--) {
@@ -209,18 +219,18 @@ window.MinimalParser= function () {
 		.ret(function(struct_declarator,struct_declarators){return [struct_declarator,struct_declarators];});*/
     var struct_declarator_list=	declarator_lazy.sep1(t(","),true);
 	//\struct_declaration
-	var struct_declaration=Parser.create(function (st) {
+	var struct_declaration_raw=specifier_qualifier_list_lazy.ret(function (types) {
+        baseType=typeNamesToType(types);
+        console.log("216:baseType",baseType);
+        return baseType;
+    }).and(struct_declarator_list).and(t(";")).ret(function (t,decl,sc) {
+        return decl;
+    });
+	var struct_declaration=inject(struct_declaration_raw,function (a) {
 	    var saveBaseType=baseType;
-	    var ns=specifier_qualifier_list_lazy.ret(function (types) {
-	        baseType=typeNamesToType(types);
-	        console.log("216:baseType",baseType);
-	        return baseType;
-	    }).and(struct_declarator_list).and(t(";")).ret(function (t,decl,sc) {
-	        return decl;
-	    }).parse(st);
-	    baseType=saveBaseType;    	  
-	    return ns;
-	});
+        a();
+        baseType=saveBaseType;    	  
+    });
 	//\struct_or_union_specifier
 	struct_or_union_specifier=struct_or_union.and(identifier.opt()).
     	and(t("{")).and(struct_declaration.rep1()).and(t("}"))
