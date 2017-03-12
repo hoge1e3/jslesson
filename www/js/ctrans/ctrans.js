@@ -148,6 +148,7 @@ window.MinimalParser= function () {
 	var declaration_specifiers_lazy=Parser.lazy(function(){return declaration_specifiers;});
 	var declarator_lazy=Parser.lazy(function(){return declarator;});
 	var paren_expr_lazy=Parser.lazy(function(){return paren_expr;});
+	var identifier_lazy=Parser.lazy(function(){return identifier;});
 	//var func_call_lazy=Parser.lazy(function(){return func_call;});
 	var if_state_lazy=Parser.lazy(function(){return if_state;});
 	var terms_lazy=Parser.lazy(function(){return terms;});
@@ -162,8 +163,16 @@ window.MinimalParser= function () {
 	var reserved_word=/^(?:void|char|short|int|long|float|double|auto|static|const|signed|unsigned|extern|volatile|register|return|goto|if|else|switch|case|default|break|for|while|do|continue|typeof|struct|enum|union|sizeof)$/;
 	var storage_class_specifier=t(/^(?:auto|register|static|extern|typedef)/);
 	//\type_specifier
+	var typedef_name=identifier_lazy.except(function (e) {
+	    if (ctx.scope[e.text] && (ctx.scope[e.text].vtype) instanceof T.TypeDef) {
+	        return false; 
+	    }
+	    return true;
+	}).ret(function (e) {
+	    return {vtype:ctx.scope[e.text].vtype.e};
+	});
 	var type_specifier=t(/^(?:void|char|short|int|long|float|double|signed|unsigned)\b/).
-	    or(struct_or_union_specifier_lazy)/*.or(enum_specifier_lazy).or(typedef_name_lazy)*/;
+	    or(struct_or_union_specifier_lazy)/*.or(enum_specifier_lazy)*/.or(typedef_name);
 	var type_qualifier=t(/^(?:const|volatile)/);
 	var type_qualifiers=type_qualifier.rep1();
 	var unary_operator=t(/^(?:\*|\+|\-|\~|\!|\&)/);//&
@@ -236,16 +245,16 @@ window.MinimalParser= function () {
     	and(t("{")).and(struct_declaration.rep1()).and(t("}"))
 		.ret(function(struct_or_union,identifier,lcb,struct_declarations,rcb){
 		    var t=T.Struct(identifier+"");
-		    console.log("229:decls",struct_declarations);
+		    //console.log("229:decls",struct_declarations);
 	        struct_declarations.forEach(function (declaration) {
 		        declaration.forEach(function (declarator) {
-	    	         console.log("DECL-or",declarator);
+	    	         //console.log("DECL-or",declarator);
 		             t.addMember(declarator.vtype,declarator.vname+"");
 		        });
 		    });
-		    console.log("Struct",t);
+		    //console.log("Struct",t);
 		    if (identifier) {
-		        ctx.scope[identifier.text]=t;
+		        ctx.scope[identifier.text]={vtype:T.TypeDef(t),depth:ctx.depth};
 		    }
 			return extend([struct_or_union,identifier,"{",struct_declaration,"}"],
 			{vtype:t});
@@ -254,7 +263,9 @@ window.MinimalParser= function () {
 		        if (!ctx.scope[identifier.text]) {
 		            throw new Error(identifier.text+" は定義されていません");
 		        }
-		        return {vtype:ctx.scope[identifier.text]};//[struct_or_union,identifier];
+		        var vtype=ctx.scope[identifier.text].vtype;
+		        assert.is(vtype,T.TypeDef);
+		        return {vtype: vtype.e};
 		    }));
 
     // \specifier_qualifier_list
@@ -289,7 +300,7 @@ window.MinimalParser= function () {
 	        var type=types[i];
 	        if (type.vtype) {
 	            res=type.vtype;
-	            console.log("281",res);
+	            //console.log("281",res);
 	            continue;
 	        }
 	        switch (type.text) {
@@ -302,6 +313,12 @@ window.MinimalParser= function () {
 	            case "unsigned": res=T.Unsigned(res||T.int);break;
 	            case "long": res=T.Long(res||T.int);break;
 	            case "short": res=T.Short(res||T.int);break;
+	            case "typedef": 
+	                if (!res) {
+    	                console.log("TYPEDEF error",types);
+    	                throw new Error("typedef 型 型名; という形式で定義してください");
+	                }
+	                res=T.TypeDef(res); break;
 	            case "static": break;//TODO
 	            default:
 	                console.log("Not a valid type:",types,"["+i+"]");
@@ -362,9 +379,19 @@ window.MinimalParser= function () {
     		return $;
 	    }
 	);
+	var pointer=t("*");//.and(type_qualifiers.opt()).ret(function(mul,type_qualifiers){return [];});
     //\declarator = pointer? direct-declarator  (pointer? まだ)
-	declarator=direct_declarator.ret(function(e){return e;});
-	
+	declarator=inject(
+	    pointer.rep0().ret(function (ps) {
+    	    for (var i=0 ; i<ps.length; i++) {
+    	        baseType=T.Pointer(baseType);
+    	    }
+    	    return baseType;
+    	}).and(direct_declarator).ret(function (t,d) {
+    	    return d;
+    	}),
+    	function (a) {var s=baseType;a();baseType=s;}
+    );
 	var parameter_declaration=declaration_specifiers.and(declarator)
 		.ret(function(declaration_specifiers,declarator){return [declaration_specifiers,declarator];});
     //\parameter_type_list
@@ -374,7 +401,6 @@ window.MinimalParser= function () {
 		.ret(function(parameter_declaration,parameter_declarations){
 			return [parameter_declaration,parameter_declarations];
 		});
-	//var pointer=t("*").and(type_qualifiers.opt()).ret(function(mul,type_qualifiers){return [];});
 
 	type_name=specifier_qualifier_list.and(abstract_declarator.opt())
 		.ret(function(specifier_qualifier_list,abstract_declarator){
@@ -411,19 +437,26 @@ window.MinimalParser= function () {
 	}
 	function mkpost(left,op){
 	    var t=left.vtype;
+	    var expr=[left,op];
 	    chkTypeIsSet("mkpost")(left);
-	    if (op.isIndex) {
+	    if (op.type=="index") {
 	        if (t instanceof T.Array) {
 	            if (!t.e) {
 	                failWithCon(left,op,t,"Cannot resolve type of left[op]");
 	            }
 	            t=t.e;
 	        }
+	    } else if (op.type==="func_call") {
+	        //vtype TODO
+	        if (supportsPromise) {
+        	    expr=["await(",left,op,")"];
+	        }
+	    } else if (op.type==="arrow") {
+    	    expr=["(",left,").read().",op[1]];//vtype TODO
+	    } else if (op.type==="dot") {
+    	    expr=[left,op];//vtype TODO
 	    }
-	    if (op.type==="func_call" && supportsPromise) {
-    	    return extend(["await(",left,op,")"],{vtype:t});
-	    }
-	    return extend([left,op],{vtype:t});
+	    return extend(expr,{vtype:t, type:"post",left:left,op:op});
 	}
 	function mkpre(op,right){
 	    chkTypeIsSet("mkpre")(right);
@@ -438,10 +471,17 @@ window.MinimalParser= function () {
 
 	assign=unary_expression_lazy.and(assignment_operator)
 		.and(calc_expression).ret(function(unary_expr,op,calc_expr){
-			return extend(
-			    [unary_expr,op,"cast(",typeLit(unary_expr.vtype),",",calc_expr,")"],
-			    {vtype:unary_expr.vtype}
-			);
+		    if (unary_expr.type=="pointerDeref") {
+    			return extend(
+    			    ["(",unary_expr.pointer,").write(","cast(",typeLit(unary_expr.vtype),",",calc_expr,"))"],
+    			    {vtype:unary_expr.vtype}
+    			);
+		    } else {
+    			return extend(
+    			    [unary_expr,op,"cast(",typeLit(unary_expr.vtype),",",calc_expr,")"],
+    			    {vtype:unary_expr.vtype}
+    			);
+		    }
 		}).or(calc_expression);
 
 	expression=assign;
@@ -652,7 +692,7 @@ window.MinimalParser= function () {
 
 	primary_expression=var_identifier.or(constant).or(string).or(
 	    t("(").and(expression.ret(chkTypeIsSet("ln.585"))).and(t(")")).ret(function(lp,expr,rp){
-	        return extend(["(",expr,")"],{vtype:expr.vtype});
+	        return extend(["(",expr,")"],{vtype:expr.vtype,type:"paren_expr"});
 	    })
 	);
     // \postfix_expression
@@ -663,7 +703,8 @@ window.MinimalParser= function () {
 		.ret(function(lsb,expr,rsb){
 		    // PTR
 			var $=["[",expr,"]"];
-			$.isIndex=true;
+			$.type="index";
+			$.index=expr;
 			return $;
 		}));
 	postfix_expression.postfix(5,t("(").and(argument_expressions.opt()).and(t(")")).ret(
@@ -674,11 +715,11 @@ window.MinimalParser= function () {
 	postfix_expression.postfix(4,t("--"));
 	postfix_expression.postfix(5,t(".").and(identifier)
 		.ret(function(peri,identifier){
-		    return [".",identifier];
+		    return extend([".",identifier],{type:"dot",vname:identifier});
 		}));
-	postfix_expression.postfix(5,t(/^->/).and(identifier)
+	postfix_expression.postfix(5,t("->").and(identifier)
 		.ret(function(arrow,identifier){
-		    return ["->",identifier];
+		    return extend(["->",identifier],{type:"arrow",vname:identifier});
 		}));
 	postfix_expression.mkPostfix(mkpost);
 	postfix_expression.mkPrefix(mkpre);
@@ -693,19 +734,36 @@ window.MinimalParser= function () {
 	        assert(right.vtype,"right.vtype not set at cast_expr (from unary_expr)");
 	        // PTR
     	    if (op.text=="&") {
+    	        if (right.type==="paren_expr") {
+    	            right=right[1];
+    	        }
     	        //console.log("OP",right,right.vname);
-    	        if (right instanceof Array && 
-    	            right.length==2 &&
-    	            right[1] && right[1].isIndex) {
-    	                // right[1]  : [ "[", expr, "]" ]
-	                return extend( ["pointer(",right[0],",",right[1][1],")"] ,
-	                {vtype: T.Array(right.vtype)} );
+    	        if (right.type==="post" && right.op.type==="index") {
+	                return extend( ["pointer(",right.left,",",right.op.index,")"] ,
+	                {vtype: T.Pointer(right.vtype)} );
+    	        } else if (right.type==="post" && right.op.type==="arrow") {
+	                return extend( ["pointer(",right.left,",",lit(right.op.vname),")"] ,
+	                {vtype: T.Pointer(right.vtype)} );
+    	        } else if (right.type==="post" && right.op.type==="dot") {
+	                return extend( ["pointer(",right.left,",",lit(right.op.vname),")"] ,
+	                {vtype: T.Pointer(right.vtype)} );
     	        } else if (right.vname) {
                  	var s=findVariable(right.vname);
         			return extend(["pointer(",
         			    ["scopes_"+s.depth, lit(right.vname), typeLit(s.vtype)].join(","),
-        			")"],{vtype: T.Array(s.vtype)} ); 
+        			")"],
+        			{vtype: T.Pointer(s.vtype)} ); 
+    	        } else {
+    	            console.log("Invalid &",right);
+    	            throw new Error("&の使い方がまちがっています");
     	        }
+    	    } else if (op.text=="*") {
+    	        assert.is(right.vtype,T.Pointer);
+    	        return extend(["(",right,").read()"], {
+    	            type:"pointerDeref",
+    	            vtype: right.vtype.e,
+    	            pointer: right
+    	        });      
     	    }
     	    return extend([op,right], {vtype:right.vtype});
 	    })

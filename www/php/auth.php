@@ -26,8 +26,25 @@ class Auth {
         // パスワード入力が必要 "requirepass"
         if (!$class)return "クラス名を入力してください。";
 	    if (!$user)return "ユーザ名を入力してください。";
-	    if (!file_exists("fs/home/$class")){
+	    $c=new BAClass($class);
+	    if (!$c->exists()){
            return "存在しないクラスIDが入力されています。";
+	    }
+	    /*$pdo=pdo();
+        $sth=$pdo->prepare("select name from role where class = ?");
+        $sth->execute(array($class));
+	    $role=$sth->fetchAll();
+	    if($role)*/
+	    if(isUserOf($class)){
+	        if(!$c->passwordRequired()){
+	            //MySession::set("class",$class);
+	            //MySession::set("user",$user);
+	            return true;
+	        }else{
+	            return "requirepass";
+	        }
+	    }else{
+	        return "register";
 	    }
         if (preg_match('/^[a-zA-Z0-9\\-_]+$/',$user) && $user!=self::TEACHER) {
             MySession::set("class",$class);

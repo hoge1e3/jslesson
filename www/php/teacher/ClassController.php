@@ -21,7 +21,8 @@ class ClassController {
         }
         ?>
         <h1><?=$class->id?> - ユーザ一覧</h1>
-        <a href="a.php?Teacher/home">クラス一覧に戻る</a><hr>
+        <a href="a.php?Teacher/home">クラス一覧に戻る</a><br>
+        <a href="a.php?Class/config">クラスの設定をする</a><hr>
         <?php
         $class->mkdir();
         $mesg="";
@@ -65,6 +66,31 @@ class ClassController {
     static function config() {
         // TODO
         // パスワードポリシーの設定とか
+        $class=Auth::curClass2();
+        ?>
+        <h1><?=$class->id?> - クラス設定</h1>
+        <?php 
+        if($class->passwordRequired()){
+            echo 'パスワード設定:使用する<br>';
+            echo '<a href="a.php?Class/setPasswordNouse">使用しないに変更</a>';
+        }else{
+            echo 'パスワード設定:使用しない<br>';
+            echo '<a href="a.php?Class/setPasswordUse">使用するに変更</a>';
+        }
+        ?>
+        <hr>
+        <a href="a.php?Class/show">ユーザ一覧に戻る</a><br>
+        <?php
+    }
+    static function setPasswordNouse(){
+        $class=Auth::curClass2();
+        $class->setPasswordPolicy("nouse");
+        redirect("Class/config");
+    }
+    static function setPasswordUse(){
+        $class=Auth::curClass2();
+        $class->setPasswordPolicy("yes");
+        redirect("Class/config");
     }
 }
 

@@ -134,6 +134,13 @@ define(["Klass","assert"],function (Klass,assert) {
             this.members.push(t.Member(type,name));
         }
     });
+    t.TypeDef=t.Base.inherit({
+        $:["e"],
+        $fields:{e:t.Base},
+        toLiteral: function () {
+            return CTYPE_NAME+".TypeDef("+this.e.toLiteral()+")";    
+        }
+    });
     return t;
 });
 /*

@@ -31,7 +31,7 @@ class BAClass{
     function passwordRequired() {
         //TODO
         //このクラスのユーザはパスワードを要求されるか？
-        if($this->getOptions()->passwordPolicy=="yes"){
+        if(isset($this->getOptions()->passwordPolicy) && $this->getOptions()->passwordPolicy=="yes"){
             return true;
         }
         return false;
@@ -41,20 +41,20 @@ class BAClass{
         $sth=$pdo->prepare("select options from class where id = ?");
         $sth->execute(array($this->id));
         $c=$sth->fetchAll();
-        if($c==""){
+        if($c[0]["options"]==""){
             return new stdClass;
         }
-        return $json_decode($c);
+        return json_decode($c[0]["options"]);
     }
     function setOptions($opts){
         $pdo=pdo();
         $sth=$pdo->prepare("update class set options = ? where id = ?");;
-        $sth->execute(array($opts,$this->id));
+        $sth->execute(array(json_encode($opts),$this->id));
     }
     function setPasswordPolicy($p){
-        $opts=getOptions();
+        $opts=$this->getOptions();
         $opts->passwordPolicy=$p;
-        setOptions($opts);
+        $this->setOptions($opts);
     }
     static function isValidClassName($classname) {
         //TODO
