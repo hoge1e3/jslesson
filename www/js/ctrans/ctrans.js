@@ -33,7 +33,6 @@ window.MinimalParser= function () {
 		});
 	}
 	var t=token;
-	var vars=[{}];
 	var defines={};
 	function ent(entf, parser) {
         if (typeof parser == "function") {
@@ -199,6 +198,7 @@ window.MinimalParser= function () {
 	    return extend(r,{vtype:T.float});
 	});
 	var constant=floating_constant.or(character_constant).or(integer_constant)/*.or(enumeration_constant)*/;
+	//\identifier
 	var identifier=t(/^[a-zA-Z_][a-zA-Z0-9_]*/).except(function(identifier){
 			return ((identifier.text).match(reserved_word));
 		}).ret(function(identifier){
@@ -341,16 +341,24 @@ window.MinimalParser= function () {
 		));
     //\direct_declarator
     direct_declarator=direct_declarator_head.and(direct_declarator_tail.rep0()).ret(
-        function(identifier,direct_decl_tails){
-    		var $=[identifier,direct_decl_tails];
+        function(direct_decl_head,direct_decl_tails){
+    		var $=[direct_decl_head.vname/*,direct_decl_tails*/];
     		$.vtype=baseType;
     		direct_decl_tails.forEach(function (tail) {
     		    switch(tail.type) {
 		        case "decl_array":
-		            $.vtype=T.Array($.vtype,$.elementLength);
-    		    }    
+		            $.vtype=T.Array($.vtype,tail.elementLength);
+		            break;
+    		    case "decl_params":
+    		        $.vtype=T.Function($.vtype,tail.params);
+		            break;
+    		    case "decl_idents":
+    		        $.vtype=T.Function($.vtype,[]);
+		            break;
+		        }    
     		});
-    		$.vname=identifier.vname;
+    		$.vname=direct_decl_head.vname;
+    		ctx.scope[$.vname+""]={vtype:$.vtype, depth: ctx.depth};
     		return $;
 	    }
 	);
@@ -442,24 +450,43 @@ window.MinimalParser= function () {
 	    return extend(["[",ajoin(",",initializers),"]"],{type:"arrayInit"});
 	});
 	initializer=assign.or(array_initializer);
+	function defaultInitializer(vtype) {
+	    if (vtype instanceof T.Array) {
+	        return ["arrInit2(",typeLit(vtype.e),",", (vtype.length||"0"),")"];
+	    } else if (vtype instanceof T.Struct) {
+	        return ["{}"];
+	    } else if (vtype instanceof T.Function) {
+	        return "function (){}";
+	    } else {
+	        return ["0","/*",typeLit(vtype),"*/"];
+	    }
+	}
 	// \init_declarator
 	var init_declarator=declarator.and(t("=").and(initializer).opt())
 		.ret(function(declarator,eq,initializer){
-			var $=[declarator,"=",initializer?["cast(",typeLit(declarator.vtype),",",initializer,")"]:"0"];
+			var $=[curScopesName(),".",declarator,"=",
+			    initializer?
+			    ["cast(",typeLit(declarator.vtype),",",initializer,")"]:
+			    defaultInitializer(declarator.vtype),";\n"
+			];
 			if(declarator.isArray){
 				$.isArray=declarator.isArray;
 				$.isLength=declarator.isLength;
 			}
 			$.declarator=declarator;
 			$.initializer=initializer;
+    		if ((declarator.vtype) instanceof T.Function) {
+    		    //プロトタイプ宣言はコードを生成しない
+    		    $.unshift("/*");
+    		    $.push("*/");
+    		}
 			return $;
 		});
 
 	var init_declarator_list=init_declarator.sep0(t(","),true);
 	declaration=declaration_specifiers.and(init_declarator_list).and(t(";"))
 		.ret(function(decl_specifiers,init_decl_list,semicolon){
-			var identifier_list=[];
-			init_decl_list.forEach(function(e){});
+		    return init_decl_list;// REMOVE if rollback
 			var baseType=decl_specifiers.vtype;
 			if (!baseType) {
 			    console.log("declSpec",decl_specifiers,typeof decl_specifiers);
@@ -515,9 +542,6 @@ window.MinimalParser= function () {
 						$.push(init_decl_list[i]);
 						$.push(";");
 					}
-					vars[vars.length-1][identifier+""]=vtype;
-					//console.log(vars[vars.length-1]);
-					//console.log(vars);
 					
 				}
 				return $;
@@ -552,11 +576,10 @@ window.MinimalParser= function () {
 		.and(t(";")).and(expression.opt()).and(t(")")).and(statement_lazy)
 		.ret(function(_for,lp,e1,e2,s2,e3,rp,state){
 			var startName="start"+(startSeq++);
-			return [function(){vars.push({});},
+			return [
 				"var ",startName,"=loop_start();",
 				"for","(",e1,e2,";",e3,")",
-				"{","loop_chk2(",startName,");",state,"}",
-				function(){vars.pop();}
+				"{","loop_chk2(",startName,");",state,"}"
 			];
 		}));
 
@@ -573,11 +596,10 @@ window.MinimalParser= function () {
 	var compound_statement_part=declaration.or(statement_lazy).rep0();
 	var compound_statement=t("{").and(compound_statement_part).and(t("}"))
 		.ret(function(lcb,states,rcb){
-		    return [function(){vars.push({});},"{",
+		    return ["{",
 		        "var ",curScopesName(),"={};",
 				states,
-			"}",function(){vars.pop();}
-			];
+			"}"];
 		});
 	compound_statement=newScope(compound_statement);
 	var switch_compound_statement=t("{").and(compound_statement_part).and(t("}"))
@@ -708,11 +730,19 @@ window.MinimalParser= function () {
 	    });
 	}
 
-	var init_param=declarator.and(t("=").and(initializer).opt()).ret(MKARY);
-	var func_param=declaration_specifiers.and(init_param).ret(MKARY);
+	var init_param=declarator/*.and(t("=").and(initializer).opt()).ret(MKARY)*/;
+	var func_param=declaration_specifiers.and(init_param).ret(
+	    function (decl_spec, declarator) {
+	        var $=["scopes_"+(ctx.depth+1)+".", //TODO
+				declarator,"=","ARGS.shift();"];
+			$.pname=declarator.vname;
+			$.ptype=declarator.vtype;//ctx.depth+1;
+		    return $;
+	    });
 	var func_param_list=_void.or(func_param.sep0(t(","),true))
 		.ret(function(params){
 		    if (!(params instanceof Array)) return [];//void
+		    return params;//REMOVE if rollback
 		    function genparam(n,declarator, initializer){
 				var $=[declarator,"=",
 				["cast(",typeLit(declarator.vtype),",param_init(","arguments["+n+"]",",",
@@ -760,7 +790,6 @@ window.MinimalParser= function () {
 						$.push(")");
 						$.push(";");
 					}	
-					vars[vars.length-1][identifier+""]=type;
 					$.push("scopes_"+(ctx.depth+1)+".");//TODO
 					$.push($$);
 					$.push(";");
@@ -791,6 +820,7 @@ window.MinimalParser= function () {
                     return ["scopes_"+depth,".",name,"=",
                     (supportsPromise?"async":"") ," function ",name,"(){",
         				"var ",curScopesName(),"={};",
+                        "var ARGS=Array.prototype.slice.call(arguments);\n",
                         params,
 				        states,
             			"};"
@@ -862,7 +892,6 @@ window.MinimalParser= function () {
 
 	parser.parse=function (str) {
 	    startSeq=0;
-		vars=[{}];
 		defines={NULL:0};
 		var output="";
 		var preLines=str.split("\n").length;

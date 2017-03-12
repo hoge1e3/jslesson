@@ -72,7 +72,19 @@ function param_init(arg,init){
 	else throw("関数の引数が足りません。");
 	return res;
 }
-
+function arrInit2(vtype,length){
+    var res=[];
+    for (var i=0;i<length;i++) {
+        var e=0;
+        if (vtype instanceof CType.Array) {
+            e=arrInit2(vtype.e,vtype.length);
+        } else if (vtype instanceof CType.Struct) {
+            e={};
+        }
+        res.push(e);    
+    }
+    return res;
+}
 function arrInit(){
     var a=Array.prototype.slice.call(arguments);
     if (a.length===0) return null;
