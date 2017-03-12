@@ -12,34 +12,38 @@ class ClassController {
         }
         $class=$_GET["class"];
         Auth::selectClass($class);
-        header("Location: a.php?Class/show");
+        redirect("Class/show");
     }
     static function show() {
         $class=Auth::curClass2();
-        ?><h1><?=$class->id?> - ユーザ一覧</h1><hr><?php
-        if(Auth::isTeacherOf($class)){
-            Auth::mkdir($class);
-            $mesg="";
-            $handle=opendir("fs/home/".$class->id."/");
-            $files=array();
-            $sortedKeys=array();
-            $i=0;
-            while(($tmp=readdir($handle)) !== false){
-    	    	if($tmp!="." && $tmp!=".."){
-    	    	    $files[$i]=$tmp;
-    	    	    $i++;
-    		    }
-            }
-            natcasesort($files);
-            $sortedKeys=array_keys($files);
-            for($i=0;$i<count($files);$i++){
+        if(!Auth::isTeacherOf($class)){
+            return redirect("Teacher/login");
+        }
+        ?>
+        <h1><?=$class->id?> - ユーザ一覧</h1>
+        <a href="a.php?Teacher/home">クラス一覧に戻る</a><hr>
+        <?php
+        $class->mkdir();
+        $mesg="";
+        $handle=opendir("fs/home/".$class->id."/");
+        $files=array();
+        $sortedKeys=array();
+        $i=0;
+        while(($tmp=readdir($handle)) !== false){
+	    	if($tmp!="." && $tmp!=".."){
+	    	    $files[$i]=$tmp;
+	    	    $i++;
+		    }
+        }
+        natcasesort($files);
+        $sortedKeys=array_keys($files);
+        for($i=0;$i<count($files);$i++){
             ?>
-                <a href="a.php?login&class=<?=$class->id?>&user=<?=$files[$sortedKeys[$i]]?>" 
-                    target="stutab">
-                <?= $files[$sortedKeys[$i]] ?>
-                </a><br/>
+            <a href="a.php?login&class=<?=$class->id?>&user=<?=$files[$sortedKeys[$i]]?>" 
+                target="stutab">
+            <?= $files[$sortedKeys[$i]] ?>
+            </a><br/>
             <?php 
-    	    }
         }
     }
     static function make() {

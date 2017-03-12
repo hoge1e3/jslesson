@@ -1,4 +1,4 @@
-define(["Klass"],function (Klass) {
+define(["Klass","assert"],function (Klass,assert) {
     var t={};
     var CTYPE_NAME="CType";
     window[CTYPE_NAME]=t;
@@ -115,11 +115,23 @@ define(["Klass"],function (Klass) {
                 }).join(",")+")";
         }
     });
+    t.Member=Klass.define({
+        $name:"Member",
+        $:["type","name"],
+        $fields: {type:t.Base,name:String}
+    });
     t.Struct=t.Base.inherit({
-        $:["members","name"],
+        $:function (name) {
+            this.name=name;
+            this.members=[];
+        },
         $fields: {members:Array, name:Klass.opt(String)},
         toLiteral: function () {
             return CTYPE_NAME+".Struct([])";    
+        },
+        addMember: function (type,name) {
+            assert.is(arguments,[t.Base,String]);
+            this.members.push(t.Member(type,name));
         }
     });
     return t;

@@ -152,6 +152,7 @@ window.MinimalParser= function () {
 	var _void=t("void");
 	var reserved_word=/^(?:void|char|short|int|long|float|double|auto|static|const|signed|unsigned|extern|volatile|register|return|goto|if|else|switch|case|default|break|for|while|do|continue|typeof|struct|enum|union|sizeof)$/;
 	var storage_class_specifier=t(/^(?:auto|register|static|extern|typedef)/);
+	//\type_specifier
 	var type_specifier=t(/^(?:void|char|short|int|long|float|double|signed|unsigned)\b/).
 	    or(struct_or_union_specifier_lazy)/*.or(enum_specifier_lazy).or(typedef_name_lazy)*/;
 	var type_qualifier=t(/^(?:const|volatile)/);
@@ -199,33 +200,55 @@ window.MinimalParser= function () {
 
 	var constant_expression=calc_expression_lazy;
 
-	var struct_declarator=declarator_lazy.opt().and(t(":")).and(constant_expression)
+	/*var struct_declarator=declarator_lazy.opt().and(t(":")).and(constant_expression)
 		.ret(function(declarator,colon,const_expr){return [declarator,":",const_expr];});
 	struct_declarator=struct_declarator.or(declarator_lazy);
 	var struct_declarator_list=t(",").and(struct_declarator)
 		.ret(function(comma,struct_declarator){return [",",struct_declarator];});
 	struct_declarator_list=struct_declarator.and(struct_declarator.rep0())
-		.ret(function(struct_declarator,struct_declarators){return [struct_declarator,struct_declarators];});
+		.ret(function(struct_declarator,struct_declarators){return [struct_declarator,struct_declarators];});*/
+    var struct_declarator_list=	declarator_lazy.sep1(t(","),true);
 	//\struct_declaration
-	var struct_declaration=specifier_qualifier_list_lazy.and(struct_declarator_list)
-		.ret(function(specifier_qualifier_list,struct_declarator){
-		    return [specifier_qualifier_list,struct_declarator];
-		});
+	var struct_declaration=Parser.create(function (st) {
+	    var saveBaseType=baseType;
+	    var ns=specifier_qualifier_list_lazy.ret(function (types) {
+	        baseType=typeNamesToType(types);
+	        console.log("216:baseType",baseType);
+	        return baseType;
+	    }).and(struct_declarator_list).and(t(";")).ret(function (t,decl,sc) {
+	        return decl;
+	    }).parse(st);
+	    baseType=saveBaseType;    	  
+	    return ns;
+	});
 	//\struct_or_union_specifier
 	struct_or_union_specifier=struct_or_union.and(identifier.opt()).
     	and(t("{")).and(struct_declaration.rep1()).and(t("}"))
-		.ret(function(struct_or_union,identifier,lcb,stract_declaration,rcb){
-			return [struct_or_union,identifier,"{",stract_declaration,"}"];
+		.ret(function(struct_or_union,identifier,lcb,struct_declarations,rcb){
+		    var t=T.Struct(identifier+"");
+		    console.log("229:decls",struct_declarations);
+	        struct_declarations.forEach(function (declaration) {
+		        declaration.forEach(function (declarator) {
+	    	         console.log("DECL-or",declarator);
+		             t.addMember(declarator.vtype,declarator.vname+"");
+		        });
+		    });
+		    console.log("Struct",t);
+		    if (identifier) {
+		        ctx.scope[identifier.text]=t;
+		    }
+			return extend([struct_or_union,identifier,"{",struct_declaration,"}"],
+			{vtype:t});
 		}).or(
 		    struct_or_union.and(identifier).ret(function(struct_or_union,identifier){
-		        return [struct_or_union,identifier];
+		        if (!ctx.scope[identifier.text]) {
+		            throw new Error(identifier.text+" は定義されていません");
+		        }
+		        return {vtype:ctx.scope[identifier.text]};//[struct_or_union,identifier];
 		    }));
 
-
-
-
-	specifier_qualifier_list=type_qualifier.or(type_specifier);
-	specifier_qualifier_list=specifier_qualifier_list.rep1();
+    // \specifier_qualifier_list
+	specifier_qualifier_list=type_qualifier.or(type_specifier).rep1();
 
 	//var direct_abstract_declarator=direct_abstract_declarator.opt().and(t("[")).and(/*constant_*/expression_lazy.opt()).and(t("]")).ret(function(direct_abstract_declarator,lsb,const_expr,rsb){return [direct_abstract_declarator,"[",const_expr,"]"];});
 	//direct_abstract_declarator=direct_abstract_declarator.or(direct_abstract_declarator.opt().and(t("(")).and(parameter_type_list_lazy.opt()).and(t(")")).ret(function(direct_abstract_declarator,lp,parameter_type_list,rp){return [direct_abstract_declarator,"(",parameter_type_list,")"];}));
@@ -247,20 +270,6 @@ window.MinimalParser= function () {
 	// \declaration_specifiers
 	var declaration_specifier=storage_class_specifier.or(type_specifier).or(type_qualifier);
 	declaration_specifiers=declaration_specifier.rep1().ret(function(types){
-	    /*for (var i=types.length-1;i>=0;i--) {
-	        var type=types[i];
-	        switch (type.text) {
-	            case "int": baseType=T.int;break;
-	            case "float": baseType=T.float;break;
-	            case "double": baseType=T.double;break;
-	            case "byte": baseType=T.byte;break;
-	            case "char": baseType=T.char;break;
-	            case "void": baseType=T.void;break;
-	            case "unsigned": baseType=T.Unsigned(baseType||T.int);break;
-	            default:throw new Error(type.text+" is not a valid type");
-	        }
-	    }
-	    assert.is(baseType,T.Base);*/
 	    baseType=typeNamesToType(types);
 	    return {vtype:baseType,type:"declaration_specifiers"};
 	});
@@ -268,6 +277,11 @@ window.MinimalParser= function () {
 	    var res=null;
 	    for (var i=types.length-1;i>=0;i--) {
 	        var type=types[i];
+	        if (type.vtype) {
+	            res=type.vtype;
+	            console.log("281",res);
+	            continue;
+	        }
 	        switch (type.text) {
 	            case "int": res=T.int;break;
 	            case "float": res=T.float;break;
@@ -279,7 +293,9 @@ window.MinimalParser= function () {
 	            case "long": res=T.Long(res||T.int);break;
 	            case "short": res=T.Short(res||T.int);break;
 	            case "static": break;//TODO
-	            default:throw new Error(type.text+" is not a valid type");
+	            default:
+	                console.log("Not a valid type:",types,"["+i+"]");
+	                throw new Error(type.text+" is not a valid type");
 	        }
 	    }
 	    assert.is(res,T.Base);
@@ -313,6 +329,7 @@ window.MinimalParser= function () {
 		        return extend( ["(",identifier_list,")"], {type:"decl_idents"});
 		    }
 		));
+    //\direct_declarator
     direct_declarator=direct_declarator_head.and(direct_declarator_tail.rep0()).ret(
         function(identifier,direct_decl_tails){
     		var $=[identifier,direct_decl_tails];
@@ -444,7 +461,7 @@ window.MinimalParser= function () {
 					var $$=init_decl_list[i];
 					var declarator=$$.declarator;
 					var identifier=declarator.vname;
-					var type=baseType;
+					var vtype=baseType;
 					var tmp=[];
                     //$$01  = init_decl's  decl's  decltails   int x[2][3] の [2][3]
                     //	init_declarator:= declarator = initializer
@@ -453,7 +470,7 @@ window.MinimalParser= function () {
                     var hasParams=false;
 					for(var n=0;n<declarator_tails.length;n++){
 						if (declarator_tails[n].type=="decl_array") {
-    						type=T.Array(type, declarator_tails[n][1]  );
+    						vtype=T.Array(vtype, declarator_tails[n][1]  );
     						tmp.push(declarator_tails[n][1]);//添字
     						declarator_tails[n]=[];//???
 						} else if (declarator_tails[n].type=="decl_params" || 
@@ -462,8 +479,10 @@ window.MinimalParser= function () {
                         }
 					}
 					//type.push(decl_specifiers);
-                    ctx.scope[identifier+""]={vtype:type, depth: ctx.depth};
-					if (hasParams) {
+                    ctx.scope[identifier+""]={vtype:vtype, depth: ctx.depth};
+                    if (vtype instanceof T.Struct) {
+						$.push(curScopesName()+"."+identifier+"={};");
+                    } else if (hasParams) {
 					    // prototype宣言はコードを生成しない
 					} else if(tmp.length){
 						$.push(curScopesName()+"."+identifier+"=");
@@ -486,7 +505,7 @@ window.MinimalParser= function () {
 						$.push(init_decl_list[i]);
 						$.push(";");
 					}
-					vars[vars.length-1][identifier+""]=type;
+					vars[vars.length-1][identifier+""]=vtype;
 					//console.log(vars[vars.length-1]);
 					//console.log(vars);
 					

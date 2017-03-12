@@ -59,6 +59,7 @@ $mod_aliases=array(
     'test' => 'php/test/test.php',
     'BAClass' => 'php/user/BAClass.php',
     'BAUser' => 'php/user/BAUser.php',
+    'BATeacher' => 'php/teacher/BATeacher.php',
     'index' => 'php/websock/index.php',
     'info' => 'php/websock/info.php',
     'server' => 'php/websock/server.php',

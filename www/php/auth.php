@@ -9,7 +9,7 @@ require_once __DIR__."/data/JSONLines.php";
 require_once __DIR__."/data/pdo.php";
 require_once __DIR__."/user/BAClass.php";
 require_once __DIR__."/user/BAUser.php";
-
+req("BATeacher");
 //session_save_path("/tmp");
 //ini_set('session.gc_maxlifetime',60*60*24);
 //ini_set('session.gc_maxlifetime',10);
@@ -71,13 +71,14 @@ class Auth {
         if (!$name)return "メールアドレスを入力してください。";
 	    if (!$pass)return "パスワードを入力してください。";
 	    $pdo = pdo();
-    	$sth=$pdo->prepare("select * from user where class = ? and name = ? and pass = ?");
-    	$sth->execute(array(self::TEACHER,$name,$pass));
+    	$sth=$pdo->prepare("select * from teacher where name = ? and pass = ?");
+    	$sth->execute(array($name,$pass));
     	if (count($sth->fetchAll())==0){
 	        return "メールアドレスかパスワードが間違っています。";
     	}else{
 	        // Success
-	        MySession::set("class",self::TEACHER);
+	        MySession::set("teacher",$name);
+	        //MySession::set("class",self::TEACHER);
 	        MySession::set("user",$name);
 	        //setcookie("class",$class, time()+60*60*24*30);
 	        return true;
@@ -87,7 +88,12 @@ class Auth {
         return self::curUser()==self::TEACHER;       
     }
     static function isTeacher2() {//新バージョン
-        return self::curUser2()->isTeacher();
+	   if (MySession::has("teacher")) {
+    	   $t=MySession::get("teacher");
+    	   return new BATeacher($t);
+	   } 
+	   return null;
+        //return self::curUser2()->isTeacher();
     }
 
     static function selectClass($class) {
@@ -104,7 +110,8 @@ class Auth {
     } 
     static function isTeacherOf($class){
         //現在ログインしているユーザは$class の教員roleを持つか？
-        return self::curUser2()->isTeacherOf(self::getClass($class));
+        $t=self::isTeacher2();
+        return $t->isTeacherOf(self::getClass($class));
         /*$pdo = pdo();
     	$sth=$pdo->prepare("select * from role where class = ? and user = ? and type = ?");
     	$sth->execute(array($class,self::curUser(),self::TEACHER));
