@@ -78,7 +78,9 @@ class LoginController {
     	<h1>Bit Arrow ログイン</h1>
     	<form action="a.php?Login/checkPass" method="POST">
     	  クラスID: <?= $class ?></br>
+    	  <input type="hidden" name="class" value="<?= $class ?>"/>
     	  ユーザ名: <?= $user ?></br>
+    	  <input type="hidden" name="user" value="<?= $user ?>"/>
     	  パスワード <input name="password" type="password"/>
     	  <br/>
     	  <input type="submit" value="OK"/>

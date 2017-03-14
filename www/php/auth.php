@@ -98,8 +98,8 @@ class Auth {
 	        return true;
 	    }
     }
-    function loginUser(){
-        
+    static function loginUser($class,$user,$password){
+        //TODO    
     }
     static function isTeacher() {//旧バージョン
         return self::curUser()==self::TEACHER;       

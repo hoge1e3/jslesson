@@ -1,7 +1,13 @@
 define(["ctrans/ctype","Parser","context","ExpressionParser","assert"],
 function (T,Parser,context,ExpressionParser,assert) {
 window.MinimalParser= function () {
-    var supportsPromise=(typeof Promise==="function");
+    var supportsPromise=false;
+    try {
+        f=new Function ("var a=async function (){};");
+        f();
+        supportsPromise=true;
+    }catch(e){
+    }
     //a=T.Array({});
     //console.log("ARY",a);
     //test-ctrans
