@@ -3,7 +3,9 @@ NULL=0;
 function log(){
 	console.log(arguments);
 }
-function pointer(obj,key,type,ofs) {
+
+// Moved to util.js
+/*function pointer(obj,key,type,ofs) {
 	if(Array.isArray(obj[key])){
 		var tmp=[];
 		ofs=ofs||0;
@@ -32,43 +34,61 @@ function pointer(obj,key,type,ofs) {
     	    return pointer(obj,key+o,type);
     	}
     };
-}
+}*/
 function scanf(line, dest) {
-console.log(dest);
+    //console.log(dest);
 	var val;
 	line=ch_arr_to_str(line);
-  var input=(scanf.STDIN?scanf.STDIN.shift():
-  prompt(lineBuf.join("")+"\n(実行を停止するには^Cを入力)",""));
-	loop_start2();
-  if (input.toLowerCase()=="^c") throw new Error("実行を停止しました");
-  printf(str_to_ch_arr(input+"\n"));
-	var format=line.match(/%d|%c|%x|%#x|%lf|%f|%s/);
-	switch(format+""){
-	case "%d":
-		val=parseInt(input);
-	break;
-	case "%f":case "%lf":
-		val=parseFloat(input);
-	break;
-	case "%c":
-		val=input.charCodeAt(0);
-	break;
-	case "%s":
-		val=input;
-		var src=str_to_ch_arr(val);
-		strcpy(dest, src);
-		dest=null;
-	break;
+	if (scanf.STDIN) {
+	    afterScan(scanf.STDIN.shift());
+	} else if (window.supportsAsync && $("#console")[0]) {
+	    return new Promise(function (p) {
+	        var box=$("<input>").on("keydown",function (e) {
+	            console.log(e);
+	            if (e.originalEvent.keyCode==13) {
+	                $(this).remove();
+	                p(this.value);
+	            }   
+	        });
+	        $("#console").append(box);
+	        box.focus();
+	    }).then(afterScan);
+	} else {
+        var input=prompt(lineBuf.join("")+"\n(実行を停止するには^Cを入力)","");
+        afterScan(input);
 	}
-	
-	if(dest && typeof dest.write=="function") {
-	    if (dest.type instanceof CType.Base) {
-    		dest.write(cast(dest.type,val));
-	    } else {
-    		dest.write(val);
-	    }
-	}
-	//else dest=val;
+    function afterScan(input) {
+    	loop_start2();
+        if (input.toLowerCase()=="^c") throw new Error("実行を停止しました");
+        printf(str_to_ch_arr(input+"\n"));
+    	var format=line.match(/%d|%c|%x|%#x|%lf|%f|%s/);
+    	switch(format+""){
+    	case "%d":
+    		val=parseInt(input);
+    	    break;
+    	case "%f":case "%lf":
+    		val=parseFloat(input);
+    	    break;
+    	case "%c":
+    		val=input.charCodeAt(0);
+    	    break;
+    	case "%s":
+    		val=input;
+    		var src=str_to_ch_arr(val);
+    		strcpy(dest, src);
+    		dest=null;
+    	    break;
+    	}
+    	
+    	if(dest && typeof dest.write=="function") {
+    	    if (dest.type instanceof CType.Base) {
+        		dest.write(cast(dest.type,val));
+    	    } else {
+        		dest.write(val);
+    	    }
+    	}
+    	//else dest=val;
+    }
 }
 function printf() {
     //var line=format.replace(/%d/,value);

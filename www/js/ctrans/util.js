@@ -1,3 +1,41 @@
+window.supportsAsync=false;
+try {
+    f=new Function ("var a=async function (){};");
+    f();
+    window.supportsAsync=true;
+}catch(e){
+}
+function pointer(obj,key,type,ofs) {
+	if(Array.isArray(obj[key])){
+		var tmp=[];
+		ofs=ofs||0;
+		for(var i=0;i<obj[key].length;i++){
+		    (function (i) {
+    			var $={
+    				read:function(){return obj[key][i+ofs];},
+    				write:function(v){return obj[key][i+ofs]=v;},
+    				offset: function (o) {
+                	    return tmp[i+o];
+                	},
+    				type:type.split(",")[1],
+    			};
+    			tmp.push($);
+		    })(i);
+		}
+        //for(var i=0;i<tmp.length;i++)console.log(tmp[i].read());
+		return tmp;
+	}
+    return {
+        read: function () { return obj[key];},
+        write: function (v) { return obj[key]=v;},
+    	type: type,
+    	offset: function (o) {
+    	    if (typeof key!="number") throw new Error(key+": この操作はできません");
+    	    return pointer(obj,key+o,type);
+    	}
+    };
+}
+
 function promisize(p) {
     if (typeof Promise==="function") {
         if (p instanceof Promise) return p;
