@@ -9,6 +9,9 @@
 <script>
     requirejs.config({
         shim: {
+            /*"AsyncByGenerator":{
+                exports:"AsyncByGenerator"
+            }*/
         },
         paths: {
             assert: "../lib/assert",
@@ -20,8 +23,9 @@
 </head>
 <pre id="console"></pre>
 <script>
-requirejs(["ctype","FS"],function(T,FS){
-	$(function(){
+requirejs(["ctype","FS","AsyncByGenerator"],function(T,FS,ABG){
+	$(function () {
+	ABG.ready(function(){
 		var args=location.search.slice(1).split("&");
 		var param={};
 		jQuery.each(args,function(){
@@ -29,7 +33,9 @@ requirejs(["ctype","FS"],function(T,FS){
 			param[tmp[0]]=tmp[1];
 		});
 		try{
-			var p=new Function(FS.get(param.file).text())();
+		    var funcstr=FS.get(param.file).text();
+		    console.log("Run js ",funcstr);
+			var p=new Function(funcstr)();
 			promisize(p).then(function () {
     			parent.sendResult($("#console").text());
 			},handleError);
@@ -51,6 +57,7 @@ requirejs(["ctype","FS"],function(T,FS){
 			alert(e);
 			parent.Tonyu.onRuntimeError(e);
 		}
+	});
 	});
 });
 </script>

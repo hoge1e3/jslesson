@@ -88,6 +88,9 @@ var reqConf={
                 deps:["Parser"],
                 exports:"MinimalParser"
             },
+            /*AsyncByGenerator: {
+                exports: "AsyncByGenerator"
+            },*/
             cCompiler: {
                 deps: [
                     "ctrans/beautify",
@@ -209,6 +212,8 @@ var reqConf={
             typeCheck:"lang/typeCheck",
             zip: "fs/zip",
             ctype: "ctrans/ctype",
+            AsyncByGeneratorRaw: "ctrans/AsyncByGeneratorRaw",
+            AsyncByGenerator: "ctrans/AsyncByGenerator",
             requestFragment: "fs/requestFragment",
             Blob: "fs/blob",
             exportToExe: "social/exportToExe",

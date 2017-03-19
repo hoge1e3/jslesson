@@ -37,6 +37,12 @@ function pointer(obj,key,type,ofs) {
 }
 
 function promisize(p) {
+    if (typeof AsyncByGenerator=="object") {
+        if (AsyncByGenerator.supportsGenerator &&
+            AsyncByGenerator.isGenerator(p)) {
+            return AsyncByGenerator.run(p);
+        }
+    }
     if (typeof Promise==="function") {
         if (p instanceof Promise) return p;
         return new Promise(function (succ) {succ(p);});

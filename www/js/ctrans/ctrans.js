@@ -1,13 +1,13 @@
-define(["ctrans/ctype","Parser","context","ExpressionParser","assert"],
-function (T,Parser,context,ExpressionParser,assert) {
+define(["ctrans/ctype","AsyncByGenerator","Parser","context","ExpressionParser","assert"],
+function (T,ABG,Parser,context,ExpressionParser,assert) {
 window.MinimalParser= function () {
-    var supportsPromise=false;
-    try {
+    var supportsAsync=false;
+    /*try {
         f=new Function ("var a=async function (){};");
         f();
-        supportsPromise=true;
+        supportsAsync=true;
     }catch(e){
-    }
+    }*/
     //a=T.Array({});
     //console.log("ARY",a);
     //test-ctrans
@@ -454,8 +454,10 @@ window.MinimalParser= function () {
 	        }
 	    } else if (op.type==="func_call") {
 	        //vtype TODO
-	        if (supportsPromise) {
+	        if (supportsAsync) {
         	    expr=["await(",left,op,")"];
+	        } else if (ABG.supportsGenerator) {
+	            expr=["(yield* AsyncByGenerator.toGen(",left,op,"))"];
 	        }
 	    } else if (op.type==="arrow") {
     	    expr=["(",left,").read().",op[1]];//vtype TODO
@@ -882,9 +884,15 @@ window.MinimalParser= function () {
                 if (params) params.forEach(function (param) {
                     ctx.scope[param.pname+""]={vtype:param.ptype, depth: ctx.depth};
                 });
+                var func="function ";
+                if (supportsAsync) {
+                    func="async function ";
+                } else if (ABG.supportsGenerator) {
+                    func="function* ";
+                }
                 rst=t("{").and(compound_statement_part).and(t("}")).ret(function (_,states) {
                     return ["scopes_"+depth,".",name,"=",
-                    (supportsPromise?"async":"") ," function ",name,"(){",
+                        func,name,"(){",
         				"var ",curScopesName(),"={};",
                         "var ARGS=Array.prototype.slice.call(arguments);\n",
                         params,

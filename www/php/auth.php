@@ -98,8 +98,18 @@ class Auth {
 	        return true;
 	    }
     }
-    static function loginUser($class,$user,$password){
+    static function loginUser($class,$user,$pass){
         //TODO    
+	    $pdo = pdo();
+    	$sth=$pdo->prepare("select * from user where class = ? and name = ? and pass = ?");
+    	$sth->execute(array($class,$user,$pass));
+    	if (count($sth->fetchAll())==0){
+    	    return false;
+    	}else{
+            MySession::set("class",$class);
+            MySession::set("user",$user);
+            return true;
+    	}
     }
     static function isTeacher() {//旧バージョン
         return self::curUser()==self::TEACHER;       

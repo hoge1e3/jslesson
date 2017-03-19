@@ -13,6 +13,9 @@ file:///C:/bin/Dropbox/workspace/jslesson/www/js/ctrans2/ctrans-test3.html
             Parser:{exports:"Parser"},
             ExpressionParser:{exports:"ExpressionParser"},
             jsgen:{exports:"js_gen"},
+            "AsyncByGenerator":{
+                exports:"AsyncByGenerator"
+            },
             hoge:{exports:"fuga"}
         },
         paths: {
@@ -42,9 +45,9 @@ try {
 } catch (ex) {
     //console.log(ex.message);
 }
-requirejs(["FS","ctrans/ctrans","beautify","jsgen"],
-function (FS,MinimalParser,beautify,js_gen) {
-    loop();
+requirejs(["FS","ctrans/ctrans","beautify","jsgen","AsyncByGenerator"],
+function (FS,MinimalParser,beautify,js_gen,ABG) {
+    ABG.ready(loop);
 async function loop() {
     //  ここは、自分のテストしたいC言語ファイルのあるディレクトリを指定
 	var d=FS.get("C:/bin/Dropbox/tuat/tcc_test2");
@@ -69,7 +72,7 @@ async function loop() {
 			var output=f.up().rel(f.truncExt()+".js");
 			output.text(program);
 			var func=new Function(program);
-			await func();
+			await promisize(func());
 			var expect=f.up().rel(f.truncExt()+".expect");
 			var expectxt=expect.text().replace(/[\s\r\n]*$/,"").replace(/\r/g,"");
 			buf=buf.replace(/[\s\r\n]*$/,"").replace(/\r/g,"");
