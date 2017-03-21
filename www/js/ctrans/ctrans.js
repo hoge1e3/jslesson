@@ -40,6 +40,11 @@ window.MinimalParser= function () {
 	}
 	var t=token;
 	var defines={};
+	function newError(mesg,node) {
+	    var e=new Error(mesg);
+	    e.pos=node && node.pos;
+	    return e;
+	}
 	function ent(entf, parser) {
         if (typeof parser == "function") {
 	       var res;
@@ -93,7 +98,20 @@ window.MinimalParser= function () {
 	    return t.toLiteral();
 	}
     function extend(arr,obj) {
-        for (var k in obj) arr[k]=obj[k];
+        var pos;
+        for (var k in obj) {
+            arr[k]=obj[k];
+        }
+        if (typeof arr.pos!=="number") {
+            for (var k in arr) {
+                if (arr[k] && typeof arr[k].pos==="number") {
+                    if (pos==null || arr[k].pos<pos) {
+                        pos=arr[k].pos;
+                    }
+                }
+            }
+            arr.pos=pos;
+        }
         return arr;
     }
     function curScopesName() {
@@ -101,7 +119,7 @@ window.MinimalParser= function () {
     }
     function findVariable(n) {
         var r=ctx.scope[n+""];
-        if (!r) throw new Error(n+"は定義されていません");
+        if (!r) throw newError(n+"は定義されていません",n);
         return r;
     }
     function variableName(n) {
@@ -166,7 +184,7 @@ window.MinimalParser= function () {
 	var char=t("char");
 	var double=t("double");
 	var _void=t("void");
-	var reserved_word=/^(?:void|char|short|int|long|float|double|auto|static|const|signed|unsigned|extern|volatile|register|return|goto|if|else|switch|case|default|break|for|while|do|continue|typeof|struct|enum|union|sizeof)$/;
+	var reserved_word=/^(?:void|char|short|int|long|float|double|auto|static|const|signed|unsigned|extern|volatile|register|return|goto|if|else|switch|case|default|break|for|while|do|continue|typeof|struct|enum|union|sizeof|__asm)$/;
 	var storage_class_specifier=t(/^(?:auto|register|static|extern|typedef)/);
 	//\type_specifier
 	var typedef_name=identifier_lazy.except(function (e) {
@@ -267,7 +285,7 @@ window.MinimalParser= function () {
 		}).or(
 		    struct_or_union.and(identifier).ret(function(struct_or_union,identifier){
 		        if (!ctx.scope[identifier.text]) {
-		            throw new Error(identifier.text+" は定義されていません");
+		            throw newError(identifier.text+" は定義されていません",identifier);
 		        }
 		        var vtype=ctx.scope[identifier.text].vtype;
 		        assert.is(vtype,T.TypeDef);
@@ -322,13 +340,13 @@ window.MinimalParser= function () {
 	            case "typedef": 
 	                if (!res) {
     	                console.log("TYPEDEF error",types);
-    	                throw new Error("typedef 型 型名; という形式で定義してください");
+    	                throw newError("typedef 型 型名; という形式で定義してください",type);
 	                }
 	                res=T.TypeDef(res); break;
 	            case "static": break;//TODO
 	            default:
 	                console.log("Not a valid type:",types,"["+i+"]");
-	                throw new Error(type.text+" is not a valid type");
+	                throw newError(type.text+" is not a valid type",type);
 	        }
 	    }
 	    assert.is(res,T.Base);
@@ -398,15 +416,20 @@ window.MinimalParser= function () {
     	}),
     	function (a) {var s=baseType;a();baseType=s;}
     );
+    //\parameter_declaration
 	var parameter_declaration=declaration_specifiers.and(declarator)
-		.ret(function(declaration_specifiers,declarator){return [declaration_specifiers,declarator];});
+		.ret(function(declaration_specifiers,declarator){
+		    return extend([declaration_specifiers,declarator],{
+		        vtype:declarator.vtype,
+		        vname:declarator.vname});
+		}).or(t("void"));
     //\parameter_type_list
-	parameter_type_list=t(",").and(parameter_declaration)
-		.ret(function(comma,parameter_declaration){return [",",parameter_declaration];});
-	parameter_type_list=parameter_declaration.and(parameter_type_list.rep0())
-		.ret(function(parameter_declaration,parameter_declarations){
+	//parameter_type_list=t(",").and(parameter_declaration)
+	//	.ret(function(comma,parameter_declaration){return [",",parameter_declaration];});
+	parameter_type_list=parameter_declaration.sep1(t(","),true);//parameter_type_list.rep0())
+		/*.ret(function(parameter_declaration,parameter_declarations){
 			return [parameter_declaration,parameter_declarations];
-		});
+		});*/
 
 	type_name=specifier_qualifier_list.and(abstract_declarator.opt())
 		.ret(function(specifier_qualifier_list,abstract_declarator){
@@ -532,70 +555,11 @@ window.MinimalParser= function () {
 		});
 
 	var init_declarator_list=init_declarator.sep0(t(","),true);
+	// \declaraion
 	declaration=declaration_specifiers.and(init_declarator_list).and(t(";"))
 		.ret(function(decl_specifiers,init_decl_list,semicolon){
-		    return init_decl_list;// REMOVE if rollback
-			var baseType=decl_specifiers.vtype;
-			if (!baseType) {
-			    console.log("declSpec",decl_specifiers,typeof decl_specifiers);
-			    throw new Error("baseType is not found");
-			}
-			return (function(){
-				var $=[];
-				for(var i=0;i<init_decl_list.length;i++){
-					var $$=init_decl_list[i];
-					var declarator=$$.declarator;
-					var identifier=declarator.vname;
-					var vtype=baseType;
-					var tmp=[];
-                    //$$01  = init_decl's  decl's  decltails   int x[2][3] の [2][3]
-                    //	init_declarator:= declarator = initializer
-                    var declarator_tails=declarator[1];
-                    var initializer=$$.initializer;
-                    var hasParams=false;
-					for(var n=0;n<declarator_tails.length;n++){
-						if (declarator_tails[n].type=="decl_array") {
-    						vtype=T.Array(vtype, declarator_tails[n][1]  );
-    						tmp.push(declarator_tails[n][1]);//添字
-    						declarator_tails[n]=[];//???
-						} else if (declarator_tails[n].type=="decl_params" || 
-						declarator_tails[n].type=="decl_idents" ) {
-						    hasParams=true;    
-                        }
-					}
-					//type.push(decl_specifiers);
-                    ctx.scope[identifier+""]={vtype:vtype, depth: ctx.depth};
-                    if (vtype instanceof T.Struct) {
-						$.push(curScopesName()+"."+identifier+"={};");
-                    } else if (hasParams) {
-					    // prototype宣言はコードを生成しない
-					} else if(tmp.length){
-						$.push(curScopesName()+"."+identifier+"=");
-						//console.log("init",initializer);
-						if (initializer&&
-						(initializer.type=="string" || initializer.type=="arrayInit")) {
-                            $.push(initializer);                            
-                        } else {						
-    						$.push("arrInit(");
-    						for(var n=0;n<tmp.length;n++){
-    							$.push((tmp[n])?tmp[n]:"1");
-    							$.push(",");
-    						}
-    						$.pop();
-    						$.push(")");
-                        }
-						$.push(";");
-					}else{
-						$.push(curScopesName()+".");
-						$.push(init_decl_list[i]);
-						$.push(";");
-					}
-					
-				}
-				return $;
-			})();
+		    return init_decl_list;
 		});
-
 
 	var jump_statement=t("goto").and(identifier).and(t(";"));
 	jump_statement=jump_statement.or(t("continue").and(t(";")).ret(function(){return "continue;";}));
@@ -663,14 +627,22 @@ window.MinimalParser= function () {
 	labeled_statement=labeled_statement.or(t("default").and(t(":")).and(statement_lazy)
 		.ret(function(_default,colon,state){return ["default",":",state];}));
 
+    var asm_block;
+    var asm_block_lazy=Parser.lazy(function(){return asm_block;});
+	asm_block=t("{").and(t(/^[^\{\}]+/).or(asm_block_lazy).rep0().ret(MKARY)).and(t("}")).
+    ret(MKARY);
+    var asm_statement=t("__asm").and(asm_block).ret(function (_,b) {
+        return b;
+    });
 	statement=expression_statement;
 	statement=statement.or(labeled_statement);
 	statement=statement.or(compound_statement);
 	statement=statement.or(selection_statement);
 	statement=statement.or(iteration_statement);
 	statement=statement.or(jump_statement);
+    statement=statement.or(asm_statement);
+	// \statements
 	statements=statement.rep0().ret(function(states){return states;});
-
 
 	var argument_expressions=expression.sep0(t(","),true).ret(function(param){
 		if(param=="void")return "";
@@ -763,11 +735,11 @@ window.MinimalParser= function () {
         			{vtype: T.Pointer(s.vtype)} ); 
     	        } else {
     	            console.log("Invalid &",right);
-    	            throw new Error("&の使い方がまちがっています");
+    	            throw newError("&の使い方がまちがっています",right);
     	        }
     	    } else if (op.text=="*") {
     	        if (!((right.vtype) instanceof T.Pointer)) {
-    	            throw new Error("* はポインタ型にしか使いません");
+    	            throw newError("* はポインタ型にしか使いません",right);
     	        }
     	        return extend(["(",right,").read()"], {
     	            type:"pointerDeref",
@@ -783,7 +755,7 @@ window.MinimalParser= function () {
 	    t("(").and(type_name).and(t(")")).and(cast_expression_lazy)
 	    .ret(function(lp,type_name,rp,cast_expr){
     	    var t=typeNamesToType([type_name+""]);
-    	    if (!t) throw new Error("Type for "+type_name+" not found");
+    	    if (!t) throw newError("Type for "+type_name+" not found",type_name);
     	    return extend(["(",typeLit(t),")",cast_expr],{vtype:t});
     	    //***
 	    })
@@ -792,7 +764,7 @@ window.MinimalParser= function () {
 	    return (function (r) {
     	    if (!(r.vtype)) {
     	        console.log("Type is not set at:",r);
-    	        throw new Error("type is not set at "+unary);
+    	        throw newError("type is not set at "+unary,unary);
     	    } 
     	    return r;
 	    });
@@ -810,63 +782,9 @@ window.MinimalParser= function () {
 	var func_param_list=_void.or(func_param.sep0(t(","),true))
 		.ret(function(params){
 		    if (!(params instanceof Array)) return [];//void
-		    return params;//REMOVE if rollback
-		    function genparam(n,declarator, initializer){
-				var $=[declarator,"=",
-				["cast(",typeLit(declarator.vtype),",param_init(","arguments["+n+"]",",",
-					(initializer||"null"),"))"]];
-				if(declarator.isArray){
-					$.isArray=declarator.isArray;
-					$.isLength=declarator.isLength;
-				}
-				return $;
-			}
-			return params.map(function(param,n){
-			        var decl_specifiers=param[0];
-			        var init_param=param[1];
-			        var declarator=init_param[0];
-			        var initializer=init_param[2];
-		    		var $=[];
-					var $$=genparam(n,declarator, initializer);
-					var declarator_tails=declarator[1];
-					if (!declarator_tails) {
-					    console.log("ERR",declarator);
-					}
-					var identifier=declarator.vname;
-					var type=[];
-					var tmp=[];
-                    //$$01  = init_decl's  decl's  decltails   int x[2][3] の [2][3]
-                    //	init_declarator:= declarator = initializer
-
-					for(var n=0;n<declarator_tails.length;n++){
-						type.push("array");
-						tmp.push(declarator_tails[n][1]);
-						declarator_tails[n]=[];
-					}
-					type.push(decl_specifiers);
-					$.ptype=type;
-					$.pname=identifier+"";
-                    //ctx.scope[identifier+""]={vtype:type, depth: ctx.depth};
-					if(tmp.length){
-						$.push(curScopesName()+"."+identifier+"=");
-						$.push("arrInit(");
-						for(var n=0;n<tmp.length;n++){
-							$.push((tmp[n])?tmp[n]:"1");
-							$.push(",");
-						}
-						$.pop();
-						$.push(")");
-						$.push(";");
-					}	
-					$.push("scopes_"+(ctx.depth+1)+".");//TODO
-					$.push($$);
-					$.push(";");
-					
-					//console.log($);
-					return $;
-            });
+		    return params;
 		});
-
+    // \func
     var func=(func_type.opt()).and(identifier).and( 
             t("(").and(func_param_list.opt()).and(t(")")).ret(function (_,r){return r;})
         ).and(Parser.create(function (st) {
@@ -948,7 +866,7 @@ window.MinimalParser= function () {
 	var preprocess=function(str){
 		var lines = str.split("\n");
 		for(var i in lines){
-			lines[i]=lines[i].replace(/\/\/.*/," ");
+			//lines[i]=lines[i].replace(/\/\/.*/," "); why?
 			var res=(lines[i])?control_line.parseStr(lines[i]):"";
 			if(res.success){
 				lines[i]=res.result[0]||"";
@@ -972,21 +890,38 @@ window.MinimalParser= function () {
 		var processed=preprocess(str);
 		var postLines=processed.split("\n").length;
 		ctx=context();
-		var result=program.parseStr(processed);
+		var result;
+		try {
+    		result=program.parseStr(processed);
+		} catch(e) {
+			var pos=rowcol(e.pos);
+		    var ne=new Error(e.message+"\n"+pos.row+"行目付近を確認してください。");
+		    ne.original=e;
+		    throw ne;
+		}
 		output=result.result[0];
         /*if (result.success) {
             console.log("OUT",JSON.stringify( output) ); 
         }*/
 
 		if(result.src.maxPos<processed.length){
-			var max=processed.substr(0,result.src.maxPos);
+			/*var max=processed.substr(0,result.src.maxPos);
 			var line=max.match(/\n/g);
 			line=(line)?line.length:0;
-			var parseErr=new Error("プログラムに誤りがあります。\n"+(line+1-(postLines-preLines))+"行目付近を確認してください。");
-			parseErr.lineNo=line+1;
+			var parseErr=new Error("文法エラーがあります。\n"+(line+1-(postLines-preLines))+"行目付近を確認してください。");
+			parseErr.lineNo=line+1;*/
+			var pos=rowcol(result.src.maxPos);
+			var parseErr=new Error("文法エラーがあります。\n"+pos.row+"行目付近を確認してください。");
+			parseErr.lineNo=pos.row;
 			throw parseErr;
 		}
     	return output;
+    	function rowcol(p) {
+			var max=processed.substr(0,p);
+			var lines=max.match(/\n/g);
+			var line=(lines)?lines.length:0;
+			return {row:line+1-(postLines-preLines),col:1};
+    	}
 	};
 	return parser;
 }();

@@ -41,7 +41,9 @@ function scanf(line, dest) {
 	line=ch_arr_to_str(line);
 	if (scanf.STDIN) {
 	    afterScan(scanf.STDIN.shift());
-	} else if (window.supportsAsync && $("#console")[0]) {
+	} else if (window.AsyncByGenerator && 
+	    window.AsyncByGenerator.supportsGenerator && 
+	    $("#console")[0]) {
 	    return new Promise(function (p) {
 	        var box=$("<input>").on("keydown",function (e) {
 	            console.log(e);
