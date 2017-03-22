@@ -153,11 +153,13 @@ window.MinimalParser= function () {
 	var expression;
 	var direct_declarator;
 	var parameter_type_list;
+	var parameter_list;
 	var initializer;
 	var switch_compound_statement;
 	var switch_compound_statement_lazy=Parser.lazy(function(){return switch_compound_statement;});
 	var initializer_lazy=Parser.lazy(function(){return initializer;});
 	var parameter_type_list_lazy=Parser.lazy(function(){return parameter_type_list;});
+	var parameter_list_lazy=Parser.lazy(function(){return parameter_list;});
 	var direct_declarator_lazy=Parser.lazy(function(){return direct_declarator;});
 	var expression_lazy=Parser.lazy(function(){return expression;});
 	var direct_abstract_declarator_lazy=Parser.lazy(function(){return direct_abstract_declarator;});
@@ -369,17 +371,17 @@ window.MinimalParser= function () {
 			$.type="decl_array";
 			$.elementLength=const_expr;
 			return $;
-		}).or(t("(").and(parameter_type_list_lazy).and(t(")")).ret(
-		    function(lp,param_type_list,rp){
-		        return extend( ["(",param_type_list,")"] ,{
-		            type:"decl_params",params:param_type_list
+		}).or(t("(").and(parameter_list_lazy).and(t(")")).ret(
+		    function(lp,param_list,rp){
+		        return extend( ["(",param_list,")"] ,{
+		            type:"decl_params",params:param_list
 		        });
 		    }
-		)).or(t("(").and(identifier_list.opt()).and(t(")")).ret(
+		))/*.or(t("(").and(identifier_list.opt()).and(t(")")).ret(
 		    function(lp,identifier_list,rp){
 		        return extend( ["(",identifier_list,")"], {type:"decl_idents"});
 		    }
-		));
+		))*/;
     //\direct_declarator
     direct_declarator=direct_declarator_head.and(direct_declarator_tail.rep0()).ret(
         function(direct_decl_head,direct_decl_tails){
@@ -392,10 +394,11 @@ window.MinimalParser= function () {
 		            break;
     		    case "decl_params":
     		        $.vtype=T.Function($.vtype,tail.params);
+    		        $.params=tail.params;
 		            break;
-    		    case "decl_idents":
+    		    /*case "decl_idents":
     		        $.vtype=T.Function($.vtype,[]);
-		            break;
+		            break;*/
 		        }    
     		});
     		$.vname=direct_decl_head.vname;
@@ -422,14 +425,23 @@ window.MinimalParser= function () {
 		    return extend([declaration_specifiers,declarator],{
 		        vtype:declarator.vtype,
 		        vname:declarator.vname});
-		}).or(t("void"));
+		}).or(t("void").ret(function () {
+	    console.log("VOID read!");
+	    return {vtype:T.void,vname:"dummy"};})
+	);
     //\parameter_type_list
 	//parameter_type_list=t(",").and(parameter_declaration)
 	//	.ret(function(comma,parameter_declaration){return [",",parameter_declaration];});
-	parameter_type_list=parameter_declaration.sep1(t(","),true);//parameter_type_list.rep0())
+	//\parameter_list
+	parameter_list=parameter_declaration.sep0(t(","),true);/*.
+	or(t("void").ret(function () {
+	    console.log("VOID read!");
+	    return [];})
+	);*///parameter_type_list.rep0())
 		/*.ret(function(parameter_declaration,parameter_declarations){
 			return [parameter_declaration,parameter_declarations];
 		});*/
+	parameter_type_list=parameter_list;//TODO
 
 	type_name=specifier_qualifier_list.and(abstract_declarator.opt())
 		.ret(function(specifier_qualifier_list,abstract_declarator){
@@ -555,7 +567,7 @@ window.MinimalParser= function () {
 		});
 
 	var init_declarator_list=init_declarator.sep0(t(","),true);
-	// \declaraion
+	// \declaration
 	declaration=declaration_specifiers.and(init_declarator_list).and(t(";"))
 		.ret(function(decl_specifiers,init_decl_list,semicolon){
 		    return init_decl_list;
@@ -785,7 +797,52 @@ window.MinimalParser= function () {
 		    return params;
 		});
     // \func
-    var func=(func_type.opt()).and(identifier).and( 
+    var func_head=declaration_specifiers.opt().ret(function (r) {
+        baseType=r?r.vtype:T.int;
+    }).and(declarator).ret(function (_,r){return r;});
+    var func=func_head.and(Parser.create(function (st) {
+        var decl=st.result[0];
+        var type=decl.vtype;
+        var name=decl.vname;
+        var params=decl.params;
+        //console.log("TNP",type,name,params);
+        ctx.scope[name+""]={
+            vtype:type, 
+            depth: ctx.depth
+        };
+        var depth=ctx.depth;
+        var rst;
+        newScope(function () {
+            var getParams=[];
+            if (params) params.forEach(function (param) {
+                ctx.scope[param.vname+""]={vtype:param.vtype, depth: ctx.depth};
+                getParams.push(["scopes_"+(ctx.depth)+".", 
+				param.vname,"=","ARGS.shift();","/*", typeLit(param.vtype),"*/"]);
+            });
+            var func="function ";
+            if (supportsAsync) {
+                func="async function ";
+            } else if (ABG.supportsGenerator) {
+                func="function* ";
+            }
+            rst=t("{").and(compound_statement_part).and(t("}")).ret(function (_,states) {
+                return ["scopes_"+depth,".",name,"=",
+                    func,name,"(){",
+    				"var ",curScopesName(),"={};",
+                    "var ARGS=Array.prototype.slice.call(arguments);\n",
+                    getParams,
+			        states,
+        			"};"
+                ];
+            }).parse(st);
+        });
+        return rst;
+    })).ret(function (_,r) {
+        //console.log(JSON.stringify( r) ); 
+        return r;
+    });
+
+    var func1=(func_type.opt()).and(identifier).and( 
             t("(").and(func_param_list.opt()).and(t(")")).ret(function (_,r){return r;})
         ).and(Parser.create(function (st) {
             var type=st.result[0];
@@ -895,6 +952,7 @@ window.MinimalParser= function () {
     		result=program.parseStr(processed);
 		} catch(e) {
 			var pos=rowcol(e.pos);
+			console.log("original stk",e.stack);
 		    var ne=new Error(e.message+"\n"+pos.row+"行目付近を確認してください。");
 		    ne.original=e;
 		    throw ne;
@@ -910,6 +968,8 @@ window.MinimalParser= function () {
 			line=(line)?line.length:0;
 			var parseErr=new Error("文法エラーがあります。\n"+(line+1-(postLines-preLines))+"行目付近を確認してください。");
 			parseErr.lineNo=line+1;*/
+			console.log("Parse error at ",result.src.maxPos,
+			processed.substring(0,result.src.maxPos)+"!!HERE!!"+processed.substring(result.src.maxPos));
 			var pos=rowcol(result.src.maxPos);
 			var parseErr=new Error("文法エラーがあります。\n"+pos.row+"行目付近を確認してください。");
 			parseErr.lineNo=pos.row;
