@@ -426,8 +426,7 @@ window.MinimalParser= function () {
 		        vtype:declarator.vtype,
 		        vname:declarator.vname});
 		}).or(t("void").ret(function () {
-	    console.log("VOID read!");
-	    return {vtype:T.void,vname:"dummy"};})
+	    return {vtype:T.void,vname:"boido_baryuu"};})
 	);
     //\parameter_type_list
 	//parameter_type_list=t(",").and(parameter_declaration)
@@ -816,8 +815,10 @@ window.MinimalParser= function () {
             var getParams=[];
             if (params) params.forEach(function (param) {
                 ctx.scope[param.vname+""]={vtype:param.vtype, depth: ctx.depth};
-                getParams.push(["scopes_"+(ctx.depth)+".", 
-				param.vname,"=","ARGS.shift();","/*", typeLit(param.vtype),"*/"]);
+                if (param.vtype!==T.void) {
+                    getParams.push(["scopes_"+(ctx.depth)+".", 
+	    			param.vname,"=","ARGS.shift();","/*", typeLit(param.vtype),"*/"]);
+                }
             });
             var func="function ";
             if (supportsAsync) {
