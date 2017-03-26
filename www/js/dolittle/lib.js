@@ -320,10 +320,11 @@ Object.defineProperty(Array,"create",{
 		return Array.prototype.slice.call(arguments);
 	}
 });
-Object.defineProperty(Array.prototype,"get",{
-	enumerable:false,configurable:true,
-	value:function(index){return (this[index-1])?(this[index-1]):(null);}
-});
+Object.defineProperty(Array.prototype,"get",{ 
+    enumerable:false,configurable:true, 
+    value:function(index){return this[index-1];} 
+}); 
+
 Object.defineProperty(Array.prototype,"set",{
 	enumerable:false,configurable:true,
 	value:function(index,value){this[index-1]=value;return this;}
