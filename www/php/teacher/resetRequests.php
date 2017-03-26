@@ -12,12 +12,14 @@ class ResetRequests {
     }
     static function getByPin($pin) {
         //TODO   
-        
     }
 }
 class ResetRequest {
     var $user; // BAUser
     var $pin;
+    function ResetRequest() {
+        //TODO
+    }
     function isAllowed() { //:Boolean
         //TODO   
     }

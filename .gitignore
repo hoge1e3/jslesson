@@ -65,4 +65,5 @@ www/js/dolittle/lib.js.bak
 www/runtime/lib/tjs/kernel_old.js
 www/runtime/lib/tjs/kernel_old.js.map
 www/db/*
+www/mei_*
 private
