@@ -5,7 +5,9 @@ ex(AsyncByGenerator,{
         return (v && typeof v.then==="function");
     },
     isGenerator: function isGenerator(v) {
-        return this.GeneratorFunction.prototype.isPrototypeOf(v);
+        return v && 
+            ((typeof Symbol==="function" && v[Symbol.toStringTag]==="Generator") ||
+                this.GeneratorFunction.prototype.isPrototypeOf(v));
     },
     init: function () {
         f=new Function("this.GeneratorFunction = ((function*(){})()).constructor;");
