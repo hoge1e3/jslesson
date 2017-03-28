@@ -16,7 +16,7 @@ window.MinimalParser= function () {
 	var startSeq=0;
 	var sp=Parser.StringParser; // 文字列を解析するパーサ
 	//    ↓ 空白またはコメントを解析するパーサ
-	var space=sp.reg(/^(\s*(\/\*([^\/]|[^*]\/|\r|\n)*\*\/)*(\/\/.*\n)*)*/);
+	var space=sp.reg(/^(\s*(\/\*([^\/]|[^*]\/|\r|\n)*\*\/)*(\/\/[^\n]*\n)*)*/);
 	// トークナイザ： 空白またはコメントを読み飛ばし，次に rで指定されたトークンがあれば解析が成功．
 	function token(r) {
 		var str;

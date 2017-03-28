@@ -129,7 +129,7 @@ class LoginController {
     	  <br/>
     	<?php
             
-            //header("Location: index.html");
+            header("Location: index.html");
         }
     	
     }

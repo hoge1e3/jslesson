@@ -1,4 +1,5 @@
 <?php
+//[凍結]
 class ResetRequests {
     static function getAll($class) {
         //TODO   

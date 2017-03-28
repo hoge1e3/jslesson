@@ -20,9 +20,10 @@ class ClassController {
             return redirect("Teacher/login");
         }
         ?>
-        <h1><?=$class->id?> - ユーザ一覧</h1>
+        <h1><?=$class->id?> - クラス管理</h1>
         <a href="a.php?Teacher/home">クラス一覧に戻る</a><br>
         <a href="a.php?Class/config">クラスの設定をする</a><hr>
+        <a href="." target="student">学生としてログイン</a><hr>
         <?php
         $class->mkdir();
         $mesg="";
@@ -91,6 +92,37 @@ class ClassController {
         $class=Auth::curClass2();
         $class->setPasswordPolicy("yes");
         redirect("Class/config");
+    }
+    static function distribute(){
+        /*
+        (BAのプロジェクト編集画面からAjaxで要求)
+        メニュー構成：
+        配布 → 
+            ファイル ${file}（ファイル名）を配布
+            プロジェクト ${dir}（プロジェクト名）を配布
+        
+        パラメタ
+        src  ファイル名またはフォルダ名（home/${teacher}/ からの相対パス)
+        このクラスの各ユーザの同一ファイルにコピー
+        もし同一ファイルがあったらコピーしない
+        */
+        $class=Auth::curClass2();
+        
+        ?>
+        <!-- ajax なのでこれらHTMLは表示しない？ -->
+        <h1><?=$class->id?> - 課題配布</h1><hr>
+        <h2>教員のプロジェクト一覧</h2>ファイルの中身を含めて履修者に配布されます<hr>
+        <a href="a.php?Class/show">クラス管理に戻る</a>
+        <?php
+    }
+    static function registerUserForm() {
+        // TODO
+        // ファイルアップロードフォーム
+        // フォーマット(csv):
+        //   id,name,pass   (id以外はオプション)
+    }
+    static function registerUser() {
+        
     }
 }
 
