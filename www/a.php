@@ -1,9 +1,5 @@
 <?php
-/*define('CURRY_PATH', realpath(dirname(__FILE__) . '/php/curry'));
-set_include_path(implode(PATH_SEPARATOR, array(
-	CURRY_PATH,
-	get_include_path(),
-)));*/
+//branch: stable
 require_once"php/ErrorHandler.php";
 require_once"php/Modules.php";
 function redirect($url,$params=null) {
