@@ -27,10 +27,12 @@ class LoginController {
     <?php 
     } 
     static function curClass() {
-    	print Auth::curClass();
+        $u=Auth::curUser2();
+        if ($u)	print $u->_class->id;
     }
     static function curUser() {
-    	print Auth::curUser();
+        $u=Auth::curUser2();
+        if ($u)	print $u->name;
     }
     static function check() {
         if (!isset($_POST["class"]) || !isset($_POST["user"])) {

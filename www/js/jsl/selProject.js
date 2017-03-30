@@ -18,7 +18,7 @@ function ready() {//-------------------------
     console.log("AUth",Auth.user,Auth.class);
     if(!Auth.loggedIn()) {
         alert("ログインしていません。ログインページに移動します。");
-        location.href="login.php";
+        location.href=".?Login/form";
         return;
     }
     $("body").append(UI("div",
@@ -56,7 +56,7 @@ function ready() {//-------------------------
         $("#syncMesg").empty();
         $("#userInfo").text(Auth.class+" クラスの"+Auth.user+"さん、こんにちは");
         $("#userInfo").append(UI("br"));
-        $("#userInfo").append(UI("a",{href:"login.php"},"他ユーザでログイン"));
+        $("#userInfo").append(UI("a",{href:".?Login/form"},"他ユーザでログイン"));
     },3000);
     var projects=Auth.localProjects();// FS.resolve("${tonyuHome}/Projects/");
     console.log(projects);
@@ -148,38 +148,6 @@ function ready() {//-------------------------
             }
         };
     }
-    /*if (!WebSite.isNW) {
-        sync();
-    }
-    function sync() {
-        $("#syncMesg").text("同期しています....");
-        return Sync.sync(projects, Auth.remoteProjects(),{v:true}).then(function (e) {
-            $("#syncMesg").append("ファイル保存完了");
-            ls();
-	    //alert(e.classid+" クラスの "+e.user+" と同期しました。");
-            setTimeout(function () {
-                //$("#syncMesg").text(e.classid+" クラスの"+e.user+"でログインしています。");
-                //$("#syncMesg").append(UI("a",{href:"login.php"},"他ユーザでログイン"));
-                $("#syncMesg").empty();
-                $("#userInfo").text(e.classid+" クラスの"+e.user+"さん、こんにちは");
-                $("#userInfo").append(UI("br"));
-                $("#userInfo").append(UI("a",{href:"login.php"},"他ユーザでログイン"));
-            },3000);
-        }).fail(function (e) {
-            if (e==Sync.NOT_LOGGED_IN) {//Deprecated
-                $("#userInfo").empty().append(UI("a",{href:"login.php"},"ログイン"));
-                if(confirm("ログインしていません。ログインページに移動します。")){
-                    location.href="login.php";
-                }
-            } else {
-                alert("保存に失敗しました");
-                $("#syncMesg").text("エラー!"+e);
-                console.log(e);
-            }
-        }).always(function () {
-            if (window.SplashScreen) window.SplashScreen.hide();
-        });
-    }*/
     $("#newPrj").click(function (){
     	NPD.show(projectsInfo, function (model) {
     	    console.log(model);

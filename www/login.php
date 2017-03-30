@@ -1,4 +1,7 @@
 <?php
+header("Location: .?Login/form");
+exit;
+//---------- DEPRECATED
 require_once("php/Modules.php");
 require_once("php/auth.php");
 $showForm=true;

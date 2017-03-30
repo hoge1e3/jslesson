@@ -38,6 +38,7 @@ $actions=array(
     //"Teacher"=>"php/teacher/TeacherController.php",
     //"Class"=>"php/teacher/ClassController.php",
     "resetRequests"=>"php/teacher/resetRequests.php",
+    ""=>"index.html",
     "dummy"=>"hoge"
 );
 if (isset($actions[$action])) {

@@ -4,8 +4,8 @@ define(["FS","md5"], function (FS,md5) {
             var self=this;
             //console.log("CHK");
             return $.when(
-                $.get("login.php?curclass="+Math.random()),
-                $.get("login.php?curuser="+Math.random())
+                $.get(".?Login/curclass&"+Math.random()),
+                $.get(".?Login/curuser&"+Math.random())
             ).then(function (c,u) {
                 //console.log("CHKE",c[0],u[0]);
                 self.login(c[0],u[0]);
