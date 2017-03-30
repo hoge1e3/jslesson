@@ -12626,7 +12626,7 @@ function ready() {//-------------------------
             ["h1", ["img",{src:"images/bitarrow-2.png",css:{"display":"inline"},width:"100px"}],"Bit Arrow"]],
             ["div",
 	            ["a",{href:"http://bitarrow.eplang.jp/",target:"wikiTab"},"Bit Arrow解説ページ"]," | ",
-    	    	["a",{href:"teacher.php",target:"teaTab"},"教員用ログイン"]
+    	    	["a",{href:".?Teacher/login",target:"teaTab"},"教員用ログイン"]
 	        ],
             ["hr",{color:"#000000",size:"4"}],
             //["h2","プロジェクト一覧"],
@@ -12656,7 +12656,7 @@ function ready() {//-------------------------
         $("#userInfo").text(Auth.class+" クラスの"+Auth.user+"さん、こんにちは");
         $("#userInfo").append(UI("br"));
         $("#userInfo").append(UI("a",{href:".?Login/form"},"他ユーザでログイン"));
-    },3000);
+    },1000);
     var projects=Auth.localProjects();// FS.resolve("${tonyuHome}/Projects/");
     console.log(projects);
     projects.mkdir();
