@@ -9,6 +9,9 @@ function redirect($url,$params=null) {
 $qs=$_SERVER["QUERY_STRING"];
 $action=preg_replace("/&.*/","",$qs);
 if (isset($_POST["action"])) $action=$_POST["action"];
+if (preg_match("/=/",$action)) {
+    $action="";
+}
 $actionAry=explode("/",$action);
 if (count($actionAry)==2) {
     $action=$actionAry[0];

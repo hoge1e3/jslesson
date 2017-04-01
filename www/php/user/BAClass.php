@@ -10,10 +10,16 @@ class BAClass{
         }
         $this->id=$id;
     }
-    static function getAll(){
+    static function getAll($teacher=null){ // :BATeacher
+        if (!$teacher) {
+            $teacher=Auth::isTeacher2();
+        }
+        if (!$teacher) {
+            throw new Exception("You are not a teacher");
+        }
         $pdo = pdo();
         $sth=$pdo->prepare("select * from role where user = ? and type = ?");
-        $sth->execute(array(Auth::curUser(),AUTH::TEACHER));
+        $sth->execute(array($teacher->name,AUTH::TEACHER));
         $res=array();
         foreach ($sth->fetchAll() as $rec) {
             $res[]=new BAClass($rec["class"]);    

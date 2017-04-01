@@ -32,12 +32,15 @@ class TeacherController {
         }
     }
     static function home($mesg=null) {
-        if (!Auth::isTeacher2()) {
+        $teacher=Auth::isTeacher2();
+        if (!$teacher) {
             header("Location: a.php?Teacher/login");
             return;
         }
         if ($mesg) self::$mesg=$mesg;
     	?>
+    	<title><?= $teacher->name ?> - 教員ページトップ</title>
+    	<h1><?= $teacher->name ?> - 教員ページトップ</h1>
     	<font color="red"><?= self::$mesg ?></font><br/>
 	    <form action="a.php?Class/make" method="POST">
 	        クラス名<input name="classname">
@@ -47,7 +50,7 @@ class TeacherController {
 	    <!--a href="a.php?resetRequests">再発行リクエスト一覧</a><hr/-->
 	    <!-- ここで受け持ったクラス一覧を出す-->
 	    <?php
-        foreach(BAClass::getAll() as $c){
+        foreach(BAClass::getAll($teacher) as $c){
         ?>
             <a href="a.php?Class/select&class=<?= $c->id ?>">
                 <?= $c->id ?>

@@ -442,10 +442,6 @@ window.MinimalParser= function () {
 		});*/
 	parameter_type_list=parameter_list;//TODO
 
-	type_name=specifier_qualifier_list.and(abstract_declarator.opt())
-		.ret(function(specifier_qualifier_list,abstract_declarator){
-			return [specifier_qualifier_list,abstract_declarator];
-		});
 
 
 
@@ -761,13 +757,18 @@ window.MinimalParser= function () {
     	    return extend([op,right], {vtype:right.vtype});
 	    })
 	);
+	type_name=specifier_qualifier_list.and(abstract_declarator.opt())
+		.ret(function(specifier_qualifier_list,abstract_declarator){
+		    var vtype=typeNamesToType(specifier_qualifier_list);
+			return extend([specifier_qualifier_list,abstract_declarator],{vtype:vtype});
+		});
     // \cast_expression
 	cast_expression=unary_expression.ret(chkTypeIsSet("unary")).or(
 	    t("(").and(type_name).and(t(")")).and(cast_expression_lazy)
 	    .ret(function(lp,type_name,rp,cast_expr){
-    	    var t=typeNamesToType([type_name+""]);
+    	    var t=type_name.vtype;//typeNamesToType([type_name+""]);
     	    if (!t) throw newError("Type for "+type_name+" not found",type_name);
-    	    return extend(["(",typeLit(t),")",cast_expr],{vtype:t});
+    	    return extend(["cast(",typeLit(t),",",cast_expr,")"],{vtype:t});
     	    //***
 	    })
 	);

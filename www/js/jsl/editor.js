@@ -4,7 +4,8 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "runtime", "searchDialog","StackTrace",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
-           "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth"
+           "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
+           "CommentDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -12,7 +13,8 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           rt, searchDialog,StackTrace,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
-          LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth
+          LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
+          CommentDialog
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -134,6 +136,7 @@ function ready() {
                      ["span",{id:"curFileLabel"}],
                      ["span",{id:"modLabel"}],
                      ["span",{id:"toastArea"}],
+                     ["span",{id:"commentLink"}],
                      ["a",{id:"fullScr",href:"javascript:;"}]
                   ],
                   ["div",{id:"progs"}]
@@ -896,6 +899,14 @@ function ready() {
             curDOM=inf.dom;
             //if(desktopEnv.editorMode=="emacs") inf.editor.setKeyboardHandler("ace/keyboard/emacs");
             //else inf.editor.setKeyboardHandler(defaultKeyboard);
+        }
+        var cmfile=f.sibling(f.truncExt()+".cmt.txt");
+        $("#commentLink").empty();
+        if (cmfile.exists()) {
+            $("#commentLink").append("&nbsp;").append(
+                $("<a>").text("採点結果").click(function () {
+                    CommentDialog.show(cmfile);
+                }));
         }
         $("#curFileLabel").text(f.truncExt());
     }

@@ -22,7 +22,9 @@ class ClassController {
         ?>
         <h1><?=$class->id?> - クラス管理</h1>
         <a href="a.php?Teacher/home">クラス一覧に戻る</a><br>
-        <a href="a.php?Class/config">クラスの設定をする</a><hr>
+        <a href="a.php?Class/config">クラスの設定をする</a><br>
+        <a href="a.php?Class/registerUserForm">履修者を一括登録する</a>
+        <hr>
         <a href="." target="student">学生としてログイン</a><hr>
         <?php
         $class->mkdir();
@@ -120,9 +122,38 @@ class ClassController {
         // ファイルアップロードフォーム
         // フォーマット(csv):
         //   id,name,pass   (id以外はオプション)
+        $class=Auth::curClass2();
+        ?>
+        <h1><?=$class->id?> - 履修者登録</h1><hr>
+        <form action="a.php?Class/registerUser" method="POST" enctype="multipart/form-data">
+            <input type="file" name="stuList" accept="text/comma-separated-values"><br>
+            CSVファイルを読み込んで一括登録します。
+    	    <br/>
+    	    <input type="submit" value="OK"/>
+    	</form><hr>
+        <a href="a.php?Class/show">クラス管理に戻る</a>
+        <?php
     }
     static function registerUser() {
-        
+        if (!isset($_FILES["stuList"]["name"]) || substr($_FILES["stuList"]["name"],strrpos($_FILES["stuList"]["name"],'.')+1)!='csv') {
+            return self::registerUserForm();
+        }
+        $d=file_get_contents($_FILES["stuList"]["tmp_name"]);
+        // php.iniの extension=php_mbstring.dll を有効にしないと死ぬっぽい
+        $d=mb_convert_encoding($d,'UTF-8','SJIS-win');
+        $tempFile=tmpFile();
+        $meta=stream_get_meta_data($tempFile);
+        fwrite($tempFile,$d);
+        rewind($tempFile);
+        $f=new SplFileObject($meta['uri']);
+        $f->setFlags(SplFileObject::READ_CSV);
+        foreach($f as $line){
+            $r[]=$line;
+            echo "<pre>";
+            print_r($line);
+            echo "</pre>";
+        }
+
     }
 }
 
