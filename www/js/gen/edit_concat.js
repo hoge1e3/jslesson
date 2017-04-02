@@ -13503,13 +13503,32 @@ define('Auth',["FS","md5"], function (FS,md5) {
     };
     return Auth;
 });
+define('CommentDialog',["UI"],function (UI) {
+    var res={};
+    res.show=function (file, options) {
+        var d=res.embed(file, options);
+        d.dialog({width:600});
+    };
+    res.embed=function (file, options) {
+        if (!options) options={};
+        if (!res.d) {
+            res.d=UI("div",{title:"採点結果"},
+                $("<textarea>").attr({rows:20,cols:60,readonly:true}).val(file.text())
+            );
+        }
+        var d=res.d;
+        return d;
+    };
+    return res;
+});
 requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "showErrorPos", "fixIndent",  "ProjectCompiler",
            "Shell","ShellUI","KeyEventChecker",
            "runtime", "searchDialog","StackTrace",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
-           "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth"
+           "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
+           "CommentDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -13517,7 +13536,8 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           rt, searchDialog,StackTrace,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
-          LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth
+          LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
+          CommentDialog
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -13639,6 +13659,7 @@ function ready() {
                      ["span",{id:"curFileLabel"}],
                      ["span",{id:"modLabel"}],
                      ["span",{id:"toastArea"}],
+                     ["span",{id:"commentLink"}],
                      ["a",{id:"fullScr",href:"javascript:;"}]
                   ],
                   ["div",{id:"progs"}]
@@ -14401,6 +14422,14 @@ function ready() {
             curDOM=inf.dom;
             //if(desktopEnv.editorMode=="emacs") inf.editor.setKeyboardHandler("ace/keyboard/emacs");
             //else inf.editor.setKeyboardHandler(defaultKeyboard);
+        }
+        var cmfile=f.sibling(f.truncExt()+".cmt.txt");
+        $("#commentLink").empty();
+        if (cmfile.exists()) {
+            $("#commentLink").append("&nbsp;").append(
+                $("<a>").text("採点結果").click(function () {
+                    CommentDialog.show(cmfile);
+                }));
         }
         $("#curFileLabel").text(f.truncExt());
     }
