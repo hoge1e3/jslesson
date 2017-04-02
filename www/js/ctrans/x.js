@@ -12,8 +12,9 @@ function clear() {
 }
 function update(){
     var msec=16;
+    loop_start2();
     return new Promise(function (succ) {
-        console.log("Sleeping for ",msec);
+        //console.log("Sleeping for ",msec);
         setTimeout(succ,msec); 
     });
 }

@@ -313,10 +313,16 @@ function memcpy(dst, src,n) {
     }
     return r;
 }
-function sleep(msec) {
+function usleep(msec) {
+    loop_start2();
     return new Promise(function (succ) {
-        console.log("Sleeping for ",msec);
-        setTimeout(succ,msec); 
+        setTimeout(succ,msec/1000); 
+    });
+}
+function sleep(msec) {
+    loop_start2();
+    return new Promise(function (succ) {
+        setTimeout(succ,msec*1000); 
     });
 }
 window.print=function() {throw new Error("print関数はありません。printfの間違いではないですか？");};
