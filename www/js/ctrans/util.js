@@ -5,6 +5,24 @@ try {
     window.supportsAsync=true;
 }catch(e){
 }
+function StructObj() {
+    if (!(this instanceof StructObj)) return new StructObj();
+}
+function copyStruct(src) {
+    var res=StructObj();
+    for (var k in src) {
+        if (isStruct(src[k])) res[k]=copyStruct(src);
+        else res[k]=src[k];
+    }
+    return res;
+    function isStruct(o) {
+        return o instanceof StructObj;
+    }
+    function isPointer(o) {
+        return (typeof (o.read))==="function";
+    }
+}
+
 function pointer(obj,key,type,ofs) {
 	if(Array.isArray(obj[key])){
 		var tmp=[];

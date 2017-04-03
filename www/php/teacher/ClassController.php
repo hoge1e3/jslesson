@@ -148,10 +148,12 @@ class ClassController {
         $f=new SplFileObject($meta['uri']);
         $f->setFlags(SplFileObject::READ_CSV);
         foreach($f as $line){
+            if(!is_null($line[0])){
             $r[]=$line;
             echo "<pre>";
             print_r($line);
             echo "</pre>";
+            }
         }
 
     }

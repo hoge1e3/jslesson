@@ -117,8 +117,8 @@ define(["Klass","assert"],function (Klass,assert) {
     });
     t.Member=Klass.define({
         $name:"Member",
-        $:["type","name"],
-        $fields: {type:t.Base,name:String}
+        $:["vtype","name"],
+        $fields: {vtype:t.Base,name:String}
     });
     t.Struct=t.Base.inherit({
         $:function (name) {
@@ -129,9 +129,18 @@ define(["Klass","assert"],function (Klass,assert) {
         toLiteral: function () {
             return CTYPE_NAME+".Struct([])";    
         },
-        addMember: function (type,name) {
+        addMember: function (vtype,name) {
             assert.is(arguments,[t.Base,String]);
-            this.members.push(t.Member(type,name));
+            this.members.push(t.Member(vtype,name));
+        },
+        getMember: function (name) {
+            var res;
+            this.members.forEach(function (m) {
+                if (m.name+""===name+"") {
+                    res=m;
+                }
+            }); 
+            return res;
         }
     });
     t.TypeDef=t.Base.inherit({

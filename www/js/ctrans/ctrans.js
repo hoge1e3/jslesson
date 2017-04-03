@@ -492,7 +492,15 @@ window.MinimalParser= function () {
 	    } else if (op.type==="arrow") {
     	    expr=["(",left,").read().",op[1]];//vtype TODO
 	    } else if (op.type==="dot") {
-    	    expr=[left,op];//vtype TODO
+	        if (!(t instanceof T.Struct)) {
+	            throw newError("ドット参照は構造体にのみ使えます",op);   
+	        }
+	        var mem=t.getMember(op.vname+"");
+	        if (!mem) {
+	            throw newError("構造体"+t.name+"にメンバ"+op.vname+"は定義されていません",op);   
+	        }
+	        t=assert.is(mem.vtype,T.Base);
+    	    expr=[left,op];
 	    }
 	    return extend(expr,{vtype:t, type:"post",left:left,op:op});
 	}
@@ -506,9 +514,17 @@ window.MinimalParser= function () {
 	    throw new Error(a.join(" "));
 	}
 	calc_expression = calc_expression.build();
-
+    function structCp(parser) {
+        return parser.ret(function (r) {
+            if ((r.vtype) instanceof T.Struct) {
+                return extend(["copyStruct(",r,")"] ,{
+                    type:"copyStruct",vtype:r.vtype,original:r
+                });
+            } else return r;
+        });
+    };
 	assign=unary_expression_lazy.and(assignment_operator)
-		.and(calc_expression).ret(function(unary_expr,op,calc_expr){
+		.and(structCp(calc_expression)).ret(function(unary_expr,op,calc_expr){
 		    if (unary_expr.type=="pointerDeref") {
     			return extend(
     			    ["(",unary_expr.pointer,").write(","cast(",typeLit(unary_expr.vtype),",",calc_expr,"))"],
@@ -532,7 +548,7 @@ window.MinimalParser= function () {
 	    if (vtype instanceof T.Array) {
 	        return ["arrInit2(",typeLit(vtype.e),",", (vtype.length||"0"),")"];
 	    } else if (vtype instanceof T.Struct) {
-	        return ["{}"];
+	        return ["StructObj()"];
 	    } else if (vtype instanceof T.Function) {
 	        return "function (){}";
 	    } else {
@@ -650,8 +666,8 @@ window.MinimalParser= function () {
     statement=statement.or(asm_statement);
 	// \statements
 	statements=statement.rep0().ret(function(states){return states;});
-
-	var argument_expressions=expression.sep0(t(","),true).ret(function(param){
+    // \argument_expressions
+	var argument_expressions=structCp(expression).sep0(t(","),true).ret(function(param){
 		if(param=="void")return "";
 		if(!Array.isArray(param))return param;
 		var res=[];
