@@ -39,8 +39,8 @@ class TeacherController {
         }
         if ($mesg) self::$mesg=$mesg;
     	?>
-    	<title><?= $teacher->name ?> - 教員ページトップ</title>
-    	<h1><?= $teacher->name ?> - 教員ページトップ</h1>
+    	<title><?= $teacher->id ?> - 教員ページトップ</title>
+    	<h1><?= $teacher->id ?> - 教員ページトップ</h1>
     	<font color="red"><?= self::$mesg ?></font><br/>
 	    <form action="a.php?Class/make" method="POST">
 	        クラス名<input name="classname">

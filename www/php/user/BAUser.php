@@ -3,6 +3,7 @@ class BAUser {
     var $_class;
     var $name;
     var $password;
+    var $options;
     function BAUser($class,$name) {
         if (!$class instanceof BAClass) {
             throw new Exception("class should be BAClass");
@@ -39,11 +40,24 @@ class BAUser {
     }
     function make(){
         $pdo = pdo();
-	    $sth=$pdo->prepare("insert into user(class,name,pass) values( ? , ? , ? )");
-	    $sth->execute(array($this->_class->id,$this->name,$this->password));
+	    $sth=$pdo->prepare("insert into user(class,name,pass,options) values( ? , ? , ? , ? )");
+	    $sth->execute(array($this->_class->id,$this->name,$this->password,$this->options));
 	    
     }
-
+    function setOptions($key,$value){
+        if(self::exists()){
+            $this->options=self::getOptions();
+        }
+        $this->options[$key]=$value;
+        $this->options=json_encode($this->options);
+    }
+    function getOptions(){
+        $pdo = pdo();
+        $sth=$pdo->prepare("select options from user where class = ? and name = ?");
+    	$sth->execute(array($this->_class->id,$this->name));
+    	$u=$sth->fetchAll();
+    	$this->options=$u[0];
+    }
     function isTeacherOf($class) {
         //このユーザは$class の教員roleを持つか？
         $pdo = pdo();

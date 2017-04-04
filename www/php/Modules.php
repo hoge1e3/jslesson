@@ -55,6 +55,7 @@ $mod_aliases=array(
     'ResetController' => 'php/teacher/ResetController.php',
     'ResetRequests' => 'php/teacher/ResetRequests.php',
     'TeacherController' => 'php/teacher/TeacherController.php',
+    'MarkController' => 'php/mark/MarkController.php',
     'sessiontest' => 'php/test/sessiontest.php',
     'test' => 'php/test/test.php',
     'BAClass' => 'php/user/BAClass.php',

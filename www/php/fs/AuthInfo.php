@@ -1,9 +1,15 @@
 <?php
 class AuthInfo {
-    public $class,$user;
-    public function AuthInfo($class,$user) {
-        $this->class=$class;
+    public $user,$teacher;
+    public function AuthInfo($user,$teacher) {
         $this->user=$user;
+        $this->teacher=$teacher;
+    }
+    public function getClassID(){
+        return $this->user->_class->id;
+    }
+    public function getUserName() {
+        return $this->user->name;
     }
 }
 ?>

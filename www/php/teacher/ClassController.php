@@ -82,7 +82,7 @@ class ClassController {
         }
         ?>
         <hr>
-        <a href="a.php?Class/show">ユーザ一覧に戻る</a><br>
+        <a href="a.php?Class/show">クラス管理に戻る</a><br>
         <?php
     }
     static function setPasswordNouse(){
@@ -147,15 +147,26 @@ class ClassController {
         rewind($tempFile);
         $f=new SplFileObject($meta['uri']);
         $f->setFlags(SplFileObject::READ_CSV);
+        $list=array();
         foreach($f as $line){
             if(!is_null($line[0])){
-            $r[]=$line;
-            echo "<pre>";
-            print_r($line);
-            echo "</pre>";
+                echo "<pre>";
+                print_r($line);
+                echo "</pre>";
+                $list[]=$line;
+                if(array_key_exists("0",$line) && isset($line[0])){
+                    $u=new BAUser(Auth::curClass2(),$line[0]);
+                    $u->password= array_key_exists("2",$line) ? $line[2] : "";
+                    if(array_key_exists("1",$line) && isset($line[1])){
+                        $u->setOptions("name",$line[1]);
+                    }
+                    if(!$u->exists()){
+                        $u->make();
+                    }
+                }
             }
         }
-
+        
     }
 }
 

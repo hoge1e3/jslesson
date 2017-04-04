@@ -114,6 +114,9 @@ class Auth {
     static function isTeacher() {//旧バージョン
         return self::curUser()==self::TEACHER;       
     }
+    static function curTeacher() {
+        return self::isTeacher2();
+    }
     static function isTeacher2() {//新バージョン
 	   if (MySession::has("teacher")) {
     	   $t=MySession::get("teacher");
@@ -154,7 +157,9 @@ class Auth {
     }
     static function curUser2() {
         if (!MySession::has("user")) return null;
-        return self::curClass2()->getUser(MySession::get("user"));
+        $c=self::curClass2();
+        if (!$c) return null;
+        return $c->getUser(MySession::get("user"));
     }
     static function curUser() {
         if (!MySession::has("user")) return null;
@@ -181,10 +186,10 @@ class Auth {
         return new SFile(self::getFS(),self::homeDir());
     }
     static function getFS() {
-	    $class=self::curClass();
-   	    $user=self::curUser();
-   	    if ($user && $class) {
-   	        $ap=new Permission(new AuthInfo($class,$user));
+   	    $user=self::curUser2();
+   	    $teacher=self::curTeacher();
+   	    if ($user) {
+   	        $ap=new Permission(new AuthInfo($user,$teacher));
             return new NativeFS("fs/",$ap);
 	   	} else {
 	   	    return null;

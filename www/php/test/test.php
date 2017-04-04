@@ -2,7 +2,7 @@
 //phpinfo();
 //require_once "php/fs/PathUtil.php";
 //echo PathUtil::rel("","/home/hoge/../test.txt");
-//exit;
+exit;
 
 //require_once "../fs/NativeFS.php";
 //require_once "../fs/SFile.php";

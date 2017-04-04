@@ -39,12 +39,23 @@ class Permission {
             return true;
         }
         // other class
-        if ($class!==$this->authInfo->class) {
+        if ($class!==$this->authInfo->getClassID()) {
             return false;
         }
         // his/her own folder
-        if ($user===$this->authInfo->user) {
+        if ($user===$this->authInfo->getUserName()) {
             return true;
+        }
+        // if teacher....
+        $t=$this->authInfo->teacher;
+        if ($t) {
+            if (!isset($this->classes)) {
+                $this->classes=BAClass::getAll($t);
+            }
+            // can access all file of his/her classes
+            foreach ($this->classes as $c) {
+                if ($class===$c->id) return true;
+            }
         }
         // other students in his/her class
         return false;// toriaezu
