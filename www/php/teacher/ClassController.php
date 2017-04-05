@@ -123,23 +123,26 @@ class ClassController {
         $prj=$_POST["prj"];
         $file=$_POST["file"];
         $cont=$_POST["cont"];
-        print($prj);
+
+        $home=Auth::homeOfClass($class);
+        $optText=$home->rel($teacher)->rel($prj)->rel("options.json")->text();
+        /*print($prj);
         print($file);
-        print($cont);
-        $home=Auth::homeDirOf($class);
+        print($cont);*/
         foreach($home->listFiles() as $u){
             if($u->isDir()){
                 $p=$u->rel($prj);
                 if(!$p->rel("options.json")->exists()){
                     //options copy
+                    $p->rel("options.json")->text($optText);
                 }
-                $f->rel($file);
+                $f=$p->rel($file);
                 if(!$f->exists()){
                     $f->text($cont);
                 }
             }
         }
-        
+        print("配布したと思います!");
     }
     static function registerUserForm() {
         // TODO

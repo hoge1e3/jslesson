@@ -193,7 +193,7 @@ function ready() {
         curFile=getCurrentEditorInfo().file;
         $.ajax({
             type:"POST",
-            url:"?Class/distribute",
+            url:"a.php?Class/distribute",
             data:{
                 "prj":curPrjDir,
                 "file":curFile.name(),
@@ -204,7 +204,8 @@ function ready() {
                 alert(d);
             },
             function(d){
-                alert(d);
+                alert("ダメだったみたいです...");
+                console.log(d);
             }
         );
         
