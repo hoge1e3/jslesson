@@ -32,7 +32,9 @@ class Auth {
            return "存在しないクラスIDが入力されています。";
 	    }
 	    $u=new BAUser($c,$user);
-	    if($u->exists()){
+	    if(!$u->exists()){
+	        return "register";
+	    }else{
 	        if(!$c->passwordRequired()){
 	            MySession::set("class",$class);
 	            MySession::set("user",$user);
@@ -40,8 +42,6 @@ class Auth {
 	        }else{
 	            return "requirepass";
 	        }
-	    }else{
-	        return "register";
 	    }
         if (preg_match('/^[a-zA-Z0-9\\-_]+$/',$user) && $user!=self::TEACHER) {
             MySession::set("class",$class);
@@ -110,6 +110,15 @@ class Auth {
             MySession::set("user",$user);
             return true;
     	}
+    }
+    static function su($user) {//nariSUmasi   $user:BAUser
+        $t=self::curTeacher();
+        if ($t->isTeacherOf($user->_class)) {
+            MySession::set("class",$user->_class->id);
+            MySession::set("user",$user->name);
+        } else {
+            throw new Exception("You are not the sudoer");
+        }
     }
     static function isTeacher() {//旧バージョン
         return self::curUser()==self::TEACHER;       
@@ -184,6 +193,9 @@ class Auth {
     }
     static function home() {
         return new SFile(self::getFS(),self::homeDir());
+    }
+    static function homeOfClass($class) {//BAClass
+        return new SFile(self::getFS(),"/home/".$class->id."/");
     }
     static function getFS() {
    	    $user=self::curUser2();

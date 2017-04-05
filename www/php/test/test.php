@@ -1,8 +1,32 @@
 <?php
+$mesg=true;
+echo "hoge=".($mesg=="requirepass");
+if ($mesg=="requirepass") {
+    echo "requirepass";
+}
+/*req("BAClass","pdo","auth");
+$c=new BAClass("devel");
+echo "PassREQ==".$c->passwordRequired()."!";
+
+$res=Auth::login("devel","devel");
+echo "Auth res".$res.".";*/
 //phpinfo();
 //require_once "php/fs/PathUtil.php";
 //echo PathUtil::rel("","/home/hoge/../test.txt");
 exit;
+
+$file=Auth::homeDirOf($class);
+foreach ($file->listFiles() as $f) {
+    echo $f->text();
+    // $f->text("hoge");
+    if ($f->isDir()) {
+        $s=$f->rel("sub/");
+        if ($s->exists()) {
+            $s->rel("hoge.txt")->text("hoge");
+        }
+    }
+}
+
 
 //require_once "../fs/NativeFS.php";
 //require_once "../fs/SFile.php";

@@ -23,7 +23,8 @@ class ClassController {
         <h1><?=$class->id?> - クラス管理</h1>
         <a href="a.php?Teacher/home">クラス一覧に戻る</a><br>
         <a href="a.php?Class/config">クラスの設定をする</a><br>
-        <a href="a.php?Class/registerUserForm">履修者を一括登録する</a>
+        <a href="a.php?Class/registerUserForm">履修者を一括登録する</a><br>
+        <a href="a.php?Class/showUsers">ユーザ一覧</a>
         <hr>
         <a href="." target="student">学生としてログイン</a><hr>
         <?php
@@ -43,7 +44,7 @@ class ClassController {
         $sortedKeys=array_keys($files);
         for($i=0;$i<count($files);$i++){
             ?>
-            <a href="a.php?login&class=<?=$class->id?>&user=<?=$files[$sortedKeys[$i]]?>" 
+            <a href="a.php?Login/su&class=<?=$class->id?>&user=<?=$files[$sortedKeys[$i]]?>" 
                 target="stutab">
             <?= $files[$sortedKeys[$i]] ?>
             </a><br/>
@@ -95,6 +96,10 @@ class ClassController {
         $class->setPasswordPolicy("yes");
         redirect("Class/config");
     }
+    static function showUsers(){
+        $class=Auth::curClass2();
+        
+    }
     static function distribute(){
         /*
         (BAのプロジェクト編集画面からAjaxで要求)
@@ -104,18 +109,37 @@ class ClassController {
             プロジェクト ${dir}（プロジェクト名）を配布
         
         パラメタ
-        src  ファイル名またはフォルダ名（home/${teacher}/ からの相対パス)
-        このクラスの各ユーザの同一ファイルにコピー
+        class クラスID
+        prj   プロジェクト名
+        file  ファイル名（ファイルのコピーの場合．ディレクトリまるごとの場合省略する)
+        cont  中身（穴が開いている状態の）
+        
+        classの各ユーザの同一フォルダ/同一ファイルにコピー
+        ファイルの場合，options.json もコピーする
         もし同一ファイルがあったらコピーしない
         */
         $class=Auth::curClass2();
+        $teacher=Auth::curTeacher()->id;
+        $prj=$_POST["prj"];
+        $file=$_POST["file"];
+        $cont=$_POST["cont"];
+        print($prj);
+        print($file);
+        print($cont);
+        $home=Auth::homeDirOf($class);
+        foreach($home->listFiles() as $u){
+            if($u->isDir()){
+                $p=$u->rel($prj);
+                if(!$p->rel("options.json")->exists()){
+                    //options copy
+                }
+                $f->rel($file);
+                if(!$f->exists()){
+                    $f->text($cont);
+                }
+            }
+        }
         
-        ?>
-        <!-- ajax なのでこれらHTMLは表示しない？ -->
-        <h1><?=$class->id?> - 課題配布</h1><hr>
-        <h2>教員のプロジェクト一覧</h2>ファイルの中身を含めて履修者に配布されます<hr>
-        <a href="a.php?Class/show">クラス管理に戻る</a>
-        <?php
     }
     static function registerUserForm() {
         // TODO

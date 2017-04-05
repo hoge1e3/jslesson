@@ -169,11 +169,52 @@ function ready() {
                       {label:"エディタの文字の大きさ",id:"textsize",action:textSize}/*,
                       {label:"エディタモード切替",id:"editorType",action:editorType}*/
                   ]},
-                  {label:"使用方法",id:"openHelp"}
+                  {label:"使用方法",id:"openHelp"},
+                  {label:"配布",id:"distribute",sub:[
+                      {label:"ファイルを配布",id:"distributeFile",action:distributeFile},
+                      {label:"プロジェクトを配布",id:"distributePrj",action:distributePrj}
+                  ]},
                 ]
         );
+        showDistMenu();
     }
+    function showDistMenu(){
+        if(Auth.teacher!=""){
+            dist="block";
+        }else{
+            dist="none";
+        }
+        console.log("Auth.teacher",Auth.teacher);
+        $("#distribute").css("display",dist);
+    }
+    function distributeFile() {
+        //alert("distributeFile!");
+        curPrjDir=curProjectDir.name();
+        curFile=getCurrentEditorInfo().file;
+        $.ajax({
+            type:"POST",
+            url:"?Class/distribute",
+            data:{
+                "prj":curPrjDir,
+                "file":curFile.name(),
+                "cont":curFile.text()
+            }
+        }).then(
+            function(d){
+                alert(d);
+            },
+            function(d){
+                alert(d);
+            }
+        );
+        
+    }
+    function distributePrj() {
+        alert("distributePrj!");    
+    }
+    
     makeMenu();
+    
     var screenH;
     function onResize() {
         var h=$(window).height()-$("#navBar").height()-$("#tabTop").height();

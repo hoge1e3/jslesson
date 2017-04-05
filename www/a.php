@@ -28,6 +28,7 @@ $actions=array(
     "showTimeline"=>"showTimeline.php",
     "showClass"=>"php/teacher/showClass.php",
     "makeClass"=>"php/teacher/makeClass.php",
+    "dump2"=>"php/dump2.php",
     "grep"=>"grep.php",
     "Mkvec"=>"php/analysis/Mkvec.php",
     "DetectFile"=>"php/analysis/DetectFile.php",

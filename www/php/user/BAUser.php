@@ -39,6 +39,9 @@ class BAUser {
         
     }
     function make(){
+        if ($this->exists()) {
+            throw new Exception($this->name."はすでに存在します");
+        }
         $pdo = pdo();
 	    $sth=$pdo->prepare("insert into user(class,name,pass,options) values( ? , ? , ? , ? )");
 	    $sth->execute(array($this->_class->id,$this->name,$this->password,$this->options));
