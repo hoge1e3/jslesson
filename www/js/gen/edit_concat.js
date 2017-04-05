@@ -13036,7 +13036,7 @@ define('logToServer2',[],function () {
 		code={};
 		code[lang]=codeL;
 		code["HTML"]=codeH;
-		return $.post("dump2.php",{data:JSON.stringify({date:d.getFullYear()+"/"+dataPadding(d.getMonth()+1)+"/"+dataPadding(d.getDate()),time:dataPadding(d.getHours())+":"+dataPadding(d.getMinutes())+":"+dataPadding(d.getSeconds()),lang:lang,filename:filePath,result:result,detail:detail,code:code})}).then(function (r) {
+		return $.post(".?dump2",{data:JSON.stringify({date:d.getFullYear()+"/"+dataPadding(d.getMonth()+1)+"/"+dataPadding(d.getDate()),time:dataPadding(d.getHours())+":"+dataPadding(d.getMinutes())+":"+dataPadding(d.getSeconds()),lang:lang,filename:filePath,result:result,detail:detail,code:code})}).then(function (r) {
 			console.log(r);
 		}).fail(function(e){
 			console.log(e);
@@ -13461,10 +13461,11 @@ define('Auth',["FS","md5"], function (FS,md5) {
             //console.log("CHK");
             return $.when(
                 $.get(".?Login/curclass&"+Math.random()),
-                $.get(".?Login/curuser&"+Math.random())
-            ).then(function (c,u) {
+                $.get(".?Login/curuser&"+Math.random()),
+                $.get(".?Login/curTeacher&"+Math.random())
+            ).then(function (c,u,t) {
                 //console.log("CHKE",c[0],u[0]);
-                self.login(c[0],u[0]);
+                self.login(c[0],u[0],t[0]);
                 return self;
             });
         },
@@ -13472,9 +13473,11 @@ define('Auth',["FS","md5"], function (FS,md5) {
             return (typeof this.class)==="string" && this.class.length>0 &&
                    (typeof this.user) ==="string" && this.user.length>0;
         },
-        login:function (_class,user) {
+        login:function (_class,user,teacher) {
             this.class=_class;
             this.user=user;
+            this.teacher=teacher;
+            console.log("teacher",teacher);
         },
         localProjects:function ( ){
             return FS.get("/home/").rel(this.class+"/").rel(this.user+"/") //changeHOME(1)
@@ -13692,11 +13695,53 @@ function ready() {
                       {label:"エディタの文字の大きさ",id:"textsize",action:textSize}/*,
                       {label:"エディタモード切替",id:"editorType",action:editorType}*/
                   ]},
-                  {label:"使用方法",id:"openHelp"}
+                  {label:"使用方法",id:"openHelp"},
+                  {label:"配布",id:"distribute",sub:[
+                      {label:"ファイルを配布",id:"distributeFile",action:distributeFile},
+                      {label:"プロジェクトを配布",id:"distributePrj",action:distributePrj}
+                  ]},
                 ]
         );
+        showDistMenu();
     }
+    function showDistMenu(){
+        if(Auth.teacher!=""){
+            dist="block";
+        }else{
+            dist="none";
+        }
+        console.log("Auth.teacher",Auth.teacher);
+        $("#distribute").css("display",dist);
+    }
+    function distributeFile() {
+        //alert("distributeFile!");
+        curPrjDir=curProjectDir.name();
+        curFile=getCurrentEditorInfo().file;
+        $.ajax({
+            type:"POST",
+            url:"a.php?Class/distribute",
+            data:{
+                "prj":curPrjDir,
+                "file":curFile.name(),
+                "cont":curFile.text()
+            }
+        }).then(
+            function(d){
+                alert(d);
+            },
+            function(d){
+                alert("ダメだったみたいです...");
+                console.log(d);
+            }
+        );
+        
+    }
+    function distributePrj() {
+        alert("distributePrj!");    
+    }
+    
     makeMenu();
+    
     var screenH;
     function onResize() {
         var h=$(window).height()-$("#navBar").height()-$("#tabTop").height();

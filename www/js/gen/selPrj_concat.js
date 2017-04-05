@@ -11990,10 +11990,11 @@ define('Auth',["FS","md5"], function (FS,md5) {
             //console.log("CHK");
             return $.when(
                 $.get(".?Login/curclass&"+Math.random()),
-                $.get(".?Login/curuser&"+Math.random())
-            ).then(function (c,u) {
+                $.get(".?Login/curuser&"+Math.random()),
+                $.get(".?Login/curTeacher&"+Math.random())
+            ).then(function (c,u,t) {
                 //console.log("CHKE",c[0],u[0]);
-                self.login(c[0],u[0]);
+                self.login(c[0],u[0],t[0]);
                 return self;
             });
         },
@@ -12001,9 +12002,11 @@ define('Auth',["FS","md5"], function (FS,md5) {
             return (typeof this.class)==="string" && this.class.length>0 &&
                    (typeof this.user) ==="string" && this.user.length>0;
         },
-        login:function (_class,user) {
+        login:function (_class,user,teacher) {
             this.class=_class;
             this.user=user;
+            this.teacher=teacher;
+            console.log("teacher",teacher);
         },
         localProjects:function ( ){
             return FS.get("/home/").rel(this.class+"/").rel(this.user+"/") //changeHOME(1)
