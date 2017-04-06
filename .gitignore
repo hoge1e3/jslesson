@@ -68,3 +68,4 @@ www/db/*
 www/mei_*
 private
 www/php/test/phpinfo.php
+/www/perl

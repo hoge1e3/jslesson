@@ -13524,6 +13524,40 @@ define('CommentDialog',["UI"],function (UI) {
     };
     return res;
 });
+define('DistributeDialog',["UI"], function (UI) {
+    var res={};
+	res.show=function (text, onOK,options) {
+    	var d=res.embed(text,onOK,options);
+    	d.dialog({width:600});
+	};
+	res.embed=function (text, onOK, options) {
+	    if (!options) options={};
+        if (!res.d) {
+            res.d=UI("div",{title:"一斉配布"},
+        		$("<div>プログラム</div>"),
+        		$("<textarea>").attr({id:"fileCont",rows:20,cols:60}).val(text),
+        		$("<br>"),
+				$("<input>").attr({id:"overwrite",type:"checkbox"}),
+         		$("<div>チェックを入れると既にファイルがある場合中身が上記の内容に更新されます</div>"),
+                $("<button>OK</button>").click(function () {
+                    //alert("clicked");
+            	    res.d.done();
+            })
+            )
+        }
+
+        var d=res.d;
+/*        d.$vars.OKButton.attr("disabled", false);
+        d.$vars.OKButton.val("OK");*/
+        d.done=function () {
+            onOK($("#fileCont").val(),$("#overwrite").prop("checked"));
+            d.dialog("close");
+        };
+        return d;
+    }
+    return res;
+});
+
 requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "showErrorPos", "fixIndent",  "ProjectCompiler",
            "Shell","ShellUI","KeyEventChecker",
@@ -13531,7 +13565,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
-           "CommentDialog"
+           "CommentDialog","DistributeDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -13540,7 +13574,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
-          CommentDialog
+          CommentDialog,DistributeDialog
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -13717,23 +13751,29 @@ function ready() {
         //alert("distributeFile!");
         curPrjDir=curProjectDir.name();
         curFile=getCurrentEditorInfo().file;
-        $.ajax({
-            type:"POST",
-            url:"a.php?Class/distribute",
-            data:{
-                "prj":curPrjDir,
-                "file":curFile.name(),
-                "cont":curFile.text()
-            }
-        }).then(
-            function(d){
-                alert(d);
-            },
-            function(d){
-                alert("ダメだったみたいです...");
-                console.log(d);
-            }
-        );
+        DistributeDialog.show(curFile.text(),function(text,overwrite){
+            console.log(text,overwrite);
+            $.ajax({
+                type:"POST",
+                url:"a.php?Class/distribute",
+                data:{
+                    "prj":curPrjDir,
+                    "file":curFile.name(),
+                    "htmlText":fileSet(curFile)[0].text(),
+                    "html":fileSet(curFile)[0].name(),
+                    "cont":text,
+                    "over":overwrite
+                }
+            }).then(
+                function(d){
+                    alert(d);
+                },
+                function(d){
+                    alert("ダメだったみたいです...");
+                    console.log(d);
+                }
+            );
+        });
         
     }
     function distributePrj() {

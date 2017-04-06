@@ -25,7 +25,8 @@ class LoginController {
     	<li>ユーザ名には半角英数字を使ってください。</li>
     	<li>パスワード欄は、授業で指示があった場合のみ記入してください。</li>
     	</ul>
-    	<a href="index.html">戻る</a>
+    	<a href="index.html">戻る</a><br>
+    	<a href="?Teacher/login">教員の方はこちら</a>
     <?php 
     } 
     static function curClass() {

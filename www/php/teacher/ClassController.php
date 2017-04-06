@@ -26,7 +26,7 @@ class ClassController {
         <a href="a.php?Class/registerUserForm">履修者を一括登録する</a><br>
         <a href="a.php?Class/showUsers">ユーザ一覧</a>
         <hr>
-        <a href="." target="student">学生としてログイン</a><hr>
+        <a href="." target="student">演習画面</a><hr>
         <?php
         $class->mkdir();
         $mesg="";
@@ -123,7 +123,14 @@ class ClassController {
         $prj=$_POST["prj"];
         $file=$_POST["file"];
         $cont=$_POST["cont"];
-
+        $over=$_POST["over"];
+        $html=$_POST["html"];
+        $htmlText=$_POST["htmlText"];
+        /*
+        $cmttmp=explode(".",$file);
+        $cmttmp[1]=".cmt.txt";
+        $cmt=implode("",$cmttmp);
+        */
         $home=Auth::homeOfClass($class);
         $optText=$home->rel($teacher)->rel($prj)->rel("options.json")->text();
         /*print($prj);
@@ -137,10 +144,16 @@ class ClassController {
                     $p->rel("options.json")->text($optText);
                 }
                 $f=$p->rel($file);
-                if(!$f->exists()){
+                if(!$f->exists() || $over=="true"){
                     $f->text($cont);
                 }
-            }
+                if(!$p->rel($html)->exists() || $over=="true"){
+                    $p->rel($html)->text($htmlText);
+                }
+        /*        if(!$p->rel($cmt)->exists()){
+                    $p->rel($cmt)->text("");
+                }
+         */ }
         }
         
         foreach($class->getAllStu() as $bau){
@@ -150,13 +163,20 @@ class ClassController {
                 $p->rel("options.json")->text($optText);
             }
             $f=$p->rel($file);
-            if(!$f->exists()){
+            if(!$f->exists() || $over=="true"){
                 $f->text($cont);
             }
+            if(!$p->rel($html)->exists() || $over=="true"){
+                $p->rel($html)->text($htmlText);
+            }
+        /*    if(!$p->rel($cmt)->exists()){
+                $p->rel($cmt)->text("");
+            }
+            */
         }
         
         
-        print("配布したと思います!");
+        print("配布しました");
     }
     static function registerUserForm() {
         // TODO

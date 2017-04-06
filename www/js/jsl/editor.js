@@ -191,14 +191,18 @@ function ready() {
         //alert("distributeFile!");
         curPrjDir=curProjectDir.name();
         curFile=getCurrentEditorInfo().file;
-        DistributeDialog.show(curFile.text());/*.then(function(r){
+        DistributeDialog.show(curFile.text(),function(text,overwrite){
+            console.log(text,overwrite);
             $.ajax({
                 type:"POST",
                 url:"a.php?Class/distribute",
                 data:{
                     "prj":curPrjDir,
                     "file":curFile.name(),
-                    "cont":curFile.text()
+                    "htmlText":fileSet(curFile)[0].text(),
+                    "html":fileSet(curFile)[0].name(),
+                    "cont":text,
+                    "over":overwrite
                 }
             }).then(
                 function(d){
@@ -209,7 +213,7 @@ function ready() {
                     console.log(d);
                 }
             );
-        });*/
+        });
         
     }
     function distributePrj() {

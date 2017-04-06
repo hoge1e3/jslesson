@@ -27,7 +27,11 @@ class MarkController {
                 $dst=$home->rel($key.".cmt.txt");
                 $target=$home->rel($key.".c");
                 if ($target->exists()) {
-                    $c=$dst->text();
+                    if ($dst->exists()) {
+                        $c=$dst->text();
+                    } else {
+                        $c="";
+                    }
                     if ($c!==$value) {
                         $dst->text($value);
                         echo "$key にコメントを書きました！<BR>";
