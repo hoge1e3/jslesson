@@ -5,7 +5,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
-           "CommentDialog"
+           "CommentDialog","DistributeDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -14,7 +14,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
-          CommentDialog
+          CommentDialog,DistributeDialog
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -191,23 +191,25 @@ function ready() {
         //alert("distributeFile!");
         curPrjDir=curProjectDir.name();
         curFile=getCurrentEditorInfo().file;
-        $.ajax({
-            type:"POST",
-            url:"a.php?Class/distribute",
-            data:{
-                "prj":curPrjDir,
-                "file":curFile.name(),
-                "cont":curFile.text()
-            }
-        }).then(
-            function(d){
-                alert(d);
-            },
-            function(d){
-                alert("ダメだったみたいです...");
-                console.log(d);
-            }
-        );
+        DistributeDialog.show(curFile.text());/*.then(function(r){
+            $.ajax({
+                type:"POST",
+                url:"a.php?Class/distribute",
+                data:{
+                    "prj":curPrjDir,
+                    "file":curFile.name(),
+                    "cont":curFile.text()
+                }
+            }).then(
+                function(d){
+                    alert(d);
+                },
+                function(d){
+                    alert("ダメだったみたいです...");
+                    console.log(d);
+                }
+            );
+        });*/
         
     }
     function distributePrj() {

@@ -72,7 +72,8 @@ class LoginController {
     static function su() {// nariSUmasi
         $class=$_GET["class"];
         $userN=$_GET["user"];
-        $user=(new BAClass($class))->getUser($userN);
+        $c=new BAClass($class);
+        $user=$c->getUser($userN);
         Auth::su($user);
         header("Location: index.html");
     }

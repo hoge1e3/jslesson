@@ -142,6 +142,20 @@ class ClassController {
                 }
             }
         }
+        
+        foreach($class->getAllStu() as $bau){
+            $u=$home->rel($bau->name."/");
+            $p=$u->rel($prj);
+            if(!$p->rel("options.json")->exists()){
+                $p->rel("options.json")->text($optText);
+            }
+            $f=$p->rel($file);
+            if(!$f->exists()){
+                $f->text($cont);
+            }
+        }
+        
+        
         print("配布したと思います!");
     }
     static function registerUserForm() {

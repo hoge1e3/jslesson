@@ -26,6 +26,16 @@ class BAClass{
         }
         return $res;
     }
+    function getAllStu(){
+        $pdo = pdo();
+        $sth=$pdo->prepare("select * from user where class = ?");
+        $sth->execute(array($this->id));
+        $res=array();
+        foreach ($sth->fetchAll() as $u) {
+            $res[]=new BAUser($this,$u["name"]);    
+        }
+        return $res;
+    }
     function getUser($name) {
         return new BAUser($this,$name);
     }
