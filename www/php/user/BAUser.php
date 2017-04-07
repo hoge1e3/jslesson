@@ -14,6 +14,13 @@ class BAUser {
             throw new Exception("$name should be string");
         }
     }
+    function getPass(){
+        $pdo = pdo();
+        $sth=$pdo->prepare("select pass from user where class = ? and name = ?");
+        $sth->execute(array($this->_class->id,$this->name));
+        $p=$sth->fetchAll();
+        return $p[0]["pass"];
+    }
     function setPass($pass) {
         //TODO
         //パスワードを登録(変更)する．

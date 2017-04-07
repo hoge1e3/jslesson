@@ -32,7 +32,7 @@ class BAClass{
         $sth->execute(array($this->id));
         $res=array();
         foreach ($sth->fetchAll() as $u) {
-            $res[]=new BAUser($this,$u["name"]);    
+            $res[]=new BAUser($this,$u["name"]);
         }
         return $res;
     }

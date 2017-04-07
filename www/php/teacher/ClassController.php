@@ -26,30 +26,8 @@ class ClassController {
         <a href="a.php?Class/registerUserForm">履修者を一括登録する</a><br>
         <a href="a.php?Class/showUsers">ユーザ一覧</a>
         <hr>
-        <a href="." target="student">演習画面</a><hr>
+        <a href="." target="student">演習画面へ</a><hr>
         <?php
-        $class->mkdir();
-        $mesg="";
-        $handle=opendir("fs/home/".$class->id."/");
-        $files=array();
-        $sortedKeys=array();
-        $i=0;
-        while(($tmp=readdir($handle)) !== false){
-	    	if($tmp!="." && $tmp!=".."){
-	    	    $files[$i]=$tmp;
-	    	    $i++;
-		    }
-        }
-        natcasesort($files);
-        $sortedKeys=array_keys($files);
-        for($i=0;$i<count($files);$i++){
-            ?>
-            <a href="a.php?Login/su&class=<?=$class->id?>&user=<?=$files[$sortedKeys[$i]]?>" 
-                target="stutab">
-            <?= $files[$sortedKeys[$i]] ?>
-            </a><br/>
-            <?php 
-        }
     }
     static function make() {
         if (isset($_POST["classname"])) {
@@ -98,7 +76,46 @@ class ClassController {
     }
     static function showUsers(){
         $class=Auth::curClass2();
-        
+        ?>
+        <h1><?=$class->id?> - ユーザ一覧</h1>
+        <a href="a.php?Class/show">クラス管理に戻る</a><hr>
+        <table border=1>
+            <tr><th>ユーザID</th><th>パスワード</th></tr>
+        <?php
+        $students=$class->getAllStu();
+        foreach($students as $s){
+            $pass=$s->getPass();
+            ?>
+            <tr><th><?=$s->name?></th><th><?=$pass?></th></tr>
+            <?php
+        }
+        /*$class->mkdir();
+        $mesg="";
+        $handle=opendir("fs/home/".$class->id."/");
+        $files=array();
+        $sortedKeys=array();
+        $i=0;
+        while(($tmp=readdir($handle)) !== false){
+	    	if($tmp!="." && $tmp!=".."){
+	    	    $files[$i]=$tmp;
+	    	    $i++;
+		    }
+        }
+        natcasesort($files);
+        $sortedKeys=array_keys($files);
+        for($i=0;$i<count($files);$i++){
+            ?>
+            <!--
+            <a href="a.php?Login/su&class=<?=$class->id?>&user=<?=$files[$sortedKeys[$i]]?>" 
+                target="stutab">
+            -->
+            <?= $files[$sortedKeys[$i]] ?>
+            <!--</a>--><br/>
+            <?php 
+        }*/
+        ?>
+        </table>
+        <?php
     }
     static function distribute(){
         /*
