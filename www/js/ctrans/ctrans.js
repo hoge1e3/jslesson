@@ -926,7 +926,8 @@ window.MinimalParser= function () {
 	                return "double "+n+"();";
 	            }).join("\n");
 	        case "x.h":
-                return ["fillRect","clear","update","setColor","drawGrid","setPen","movePen","fillOval"].map(function (n) {
+                return ["fillRect","clear","update","setColor","drawGrid",
+                "setPen","movePen","fillOval","drawText","getkey"].map(function (n) {
 	                return "void "+n+"();";
 	            }).join("\n");
 	    }

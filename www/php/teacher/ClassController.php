@@ -80,13 +80,24 @@ class ClassController {
         <h1><?=$class->id?> - ユーザ一覧</h1>
         <a href="a.php?Class/show">クラス管理に戻る</a><hr>
         <table border=1>
-            <tr><th>ユーザID</th><th>パスワード</th></tr>
+            <tr><th>ユーザID</th><th>パスワード</th><th>名前</th></tr>
         <?php
         $students=$class->getAllStu();
         foreach($students as $s){
             $pass=$s->getPass();
+            $s->getOptions();
+            if(!$s->options){
+                $n="未登録";
+            }else{
+                $n=$s->options["options"];
+                if($n==""){
+                    $n="未登録";
+                }else{
+                    $n=json_decode($n)->name;
+                }
+            }
             ?>
-            <tr><th><?=$s->name?></th><th><?=$pass?></th></tr>
+            <tr><th><?=$s->name?></th><th pass="<?=$pass?>" onclick="if(this.innerHTML=='表示')this.innerHTML=this.getAttribute('pass');else this.innerHTML='表示';">表示</th><th><?=$n?></th></tr>
             <?php
         }
         /*$class->mkdir();

@@ -24,7 +24,7 @@ function ready() {//-------------------------
     $("body").append(UI("div",
             ["div",{class:"hero-unit"},
             ["div",{id:"userInfo",css:{float:"right"},margin:"50px"},"ようこそ",["br"],["div","同期中です..."]],
-            ["h1", ["img",{src:"images/bitarrow-2.png",css:{"display":"inline"},width:"100px"}],"Bit Arrow"]],
+            ["h1", ["img",{src:"images/bitarrow-3.png",css:{"display":"inline"},width:"100px"}],"Bit Arrow(Beta)"]],
             ["div",
 	            ["a",{href:"http://bitarrow.eplang.jp/",target:"wikiTab"},"Bit Arrow解説ページ"]," | ",
     	    	["a",{href:".?Teacher/login",target:"teaTab"},"教員用ログイン"]

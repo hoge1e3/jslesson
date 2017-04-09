@@ -64,3 +64,47 @@ function doDrawGrid() {
 	}
     ctx.restore();
 }
+function setPen(x, y) {
+    var ctx=initX()[0].getContext("2d");
+    setPen.sx = x;
+    setPen.sy = y;
+}
+setPen.sx=0;
+setPen.sy=0;
+function movePen(dx, dy) {
+    var ctx=initX()[0].getContext("2d");
+    ctx.beginPath();
+    ctx.moveTo(setPen.sx, setPen.sy);
+    setPen.sx += dx;
+    setPen.sy += dy;
+    ctx.lineTo(setPen.sx, setPen.sy);
+    ctx.stroke();
+}
+function drawString(s, x, y, sz) {
+    var ctx=initX()[0].getContext("2d");
+    if (sz) {
+        ctx.font = sz + "px monospace";
+    }
+    ctx.fillText(s, x, y);
+}
+
+function drawLine(x1, y1, x2, y2) {
+    var ctx=initX()[0].getContext("2d");
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    //  setPen(x1,y1);movePen(x2-x1,y2-y1);
+}
+function fillOval(x, y, w, h) {
+    var ctx=initX()[0].getContext("2d");
+    if (w * h === 0) return;
+    var a = w / h;
+    var r = h / 2;
+    ctx.beginPath();
+    ctx.save();
+    ctx.scale(a, 1);
+    ctx.arc(x / a + r, y + r, r, 0, Math.PI * 2, true);
+    ctx.fill();
+    ctx.restore();
+}
