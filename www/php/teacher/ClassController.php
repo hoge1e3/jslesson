@@ -220,8 +220,35 @@ class ClassController {
     	    <br/>
     	    <input type="submit" value="OK"/>
     	</form><hr>
+        <form action="a.php?Class/registerOneUser" method="POST">
+            ID<input name="id"><br>
+            名前<input name="name"><br>
+            パスワード<input name="pass"><br>
+            一人ずつ登録します。
+    	    <br/>
+    	    <input type="submit" value="OK"/>
+    	</form><hr>
         <a href="a.php?Class/show">クラス管理に戻る</a>
         <?php
+    }
+    static function registerOneUser(){
+        if($_POST["id"]==""){
+            return self::registerUserForm();
+        }
+        $id=$_POST["id"];
+        $name=$_POST["name"];
+        $pass=$_POST["pass"];
+        echo "$id";
+        $u=new BAUser(Auth::curClass2(),$id);
+        if(!$u->exists()){
+            $u->password=$pass;
+            $u->setOptions("name",$name);
+            $u->make();
+            echo "登録しました<br>";
+        }else{
+            echo "すでに登録されているユーザIDです<br>";
+        }
+        echo '<a href="a.php?Class/registerUserForm">ユーザ登録に戻る</a>';
     }
     static function registerUser() {
         if (!isset($_FILES["stuList"]["name"]) || substr($_FILES["stuList"]["name"],strrpos($_FILES["stuList"]["name"],'.')+1)!='csv') {

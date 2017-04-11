@@ -9,7 +9,7 @@ define(["UI"], function (UI) {
         if (!res.d) {
             res.d=UI("div",{title:"一斉配布"},
         		$("<div>プログラム</div>"),
-        		$("<textarea>").attr({id:"fileCont",rows:20,cols:60}).val(text),
+        		res.tx=$("<textarea>").attr({id:"fileCont",rows:20,cols:60}).val(text),
         		$("<br>"),
 				$("<input>").attr({id:"overwrite",type:"checkbox"}),
          		$("<div>チェックを入れると既にファイルがある場合中身が上記の内容に更新されます</div>"),
@@ -17,9 +17,9 @@ define(["UI"], function (UI) {
                     //alert("clicked");
             	    res.d.done();
             })
-            )
+            );
         }
-
+        res.tx.val(text);
         var d=res.d;
 /*        d.$vars.OKButton.attr("disabled", false);
         d.$vars.OKButton.val("OK");*/

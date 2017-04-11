@@ -94,8 +94,8 @@ var reqConf={
             cCompiler: {
                 deps: [
                     "ctrans/beautify",
-                    "ctrans/compiler",
-                    "ctrans/context",
+                    //"ctrans/compiler",
+                    //"ctrans/context",
                     "ctrans/ctrans",
                     "ctrans/jsgen",
                     "ctrans/lib"
