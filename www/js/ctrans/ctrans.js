@@ -910,7 +910,11 @@ window.MinimalParser= function () {
 	    //console.log("filename",filename);
 	    switch (filename.text) {
 	        case "stdio.h":
-	            return ["printf","scanf","sleep"].map(function (n) {
+	            return ["printf","scanf","sleep","usleep"].map(function (n) {
+	                return "void "+n+"();\n";
+	            }).join("\n");
+	        case "stdlib.h":
+	            return ["rand"].map(function (n) {
 	                return "void "+n+"();\n";
 	            }).join("\n");
 	        case "string.h":
@@ -926,8 +930,8 @@ window.MinimalParser= function () {
 	                return "double "+n+"();";
 	            }).join("\n");
 	        case "x.h":
-                return ["fillRect","clear","update","setColor","drawGrid",
-                "setPen","movePen","fillOval","drawText","getkey"].map(function (n) {
+                return ["fillRect","clear","update","setColor","drawGrid","drawNumber",
+                "setPen","movePen","fillOval","drawText","drawString","getkey"].map(function (n) {
 	                return "void "+n+"();";
 	            }).join("\n");
 	    }

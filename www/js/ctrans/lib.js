@@ -325,4 +325,7 @@ function sleep(msec) {
         setTimeout(succ,msec*1000); 
     });
 }
+function rand() {
+    return Math.floor(Math.random()*0xffffffff);
+}
 window.print=function() {throw new Error("print関数はありません。printfの間違いではないですか？");};

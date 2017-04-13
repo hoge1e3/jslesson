@@ -87,7 +87,12 @@ function drawString(s, x, y, sz) {
     }
     ctx.fillText(s, x, y);
 }
-
+function drawText(s, x, y, sz) {
+    drawString(s+"",x,y,sz);
+}
+function drawNumber(s, x, y, sz) {
+    drawString(s+"",x,y,sz);
+}
 function drawLine(x1, y1, x2, y2) {
     var ctx=initX()[0].getContext("2d");
     ctx.beginPath();
