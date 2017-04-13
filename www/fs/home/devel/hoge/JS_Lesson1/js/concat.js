@@ -281,19 +281,19 @@ Tonyu.klass.define({
       $LASTPOS=3000167;//user.Jyanpoi:167
       if (_this.jcode==0) {
         $LASTPOS=3000190;//user.Jyanpoi:190
-        _this.setText("j","ぐー");
+        _this.setText("j","ぐー0");
         
       } else {
-        $LASTPOS=3000221;//user.Jyanpoi:221
+        $LASTPOS=3000222;//user.Jyanpoi:222
         if (_this.jcode==1) {
-          $LASTPOS=3000234;//user.Jyanpoi:234
-          _this.setText("j","ちょき");
+          $LASTPOS=3000245;//user.Jyanpoi:245
+          _this.setText("j","ちょき2");
           
         } else {
-          $LASTPOS=3000276;//user.Jyanpoi:276
+          $LASTPOS=3000278;//user.Jyanpoi:278
           if (_this.jcode==2) {
-            $LASTPOS=3000289;//user.Jyanpoi:289
-            _this.setText("j","ぱー");
+            $LASTPOS=3000301;//user.Jyanpoi:301
+            _this.setText("j","ぱー5");
             
           }
         }
@@ -320,25 +320,25 @@ Tonyu.klass.define({
             $LASTPOS=3000167;//user.Jyanpoi:167
             if (!(_this.jcode==0)) { __pc=3; break; }
             $LASTPOS=3000190;//user.Jyanpoi:190
-            _this.fiber$setText(_thread, "j", "ぐー");
+            _this.fiber$setText(_thread, "j", "ぐー0");
             __pc=2;return;
           case 2:
             
             __pc=9;break;
           case 3:
-            $LASTPOS=3000221;//user.Jyanpoi:221
+            $LASTPOS=3000222;//user.Jyanpoi:222
             if (!(_this.jcode==1)) { __pc=5; break; }
-            $LASTPOS=3000234;//user.Jyanpoi:234
-            _this.fiber$setText(_thread, "j", "ちょき");
+            $LASTPOS=3000245;//user.Jyanpoi:245
+            _this.fiber$setText(_thread, "j", "ちょき2");
             __pc=4;return;
           case 4:
             
             __pc=8;break;
           case 5:
-            $LASTPOS=3000276;//user.Jyanpoi:276
+            $LASTPOS=3000278;//user.Jyanpoi:278
             if (!(_this.jcode==2)) { __pc=7; break; }
-            $LASTPOS=3000289;//user.Jyanpoi:289
-            _this.fiber$setText(_thread, "j", "ぱー");
+            $LASTPOS=3000301;//user.Jyanpoi:301
+            _this.fiber$setText(_thread, "j", "ぱー5");
             __pc=6;return;
           case 6:
             
@@ -356,5 +356,44 @@ Tonyu.klass.define({
     __dummy: false
   },
   decls: {"methods":{"main":{"nowait":false},"judge":{"nowait":false}}}
+});Tonyu.klass.define({
+  fullName: 'user.Canva',
+  shortName: 'Canva',
+  namespace: 'user',
+  superclass: Tonyu.classes.jslker.Parent,
+  includes: [],
+  methods: {
+    main :function _trc_Canva_main() {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      
+      $LASTPOS=4000074;//user.Canva:74
+      _this.fillRect(20,20,50,50);
+    },
+    fiber$main :function _trc_Canva_f_main(_thread) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      
+      _thread.enter(function _trc_Canva_ent_main(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=4000074;//user.Canva:74
+            _this.fiber$fillRect(_thread, 20, 20, 50, 50);
+            __pc=1;return;
+          case 1:
+            
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    __dummy: false
+  },
+  decls: {"methods":{"main":{"nowait":false}}}
 });
 //# sourceMappingURL=concat.js.map

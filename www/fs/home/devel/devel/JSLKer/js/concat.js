@@ -106,18 +106,46 @@ Tonyu.klass.define({
     addText :function _trc_Parent_addText(elem,val) {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      var dst;
       
       $LASTPOS=1000647;//jslker.Parent:647
-      $("[name="+elem+"]").append(val);
+      if (_this.document.baWriteTo) {
+        $LASTPOS=1000682;//jslker.Parent:682
+        dst = $("[name="+elem+"]")[0];
+        $LASTPOS=1000724;//jslker.Parent:724
+        if (dst) {
+          $LASTPOS=1000733;//jslker.Parent:733
+          _this.document.baWriteTo(dst,val);
+        }
+        
+      } else {
+        $LASTPOS=1000786;//jslker.Parent:786
+        $("[name="+elem+"]").append(val);
+        
+      }
     },
     fiber$addText :function _trc_Parent_f_addText(_thread,elem,val) {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
+      var dst;
       
       $LASTPOS=1000647;//jslker.Parent:647
-      $("[name="+elem+"]").append(val);
+      if (_this.document.baWriteTo) {
+        $LASTPOS=1000682;//jslker.Parent:682
+        dst = $("[name="+elem+"]")[0];
+        $LASTPOS=1000724;//jslker.Parent:724
+        if (dst) {
+          $LASTPOS=1000733;//jslker.Parent:733
+          _this.document.baWriteTo(dst,val);
+        }
+        
+      } else {
+        $LASTPOS=1000786;//jslker.Parent:786
+        $("[name="+elem+"]").append(val);
+        
+      }
       
       _thread.retVal=_this;return;
     },
@@ -125,8 +153,10 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1000762;//jslker.Parent:762
-      $("[name="+elem+"]").text(val);
+      $LASTPOS=1000856;//jslker.Parent:856
+      $("[name="+elem+"]").empty();
+      $LASTPOS=1000891;//jslker.Parent:891
+      _this.addText(elem,val);
     },
     fiber$setText :function _trc_Parent_f_setText(_thread,elem,val) {
       "use strict";
@@ -134,10 +164,23 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1000762;//jslker.Parent:762
-      $("[name="+elem+"]").text(val);
+      $LASTPOS=1000856;//jslker.Parent:856
+      $("[name="+elem+"]").empty();
       
-      _thread.retVal=_this;return;
+      _thread.enter(function _trc_Parent_ent_setText(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1000891;//jslker.Parent:891
+            _this.fiber$addText(_thread, elem, val);
+            __pc=1;return;
+          case 1:
+            
+            _thread.exit(_this);return;
+          }
+        }
+      });
     },
     onClick :function _trc_Parent_onClick(elem,func) {
       "use strict";
@@ -145,48 +188,48 @@ Tonyu.klass.define({
       var usepara;
       var fname;
       
-      $LASTPOS=1000824;//jslker.Parent:824
+      $LASTPOS=1001031;//jslker.Parent:1031
       usepara;fname;
-      $LASTPOS=1000848;//jslker.Parent:848
+      $LASTPOS=1001055;//jslker.Parent:1055
       if (typeof  func=='function') {
-        $LASTPOS=1000888;//jslker.Parent:888
+        $LASTPOS=1001095;//jslker.Parent:1095
         if (func.methodInfo) {
-          $LASTPOS=1000924;//jslker.Parent:924
+          $LASTPOS=1001131;//jslker.Parent:1131
           fname=func.methodInfo.name;
           
         }
         
       } else {
-        $LASTPOS=1000998;//jslker.Parent:998
+        $LASTPOS=1001205;//jslker.Parent:1205
         fname=func+"";
         
       }
-      $LASTPOS=1001025;//jslker.Parent:1025
+      $LASTPOS=1001232;//jslker.Parent:1232
       if (typeof  fname=="string") {
-        $LASTPOS=1001064;//jslker.Parent:1064
+        $LASTPOS=1001271;//jslker.Parent:1271
         if (! _this[fname]) {
           throw new Error("メソッド"+func+"が存在しません");
           
         }
-        $LASTPOS=1001131;//jslker.Parent:1131
+        $LASTPOS=1001338;//jslker.Parent:1338
         if (_this["fiber$"+fname]) {
-          $LASTPOS=1001172;//jslker.Parent:1172
+          $LASTPOS=1001379;//jslker.Parent:1379
           usepara=true;
           
         }
         
       }
-      $LASTPOS=1001209;//jslker.Parent:1209
+      $LASTPOS=1001416;//jslker.Parent:1416
       if (usepara) {
-        $LASTPOS=1001233;//jslker.Parent:1233
-        $("[name="+elem+"]").click(_this.catchException((function anonymous_1275() {
+        $LASTPOS=1001440;//jslker.Parent:1440
+        $("[name="+elem+"]").click(_this.catchException((function anonymous_1482() {
           
-          $LASTPOS=1001292;//jslker.Parent:1292
+          $LASTPOS=1001499;//jslker.Parent:1499
           _this.parallel(fname);
         })));
         
       } else {
-        $LASTPOS=1001406;//jslker.Parent:1406
+        $LASTPOS=1001613;//jslker.Parent:1613
         $("[name="+elem+"]").click(_this.catchException(func));
         
       }
@@ -199,32 +242,32 @@ Tonyu.klass.define({
       var usepara;
       var fname;
       
-      $LASTPOS=1000824;//jslker.Parent:824
+      $LASTPOS=1001031;//jslker.Parent:1031
       usepara;fname;
-      $LASTPOS=1000848;//jslker.Parent:848
+      $LASTPOS=1001055;//jslker.Parent:1055
       if (typeof  func=='function') {
-        $LASTPOS=1000888;//jslker.Parent:888
+        $LASTPOS=1001095;//jslker.Parent:1095
         if (func.methodInfo) {
-          $LASTPOS=1000924;//jslker.Parent:924
+          $LASTPOS=1001131;//jslker.Parent:1131
           fname=func.methodInfo.name;
           
         }
         
       } else {
-        $LASTPOS=1000998;//jslker.Parent:998
+        $LASTPOS=1001205;//jslker.Parent:1205
         fname=func+"";
         
       }
-      $LASTPOS=1001025;//jslker.Parent:1025
+      $LASTPOS=1001232;//jslker.Parent:1232
       if (typeof  fname=="string") {
-        $LASTPOS=1001064;//jslker.Parent:1064
+        $LASTPOS=1001271;//jslker.Parent:1271
         if (! _this[fname]) {
           throw new Error("メソッド"+func+"が存在しません");
           
         }
-        $LASTPOS=1001131;//jslker.Parent:1131
+        $LASTPOS=1001338;//jslker.Parent:1338
         if (_this["fiber$"+fname]) {
-          $LASTPOS=1001172;//jslker.Parent:1172
+          $LASTPOS=1001379;//jslker.Parent:1379
           usepara=true;
           
         }
@@ -236,18 +279,18 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1001209;//jslker.Parent:1209
+            $LASTPOS=1001416;//jslker.Parent:1416
             if (!(usepara)) { __pc=1; break; }
-            $LASTPOS=1001233;//jslker.Parent:1233
-            $("[name="+elem+"]").click(_this.catchException((function anonymous_1275() {
+            $LASTPOS=1001440;//jslker.Parent:1440
+            $("[name="+elem+"]").click(_this.catchException((function anonymous_1482() {
               
-              $LASTPOS=1001292;//jslker.Parent:1292
+              $LASTPOS=1001499;//jslker.Parent:1499
               _this.parallel(fname);
             })));
             __pc=2;break;
           case 1:
             {
-              $LASTPOS=1001406;//jslker.Parent:1406
+              $LASTPOS=1001613;//jslker.Parent:1613
               $("[name="+elem+"]").click(_this.catchException(func));
             }
           case 2:
@@ -261,49 +304,49 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1001488;//jslker.Parent:1488
+      $LASTPOS=1001695;//jslker.Parent:1695
       if (typeof  func=="function") {
-        $LASTPOS=1001526;//jslker.Parent:1526
-        $("body").on("touchstart",(function anonymous_1552(e) {
+        $LASTPOS=1001733;//jslker.Parent:1733
+        $("body").on("touchstart",(function anonymous_1759(e) {
           
-          $LASTPOS=1001578;//jslker.Parent:1578
+          $LASTPOS=1001785;//jslker.Parent:1785
           func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"start");
         }));
-        $LASTPOS=1001709;//jslker.Parent:1709
-        $("body").on("touchmove",(function anonymous_1734(e) {
+        $LASTPOS=1001916;//jslker.Parent:1916
+        $("body").on("touchmove",(function anonymous_1941(e) {
           
-          $LASTPOS=1001760;//jslker.Parent:1760
+          $LASTPOS=1001967;//jslker.Parent:1967
           func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"move");
         }));
-        $LASTPOS=1001890;//jslker.Parent:1890
-        $("body").on("touchend",(function anonymous_1914(e) {
+        $LASTPOS=1002097;//jslker.Parent:2097
+        $("body").on("touchend",(function anonymous_2121(e) {
           
-          $LASTPOS=1001940;//jslker.Parent:1940
+          $LASTPOS=1002147;//jslker.Parent:2147
           func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"end");
         }));
-        $LASTPOS=1002069;//jslker.Parent:2069
-        $("body").on("mousedown",(function anonymous_2094(e) {
+        $LASTPOS=1002276;//jslker.Parent:2276
+        $("body").on("mousedown",(function anonymous_2301(e) {
           
-          $LASTPOS=1002120;//jslker.Parent:2120
+          $LASTPOS=1002327;//jslker.Parent:2327
           _this.down=true;
-          $LASTPOS=1002144;//jslker.Parent:2144
+          $LASTPOS=1002351;//jslker.Parent:2351
           func(e.pageX,e.pageY,"start");
         }));
-        $LASTPOS=1002197;//jslker.Parent:2197
-        $("body").on("mousemove",(function anonymous_2222(e) {
+        $LASTPOS=1002404;//jslker.Parent:2404
+        $("body").on("mousemove",(function anonymous_2429(e) {
           
-          $LASTPOS=1002248;//jslker.Parent:2248
+          $LASTPOS=1002455;//jslker.Parent:2455
           if (_this.down) {
-            $LASTPOS=1002257;//jslker.Parent:2257
+            $LASTPOS=1002464;//jslker.Parent:2464
             func(e.pageX,e.pageY,"move");
           }
         }));
-        $LASTPOS=1002309;//jslker.Parent:2309
-        $("body").on("mouseup",(function anonymous_2332(e) {
+        $LASTPOS=1002516;//jslker.Parent:2516
+        $("body").on("mouseup",(function anonymous_2539(e) {
           
-          $LASTPOS=1002358;//jslker.Parent:2358
+          $LASTPOS=1002565;//jslker.Parent:2565
           _this.down=false;
-          $LASTPOS=1002383;//jslker.Parent:2383
+          $LASTPOS=1002590;//jslker.Parent:2590
           func(e.pageX,e.pageY,"end");
         }));
         
@@ -315,49 +358,49 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1001488;//jslker.Parent:1488
+      $LASTPOS=1001695;//jslker.Parent:1695
       if (typeof  func=="function") {
-        $LASTPOS=1001526;//jslker.Parent:1526
-        $("body").on("touchstart",(function anonymous_1552(e) {
+        $LASTPOS=1001733;//jslker.Parent:1733
+        $("body").on("touchstart",(function anonymous_1759(e) {
           
-          $LASTPOS=1001578;//jslker.Parent:1578
+          $LASTPOS=1001785;//jslker.Parent:1785
           func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"start");
         }));
-        $LASTPOS=1001709;//jslker.Parent:1709
-        $("body").on("touchmove",(function anonymous_1734(e) {
+        $LASTPOS=1001916;//jslker.Parent:1916
+        $("body").on("touchmove",(function anonymous_1941(e) {
           
-          $LASTPOS=1001760;//jslker.Parent:1760
+          $LASTPOS=1001967;//jslker.Parent:1967
           func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"move");
         }));
-        $LASTPOS=1001890;//jslker.Parent:1890
-        $("body").on("touchend",(function anonymous_1914(e) {
+        $LASTPOS=1002097;//jslker.Parent:2097
+        $("body").on("touchend",(function anonymous_2121(e) {
           
-          $LASTPOS=1001940;//jslker.Parent:1940
+          $LASTPOS=1002147;//jslker.Parent:2147
           func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"end");
         }));
-        $LASTPOS=1002069;//jslker.Parent:2069
-        $("body").on("mousedown",(function anonymous_2094(e) {
+        $LASTPOS=1002276;//jslker.Parent:2276
+        $("body").on("mousedown",(function anonymous_2301(e) {
           
-          $LASTPOS=1002120;//jslker.Parent:2120
+          $LASTPOS=1002327;//jslker.Parent:2327
           _this.down=true;
-          $LASTPOS=1002144;//jslker.Parent:2144
+          $LASTPOS=1002351;//jslker.Parent:2351
           func(e.pageX,e.pageY,"start");
         }));
-        $LASTPOS=1002197;//jslker.Parent:2197
-        $("body").on("mousemove",(function anonymous_2222(e) {
+        $LASTPOS=1002404;//jslker.Parent:2404
+        $("body").on("mousemove",(function anonymous_2429(e) {
           
-          $LASTPOS=1002248;//jslker.Parent:2248
+          $LASTPOS=1002455;//jslker.Parent:2455
           if (_this.down) {
-            $LASTPOS=1002257;//jslker.Parent:2257
+            $LASTPOS=1002464;//jslker.Parent:2464
             func(e.pageX,e.pageY,"move");
           }
         }));
-        $LASTPOS=1002309;//jslker.Parent:2309
-        $("body").on("mouseup",(function anonymous_2332(e) {
+        $LASTPOS=1002516;//jslker.Parent:2516
+        $("body").on("mouseup",(function anonymous_2539(e) {
           
-          $LASTPOS=1002358;//jslker.Parent:2358
+          $LASTPOS=1002565;//jslker.Parent:2565
           _this.down=false;
-          $LASTPOS=1002383;//jslker.Parent:2383
+          $LASTPOS=1002590;//jslker.Parent:2590
           func(e.pageX,e.pageY,"end");
         }));
         
@@ -369,7 +412,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1002510;//jslker.Parent:2510
+      $LASTPOS=1002717;//jslker.Parent:2717
       _this._canvas=$("[name="+canv+"]")[0];
     },
     fiber$setCanvas :function _trc_Parent_f_setCanvas(_thread,canv) {
@@ -378,7 +421,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1002510;//jslker.Parent:2510
+      $LASTPOS=1002717;//jslker.Parent:2717
       _this._canvas=$("[name="+canv+"]")[0];
       
       _thread.retVal=_this;return;
@@ -387,9 +430,9 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1002569;//jslker.Parent:2569
+      $LASTPOS=1002776;//jslker.Parent:2776
       if (! _this._canvas) {
-        return _this._canvas=$(_this.canvas)[0];
+        return _this._canvas=$("canvas")[0];
         
       } else {
         return _this._canvas;
@@ -402,9 +445,9 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1002569;//jslker.Parent:2569
+      $LASTPOS=1002776;//jslker.Parent:2776
       if (! _this._canvas) {
-        _thread.retVal=_this._canvas=$(_this.canvas)[0];return;
+        _thread.retVal=_this._canvas=$("canvas")[0];return;
         
         
       } else {
@@ -419,13 +462,13 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1002692;//jslker.Parent:2692
+      $LASTPOS=1002901;//jslker.Parent:2901
       if (_this.searchCanvas()) {
-        $LASTPOS=1002721;//jslker.Parent:2721
+        $LASTPOS=1002930;//jslker.Parent:2930
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1002760;//jslker.Parent:2760
+        $LASTPOS=1002969;//jslker.Parent:2969
         _this.ctx.fillStyle="rgb("+r+","+g+","+b+")";
-        $LASTPOS=1002809;//jslker.Parent:2809
+        $LASTPOS=1003018;//jslker.Parent:3018
         _this.ctx.strokeStyle="rgb("+r+","+g+","+b+")";
         
       }
@@ -436,13 +479,13 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1002692;//jslker.Parent:2692
+      $LASTPOS=1002901;//jslker.Parent:2901
       if (_this.searchCanvas()) {
-        $LASTPOS=1002721;//jslker.Parent:2721
+        $LASTPOS=1002930;//jslker.Parent:2930
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1002760;//jslker.Parent:2760
+        $LASTPOS=1002969;//jslker.Parent:2969
         _this.ctx.fillStyle="rgb("+r+","+g+","+b+")";
-        $LASTPOS=1002809;//jslker.Parent:2809
+        $LASTPOS=1003018;//jslker.Parent:3018
         _this.ctx.strokeStyle="rgb("+r+","+g+","+b+")";
         
       }
@@ -453,11 +496,11 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1002887;//jslker.Parent:2887
+      $LASTPOS=1003096;//jslker.Parent:3096
       if (_this.searchCanvas()) {
-        $LASTPOS=1002916;//jslker.Parent:2916
+        $LASTPOS=1003125;//jslker.Parent:3125
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1002955;//jslker.Parent:2955
+        $LASTPOS=1003164;//jslker.Parent:3164
         _this.ctx.fillRect(x,y,w,h);
         
       }
@@ -468,11 +511,11 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1002887;//jslker.Parent:2887
+      $LASTPOS=1003096;//jslker.Parent:3096
       if (_this.searchCanvas()) {
-        $LASTPOS=1002916;//jslker.Parent:2916
+        $LASTPOS=1003125;//jslker.Parent:3125
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1002955;//jslker.Parent:2955
+        $LASTPOS=1003164;//jslker.Parent:3164
         _this.ctx.fillRect(x,y,w,h);
         
       }
@@ -483,7 +526,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1003066;//jslker.Parent:3066
+      $LASTPOS=1003275;//jslker.Parent:3275
       _this.val=$("[name="+elem+"]").val();
       return _this.val-0;
     },
@@ -493,7 +536,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1003066;//jslker.Parent:3066
+      $LASTPOS=1003275;//jslker.Parent:3275
       _this.val=$("[name="+elem+"]").val();
       _thread.retVal=_this.val-0;return;
       
@@ -504,7 +547,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1003196;//jslker.Parent:3196
+      $LASTPOS=1003405;//jslker.Parent:3405
       _this.val=$("[name="+elem+"]").val();
       return _this.val;
     },
@@ -514,7 +557,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1003196;//jslker.Parent:3196
+      $LASTPOS=1003405;//jslker.Parent:3405
       _this.val=$("[name="+elem+"]").val();
       _thread.retVal=_this.val;return;
       
@@ -525,7 +568,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1003334;//jslker.Parent:3334
+      $LASTPOS=1003543;//jslker.Parent:3543
       $("[name="+elem+"]").text(num);
     },
     fiber$setNumber :function _trc_Parent_f_setNumber(_thread,elem,num) {
@@ -534,7 +577,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1003334;//jslker.Parent:3334
+      $LASTPOS=1003543;//jslker.Parent:3543
       $("[name="+elem+"]").text(num);
       
       _thread.retVal=_this;return;
@@ -543,13 +586,13 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1003404;//jslker.Parent:3404
+      $LASTPOS=1003613;//jslker.Parent:3613
       if (! (newsrc+"").match(/^http/)) {
-        $LASTPOS=1003448;//jslker.Parent:3448
+        $LASTPOS=1003657;//jslker.Parent:3657
         newsrc=window.runtimePath+newsrc;
         
       }
-      $LASTPOS=1003494;//jslker.Parent:3494
+      $LASTPOS=1003703;//jslker.Parent:3703
       $("[name="+elem+"]").attr("src",newsrc);
     },
     fiber$changeImage :function _trc_Parent_f_changeImage(_thread,elem,newsrc) {
@@ -558,13 +601,13 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1003404;//jslker.Parent:3404
+      $LASTPOS=1003613;//jslker.Parent:3613
       if (! (newsrc+"").match(/^http/)) {
-        $LASTPOS=1003448;//jslker.Parent:3448
+        $LASTPOS=1003657;//jslker.Parent:3657
         newsrc=window.runtimePath+newsrc;
         
       }
-      $LASTPOS=1003494;//jslker.Parent:3494
+      $LASTPOS=1003703;//jslker.Parent:3703
       $("[name="+elem+"]").attr("src",newsrc);
       
       _thread.retVal=_this;return;
@@ -573,7 +616,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1003563;//jslker.Parent:3563
+      $LASTPOS=1003772;//jslker.Parent:3772
       $("[name="+elem+"]").css({position: "absolute",left: x,top: y});
     },
     fiber$move :function _trc_Parent_f_move(_thread,elem,x,y) {
@@ -582,7 +625,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1003563;//jslker.Parent:3563
+      $LASTPOS=1003772;//jslker.Parent:3772
       $("[name="+elem+"]").css({position: "absolute",left: x,top: y});
       
       _thread.retVal=_this;return;
@@ -591,26 +634,26 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1003688;//jslker.Parent:3688
+      $LASTPOS=1003897;//jslker.Parent:3897
       console.log(scaleX,scaleY);
-      $LASTPOS=1003721;//jslker.Parent:3721
+      $LASTPOS=1003930;//jslker.Parent:3930
       if (! scaleX) {
-        $LASTPOS=1003743;//jslker.Parent:3743
+        $LASTPOS=1003952;//jslker.Parent:3952
         scaleX=1;
-        $LASTPOS=1003762;//jslker.Parent:3762
+        $LASTPOS=1003971;//jslker.Parent:3971
         scaleY=1;
         
       } else {
-        $LASTPOS=1003783;//jslker.Parent:3783
+        $LASTPOS=1003992;//jslker.Parent:3992
         if (! scaleY) {
-          $LASTPOS=1003805;//jslker.Parent:3805
+          $LASTPOS=1004014;//jslker.Parent:4014
           scaleY=scaleX;
           
         }
       }
-      $LASTPOS=1003832;//jslker.Parent:3832
+      $LASTPOS=1004041;//jslker.Parent:4041
       console.log(scaleX,scaleY);
-      $LASTPOS=1003865;//jslker.Parent:3865
+      $LASTPOS=1004074;//jslker.Parent:4074
       $("[name="+elem+"]").css({position: "absolute",transform: "rotate("+angle+"deg) scale("+scaleX+","+scaleY+")"});
     },
     fiber$transform :function _trc_Parent_f_transform(_thread,elem,angle,scaleX,scaleY) {
@@ -619,26 +662,26 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1003688;//jslker.Parent:3688
+      $LASTPOS=1003897;//jslker.Parent:3897
       console.log(scaleX,scaleY);
-      $LASTPOS=1003721;//jslker.Parent:3721
+      $LASTPOS=1003930;//jslker.Parent:3930
       if (! scaleX) {
-        $LASTPOS=1003743;//jslker.Parent:3743
+        $LASTPOS=1003952;//jslker.Parent:3952
         scaleX=1;
-        $LASTPOS=1003762;//jslker.Parent:3762
+        $LASTPOS=1003971;//jslker.Parent:3971
         scaleY=1;
         
       } else {
-        $LASTPOS=1003783;//jslker.Parent:3783
+        $LASTPOS=1003992;//jslker.Parent:3992
         if (! scaleY) {
-          $LASTPOS=1003805;//jslker.Parent:3805
+          $LASTPOS=1004014;//jslker.Parent:4014
           scaleY=scaleX;
           
         }
       }
-      $LASTPOS=1003832;//jslker.Parent:3832
+      $LASTPOS=1004041;//jslker.Parent:4041
       console.log(scaleX,scaleY);
-      $LASTPOS=1003865;//jslker.Parent:3865
+      $LASTPOS=1004074;//jslker.Parent:4074
       $("[name="+elem+"]").css({position: "absolute",transform: "rotate("+angle+"deg) scale("+scaleX+","+scaleY+")"});
       
       _thread.retVal=_this;return;
@@ -647,7 +690,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1004032;//jslker.Parent:4032
+      $LASTPOS=1004241;//jslker.Parent:4241
       $("[name="+elem+"]").css({position: "absolute",transform: "rotate("+angle+"deg)"});
     },
     fiber$rotate :function _trc_Parent_f_rotate(_thread,elem,angle) {
@@ -656,7 +699,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1004032;//jslker.Parent:4032
+      $LASTPOS=1004241;//jslker.Parent:4241
       $("[name="+elem+"]").css({position: "absolute",transform: "rotate("+angle+"deg)"});
       
       _thread.retVal=_this;return;
@@ -665,7 +708,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1004168;//jslker.Parent:4168
+      $LASTPOS=1004377;//jslker.Parent:4377
       $("[name="+elem+"]").css({position: "absolute",transform: "scale("+w+","+h+")"});
     },
     fiber$resize :function _trc_Parent_f_resize(_thread,elem,w,h) {
@@ -674,7 +717,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1004168;//jslker.Parent:4168
+      $LASTPOS=1004377;//jslker.Parent:4377
       $("[name="+elem+"]").css({position: "absolute",transform: "scale("+w+","+h+")"});
       
       _thread.retVal=_this;return;
@@ -684,16 +727,16 @@ Tonyu.klass.define({
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       var t;
       
-      $LASTPOS=1004299;//jslker.Parent:4299
+      $LASTPOS=1004508;//jslker.Parent:4508
       time=time||100;
-      $LASTPOS=1004320;//jslker.Parent:4320
+      $LASTPOS=1004529;//jslker.Parent:4529
       t = null;
-      $LASTPOS=1004340;//jslker.Parent:4340
+      $LASTPOS=1004549;//jslker.Parent:4549
       t.suspend();
-      $LASTPOS=1004358;//jslker.Parent:4358
-      setTimeout(_this.catchException((function anonymous_4384() {
+      $LASTPOS=1004567;//jslker.Parent:4567
+      setTimeout(_this.catchException((function anonymous_4593() {
         
-        $LASTPOS=1004398;//jslker.Parent:4398
+        $LASTPOS=1004607;//jslker.Parent:4607
         t.steps();
       })),time);
     },
@@ -704,16 +747,16 @@ Tonyu.klass.define({
       var __pc=0;
       var t;
       
-      $LASTPOS=1004299;//jslker.Parent:4299
+      $LASTPOS=1004508;//jslker.Parent:4508
       time=time||100;
-      $LASTPOS=1004320;//jslker.Parent:4320
+      $LASTPOS=1004529;//jslker.Parent:4529
       t = _thread;
-      $LASTPOS=1004340;//jslker.Parent:4340
+      $LASTPOS=1004549;//jslker.Parent:4549
       t.suspend();
-      $LASTPOS=1004358;//jslker.Parent:4358
-      setTimeout(_this.catchException((function anonymous_4384() {
+      $LASTPOS=1004567;//jslker.Parent:4567
+      setTimeout(_this.catchException((function anonymous_4593() {
         
-        $LASTPOS=1004398;//jslker.Parent:4398
+        $LASTPOS=1004607;//jslker.Parent:4607
         t.steps();
       })),time);
       
@@ -740,7 +783,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1004509;//jslker.Parent:4509
+      $LASTPOS=1004718;//jslker.Parent:4718
       $("body").attr("bgcolor",c);
     },
     fiber$setBGColor :function _trc_Parent_f_setBGColor(_thread,c) {
@@ -749,7 +792,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1004509;//jslker.Parent:4509
+      $LASTPOS=1004718;//jslker.Parent:4718
       $("body").attr("bgcolor",c);
       
       _thread.retVal=_this;return;
@@ -759,11 +802,11 @@ Tonyu.klass.define({
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       var e;
       
-      $LASTPOS=1004582;//jslker.Parent:4582
+      $LASTPOS=1004791;//jslker.Parent:4791
       e = _this.document.createElement(elem);
-      $LASTPOS=1004624;//jslker.Parent:4624
+      $LASTPOS=1004833;//jslker.Parent:4833
       e.setAttribute("name",n);
-      $LASTPOS=1004656;//jslker.Parent:4656
+      $LASTPOS=1004865;//jslker.Parent:4865
       _this.document.body.appendChild(e);
     },
     fiber$newElement :function _trc_Parent_f_newElement(_thread,elem,n) {
@@ -773,11 +816,11 @@ Tonyu.klass.define({
       var __pc=0;
       var e;
       
-      $LASTPOS=1004582;//jslker.Parent:4582
+      $LASTPOS=1004791;//jslker.Parent:4791
       e = _this.document.createElement(elem);
-      $LASTPOS=1004624;//jslker.Parent:4624
+      $LASTPOS=1004833;//jslker.Parent:4833
       e.setAttribute("name",n);
-      $LASTPOS=1004656;//jslker.Parent:4656
+      $LASTPOS=1004865;//jslker.Parent:4865
       _this.document.body.appendChild(e);
       
       _thread.retVal=_this;return;
@@ -786,23 +829,23 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1004715;//jslker.Parent:4715
+      $LASTPOS=1004924;//jslker.Parent:4924
       if (_this.searchCanvas()) {
-        $LASTPOS=1004744;//jslker.Parent:4744
+        $LASTPOS=1004953;//jslker.Parent:4953
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1004783;//jslker.Parent:4783
+        $LASTPOS=1004992;//jslker.Parent:4992
         _this.ctx.save();
-        $LASTPOS=1004804;//jslker.Parent:4804
+        $LASTPOS=1005013;//jslker.Parent:5013
         _this.ctx.beginPath();
-        $LASTPOS=1004830;//jslker.Parent:4830
+        $LASTPOS=1005039;//jslker.Parent:5039
         _this.ctx.translate(x+w/2,y+h/2);
-        $LASTPOS=1004867;//jslker.Parent:4867
+        $LASTPOS=1005076;//jslker.Parent:5076
         _this.ctx.scale(w/w,h/w);
-        $LASTPOS=1004897;//jslker.Parent:4897
+        $LASTPOS=1005106;//jslker.Parent:5106
         _this.ctx.arc(0,0,w/2,0,2*_this.Math.PI,false);
-        $LASTPOS=1004949;//jslker.Parent:4949
+        $LASTPOS=1005158;//jslker.Parent:5158
         _this.ctx.fill();
-        $LASTPOS=1004970;//jslker.Parent:4970
+        $LASTPOS=1005179;//jslker.Parent:5179
         _this.ctx.restore();
         
       }
@@ -813,23 +856,23 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1004715;//jslker.Parent:4715
+      $LASTPOS=1004924;//jslker.Parent:4924
       if (_this.searchCanvas()) {
-        $LASTPOS=1004744;//jslker.Parent:4744
+        $LASTPOS=1004953;//jslker.Parent:4953
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1004783;//jslker.Parent:4783
+        $LASTPOS=1004992;//jslker.Parent:4992
         _this.ctx.save();
-        $LASTPOS=1004804;//jslker.Parent:4804
+        $LASTPOS=1005013;//jslker.Parent:5013
         _this.ctx.beginPath();
-        $LASTPOS=1004830;//jslker.Parent:4830
+        $LASTPOS=1005039;//jslker.Parent:5039
         _this.ctx.translate(x+w/2,y+h/2);
-        $LASTPOS=1004867;//jslker.Parent:4867
+        $LASTPOS=1005076;//jslker.Parent:5076
         _this.ctx.scale(w/w,h/w);
-        $LASTPOS=1004897;//jslker.Parent:4897
+        $LASTPOS=1005106;//jslker.Parent:5106
         _this.ctx.arc(0,0,w/2,0,2*_this.Math.PI,false);
-        $LASTPOS=1004949;//jslker.Parent:4949
+        $LASTPOS=1005158;//jslker.Parent:5158
         _this.ctx.fill();
-        $LASTPOS=1004970;//jslker.Parent:4970
+        $LASTPOS=1005179;//jslker.Parent:5179
         _this.ctx.restore();
         
       }
@@ -840,17 +883,17 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1005025;//jslker.Parent:5025
+      $LASTPOS=1005234;//jslker.Parent:5234
       if (_this.searchCanvas()) {
-        $LASTPOS=1005054;//jslker.Parent:5054
+        $LASTPOS=1005263;//jslker.Parent:5263
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1005093;//jslker.Parent:5093
+        $LASTPOS=1005302;//jslker.Parent:5302
         _this.ctx.beginPath();
-        $LASTPOS=1005119;//jslker.Parent:5119
+        $LASTPOS=1005328;//jslker.Parent:5328
         _this.ctx.moveTo(x1,y1);
-        $LASTPOS=1005147;//jslker.Parent:5147
+        $LASTPOS=1005356;//jslker.Parent:5356
         _this.ctx.lineTo(x2,y2);
-        $LASTPOS=1005175;//jslker.Parent:5175
+        $LASTPOS=1005384;//jslker.Parent:5384
         _this.ctx.stroke();
         
       }
@@ -861,17 +904,17 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1005025;//jslker.Parent:5025
+      $LASTPOS=1005234;//jslker.Parent:5234
       if (_this.searchCanvas()) {
-        $LASTPOS=1005054;//jslker.Parent:5054
+        $LASTPOS=1005263;//jslker.Parent:5263
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1005093;//jslker.Parent:5093
+        $LASTPOS=1005302;//jslker.Parent:5302
         _this.ctx.beginPath();
-        $LASTPOS=1005119;//jslker.Parent:5119
+        $LASTPOS=1005328;//jslker.Parent:5328
         _this.ctx.moveTo(x1,y1);
-        $LASTPOS=1005147;//jslker.Parent:5147
+        $LASTPOS=1005356;//jslker.Parent:5356
         _this.ctx.lineTo(x2,y2);
-        $LASTPOS=1005175;//jslker.Parent:5175
+        $LASTPOS=1005384;//jslker.Parent:5384
         _this.ctx.stroke();
         
       }
@@ -882,11 +925,11 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1005226;//jslker.Parent:5226
+      $LASTPOS=1005435;//jslker.Parent:5435
       if (_this.searchCanvas()) {
-        $LASTPOS=1005255;//jslker.Parent:5255
+        $LASTPOS=1005464;//jslker.Parent:5464
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1005294;//jslker.Parent:5294
+        $LASTPOS=1005503;//jslker.Parent:5503
         _this.ctx.clearRect(x,y,w,h);
         
       }
@@ -897,11 +940,11 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1005226;//jslker.Parent:5226
+      $LASTPOS=1005435;//jslker.Parent:5435
       if (_this.searchCanvas()) {
-        $LASTPOS=1005255;//jslker.Parent:5255
+        $LASTPOS=1005464;//jslker.Parent:5464
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1005294;//jslker.Parent:5294
+        $LASTPOS=1005503;//jslker.Parent:5503
         _this.ctx.clearRect(x,y,w,h);
         
       }
@@ -912,11 +955,11 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1005352;//jslker.Parent:5352
+      $LASTPOS=1005561;//jslker.Parent:5561
       if (_this.searchCanvas()) {
-        $LASTPOS=1005381;//jslker.Parent:5381
+        $LASTPOS=1005590;//jslker.Parent:5590
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1005420;//jslker.Parent:5420
+        $LASTPOS=1005629;//jslker.Parent:5629
         _this.ctx.fillText(t,x,y);
         
       }
@@ -927,11 +970,11 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1005352;//jslker.Parent:5352
+      $LASTPOS=1005561;//jslker.Parent:5561
       if (_this.searchCanvas()) {
-        $LASTPOS=1005381;//jslker.Parent:5381
+        $LASTPOS=1005590;//jslker.Parent:5590
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1005420;//jslker.Parent:5420
+        $LASTPOS=1005629;//jslker.Parent:5629
         _this.ctx.fillText(t,x,y);
         
       }
@@ -942,60 +985,60 @@ Tonyu.klass.define({
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       
-      $LASTPOS=1005483;//jslker.Parent:5483
+      $LASTPOS=1005692;//jslker.Parent:5692
       _this.keyData=[];
-      $LASTPOS=1005500;//jslker.Parent:5500
-      _this.document.onkeydown=(function anonymous_5521(e) {
+      $LASTPOS=1005709;//jslker.Parent:5709
+      _this.document.onkeydown=(function anonymous_5730(e) {
         var key_code;
         var key_char;
         
-        $LASTPOS=1005544;//jslker.Parent:5544
+        $LASTPOS=1005753;//jslker.Parent:5753
         if (! e) {
-          $LASTPOS=1005551;//jslker.Parent:5551
+          $LASTPOS=1005760;//jslker.Parent:5760
           e=window.event;
         }
-        $LASTPOS=1005578;//jslker.Parent:5578
+        $LASTPOS=1005787;//jslker.Parent:5787
         key_code = e.keyCode;
-        $LASTPOS=1005613;//jslker.Parent:5613
+        $LASTPOS=1005822;//jslker.Parent:5822
         key_char = String.fromCharCode(key_code).toLowerCase();
-        $LASTPOS=1005682;//jslker.Parent:5682
+        $LASTPOS=1005891;//jslker.Parent:5891
         if (e.shiftKey&&(! _this.keyData["shift_key"]||_this.keyData["shift_key"]==0)) {
-          $LASTPOS=1005751;//jslker.Parent:5751
+          $LASTPOS=1005960;//jslker.Parent:5960
           _this.keyData["shift_key"]=1;
         } else {
-          $LASTPOS=1005789;//jslker.Parent:5789
+          $LASTPOS=1005998;//jslker.Parent:5998
           if (e.ctrlKey&&(! _this.keyData["ctrl_key"]||_this.keyData["ctrl_key"]==0)) {
-            $LASTPOS=1005855;//jslker.Parent:5855
+            $LASTPOS=1006064;//jslker.Parent:6064
             _this.keyData["ctrl_key"]=1;
           } else {
-            $LASTPOS=1005892;//jslker.Parent:5892
+            $LASTPOS=1006101;//jslker.Parent:6101
             if (e.altKey&&(! _this.keyData["alt_key"]||_this.keyData["alt_key"]==0)) {
-              $LASTPOS=1005955;//jslker.Parent:5955
+              $LASTPOS=1006164;//jslker.Parent:6164
               _this.keyData["alt_key"]=1;
             } else {
-              $LASTPOS=1005991;//jslker.Parent:5991
+              $LASTPOS=1006200;//jslker.Parent:6200
               if (e.keyCode==37&&(! _this.keyData["left"]||_this.keyData["left"]==0)) {
-                $LASTPOS=1006053;//jslker.Parent:6053
+                $LASTPOS=1006262;//jslker.Parent:6262
                 _this.keyData["left"]=1;
               } else {
-                $LASTPOS=1006086;//jslker.Parent:6086
+                $LASTPOS=1006295;//jslker.Parent:6295
                 if (e.keyCode==38&&(! _this.keyData["up"]||_this.keyData["up"]==0)) {
-                  $LASTPOS=1006144;//jslker.Parent:6144
+                  $LASTPOS=1006353;//jslker.Parent:6353
                   _this.keyData["up"]=1;
                 } else {
-                  $LASTPOS=1006175;//jslker.Parent:6175
+                  $LASTPOS=1006384;//jslker.Parent:6384
                   if (e.keyCode==39&&(! _this.keyData["right"]||_this.keyData["right"]==0)) {
-                    $LASTPOS=1006239;//jslker.Parent:6239
+                    $LASTPOS=1006448;//jslker.Parent:6448
                     _this.keyData["right"]=1;
                   } else {
-                    $LASTPOS=1006273;//jslker.Parent:6273
+                    $LASTPOS=1006482;//jslker.Parent:6482
                     if (e.keyCode==40&&(! _this.keyData["down"]||_this.keyData["down"]==0)) {
-                      $LASTPOS=1006335;//jslker.Parent:6335
+                      $LASTPOS=1006544;//jslker.Parent:6544
                       _this.keyData["down"]=1;
                     } else {
-                      $LASTPOS=1006368;//jslker.Parent:6368
+                      $LASTPOS=1006577;//jslker.Parent:6577
                       if (! _this.keyData[key_char]||_this.keyData[key_char]==0) {
-                        $LASTPOS=1006414;//jslker.Parent:6414
+                        $LASTPOS=1006623;//jslker.Parent:6623
                         _this.keyData[key_char]=1;
                       }
                     }
@@ -1006,56 +1049,56 @@ Tonyu.klass.define({
           }
         }
       });
-      $LASTPOS=1006579;//jslker.Parent:6579
-      _this.document.onkeyup=(function anonymous_6598(e) {
+      $LASTPOS=1006788;//jslker.Parent:6788
+      _this.document.onkeyup=(function anonymous_6807(e) {
         var key_code;
         var key_char;
         
-        $LASTPOS=1006621;//jslker.Parent:6621
+        $LASTPOS=1006830;//jslker.Parent:6830
         if (! e) {
-          $LASTPOS=1006628;//jslker.Parent:6628
+          $LASTPOS=1006837;//jslker.Parent:6837
           e=window.event;
         }
-        $LASTPOS=1006655;//jslker.Parent:6655
+        $LASTPOS=1006864;//jslker.Parent:6864
         key_code = e.keyCode;
-        $LASTPOS=1006690;//jslker.Parent:6690
+        $LASTPOS=1006899;//jslker.Parent:6899
         key_char = String.fromCharCode(key_code).toLowerCase();
-        $LASTPOS=1006759;//jslker.Parent:6759
+        $LASTPOS=1006968;//jslker.Parent:6968
         if (e.keyCode==16) {
-          $LASTPOS=1006777;//jslker.Parent:6777
+          $LASTPOS=1006986;//jslker.Parent:6986
           _this.keyData["shift_key"]=0;
         } else {
-          $LASTPOS=1006815;//jslker.Parent:6815
+          $LASTPOS=1007024;//jslker.Parent:7024
           if (e.keyCode==17) {
-            $LASTPOS=1006833;//jslker.Parent:6833
+            $LASTPOS=1007042;//jslker.Parent:7042
             _this.keyData["ctrl_key"]=0;
           } else {
-            $LASTPOS=1006870;//jslker.Parent:6870
+            $LASTPOS=1007079;//jslker.Parent:7079
             if (e.keyCode==18) {
-              $LASTPOS=1006888;//jslker.Parent:6888
+              $LASTPOS=1007097;//jslker.Parent:7097
               _this.keyData["alt_key"]=0;
             } else {
-              $LASTPOS=1006924;//jslker.Parent:6924
+              $LASTPOS=1007133;//jslker.Parent:7133
               if (e.keyCode==37) {
-                $LASTPOS=1006942;//jslker.Parent:6942
+                $LASTPOS=1007151;//jslker.Parent:7151
                 _this.keyData["left"]=0;
               } else {
-                $LASTPOS=1006975;//jslker.Parent:6975
+                $LASTPOS=1007184;//jslker.Parent:7184
                 if (e.keyCode==38) {
-                  $LASTPOS=1006993;//jslker.Parent:6993
+                  $LASTPOS=1007202;//jslker.Parent:7202
                   _this.keyData["up"]=0;
                 } else {
-                  $LASTPOS=1007024;//jslker.Parent:7024
+                  $LASTPOS=1007233;//jslker.Parent:7233
                   if (e.keyCode==39) {
-                    $LASTPOS=1007042;//jslker.Parent:7042
+                    $LASTPOS=1007251;//jslker.Parent:7251
                     _this.keyData["right"]=0;
                   } else {
-                    $LASTPOS=1007076;//jslker.Parent:7076
+                    $LASTPOS=1007285;//jslker.Parent:7285
                     if (e.keyCode==40) {
-                      $LASTPOS=1007094;//jslker.Parent:7094
+                      $LASTPOS=1007303;//jslker.Parent:7303
                       _this.keyData["down"]=0;
                     } else {
-                      $LASTPOS=1007127;//jslker.Parent:7127
+                      $LASTPOS=1007336;//jslker.Parent:7336
                       _this.keyData[key_char]=0;
                     }
                   }
@@ -1204,15 +1247,15 @@ Tonyu.klass.define({
       var methodName;
       var t;
       
-      $LASTPOS=1007651;//jslker.Parent:7651
+      $LASTPOS=1007860;//jslker.Parent:7860
       a = Array.prototype.slice.call(arguments);
-      $LASTPOS=1007701;//jslker.Parent:7701
+      $LASTPOS=1007910;//jslker.Parent:7910
       methodName = a.shift();
-      $LASTPOS=1007732;//jslker.Parent:7732
+      $LASTPOS=1007941;//jslker.Parent:7941
       t = Tonyu.thread();
-      $LASTPOS=1007759;//jslker.Parent:7759
+      $LASTPOS=1007968;//jslker.Parent:7968
       t.apply(_this,methodName,a);
-      $LASTPOS=1007792;//jslker.Parent:7792
+      $LASTPOS=1008001;//jslker.Parent:8001
       t.steps();
     },
     fiber$parallel :function _trc_Parent_f_parallel(_thread) {
@@ -1224,15 +1267,15 @@ Tonyu.klass.define({
       var methodName;
       var t;
       
-      $LASTPOS=1007651;//jslker.Parent:7651
+      $LASTPOS=1007860;//jslker.Parent:7860
       a = Array.prototype.slice.call(_arguments);
-      $LASTPOS=1007701;//jslker.Parent:7701
+      $LASTPOS=1007910;//jslker.Parent:7910
       methodName = a.shift();
-      $LASTPOS=1007732;//jslker.Parent:7732
+      $LASTPOS=1007941;//jslker.Parent:7941
       t = Tonyu.thread();
-      $LASTPOS=1007759;//jslker.Parent:7759
+      $LASTPOS=1007968;//jslker.Parent:7968
       t.apply(_this,methodName,a);
-      $LASTPOS=1007792;//jslker.Parent:7792
+      $LASTPOS=1008001;//jslker.Parent:8001
       t.steps();
       
       _thread.retVal=_this;return;
@@ -1243,23 +1286,23 @@ Tonyu.klass.define({
       var clicked;
       var _func;
       
-      $LASTPOS=1007830;//jslker.Parent:7830
+      $LASTPOS=1008039;//jslker.Parent:8039
       clicked = 0;
-      $LASTPOS=1007850;//jslker.Parent:7850
-      _func = (function anonymous_7860() {
+      $LASTPOS=1008059;//jslker.Parent:8059
+      _func = (function anonymous_8069() {
         
-        $LASTPOS=1007881;//jslker.Parent:7881
+        $LASTPOS=1008090;//jslker.Parent:8090
         clicked=1;
       });
-      $LASTPOS=1007905;//jslker.Parent:7905
+      $LASTPOS=1008114;//jslker.Parent:8114
       _this.onClick(elem,_func);
-      $LASTPOS=1007931;//jslker.Parent:7931
+      $LASTPOS=1008140;//jslker.Parent:8140
       while (clicked==0) {
-        $LASTPOS=1007959;//jslker.Parent:7959
+        $LASTPOS=1008168;//jslker.Parent:8168
         _this.wait(10);
         
       }
-      $LASTPOS=1007981;//jslker.Parent:7981
+      $LASTPOS=1008190;//jslker.Parent:8190
       $("[name="+elem+"]").off("click","",_func);
     },
     fiber$waitClick :function _trc_Parent_f_waitClick(_thread,elem) {
@@ -1270,12 +1313,12 @@ Tonyu.klass.define({
       var clicked;
       var _func;
       
-      $LASTPOS=1007830;//jslker.Parent:7830
+      $LASTPOS=1008039;//jslker.Parent:8039
       clicked = 0;
-      $LASTPOS=1007850;//jslker.Parent:7850
-      _func = (function anonymous_7860() {
+      $LASTPOS=1008059;//jslker.Parent:8059
+      _func = (function anonymous_8069() {
         
-        $LASTPOS=1007881;//jslker.Parent:7881
+        $LASTPOS=1008090;//jslker.Parent:8090
         clicked=1;
       });
       
@@ -1284,15 +1327,15 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1007905;//jslker.Parent:7905
+            $LASTPOS=1008114;//jslker.Parent:8114
             _this.fiber$onClick(_thread, elem, _func);
             __pc=1;return;
           case 1:
             
-            $LASTPOS=1007931;//jslker.Parent:7931
+            $LASTPOS=1008140;//jslker.Parent:8140
           case 2:
             if (!(clicked==0)) { __pc=4; break; }
-            $LASTPOS=1007959;//jslker.Parent:7959
+            $LASTPOS=1008168;//jslker.Parent:8168
             _this.fiber$wait(_thread, 10);
             __pc=3;return;
           case 3:
@@ -1300,7 +1343,7 @@ Tonyu.klass.define({
             __pc=2;break;
           case 4:
             
-            $LASTPOS=1007981;//jslker.Parent:7981
+            $LASTPOS=1008190;//jslker.Parent:8190
             $("[name="+elem+"]").off("click","",_func);
             _thread.exit(_this);return;
           }

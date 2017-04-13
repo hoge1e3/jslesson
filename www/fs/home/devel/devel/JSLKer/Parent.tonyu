@@ -100,7 +100,7 @@ native Error;
 }
 \searchCanvas(){
     if(!_canvas){
-        return _canvas=$(canvas)[0];
+        return _canvas=$("canvas")[0];
     }else{
         return _canvas;
     }
