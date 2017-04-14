@@ -12585,7 +12585,37 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
     return Sync;
 });
 
-define('RunDialog',["UI"],function (UI) {
+define('DiagAdjuster',[],function () {
+    var DiagAdjuster=function (diagElem) {
+        this.diagElem=diagElem;
+        this.rszt=null;
+        this.margin=30;
+        this.timeout=100;
+    };
+    DiagAdjuster.prototype.handleResize=function () {
+        var self=this;
+        if (this.rszt) clearTimeout(this.rszt);
+        this.rszt=setTimeout(function () {
+            var d=self.diagElem.closest(".ui-dialog");
+            var t=d.find(".ui-dialog-titlebar");
+            var dw=d.width(),dh=d.height(),th=t.height();
+            var pad=self.margin;
+            var sz={w:dw-pad, h:dh-th-pad};
+            self.diagElem.css({width:sz.w,height:sz.h});
+            self.afterResize(self.diagElem);
+        },this.timeout);
+    };
+    DiagAdjuster.prototype.handleResizeF=function () {
+        var self=this;
+        return function () {
+            self.handleResize();    
+        };
+    };
+    DiagAdjuster.prototype.afterResize=function (){};
+    return DiagAdjuster;
+});
+
+define('RunDialog',["UI","DiagAdjuster"],function (UI,DA) {
     var res={};
     res.show=function (src, runURL, options) {
         options=options||{};
@@ -12597,15 +12627,21 @@ define('RunDialog',["UI"],function (UI) {
 		        $("#ifrmDlg").remove();
 		        if(typeof options.toEditor == "function") options.toEditor();
 	        },
-            resize:function(e,u){
+            //resize:function(e,u){
                 //console.log(u.size);
                 //$("#iBrowser").css({width:u.size.width-50,height:u.size.height-120});
                 //$("#ifrmDlg").attr({width:u.size.width-50,height:u.size.height-120});
-                var d=res.d;
-                $("#ifrmDlg").attr({width:d.width(),height:d.height()-d.$vars.OKButton.height()});
+            //    var d=res.d;
+            //    $("#ifrmDlg").attr({width:d.width(),height:d.height()-d.$vars.OKButton.height()});
                 //if (res.da) res.da.handleResize();
-            }
+            //}
+            resize:handleResize
         });//,height:options.height?options.height-50:400});
+        handleResize();
+        function handleResize(e,u){
+            var d=res.d;
+            $("#ifrmDlg").attr({width:d.width(),height:d.height()-d.$vars.OKButton.height()});
+        }
         if($("#ifrmDlg")[0]) {
             $("#ifrmDlg")[0].contentWindow.onload=function(){
                 var cons=$("#ifrmDlg")[0].contentWindow.document.getElementById("console");
@@ -12624,10 +12660,11 @@ define('RunDialog',["UI"],function (UI) {
                         res.d.dialog("close");
                     }}}, "OK"]
             );
-            /*res.da=new DA(res.d);
+            res.da=new DA(res.d);
             res.da.afterResize=function (d) {
+                console.log("DA",d.height());
                 $("#ifrmDlg").attr({width:d.width(),height:d.height()-res.d.$vars.OKButton.height()});
-            };*/            
+            };            
         }else{
             $("#ifrmDlg").remove();
 		    //$("#iBrowser").append(UI("iframe",{id:"ifrmDlg",width:570,height:options.height||400,src:runURL}));
@@ -12917,36 +12954,6 @@ function (sh,FS,DU,UI,S) {
     return LocalBrowser;
 });
 
-define('DiagAdjuster',[],function () {
-    var DiagAdjuster=function (diagElem) {
-        this.diagElem=diagElem;
-        this.rszt=null;
-        this.margin=30;
-        this.timeout=100;
-    };
-    DiagAdjuster.prototype.handleResize=function () {
-        var self=this;
-        if (this.rszt) clearTimeout(this.rszt);
-        this.rszt=setTimeout(function () {
-            var d=self.diagElem.closest(".ui-dialog");
-            var t=d.find(".ui-dialog-titlebar");
-            var dw=d.width(),dh=d.height(),th=t.height();
-            var pad=self.margin;
-            var sz={w:dw-pad, h:dh-th-pad};
-            self.diagElem.css({width:sz.w,height:sz.h});
-            self.afterResize(self.diagElem);
-        },this.timeout);
-    };
-    DiagAdjuster.prototype.handleResizeF=function () {
-        var self=this;
-        return function () {
-            self.handleResize();    
-        };
-    };
-    DiagAdjuster.prototype.afterResize=function (){};
-    return DiagAdjuster;
-});
-
 define('RunDialog2',["UI","LocalBrowser","DiagAdjuster"],
 function (UI, LocalBrowser,DA) {
     var res={};
@@ -12967,7 +12974,6 @@ function (UI, LocalBrowser,DA) {
         });//,height:options.height?options.height-50:400});
         handleResize();
         function handleResize() {
-            console.log(d.height());
             if (res.b/* && res.b.iframe*/) {
                 res.b.resize(d.width(),d.height()-d.$vars.OKButton.height());
                 /*res.b.iframe.attr({
@@ -12979,7 +12985,7 @@ function (UI, LocalBrowser,DA) {
     res.embed=function (runFile, options) {
         options=options||{};
         if (!res.d) {
-            res.d=UI("div",{title:"実行画面ダイアログ",css:{overflow:"hidden"}},
+            res.d=UI("div",{title:"実行画面ダイアログ",id:"runDlg",css:{overflow:"hidden"}},
                     ["div",{$var:"browser"}],
                     ["button", {type:"button",$var:"OKButton", on:{click: function () {
                         res.d.dialog("close");
@@ -13535,7 +13541,7 @@ define('DistributeDialog',["UI"], function (UI) {
         if (!res.d) {
             res.d=UI("div",{title:"一斉配布"},
         		$("<div>プログラム</div>"),
-        		$("<textarea>").attr({id:"fileCont",rows:20,cols:60}).val(text),
+        		res.tx=$("<textarea>").attr({id:"fileCont",rows:20,cols:60}).val(text),
         		$("<br>"),
 				$("<input>").attr({id:"overwrite",type:"checkbox"}),
          		$("<div>チェックを入れると既にファイルがある場合中身が上記の内容に更新されます</div>"),
@@ -13543,9 +13549,9 @@ define('DistributeDialog',["UI"], function (UI) {
                     //alert("clicked");
             	    res.d.done();
             })
-            )
+            );
         }
-
+        res.tx.val(text);
         var d=res.d;
 /*        d.$vars.OKButton.attr("disabled", false);
         d.$vars.OKButton.val("OK");*/

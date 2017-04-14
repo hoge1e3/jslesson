@@ -1,4 +1,4 @@
-define(["UI"],function (UI) {
+define(["UI","DiagAdjuster"],function (UI,DA) {
     var res={};
     res.show=function (src, runURL, options) {
         options=options||{};
@@ -10,15 +10,21 @@ define(["UI"],function (UI) {
 		        $("#ifrmDlg").remove();
 		        if(typeof options.toEditor == "function") options.toEditor();
 	        },
-            resize:function(e,u){
+            //resize:function(e,u){
                 //console.log(u.size);
                 //$("#iBrowser").css({width:u.size.width-50,height:u.size.height-120});
                 //$("#ifrmDlg").attr({width:u.size.width-50,height:u.size.height-120});
-                var d=res.d;
-                $("#ifrmDlg").attr({width:d.width(),height:d.height()-d.$vars.OKButton.height()});
+            //    var d=res.d;
+            //    $("#ifrmDlg").attr({width:d.width(),height:d.height()-d.$vars.OKButton.height()});
                 //if (res.da) res.da.handleResize();
-            }
+            //}
+            resize:handleResize
         });//,height:options.height?options.height-50:400});
+        handleResize();
+        function handleResize(e,u){
+            var d=res.d;
+            $("#ifrmDlg").attr({width:d.width(),height:d.height()-d.$vars.OKButton.height()});
+        }
         if($("#ifrmDlg")[0]) {
             $("#ifrmDlg")[0].contentWindow.onload=function(){
                 var cons=$("#ifrmDlg")[0].contentWindow.document.getElementById("console");
@@ -37,10 +43,11 @@ define(["UI"],function (UI) {
                         res.d.dialog("close");
                     }}}, "OK"]
             );
-            /*res.da=new DA(res.d);
+            res.da=new DA(res.d);
             res.da.afterResize=function (d) {
+                console.log("DA",d.height());
                 $("#ifrmDlg").attr({width:d.width(),height:d.height()-res.d.$vars.OKButton.height()});
-            };*/            
+            };            
         }else{
             $("#ifrmDlg").remove();
 		    //$("#iBrowser").append(UI("iframe",{id:"ifrmDlg",width:570,height:options.height||400,src:runURL}));

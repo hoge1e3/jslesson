@@ -18,7 +18,6 @@ function (UI, LocalBrowser,DA) {
         });//,height:options.height?options.height-50:400});
         handleResize();
         function handleResize() {
-            console.log(d.height());
             if (res.b/* && res.b.iframe*/) {
                 res.b.resize(d.width(),d.height()-d.$vars.OKButton.height());
                 /*res.b.iframe.attr({
@@ -30,7 +29,7 @@ function (UI, LocalBrowser,DA) {
     res.embed=function (runFile, options) {
         options=options||{};
         if (!res.d) {
-            res.d=UI("div",{title:"実行画面ダイアログ",css:{overflow:"hidden"}},
+            res.d=UI("div",{title:"実行画面ダイアログ",id:"runDlg",css:{overflow:"hidden"}},
                     ["div",{$var:"browser"}],
                     ["button", {type:"button",$var:"OKButton", on:{click: function () {
                         res.d.dialog("close");
