@@ -14,6 +14,16 @@ if (isset($_GET["curuser"])) {
 } else if (isset($_GET["class"]) && isset($_GET["user"])) {
 	$class=$_GET["class"];
 	$user=$_GET["user"];
+    $pdo=pdo();
+	$sth=$pdo->prepare("select * from class where id = ?");
+	$sth->execute(array($class));
+	$c=$sth->fetchAll();
+	if(count($c)>0){
+	    if($c[0]["options"]!="" && json_decode($c[0]["options"])->passwordPolicy=="yes"){
+		    header("Location: ../bitarrowbeta/?Login/form");
+		    exit;
+	    }
+	}
 	$mesg=Auth::login($class,$user);
 	if ($mesg===true) {
 	    $showForm=false;

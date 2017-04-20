@@ -67,3 +67,5 @@ www/runtime/lib/tjs/kernel_old.js.map
 www/db/*
 www/mei_*
 private
+/www/perl/*
+www/php/test/phpinfo.php
