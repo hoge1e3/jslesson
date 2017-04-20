@@ -34,6 +34,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     var isFirefox=navigator.userAgent.indexOf("Firefox")>=0;
     var isChrome=navigator.userAgent.indexOf("Chrome")>=0;
     var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
+    window.ALWAYS_UPLOAD=false;
     var langList={
     	"js":"JavaScript",
     	"c":"C",
@@ -584,11 +585,23 @@ function ready() {
         if(lang=="js"){
     	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
             SplashScreen.show();
+            var pub=Auth.publishedDir(curProjectDir.name());
             //RunDialog2 (new version)
             try {
                 DU.timeout(0).then(function () {
-                    return builder.build({mainFile:curJSFile});    
+                    var b=builder.build({mainFile:curJSFile});
+                    if (ALWAYS_UPLOAD) {
+                        return b.then(function () {
+                            builder.upload(pub); 
+                        });
+                    }
+                    return b;
                 }).then(function () {
+                    if (ALWAYS_UPLOAD) {
+                        var runURL=Auth.publishedURL(curProjectDir.name())+curHTMLFile.name();
+                        $("<iframe>").attr({src:runURL}).dialog({width:600,height:400});
+                        return;
+                    }
                     //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
                     RunDialog2.show(indexF,

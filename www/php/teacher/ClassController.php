@@ -23,7 +23,7 @@ class ClassController {
         <h1><?=$class->id?> - クラス管理</h1>
         <a href="a.php?Teacher/home">クラス一覧に戻る</a><br>
         <a href="a.php?Class/config">クラスの設定をする</a><br>
-        <a href="a.php?Class/registerUserForm">履修者を一括登録する</a><br>
+        <a href="a.php?Class/registerUserForm">履修者を登録する</a><br>
         <a href="a.php?Class/showUsers">ユーザ一覧</a>
         <hr>
         <a href="." target="student">演習画面へ</a><hr>
