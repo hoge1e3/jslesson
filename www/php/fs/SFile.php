@@ -36,7 +36,6 @@ class SFile{
         return PathUtil::name($this->path());
     }
     public function truncExt() {
-        return PathUtil::truncExt($this->name());
     }
     public function ext() {
     }
@@ -86,7 +85,6 @@ class SFile{
     public function removeWithoutTrash() {
     }
     public function isDir() {
-        return is_dir($this->nativePath());
     }
     public function getContent() {
     }
@@ -169,16 +167,6 @@ class SFile{
     public function eachrev() {
     }
     public function recursive() {
-        $res=array();
-        $files=$this->listFiles();
-        foreach ($files as $file) {
-            if ($file->isDir()) {
-                $res=array_merge($res,$file->recursive());    
-            } else {
-                array_push($res,$file);
-            }
-        }
-        return $res;
     }
     public function listFiles() {
         $l=$this->ls();

@@ -1,6 +1,6 @@
 <?php
-require_once("php/Modules.php");
 require_once("php/auth.php");
+require_once("php/data/pdo.php");
 $showForm=true;
 $class="";
 $mesg="";

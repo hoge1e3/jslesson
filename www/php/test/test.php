@@ -7,6 +7,8 @@
 //require_once "../fs/NativeFS.php";
 //require_once "../fs/SFile.php";
 //require_once "../data/JSONLines.php";
+//require_once __DIR__."/../ErrorHandler.php";
+
 require_once __DIR__."/../data/pdo.php";
 
 try {
@@ -19,7 +21,7 @@ try {
     // デフォルトのフェッチモードを連想配列形式に設定 
     // (毎回PDO::FETCH_ASSOCを指定する必要が無くなる)
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-    foreach ($pdo->query("select * from fruit") as $rec) {
+    foreach ($pdo->query("select * from user2") as $rec) {
     //foreach ($pdo->query("select * from 商品") as $rec) {
     	var_dump($rec);
     }
@@ -27,6 +29,7 @@ try {
 }catch(Exception $e) {
     //echo "えらー";
     header("Content-Type:text/plain;charset=shift_jis");
+    echo "Error occured:";
     echo $e->getMessage();
 }
 
