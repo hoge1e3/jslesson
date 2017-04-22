@@ -55,9 +55,23 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     function sync() {
     	unsaved=false;
 	    //unsynced=false;
-        return Sync.sync(curProjectDir, curProjectDir,{v:true}).then(function(){
+        return Sync.sync(curProjectDir, curProjectDir,{v:true}).then(function(r){
+            console.log("SYNCTHEN");
+            var cmtList=[];
+            var re= new RegExp("cmt.txt$");
+            for(var i=0;i<r.downloads.length;i++){
+                if(re.test(r.downloads[i])){
+                    cmtList.push(r.downloads[i].split(".")[0]);
+                }
+            }
+            if(cmtList.length>0){
+                var c=cmtList.join(",");
+                scoremsg="新しい採点結果が届いています(ファイル:"+c+")";
+            }else{
+                scoremsg="";
+            }
             unsynced=false;
-            showToast("保存しました");
+            showToast("保存しました。"+scoremsg);
         }).fail(function (e) {
             if (!e) e="Unknown error";
             logToServer2("SYNC ERROR!\n"+(e.stack || e.responseText || e)+"\nSYNC ERROR END!\n");
@@ -136,9 +150,9 @@ function ready() {
                      },langList[lang]],
                      ["span",{id:"curFileLabel"}],
                      ["span",{id:"modLabel"}],
-                     ["span",{id:"toastArea"}],
                      ["span",{id:"commentLink"}],
-                     ["a",{id:"fullScr",href:"javascript:;"}]
+                     ["a",{id:"fullScr",href:"javascript:;"}],
+                     ["span",{id:"toastArea"}]
                   ],
                   ["div",{id:"progs"}]
               ]/*,

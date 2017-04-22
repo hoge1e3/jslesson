@@ -280,7 +280,7 @@ window.MinimalParser= function () {
 		    });
 		    //console.log("Struct",t);
 		    if (identifier) {
-		        ctx.scope[identifier.text]={vtype:T.TypeDef(t),depth:ctx.depth};
+		        addScope(identifier.text,{vtype:T.TypeDef(t),depth:ctx.depth});
 		    }
 			return extend([struct_or_union,identifier,"{",struct_declaration,"}"],
 			{vtype:t});
@@ -385,7 +385,11 @@ window.MinimalParser= function () {
     //\direct_declarator
     direct_declarator=direct_declarator_head.and(direct_declarator_tail.rep0()).ret(
         function(direct_decl_head,direct_decl_tails){
-    		var $=[direct_decl_head.vname/*,direct_decl_tails*/];
+    		var $=extend(
+    		    [direct_decl_head.vname/*,direct_decl_tails*/],
+    		    {type:"direct_declarator",
+    		    pos:direct_decl_head.pos}
+		    );
     		$.vtype=baseType;
     		direct_decl_tails.forEach(function (tail) {
     		    switch(tail.type) {
@@ -402,7 +406,8 @@ window.MinimalParser= function () {
 		        }    
     		});
     		$.vname=direct_decl_head.vname;
-    		ctx.scope[$.vname+""]={vtype:$.vtype, depth: ctx.depth};
+    		addScope($.vname,{vtype:$.vtype, depth: ctx.depth});
+    		//ctx.scope[$.vname+""]={vtype:$.vtype, depth: ctx.depth};
     		return $;
 	    }
 	);
@@ -822,16 +827,16 @@ window.MinimalParser= function () {
         var name=decl.vname;
         var params=decl.params;
         //console.log("TNP",type,name,params);
-        ctx.scope[name+""]={
+        addScope(name,{
             vtype:type, 
             depth: ctx.depth
-        };
+        });
         var depth=ctx.depth;
         var rst;
         newScope(function () {
             var getParams=[];
             if (params) params.forEach(function (param) {
-                ctx.scope[param.vname+""]={vtype:param.vtype, depth: ctx.depth};
+                addScope(param.vname,{vtype:param.vtype, depth: ctx.depth});
                 if (param.vtype!==T.void) {
                     getParams.push(["scopes_"+(ctx.depth)+".", 
 	    			param.vname,"=","ARGS.shift();","/*", typeLit(param.vtype),"*/"]);
@@ -854,13 +859,34 @@ window.MinimalParser= function () {
                 ];
             }).parse(st);
         });
+        if (rst.success) {
+            if (ctx.scope[name+""].hasDefinition) {
+                console.log("ERRalr",decl);
+                throw newError(name+"はすでに定義されています．",decl);
+            }
+            addScope(name,{hasDefinition:true});
+        }
         return rst;
     })).ret(function (_,r) {
         //console.log(JSON.stringify( r) ); 
         return r;
     });
+    function addScope(name,obj) {
+        var v=ctx.scope[name+""]||{};
+        ctx.scope[name+""]=v;
+        /*if (v.vtype && obj.vtype) {
+            if ( (v.vtype) instanceof T.Function ) {}
+            else {
+                throw newError(name+"はすでに定義されています",name);
+            }
+        }*/
+        // TODO check vtype compat
+        for (var k in obj) {
+            v[k]=obj[k];
+        }
+    }
 
-    var func1=(func_type.opt()).and(identifier).and( 
+    /*var func1=(func_type.opt()).and(identifier).and( 
             t("(").and(func_param_list.opt()).and(t(")")).ret(function (_,r){return r;})
         ).and(Parser.create(function (st) {
             var type=st.result[0];
@@ -898,7 +924,7 @@ window.MinimalParser= function () {
         })).ret(function (_,_,_,r) {
             //console.log(JSON.stringify( r) ); 
             return r;
-        });
+        });*/
 
 	//control
 	var filename=t(/^[a-zA-Z][a-zA-Z0-9]*\.?[a-zA-Z0-9]+/);
