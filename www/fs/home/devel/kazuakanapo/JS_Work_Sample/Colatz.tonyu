@@ -1,6 +1,6 @@
 // JavaScript
 // ここで扱われるJavaScriptは通常のJavaScriptとは異なります。詳しくは使用方法をご覧ください。
-num=27;
+num=12;
 while(num!=1){
     if(num%2==0){
         num=num/2;

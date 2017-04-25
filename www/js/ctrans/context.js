@@ -44,10 +44,11 @@ return context=function () {
                 c[k]=val[k];
             }
         }
-        act(c);
+        var res=act(c);
         for (var k in sv) {
             c[k]=sv[k];
         }
+        return res;
     }
 };
 });

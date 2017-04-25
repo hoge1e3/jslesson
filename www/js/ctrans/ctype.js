@@ -106,13 +106,33 @@ define(["Klass","assert"],function (Klass,assert) {
     });
     t.Function=t.Base.inherit({
         $:["ret","args"],
-        $fields: {ret:t.Base, args:Array/*[t.Base]*/},        
+        $fields: {ret:t.Base, args:Array/*[{vname:name, vtype:t.Base}]*/},        
         toLiteral: function () {
             return CTYPE_NAME+".Function("+
-                this.ret.toLiteral(), 
+                this.ret.toLiteral()+",["+
                 this.args.map(function (e) {
-                   return e.toLiteral();
-                }).join(",")+")";
+                   return "{vname:'"+e.vname+"', vtype:"+e.vtype.toLiteral()+"}";
+                }).join(",")+"])";
+        },
+        match: function (argTypes) {
+            if (this.args.length===0) return true;
+            if (this.args[0].vtype===t.void) {
+                if (argTypes.length!==0) {
+                    return "(void)で宣言された関数には引数を渡せません";
+                }
+                return true;
+            }
+            var len=this.args.length;
+            if (len!==argTypes.length) {
+                return "引数の数が違います．関数定義では"+
+                    len+"個受け取るよう指定されていますが，"+
+                    "呼び出し側では"+argTypes.length+"個渡しています";
+            }  
+            /*for (var i=0; i<len;i++) {
+                TODO check type compats
+                if (!this.args[i].vtype.isAssignableFrom(argTypes[i])) return false;
+            }*/
+            return true;
         }
     });
     t.Member=Klass.define({

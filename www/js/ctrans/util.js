@@ -134,10 +134,13 @@ function param_init(arg,init){
 	else throw("関数の引数が足りません。");
 	return res;
 }
+function dustValue() {
+    return 0xdeadbeef;
+}
 function arrInit2(vtype,length){
     var res=[];
     for (var i=0;i<length;i++) {
-        var e=0;
+        var e=dustValue();
         if (vtype instanceof CType.Array) {
             e=arrInit2(vtype.e,vtype.length);
         } else if (vtype instanceof CType.Struct) {

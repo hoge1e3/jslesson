@@ -20,13 +20,17 @@ function update(){
 }
 function initX() {
     if (window.xCanvas) return window.xCanvas;
-    window.xCanvas=$("<canvas>").attr({width:400,height:400});
+    window.xCanvas=$("<canvas>").attr({width:500,height:500});
     $("body").append(window.xCanvas);
     return window.xCanvas;
 }
 function setColor(r,g,b) {
     var ctx=initX()[0].getContext("2d");
     ctx.fillStyle="rgb("+[Math.floor(r-0),Math.floor(g-0),Math.floor(b-0)].join(",")+")";
+}
+function setLineWidth(w) {
+    var ctx=initX()[0].getContext("2d");
+    ctx.lineWidth=w;    
 }
 function drawGrid() {
     window.drawGridFlag=true;

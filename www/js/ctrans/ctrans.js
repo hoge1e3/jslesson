@@ -47,33 +47,75 @@ window.MinimalParser= function () {
 	}
 	function ent(entf, parser) {
         if (typeof parser == "function") {
-	       var res;
+	       //var res;
 	       var nc=entf();
-           //console.log("Enter",nc);
-	       ctx.enter(nc, function () {
-	           res=parser();
+	       return ctx.enter(nc, function () {
+	           return /*res=*/parser();
 	       });
-           //console.log("Exit",nc);
-	       return res;
+	       //return res;
         }
 	    return Parser.create(function (st) {
-	        var res;
+	        //var res;
 	        var nc=entf();
-	        //console.log("Enter",nc);
-	        ctx.enter(nc, function () {
-    	        res=parser.parse(st);
+	        return ctx.enter(nc, function () {
+    	        return /*res=*/parser.parse(st);
 	        });
-	        //console.log("Exit",nc);
-	        return res;
+	        //return res;
 	    });
 	}
-	function newScope(parser) {
+	/*function newScope1(parser) {
 	    // ctx.scope: {varname : {vtype:string?, depth:number }}
 	    return ent(function () {
 	        var depth=0;
 	        if ((typeof (ctx.depth))=="number") depth=ctx.depth+1;
 	        return {scope: Object.create(ctx.scope||{}) ,depth:depth };
 	    },parser);
+	}*/
+	//var DEPTH="_fuka_";
+    //window.scids=[];
+	function newScope(parser) {
+	    var entf=function () {
+            var depth=0;
+            if ((typeof (ctx.depth))=="number") depth=ctx.depth+1;
+            var ns=Object.create(ctx.scope||{});
+            //ns[DEPTH]=depth;
+            //scids.push(ns);
+            var nc={scope:ns ,depth:depth };
+            return nc;
+	    };
+        var checkDuplicate=function (r) {
+            for (var k in ctx.scope) {
+                if (ctx.scope[k].depth===ctx.depth) {
+                    var o=ctx.scope[k].occurence;
+                    var cnt=0;
+                    var bys={};
+                    for (var pos in o) {
+                        cnt++;
+                        bys[o[pos]]=1;
+                    }
+                    if (cnt>=2) {
+                        if (cnt==2 && 
+                        bys["direct_declarator"] &&
+                        bys["function_definition"]) {
+                        }
+                        else {
+                            throw newError(ctx.scope[k].vname+"はすでに定義されています",ctx.scope[k].vname);   
+                        }
+                    }
+                }
+            }
+            return r;
+        };
+        if (typeof parser == "function") {
+            return ctx.enter(entf(),function () {
+	            return checkDuplicate(parser());
+            });
+        }
+        return Parser.create(function (st) {
+	        return ctx.enter(entf(), function () {
+    	        return checkDuplicate(parser.parse(st));
+	        });
+	    });
 	}
 	function inject(parser, injector/*:(void->void)->void*/) {
 	    return Parser.create(function (st) {
@@ -285,7 +327,7 @@ window.MinimalParser= function () {
 		    });
 		    //console.log("Struct",t);
 		    if (identifier) {
-		        addScope(identifier.text,{vtype:T.TypeDef(t),depth:ctx.depth,by:"struct_spec"});
+		        addScope(identifier,{vtype:T.TypeDef(t),by:"struct_specifier"});
 		    }
 			return extend([struct_or_union,identifier,"{",struct_declaration,"}"],
 			{vtype:t});
@@ -365,7 +407,7 @@ window.MinimalParser= function () {
 		.ret(function(identifier,identifiers){return [identifier,identifiers];});
 
 	var direct_declarator_head=identifier.ret(function (i) {
-	        return extend(i,{vname:i.text});
+	        return extend(i,{vname:i});
 	    }).or(
 	    t("(").and(declarator_lazy).and(t(")")).ret(
 	        function(lp,declarator,rp){return declarator;}
@@ -376,7 +418,7 @@ window.MinimalParser= function () {
 			$.type="decl_array";
 			$.elementLength=const_expr;
 			return $;
-		}).or(t("(").and(parameter_list_lazy).and(t(")")).ret(
+		}).or(t("(").and(newScope(parameter_list_lazy)).and(t(")")).ret(
 		    function(lp,param_list,rp){
 		        return extend( ["(",param_list,")"] ,{
 		            type:"decl_params",params:param_list
@@ -411,7 +453,7 @@ window.MinimalParser= function () {
 		        }    
     		});
     		$.vname=direct_decl_head.vname;
-    		addScope($.vname,{vtype:$.vtype, depth: ctx.depth, by:"direct_decl"});
+    		addScope($.vname,{vtype:$.vtype, by:"direct_declarator"});
     		//ctx.scope[$.vname+""]={vtype:$.vtype, depth: ctx.depth};
     		return $;
 	    }
@@ -481,6 +523,7 @@ window.MinimalParser= function () {
 	    chkTypeIsSet("mk")(left);
 	    return extend(["(",left,op,right,")"],{vtype:left.vtype});
 	}
+	//\mkpost
 	function mkpost(left,op){
 	    var t=left.vtype;
 	    var expr=[left,op];
@@ -498,6 +541,18 @@ window.MinimalParser= function () {
         	    expr=["await(",left,op,")"];
 	        } else if (ABG.supportsGenerator) {
 	            expr=["(yield* AsyncByGenerator.toGen(",left,op,"))"];
+	        }
+	        if (t instanceof T.Function) {
+	            var argList=op.args.map(function (arg) {
+	                return arg.vtype; 
+	            });
+	            var mr=t.match(argList);
+	            if (mr!==true) {
+    	            throw newError(mr,op);
+	            }
+	        } else {
+	            throw newError("関数でないものに対して関数として呼び出しています",left);
+    	        //expr.push(["/*",t.toLiteral(),"*/"]);
 	        }
 	    } else if (op.type==="arrow") {
     	    expr=["(",left,").read().",op[1]];//vtype TODO
@@ -562,7 +617,7 @@ window.MinimalParser= function () {
 	    } else if (vtype instanceof T.Function) {
 	        return "function (){}";
 	    } else {
-	        return ["0","/*",typeLit(vtype),"*/"];
+	        return ["dustValue()","/*",typeLit(vtype),"*/"];
 	    }
 	}
 	// \init_declarator
@@ -682,7 +737,7 @@ window.MinimalParser= function () {
 		if(!Array.isArray(param))return param;
 		var res=[];
 		param.forEach(function(e){res.push(e);res.push(",");});res.pop();
-		return res;
+		return extend(res,{args:param,type:"argument_expression"});
 	});
 	//func_call=identifier.and(t("(")).and(argument_expressions.opt()).and(t(")"))
 	//	.ret(function(identifier,lp,args,rp){return [identifier,"(",args,")"];});
@@ -700,7 +755,7 @@ window.MinimalParser= function () {
 	// \var_identifier
 	var var_identifier=identifier.ret(function(identifier){
 	    var s=findVariable(identifier);
-	    return extend( [variableName(identifier)], extend(s,{vname:identifier+""}));
+	    return extend( [variableName(identifier)], s);//extend(s,{vname:identifier}));
 	});
 
 	primary_expression=var_identifier.or(constant).or(string).or(
@@ -722,7 +777,7 @@ window.MinimalParser= function () {
 		}));
 	postfix_expression.postfix(5,t("(").and(argument_expressions.opt()).and(t(")")).ret(
 	    function(lp,args,rp){
-	        return extend(["(",args,")"],{type:"func_call"});
+	        return extend([lp,args,rp],{args:args.args,type:"func_call"});
 	    }));
 	postfix_expression.postfix(4,t("++"));
 	postfix_expression.postfix(4,t("--"));
@@ -834,15 +889,14 @@ window.MinimalParser= function () {
         //console.log("TNP",type,name,params);
         addScope(name,{
             vtype:type, 
-            depth: ctx.depth,
-            by: "func_def"
+            by: "function_definition_pre"
         });
         var depth=ctx.depth;
         var rst;
         newScope(function () {
             var getParams=[];
             if (params) params.forEach(function (param) {
-                addScope(param.vname,{vtype:param.vtype, depth: ctx.depth,by:"param"});
+                addScope(param.vname,{vtype:param.vtype,by:"param"});
                 if (param.vtype!==T.void) {
                     getParams.push(["scopes_"+(ctx.depth)+".", 
 	    			param.vname,"=","ARGS.shift();","/*", typeLit(param.vtype),"*/"]);
@@ -866,11 +920,11 @@ window.MinimalParser= function () {
             }).parse(st);
         });
         if (rst.success) {
-            if (ctx.scope[name+""].hasDefinition) {
+            /*if (ctx.scope[name+""].hasDefinition) {
                 console.log("ERRalr",decl);
                 throw newError(name+"はすでに定義されています．",decl);
-            }
-            addScope(name,{hasDefinition:true,by:"hasDef"});
+            }*/
+            addScope(name,{by:"function_definition"});
         }
         return rst;
     })).ret(function (_,r) {
@@ -878,8 +932,21 @@ window.MinimalParser= function () {
         return r;
     });
     function addScope(name,obj) {
-        var v=ctx.scope[name+""]||{};
+        obj.depth=ctx.depth;
+        obj.vname=name;
+        //assert(ctx.depth===obj.depth);
+        var v=ctx.scope[name+""];
+        if (!v || v.depth!==ctx.depth) {
+            v={};
+        }
         ctx.scope[name+""]=v;
+        if (typeof name.pos==="number") {
+            v.occurence=v.occurence||{};
+            v.occurence[name.pos]=obj.by;
+        } else {
+            console.log("STRNAME",name);
+        }
+        
         /*if (v.vtype && obj.vtype) {
             if ( (v.vtype) instanceof T.Function ) {}
             else {
@@ -890,6 +957,9 @@ window.MinimalParser= function () {
         // TODO check vtype compat
         for (var k in obj) {
             v[k]=obj[k];
+        }
+        if (name!=="boido_baryuu") {
+            assert.is(ctx.scope[name+""].vname.pos, Number);
         }
     }
 
@@ -964,7 +1034,7 @@ window.MinimalParser= function () {
 	            }).join("\n");
 	        case "x.h":
                 return ["fillRect","clear","update","setColor","drawGrid","drawNumber",
-                "setPen","movePen","fillOval","drawText","drawString","getkey"].map(function (n) {
+                "setPen","movePen","fillOval","drawText","drawString","getkey","setLineWidth"].map(function (n) {
 	                return "void "+n+"();";
 	            }).join("\n");
 	    }
