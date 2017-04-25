@@ -231,7 +231,7 @@ function strcmp(s1,s2) {
     return strncmp( fillStr(s1,len),fillStr(s2,len) ,len);
 }
 function strcat(dst,src) {
-    return strncat(dst,src,strlen(src));
+    return strncat(dst,src,strlen(src)+1);
 }
 function strncat(dst,src,n) {
     src=pointerize(src);
