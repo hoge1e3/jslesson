@@ -47,7 +47,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     var builder;
     var ram;
     function showToast(msg){
-    	$("#toastArea").text(msg);
+    	$("#toastArea").html(msg);
     	setTimeout(function(){
     		$("#toastArea").text("");
     	},5000);
@@ -66,7 +66,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
             }
             if(cmtList.length>0){
                 var c=cmtList.join(",");
-                scoremsg="新しい採点結果が届いています(ファイル:"+c+")";
+                scoremsg="<span style='color:#ff0000'> 新しい採点結果が届いています(ファイル:"+c+")</span>";
             }else{
                 scoremsg="";
             }

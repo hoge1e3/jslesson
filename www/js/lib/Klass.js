@@ -58,12 +58,27 @@ define(["assert"],function (A) {
             if (name.substring(0,7)=="static$") {
                 klass[name.substring(7)]=pd[name];
             } else {
-                p[name]=pd[name];
+                if (isPropDesc(pd[name])) {
+                    Object.defineProperty(p,name,pd[name]);
+                } else {
+                    p[name]=pd[name];
+                }
             }
         }
         p.$=init;
         return klass;
     };
+    function isPropDesc(o) {
+        if (typeof o!=="object") return false;
+        if (!o) return false;
+        var pk={configurable:1,enumerable:1,value:1,writable:1,get:1,set:1};
+        var c=0;
+        for (var k in o) {
+            if (!pk[k]) return false;
+            c+=pk[k];
+        }
+        return c;
+    }
     Klass.Function=function () {throw new Exception("Abstract");}
     Klass.opt=A.opt;
     return Klass;

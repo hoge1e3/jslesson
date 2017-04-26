@@ -27,11 +27,12 @@ define(["Klass","assert"],function (Klass,assert) {
     });
     t.Number=t.Primitive.inherit({
         assignableFrom: function (type) {
-            if (type.numOrd && this.numOrd>=type.numOrd) return true;
+            if (type instanceof t.Number) return true;
+            //if (type.numOrd && this.numOrd>=type.numOrd) return true;
             return this.super("assignableFrom",type);
         },
         castableFrom: function (type) {
-            if (type.numOrd) return true;
+            if (type instanceof t.Number) return true;
             return this.super("castableFrom",type);
         },
         cast:function(v){
@@ -52,11 +53,14 @@ define(["Klass","assert"],function (Klass,assert) {
     t.int=t.Number({name:"int",numOrd:2,max:0xffffffff});
     t.float=t.Number({name:"float",numOrd:9});
     t.double=t.Number({name:"double",numOrd:10});
-    t.Unsigned=t.Base.inherit({
+    t.Unsigned=t.Number.inherit({
         $:["e"],
-        $fields: {e:t.Base},
+        $fields: {e:t.Number},
         toLiteral: function () {
             return CTYPE_NAME+".Unsigned("+this.e.toLiteral()+")";
+        },
+        numOrd: {
+            get: function () {return this.e.numOrd;}
         },
         cast:function (v) {
             v=this.e.cast(v);
@@ -69,6 +73,9 @@ define(["Klass","assert"],function (Klass,assert) {
     t.Long=t.Number.inherit({
         $:["e"],
         $fields:{e:t.Number} ,
+        numOrd: {
+            get: function () {return this.e.numOrd+1;}
+        },
         toLiteral: function () {
             return CTYPE_NAME+".Long("+this.e.toLiteral()+")";
         }
@@ -76,6 +83,9 @@ define(["Klass","assert"],function (Klass,assert) {
     t.Short=t.Number.inherit({
         $:["e"],
         $fields:{e:t.Number},
+        numOrd: {
+            get: function () {return this.e.numOrd-1;}
+        },
         toLiteral: function () {
             return CTYPE_NAME+".Short("+this.e.toLiteral()+")";
         }

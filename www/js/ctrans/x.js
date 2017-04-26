@@ -3,10 +3,11 @@ function fillRect(x,y,w,h) {
     ctx.fillRect(x,y,w,h);
 }
 function clear() {
-    var ctx=initX()[0].getContext("2d");
+    var c=initX()[0];
+    var ctx=c.getContext("2d");
     var saveFillStyle=ctx.fillStyle;
     ctx.fillStyle="white";
-    fillRect(0,0,400,400);
+    fillRect(0,0,c.width,c.height);
     ctx.fillStyle=saveFillStyle;
     if (window.drawGridFlag) doDrawGrid();
 }

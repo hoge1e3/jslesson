@@ -919,7 +919,7 @@ window.MinimalParser= function () {
                 ];
             }).parse(st);
         });
-        if (rst.success) {
+        if (rst && rst.success) {
             /*if (ctx.scope[name+""].hasDefinition) {
                 console.log("ERRalr",decl);
                 throw newError(name+"はすでに定義されています．",decl);
