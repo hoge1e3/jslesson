@@ -9340,10 +9340,11 @@ return context=function () {
                 c[k]=val[k];
             }
         }
-        act(c);
+        var res=act(c);
         for (var k in sv) {
             c[k]=sv[k];
         }
+        return res;
     }
 };
 });
@@ -13600,6 +13601,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     var isFirefox=navigator.userAgent.indexOf("Firefox")>=0;
     var isChrome=navigator.userAgent.indexOf("Chrome")>=0;
     var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
+    window.ALWAYS_UPLOAD=false;
     var langList={
     	"js":"JavaScript",
     	"c":"C",
@@ -13612,7 +13614,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     var builder;
     var ram;
     function showToast(msg){
-    	$("#toastArea").text(msg);
+    	$("#toastArea").html(msg);
     	setTimeout(function(){
     		$("#toastArea").text("");
     	},5000);
@@ -13620,9 +13622,23 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     function sync() {
     	unsaved=false;
 	    //unsynced=false;
-        return Sync.sync(curProjectDir, curProjectDir,{v:true}).then(function(){
+        return Sync.sync(curProjectDir, curProjectDir,{v:true}).then(function(r){
+            console.log("SYNCTHEN");
+            var cmtList=[];
+            var re= new RegExp("cmt.txt$");
+            for(var i=0;i<r.downloads.length;i++){
+                if(re.test(r.downloads[i])){
+                    cmtList.push(r.downloads[i].split(".")[0]);
+                }
+            }
+            if(cmtList.length>0){
+                var c=cmtList.join(",");
+                scoremsg="<span style='color:#ff0000'> 新しい採点結果が届いています(ファイル:"+c+")</span>";
+            }else{
+                scoremsg="";
+            }
             unsynced=false;
-            showToast("保存しました");
+            showToast("保存しました。"+scoremsg);
         }).fail(function (e) {
             if (!e) e="Unknown error";
             logToServer2("SYNC ERROR!\n"+(e.stack || e.responseText || e)+"\nSYNC ERROR END!\n");
@@ -13701,9 +13717,9 @@ function ready() {
                      },langList[lang]],
                      ["span",{id:"curFileLabel"}],
                      ["span",{id:"modLabel"}],
-                     ["span",{id:"toastArea"}],
                      ["span",{id:"commentLink"}],
-                     ["a",{id:"fullScr",href:"javascript:;"}]
+                     ["a",{id:"fullScr",href:"javascript:;"}],
+                     ["span",{id:"toastArea"}]
                   ],
                   ["div",{id:"progs"}]
               ]/*,
@@ -14150,11 +14166,23 @@ function ready() {
         if(lang=="js"){
     	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
             SplashScreen.show();
+            var pub=Auth.publishedDir(curProjectDir.name());
             //RunDialog2 (new version)
             try {
                 DU.timeout(0).then(function () {
-                    return builder.build({mainFile:curJSFile});    
+                    var b=builder.build({mainFile:curJSFile});
+                    if (ALWAYS_UPLOAD) {
+                        return b.then(function () {
+                            builder.upload(pub); 
+                        });
+                    }
+                    return b;
                 }).then(function () {
+                    if (ALWAYS_UPLOAD) {
+                        var runURL=Auth.publishedURL(curProjectDir.name())+curHTMLFile.name();
+                        $("<iframe>").attr({src:runURL}).dialog({width:600,height:400});
+                        return;
+                    }
                     //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
                     RunDialog2.show(indexF,
