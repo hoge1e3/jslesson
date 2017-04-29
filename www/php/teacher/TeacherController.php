@@ -31,6 +31,46 @@ class TeacherController {
             self::login();
         }
     }
+    static function changePass(){
+        $teacher=Auth::isTeacher2();
+        if (!$teacher) {
+            header("Location: a.php?Teacher/login");
+            return;
+        }
+        ?>
+    	<title><?= $teacher->id ?> - 教員パスワード変更</title>
+    	<h1><?= $teacher->id ?> - 教員パスワード変更</h1>
+    	<font color="red"><?= self::$mesg ?></font><br/>
+	    <form action="a.php?Teacher/changePassCheck" method="POST">
+	        現在のパスワード<input name="nowpass" type="password"><br>
+    	    新しいパスワード<input name="newpass1" type="password"><br>
+    	    新しいパスワード(確認用)<input name="newpass2" type="password"><br>
+    	    <input type="submit" value="変更"/>
+	    </form>
+	    <br><a href='?Teacher/home'>教員トップに戻る</a>
+	    <?php
+    }
+    static function changePassCheck(){
+        $teacher=Auth::isTeacher2();
+        $nowPass=$_POST["nowpass"];
+        $newPass1=$_POST["newpass1"];
+        $newPass2=$_POST["newpass2"];
+        if(Auth::loginTeacher2($teacher->name,$nowPass)!==true){
+            echo "パスワードが違います";
+            echo "<br><a href='?Teacher/changePass'>変更画面に戻る</a>";
+        }else{
+            if(($newPass1==$newPass2) && ($newPass1 !="")){
+                $teacher->changePass($newPass1);
+                echo "変更しました";
+                //redirect("Teacher/changePass");
+            }else{
+                echo "新しいパスワードが一致しません";
+                //redirect("Teacher/changePass");
+                echo "<br><a href='?Teacher/changePass'>変更画面に戻る</a>";
+            }
+        }
+        echo "<br><a href='?Teacher/home'>教員トップに戻る</a>";
+    }
     static function home($mesg=null) {
         $teacher=Auth::isTeacher2();
         if (!$teacher) {
@@ -46,6 +86,8 @@ class TeacherController {
 	        クラス名<input name="classname">
     	    <input type="submit" value="新規クラス作成"/>
 	    </form>
+	    
+    	<a href="a.php?Teacher/changePass">教員パスワード変更</a>
 	    <hr>
 	    <!--a href="a.php?resetRequests">再発行リクエスト一覧</a><hr/-->
 	    <!-- ここで受け持ったクラス一覧を出す-->

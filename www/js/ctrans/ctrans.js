@@ -609,15 +609,15 @@ window.MinimalParser= function () {
 	    return extend(["[",ajoin(",",initializers),"]"],{type:"arrayInit"});
 	});
 	initializer=assign.or(array_initializer);
-	function defaultInitializer(vtype) {
+	function defaultInitializer(vtype,depth) {
 	    if (vtype instanceof T.Array) {
-	        return ["arrInit2(",typeLit(vtype.e),",", (vtype.length||"0"),")"];
+	        return ["arrInit2(",typeLit(vtype.e),",", (vtype.length||"0"),",",(depth>0)+"",")"];
 	    } else if (vtype instanceof T.Struct) {
 	        return ["StructObj()"];
 	    } else if (vtype instanceof T.Function) {
 	        return "function (){}";
 	    } else {
-	        return ["dustValue()","/*",typeLit(vtype),"*/"];
+	        return [depth==0?"0":"dustValue()","/*",typeLit(vtype),"*/"];
 	    }
 	}
 	// \init_declarator
@@ -626,7 +626,7 @@ window.MinimalParser= function () {
 			var $=[curScopesName(),".",declarator,"=",
 			    initializer?
 			    ["cast(",typeLit(declarator.vtype),",",initializer,")"]:
-			    defaultInitializer(declarator.vtype),";\n"
+			    defaultInitializer(declarator.vtype,ctx.depth),";\n"
 			];
 			if(declarator.isArray){
 				$.isArray=declarator.isArray;

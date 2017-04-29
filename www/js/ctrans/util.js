@@ -137,10 +137,10 @@ function param_init(arg,init){
 function dustValue() {
     return 0xdeadbeef;
 }
-function arrInit2(vtype,length){
+function arrInit2(vtype,length,hasDust){
     var res=[];
     for (var i=0;i<length;i++) {
-        var e=dustValue();
+        var e=hasDust?dustValue():0;
         if (vtype instanceof CType.Array) {
             e=arrInit2(vtype.e,vtype.length);
         } else if (vtype instanceof CType.Struct) {

@@ -279,7 +279,7 @@ function strstr(haystack, needle) {
     var cnt=strlen(haystack)-strlen(needle);
     var nlen=strlen(needle);
     var i,j;
-    for (i=0; i<cnt ;i++) {
+    for (i=0; i<=cnt ;i++) {
         for (j=0;j<nlen;j++) {
             var h=haystack.offset(i+j).read();
             var n=needle.offset(j).read();

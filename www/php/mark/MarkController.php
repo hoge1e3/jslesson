@@ -32,7 +32,7 @@ class MarkController {
                     } else {
                         $c="";
                     }
-                    if ($c!==$value) {
+                    if (strlen($value)>0 && $c!==$value) {
                         $dst->text($value);
                         echo "$key にコメントを書きました！<BR>";
                     } else {
