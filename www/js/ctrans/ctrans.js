@@ -438,7 +438,8 @@ window.MinimalParser= function () {
     		    pos:direct_decl_head.pos}
 		    );
     		$.vtype=baseType;
-    		direct_decl_tails.forEach(function (tail) {
+    		for (var i=direct_decl_tails.length-1;i>=0;i--) {
+    		    var tail=direct_decl_tails[i];
     		    switch(tail.type) {
 		        case "decl_array":
 		            $.vtype=T.Array($.vtype,tail.elementLength);
@@ -451,7 +452,7 @@ window.MinimalParser= function () {
     		        $.vtype=T.Function($.vtype,[]);
 		            break;*/
 		        }    
-    		});
+    		}
     		$.vname=direct_decl_head.vname;
     		addScope($.vname,{vtype:$.vtype, by:"direct_declarator"});
     		//ctx.scope[$.vname+""]={vtype:$.vtype, depth: ctx.depth};

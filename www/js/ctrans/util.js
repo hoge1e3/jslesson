@@ -142,7 +142,7 @@ function arrInit2(vtype,length,hasDust){
     for (var i=0;i<length;i++) {
         var e=hasDust?dustValue():0;
         if (vtype instanceof CType.Array) {
-            e=arrInit2(vtype.e,vtype.length);
+            e=arrInit2(vtype.e,vtype.length,hasDust);
         } else if (vtype instanceof CType.Struct) {
             e={};
         }
