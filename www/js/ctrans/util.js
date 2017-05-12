@@ -24,7 +24,10 @@ function copyStruct(src) {
 }
 
 function pointer(obj,key,type,ofs) {
-	if(Array.isArray(obj[key])){
+    if (obj.IS_POINTER) {
+        return obj.offset(key);
+    }
+	/*if(Array.isArray(obj[key])){
 		var tmp=[];
 		ofs=ofs||0;
 		for(var i=0;i<obj[key].length;i++){
@@ -32,25 +35,65 @@ function pointer(obj,key,type,ofs) {
     			var $={
     				read:function(){return obj[key][i+ofs];},
     				write:function(v){return obj[key][i+ofs]=v;},
+    				writeOp:function(op,v){
+    				    switch (op) {
+    				        case "=":
+        				    return obj[key][i+ofs]=v;
+    				        case "+=":
+        				    return obj[key][i+ofs]+=v;
+    				        case "-=":
+        				    return obj[key][i+ofs]-=v;
+    				        case "*=":
+        				    return obj[key][i+ofs]*=v;
+    				        case "/=":
+        				    return obj[key][i+ofs]/=v;
+    				        case "%=":
+        				    return obj[key][i+ofs]%=v;
+    				    }
+    				},
     				offset: function (o) {
                 	    return tmp[i+o];
                 	},
-    				type:type.split(",")[1],
+    				//type:type.split(",")[1],
+    				IS_POINTER:true
     			};
     			tmp.push($);
 		    })(i);
 		}
         //for(var i=0;i<tmp.length;i++)console.log(tmp[i].read());
 		return tmp;
-	}
+	}*/
     return {
-        read: function () { return obj[key];},
-        write: function (v) { return obj[key]=v;},
+        checkBorder: function () {
+            if (obj instanceof Array && typeof key==="number") {
+                if (key<0 || key>=obj.length) {
+                    throw new Error("配列の"+key+"番目にアクセスしようとしました．"+
+                    "この配列の有効な添字は[0]から["+(obj.length-1)+"]までです");
+                }
+            }  
+        },
+        read: function () { 
+            this.checkBorder();
+            return checkDust(obj[key]);
+        },
+        write: function (v) { this.writeOp("=",v);},
+		writeOp:function(op,v){
+		    this.checkBorder();
+		    switch (op) {
+		    case "=":return obj[key]=v;
+		    case "+=":return obj[key]+=v;
+		    case "-=":return obj[key]-=v;
+		    case "*=":return obj[key]*=v;
+		    case "/=":return obj[key]/=v;
+		    case "%=":return obj[key]%=v;
+		    }
+		},
     	type: type,
     	offset: function (o) {
     	    if (typeof key!="number") throw new Error(key+": この操作はできません");
     	    return pointer(obj,key+o,type);
-    	}
+    	},
+		IS_POINTER:true
     };
 }
 
@@ -136,6 +179,17 @@ function param_init(arg,init){
 }
 function dustValue() {
     return 0xdeadbeef;
+}
+function doNotification(mesg) {
+    if (parent && parent.NotificationDialog) {
+        parent.NotificationDialog.show(mesg);
+    }    
+}
+function checkDust(v,name) {
+    if (v===dustValue()) {
+        doNotification("値が初期化されていない可能性があります");
+    }
+    return v;
 }
 function arrInit2(vtype,length,hasDust){
     var res=[];

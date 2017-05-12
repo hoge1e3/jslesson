@@ -13546,6 +13546,12 @@ define('DistributeDialog',["UI"], function (UI) {
         		$("<br>"),
 				$("<input>").attr({id:"overwrite",type:"checkbox"}),
          		$("<div>チェックを入れると既にファイルがある場合中身が上記の内容に更新されます</div>"),
+
+
+			/*$("<div>input1</div>"),
+			res.tx=$("<textarea>").attr({id:"fileCont2",rows:20,cols:20}).val(text),
+			$("<br>"),*/
+
                 $("<button>OK</button>").click(function () {
                     //alert("clicked");
             	    res.d.done();
@@ -13557,11 +13563,57 @@ define('DistributeDialog',["UI"], function (UI) {
 /*        d.$vars.OKButton.attr("disabled", false);
         d.$vars.OKButton.val("OK");*/
         d.done=function () {
-            onOK($("#fileCont").val(),$("#overwrite").prop("checked"));
+            onOK($("#fileCont").val(),$("#overwrite").prop("checked")	);
             d.dialog("close");
         };
         return d;
     }
+    return res;
+});
+
+define('NotificationDialog',["UI"], function (UI) {
+    var res={};
+	res.show=function (mesg,options) {
+    	var d=res.embed(mesg,options);
+    	if (!res.opened) {
+        	d.dialog({width:500,height:100,
+        	    position: { my: "left bottom", at: "left bottom"},
+        	    close: function () {
+        	        res.opened=false;
+        	    }
+        	});
+    	}
+    	res.opened=true;
+    	var dcon=d.closest(".ui-dialog-content");
+    	dcon[0].scrollTop=dcon[0].scrollHeight;
+	};
+	res.embed=function (mesg, options) {
+	    if (!options) options={};
+        if (!res.d) {
+            var FType={
+                fromVal: function (val){
+                    return val=="" ? null : FS.get(val);
+                },
+                toVal: function (v){ return v ? v.path() : "";}
+            };
+        	res.d=UI("div",{title:"通知"},
+        	    ["div",{$var:"cont"},""]
+                /* ["button", {$var:"OKButton", on:{click: function () {
+                	 res.d.done();
+                 }}}, "OK"]*/
+            );
+        }
+        var d=res.d;
+        var c=d.$vars.cont;
+        c.append($("<div>").text(mesg));
+    	d.done=function () {
+    	    /*if (d.$edits.validator.isValid()) {
+                onOK(model);
+                d.dialog("close");
+    	    }*/
+    	};
+    	return d;
+    };
     return res;
 });
 
@@ -13572,7 +13624,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
-           "CommentDialog","DistributeDialog"
+           "CommentDialog","DistributeDialog","NotificationDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -13581,7 +13633,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
-          CommentDialog,DistributeDialog
+          CommentDialog,DistributeDialog,NotificationDialog
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -13634,6 +13686,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
             if(cmtList.length>0){
                 var c=cmtList.join(",");
                 scoremsg="<span style='color:#ff0000'> 新しい採点結果が届いています(ファイル:"+c+")</span>";
+                NotificationDialog.show("新しい採点結果が届いています(ファイル:"+c+")");
             }else{
                 scoremsg="";
             }
@@ -14036,7 +14089,7 @@ function ready() {
         }
         if (name.match(/^[A-Z_][a-zA-Z0-9_]*$/)) {
             if (sourceFiles[name]) {
-                return {ok:false, reason:name+"はシステムで利用されている名前なので使用できません"};
+                return {ok:false, reason:name+"は存在します"};
             }
             if (upcased) {
                 //name= name.substring(0,1).toUpperCase()+name.substring(1);
@@ -14649,7 +14702,7 @@ function ready() {
     }
     window.getCurrentEditorInfo=getCurrentEditorInfo;
     SplashScreen.hide();
-    
+    window.NotificationDialog=NotificationDialog;
 }// of ready
 //});// of load ace
 });

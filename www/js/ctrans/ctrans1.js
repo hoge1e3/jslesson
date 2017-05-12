@@ -522,10 +522,7 @@ window.MinimalParser= function () {
 	calc_expression.mkInfixl(mk);
 	function mk(left,op,right){
 	    chkTypeIsSet("mk")(left);
-	    return extend(["(",CD(left),op,CD(right),")"],{vtype:left.vtype});
-	}
-	function CD(e) {
-	    return ["checkDust(",e,")"];
+	    return extend(["(",left,op,right,")"],{vtype:left.vtype});
 	}
 	//\mkpost
 	function mkpost(left,op){
@@ -539,7 +536,6 @@ window.MinimalParser= function () {
 	            }
 	            t=t.e;
 	        }
-	        expr=["pointer(",left,",",op.index,").read()"];
 	    } else if (op.type==="func_call") {
 	        //vtype TODO
 	        if (supportsAsync) {
@@ -593,34 +589,19 @@ window.MinimalParser= function () {
             } else return r;
         });
     };
-    //\assign
 	assign=unary_expression_lazy.and(assignment_operator)
 		.and(structCp(calc_expression)).ret(function(unary_expr,op,calc_expr){
-		    if (unary_expr.type=="post") {
-		        var left=unary_expr.left;
-		        var pop=unary_expr.op;
-        	    if (pop.type=="index") {
-        			return extend(
-        			    ["pointer(",left,",",pop.index,").writeOp(",lit(op),",cast(",typeLit(unary_expr.vtype),",",calc_expr,"))"],
-        			    {vtype:unary_expr.vtype}
-        			);
-        	    } else if (pop.type==="func_call") {
-        	        throw newError("左辺では関数呼び出しできません",left);
-            	} else if (pop.type==="arrow") {
-            	    
-        	    } else if (pop.type==="dot") {
-        	        
-        	    }
-		    } else if (unary_expr.type=="pointerDeref") {
+		    if (unary_expr.type=="pointerDeref") {
     			return extend(
-    			    ["(",unary_expr.pointer,").writeOp(",lit(op),",cast(",typeLit(unary_expr.vtype),",",calc_expr,"))"],
+    			    ["(",unary_expr.pointer,").write(","cast(",typeLit(unary_expr.vtype),",",calc_expr,"))"],
+    			    {vtype:unary_expr.vtype}
+    			);
+		    } else {
+    			return extend(
+    			    [unary_expr,op,"cast(",typeLit(unary_expr.vtype),",",calc_expr,")"],
     			    {vtype:unary_expr.vtype}
     			);
 		    }
-			return extend(
-			    [unary_expr,op,"cast(",typeLit(unary_expr.vtype),",",calc_expr,")"],
-			    {vtype:unary_expr.vtype}
-			);
 		}).or(calc_expression);
 
 	expression=assign;

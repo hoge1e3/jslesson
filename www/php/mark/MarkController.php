@@ -35,6 +35,7 @@ class MarkController {
                     if (strlen($value)>0 && $c!==$value) {
                         $dst->text($value);
                         echo "$key にコメントを書きました！<BR>";
+                        self::addLog($dst->path(),$value);
                     } else {
                         echo "$key の内容は変わっていません<BR>";
                     }
@@ -43,6 +44,16 @@ class MarkController {
                 }
             }
         }
+    }
+    static function addLog($dst,$cont) {
+        date_default_timezone_set('Asia/Tokyo');
+        $user=Auth::curUser();
+        $class=Auth::curClass();
+        $fp=fopen("log/$class-$user-data.log","a");
+        $time=date(DATE_ATOM);
+        $data=json_encode(array("date"=>$time, "result"=>"mark", "filename"=>$dst, "detail"=>$cont));
+        fwrite($fp, "$data\n");
+        fclose($fp);
     }
 }
 ?>

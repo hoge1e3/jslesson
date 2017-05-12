@@ -5,7 +5,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
-           "CommentDialog","DistributeDialog"
+           "CommentDialog","DistributeDialog","NotificationDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -14,7 +14,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
-          CommentDialog,DistributeDialog
+          CommentDialog,DistributeDialog,NotificationDialog
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -67,6 +67,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
             if(cmtList.length>0){
                 var c=cmtList.join(",");
                 scoremsg="<span style='color:#ff0000'> 新しい採点結果が届いています(ファイル:"+c+")</span>";
+                NotificationDialog.show("新しい採点結果が届いています(ファイル:"+c+")");
             }else{
                 scoremsg="";
             }
@@ -469,7 +470,7 @@ function ready() {
         }
         if (name.match(/^[A-Z_][a-zA-Z0-9_]*$/)) {
             if (sourceFiles[name]) {
-                return {ok:false, reason:name+"はシステムで利用されている名前なので使用できません"};
+                return {ok:false, reason:name+"は存在します"};
             }
             if (upcased) {
                 //name= name.substring(0,1).toUpperCase()+name.substring(1);
@@ -1082,7 +1083,7 @@ function ready() {
     }
     window.getCurrentEditorInfo=getCurrentEditorInfo;
     SplashScreen.hide();
-    
+    window.NotificationDialog=NotificationDialog;
 }// of ready
 //});// of load ace
 });

@@ -123,6 +123,7 @@ var reqConf={
             SoundDiag: "runtime/soundDiag",
             T2MediaLib: "lib/T2MediaLib",
             KernelDiffDialog: "ide/KernelDiffDialog",
+            NotificationDialog: "ide/NotificationDialog",
             searchDialog: "ide/searchDialog",
             DiffDialog: "ide/DiffDialog",
             ScriptTagFS:"fs/ScriptTagFS",
