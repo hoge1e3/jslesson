@@ -92,5 +92,13 @@ class BAUser {
     	    return true;
     	}
     }
+    function getLog(){
+        $fn="../../".$this->_class->id."-".$this->name."-data.log";
+        if(file_exists($fn)){
+            return file($fn);
+        }else{
+            return array('date'=>'未実行','time'=>'未実行','filename'=>'','result'=>'','detail'=>'','code'=>'');
+        }
+    }
 }
 ?>

@@ -1,0 +1,95 @@
+﻿<html>
+<!--
+file:///C:/bin/Dropbox/workspace/jslesson/www/js/ctrans2/ctrans-test3.html
+-->
+<script src="jquery-2.1.0.js"></script>
+<script src="require.js"></script>
+<script>
+    requirejs.config({
+        shim: {
+            "tester": {
+                exports:"tester"
+            },
+            Parser:{exports:"Parser"},
+            ExpressionParser:{exports:"ExpressionParser"},
+            jsgen:{exports:"js_gen"},
+            "AsyncByGenerator":{
+                exports:"AsyncByGenerator"
+            },
+            hoge:{exports:"fuga"}
+        },
+        paths: {
+            "assert": "../lib/assert",
+            "ctrans/ctrans":"ctrans",
+            "ctrans/ctype":"ctype",
+            "Klass":"../lib/Klass",
+            "Parser":"parser",
+            "ExpressionParser":"ExpressionParser2",
+            "hoge":"fuga"
+        }
+    })
+</script>
+<script src="lib.js"></script>
+<script src="util.js"></script>
+
+<script>
+var util=require("util");
+var print=util.print;
+requirejs(["FS","ctrans/ctrans","beautify","jsgen","AsyncByGenerator"],
+function (FS,MinimalParser,beautify,js_gen,ABG) {
+    ABG.ready(loop);
+async function loop() {
+    //  ここは、自分のテストしたいC言語ファイルのあるディレクトリを指定
+	var d=FS.get("www/log");
+	var files=[];
+    d.each(function (f) {// ディレクトリ内の全ファイルをサブフォルダを含めて繰り返し
+		if(!f.name().match(/^.e.[sa].[si].7pro/))return;
+		files.push(f);
+    });
+    console.log(files);
+    return;
+    for (var f of files) {
+        for (var l of files.lines()) {
+    		var program;
+    		try{
+    		    var data=JSON.parse(l);
+    		    console.log(data.code);
+    		    //console.log("Test:", f.path());
+            	var buf="";
+            	printf.STDOUT={append:function (s) {buf+=s;},text:function(){return buf;}};
+    			var tree=MinimalParser.parse(data.code);
+    			program=beautify.js_beautify(js_gen(tree));
+    			console.log(program);
+    		    //var output=f.up().rel(f.truncExt()+".js");
+    			//output.text(program);
+    			/*var func=new Function(program);
+    			await promisize(func());
+    			*/
+    		}catch(e){
+    			//print(f.path()+"\n");
+    			//print(e)+"\n";
+    			console.log(e);
+    			//console.log("Err", f.path());
+    			if ((typeof (e.lineNo))=="number") {
+        		    //sumbuf.push(f.relPath(d)+"\tCompErr");
+        			console.log(e);
+        			console.log(HERE(data.code,e.lineNo));
+    			} else {
+        		    //sumbuf.push(f.relPath(d)+"\tRunErr");
+        			//console.log("Src",f.text());
+        			console.log("JS",program);
+        			console.log(e);
+    	    		console.log(e.stack);
+    			}
+    		}
+        }
+    }
+    //summary.text(sumbuf.join("\r\n"));
+    function HERE(src,ln) {
+        var a=src.split("\n");
+        a.splice(ln-1,0,"↓!!!HERE!!!↓");
+        return a.join("\n");        
+    }
+}
+});
+</script>

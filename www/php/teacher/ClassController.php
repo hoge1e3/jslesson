@@ -80,7 +80,7 @@ class ClassController {
         <h1><?=$class->id?> - ユーザ一覧</h1>
         <a href="a.php?Class/show">クラス管理に戻る</a><hr>
         <table border=1>
-            <tr><th>ユーザID</th><th>パスワード</th><th>名前</th></tr>
+            <tr><th>ユーザID</th><th>パスワード</th><th>名前</th><th>実行時刻</th><th>実行ファイル</th><th>結果</th><th>コード</th></tr>
         <?php
         $students=$class->getAllStu();
         foreach($students as $s){
@@ -96,8 +96,17 @@ class ClassController {
                     $n=json_decode($n)->name;
                 }
             }
+            $lf=$s->getLog();
+            $l=end($lf);
+            if($l==false){
+                
+            }
             ?>
-            <tr><th><?=$s->name?></th><th pass="<?=$pass?>" onclick="if(this.innerHTML=='表示')this.innerHTML=this.getAttribute('pass');else this.innerHTML='表示';">表示</th><th><?=$n?></th></tr>
+            <tr><th><?=$s->name?></th><th pass="<?=$pass?>" onclick="if(this.innerHTML=='表示')this.innerHTML=this.getAttribute('pass');else this.innerHTML='表示';">表示</th>
+            <th><?=$n?></th><th><?=$l->time?></th><th><?=$l->filename?></th><th><?=$l->result?></th><th res="<?=$l->result?>" onclick="alert(this.getAttribute('res');">詳細</th>
+            <th code="<?=$l->code?>" onclick="alert(this.getAttribute('code');">詳細</th>
+            </tr>
+            
             <?php
         }
         /*$class->mkdir();
