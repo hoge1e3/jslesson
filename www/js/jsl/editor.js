@@ -663,8 +663,15 @@ function ready() {
     		        $("#qr").text("QR");
     		}catch(e){
     			//logToServer("COMPILE ERROR!\n"+e+"\nCOMPILE ERROR END!");
-    			logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Compile Error",e,"C");
-    			alert(e);
+    			logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Compile Error",e+"","C");
+    			console.log(e.stack);
+    			if (e.pos) {
+        			var te=TError(e+"",curJSFile, e.pos);
+	                showErrorPos($("#errorPos"),te);
+                    displayMode("compile_error");
+    			} else {
+        			alert(e);
+    			}
     		}
             return sync();
     	}else if(lang=="dtl"){

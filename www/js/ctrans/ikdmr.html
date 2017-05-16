@@ -1,4 +1,4 @@
-﻿<html>
+<html>
 <!--
 file:///C:/bin/Dropbox/workspace/jslesson/www/js/ctrans2/ctrans-test3.html
 -->
@@ -40,60 +40,52 @@ function (FS,MinimalParser,beautify,js_gen,ABG) {
 async function loop() {
     //  ここは、自分のテストしたいC言語ファイルのあるディレクトリを指定
 	var d=FS.get(process.cwd().replace(/\\/g,"/")).rel("www/log");
-	var files=[];
-    d.each(function (f) {// ディレクトリ内の全ファイルをサブフォルダを含めて繰り返し
-		if(!f.name().match(/^.e.[sa].[si].7pro....j5[0-5]/))return;
-		files.push(f);
-    });
+	var ikdmr=d.rel("5min.txt");
     //console.log(files.map(function (e){ return e.name();  }));
     //return;
     var cnt=0,tblbuf="";
-    for (var f of files) {
+    var prevf,curf,curlines,linen,data;
+    for (var l of ikdmr.lines()) {
+    	await sleep();
         if(cnt>10) break;
-    	for (var l of f.lines()) {
-    		if(cnt>10) break;
-    		var program,ccode;
-    		await sleep();
-    		try{
-    			//cnt++;
-    			if (l==="") continue;
-    		    var data=JSON.parse(l);
-    		    ccode=data.code.C;
-    		    if (!ccode) continue;
-    		    //console.log(ccode);
-    		    //console.log("Test:", f.path());
-            	var buf="";
-            	printf.STDOUT={append:function (s) {buf+=s;},text:function(){return buf;}};
-    			var tree=MinimalParser.parse(ccode);
-    			print(f.name(),data.date,data.time,"OK");
-    			//program=beautify.js_beautify(js_gen(tree));
-    			//console.log(program);
-    		    //var output=f.up().rel(f.truncExt()+".js");
-    			//output.text(program);
-    			/*var func=new Function(program);
-    			await promisize(func());
-    			*/
-    		}catch(e){
-    			//print(f.path()+"\n");
-    			//print(e)+"\n";
-    			print(f.name(),data.date,data.time,(e+"").replace(/\n/g,"/"));
-    			//console.log(e);
-    			//console.log("Err", f.path());
-    			if ((typeof (e.lineNo))=="number") {
-        		    //sumbuf.push(f.relPath(d)+"\tCompErr");
-        			//console.log(e);
-        			//console.log(HERE(ccode,e.lineNo));
-    			} else {
-        		    //sumbuf.push(f.relPath(d)+"\tRunErr");
-        			//console.log("Src",f.text());
-        			//console.log("JS",program);
-        			//console.log(e);
-    	    		//console.log(e.stack);
-    			}
-    		}
-        }
+        //cnt++;
+        if (!l) break;
+    	var v=l.split("\t");
+    	var file=v[0],date=v[1],time=v[2],mesg=v[3],dup=v[4];
+    	if (file=="user") continue;
+    	if (prevf!=file) {
+    	    curf=d.rel(file);
+    	    if (!curf.exists()) {
+    	        console.log(curf+"not ex");
+    	    }
+    	    if (curf.isDir()) {
+    	        break;
+    	    }
+    	    console.log("Entering"+curf);
+    	    curlines=curf.lines();
+    	    linen=0;
+    	    prevf=file;
+    	}
+	    try {
+        	while(linen<curlines.length-1) {
+        	    data=JSON.parse(curlines[linen]);
+	            //console.log("Search",date,time,data.date,data.time,curlines[linen]);
+    	        if (data.date===date && data.time===time) {
+    	            //cnt++;
+    	            print("<h1>"+file+"</h1>");
+    	            print("<h2>"+date+" "+time+"</h2>");
+    	            print("<h2>"+mesg+"</h2>");
+    	            print("<pre>"+data.code.C.replace(/</g,"&lt;").replace(/>/g,"&gt;")+"</pre>");
+    	            //console.log(file, date,time,data.code.C,mesg);
+    	            break;
+    	        }
+    	        linen++;
+        	}
+	    }catch (e) {
+    	    console.log(curlines[linen], e);      
+    	}
     }
-    d.rel("m_all.txt").text(tblbuf);
+    d.rel("ikdmr-out.html").text(tblbuf);
     //summary.text(sumbuf.join("\r\n"));
     function HERE(src,ln) {
         var a=src.split("\n");

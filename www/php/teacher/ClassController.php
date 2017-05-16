@@ -80,7 +80,7 @@ class ClassController {
         <h1><?=$class->id?> - ユーザ一覧</h1>
         <a href="a.php?Class/show">クラス管理に戻る</a><hr>
         <table border=1>
-            <tr><th>ユーザID</th><th>パスワード</th><th>名前</th><th>実行時刻</th><th>実行ファイル</th><th>結果</th><th>コード</th></tr>
+            <tr><th>ユーザID</th><th>パスワード</th><th>名前</th><th>実行時刻</th><th>実行ファイル</th><th>実行結果</th><th>実行詳細</th><th>プログラム</th></tr>
         <?php
         $students=$class->getAllStu();
         foreach($students as $s){
@@ -98,18 +98,25 @@ class ClassController {
             }
             $lf=$s->getLog();
             $l=end($lf);
-            if($l==false){
-                
+            if(gettype($l) == "string"){
+                $l=json_decode($l);
+            }
+            $tmpf=explode("/",$l->filename);
+            if(count($tmpf)>5){
+                $l->filename=$tmpf[4]."/".$tmpf[5];
             }
             ?>
             <tr><th><?=$s->name?></th><th pass="<?=$pass?>" onclick="if(this.innerHTML=='表示')this.innerHTML=this.getAttribute('pass');else this.innerHTML='表示';">表示</th>
-            <th><?=$n?></th><th><?=$l->time?></th><th><?=$l->filename?></th><th><?=$l->result?></th><th res="<?=$l->result?>" onclick="alert(this.getAttribute('res');">詳細</th>
-            <th code="<?=$l->code?>" onclick="alert(this.getAttribute('code');">詳細</th>
+            <th><?=$n?></th><th><?=$l->date?>, <?=$l->time?></th><th><?=$l->filename?></th><th><?=$l->result?></th><th res="<?=$l->detail?>" onclick="alert(this.getAttribute('res'));">詳細</th>
+            <th prog='<?=$l->code->C."\n---------------\n".$l->code->HTML?>' onclick="alert(this.getAttribute('prog'));">コード</th>
             </tr>
             
             <?php
         }
-        /*$class->mkdir();
+        /*
+            
+        
+        $class->mkdir();
         $mesg="";
         $handle=opendir("fs/home/".$class->id."/");
         $files=array();

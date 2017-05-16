@@ -27,6 +27,9 @@ function pointer(obj,key,type,ofs) {
     if (obj.IS_POINTER) {
         return obj.offset(key);
     }
+    if (typeof key==="number") {
+        key=Math.floor(key);
+    }
 	/*if(Array.isArray(obj[key])){
 		var tmp=[];
 		ofs=ofs||0;

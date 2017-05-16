@@ -40,9 +40,11 @@ window.MinimalParser= function () {
 	}
 	var t=token;
 	var defines={};
+	var errors=[];
 	function newError(mesg,node) {
 	    var e=new Error(mesg);
 	    e.pos=node && node.pos;
+	    errors.push(e);
 	    return e;
 	}
 	function ent(entf, parser) {
@@ -99,7 +101,7 @@ window.MinimalParser= function () {
                         bys["function_definition"]) {
                         }
                         else {
-                            throw newError(ctx.scope[k].vname+"はすでに定義されています",ctx.scope[k].vname);   
+                            newError(ctx.scope[k].vname+"はすでに定義されています",ctx.scope[k].vname);   
                         }
                     }
                 }
@@ -333,10 +335,11 @@ window.MinimalParser= function () {
 			{vtype:t});
 		}).or(
 		    struct_or_union.and(identifier).ret(function(struct_or_union,identifier){
-		        if (!ctx.scope[identifier.text]) {
+		        /*if (!ctx.scope[identifier.text]) {
 		            throw newError(identifier.text+" は定義されていません",identifier);
-		        }
-		        var vtype=ctx.scope[identifier.text].vtype;
+		        }*/
+		        var v=findVariable(identifier);
+		        var vtype=v.vtype;
 		        assert.is(vtype,T.TypeDef);
 		        return {vtype: vtype.e};
 		    }));
@@ -530,8 +533,11 @@ window.MinimalParser= function () {
 	//\mkpost
 	function mkpost(left,op){
 	    var t=left.vtype;
-	    var expr=[left,op];
 	    chkTypeIsSet("mkpost")(left);
+	    var r=unwrapParen(left);
+	    left=r[0];
+	    var wrapF=r[1];
+	    var expr=[wrapF(left),op];
 	    if (op.type=="index") {
 	        if (t instanceof T.Array) {
 	            if (!t.e) {
@@ -540,12 +546,35 @@ window.MinimalParser= function () {
 	            t=t.e;
 	        }
 	        expr=["pointer(",left,",",op.index,").read()"];
-	    } else if (op.type==="func_call") {
+        } if (op+""==="++" || op+""==="--") {
+	        var op2=(op+"")[0]+"=";
+            if (left.type==="post") {
+		        var pleft=left.left;
+		        var pop=left.op;
+        	    if (pop.type=="index") {
+        			return extend(
+        			    ["pointer(",pleft,",",pop.index,").writeOp(",lit(op2),",1)"],
+        			    {vtype:left.vtype}
+        			);
+        	    } else if (pop.type==="func_call") {
+        	        throw newError("++や--の手前では関数呼び出しできません",left);
+            	} else if (pop.type==="arrow") {
+            	    
+        	    } else if (pop.type==="dot") {
+        	        
+        	    }
+		    } else if (left.type=="pointerDeref") {
+    			return extend(
+    			    ["(",left.pointer,").writeOp(",lit(op2),",1)"],
+    			    {vtype:left.vtype}
+    			);
+		    }
+		 } else if (op.type==="func_call") {
 	        //vtype TODO
 	        if (supportsAsync) {
-        	    expr=["await(",left,op,")"];
+        	    expr=["await(",wrapF(left),op,")"];
 	        } else if (ABG.supportsGenerator) {
-	            expr=["(yield* AsyncByGenerator.toGen(",left,op,"))"];
+	            expr=["(yield* AsyncByGenerator.toGen(",wrapF(left),op,"))"];
 	        }
 	        if (t instanceof T.Function) {
 	            var argList=op.args.map(function (arg) {
@@ -570,7 +599,7 @@ window.MinimalParser= function () {
 	            throw newError("構造体"+t.name+"にメンバ"+op.vname+"は定義されていません",op);   
 	        }
 	        t=assert.is(mem.vtype,T.Base);
-    	    expr=[left,op];
+    	    expr=[wrapF(left),op];
 	    }
 	    return extend(expr,{vtype:t, type:"post",left:left,op:op});
 	}
@@ -593,15 +622,29 @@ window.MinimalParser= function () {
             } else return r;
         });
     };
+    function unwrapParen(ex) {
+        if(ex.type!=="paren_expr") {
+            return [ex,function (e){return e;}];
+        }
+        while(ex.type==="paren_expr") {
+            ex=ex[1];
+        }
+        return [ex,function (e){return ["(",e,")"];}];
+    }
     //\assign
 	assign=unary_expression_lazy.and(assignment_operator)
 		.and(structCp(calc_expression)).ret(function(unary_expr,op,calc_expr){
-		    if (unary_expr.type=="post") {
+		    var r=unwrapParen(unary_expr);
+		    var unary_expr=r[0];
+		    var wrapF=r[1];
+		    if (unary_expr.type==="post") {
 		        var left=unary_expr.left;
 		        var pop=unary_expr.op;
         	    if (pop.type=="index") {
         			return extend(
-        			    ["pointer(",left,",",pop.index,").writeOp(",lit(op),",cast(",typeLit(unary_expr.vtype),",",calc_expr,"))"],
+        			    wrapF(["pointer(",left,",",pop.index,").writeOp(",
+        			        lit(op),",cast(",typeLit(unary_expr.vtype),",",calc_expr,
+        			    "))"]),
         			    {vtype:unary_expr.vtype}
         			);
         	    } else if (pop.type==="func_call") {
@@ -613,12 +656,14 @@ window.MinimalParser= function () {
         	    }
 		    } else if (unary_expr.type=="pointerDeref") {
     			return extend(
-    			    ["(",unary_expr.pointer,").writeOp(",lit(op),",cast(",typeLit(unary_expr.vtype),",",calc_expr,"))"],
+    			    wrapF(["(",unary_expr.pointer,").writeOp(",lit(op),
+    			        ",cast(",typeLit(unary_expr.vtype),",",calc_expr,
+    			    "))"]),
     			    {vtype:unary_expr.vtype}
     			);
 		    }
 			return extend(
-			    [unary_expr,op,"cast(",typeLit(unary_expr.vtype),",",calc_expr,")"],
+			    [wrapF(unary_expr),op,"cast(",typeLit(unary_expr.vtype),",",calc_expr,")"],
 			    {vtype:unary_expr.vtype}
 			);
 		}).or(calc_expression);
@@ -820,11 +865,14 @@ window.MinimalParser= function () {
 	).or(
 	    unary_operator.and(cast_expression_lazy).ret(function (op,right) {
 	        assert(right.vtype,"right.vtype not set at cast_expr (from unary_expr)");
+	        var r=unwrapParen(right);
+	        var right=r[0];
+	        var wrapF=r[1];
 	        // PTR
     	    if (op.text=="&") {
-    	        if (right.type==="paren_expr") {
+    	        /*if (right.type==="paren_expr") {
     	            right=right[1];
-    	        }
+    	        }*/
     	        //console.log("OP",right,right.vname);
     	        if (right.type==="post" && right.op.type==="index") {
 	                return extend( ["pointer(",right.left,",",right.op.index,")"] ,
@@ -855,7 +903,7 @@ window.MinimalParser= function () {
     	            pointer: right
     	        });      
     	    }
-    	    return extend([op,right], {vtype:right.vtype});
+    	    return extend([op,wrapF(right)], {vtype:right.vtype});
 	    })
 	);
 	type_name=specifier_qualifier_list.and(abstract_declarator.opt())
@@ -982,55 +1030,47 @@ window.MinimalParser= function () {
             assert.is(ctx.scope[name+""].vname.pos, Number);
         }
     }
-
-    /*var func1=(func_type.opt()).and(identifier).and( 
-            t("(").and(func_param_list.opt()).and(t(")")).ret(function (_,r){return r;})
-        ).and(Parser.create(function (st) {
-            var type=st.result[0];
-            var name=st.result[1];
-            var params=st.result[2];
-            //console.log("TNP",type,name,params);
-            ctx.scope[name+""]={
-                vtype:T.Function(type?typeNamesToType([type]):T.int,params), 
-                depth: ctx.depth
-            };
-            var depth=ctx.depth;
-            var rst;
-            newScope(function () {
-                if (params) params.forEach(function (param) {
-                    ctx.scope[param.pname+""]={vtype:param.ptype, depth: ctx.depth};
-                });
-                var func="function ";
-                if (supportsAsync) {
-                    func="async function ";
-                } else if (ABG.supportsGenerator) {
-                    func="function* ";
-                }
-                rst=t("{").and(compound_statement_part).and(t("}")).ret(function (_,states) {
-                    return ["scopes_"+depth,".",name,"=",
-                        func,name,"(){",
-        				"var ",curScopesName(),"={};",
-                        "var ARGS=Array.prototype.slice.call(arguments);\n",
-                        params,
-				        states,
-            			"};"
-                    ];
-                }).parse(st);
-            });
-            return rst;
-        })).ret(function (_,_,_,r) {
-            //console.log(JSON.stringify( r) ); 
-            return r;
-        });*/
-
 	//control
-	var filename=t(/^[a-zA-Z][a-zA-Z0-9]*\.?[a-zA-Z0-9]+/);
+	//var filename=t(/^[a-zA-Z][a-zA-Z0-9]*\.?[a-zA-Z0-9]+/);
+	var incl_filename=t(/^[^\>\"]+/);
 	var control_line=t("#").and(t("define")).and(identifier).and(t(/^.+/)).ret(function(s,def,befor,after){
 	    defines[befor]=after;
 	});
-	control_line=t("#").and(t("include")).and(t("<").or(t("\""))).and(filename).and(t(">").or(t("\""))).ret(function(){
+	var builtin_funcs={
+	    "stdio.h":
+	        ["printf","scanf","sleep","usleep"],
+	    "stdlib.h":
+	        ["rand"],
+	    "string.h":
+	        ["strlen","strcpy","strncpy","strcmp","strncmp",
+	            "strcat","strncat","memset","index","rindex",
+	            "memcmp","memcpy","strstr"],
+	    "math.h":
+            ["abs","acos","asin","atan","atan2","ceil","cos","exp","floor",
+                "log","max","min","pow","random","round","sin","sqrt","tan"],
+        "x.h":
+            ["fillRect","clear","update","setColor","drawGrid","drawNumber",
+                "setPen","movePen","fillOval","drawText","drawString","getkey","setLineWidth"]
+	};
+	var builtin_funcs_ret={
+	    "math.h":"double",
+	    "rand":"int",
+	    "getkey":"int"
+	};
+	control_line=t("#").and(t("include")).and(t("<").or(t("\""))).and(incl_filename).and(t(">").or(t("\""))).ret(function(){
 	    var filename=arguments[3];
 	    //console.log("filename",filename);
+	    if (builtin_funcs[filename.text]) {
+	        return builtin_funcs[filename.text].map(function (n) {
+    	        var ret=builtin_funcs_ret[n] || 
+    	        builtin_funcs_ret[filename.text] 
+    	        ||"void";
+    	        return ret+" "+n+"();";
+	        }).join("\n");
+	    } else {
+            newError("#include<"+filename.text+">に該当するファイル名がありません",filename);
+	    }
+	    /*
 	    switch (filename.text) {
 	        case "stdio.h":
 	            return ["printf","scanf","sleep","usleep"].map(function (n) {
@@ -1057,8 +1097,11 @@ window.MinimalParser= function () {
                 "setPen","movePen","fillOval","drawText","drawString","getkey","setLineWidth"].map(function (n) {
 	                return "void "+n+"();";
 	            }).join("\n");
+	        default:
+	            
+	            newError("#include<"+filename.text+">に該当するファイル名がありません",filename);
 	    }
-	    return null;
+	    return null;*/
 	}).or(control_line);
 
 
@@ -1087,46 +1130,51 @@ window.MinimalParser= function () {
 
 	parser.parse=function (str) {
 	    startSeq=0;
-		defines={NULL:0};
+		defines={NULL:0,RAND_MAX:0x7fffffff};
 		var output="";
+		errors=[];
 		var preLines=str.split("\n").length;
+		var preLength=str.length;
 		var processed=preprocess(str);
+		console.log("processed",processed);
+		var postLength=processed.length;
 		var postLines=processed.split("\n").length;
 		ctx=context();
 		var result;
 		try {
     		result=program.parseStr(processed);
+    		output=result.result[0];
+    		//console.log("maxpos,prced",result.src.maxPos,processed.length);
+    		if(result.src.maxPos<processed.length){
+    			console.log("Parse error at ",result.src.maxPos,
+    			processed.substring(0,result.src.maxPos)+"!!HERE!!"+processed.substring(result.src.maxPos));
+    			//var pos=rowcol(result.src.maxPos);
+    			var parseErr=new Error("文法エラーがあります。");//\n"+pos.row+"行目付近を確認してください。");
+    			parseErr.pos=result.src.maxPos;
+    			errors.unshift(parseErr);
+    		}
 		} catch(e) {
-			var pos=rowcol(e.pos);
-			console.log("original stk",e.stack);
-		    var ne=new Error(e.message+"\n"+pos.row+"行目付近を確認してください。");
-		    ne.original=e;
-		    throw ne;
+		    errors.push(e);
 		}
-		output=result.result[0];
-        /*if (result.success) {
-            console.log("OUT",JSON.stringify( output) ); 
-        }*/
-
-		if(result.src.maxPos<processed.length){
-			/*var max=processed.substr(0,result.src.maxPos);
-			var line=max.match(/\n/g);
-			line=(line)?line.length:0;
-			var parseErr=new Error("文法エラーがあります。\n"+(line+1-(postLines-preLines))+"行目付近を確認してください。");
-			parseErr.lineNo=line+1;*/
-			console.log("Parse error at ",result.src.maxPos,
-			processed.substring(0,result.src.maxPos)+"!!HERE!!"+processed.substring(result.src.maxPos));
-			var pos=rowcol(result.src.maxPos);
-			var parseErr=new Error("文法エラーがあります。\n"+pos.row+"行目付近を確認してください。");
-			parseErr.lineNo=pos.row;
-			throw parseErr;
+		if (errors.length>0) {
+		    var e=errors[0];
+			var pos=e.pos-(postLength-preLength);//  rowcol(e.pos);
+			console.log("original stk",e.stack);
+		    var ne=e;//new Error(e.message+"\n"+pos.row+"行目付近を確認してください。");
+    		//ne.lineNo=pos.row;
+    		ne.pos=pos;
+		    //ne.original=e;
+		    throw ne;
 		}
     	return output;
     	function rowcol(p) {
 			var max=processed.substr(0,p);
-			var lines=max.match(/\n/g);
-			var line=(lines)?lines.length:0;
-			return {row:line+1-(postLines-preLines),col:1};
+			//var lines=max.match(/\n/g);
+			var lines=max.split("\n");
+			lines.pop();
+			var line=lines.length;
+			var before=lines.join("\n").length;
+			return {row:line+1-(postLines-preLines),col:p-before+1};
     	}
 	};
 	return parser;

@@ -88,8 +88,8 @@ async function loop() {
 		}catch(e){
 			//print(f.path()+"\n");
 			//print(e)+"\n";
-			console.log("Err", f.path());
-			if ((typeof (e.lineNo))=="number") {
+			console.log("Err", f.path(),e);
+			if ((typeof (e.pos))=="number") {
     		    sumbuf.push(f.relPath(d)+"\tCompErr");
     			console.log(e);
     			console.log(HERE(f.text(),e.lineNo));
