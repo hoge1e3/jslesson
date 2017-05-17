@@ -167,8 +167,24 @@ window.MinimalParser= function () {
         return "scopes_"+ctx.depth;
     }
     function findVariable(n) {
-        var r=ctx.scope[n+""];
-        if (!r) throw newError(n+"は定義されていません",n);
+        var name=n+"";
+        var r=ctx.scope[name];
+        if (!r) {
+            if (builtin_func_to_include[name]) {
+                throw newError(
+                    n+"は定義されていません．\n"+
+                    "#include<"+builtin_func_to_include[name]+">を追加し忘れていませんか？",n);
+            }
+            
+            for (var k in ctx.scope) {
+                if (k.toLowerCase()===name.toLowerCase()) {
+                    throw newError(
+                        n+"は定義されていません．大文字小文字は区別されます．\n"+
+                        k+"の間違いかもしれません．",n);
+                }
+            }
+            throw newError(n+"は定義されていません",n);
+        }
         return r;
     }
     function variableName(n) {
@@ -257,7 +273,7 @@ window.MinimalParser= function () {
 	var func_type=_int.or(float).or(char).or(double).or(_void);
 	var reg_str = RegExp("^[^\"^\”]*");
 	//文字列の正規表現
-	var string = t(/^\"[^\"]*\"/).ret(function(str){
+	var string = t(/^\"[^\"\n]*\"/).ret(function(str){
 		return extend(["str_to_ch_arr(",str,")"],{type:"string",vtype:T.Array(T.char)});
 	});
 	var integer_constant=t(/^0[xX][0-9a-fA-F]+/).or(t(/^0[bB][01]+/)).or(t(/^[0-9]+/)).
@@ -1052,6 +1068,12 @@ window.MinimalParser= function () {
             ["fillRect","clear","update","setColor","drawGrid","drawNumber",
                 "setPen","movePen","fillOval","drawText","drawString","getkey","setLineWidth"]
 	};
+	var builtin_func_to_include={};
+	for (var k in builtin_funcs) {
+	    builtin_funcs[k].forEach(function (fname) {
+	        builtin_func_to_include[fname]=k;    
+	    });
+	}
 	var builtin_funcs_ret={
 	    "math.h":"double",
 	    "rand":"int",
