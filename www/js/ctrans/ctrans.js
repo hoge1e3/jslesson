@@ -44,6 +44,9 @@ window.MinimalParser= function () {
 	function newError(mesg,node) {
 	    var e=new Error(mesg);
 	    e.pos=node && node.pos;
+	    if (!e.pos) {
+    	    console.log("newerror Warning no node info in",node);
+	    }
 	    errors.push(e);
 	    return e;
 	}
@@ -167,6 +170,15 @@ window.MinimalParser= function () {
         return "scopes_"+ctx.depth;
     }
     function findVariable(n) {
+        if (n.isMacro) {
+            return {
+                depth:0,
+                vname:n.macroName,
+                vtype:T.int,//TODO vtype other than int
+                isMacro:true,
+                macroValue:n.macroValue
+            };
+        }
         var name=n+"";
         var r=ctx.scope[name];
         if (!r) {
@@ -188,7 +200,9 @@ window.MinimalParser= function () {
         return r;
     }
     function variableName(n) {
-        return "scopes_"+findVariable(n).depth+"."+n;        
+        var v=findVariable(n);
+        if (v.isMacro) return v.macroValue;
+        return "scopes_"+v.depth+"."+n;        
     }
     function MKARY() {
 	    return Array.prototype.slice.call(arguments);
@@ -302,8 +316,13 @@ window.MinimalParser= function () {
 	var identifier=t(/^[a-zA-Z_][a-zA-Z0-9_]*/).except(function(identifier){
 			return ((identifier.text).match(reserved_word));
 		}).ret(function(identifier){
-			if(defines[identifier]){identifier=defines[identifier];identifier.changeble=true;}
-			identifier.ofIdentifier=true;
+			if((identifier+"") in defines){
+			    identifier.isMacro=true;
+			    identifier.macroValue=defines[identifier+""];
+			    identifier.macroName=identifier+"";
+			    identifier.text=identifier.macroValue;
+			    return identifier;
+			}
 			return identifier;
 		});
 	var struct_or_union=t(/^struct\b|union\b/);
@@ -664,7 +683,8 @@ window.MinimalParser= function () {
         			    {vtype:unary_expr.vtype}
         			);
         	    } else if (pop.type==="func_call") {
-        	        throw newError("左辺では関数呼び出しできません",left);
+        	        console.log("SAHEN",unary_expr);
+        	        throw newError("左辺では関数呼び出しできません",unary_expr);
             	} else if (pop.type==="arrow") {
             	    
         	    } else if (pop.type==="dot") {
@@ -677,6 +697,8 @@ window.MinimalParser= function () {
     			    "))"]),
     			    {vtype:unary_expr.vtype}
     			);
+		    } else if (unary_expr.isMacro) {
+		        newError("左辺に定数は書けません",unary_expr);
 		    }
 			return extend(
 			    [wrapF(unary_expr),op,"cast(",typeLit(unary_expr.vtype),",",calc_expr,")"],
@@ -836,7 +858,9 @@ window.MinimalParser= function () {
 	// \var_identifier
 	var var_identifier=identifier.ret(function(identifier){
 	    var s=findVariable(identifier);
-	    return extend( [variableName(identifier)], s);//extend(s,{vname:identifier}));
+	    var r=extend( [variableName(identifier)], s);//extend(s,{vname:identifier}));
+	    r.pos=identifier.pos;
+	    return r;
 	});
 
 	primary_expression=var_identifier.or(constant).or(string).or(
@@ -1015,6 +1039,7 @@ window.MinimalParser= function () {
         //console.log(JSON.stringify( r) ); 
         return r;
     });
+    //\addScope
     function addScope(name,obj) {
         obj.depth=ctx.depth;
         obj.vname=name;
@@ -1168,11 +1193,9 @@ window.MinimalParser= function () {
     		output=result.result[0];
     		//console.log("maxpos,prced",result.src.maxPos,processed.length);
     		if(result.src.maxPos<processed.length){
-    			console.log("Parse error at ",result.src.maxPos,
-    			processed.substring(0,result.src.maxPos)+"!!HERE!!"+processed.substring(result.src.maxPos));
     			//var pos=rowcol(result.src.maxPos);
     			var parseErr=new Error("文法エラーがあります。");//\n"+pos.row+"行目付近を確認してください。");
-    			parseErr.pos=result.src.maxPos;
+    			parseErr.pos=correctPos(result.src.maxPos);
     			errors.unshift(parseErr);
     		}
 		} catch(e) {
@@ -1180,6 +1203,13 @@ window.MinimalParser= function () {
 		}
 		if (errors.length>0) {
 		    var e=errors[0];
+			if (typeof e.pos==="number") {
+    			console.log("Compile error at ",e.pos,
+        			processed.substring(0,e.pos)+"!!HERE!!"+processed.substring(e.pos));
+			} else {
+			    console.log("Compiler error: NO pos info ");
+			}
+    			
 			var pos=e.pos-(postLength-preLength);//  rowcol(e.pos);
 			console.log("original stk",e.stack);
 		    var ne=e;//new Error(e.message+"\n"+pos.row+"行目付近を確認してください。");
@@ -1190,13 +1220,18 @@ window.MinimalParser= function () {
 		}
     	return output;
     	function rowcol(p) {
-			var max=processed.substr(0,p);
+			var max=processed.substring(0,p);
 			//var lines=max.match(/\n/g);
 			var lines=max.split("\n");
 			lines.pop();
 			var line=lines.length;
 			var before=lines.join("\n").length;
 			return {row:line+1-(postLines-preLines),col:p-before+1};
+    	}
+    	function correctPos(p) {
+    	    var s=processed.substring(0,p);
+    	    s=s.replace(/\s*$/,"");
+    	    return s.length;
     	}
 	};
 	return parser;
