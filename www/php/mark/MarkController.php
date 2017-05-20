@@ -27,6 +27,7 @@ class MarkController {
                 $dst=$home->rel($key.".cmt.txt");
                 $target=$home->rel($key.".c");
                 if ($target->exists()) {
+                    $l=$target->lastUpdate();
                     if ($dst->exists()) {
                         $c=$dst->text();
                     } else {
@@ -35,7 +36,7 @@ class MarkController {
                     if (strlen($value)>0 && $c!==$value) {
                         $dst->text($value);
                         echo "$key にコメントを書きました！<BR>";
-                        self::addLog($dst->path(),$value);
+                        self::addLog($dst->path(),$value,$l);
                     } else {
                         echo "$key の内容は変わっていません<BR>";
                     }
@@ -45,13 +46,14 @@ class MarkController {
             }
         }
     }
-    static function addLog($dst,$cont) {
+    static function addLog($dst,$cont,$timeStamp) {
         date_default_timezone_set('Asia/Tokyo');
         $user=Auth::curUser();
         $class=Auth::curClass();
         $fp=fopen("log/$class-$user-data.log","a");
         $time=date(DATE_ATOM);
-        $data=json_encode(array("date"=>$time, "result"=>"mark", "filename"=>$dst, "detail"=>$cont));
+        $data=json_encode(array("date"=>$time, "result"=>"mark", 
+        "filename"=>$dst, "detail"=>$cont,"targetTime"=>$timeStamp));
         fwrite($fp, "$data\n");
         fclose($fp);
     }

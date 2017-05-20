@@ -14,15 +14,49 @@ function clear() {
 function update(){
     var msec=16;
     loop_start2();
+    var stats=KeyInfo.stats;
+    for (var i in stats) {
+        if (stats[i]>0) {stats[i]++;}
+        if (stats[i]==-1) stats[i]=1;
+    }
     return new Promise(function (succ) {
         //console.log("Sleeping for ",msec);
         setTimeout(succ,msec); 
     });
 }
+var KeyInfo={
+    stats:{},
+    codes:{
+        left: 37 , up:38 , right: 39, down:40, space:32, enter:13,
+        shift:16, ctrl:17, alt:18, mouseleft: 1
+    }
+};
 function initX() {
     if (window.xCanvas) return window.xCanvas;
     window.xCanvas=$("<canvas>").attr({width:500,height:500});
     $("body").append(window.xCanvas);
+    
+    var stats=KeyInfo.stats;
+    $(window).keydown(function (e) {
+        var s=stats[e.keyCode];
+        //console.log("key",e.keyCode,s,stats[e.keyCode]);
+        if (!s) {
+            stats[e.keyCode]=1;
+        }
+        console.log("key2",JSON.stringify(stats));
+        
+    });
+    $(window).keyup(function (e) {
+        stats[e.keyCode]=0; 
+    });
+    var codes=KeyInfo.codes;
+    var i;
+    for (i=65 ; i<65+26; i++) {
+        codes[String.fromCharCode(i).toLowerCase()]=i;
+    }
+    for (i=48 ; i<58; i++) {
+        codes[String.fromCharCode(i)]=i;
+    }
     return window.xCanvas;
 }
 function setColor(r,g,b) {
@@ -117,4 +151,20 @@ function fillOval(x, y, w, h) {
     ctx.arc(x / a + r, y + r, r, 0, Math.PI * 2, true);
     ctx.fill();
     ctx.restore();
+}
+function getkey(code) {
+    var ctx=initX()[0].getContext("2d");
+    var stats=KeyInfo.stats;
+    var codes=KeyInfo.codes;
+    if (code instanceof Array/* || code.isPointer*/) {
+        code=ch_arr_to_str(code);
+    }
+    if (typeof code=="string") {
+        code=codes[code.toLowerCase()];
+    }
+    console.log(code,JSON.stringify(stats));
+    if (!code) return 0;
+    if (stats[code]==-1) return 0;
+    if (!stats[code]) stats[code]=0;
+    return stats[code];
 }

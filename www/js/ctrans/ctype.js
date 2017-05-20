@@ -102,7 +102,7 @@ define(["Klass","assert"],function (Klass,assert) {
 
     t.Array=t.Base.inherit({
         $:["e","length"],
-        $fields: {e:t.Base, length:Klass.opt(Number)}, // null for []
+        $fields: {e:t.Base},//, length:Klass.opt(Number)}, // null for []
         toLiteral: function () {
             return CTYPE_NAME+".Array("+this.e.toLiteral()+","+this.length+")";
         }
@@ -151,13 +151,13 @@ define(["Klass","assert"],function (Klass,assert) {
         $fields: {vtype:t.Base,name:String}
     });
     t.Struct=t.Base.inherit({
-        $:function (name) {
+        $:function (name,members) {
             this.name=name;
-            this.members=[];
+            this.members=members||[];
         },
         $fields: {members:Array, name:Klass.opt(String)},
         toLiteral: function () {
-            return CTYPE_NAME+".Struct([])";    
+            return CTYPE_NAME+".Struct('"+this.name+"',[])";    
         },
         addMember: function (vtype,name) {
             assert.is(arguments,[t.Base,String]);

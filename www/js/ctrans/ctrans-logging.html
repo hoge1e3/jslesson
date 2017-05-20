@@ -58,6 +58,7 @@ async function loop() {
     			//cnt++;
     			if (l==="") continue;
     		    var data=JSON.parse(l);
+    		    var fname=PathUtil.name(data.filename);
     		    ccode=data.code.C;
     		    if (!ccode) continue;
     		    //console.log(ccode);
@@ -65,7 +66,7 @@ async function loop() {
             	var buf="";
             	printf.STDOUT={append:function (s) {buf+=s;},text:function(){return buf;}};
     			var tree=MinimalParser.parse(ccode);
-    			print(f.name(),data.date,data.time,"OK");
+    			print(f.name(),fname,data.date,data.time,"OK");
     			//program=beautify.js_beautify(js_gen(tree));
     			//console.log(program);
     		    //var output=f.up().rel(f.truncExt()+".js");
@@ -76,7 +77,7 @@ async function loop() {
     		}catch(e){
     			//print(f.path()+"\n");
     			//print(e)+"\n";
-    			print(f.name(),data.date,data.time,(e+"").replace(/\n/g,"/"));
+    			print(f.name(),fname, data.date,data.time,(e+"").replace(/\n/g,"/"));
     			//console.log(e);
     			//console.log("Err", f.path());
     			if ((typeof (e.lineNo))=="number") {
