@@ -38,7 +38,7 @@ function log(){
 function scanf(line, dest) {
     //console.log(dest);
 	var val;
-	line=ch_arr_to_str(line);
+	line=ch_ptr_to_str(line);
 	if (scanf.STDIN) {
 	    afterScan(scanf.STDIN.shift());
 	} else if (window.AsyncByGenerator && 
@@ -62,7 +62,7 @@ function scanf(line, dest) {
     function afterScan(input) {
     	loop_start2();
         if (input.toLowerCase()=="^c") throw new Error("実行を停止しました");
-        printf(str_to_ch_arr(input+"\n"));
+        printf(str_to_ch_ptr(input+"\n"));
     	var format=line.match(/%d|%c|%x|%#x|%lf|%f|%s/);
     	switch(format+""){
     	case "%d":
@@ -76,7 +76,7 @@ function scanf(line, dest) {
     	    break;
     	case "%s":
     		val=input;
-    		var src=str_to_ch_arr(val);
+    		var src=str_to_ch_ptr(val);
     		strcpy(dest, src);
     		dest=null;
     	    break;
@@ -96,9 +96,10 @@ function printf() {
     //var line=format.replace(/%d/,value);
 	var args=Array.prototype.slice.call(arguments);
 	var line=args.shift();
-	if(Array.isArray(line))line=ch_arr_to_str(line);
-	else line=""+line;
-	line=line.replace(/%d|%c|%x|%#x|%u|%lf|%f|%s/g,function (fmt) {
+	line=ch_ptr_to_str(line);
+	//if(Array.isArray(line))line=ch_ptr_to_str(line);
+	//else line=""+line;
+	line=line.replace(/%d|%c|%x|%#x|%u|%lf|%f|%s|%Q/g,function (fmt) {
         var arg=args.shift();
 		switch(fmt){
 		case "%d":
@@ -135,14 +136,17 @@ function printf() {
 			if(typeof arg=="number")res=arg;
 			return res;
 		case "%s":
-		    var res="";
+		    /*var res="";
 		    if (typeof arg=="string") res=arg;
 		    else if (arg.read && arg.offset) {
 		        res=ch_arr_to_str(fillStr(arg));
 		    } else if (arg instanceof Array) {
 		        res=ch_arr_to_str(arg);       
-		    }
-		    return res;
+		    }*/
+		    return ch_ptr_to_str(arg);
+		case "%Q":
+		    console.log("%Q",arg);
+		    return arg+"";
 		default:
 		    return "ERR";
 		}
@@ -163,8 +167,9 @@ function printf() {
 });
 // -------- 文字列関数はchr_arrayを想定していたが、本当はpointerが通じるようにしないといかん
 function pointerize(s) {
+    if (s.IS_POINTER) return s;
     if (s instanceof Array) return pointer(s,0);
-    if (!s.read || !s.write) throw new Error(s+" is not pointer.");
+    if (!s.IS_POINTER) throw new Error(s+" is not pointer.");
     return s;
 }
 function strlen(str) {

@@ -43,7 +43,7 @@ function initX() {
         if (!s) {
             stats[e.keyCode]=1;
         }
-        console.log("key2",JSON.stringify(stats));
+        //console.log("key2",JSON.stringify(stats));
         
     });
     $(window).keyup(function (e) {
@@ -162,7 +162,7 @@ function getkey(code) {
     if (typeof code=="string") {
         code=codes[code.toLowerCase()];
     }
-    console.log(code,JSON.stringify(stats));
+    //console.log(code,JSON.stringify(stats));
     if (!code) return 0;
     if (stats[code]==-1) return 0;
     if (!stats[code]) stats[code]=0;

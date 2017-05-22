@@ -64,6 +64,7 @@ $mod_aliases=array(
     'index' => 'php/websock/index.php',
     'info' => 'php/websock/info.php',
     'server' => 'php/websock/server.php',
+    "MarkTimeController" => "php/analysis/MarkTimeController.php",
     //----/AUTOGEN
     'foo' =>'bar'
 );

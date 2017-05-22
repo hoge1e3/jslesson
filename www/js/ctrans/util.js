@@ -5,21 +5,35 @@ try {
     window.supportsAsync=true;
 }catch(e){
 }
-function StructObj() {
-    if (!(this instanceof StructObj)) return new StructObj();
+var STRUCT_TYPE="#struct_type";
+function StructObj(type) {
+    if (!(this instanceof StructObj)) return new StructObj(type);
+    this[STRUCT_TYPE]=type;
+    if (type instanceof CType.Struct) {//TODO: CTYPE_NAME
+        var t=this;
+        type.members.forEach(function (m) {
+            var v;
+            if ((m.vtype) instanceof CType.Struct) {//TODO: CTYPE_NAME
+                v=StructObj(m.vtype);
+            } else {
+                v=dustValue();
+            }
+            t[m.name+""]=v;
+        }); 
+    } else {
+        throw new Error("Type should be set");
+    }
 }
 function copyStruct(src) {
-    var res=StructObj();
+    var res=StructObj(src[STRUCT_TYPE]);
     for (var k in src) {
-        if (isStruct(src[k])) res[k]=copyStruct(src);
+        if (k===STRUCT_TYPE) continue;
+        if (isStruct(src[k])) res[k]=copyStruct(src[k]);
         else res[k]=src[k];
     }
     return res;
     function isStruct(o) {
         return o instanceof StructObj;
-    }
-    function isPointer(o) {
-        return (typeof (o.read))==="function";
     }
 }
 
@@ -89,6 +103,10 @@ function pointer(obj,key,type,ofs) {
 		    case "*=":return obj[key]*=v;
 		    case "/=":return obj[key]/=v;
 		    case "%=":return obj[key]%=v;
+		    case "++":return obj[key]++;
+		    case "--":return obj[key]--;
+		    case "++p":return ++obj[key];
+		    case "--p":return --obj[key];
 		    }
 		},
     	type: type,
@@ -156,6 +174,25 @@ function loop_chk(start){
 	new Function(str)();
 }*/
 
+function str_to_ch_ptr(str){
+	var $=[];
+	str=str+"";
+	for(var i=0;i<str.length;i++){$.push(str.charCodeAt(i));}
+	//for(var i=0;i<str.length;i++){$.push(cast(CType.char,str.charCodeAt(i)));}
+	$.push(0);
+	return pointer($,0);
+}
+function ch_ptr_to_str(ptr) {
+	var line="";
+	if (typeof ptr==="string") return ptr;
+	if (ptr instanceof Array) ptr=pointer(ptr,0); 
+	var c;
+	for(;c=ptr.read();ptr=ptr.offset(1)){
+	    line+=(String.fromCharCode(c));
+	}
+	return line;
+}
+//obsolate
 function str_to_ch_arr(str){
 	var $=[];
 	for(var i=0;i<str.length;i++){$.push(str.charCodeAt(i));}
@@ -163,6 +200,7 @@ function str_to_ch_arr(str){
 	$.push(0);
 	return $;
 }
+//obsolate
 function ch_arr_to_str(arr){
 	var line="";
 	for(var i=0;i<arr.length;i++){
@@ -205,7 +243,7 @@ function arrInit2(vtype,length,hasDust){
         }
         res.push(e);    
     }
-    return res;
+    return pointer(res,0);
 }
 function arrInit(){
     var a=Array.prototype.slice.call(arguments);

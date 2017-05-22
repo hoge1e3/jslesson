@@ -41,6 +41,7 @@ window.MinimalParser= function () {
 	var t=token;
 	var defines={};
 	var errors=[];
+	var typeDefs=[];
 	function newError(mesg,node) {
 	    var e=new Error(mesg);
 	    e.pos=node && node.pos;
@@ -68,16 +69,7 @@ window.MinimalParser= function () {
 	        //return res;
 	    });
 	}
-	/*function newScope1(parser) {
-	    // ctx.scope: {varname : {vtype:string?, depth:number }}
-	    return ent(function () {
-	        var depth=0;
-	        if ((typeof (ctx.depth))=="number") depth=ctx.depth+1;
-	        return {scope: Object.create(ctx.scope||{}) ,depth:depth };
-	    },parser);
-	}*/
-	//var DEPTH="_fuka_";
-    //window.scids=[];
+	//\newScope
 	function newScope(parser) {
 	    var entf=function () {
             var depth=0;
@@ -288,7 +280,7 @@ window.MinimalParser= function () {
 	var reg_str = RegExp("^[^\"^\”]*");
 	//文字列の正規表現
 	var string = t(/^\"[^\"\n]*\"/).ret(function(str){
-		return extend(["str_to_ch_arr(",str,")"],{type:"string",vtype:T.Array(T.char)});
+		return extend(["str_to_ch_ptr(",str,")"],{type:"string",vtype:T.Array(T.char)});
 	});
 	var integer_constant=t(/^0[xX][0-9a-fA-F]+/).or(t(/^0[bB][01]+/)).or(t(/^[0-9]+/)).
 	ret(function (r) {
@@ -354,7 +346,7 @@ window.MinimalParser= function () {
 	struct_or_union_specifier=struct_or_union.and(identifier.opt()).
     	and(newScope( t("{").and(struct_declaration.rep1()).and(t("}")) ))
 		.ret(function(struct_or_union,identifier,lcb,struct_declarations,rcb){
-		    var t=T.Struct(identifier+"");
+		    var t=T.Struct(identifier?identifier+"":null);
 		    //console.log("229:decls",struct_declarations);
 	        struct_declarations.forEach(function (declaration) {
 		        declaration.forEach(function (declarator) {
@@ -364,6 +356,10 @@ window.MinimalParser= function () {
 		    });
 		    //console.log("Struct",t);
 		    if (identifier) {
+    		    if (ctx.depth>0) {
+    		        newError("関数内ではtypedefは使えません",identifier);
+    		    }
+		        addTypeDef(identifier,t);
 		        addScope(identifier,{vtype:T.TypeDef(t),by:"struct_specifier"});
 		    }
 			return extend([struct_or_union,identifier,"{",struct_declaration,"}"],
@@ -492,6 +488,15 @@ window.MinimalParser= function () {
 		        }    
     		}
     		$.vname=direct_decl_head.vname;
+    		if (($.vtype) instanceof T.TypeDef) {
+    		    if (ctx.depth>0) {
+    		        newError("関数内ではtypedefは使えません",$.vname);
+    		    }
+    		    if (($.vtype.e) instanceof T.Struct) {
+    		        $.vtype.e.name=$.vname+"";
+    		        addTypeDef($.vname,$.vtype.e);
+    		    }
+    		}
     		addScope($.vname,{vtype:$.vtype, by:"direct_declarator"});
     		//ctx.scope[$.vname+""]={vtype:$.vtype, depth: ctx.depth};
     		return $;
@@ -506,6 +511,7 @@ window.MinimalParser= function () {
     	    }
     	    return baseType;
     	}).and(direct_declarator).ret(function (t,d) {
+    	    //console.log("Decl-or",d);
     	    return d;
     	}),
     	function (a) {var s=baseType;a();baseType=s;}
@@ -560,6 +566,14 @@ window.MinimalParser= function () {
 	calc_expression.mkInfixl(mk);
 	function mk(left,op,right){
 	    chkTypeIsSet("mk")(left);
+	    if ((left.vtype) instanceof T.Pointer) {
+	        if (op+""==="+" || op+""==="-") {
+	            return extend([CD(left),".offset(",op+"",CD(right),")"],
+	            {vtype:left.vtype});
+	        } else if (op+""==="*" || op+""==="%" || op+""==="/") {
+	            newError("ポインタ型に使用できない演算子です",op);
+	        }
+	    }
 	    return extend(["(",CD(left),op,CD(right),")"],{vtype:left.vtype});
 	}
 	function CD(e) {
@@ -582,13 +596,16 @@ window.MinimalParser= function () {
 	        }
 	        expr=["pointer(",left,",",op.index,").read()"];
         } if (op+""==="++" || op+""==="--") {
-	        var op2=(op+"")[0]+"=";
+	        //var op2=(op+"")[0]+"=";
             if (left.type==="post") {
 		        var pleft=left.left;
 		        var pop=left.op;
         	    if (pop.type=="index") {
+        	        // left op
+        	        // a[1] ++
+        	        // pleft=a  pop=[1]
         			return extend(
-        			    ["pointer(",pleft,",",pop.index,").writeOp(",lit(op2),",1)"],
+        			    ["pointer(",pleft,",",pop.index,").writeOp(",lit(op+""),")"],
         			    {vtype:left.vtype}
         			);
         	    } else if (pop.type==="func_call") {
@@ -599,10 +616,24 @@ window.MinimalParser= function () {
         	        
         	    }
 		    } else if (left.type=="pointerDeref") {
+		        // left op
+		        // (*p) ++
+		        // p.writeOp("++")
     			return extend(
-    			    ["(",left.pointer,").writeOp(",lit(op2),",1)"],
+    			    ["(",left.pointer,").writeOp(",lit(op),")"],
     			    {vtype:left.vtype}
     			);
+		    }
+		    if ((left.vtype) instanceof T.Pointer) {
+		        //   left op
+		        //   p    ++
+		        return extend([
+		            "(function () {",
+		                "var sp=",left,";",
+		                left,"=",left,".offset(",(op+""==="++"?1:-1),");",
+		                "return sp;",
+		            "})()"
+		        ],{vtype:left.vtype});
 		    }
 		 } else if (op.type==="func_call") {
 	        //vtype TODO
@@ -651,7 +682,7 @@ window.MinimalParser= function () {
     function structCp(parser) {
         return parser.ret(function (r) {
             if ((r.vtype) instanceof T.Struct) {
-                return extend(["copyStruct(",r,")"] ,{
+                return extend(["copyStruct(",r,",",r.vtype.toLiteral(),")"] ,{
                     type:"copyStruct",vtype:r.vtype,original:r
                 });
             } else return r;
@@ -709,14 +740,15 @@ window.MinimalParser= function () {
 	expression=assign;
 	var array_initializer=t("{").and(initializer_lazy.sep0(t(","),true)).and(t("}")).
 	ret(function(lcb,initializers,rcb){
-	    return extend(["[",ajoin(",",initializers),"]"],{type:"arrayInit"});
+	    return extend(["pointer([",ajoin(",",initializers),"],0)"],{type:"arrayInit"});
 	});
+	// \initializer
 	initializer=assign.or(array_initializer);
 	function defaultInitializer(vtype,depth) {
 	    if (vtype instanceof T.Array) {
 	        return ["arrInit2(",typeLit(vtype.e),",", (vtype.length||"0"),",",(depth>0)+"",")"];
 	    } else if (vtype instanceof T.Struct) {
-	        return ["StructObj()"];
+	        return ["StructObj("+vtype.toLiteral()+")"];
 	    } else if (vtype instanceof T.Function) {
 	        return "function (){}";
 	    } else {
@@ -726,6 +758,15 @@ window.MinimalParser= function () {
 	// \init_declarator
 	var init_declarator=declarator.and(t("=").and(initializer).opt())
 		.ret(function(declarator,eq,initializer){
+		    // typedef X Y; cannot come here 
+		    // Why?
+		    // typedef X Y can be read as func_head
+		    //   and Y will be registered as typedef_name
+		    // then func_head func_body fails
+		    // reread as declaration
+		    // typedef X Y  is entirely read as decl_spec(Y is type!)
+		    // but init_decl_list can be 0 length ->parse OK
+		    //console.log("InitDecl",declarator,eq,initializer);
 			var $=[curScopesName(),".",declarator,"=",
 			    initializer?
 			    ["cast(",typeLit(declarator.vtype),",",initializer,")"]:
@@ -749,6 +790,7 @@ window.MinimalParser= function () {
 	// \declaration
 	declaration=declaration_specifiers.and(init_declarator_list).and(t(";"))
 		.ret(function(decl_specifiers,init_decl_list,semicolon){
+		    //console.log("InitDeclList",init_decl_list);
 		    return init_decl_list;
 		});
 
@@ -986,11 +1028,17 @@ window.MinimalParser= function () {
 		    return params;
 		});
     // \func
+    /*
+    declaration_specifiers.opt().and(init_declarator.ret(function (d){
+        last_init_decl=d;
+    }).and(newScope({  }).or(init_declarator_list)) ;
+    */
     var func_head=declaration_specifiers.opt().ret(function (r) {
         baseType=r?r.vtype:T.int;
     }).and(declarator).ret(function (_,r){return r;});
     var func=func_head.and(Parser.create(function (st) {
         var decl=st.result[0];
+        console.log("FUNC declor",decl);
         var type=decl.vtype;
         var name=decl.vname;
         var params=decl.params;
@@ -1070,6 +1118,10 @@ window.MinimalParser= function () {
         if (name!=="boido_baryuu") {
             assert.is(ctx.scope[name+""].vname.pos, Number);
         }
+    }
+    //\addTypeDef
+    function addTypeDef(name, type) {
+        typeDefs.push({name:name,type:type});
     }
 	//control
 	//var filename=t(/^[a-zA-Z][a-zA-Z0-9]*\.?[a-zA-Z0-9]+/);
@@ -1151,9 +1203,10 @@ window.MinimalParser= function () {
 	    return null;*/
 	}).or(control_line);
 
-
-	expr = func.or(declaration);
-	program=newScope(expr.rep0());
+    var topdecl = func.or(declaration);
+	program=newScope(topdecl.rep0()).and(space).and(sp.eof).ret(function (decls,space,eof){
+	    return decls;    
+	});
 	
 	//preprocess
 	var preprocess=function(str){
@@ -1180,6 +1233,8 @@ window.MinimalParser= function () {
 		defines={NULL:0,RAND_MAX:0x7fffffff};
 		var output="";
 		errors=[];
+		typeDefs=[];
+		str+="\n";
 		var preLines=str.split("\n").length;
 		var preLength=str.length;
 		var processed=preprocess(str);
@@ -1191,8 +1246,10 @@ window.MinimalParser= function () {
 		try {
     		result=program.parseStr(processed);
     		output=result.result[0];
+    	    output.unshift(genTypeDefs(typeDefs));
+    	    //console.log("out,typedef",output,typeDefs);
     		//console.log("maxpos,prced",result.src.maxPos,processed.length);
-    		if(result.src.maxPos<processed.length){
+    		if(!result.success || result.src.maxPos<processed.length){
     			//var pos=rowcol(result.src.maxPos);
     			var parseErr=new Error("文法エラーがあります。");//\n"+pos.row+"行目付近を確認してください。");
     			parseErr.pos=correctPos(result.src.maxPos);
@@ -1234,6 +1291,13 @@ window.MinimalParser= function () {
     	    return s.length;
     	}
 	};
+	function genTypeDefs(typeDefs) {
+	    return typeDefs.map(function (typeDef) {
+	        var name=typeDef.name;
+	        var type=typeDef.type;
+	        return ["scopes_0.",name,"=",type.toLiteral(true),";\n"];
+	    });
+	}
 	return parser;
 }();
 return window.MinimalParser;
