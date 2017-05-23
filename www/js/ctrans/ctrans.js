@@ -479,6 +479,7 @@ window.MinimalParser= function () {
 		            $.vtype=T.Array($.vtype,tail.elementLength);
 		            break;
     		    case "decl_params":
+    		        //console.log("DECLPARAM",direct_decl_head,baseType,$);
     		        $.vtype=T.Function($.vtype,tail.params);
     		        $.params=tail.params;
 		            break;
@@ -529,7 +530,13 @@ window.MinimalParser= function () {
 	//parameter_type_list=t(",").and(parameter_declaration)
 	//	.ret(function(comma,parameter_declaration){return [",",parameter_declaration];});
 	//\parameter_list
-	parameter_list=parameter_declaration.sep0(t(","),true);/*.
+	var parameter_list_raw=parameter_declaration.sep0(t(","),true);
+	parameter_list=inject(parameter_list_raw,function (a) {
+	    var saveBaseType=baseType;
+        a();
+        baseType=saveBaseType;    	  
+    });
+	/*.
 	or(t("void").ret(function () {
 	    console.log("VOID read!");
 	    return [];})
@@ -550,8 +557,8 @@ window.MinimalParser= function () {
 	calc_expression.infixl(7,t("|"));
 	calc_expression.infixl(8,t("^"));
 	calc_expression.infixl(9,t("&"));
-	calc_expression.infixl(10,t("==").ret(function(ee){return "===";}));
-	calc_expression.infixl(10,t("!=").ret(function(ne){return "!==";}));
+	calc_expression.infixl(10,t("==").ret(function(ee){ee.text="===";return ee;}));
+	calc_expression.infixl(10,t("!=").ret(function(ne){ne.text="!==";return ne;}));
 	calc_expression.infixl(11,t("<="));
 	calc_expression.infixl(11,t(">="));
 	calc_expression.infixl(11,t("<").noFollow(t("<")));
@@ -566,6 +573,11 @@ window.MinimalParser= function () {
 	calc_expression.mkInfixl(mk);
 	function mk(left,op,right){
 	    chkTypeIsSet("mk")(left);
+	    var t=left.vtype.binOpable(op,right.vtype);
+	    if (!t) {
+	        console.log("No op",left.vtype,op,right.vtype);
+	        newError("この型同士で演算"+op+"はできません",op);
+	    }
 	    if ((left.vtype) instanceof T.Pointer) {
 	        if (op+""==="+" || op+""==="-") {
 	            return extend([CD(left),".offset(",op+"",CD(right),")"],
@@ -574,7 +586,7 @@ window.MinimalParser= function () {
 	            newError("ポインタ型に使用できない演算子です",op);
 	        }
 	    }
-	    return extend(["(",CD(left),op,CD(right),")"],{vtype:left.vtype});
+	    return extend(["(",CD(left),op,CD(right),")"],{vtype:t});
 	}
 	function CD(e) {
 	    return ["checkDust(",e,")"];
@@ -588,7 +600,7 @@ window.MinimalParser= function () {
 	    var wrapF=r[1];
 	    var expr=[wrapF(left),op];
 	    if (op.type=="index") {
-	        if (t instanceof T.Array) {
+	        if (t instanceof T.Array || t instanceof T.Pointer) {
 	            if (!t.e) {
 	                failWithCon(left,op,t,"Cannot resolve type of left[op]");
 	            }
@@ -648,8 +660,9 @@ window.MinimalParser= function () {
 	            });
 	            var mr=t.match(argList);
 	            if (mr!==true) {
-    	            throw newError(mr,op);
+    	            newError(mr,op);
 	            }
+	            t=t.ret;
 	        } else {
 	            throw newError("関数でないものに対して関数として呼び出しています",left);
     	        //expr.push(["/*",t.toLiteral(),"*/"]);
@@ -699,7 +712,30 @@ window.MinimalParser= function () {
     }
     //\assign
 	assign=unary_expression_lazy.and(assignment_operator)
-		.and(structCp(calc_expression)).ret(function(unary_expr,op,calc_expr){
+		.and(/*structCp(*/calc_expression/*)*/).ret(function(unary_expr,op,calc_expr){
+		    var t;
+		    if (op+""==="=") {
+		        if (!unary_expr.vtype.assignableFrom(calc_expr.vtype)) {
+		            console.log("= no" ,unary_expr.vtype, calc_expr.vtype);
+		            newError("この型は代入できません",op);
+		        }
+		        t=unary_expr.vtype;
+		    } else {
+		        var rt=unary_expr.vtype.binOpable((op+"")[0],calc_expr.vtype);
+		        if (!rt) {
+		            console.log("?= no" ,op+"",unary_expr.vtype, calc_expr.vtype);
+		            newError("この型に対して"+op+"演算できません",op);
+		        }
+		    }
+		    
+		    if ((unary_expr.vtype) instanceof T.Struct) {
+		        return extend(["copyStruct2(",
+    		        unary_expr,",", 
+    		        calc_expr, ",",
+    		        unary_expr.vtype.toLiteral(),
+    		    ")"],
+		        {vtype:unary_expr.vtype});
+		    }
 		    var r=unwrapParen(unary_expr);
 		    var unary_expr=r[0];
 		    var wrapF=r[1];
@@ -767,9 +803,13 @@ window.MinimalParser= function () {
 		    // typedef X Y  is entirely read as decl_spec(Y is type!)
 		    // but init_decl_list can be 0 length ->parse OK
 		    //console.log("InitDecl",declarator,eq,initializer);
+		    var dtl=typeLit(declarator.vtype);
 			var $=[curScopesName(),".",declarator,"=",
 			    initializer?
-			    ["cast(",typeLit(declarator.vtype),",",initializer,")"]:
+			    ((declarator.vtype) instanceof T.Struct?
+			        ["copyStruct2(",defaultInitializer(declarator.vtype,ctx.depth),",",initializer,",",dtl,")"]:
+			        ["cast(",dtl,",",initializer,")"]
+			    ):
 			    defaultInitializer(declarator.vtype,ctx.depth),";\n"
 			];
 			if(declarator.isArray){
@@ -877,7 +917,7 @@ window.MinimalParser= function () {
 	// \statements
 	statements=statement.rep0().ret(function(states){return states;});
     // \argument_expressions
-	var argument_expressions=structCp(expression).sep0(t(","),true).ret(function(param){
+	var argument_expressions=/*structCp*/(expression).sep0(t(","),true).ret(function(param){
 		if(param=="void")return "";
 		if(!Array.isArray(param))return param;
 		var res=[];
@@ -1038,7 +1078,7 @@ window.MinimalParser= function () {
     }).and(declarator).ret(function (_,r){return r;});
     var func=func_head.and(Parser.create(function (st) {
         var decl=st.result[0];
-        console.log("FUNC declor",decl);
+        //console.log("FUNC declor",decl);
         var type=decl.vtype;
         var name=decl.vname;
         var params=decl.params;
@@ -1053,7 +1093,16 @@ window.MinimalParser= function () {
             var getParams=[];
             if (params) params.forEach(function (param) {
                 addScope(param.vname,{vtype:param.vtype,by:"param"});
-                if (param.vtype!==T.void) {
+                if ((param.vtype) instanceof T.Struct) {
+                    var vn="scopes_"+(ctx.depth)+"."+param.vname;
+                    var vt=typeLit(param.vtype);
+                    getParams.push([
+                        vn,"=","copyStruct2(",
+                            "StructObj(",vt,"),",
+        	    			"ARGS.shift(),",
+        	    			vt,");\n",
+        	    	]);
+                } else if (param.vtype!==T.void) {
                     getParams.push(["scopes_"+(ctx.depth)+".", 
 	    			param.vname,"=","ARGS.shift();","/*", typeLit(param.vtype),"*/"]);
                 }
@@ -1154,6 +1203,10 @@ window.MinimalParser= function () {
 	var builtin_funcs_ret={
 	    "math.h":"double",
 	    "rand":"int",
+	    "string.h":"char*",
+	    "memcmp":"int",
+	    "strncmp":"int",
+	    "strcmp":"int",
 	    "getkey":"int"
 	};
 	control_line=t("#").and(t("include")).and(t("<").or(t("\""))).and(incl_filename).and(t(">").or(t("\""))).ret(function(){
@@ -1169,38 +1222,6 @@ window.MinimalParser= function () {
 	    } else {
             newError("#include<"+filename.text+">に該当するファイル名がありません",filename);
 	    }
-	    /*
-	    switch (filename.text) {
-	        case "stdio.h":
-	            return ["printf","scanf","sleep","usleep"].map(function (n) {
-	                return "void "+n+"();\n";
-	            }).join("\n");
-	        case "stdlib.h":
-	            return ["rand"].map(function (n) {
-	                return "void "+n+"();\n";
-	            }).join("\n");
-	        case "string.h":
-	            return ["strlen","strcpy","strncpy","strcmp","strncmp",
-	            "strcat","strncat","memset","index","rindex",
-	            "memcmp","memcpy","strstr"].map(function (n) {
-	                return "void "+n+"();";
-	            }).join("\n");
-	        case "math.h":
-	            // also in lib.js
-                return ["abs","acos","asin","atan","atan2","ceil","cos","exp","floor",
-                "log","max","min","pow","random","round","sin","sqrt","tan"].map(function (n) {
-	                return "double "+n+"();";
-	            }).join("\n");
-	        case "x.h":
-                return ["fillRect","clear","update","setColor","drawGrid","drawNumber",
-                "setPen","movePen","fillOval","drawText","drawString","getkey","setLineWidth"].map(function (n) {
-	                return "void "+n+"();";
-	            }).join("\n");
-	        default:
-	            
-	            newError("#include<"+filename.text+">に該当するファイル名がありません",filename);
-	    }
-	    return null;*/
 	}).or(control_line);
 
     var topdecl = func.or(declaration);

@@ -48,6 +48,14 @@ define(["assert"],function (A) {
             init.apply(this,arguments);
             checkSchema(this);
         };
+        if (parent) {
+            klass.super=function () {
+                var a=Array.prototype.slice.call(arguments);
+                var t=a.shift();
+                var n=a.shift();
+                return parent.prototype[n].apply(t,a);
+            };
+        }
         klass.inherit=function (pd) {
             pd.$parent=klass;
             return Klass.define(pd);

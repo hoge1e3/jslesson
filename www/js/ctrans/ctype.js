@@ -12,6 +12,10 @@ define(["Klass","assert"],function (Klass,assert) {
         castableFrom: function (t) {//ctype.Base->Boolean
             return this.assignableFrom(t);
         },
+        binOpable: function (op,right) {
+            if (op+""==="=" && this.assignableFrom(t)) return this;
+            return false;  
+        },
         toLiteral:function () {
             console.log(this);
             throw new Error("toLiteral is not defined");
@@ -29,11 +33,15 @@ define(["Klass","assert"],function (Klass,assert) {
         assignableFrom: function (type) {
             if (type instanceof t.Number) return true;
             //if (type.numOrd && this.numOrd>=type.numOrd) return true;
-            return this.super("assignableFrom",type);
+            return t.Number.super(this,"assignableFrom",type);
         },
         castableFrom: function (type) {
             if (type instanceof t.Number) return true;
-            return this.super("castableFrom",type);
+            return t.Number.super(this,"castableFrom",type);
+        },
+        binOpable: function (op,right) {
+            if (right instanceof t.Number) return this;
+            return t.Number.super(this,"binOpable",op,right);
         },
         cast:function(v){
             v=v||0;
@@ -100,20 +108,40 @@ define(["Klass","assert"],function (Klass,assert) {
     //  int a[][5];          a: Array(Array(int,5) ,-1)
     //  a[i]: Array(int,5)    
 
-    t.Array=t.Base.inherit({
-        $:["e","length"],
-        $fields: {e:t.Base},//, length:Klass.opt(Number)}, // null for []
-        toLiteral: function () {
-            return CTYPE_NAME+".Array("+this.e.toLiteral()+","+this.length+")";
-        }
-    }); 
     t.Pointer=t.Base.inherit({
         $:["e"],
         $fields: {e:t.Base},
         toLiteral: function () {
             return CTYPE_NAME+".Pointer("+this.e.toLiteral()+")";
+        },
+        assignableFrom: function (right) {
+            if (right instanceof t.Number) {
+                return true;
+            }
+            if (right instanceof t.Pointer) {
+                return this.e.assignableFrom(right.e);
+            }  
+            return t.Pointer.super(this,"assignableFrom",right);
+        },
+        binOpable: function (op,right) {
+            // TODO: === in C?? 
+            if (right instanceof t.Number && (op+""==="+" || op+""==="-")) return this;
+            if (right instanceof t.Number && (op+""==="==="|| op+""==="!==")) return t.int;
+            if (right instanceof t.Pointer && (op+""==="==="|| op+""==="!==")) return t.int;
+            return t.Pointer.super(this,"binOpable",op,right);
         }
     });
+    t.Array=t.Pointer.inherit({
+        $:["e","length"],
+        $fields: {e:t.Base},//, length:Klass.opt(Number)}, // null for []
+        toLiteral: function () {
+            return CTYPE_NAME+".Array("+this.e.toLiteral()+","+this.length+")";
+        }
+        /*binOpable: function (op,right) {
+            if (right instanceof t.Number && (op+""==="+" || op+""==="-" || op+""==="===" || op+""==="!==")) return true;
+            return this.super("binOpable",op,right);
+        }*/
+    }); 
     t.Function=t.Base.inherit({
         $:["ret","args"],
         $fields: {ret:t.Base, args:Array/*[{vname:name, vtype:t.Base}]*/},        
@@ -138,10 +166,12 @@ define(["Klass","assert"],function (Klass,assert) {
                     len+"個受け取るよう指定されていますが，"+
                     "呼び出し側では"+argTypes.length+"個渡しています";
             }  
-            /*for (var i=0; i<len;i++) {
-                TODO check type compats
-                if (!this.args[i].vtype.isAssignableFrom(argTypes[i])) return false;
-            }*/
+            for (var i=0; i<len;i++) {
+                //TODO check type compats
+                if (!this.args[i].vtype.assignableFrom(argTypes[i])) {
+                    return (i+1)+"番目の引数の型が一致しません";
+                }
+            }
             return true;
         }
     });

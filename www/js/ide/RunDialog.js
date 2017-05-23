@@ -53,7 +53,9 @@ define(["UI","DiagAdjuster"],function (UI,DA) {
 		    //$("#iBrowser").append(UI("iframe",{id:"ifrmDlg",width:570,height:options.height||400,src:runURL}));
 		    $("#iBrowser").append(UI("iframe",{id:"ifrmDlg",width:16*(options.height/9)||970,height:options.height||400,src:runURL}));
 	    }
-	    
+	    setTimeout(function () {
+            $("#ifrmDlg").focus();
+        },100);
         $("#ifrmDlg").attr(src,runURL);
         //if($("#ifrmDlg")[0]) console.log($("#ifrmDlg")[0].contentWindow.document.body);
         /*setTimeout(function(){if($("#ifrmDlg")[0]) {

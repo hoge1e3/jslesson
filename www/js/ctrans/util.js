@@ -19,7 +19,8 @@ function StructObj(type) {
                 v=dustValue();
             }
             t[m.name+""]=v;
-        }); 
+        });
+        //console.log("StructObjCreat",type.name,this);
     } else {
         throw new Error("Type should be set");
     }
@@ -36,7 +37,15 @@ function copyStruct(src) {
         return o instanceof StructObj;
     }
 }
-
+function copyStruct2(dst,src,type) {
+    //console.log("CopyStruct",dst,src);
+    type.members.forEach(function (m) {
+        var k=m.name+"";
+        if ((m.vtype) instanceof CType.Struct) copyStruct2(dst[k],src[k],m.vtype);
+        else dst[k]=src[k];
+    });
+    return dst;
+}
 function pointer(obj,key,type,ofs) {
     if (obj.IS_POINTER) {
         return obj.offset(key);
@@ -44,42 +53,6 @@ function pointer(obj,key,type,ofs) {
     if (typeof key==="number") {
         key=Math.floor(key);
     }
-	/*if(Array.isArray(obj[key])){
-		var tmp=[];
-		ofs=ofs||0;
-		for(var i=0;i<obj[key].length;i++){
-		    (function (i) {
-    			var $={
-    				read:function(){return obj[key][i+ofs];},
-    				write:function(v){return obj[key][i+ofs]=v;},
-    				writeOp:function(op,v){
-    				    switch (op) {
-    				        case "=":
-        				    return obj[key][i+ofs]=v;
-    				        case "+=":
-        				    return obj[key][i+ofs]+=v;
-    				        case "-=":
-        				    return obj[key][i+ofs]-=v;
-    				        case "*=":
-        				    return obj[key][i+ofs]*=v;
-    				        case "/=":
-        				    return obj[key][i+ofs]/=v;
-    				        case "%=":
-        				    return obj[key][i+ofs]%=v;
-    				    }
-    				},
-    				offset: function (o) {
-                	    return tmp[i+o];
-                	},
-    				//type:type.split(",")[1],
-    				IS_POINTER:true
-    			};
-    			tmp.push($);
-		    })(i);
-		}
-        //for(var i=0;i<tmp.length;i++)console.log(tmp[i].read());
-		return tmp;
-	}*/
     return {
         checkBorder: function () {
             if (obj instanceof Array && typeof key==="number") {
@@ -239,7 +212,7 @@ function arrInit2(vtype,length,hasDust){
         if (vtype instanceof CType.Array) {
             e=arrInit2(vtype.e,vtype.length,hasDust);
         } else if (vtype instanceof CType.Struct) {
-            e={};
+            e=StructObj(vtype);
         }
         res.push(e);    
     }

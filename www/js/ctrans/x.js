@@ -156,8 +156,8 @@ function getkey(code) {
     var ctx=initX()[0].getContext("2d");
     var stats=KeyInfo.stats;
     var codes=KeyInfo.codes;
-    if (code instanceof Array/* || code.isPointer*/) {
-        code=ch_arr_to_str(code);
+    if (code.IS_POINTER) {
+        code=ch_ptr_to_str(code);
     }
     if (typeof code=="string") {
         code=codes[code.toLowerCase()];
