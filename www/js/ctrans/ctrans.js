@@ -787,6 +787,8 @@ window.MinimalParser= function () {
 	        return ["StructObj("+vtype.toLiteral()+")"];
 	    } else if (vtype instanceof T.Function) {
 	        return "function (){}";
+	    } else if (vtype instanceof T.TypeDef) {
+	        return [vtype.e.toLiteral(true)];
 	    } else {
 	        return [depth==0?"0":"dustValue()","/*",typeLit(vtype),"*/"];
 	    }
@@ -812,10 +814,10 @@ window.MinimalParser= function () {
 			    ):
 			    defaultInitializer(declarator.vtype,ctx.depth),";\n"
 			];
-			if(declarator.isArray){
+			/*if(declarator.isArray){
 				$.isArray=declarator.isArray;
 				$.isLength=declarator.isLength;
-			}
+			}*/
 			$.declarator=declarator;
 			$.initializer=initializer;
     		if ((declarator.vtype) instanceof T.Function) {
@@ -1067,12 +1069,119 @@ window.MinimalParser= function () {
 		    if (!(params instanceof Array)) return [];//void
 		    return params;
 		});
+    // \newDecl
+    // spec ;
+    // spec init-decl ;
+    // spec decl {}
+    // spec init-decl , init-decl ... ;
+    // decl {}
+    var newDecl=declaration_specifiers.or(init_declarator).and(
+    Parser.create(function (st) {
+        function res(r) {
+            st=st.clone();
+            st.result=[r];
+            return st;
+        }
+        var head=st.result[0];
+        var init_decl_head;
+        if (head.type==="declaration_specifiers") {
+            st=t(";").or(init_declarator).parse(st);
+            var init_decl_head=st.result[0];
+            if (init_decl_head+""===";") {
+                // spec ;
+                // TODO: yield  struct fred {int x,y;};
+                if ((head.vtype) instanceof T.Struct && head.vtype.name) {
+                    return res([
+                        curScopesName(),".",head.vtype.name,"=",head.vtype.toLiteral(true),";\n"
+                    ]);
+                }
+                return res([]);//"// TODO: yield  struct fred {int x,y;};\n"]);
+            } else {
+                // spec init-decl ;
+                // spec decl {}
+                // spec init-decl , init-decl ... ;
+            }
+        } else {
+            //decl {}
+            baseType=T.int;
+            init_decl_head=head;
+        }
+        // spec init-decl <!>;
+        // spec decl <!>{}
+        // spec init-decl<!> , init-decl ... ;
+        // decl<!> {}
+        st=t("{").or(t(",")).or(t(";")).parse(st);
+        var nx=st.result[0];
+        if (nx+""===";") {
+            return res(init_decl_head);
+        } else if (nx+""===",") {
+            st=init_declarator_list.parse(st);
+            return res( [init_decl_head].concat(st.result[0]) );
+        }
+        var rst;
+        var init=init_decl_head.initializer;
+        if (init) {
+            throw newError("関数定義には初期化子を伴うことはできません");
+            //st.success=false;return st;
+        }
+        var decl=init_decl_head.declarator;
+        var type=decl.vtype;
+        if (!(type instanceof T.Function)) {
+            throw newError("関数定義に() がありません");
+            //st.success=false;return st;
+        }
+        var name=decl.vname;
+        var params=decl.params;
+        addScope(name,{
+            vtype:type, 
+            by: "function_definition_pre"
+        });
+        var depth=ctx.depth;
+        newScope(function () {
+            var getParams=[];
+            if (params) params.forEach(function (param) {
+                addScope(param.vname,{vtype:param.vtype,by:"param"});
+                if ((param.vtype) instanceof T.Struct) {
+                    var vn="scopes_"+(ctx.depth)+"."+param.vname;
+                    var vt=typeLit(param.vtype);
+                    getParams.push([
+                        vn,"=","copyStruct2(",
+                            "StructObj(",vt,"),",
+        	    			"ARGS.shift(),",
+        	    			vt,");\n",
+        	    	]);
+                } else if (param.vtype!==T.void) {
+                    getParams.push(["scopes_"+(ctx.depth)+".", 
+	    			param.vname,"=","ARGS.shift();","/*", typeLit(param.vtype),"*/"]);
+                }
+            });
+            var func="function ";
+            if (supportsAsync) {
+                func="async function ";
+            } else if (ABG.supportsGenerator) {
+                func="function* ";
+            }
+            rst=compound_statement_part.and(t("}")).ret(function (states) {
+                return ["scopes_"+depth,".",name,"=",
+                    func,name,"(){",
+    				"var ",curScopesName(),"={};",
+                    "var ARGS=Array.prototype.slice.call(arguments);\n",
+                    getParams,
+			        states,
+        			"};"
+                ];
+            }).parse(st);
+        });
+        if (rst && rst.success) {
+            addScope(name,{by:"function_definition"});
+        }
+        return rst;
+    })).ret(getTh(1));
+    function getTh(n) {
+        return function () {return arguments[n];}
+    }
+    //-----------
     // \func
-    /*
-    declaration_specifiers.opt().and(init_declarator.ret(function (d){
-        last_init_decl=d;
-    }).and(newScope({  }).or(init_declarator_list)) ;
-    */
     var func_head=declaration_specifiers.opt().ret(function (r) {
         baseType=r?r.vtype:T.int;
     }).and(declarator).ret(function (_,r){return r;});
@@ -1170,7 +1279,7 @@ window.MinimalParser= function () {
     }
     //\addTypeDef
     function addTypeDef(name, type) {
-        typeDefs.push({name:name,type:type});
+        //typeDefs.push({name:name,type:type});
     }
 	//control
 	//var filename=t(/^[a-zA-Z][a-zA-Z0-9]*\.?[a-zA-Z0-9]+/);
@@ -1224,7 +1333,8 @@ window.MinimalParser= function () {
 	    }
 	}).or(control_line);
 
-    var topdecl = func.or(declaration);
+    var topdecl = newDecl;
+    //var topdecl = func.or(declaration);
 	program=newScope(topdecl.rep0()).and(space).and(sp.eof).ret(function (decls,space,eof){
 	    return decls;    
 	});
@@ -1268,7 +1378,8 @@ window.MinimalParser= function () {
     		result=program.parseStr(processed);
     		output=result.result[0];
     	    output.unshift(genTypeDefs(typeDefs));
-    	    //console.log("out,typedef",output,typeDefs);
+    	    //console.log("output is",output);
+    		//console.log("out,typedef",output,typeDefs);
     		//console.log("maxpos,prced",result.src.maxPos,processed.length);
     		if(!result.success || result.src.maxPos<processed.length){
     			//var pos=rowcol(result.src.maxPos);
