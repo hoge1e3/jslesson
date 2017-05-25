@@ -1115,19 +1115,19 @@ window.MinimalParser= function () {
         if (nx+""===";") {
             return res(init_decl_head);
         } else if (nx+""===",") {
-            st=init_declarator_list.parse(st);
+            st=init_declarator_list.and(t(";")).ret(getTh(0)).parse(st);
             return res( [init_decl_head].concat(st.result[0]) );
         }
         var rst;
         var init=init_decl_head.initializer;
         if (init) {
-            throw newError("関数定義には初期化子を伴うことはできません");
+            throw newError("関数定義には初期化子を伴うことはできません",init);
             //st.success=false;return st;
         }
         var decl=init_decl_head.declarator;
         var type=decl.vtype;
         if (!(type instanceof T.Function)) {
-            throw newError("関数定義に() がありません");
+            throw newError("関数定義に() がありません",decl);
             //st.success=false;return st;
         }
         var name=decl.vname;
@@ -1181,7 +1181,7 @@ window.MinimalParser= function () {
         return function () {return arguments[n];}
     }
     //-----------
-    // \func
+    // \func  (unused)
     var func_head=declaration_specifiers.opt().ret(function (r) {
         baseType=r?r.vtype:T.int;
     }).and(declarator).ret(function (_,r){return r;});
