@@ -5,7 +5,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
-           "CommentDialog","DistributeDialog","NotificationDialog"
+           "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -14,7 +14,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
-          CommentDialog,DistributeDialog,NotificationDialog
+          CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -173,6 +173,7 @@ function ready() {
                       {label:"新規",id:"newFile"},
                       {label:"名前変更",id:"mvFile"},
                       {label:"コピー",id:"cpFile"},
+                      {label:"アップロード",id:"upFile",action:upFile},
                       //{label:"閉じる",id:"closeFile"},
                       {label:"削除", id:"rmFile"}
                   ]},
@@ -193,6 +194,16 @@ function ready() {
                 ]
         );
         showDistMenu();
+    }
+    function upFile() {
+        FileUploadDialog.show(curProjectDir,{
+            onAdd: function (fs) {
+                console.log(fs);
+                fs.forEach(FM.on.createContent);
+                fl.ls(curProjectDir);
+                sync();
+            }
+        });
     }
     function showDistMenu(){
         if(Auth.teacher!=""){
@@ -373,11 +384,11 @@ function ready() {
                     if(lang=="js") e.text("// "+langList[lang]+"\n// ここで扱われるJavaScriptは通常のJavaScriptとは異なります。詳しくは使用方法をご覧ください。\n");
                 } else if (e.ext()==HEXT  && !e.exists()) {
                     e.text("<html>\n\n</html>");
-                } else {
+                } else if (!e.exists()) {
                     e.text("");
                 }
             });
-        } else {
+        } else if (!f.exists()) {
             f.text("");
         }
     };

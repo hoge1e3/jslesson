@@ -194,6 +194,7 @@ var reqConf={
             "fs/ROMs": "gen/ROM_s",
             "ProjectOptionsEditor": "ide/ProjectOptionsEditor",
             "FileList": "fsui/FileList",
+            "FileUploadDialog": "fsui/FileUploadDialog",
             "HttpHelper": "help/HttpHelper",
             "Wiki": "help/wiki",
             "WikiDialog": "help/wikiDialog",

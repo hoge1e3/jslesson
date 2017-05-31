@@ -3715,7 +3715,8 @@ define('assert',[],function () {
     };
     assert.opt=function (t) {
         return assert.f(function (v) {
-            return v==null || v instanceof t;
+            if (v==null) return true; 
+            assert.is(v,t);
         });
     };
     assert.and=function () {
@@ -12671,7 +12672,9 @@ define('RunDialog',["UI","DiagAdjuster"],function (UI,DA) {
 		    //$("#iBrowser").append(UI("iframe",{id:"ifrmDlg",width:570,height:options.height||400,src:runURL}));
 		    $("#iBrowser").append(UI("iframe",{id:"ifrmDlg",width:16*(options.height/9)||970,height:options.height||400,src:runURL}));
 	    }
-	    
+	    setTimeout(function () {
+            $("#ifrmDlg").focus();
+        },100);
         $("#ifrmDlg").attr(src,runURL);
         //if($("#ifrmDlg")[0]) console.log($("#ifrmDlg")[0].contentWindow.document.body);
         /*setTimeout(function(){if($("#ifrmDlg")[0]) {
@@ -13617,6 +13620,121 @@ define('NotificationDialog',["UI"], function (UI) {
     return res;
 });
 
+define('FileUploadDialog',["FS","UI"],function (FS,UI) {
+    var res={};
+    var P=FS.PathUtil;
+	res.show=function (dir,options) {
+    	var d=res.embed(dir,options);
+    	if (!res.opened) {
+        	d.dialog({width:600,height:300,
+        	    close: function () {
+        	        res.opened=false;
+        	    }
+        	});
+    	}
+    	res.opened=true;
+	};
+	res.embed=function (dir, options) {
+	    if (!options) options={};
+	    options.onAdd=options.onAdd||function (){};
+	    var mediaInfos={
+	        c:{
+	            name:"Cソースファイル",
+	            exts:["c"],
+                extPattern:/\.c$/i,
+                contentType:/text\/.*/,
+            }
+	    };
+	    var mediaInfo=mediaInfos.c; 
+        if (!res.d) {
+            var FType={
+                fromVal: function (val){
+                    return val=="" ? null : FS.get(val);
+                },
+                toVal: function (v){ return v ? v.path() : "";}
+            };
+            var dragMsg="ここに"+mediaInfo.name+"ファイル("+mediaInfo.exts.join("/")+")をドラッグ＆ドロップして追加";
+            res.dragPoint=UI("div", 
+                {style:"margin:10px; padding-left:10px; padding-right:10px; padding-top:50px; padding-bottom:50px; border:solid blue 2px;",
+                on:{dragover: s, dragenter: s, drop:dropAdd}},dragMsg
+            );
+        	res.d=UI("div",{title:"ファイルアップロード"},
+        	    res.dragPoint,
+        	    ["div",{$var:"result"}]
+        	    /* ["button", {$var:"OKButton", on:{click: function () {
+                	 res.d.done();
+                 }}}, "OK"]*/
+            );
+        }
+        function dropAdd(e) {
+            eo=e.originalEvent;
+            var files = Array.prototype.slice.call(eo.dataTransfer.files);
+            var added=[],cnt=files.length;
+            
+            files.forEach(function (file) {
+                var itemName=file.name;//.replace(mediaInfo.extPattern,"").replace(/\W/g,"_");
+                if (!P.ext(file.name).match(mediaInfo.extPattern)) {
+                    res.d.$vars.result.append(
+                        UI("div",itemName+": このファイルは追加できません")
+                    );
+                    dec();
+                    return;
+                }
+                var itemFile=dir.rel(itemName);
+                if (itemFile.exists()) {
+                    upmesg=itemName+": 同名のファイルがあるため中止しました．";
+                    dec();
+                    res.d.$vars.result.append(
+                        UI("div",upmesg)
+                    );
+                } else {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        var fileContent = reader.result;
+                        var upmesg;
+                        itemFile.setBytes(fileContent);
+                        added.push(itemFile);
+                        upmesg=itemName+": アップロードしました．";
+                        dec();
+                        res.d.$vars.result.append(
+                            UI("div",upmesg)
+                        );
+                        //v.url="ls:"+itemFile.relPath(prj.getDir());// fileContent;
+                        //add(v);
+                    };
+                    reader.readAsArrayBuffer(file);
+                }
+            });
+            function dec() {
+                cnt--;
+                if (cnt<=0) {
+                    options.onAdd(added);
+                }
+            }
+            e.stopPropagation();
+            e.preventDefault();
+            return false;
+        }
+        function s(e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+            
+        var d=res.d;
+        d.$vars.result.empty();
+        //var c=d.$vars.cont;
+        //c.append($("<div>").text(mesg));
+    	d.done=function () {
+    	    
+    	    /*if (d.$edits.validator.isValid()) {
+                onOK(model);
+                d.dialog("close");
+    	    }*/
+    	};
+    	return d;
+    };
+    return res; 
+});
 requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "showErrorPos", "fixIndent",  "ProjectCompiler",
            "Shell","ShellUI","KeyEventChecker",
@@ -13624,7 +13742,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
-           "CommentDialog","DistributeDialog","NotificationDialog"
+           "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -13633,7 +13751,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
-          CommentDialog,DistributeDialog,NotificationDialog
+          CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -13792,6 +13910,7 @@ function ready() {
                       {label:"新規",id:"newFile"},
                       {label:"名前変更",id:"mvFile"},
                       {label:"コピー",id:"cpFile"},
+                      {label:"アップロード",id:"upFile",action:upFile},
                       //{label:"閉じる",id:"closeFile"},
                       {label:"削除", id:"rmFile"}
                   ]},
@@ -13812,6 +13931,16 @@ function ready() {
                 ]
         );
         showDistMenu();
+    }
+    function upFile() {
+        FileUploadDialog.show(curProjectDir,{
+            onAdd: function (fs) {
+                console.log(fs);
+                fs.forEach(FM.on.createContent);
+                fl.ls(curProjectDir);
+                sync();
+            }
+        });
     }
     function showDistMenu(){
         if(Auth.teacher!=""){
@@ -13992,11 +14121,11 @@ function ready() {
                     if(lang=="js") e.text("// "+langList[lang]+"\n// ここで扱われるJavaScriptは通常のJavaScriptとは異なります。詳しくは使用方法をご覧ください。\n");
                 } else if (e.ext()==HEXT  && !e.exists()) {
                     e.text("<html>\n\n</html>");
-                } else {
+                } else if (!e.exists()) {
                     e.text("");
                 }
             });
-        } else {
+        } else if (!f.exists()) {
             f.text("");
         }
     };
