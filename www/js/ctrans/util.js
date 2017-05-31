@@ -15,6 +15,8 @@ function StructObj(type) {
             var v;
             if ((m.vtype) instanceof CType.Struct) {//TODO: CTYPE_NAME
                 v=StructObj(m.vtype);
+            } else if ((m.vtype) instanceof CType.Array) {//TODO: CTYPE_NAME
+                v=arrInit2(m.vtype.e, m.vtype.length);
             } else {
                 v=dustValue();
             }
@@ -37,11 +39,22 @@ function copyStruct(src) {
         return o instanceof StructObj;
     }
 }
+function copyArray(dst,src,type) {
+    var e=type.e;
+    for (var i=0;i<type.length;i++) {
+        var v=src.offset(i).read();
+        if (e instanceof CType.Struct) copyStruct2(dst.offset(i).read(),v,e);
+        else if (e instanceof CType.Array) copyArray(dst.offset(i).read(),v,e);
+        else dst.offset(i).write(v);
+    }
+    return dst;
+}
 function copyStruct2(dst,src,type) {
     //console.log("CopyStruct",dst,src);
     type.members.forEach(function (m) {
         var k=m.name+"";
         if ((m.vtype) instanceof CType.Struct) copyStruct2(dst[k],src[k],m.vtype);
+        else if ((m.vtype) instanceof CType.Array) copyArray(dst[k],src[k],m.vtype);
         else dst[k]=src[k];
     });
     return dst;

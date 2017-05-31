@@ -838,7 +838,10 @@ window.MinimalParser= function () {
 
 	var jump_statement=t("goto").and(identifier).and(t(";"));
 	jump_statement=jump_statement.or(t("continue").and(t(";")).ret(function(){return "continue;";}));
-	jump_statement=jump_statement.or(t("break").and(t(";")).ret(function(){return "break;";}));
+	jump_statement=jump_statement.or(t("break").and(t(";")).ret(function(t){
+	    if (ctx.breakable) return "break;";
+	    newError("breakは繰り返しの中で使います",t);
+	}));
 	jump_statement=jump_statement.or(t("return").and(expression.opt()).and(t(";"))
 		.ret(function(_return,expr,semicolon){return ["return",expr,";"];}));
 
@@ -869,16 +872,23 @@ window.MinimalParser= function () {
 				"{","loop_chk2(",startName,");",state,"}"
 			];
 		}));
+	iteration_statement=ent(function () {
+	    return {breakable:true};
+	},iteration_statement);
 
 	var else_part=t("else").and(statement_lazy).ret(function(_else,state){return ["else",state];});
 	var selection_statement=t("if").and(t("(")).and(expression).and(t(")")).and(statement_lazy)
 		.and(else_part.opt()).ret(function(_if,lp,expr,rp,state,_else_part){
 			return ["if","(",expr,")",state,_else_part];
 		});
-	selection_statement=selection_statement.or(t("switch").and(t("(")).and(expression).and(t(")"))
+	var swst=t("switch").and(t("(")).and(expression).and(t(")"))
 		.and(switch_compound_statement_lazy).ret(function(_switch,lp,expr,rp,state){
 			return ["switch","(",expr,")",state];
-		}));
+		});
+	swst=ent(function () {
+	    return {breakable:true};
+	},swst);
+	selection_statement=selection_statement.or(swst);
 
 	var compound_statement_part=declaration.or(statement_lazy).rep0();
 	var compound_statement=t("{").and(compound_statement_part).and(t("}"))
