@@ -776,7 +776,10 @@ window.MinimalParser= function () {
 	expression=assign;
 	var array_initializer=t("{").and(initializer_lazy.sep0(t(","),true)).and(t("}")).
 	ret(function(lcb,initializers,rcb){
-	    return extend(["pointer([",ajoin(",",initializers),"],0)"],{type:"arrayInit"});
+	    return extend(["pointer([",ajoin(",",initializers),"],0)"],{
+	        length:initializers.length,
+	        type:"arrayInit"
+	    });
 	});
 	// \initializer
 	initializer=assign.or(array_initializer);
@@ -814,6 +817,17 @@ window.MinimalParser= function () {
 			    ):
 			    defaultInitializer(declarator.vtype,ctx.depth),";\n"
 			];
+			if ( 
+			    (declarator.vtype) instanceof T.Array 
+			    && initializer 
+			    && initializer.type==="arrayInit"
+			    && declarator.vtype.length>initializer.length) {
+			    $.push(["expandArray(",
+    			    curScopesName(),".",declarator,",",
+    			    dtl,",",
+    			    ctx.depth>0,
+    			");\n"]);
+			}
 			/*if(declarator.isArray){
 				$.isArray=declarator.isArray;
 				$.isLength=declarator.isLength;
@@ -1326,6 +1340,7 @@ window.MinimalParser= function () {
 	    "memcmp":"int",
 	    "strncmp":"int",
 	    "strcmp":"int",
+	    "strlen":"int",
 	    "getkey":"int"
 	};
 	control_line=t("#").and(t("include")).and(t("<").or(t("\""))).and(incl_filename).and(t(">").or(t("\""))).ret(function(){

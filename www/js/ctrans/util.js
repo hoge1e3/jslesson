@@ -67,6 +67,8 @@ function pointer(obj,key,type,ofs) {
         key=Math.floor(key);
     }
     return {
+        obj:obj,
+        key:key,
         checkBorder: function () {
             if (obj instanceof Array && typeof key==="number") {
                 if (key<0 || key>=obj.length) {
@@ -218,15 +220,28 @@ function checkDust(v,name) {
     }
     return v;
 }
+function expandArray(aryptr,vtype,hasDust) {
+    var a=aryptr.obj;
+    while(a.length<vtype.length) a.push(initialValue(vtype.e,hasDust));
+}
+function initialValue(vtype,hasDust) {
+    var e=hasDust?dustValue():0;
+    if (vtype instanceof CType.Array) {
+        e=arrInit2(vtype.e,vtype.length,hasDust);
+    } else if (vtype instanceof CType.Struct) {
+        e=StructObj(vtype);
+    }
+    return e;    
+}
 function arrInit2(vtype,length,hasDust){
     var res=[];
     for (var i=0;i<length;i++) {
-        var e=hasDust?dustValue():0;
+        var e=initialValue(vtype,hasDust);/*hasDust?dustValue():0;
         if (vtype instanceof CType.Array) {
             e=arrInit2(vtype.e,vtype.length,hasDust);
         } else if (vtype instanceof CType.Struct) {
             e=StructObj(vtype);
-        }
+        }*/
         res.push(e);    
     }
     return pointer(res,0);

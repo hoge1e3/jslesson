@@ -50,9 +50,11 @@ class LogUtil {
         $files=$logD->listFiles();
         $class=Auth::curClass();
         $res=array();
-        foreach ($files as $file) {
-            if ($file->startsWith($class) && $file->endsWith("-data.log")) {
-                $res[]=$file;
+        if (Auth::isTeacherOf($class)) {
+            foreach ($files as $file) {
+                if ($file->startsWith($class) && $file->endsWith("-data.log")) {
+                    $res[]=$file;
+                }
             }
         }
         return $res;

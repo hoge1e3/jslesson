@@ -110,6 +110,17 @@ class BAClass{
             $f->mkdir();
         }
     }
+    function getAllLogs($minTime,$maxTime){
+        $pdo = pdo();
+        $sth=$pdo->prepare("select * from log where class = ? and time > ? and time < ?");
+        $sth->execute(array($this->id,$minTime,$maxTime));
+        $res=array();
+        foreach ($sth->fetchAll() as $rec) {
+            $res[]=$rec;
+        }
+        return $res;
+
+    }
 }
 
 

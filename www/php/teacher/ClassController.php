@@ -25,6 +25,7 @@ class ClassController {
         <a href="a.php?Class/config">クラスの設定をする</a><br>
         <a href="a.php?Class/registerUserForm">履修者を登録する</a><br>
         <a href="a.php?Class/showUsers">ユーザ一覧</a>
+        <a href="a.php?Class/showStatus">ユーザの状況一覧</a>
         <hr>
         <a href="." target="student">演習画面へ</a><hr>
         <?php
@@ -80,8 +81,9 @@ class ClassController {
         <h1><?=$class->id?> - ユーザ一覧</h1>
         <a href="a.php?Class/show">クラス管理に戻る</a><hr>
         <table border=1>
-            <tr><th>ユーザID</th><th>パスワード</th><th>名前</th><th>実行時刻</th><th>実行ファイル</th><th>実行結果</th><th>実行詳細</th><th>プログラム</th></tr>
+            <tr><th>ユーザID</th><th>パスワード</th><th>名前</th></tr>
         <?php
+        //<th>実行時刻</th><th>実行ファイル</th><th>実行結果</th><th>実行詳細</th><th>プログラム</th>
         $students=$class->getAllStu();
         foreach($students as $s){
             $pass=$s->getPass();
@@ -107,11 +109,12 @@ class ClassController {
             }
             ?>
             <tr><th><?=$s->name?></th><th pass="<?=$pass?>" onclick="if(this.innerHTML=='表示')this.innerHTML=this.getAttribute('pass');else this.innerHTML='表示';">表示</th>
-            <th><?=$n?></th><th><?=$l->date?>, <?=$l->time?></th><th><?=$l->filename?></th><th><?=$l->result?></th><th res="<?=$l->detail?>" onclick="alert(this.getAttribute('res'));">詳細</th>
-            <th prog='<?=$l->code->C."\n---------------\n".$l->code->HTML?>' onclick="alert(this.getAttribute('prog'));">コード</th>
+            <th><?=$n?></th>
             </tr>
             
             <?php
+            /*<th><?=$l->date?>, <?=$l->time?></th><th><?=$l->filename?></th><th><?=$l->result?></th><th res="<?=$l->detail?>" onclick="alert(this.getAttribute('res'));">詳細</th>
+            <th prog='<?=$l->code->C."\n---------------\n".$l->code->HTML?>' onclick="alert(this.getAttribute('prog'));">コード</th>*/
         }
         /*
             
@@ -299,6 +302,92 @@ class ClassController {
             }
         }
         
+    }
+    static function showStatus(){
+        $class=Auth::curClass2();
+        $logs=$class->getAllLogs(1495180200,1495181400);
+        $runcount=Array();
+        $students=$class->getAllStu();
+        foreach($students as $s){
+            $runcount[$s->name]=0;
+            $errcount[$s->name]=0;
+            $latestrun[$s->name]='実行していません';
+            $runhistory[$s->name]="";
+            $latestfile[$s->name]="";
+        }
+        foreach($logs as $log){
+            if(isset($runcount[$log['user']])){
+                $runcount[$log['user']]++;
+            }else{
+                $runcount[$log['user']]=1;
+            }
+            if(!isset($runhistory[$log['user']])){
+                $runhistory[$log['user']]='';
+            }
+            if(strpos($log['result'],'Error')!==false){
+                if(isset($errcount[$log['user']])){
+                    $errcount[$log['user']]++;
+                }else{
+                    $errcount[$log['user']]=1;
+                }
+                $runhistory[$log['user']].='<font color="red">E</font>';
+            }else{
+                $runhistory[$log['user']].='R';
+            }
+            if(!isset($errcount[$log['user']])){
+                $errcount[$log['user']]=0;
+            }
+            $latestrun[$log['user']]=1495181400-$log['time'];
+            $latestfile[$log['user']]=$log['filename'];
+        }
+        ?>
+        <h1><?=$class->id?> - ユーザ一覧</h1>
+        <a href="a.php?Class/show">クラス管理に戻る</a><br>
+        対象の時刻を変える<hr>
+        <table border=1>
+            <tr><th>ユーザID</th><th>エラー/実行</th><th>実行からの経過時間</th><th>今実行しているファイル</th><th>実行結果履歴</th></tr>
+        <?php
+        //<th>実行時刻</th><th>実行ファイル</th><th>実行結果</th><th>実行詳細</th><th>プログラム</th>
+        foreach($runcount as $k => $v){
+            $time=self::calcTime($latestrun[$k]);
+            $rate=$v!=0?floor($errcount[$k]/$v*100):'--';
+            if($rate<40){
+                $errcaution="white";
+            }else if($rate<60){
+                $errcaution="yellow";
+            }else if($rate<80){
+                $errcaution="orange";
+            }else{
+                $errcaution="red";
+            }
+            if($time['m']>15 || $time['h']>0){
+                $timecaution="red";
+            }else if($time['m']>10){
+                $timecaution="orange";
+            }else if($time['m']>5){
+                $timecaution="yellow";
+            }else{
+                $timecaution="white";
+            }
+            ?>
+            <tr><th><?=$k?></th><th bgcolor=<?=$errcaution?>><?=$errcount[$k]?>/<?=$v?>(<?=$rate?>%)</th>
+            <th bgcolor=<?=$timecaution?>><?=str_pad($time['h'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['m'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['s'],2,0,STR_PAD_LEFT)?></th>
+            <th><?=$latestfile[$k]?></th><th><?=$runhistory[$k]?></th>
+            </tr>
+            
+            <?php
+        }
+    }
+    static function calcTime($t){
+        if(is_int($t)){
+            $ret=Array();
+            $ret['h']=floor($t/(3600));
+            $ret['m']=floor(($t/60)%60);
+            $ret['s']=floor($t%60);
+            return $ret;
+        }else{
+            return Array('h'=>'--','m'=>'--','s'=>'--');
+        }
     }
 }
 

@@ -50,14 +50,14 @@ $mod_aliases=array(
     'PQuery' => 'php/PQuery.php',
     'Progress' => 'php/Progress.php',
     'runit' => 'php/runit.php',
-    'LoginController' => 'php/user/LoginController.php',
+    'LoginController' => 'php/user',
     'ClassController' => 'php/teacher/ClassController.php',
     'ResetController' => 'php/teacher/ResetController.php',
     'ResetRequests' => 'php/teacher/ResetRequests.php',
     'TeacherController' => 'php/teacher/TeacherController.php',
     'MarkController' => 'php/mark/MarkController.php',
     'sessiontest' => 'php/test/sessiontest.php',
-    'test' => 'php/test/test.php',
+    'test' => 'php/test',
     'BAClass' => 'php/user/BAClass.php',
     'BAUser' => 'php/user/BAUser.php',
     'BATeacher' => 'php/teacher/BATeacher.php',
@@ -65,6 +65,8 @@ $mod_aliases=array(
     'info' => 'php/websock/info.php',
     'server' => 'php/websock/server.php',
     "MarkTimeController" => "php/analysis/MarkTimeController.php",
+    "LogFileToDBController" => "php/analysis",
+    "DateUtil"=>"php",
     //----/AUTOGEN
     'foo' =>'bar'
 );
@@ -75,7 +77,11 @@ function req() {
         if (!isset($mod_aliases[$a])) {
             throw new Exception("module $a is not defined");
         } 
-        require_once $mod_aliases[$a]; 
+        $fn=$mod_aliases[$a];
+        if (!preg_match("/\\.php$/",$fn)) {
+            $fn="$fn/$a.php";
+        }
+        require_once $fn;
     }
 }
 if (isset($_GET["foefosjvoisdjove9"])) {
