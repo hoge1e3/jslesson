@@ -34,17 +34,20 @@ create table log(
 //   oneof tagD,tagE,tagF
 req("LogUtil","auth","pdo","DateUtil","PathUtil");
 class LogFileToDBController {
-    static function moveToTmp($files) {
+    static function moveToTmp($cn) {
+        $files=LogUtil::getLogFilesOf($cn);
         $tmp=LogUtil::getLogDir()->rel("tmp/");
         $tmp->mkdir();
-        $res=array();
         foreach ($files as $file) {
             $d=$tmp->rel($file->name());
             //echo $d->path()."  ";
             if (!$d->exists()) {
                 $file->moveTo($d);
             }
-            $res[]=$d;
+        }
+        $res=array();
+        foreach ($tmp->listFiles() as $file) {
+            if (LogUtil::isLogFileOf($file,$cn)) $res[]=$file;
         }
         return $res;
     }
@@ -54,8 +57,8 @@ class LogFileToDBController {
     }*/
     static function run() {
         $class=Auth::curClass2();
-        $files=LogUtil::getLogFiles();
-        $files=self::moveToTmp($files);
+        $c=$class->id;
+        $files=self::moveToTmp($c);
         $arc=LogUtil::getLogDir()->rel("arc/");
         $arc->mkdir();
         //return ;
@@ -64,9 +67,8 @@ class LogFileToDBController {
 	    "log   (time,class,user,lang,filename,result,detail,raw) ".
 	    "values( ?  , ?   , ?  , ?  ,?       ,?     ,?     ,?  );");
         foreach ($files as $file) {
-            $c=$class->id;
             $user=self::getUserName($c,$file->name());
-            print "$c $user<BR>\n";ob_flush ();
+            print "$c $user<BR>\n";//ob_flush ();
             $lines=$file->lines();
             $home=PathUtil::rel("/home/","$c/$user/");
             foreach ($lines as $raw) {
@@ -102,6 +104,16 @@ class LogFileToDBController {
         $user=substr($fn,$prelen, strlen($fn)-$postlen-$prelen ) ;
         return $user;
     }    
+    static function test(){
+        $pdo = pdo();
+	    $sth=$pdo->prepare("insert into ".
+	    "log   (time,class,user,lang,filename,result,detail,raw) ".
+	    "values( ?  , ?   , ?  , ?  ,?       ,?     ,?     ,?  );");
+        $a=array(
+        	        3,"くらす","ユーザ","ことば","ふぁいる","けっか","","生"
+    	        );
+    	$sth->execute($a);        
+    }
 }
 
 

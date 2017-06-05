@@ -46,18 +46,24 @@ class LogUtil {
         return new SFile($fs,"/");
     }
     static function getLogFiles() {
+        $class=Auth::curClass();
+        return self::getLogFileOf($class);    
+    }
+    static function getLogFilesOf($class) {
         $logD=self::getLogDir();
         $files=$logD->listFiles();
-        $class=Auth::curClass();
         $res=array();
         if (Auth::isTeacherOf($class)) {
             foreach ($files as $file) {
-                if ($file->startsWith($class) && $file->endsWith("-data.log")) {
+                if (self::isLogFileOf($file,$class)) {
                     $res[]=$file;
                 }
             }
         }
         return $res;
+    }
+    static function isLogFileOf($file,$class) {
+        return ($file->startsWith($class) && $file->endsWith("-data.log"));
     }
     static function readLog($file) {
         return self::readJSONLines($file);

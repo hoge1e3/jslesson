@@ -5,9 +5,15 @@ require_once"php/Modules.php";
 function redirect($url,$params=null) {
     header("Location: a.php?$url&$params");
 }
-
-$qs=$_SERVER["QUERY_STRING"];
+if (isset($argv[1]) && $argv[1]!="") {
+    $qs=$argv[1];
+    require_once"php/MySession.php";
+    MySession::startWith($argv[2]);   
+} else {    
+    $qs=$_SERVER["QUERY_STRING"];
+}
 $action=preg_replace("/&.*/","",$qs);
+
 if (isset($_POST["action"])) $action=$_POST["action"];
 if (preg_match("/=/",$action)) {
     $action="";

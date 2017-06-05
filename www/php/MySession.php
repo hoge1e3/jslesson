@@ -3,6 +3,12 @@ require_once __DIR__."/json.php";
 require_once __DIR__."/fs/NativeFS.php";
 class MySession {
     static $fs,$j,$id,$data;
+    public static function startWith($i) {
+        self::$id=$i;
+        self::$fs=new NativeFS("/tmp/");
+        self::$j=new Services_JSON();
+        self::load();
+    }
     public static function start() {
         if (isset(self::$id)) {
             return self::$id;
