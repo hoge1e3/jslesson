@@ -1,7 +1,7 @@
 <?php
 class BAClass{
     var $id;
-    function BAClass($id) {
+    function __construct($id) {
     	if (!is_string($id)) {
             throw new Exception(" class->id should be string");
         }

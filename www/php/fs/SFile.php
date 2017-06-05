@@ -2,7 +2,7 @@
 require_once __DIR__."/../json.php";
 class SFile{
     private $_path, $fs;
-    public function SFile($fs, $path) {
+    public function __construct($fs, $path) {
         $this->_path=$path;
         $this->fs=$fs;
         //$this->perm=$perm;

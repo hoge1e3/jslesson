@@ -2,7 +2,7 @@
 class BATeacher {
     var $name;//DEPRECATED
     var $id;
-    function BATeacher($name) {
+    function __construct($name) {
         $this->name=$name;//DEPRECATED
         $this->id=$name;
     }

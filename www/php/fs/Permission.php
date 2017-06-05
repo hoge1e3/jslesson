@@ -13,7 +13,7 @@ class Permission {
         return $opr;
     }
     private $authInfo; //   {class,user}
-    public function Permission($authInfo) {
+    public function __construct($authInfo) {
         $this->authInfo=$authInfo;
     }
     public function isAccessible($p,$opr) {// $p:Path String

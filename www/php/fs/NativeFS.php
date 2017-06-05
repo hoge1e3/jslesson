@@ -4,7 +4,7 @@ require_once __DIR__."/Permission.php";
 
 class NativeFS {
    private $top,$permission;
-   function NativeFS($top=null,$permission=null) {
+   function __construct($top=null,$permission=null) {
        $this->top=$top;
        //if (isset($permission)) 
        $this->permission=$permission;

@@ -1,7 +1,7 @@
 <?php
 class AuthInfo {
     public $user,$teacher;
-    public function AuthInfo($user,$teacher) {
+    public function __construct($user,$teacher) {
         $this->user=$user;
         $this->teacher=$teacher;
     }

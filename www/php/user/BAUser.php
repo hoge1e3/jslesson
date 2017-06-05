@@ -4,7 +4,7 @@ class BAUser {
     var $name;
     var $password;
     var $options;
-    function BAUser($class,$name) {
+    function __construct($class,$name) {
         if (!$class instanceof BAClass) {
             throw new Exception("class should be BAClass");
         }
