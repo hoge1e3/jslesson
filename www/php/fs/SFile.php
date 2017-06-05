@@ -48,6 +48,15 @@ class SFile{
     public function rel($r) {
         return $this->resolve(PathUtil::rel($this->path(),$r));
     }
+    /*public function rel2($r) {
+    // why distract?    a="/fuga"    a->rel2("hoge")  ->   /hoge/fuga ?  or /hoge   ?
+        if ($this->isDir()) return $this->rel($r);
+        $res=$this->sibling($r);
+        if ($res->isDir()) {
+            $res=$res->rel($this->name());
+        }
+        return $res;
+    }*/
     public function sibling($r) {
         return $this->up()->rel($r);
     }
@@ -82,6 +91,7 @@ class SFile{
         return $this->fs->exists($this->path());
     }
     public function rm() {
+        return $this->fs->rm($this->path());
     }
     public function removeWithoutTrash() {
     }
@@ -89,8 +99,10 @@ class SFile{
         return is_dir($this->nativePath());
     }
     public function getContent() {
+        return $this->fs->getContent($this->path());
     }
-    public function setContent() {
+    public function setContent($s) {
+        return $this->fs->setContent($this->path(), $s);
     }
     public function setText($s) {
         //$this->check("write");
@@ -150,13 +162,23 @@ class SFile{
             return $this->setObj(func_get_arg(0));
         }
     }
-    public function copyFrom() {
+    public function appendFrom($f) {
+        return $f->appendTo($this);
     }
-    public function copyTo() {
+    public function appendTo($t) {
+        return $this->fs->appendContent($t->path(), $this->getContent());
     }
-    public function moveFrom() {
+    public function copyFrom($f) {
+        return $f->copyTo($this);
     }
-    public function moveTo() {
+    public function copyTo($t) {
+        return $t->setContent($this->getContent());
+    }
+    public function moveFrom($f) {
+        return $f->moveTo($this);
+    }
+    public function moveTo($t) {
+        $this->fs->mv($this->path(), $t->path());
     }
     public function assertDir() {
     }
@@ -207,6 +229,9 @@ class SFile{
     }   
     public function append($t) {
         return $this->fs->appendContent($this->path(), $t);
+    }
+    public function appendContent($c) {
+        return $this->fs->appendContent($this->path(), $c);
     }
     public function openAppend() {
         return fopen($this->nativePath(),"a");

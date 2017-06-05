@@ -46,11 +46,7 @@ www/user/list.txt
 www/fs/pub
 www/fs/home/devel/test
 www/fs/home/lesson_samples/hk2016
-www/log/*.log
-www/log/*.txt
-www/log/*.js
-www/log/*.json
-www/log/*.html
+www/log/
 www/scoreSheet
 www/log/new
 *.swp

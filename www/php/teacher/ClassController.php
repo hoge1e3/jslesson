@@ -24,7 +24,7 @@ class ClassController {
         <a href="a.php?Teacher/home">クラス一覧に戻る</a><br>
         <a href="a.php?Class/config">クラスの設定をする</a><br>
         <a href="a.php?Class/registerUserForm">履修者を登録する</a><br>
-        <a href="a.php?Class/showUsers">ユーザ一覧</a>
+        <a href="a.php?Class/showUsers">ユーザ一覧</a><br>
         <a href="a.php?Class/showStatus">ユーザの状況一覧</a>
         <hr>
         <a href="." target="student">演習画面へ</a><hr>
@@ -108,7 +108,9 @@ class ClassController {
                 $l->filename=$tmpf[4]."/".$tmpf[5];
             }
             ?>
-            <tr><th><?=$s->name?></th><th pass="<?=$pass?>" onclick="if(this.innerHTML=='表示')this.innerHTML=this.getAttribute('pass');else this.innerHTML='表示';">表示</th>
+            <tr><th><a href="a.php?Login/check&class=<?=$class->id?>&user=<?=$s->name?>" 
+	            target="stutab"><?=$s->name?></a></th>
+	            <th pass="<?=$pass?>" onclick="if(this.innerHTML=='表示')this.innerHTML=this.getAttribute('pass');else this.innerHTML='表示';">表示</th>
             <th><?=$n?></th>
             </tr>
             

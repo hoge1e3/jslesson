@@ -34,9 +34,31 @@ create table log(
 //   oneof tagD,tagE,tagF
 req("LogUtil","auth","pdo","DateUtil","PathUtil");
 class LogFileToDBController {
+    static function moveToTmp($files) {
+        $tmp=LogUtil::getLogDir()->rel("tmp/");
+        $tmp->mkdir();
+        $res=array();
+        foreach ($files as $file) {
+            $d=$tmp->rel($file->name());
+            //echo $d->path()."  ";
+            if (!$d->exists()) {
+                $file->moveTo($d);
+            }
+            $res[]=$d;
+        }
+        return $res;
+    }
+    /*static function appendToArc($files) {
+        foreach ($files as $file) {
+        }
+    }*/
     static function run() {
         $class=Auth::curClass2();
         $files=LogUtil::getLogFiles();
+        $files=self::moveToTmp($files);
+        $arc=LogUtil::getLogDir()->rel("arc/");
+        $arc->mkdir();
+        //return ;
         $pdo = pdo();
 	    $sth=$pdo->prepare("insert into ".
 	    "log   (time,class,user,lang,filename,result,detail,raw) ".
@@ -69,6 +91,8 @@ class LogFileToDBController {
         	    $sth->execute($a);
     	        //break;
             }
+            $file->appendTo($arc->rel($file->name()) );
+            $file->rm();
 	        //break;
         }
     }

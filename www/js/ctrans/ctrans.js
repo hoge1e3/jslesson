@@ -669,13 +669,25 @@ window.MinimalParser= function () {
 	        }
 	    } else if (op.type==="arrow") {
     	    expr=["(",left,").read().",op[1]];//vtype TODO
-	    } else if (op.type==="dot") {
+    	    if (!(t instanceof T.Pointer)) {
+	            newError("->参照はポインタにのみ使えます",op);   
+	        }
+	        t=t.e;
 	        if (!(t instanceof T.Struct)) {
-	            throw newError("ドット参照は構造体にのみ使えます",op);   
+	            newError("->参照は構造体のポインタにのみ使えます",op);   
 	        }
 	        var mem=t.getMember(op.vname+"");
 	        if (!mem) {
-	            throw newError("構造体"+t.name+"にメンバ"+op.vname+"は定義されていません",op);   
+	            newError("構造体"+t.name+"にメンバ"+op.vname+"は定義されていません",op);   
+	        }
+	        t=assert.is(mem.vtype,T.Base);
+	    } else if (op.type==="dot") {
+	        if (!(t instanceof T.Struct)) {
+	            newError("ドット参照は構造体にのみ使えます",op);   
+	        }
+	        var mem=t.getMember(op.vname+"");
+	        if (!mem) {
+	            newError("構造体"+t.name+"にメンバ"+op.vname+"は定義されていません",op);   
 	        }
 	        t=assert.is(mem.vtype,T.Base);
     	    expr=[wrapF(left),op];
