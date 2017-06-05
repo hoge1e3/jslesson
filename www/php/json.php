@@ -131,7 +131,7 @@ class Services_JSON
     *                                   bubble up with an error, so all return values
     *                                   from encode() should be checked with isError()
     */
-    function Services_JSON($use = SERVICES_JSON_LOOSE_TYPE)
+    function __construct($use = SERVICES_JSON_LOOSE_TYPE)
     {
         $this->use = $use;
     }
