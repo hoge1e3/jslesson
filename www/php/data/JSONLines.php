@@ -1,6 +1,6 @@
 <?php
 class JSONLines implements IteratorAggregate {
-    function JSONLines($file) {
+    function __construct($file) {
         $this->file=$file;
         if (!$file->exists()) {
             throw new Exception($file->path()." not exists");

@@ -307,7 +307,8 @@ class ClassController {
     }
     static function showStatus(){
         $class=Auth::curClass2();
-        $logs=$class->getAllLogs(1495180200,1495181400);
+        $now=time();
+        $logs=$class->getAllLogs($now-600,$now);
         $runcount=Array();
         $students=$class->getAllStu();
         foreach($students as $s){
@@ -339,7 +340,7 @@ class ClassController {
             if(!isset($errcount[$log['user']])){
                 $errcount[$log['user']]=0;
             }
-            $latestrun[$log['user']]=1495181400-$log['time'];
+            $latestrun[$log['user']]=$now-$log['time'];
             $latestfile[$log['user']]=$log['filename'];
         }
         ?>
