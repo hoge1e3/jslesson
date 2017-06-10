@@ -306,9 +306,25 @@ class ClassController {
         
     }
     static function showStatus(){
+        date_default_timezone_set('Asia/Tokyo');
         $class=Auth::curClass2();
         $now=time();
-        $logs=$class->getAllLogs($now-600,$now);
+        if(!isset($_POST["Y"])){
+            if(!isset($_POST['min'])){
+                $min=$now-600;
+            }else{
+                $min=$_POST['min'];
+            }
+            if(!isset($_POST['max'])){
+                $max=$now;
+            }else{
+                $max=$_POST['max'];
+            }
+        }else{
+            $min=strtotime($_POST['Y']."/".$_POST['m']."/".$_POST['d']." ".$_POST['H'].":".$_POST['i'].":".$_POST['s']);
+            $max=strtotime($_POST['aY']."/".$_POST['am']."/".$_POST['ad']." ".$_POST['aH'].":".$_POST['ai'].":".$_POST['as']);
+        }
+        $logs=$class->getAllLogs($min,$max);
         $runcount=Array();
         $students=$class->getAllStu();
         foreach($students as $s){
@@ -340,13 +356,47 @@ class ClassController {
             if(!isset($errcount[$log['user']])){
                 $errcount[$log['user']]=0;
             }
-            $latestrun[$log['user']]=$now-$log['time'];
+            $latestrun[$log['user']]=$max-$log['time'];
             $latestfile[$log['user']]=$log['filename'];
         }
         ?>
         <h1><?=$class->id?> - ユーザ一覧</h1>
-        <a href="a.php?Class/show">クラス管理に戻る</a><br>
-        対象の時刻を変える<hr>
+        <a href="a.php?Class/show">クラス管理に戻る</a><hr>
+        対象の時刻を変える<br>
+        <form action="a.php?Class/showStatus" method="POST" style="display: inline">
+            <input name="min" value="<?=time()-1800?>" type="hidden">
+            <input name="max" value="<?=time()?>" type="hidden">
+    	    <input type="submit" value="最近30分間"/>
+    	</form>
+        <form action="a.php?Class/showStatus" method="POST" style="display: inline">
+            <input name="min" value="<?=time()-3600?>" type="hidden">
+            <input name="max" value="<?=time()?>" type="hidden">
+    	    <input type="submit" value="最近60分間"/>
+    	</form>
+        <form action="a.php?Class/showStatus" method="POST" style="display: inline">
+            <input name="min" value="<?=time()-5400?>" type="hidden">
+            <input name="max" value="<?=time()?>" type="hidden">
+    	    <input type="submit" value="最近90分間"/>
+    	</form>
+        <form action="a.php?Class/showStatus" method="POST">
+            <input name="Y" value="<?=!isset($_POST["Y"])?date("Y",time()-1800):$_POST["Y"]?>" maxlength="4" size="4">年
+            <input name="m" value="<?=!isset($_POST["m"])?date("m",time()-1800):$_POST["m"]?>" maxlength="2" size="2">月
+            <input name="d" value="<?=!isset($_POST["d"])?date("d",time()-1800):$_POST["d"]?>" maxlength="2" size="2">日
+            <input name="H" value="<?=!isset($_POST["H"])?date("H",time()-1800):$_POST["H"]?>" maxlength="2" size="2">時
+            <input name="i" value="<?=!isset($_POST["i"])?date("i",time()-1800):$_POST["i"]?>" maxlength="2" size="2">分
+            <input name="s" value="<?=!isset($_POST["s"])?date("s",time()-1800):$_POST["s"]?>" maxlength="2" size="2">秒から<br>
+            <input name="aY" value="<?=!isset($_POST["aY"])?date("Y",time()):$_POST["aY"]?>" maxlength="4" size="4">年
+            <input name="am" value="<?=!isset($_POST["am"])?date("m",time()):$_POST["am"]?>" maxlength="2" size="2">月
+            <input name="ad" value="<?=!isset($_POST["ad"])?date("d",time()):$_POST["ad"]?>" maxlength="2" size="2">日
+            <input name="aH" value="<?=!isset($_POST["aH"])?date("H",time()):$_POST["aH"]?>" maxlength="2" size="2">時
+            <input name="ai" value="<?=!isset($_POST["ai"])?date("i",time()):$_POST["ai"]?>" maxlength="2" size="2">分
+            <input name="as" value="<?=!isset($_POST["as"])?date("s",time()):$_POST["as"]?>" maxlength="2" size="2">秒までの<br>
+    	    <input type="submit" value="状況を見る"/>
+    	</form>
+    	<hr>
+    	<?php
+    	    echo date("Y/m/d H:i:s",$min)." から ".date("Y/m/d H:i:s",$max)."までの実行状況";
+    	?>
         <table border=1>
             <tr><th>ユーザID</th><th>エラー/実行</th><th>実行からの経過時間</th><th>今実行しているファイル</th><th>実行結果履歴</th></tr>
         <?php

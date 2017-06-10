@@ -901,6 +901,7 @@ function ready() {
             }
         }
         fl.setModified(false);
+		logToServer2(curFile.path(),curFile.text(),/*curHTMLFile.text()*/"HTML","Save","保存しました",langList[lang]);
     }
     function watchModified() {
         try {

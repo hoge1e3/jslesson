@@ -13490,11 +13490,11 @@ define('Auth',["FS","md5"], function (FS,md5) {
             console.log("teacher",teacher);
         },
         localProjects:function ( ){
-            return FS.get("/home/").rel(this.class+"/").rel(this.user+"/") //changeHOME(1)
+            return FS.get("/home/").rel(this.class+"/").rel(this.user+"/"); //changeHOME(1)
             //return FS.resolve("${tonyuHome}/Projects/");//changeHOME
         },
         remoteProjects: function () {
-            return FS.get("/home/").rel(this.class+"/").rel(this.user+"/") //changeHOME(1)
+            return FS.get("/home/").rel(this.class+"/").rel(this.user+"/"); //changeHOME(1)
             //return FS.get("/");//changeHOME
         },
         genHash:function (projectName) {
@@ -14638,6 +14638,7 @@ function ready() {
             }
         }
         fl.setModified(false);
+		logToServer2(curFile.path(),curFile.text(),/*curHTMLFile.text()*/"HTML","Save","保存しました",langList[lang]);
     }
     function watchModified() {
         try {
