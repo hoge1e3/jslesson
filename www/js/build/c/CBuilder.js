@@ -7,7 +7,7 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
     var libs=["jquery-1.12.1","require"].map(function (n) {
         return "lib/"+n+".js";
     });
-    var clibs=["lib","util","ctype","x"].map(
+    var clibs=["lib","util","ctype","x","AsyncByGenerator","AsyncByGeneratorRaw"].map(
         function (n) {
             return "lib/c/"+n+".js";
         }
@@ -15,18 +15,6 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
     var p=CBuilder.prototype;
     p.progress=function (m) {
         if (window.SplashScreen) window.SplashScreen.progress(m);
-    };
-    p.dlFiles=function () {
-        var dst=this.dst;
-        var urls=[];
-        urls=urls.concat(libs);
-        urls=urls.concat(clibs);
-        var base="runtime/";
-        var args=urls.map(function (url) {
-            var dstf=dst.rel(url);
-            if (!dstf.exists()) return wget(base+url, dstf);
-        });
-        return $.when.apply($,args);
     };
     p.genHTML=function (f) {
         this.progress("generate "+f.src.html.name());
@@ -38,12 +26,13 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
         var body=dom.getElementsByTagName("body")[0];
         $(head).append($("<meta>").attr("charset","UTF-8"));
         $(head).append($("<script>").text("window.runtimePath='"+WebSite.runtime+"';"));
+        $(head).append($("<script>").text("window.sourceName='"+f.src.html.name()+"';"));
         $(head).append($("<script>").text("window.onerror=window.onerror||"+
         function (e) {alert(e);}+";"));
 
-        libs.concat(clibs).map(function (r) {
+        libs/*.concat(clibs)*/.map(function (r) {
             return WebSite.runtime+r;
-        }).concat([f.name+".js"]).forEach(function (src) {
+        }).concat([WebSite.runtime+"lib/c/runc.js"]).forEach(function (src) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
             nn.setAttribute("src",src+"?"+requirejs.__urlPostfix);
@@ -89,7 +78,7 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
                 var js=dtlParser.parse(f.src.dtl.text(),{indentBuffer:buf,src:f.src.dtl.name(),
                 throwCompileErrorOnRuntime:!isMainFile});
                 buf.close();*/
-                compile(f.src.c,f.dst.js);
+                compile(f.src.c,f.dst.js,{noReturn:true});
                 return SplashScreen.waitIfBusy();
             });
         })).then(DU.tr(function() {

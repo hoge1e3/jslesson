@@ -1,4 +1,5 @@
-var js_gen=function(p){
+var js_gen=function(p,options){
+	options=options||{};
 	var result="";
 	var gen=function(e){
 		if(typeof e=="function")gen(e());
@@ -6,5 +7,5 @@ var js_gen=function(p){
 		else result+=((e)?e:"")+" ";
 	};
 	gen(p);
-	return "scopes_0=window;"+result+"loop_start2();return main();";
+	return "scopes_0=window;"+result+"loop_start2();"+(options.noReturn?"":"return main();");
 };
