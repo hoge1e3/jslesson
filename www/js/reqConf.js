@@ -256,6 +256,7 @@ var reqConf={
             cCompiler:"ctrans/compiler",
             TJSBuilder:"build/tjs/TJSBuilder",
             DtlBuilder:"build/dolittle/DtlBuilder",
+            CBuilder:"build/c/CBuilder",
             wget:"fs2/wget",
             logToServer: "jsl/logToServer",
             logToServer2: "jsl/logToServer2",

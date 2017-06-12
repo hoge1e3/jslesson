@@ -26,7 +26,7 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
         var body=dom.getElementsByTagName("body")[0];
         $(head).append($("<meta>").attr("charset","UTF-8"));
         $(head).append($("<script>").text("window.runtimePath='"+WebSite.runtime+"';"));
-        $(head).append($("<script>").text("window.sourceName='"+f.src.html.name()+"';"));
+        $(head).append($("<script>").text("window.sourceName='"+f.src.html.truncExt()+"';"));
         $(head).append($("<script>").text("window.onerror=window.onerror||"+
         function (e) {alert(e);}+";"));
 
@@ -52,12 +52,11 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
         var t=this;
         var files=[];
         //var tr=curPrj.dir.getDirTree({style:"no-recursive"});
-        return DU.each([mainFilePath],function (n) {
-            if (FS.PathUtil.ext(n)!=".html")  return;
-            var f=curPrj.dir.rel(n);
-            var name=f.truncExt();
-            var html=f;
-            var c=f.up().rel(name+".c");
+        return DU.each([options.mainFile],function (c) {
+            //if (FS.PathUtil.ext(n)!=".html")  return;
+            var name=c.truncExt();
+            var html=c.sibling(name+".html");
+            console.log("C/HTML",c,html);
             if (!c.exists()) return;
             files.push({name:name,
                 src:{html:html,c:c},
@@ -115,5 +114,5 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
     p.upload=function (pub) {
         return Sync.sync(this.dst,pub);
     };
-    return DtlBuilder;
+    return CBuilder;
 });

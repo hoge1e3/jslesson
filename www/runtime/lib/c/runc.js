@@ -8,16 +8,19 @@ requirejs.config({
       "AsyncByGeneratorRaw": window.runtimePath+"lib/c/AsyncByGeneratorRaw",
       "assert": window.runtimePath+"lib/assert",
       "Klass": window.runtimePath+"lib/Klass",
-      "FS": window.runtimePath+"lib/FS"
+      "FS": window.runtimePath+"lib/FS",
+      "_Util": window.runtimePath+"lib/util"
     }
 });
-requirejs(["assert","Klass","FS"],function () {
+requirejs(["assert","Klass","FS","_Util"],function (assert,Klass,FS,_Util) {
   requirejs(["lib","util","ctype","x","AsyncByGenerator"],function () {
     requirejs([window.sourceName],function () {
       try{
           if ($("#console").length==0) {
             $("<pre>").attr({id:"console"}).appendTo("body");
           }
+          var s=Util.getQueryString("stdin");
+          if(s) scanf.STDIN=s.split("\n");
     			promisize(main()).then(function () {
         			parent.sendResult($("#console").text());
     			},handleError);

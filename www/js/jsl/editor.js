@@ -35,6 +35,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     var isChrome=navigator.userAgent.indexOf("Chrome")>=0;
     var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
     window.ALWAYS_UPLOAD=false;
+    var useOLDC=false;
     var langList={
     	"js":"JavaScript",
     	"c":"C",
@@ -103,10 +104,23 @@ function ready() {
     var lang=opt.language || "js";
     switch (lang){
     case "c":
-    	requirejs(["cCompiler"],function(){
-    	    console.log("cCom requirejsed");
-    	    builderReady();
-    	});
+        if(useOLDC) {
+        	requirejs(["cCompiler"],function(){
+        	    console.log("cCom requirejsed");
+        	    builderReady();
+        	});
+        } else {
+            requirejs(["CBuilder"],function(_){
+                Builder=_;
+                console.log("cb requirejsed");
+                $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+                ram=FS.get("/ram/build/");
+                FS.mount(ram.path(),"ram");
+                builder=new Builder(curPrj, ram);
+                console.log("c builderready");
+                builderReady();
+            });
+        }
     	helpURL="http://bitarrow.eplang.jp/index.php?c_use";
     	break;
     case "js":
@@ -241,14 +255,14 @@ function ready() {
                 }
             );
         });
-        
+
     }
     function distributePrj() {
-        alert("distributePrj!");    
+        alert("distributePrj!");
     }
-    
+
     makeMenu();
-    
+
     var screenH;
     function onResize() {
         var h=$(window).height()-$("#navBar").height()-$("#tabTop").height();
@@ -268,10 +282,10 @@ function ready() {
         A.is(e,"Event");
 	    var f=$(":focus");
 	    var doConfirm=true;
-	    if (f.length>0 && 
+	    if (f.length>0 &&
 	        (
-	            (f[0].tagName.toLowerCase()=="input" && 
-    	        (!f.attr("type") || f.attr("type")=="text")) || 
+	            (f[0].tagName.toLowerCase()=="input" &&
+    	        (!f.attr("type") || f.attr("type")=="text")) ||
 	            f[0].tagName.toLowerCase()=="textarea"
 	        )
 	    ) doConfirm=false;
@@ -537,7 +551,7 @@ function ready() {
     }
     var curName,runURL;
     $("#fullScr").click(function () {
-        if (lang=="dtl" || lang=="js") {
+        if (lang=="dtl" || lang=="js" ||(!useOLDC && lang=="c")) {
             var inf=getCurrentEditorInfo();
             if (!inf) {
                 alert("実行したファイルを選んでください");
@@ -555,10 +569,10 @@ function ready() {
                 SplashScreen.show();
                 DU.timeout(0).then(function () {
                     //alert(curLogicFile.path());
-                    return builder.build({mainFile:curLogicFile});    
+                    return builder.build({mainFile:curLogicFile});
                 }).then(function () {
                     //if (window.SplashScreen) window.SplashScreen.progress("Upload contents...");
-                    return builder.upload(pub);                    
+                    return builder.upload(pub);
                 }).then(function () {
                     SplashScreen.hide();
                     var cv=$("<div>");
@@ -590,6 +604,7 @@ function ready() {
             }
         }
     });
+    //\run
     function run() {//run!!
         var inf=getCurrentEditorInfo();
         if (!inf) {
@@ -618,7 +633,7 @@ function ready() {
                     var b=builder.build({mainFile:curJSFile});
                     if (ALWAYS_UPLOAD) {
                         return b.then(function () {
-                            builder.upload(pub); 
+                            builder.upload(pub);
                         });
                     }
                     return b;
@@ -655,8 +670,8 @@ function ready() {
             QR code
             sync
             */
-            
-    	}else if(lang=="c"){
+
+    	}else if(lang=="c"&&useOLDC){
     	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text());
     		var compiledFile=curPrj.getOutputFile();
     		var log={};
@@ -685,13 +700,43 @@ function ready() {
     			}
     		}
             return sync();
+      } else if (lang=="c") {
+          try {
+            SplashScreen.show();
+            $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+              DU.timeout(0).then(function () {
+                  return builder.build({mainFile:curJSFile});
+              }).then(function () {
+                  var indexF=ram.rel(curHTMLFile.name());
+                  logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Run","実行しました","C");
+                  return RunDialog2.show(indexF,
+                  {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+              }).fail(function (e) {
+                  logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Compile Error",e+"","C");
+      			  if (e.pos) {
+          			var te=TError(e+"",curJSFile, e.pos);
+  	                showErrorPos($("#errorPos"),te);
+                    displayMode("compile_error");
+                } else {
+                    Tonyu.onRuntimeError(e);
+                }
+                  console.log("CFAIL",e.stack);
+              }).always(function () {
+                  SplashScreen.hide();
+                  return sync();
+              });
+          }catch(e) {
+              if(e) console.log(e.stack);
+              SplashScreen.hide();
+          }
+
     	}else if(lang=="dtl"){
     	    try {
                 SplashScreen.show();
         	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
     	        $("#fullScr").attr("href","javascript:;").text("別ページで表示");
                 DU.timeout(0).then(function () {
-                    return builder.build({mainFile:curJSFile});    
+                    return builder.build({mainFile:curJSFile});
                 }).then(function () {
                     var indexF=ram.rel(curHTMLFile.name());
                     logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"Dolittle Run","実行しました","Dolittle");
@@ -751,9 +796,9 @@ function ready() {
             for(var i=0;i<s.length;i++) {
                 var c=s.charCodeAt(i);
                 if (c>=256) noconv=true;
-                r+="%"+(c.toString(16)); 
-            } 
-            return noconv?s:decodeURIComponent(r); 
+                r+="%"+(c.toString(16));
+            }
+            return noconv?s:decodeURIComponent(r);
         }catch(e) {
             console.log(e, s);
             return s;
@@ -919,7 +964,7 @@ function ready() {
     	        unsaved=false;
     	    }
         }catch(e) {
-            console.log(e);            
+            console.log(e);
         }
     }
     function fileSet(c) {
