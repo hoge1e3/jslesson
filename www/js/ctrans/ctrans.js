@@ -29,7 +29,7 @@ window.MinimalParser= function () {
 		return space.and(str).ret(function(a, b) {
 			// a=空白またはコメント   b=読み込んだトークン
 			// テキストと位置情報をつけて返す．
-			return {pos:b.pos, 
+			return {pos:b.pos,
 				text: b.src.str.substring( b.pos, b.pos+b.len ) ,
 				toString: function (){
 					//return this.text+"("+this.pos+")";
@@ -91,12 +91,12 @@ window.MinimalParser= function () {
                         bys[o[pos]]=1;
                     }
                     if (cnt>=2) {
-                        if (cnt==2 && 
+                        if (cnt==2 &&
                         bys["direct_declarator"] &&
                         bys["function_definition"]) {
                         }
                         else {
-                            newError(ctx.scope[k].vname+"はすでに定義されています",ctx.scope[k].vname);   
+                            newError(ctx.scope[k].vname+"はすでに定義されています",ctx.scope[k].vname);
                         }
                     }
                 }
@@ -144,6 +144,7 @@ window.MinimalParser= function () {
     function extend(arr,obj) {
         var pos;
         for (var k in obj) {
+          if(k==="length") throw new Error("DO not use length");
             arr[k]=obj[k];
         }
         if (typeof arr.pos!=="number") {
@@ -179,7 +180,7 @@ window.MinimalParser= function () {
                     n+"は定義されていません．\n"+
                     "#include<"+builtin_func_to_include[name]+">を追加し忘れていませんか？",n);
             }
-            
+
             for (var k in ctx.scope) {
                 if (k.toLowerCase()===name.toLowerCase()) {
                     throw newError(
@@ -194,7 +195,7 @@ window.MinimalParser= function () {
     function variableName(n) {
         var v=findVariable(n);
         if (v.isMacro) return v.macroValue;
-        return "scopes_"+v.depth+"."+n;        
+        return "scopes_"+v.depth+"."+n;
     }
     function MKARY() {
 	    return Array.prototype.slice.call(arguments);
@@ -262,7 +263,7 @@ window.MinimalParser= function () {
 	//\type_specifier
 	var typedef_name=identifier_lazy.except(function (e) {
 	    if (ctx.scope[e.text] && (ctx.scope[e.text].vtype) instanceof T.TypeDef) {
-	        return false; 
+	        return false;
 	    }
 	    return true;
 	}).ret(function (e) {
@@ -340,7 +341,7 @@ window.MinimalParser= function () {
 	var struct_declaration=inject(struct_declaration_raw,function (a) {
 	    var saveBaseType=baseType;
         a();
-        baseType=saveBaseType;    	  
+        baseType=saveBaseType;
     });
 	//\struct_or_union_specifier
 	struct_or_union_specifier=struct_or_union.and(identifier.opt()).
@@ -394,7 +395,7 @@ window.MinimalParser= function () {
 	direct_abstract_declarator=direct_abstract_declarator.rep0();
 
 	var abstract_declarator=direct_abstract_declarator;
-    var baseType; 
+    var baseType;
 	// \declaration_specifiers
 	var declaration_specifier=storage_class_specifier.or(type_specifier).or(type_qualifier);
 	declaration_specifiers=declaration_specifier.rep1().ret(function(types){
@@ -420,7 +421,7 @@ window.MinimalParser= function () {
 	            case "unsigned": res=T.Unsigned(res||T.int);break;
 	            case "long": res=T.Long(res||T.int);break;
 	            case "short": res=T.Short(res||T.int);break;
-	            case "typedef": 
+	            case "typedef":
 	                if (!res) {
     	                console.log("TYPEDEF error",types);
     	                throw newError("typedef 型 型名; という形式で定義してください",type);
@@ -435,7 +436,7 @@ window.MinimalParser= function () {
 	    assert.is(res,T.Base);
 	    return res;
 	}
-	
+
 	var identifier_list=t(",").and(identifier).ret(function(comma,identifier){return [",",identifier];});
 	identifier_list=identifier.and(identifier_list.rep0())
 		.ret(function(identifier,identifiers){return [identifier,identifiers];});
@@ -486,7 +487,7 @@ window.MinimalParser= function () {
     		    /*case "decl_idents":
     		        $.vtype=T.Function($.vtype,[]);
 		            break;*/
-		        }    
+		        }
     		}
     		$.vname=direct_decl_head.vname;
     		if (($.vtype) instanceof T.TypeDef) {
@@ -534,7 +535,7 @@ window.MinimalParser= function () {
 	parameter_list=inject(parameter_list_raw,function (a) {
 	    var saveBaseType=baseType;
         a();
-        baseType=saveBaseType;    	  
+        baseType=saveBaseType;
     });
 	/*.
 	or(t("void").ret(function () {
@@ -623,9 +624,9 @@ window.MinimalParser= function () {
         	    } else if (pop.type==="func_call") {
         	        throw newError("++や--の手前では関数呼び出しできません",left);
             	} else if (pop.type==="arrow") {
-            	    
+
         	    } else if (pop.type==="dot") {
-        	        
+
         	    }
 		    } else if (left.type=="pointerDeref") {
 		        // left op
@@ -656,7 +657,7 @@ window.MinimalParser= function () {
 	        }
 	        if (t instanceof T.Function) {
 	            var argList=op.args.map(function (arg) {
-	                return arg.vtype; 
+	                return arg.vtype;
 	            });
 	            var mr=t.match(argList);
 	            if (mr!==true) {
@@ -670,24 +671,24 @@ window.MinimalParser= function () {
 	    } else if (op.type==="arrow") {
     	    expr=["(",left,").read().",op[1]];//vtype TODO
     	    if (!(t instanceof T.Pointer)) {
-	            newError("->参照はポインタにのみ使えます",op);   
+	            newError("->参照はポインタにのみ使えます",op);
 	        }
 	        t=t.e;
 	        if (!(t instanceof T.Struct)) {
-	            newError("->参照は構造体のポインタにのみ使えます",op);   
+	            newError("->参照は構造体のポインタにのみ使えます",op);
 	        }
 	        var mem=t.getMember(op.vname+"");
 	        if (!mem) {
-	            newError("構造体"+t.name+"にメンバ"+op.vname+"は定義されていません",op);   
+	            newError("構造体"+t.name+"にメンバ"+op.vname+"は定義されていません",op);
 	        }
 	        t=assert.is(mem.vtype,T.Base);
 	    } else if (op.type==="dot") {
 	        if (!(t instanceof T.Struct)) {
-	            newError("ドット参照は構造体にのみ使えます",op);   
+	            newError("ドット参照は構造体にのみ使えます",op);
 	        }
 	        var mem=t.getMember(op.vname+"");
 	        if (!mem) {
-	            newError("構造体"+t.name+"にメンバ"+op.vname+"は定義されていません",op);   
+	            newError("構造体"+t.name+"にメンバ"+op.vname+"は定義されていません",op);
 	        }
 	        t=assert.is(mem.vtype,T.Base);
     	    expr=[wrapF(left),op];
@@ -739,10 +740,10 @@ window.MinimalParser= function () {
 		            newError("この型に対して"+op+"演算できません",op);
 		        }
 		    }
-		    
+
 		    if ((unary_expr.vtype) instanceof T.Struct) {
 		        return extend(["copyStruct2(",
-    		        unary_expr,",", 
+    		        unary_expr,",",
     		        calc_expr, ",",
     		        unary_expr.vtype.toLiteral(),
     		    ")"],
@@ -765,9 +766,9 @@ window.MinimalParser= function () {
         	        console.log("SAHEN",unary_expr);
         	        throw newError("左辺では関数呼び出しできません",unary_expr);
             	} else if (pop.type==="arrow") {
-            	    
+
         	    } else if (pop.type==="dot") {
-        	        
+
         	    }
 		    } else if (unary_expr.type=="pointerDeref") {
     			return extend(
@@ -788,8 +789,9 @@ window.MinimalParser= function () {
 	expression=assign;
 	var array_initializer=t("{").and(initializer_lazy.sep0(t(","),true)).and(t("}")).
 	ret(function(lcb,initializers,rcb){
-	    return extend(["pointer([",ajoin(",",initializers),"],0)"],{
-	        length:initializers.length,
+    var a=["pointer([",ajoin(",",initializers),"],0)"];
+    return extend(a,{
+	        elementLength:initializers.length, //DO NOT use length ... it truncates actual length
 	        type:"arrayInit"
 	    });
 	});
@@ -811,7 +813,7 @@ window.MinimalParser= function () {
 	// \init_declarator
 	var init_declarator=declarator.and(t("=").and(initializer).opt())
 		.ret(function(declarator,eq,initializer){
-		    // typedef X Y; cannot come here 
+		    // typedef X Y; cannot come here
 		    // Why?
 		    // typedef X Y can be read as func_head
 		    //   and Y will be registered as typedef_name
@@ -829,11 +831,11 @@ window.MinimalParser= function () {
 			    ):
 			    defaultInitializer(declarator.vtype,ctx.depth),";\n"
 			];
-			if ( 
-			    (declarator.vtype) instanceof T.Array 
-			    && initializer 
+			if (
+			    (declarator.vtype) instanceof T.Array
+			    && initializer
 			    && initializer.type==="arrayInit"
-			    && declarator.vtype.length>initializer.length) {
+			    && declarator.vtype.length>initializer.elementLength) {
 			    $.push(["expandArray(",
     			    curScopesName(),".",declarator,",",
     			    dtl,",",
@@ -972,7 +974,7 @@ window.MinimalParser= function () {
 			var s=findVariable(identifier);
 			return extend(["pointer(",
 			    ["scopes_"+s.depth, lit(identifier), lit(s.vtype)].join(","),
-			")"],{vtype:["array",s.vtype]} ); 
+			")"],{vtype:["array",s.vtype]} );
 		})();
 	});*/
 	// \var_identifier
@@ -1048,7 +1050,7 @@ window.MinimalParser= function () {
         			return extend(["pointer(",
         			    ["scopes_"+s.depth, lit(right.vname), typeLit(s.vtype)].join(","),
         			")"],
-        			{vtype: T.Pointer(s.vtype)} ); 
+        			{vtype: T.Pointer(s.vtype)} );
     	        } else {
     	            console.log("Invalid &",right);
     	            throw newError("&の使い方がまちがっています",right);
@@ -1061,7 +1063,7 @@ window.MinimalParser= function () {
     	            type:"pointerDeref",
     	            vtype: right.vtype.e,
     	            pointer: right
-    	        });      
+    	        });
     	    }
     	    return extend([op,wrapF(right)], {vtype:right.vtype});
 	    })
@@ -1086,7 +1088,7 @@ window.MinimalParser= function () {
     	    if (!(r.vtype)) {
     	        console.log("Type is not set at:",r);
     	        throw newError("type is not set at "+unary,unary);
-    	    } 
+    	    }
     	    return r;
 	    });
 	}
@@ -1169,7 +1171,7 @@ window.MinimalParser= function () {
         var name=decl.vname;
         var params=decl.params;
         addScope(name,{
-            vtype:type, 
+            vtype:type,
             by: "function_definition_pre"
         });
         var depth=ctx.depth;
@@ -1187,7 +1189,7 @@ window.MinimalParser= function () {
         	    			vt,");\n",
         	    	]);
                 } else if (param.vtype!==T.void) {
-                    getParams.push(["scopes_"+(ctx.depth)+".", 
+                    getParams.push(["scopes_"+(ctx.depth)+".",
 	    			param.vname,"=","ARGS.shift();","/*", typeLit(param.vtype),"*/"]);
                 }
             });
@@ -1229,7 +1231,7 @@ window.MinimalParser= function () {
         var params=decl.params;
         //console.log("TNP",type,name,params);
         addScope(name,{
-            vtype:type, 
+            vtype:type,
             by: "function_definition_pre"
         });
         var depth=ctx.depth;
@@ -1248,7 +1250,7 @@ window.MinimalParser= function () {
         	    			vt,");\n",
         	    	]);
                 } else if (param.vtype!==T.void) {
-                    getParams.push(["scopes_"+(ctx.depth)+".", 
+                    getParams.push(["scopes_"+(ctx.depth)+".",
 	    			param.vname,"=","ARGS.shift();","/*", typeLit(param.vtype),"*/"]);
                 }
             });
@@ -1278,7 +1280,7 @@ window.MinimalParser= function () {
         }
         return rst;
     })).ret(function (_,r) {
-        //console.log(JSON.stringify( r) ); 
+        //console.log(JSON.stringify( r) );
         return r;
     });
     //\addScope
@@ -1297,7 +1299,7 @@ window.MinimalParser= function () {
         } else {
             console.log("STRNAME",name);
         }
-        
+
         /*if (v.vtype && obj.vtype) {
             if ( (v.vtype) instanceof T.Function ) {}
             else {
@@ -1342,7 +1344,7 @@ window.MinimalParser= function () {
 	var builtin_func_to_include={};
 	for (var k in builtin_funcs) {
 	    builtin_funcs[k].forEach(function (fname) {
-	        builtin_func_to_include[fname]=k;    
+	        builtin_func_to_include[fname]=k;
 	    });
 	}
 	var builtin_funcs_ret={
@@ -1360,8 +1362,8 @@ window.MinimalParser= function () {
 	    //console.log("filename",filename);
 	    if (builtin_funcs[filename.text]) {
 	        return builtin_funcs[filename.text].map(function (n) {
-    	        var ret=builtin_funcs_ret[n] || 
-    	        builtin_funcs_ret[filename.text] 
+    	        var ret=builtin_funcs_ret[n] ||
+    	        builtin_funcs_ret[filename.text]
     	        ||"void";
     	        return ret+" "+n+"();";
 	        }).join("\n");
@@ -1373,9 +1375,9 @@ window.MinimalParser= function () {
     var topdecl = newDecl;
     //var topdecl = func.or(declaration);
 	program=newScope(topdecl.rep0()).and(space).and(sp.eof).ret(function (decls,space,eof){
-	    return decls;    
+	    return decls;
 	});
-	
+
 	//preprocess
 	var preprocess=function(str){
 		var lines = str.split("\n");
@@ -1389,7 +1391,7 @@ window.MinimalParser= function () {
 			    lines[i]=lines[i].replace(/(\'[^\']*\')|(\"[^\"]*\")|(\b[A-Za-z0-9]+\b)/g,function (s) {
 			        return (s in defines ? defines[s] : s );
 			    });
-			}	
+			}
 		}
 		//console.log("preproc",lines.join("\n"));
 		return lines.join("\n");
@@ -1435,7 +1437,7 @@ window.MinimalParser= function () {
 			} else {
 			    console.log("Compiler error: NO pos info ");
 			}
-    			
+
 			var pos=e.pos-(postLength-preLength);//  rowcol(e.pos);
 			console.log("original stk",e.stack);
 		    var ne=e;//new Error(e.message+"\n"+pos.row+"行目付近を確認してください。");
