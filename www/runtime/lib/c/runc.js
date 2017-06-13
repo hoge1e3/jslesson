@@ -13,7 +13,8 @@ requirejs.config({
     }
 });
 requirejs(["assert","Klass","FS","_Util"],function (assert,Klass,FS,_Util) {
-  requirejs(["lib","util","ctype","x","AsyncByGenerator"],function () {
+  requirejs(["lib","util","ctype","x","AsyncByGenerator"],function (lib,u,c,x,ABG) {
+      ABG.ready(function(){
     requirejs([window.sourceName],function () {
       try{
           if ($("#console").length==0) {
@@ -32,6 +33,7 @@ requirejs(["assert","Klass","FS","_Util"],function (assert,Klass,FS,_Util) {
     			alert(e);
     			parent.Tonyu.onRuntimeError(e);
   		}
+    });
     });
   });
 });
