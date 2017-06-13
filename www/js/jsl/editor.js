@@ -37,9 +37,9 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     window.ALWAYS_UPLOAD=false;
     var useOLDC=false;
     var langList={
-    	"js":"JavaScript",
-    	"c":"C",
-    	"dtl":"Dolittle"
+        "js":"JavaScript",
+        "c":"C",
+        "dtl":"Dolittle"
     };
     var helpURL;
     var unsaved=false;
@@ -151,12 +151,12 @@ function ready() {
     }
     function makeUI(){
         Columns.make(
-              ["div",{id:"fileViewer","class":"col-xs-2"},
-                  ["div",{id:"fileItemList"}]
-              ],
-              ["div",{id:"mainArea","class":"col-xs-10"},
-                  ["div",{id:"errorPos"}],
-                  ["div",{id:"tabTop"},
+            ["div",{id:"fileViewer","class":"col-xs-2"},
+                ["div",{id:"fileItemList"}]
+            ],
+            ["div",{id:"mainArea","class":"col-xs-10"},
+                ["div",{id:"errorPos"}],
+                ["div",{id:"tabTop"},
                      ["button",{
                          "class":"selTab","data-ext":HEXT,css:{display:lang=="js"?"inline":"none"}
                      },"HTML"],
@@ -1118,13 +1118,13 @@ function ready() {
     }
     $("#home").click(F(function () {
         save();
-    	goHome();
+        goHome();
     }));
     $("#runMenu").click(F(run));
     function goHome(){
-	console.log("goHome");
-	unsynced=false;
-	location.href="index.html";
+        console.log("goHome");
+        unsynced=false;
+        location.href="index.html";
     }
     $("#openHelp").click(function(){
         window.open(helpURL,"helpTab");
@@ -1133,13 +1133,13 @@ function ready() {
         return fl.curFile();
     };
     $(window).on("beforeunload",function(e){
-	if(unsynced || unsaved){
-	    return "保存されていないデータがあります。\nこれまでの作業を保存するためには一度実行してください。";
-	}
+        if(unsynced || unsaved){
+            return "保存されていないデータがあります。\nこれまでの作業を保存するためには一度実行してください。";
+        }
     });
     $("#save").click(F(function () {
-	save();
-	sync();
+        save();
+        sync();
     }));
     FM.onMenuStart=save;
     function focusToEditor(){
@@ -1149,5 +1149,4 @@ function ready() {
     SplashScreen.hide();
     window.NotificationDialog=NotificationDialog;
 }// of ready
-//});// of load ace
 });
