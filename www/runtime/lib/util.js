@@ -3,6 +3,9 @@ Util=(function () {
 function getQueryString(key, default_)
 {
    if (default_==null) default_="";
+   if (typeof LocalBrowserInfo==="object") {
+       return LocalBrowserInfo.params[key]||default_;
+   }
    key = key.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
    var regex = new RegExp("[\\?&]"+key+"=([^&#]*)");
    var qs = regex.exec(window.location.href);
@@ -21,7 +24,7 @@ function startsWith(str,prefix) {
     return str.substring(0, prefix.length)===prefix;
 }
 function extend(d,s) {
-    for (var i in (s||{})) {d[i]=s[i];} 
+    for (var i in (s||{})) {d[i]=s[i];}
     return d;
 }
 // From http://hakuhin.jp/js/base64.html#BASE64_DECODE_ARRAY_BUFFER
