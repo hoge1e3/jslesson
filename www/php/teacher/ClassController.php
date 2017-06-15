@@ -349,7 +349,7 @@ class ClassController {
                 }else{
                     $errcount[$log['user']]=1;
                 }
-                $runhistory[$log['user']].='<font color="red">E</font>';
+                $runhistory[$log['user']].='<span onClick="alert('."'".str_replace("\n","\\n",json_decode($log['raw'])->code->C)."'".');"><font color="red">E</font></span>';
             }else{
                 $runhistory[$log['user']].='R';
             }
@@ -360,6 +360,24 @@ class ClassController {
             $latestfile[$log['user']]=$log['filename'];
         }
         ?>
+        <script type="text/javascript" src="js/lib/jquery-1.12.1.js"></script>
+        <script type="text/javascript" src="js/lib/jquery.tablesorter.min.js"></script>
+        <script>
+            $(document).ready(function() { 
+            // call the tablesorter plugin 
+                $("table").tablesorter({ 
+                // define a custom text extraction function 
+                    textExtraction: function(node) { 
+                        // extract data from markup and return it  
+                        console.log(node.getAttribute("data-rate"));
+                        if(node.getAttribute("data-rate")!=null){
+                            return (parseInt(node.getAttribute("data-rate"))+100)+"";
+                        }
+                        return node.innerHTML; 
+                    } 
+                }); 
+            }); 
+        </script>
         <h1><?=$class->id?> - ユーザ一覧</h1>
         <a href="a.php?Class/show">クラス管理に戻る</a><hr>
         対象の時刻を変える<br>
@@ -397,8 +415,11 @@ class ClassController {
     	<?php
     	    echo date("Y/m/d H:i:s",$min)." から ".date("Y/m/d H:i:s",$max)."までの実行状況";
     	?>
-        <table border=1>
+        <table border=1 class="tablesorter">
+            <thead>
             <tr><th>ユーザID</th><th>エラー/実行</th><th>実行からの経過時間</th><th>今実行しているファイル</th><th>実行結果履歴</th></tr>
+            </thead>
+            <tbody>
         <?php
         //<th>実行時刻</th><th>実行ファイル</th><th>実行結果</th><th>実行詳細</th><th>プログラム</th>
         foreach($runcount as $k => $v){
@@ -423,13 +444,16 @@ class ClassController {
                 $timecaution="white";
             }
             ?>
-            <tr><th><?=$k?></th><th bgcolor=<?=$errcaution?>><?=$errcount[$k]?>/<?=$v?>(<?=$rate?>%)</th>
-            <th bgcolor=<?=$timecaution?>><?=str_pad($time['h'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['m'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['s'],2,0,STR_PAD_LEFT)?></th>
-            <th><?=$latestfile[$k]?></th><th><?=$runhistory[$k]?></th>
+            <tr><td><?=$k?></td><td data-rate="<?=$rate?>" bgcolor=<?=$errcaution?>><?=$errcount[$k]?>/<?=$v?>(<?=$rate?>%)</td>
+            <td bgcolor=<?=$timecaution?>><?=str_pad($time['h'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['m'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['s'],2,0,STR_PAD_LEFT)?></td>
+            <td><?=$latestfile[$k]?></td><td><?=$runhistory[$k]?></td>
             </tr>
             
             <?php
         }
+        ?>
+        </tbody>
+        <?php
     }
     static function calcTime($t){
         if(is_int($t)){

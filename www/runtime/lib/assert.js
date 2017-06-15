@@ -164,8 +164,7 @@ define([],function () {
     };
     assert.opt=function (t) {
         return assert.f(function (v) {
-            if (v==null) return true; 
-            assert.is(v,t);
+            return v==null || v instanceof t;
         });
     };
     assert.and=function () {

@@ -1338,7 +1338,7 @@ window.MinimalParser= function () {
             ["abs","acos","asin","atan","atan2","ceil","cos","exp","floor",
                 "log","max","min","pow","random","round","sin","sqrt","tan"],
         "x.h":
-            ["fillRect","clear","update","setColor","drawGrid","drawNumber",
+            ["fillRect","clear","update","setColor","drawGrid","drawNumber","drawLine",
                 "setPen","movePen","fillOval","drawText","drawString","getkey","setLineWidth"]
 	};
 	var builtin_func_to_include={};

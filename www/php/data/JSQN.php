@@ -16,27 +16,52 @@ class JSQN {
             where: ["gt","amount",300]
         }]
         */
-        $res="select ";
+        $res="select ";$com="";
         foreach ($json->select as $field) {
-            
+            $res.=$com. self::parseField($field);
+            $com=", ";
         }
-        $res.="from ";
-        self::parseFrom($json->from);
+        $res.=" from ";
+        $res.=self::parseFrom($json->from);
+
+        echo $res;
+        #$p=pdo();
+        #$sth=$pdo->prepare($res);
+        #$sth->execute(array());
+        3$p->query();
+
     }
     function parseFrom($f) {
-        
+        if (is_array($expr)) {
+
+        } else if (is_string($expr)) {
+            return self::table($expr);
+        }
     }
-    function field($expr) {
-        
+    function parseField($expr) {
+        if (is_array($expr)) {
+            if (count($expr)>=2 && $expr[0]=="field") {
+
+            }
+        } else if (is_string($expr)) {
+            return self::field($expr);
+        }
+
+    }
+    function field($s) {
+        return "`$s`";//TODO injection
+    }
+    function table($s) {
+        return "`$s`";//TODO injection
     }
     function insert($json) {
-        
+
     }
     function update($json) {
-        
+
     }
     function del($json) {
-        
+
     }
 }
 ?>

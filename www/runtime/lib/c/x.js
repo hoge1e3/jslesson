@@ -62,6 +62,7 @@ function initX() {
 function setColor(r,g,b) {
     var ctx=initX()[0].getContext("2d");
     ctx.fillStyle="rgb("+[Math.floor(r-0),Math.floor(g-0),Math.floor(b-0)].join(",")+")";
+    ctx.strokeStyle="rgb("+[Math.floor(r-0),Math.floor(g-0),Math.floor(b-0)].join(",")+")";
 }
 function setLineWidth(w) {
     var ctx=initX()[0].getContext("2d");
