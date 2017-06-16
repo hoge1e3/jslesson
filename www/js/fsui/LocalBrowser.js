@@ -52,6 +52,12 @@ function (sh,FS,DU,UI,S) {
             if (loaded) return;
             loaded=true;
             iwin=i[0].contentWindow;
+            if (options.globals) {
+                for(var k in options.globals) {
+                    //console.log("Reg global",k,options.globals[k]);
+                    iwin[k]=options.globals[k];
+                }
+            }
             iwin.LocalBrowserInfo={
                 __file__: f,
                 browser: thiz,

@@ -709,17 +709,18 @@ function ready() {
               }).then(function () {
                   var indexF=ram.rel(curHTMLFile.name());
                   logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Run","実行しました","C");
+                  console.log("screenH",screenH);
                   return RunDialog2.show(indexF,
-                  {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+                  {height:screenH,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
               }).fail(function (e) {
                   logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Compile Error",e+"","C");
-      			  if (e.pos) {
-          			var te=TError(e+"",curJSFile, e.pos);
-  	                showErrorPos($("#errorPos"),te);
-                    displayMode("compile_error");
-                } else {
-                    Tonyu.onRuntimeError(e);
-                }
+                  if (e.pos) {
+                      var te=TError(e+"",curJSFile, e.pos);
+  	                  showErrorPos($("#errorPos"),te);
+                      displayMode("compile_error");
+                  } else {
+                      Tonyu.onRuntimeError(e);
+                  }
                   console.log("CFAIL",e.stack);
               }).always(function () {
                   SplashScreen.hide();

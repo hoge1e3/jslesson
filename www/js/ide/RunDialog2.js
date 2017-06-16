@@ -4,16 +4,19 @@ function (UI, LocalBrowser,DA) {
     res.show=function (runFile, options) {
         options=options||{};
         options.height=options.height||600;
+        options.width=options.width||16*((options.height+10)/9);
         window.dialogClosed=false;
         var d=res.embed(runFile, options);
+        console.log("RunDialog2 options",options);
         d.dialog({
-            width:16*((options.height+10)/9),
+            width:options.width,
+            height:options.height,
             position: { my: "center top", at: "right bottom"},
             close:function(){
                 window.dialogClosed=true;
                 if (res.b) res.b.close();
                 if(typeof options.toEditor == "function")options.toEditor();
-            }, 
+            },
             resize:handleResize
         });//,height:options.height?options.height-50:400});
         handleResize();
