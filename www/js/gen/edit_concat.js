@@ -3715,8 +3715,7 @@ define('assert',[],function () {
     };
     assert.opt=function (t) {
         return assert.f(function (v) {
-            if (v==null) return true; 
-            assert.is(v,t);
+            return v==null || v instanceof t;
         });
     };
     assert.and=function () {
@@ -12713,7 +12712,7 @@ function (sh,FS,DU,UI,S) {
         if (this.iframe) this.iframe.focus();
     };
     var urlparam=/\?.*$/;
-    p.open=function (f,options) {    
+    p.open=function (f,options) {
         options=options||{};
         var onload=options.onload || function () {};
         var onerror=options.onerror || function () {};
@@ -12741,9 +12740,16 @@ function (sh,FS,DU,UI,S) {
             if (loaded) return;
             loaded=true;
             iwin=i[0].contentWindow;
+            if (options.globals) {
+                for(var k in options.globals) {
+                    //console.log("Reg global",k,options.globals[k]);
+                    iwin[k]=options.globals[k];
+                }
+            }
             iwin.LocalBrowserInfo={
                 __file__: f,
                 browser: thiz,
+                params: options.params||{},
                 open: function (url) {
                     if (FS.PathUtil.isRelativePath(url)) {
                         thiz.open(f.up().rel(url));
@@ -12850,7 +12856,7 @@ function (sh,FS,DU,UI,S) {
                 idoc.write("\n");
             };*/
             return $.when().then(F(function () {
-                return appendTo(src.getElementsByTagName("html")[0], 
+                return appendTo(src.getElementsByTagName("html")[0],
                 idoc.getElementsByTagName("html")[0]);
             })).then(F(function () {
                 onload.apply(i[0],[]);
@@ -12876,13 +12882,13 @@ function (sh,FS,DU,UI,S) {
                         names.push(at[j].name);
                     }
                     var idx=names.indexOf("charset");
-                    if (idx>=0) { 
-                        names.splice(idx,1); 
-                        names.unshift("charset"); 
+                    if (idx>=0) {
+                        names.splice(idx,1);
+                        names.unshift("charset");
                     }
                     names.forEach(function (name) {
                         var value=n.getAttribute(name);
-                        if (n.tagName.toLowerCase()=="a" && name=="href" && 
+                        if (n.tagName.toLowerCase()=="a" && name=="href" &&
                         FS.PathUtil.isRelativePath(value)) {
                             value="javascript:LocalBrowserInfo.open('"+value+"');";
                         }
@@ -12927,7 +12933,7 @@ function (sh,FS,DU,UI,S) {
         return navigator.userAgent.indexOf("Firefox")>=0;
     }
     function iframeSrcURL(){
-        var src="<!DOCTYPE HTML><html><head></head><body></body></html>";        
+        var src="<!DOCTYPE HTML><html><head></head><body></body></html>";
         var blob = new Blob([src], {type: "text/html"});
         var url = URL.createObjectURL(blob);
         return url;
@@ -12949,7 +12955,7 @@ function (sh,FS,DU,UI,S) {
         this.echo(place);
         var ifrm=new LocalBrowser(place,options);
         ifrm.open(f,{onload:function () {
-            d.resolve();            
+            d.resolve();
         },onerror:function (e) {
             d.reject(e);
         }});
@@ -12964,16 +12970,19 @@ function (UI, LocalBrowser,DA) {
     res.show=function (runFile, options) {
         options=options||{};
         options.height=options.height||600;
+        options.width=options.width||16*((options.height+10)/9);
         window.dialogClosed=false;
         var d=res.embed(runFile, options);
+        console.log("RunDialog2 options",options);
         d.dialog({
-            width:16*((options.height+10)/9),
+            width:options.width,
+            height:options.height,
             position: { my: "center top", at: "right bottom"},
             close:function(){
                 window.dialogClosed=true;
                 if (res.b) res.b.close();
                 if(typeof options.toEditor == "function")options.toEditor();
-            }, 
+            },
             resize:handleResize
         });//,height:options.height?options.height-50:400});
         handleResize();
@@ -13024,6 +13033,7 @@ function (UI, LocalBrowser,DA) {
     };
     return res;
 });
+
 define('logToServer',[],function () {
     var c=0,time=(new Date().getTime());
     function logToServer(content) {
@@ -13774,9 +13784,9 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     window.ALWAYS_UPLOAD=false;
     var useOLDC=false;
     var langList={
-    	"js":"JavaScript",
-    	"c":"C",
-    	"dtl":"Dolittle"
+        "js":"JavaScript",
+        "c":"C",
+        "dtl":"Dolittle"
     };
     var helpURL;
     var unsaved=false;
@@ -13888,12 +13898,12 @@ function ready() {
     }
     function makeUI(){
         Columns.make(
-              ["div",{id:"fileViewer","class":"col-xs-2"},
-                  ["div",{id:"fileItemList"}]
-              ],
-              ["div",{id:"mainArea","class":"col-xs-10"},
-                  ["div",{id:"errorPos"}],
-                  ["div",{id:"tabTop"},
+            ["div",{id:"fileViewer","class":"col-xs-2"},
+                ["div",{id:"fileItemList"}]
+            ],
+            ["div",{id:"mainArea","class":"col-xs-10"},
+                ["div",{id:"errorPos"}],
+                ["div",{id:"tabTop"},
                      ["button",{
                          "class":"selTab","data-ext":HEXT,css:{display:lang=="js"?"inline":"none"}
                      },"HTML"],
@@ -14446,17 +14456,18 @@ function ready() {
               }).then(function () {
                   var indexF=ram.rel(curHTMLFile.name());
                   logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Run","実行しました","C");
+                  console.log("screenH",screenH);
                   return RunDialog2.show(indexF,
-                  {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+                  {height:screenH,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
               }).fail(function (e) {
                   logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Compile Error",e+"","C");
-      			  if (e.pos) {
-          			var te=TError(e+"",curJSFile, e.pos);
-  	                showErrorPos($("#errorPos"),te);
-                    displayMode("compile_error");
-                } else {
-                    Tonyu.onRuntimeError(e);
-                }
+                  if (e.pos) {
+                      var te=TError(e+"",curJSFile, e.pos);
+  	                  showErrorPos($("#errorPos"),te);
+                      displayMode("compile_error");
+                  } else {
+                      Tonyu.onRuntimeError(e);
+                  }
                   console.log("CFAIL",e.stack);
               }).always(function () {
                   SplashScreen.hide();
@@ -14855,13 +14866,13 @@ function ready() {
     }
     $("#home").click(F(function () {
         save();
-    	goHome();
+        goHome();
     }));
     $("#runMenu").click(F(run));
     function goHome(){
-	console.log("goHome");
-	unsynced=false;
-	location.href="index.html";
+        console.log("goHome");
+        unsynced=false;
+        location.href="index.html";
     }
     $("#openHelp").click(function(){
         window.open(helpURL,"helpTab");
@@ -14870,13 +14881,13 @@ function ready() {
         return fl.curFile();
     };
     $(window).on("beforeunload",function(e){
-	if(unsynced || unsaved){
-	    return "保存されていないデータがあります。\nこれまでの作業を保存するためには一度実行してください。";
-	}
+        if(unsynced || unsaved){
+            return "保存されていないデータがあります。\nこれまでの作業を保存するためには一度実行してください。";
+        }
     });
     $("#save").click(F(function () {
-	save();
-	sync();
+        save();
+        sync();
     }));
     FM.onMenuStart=save;
     function focusToEditor(){
@@ -14886,7 +14897,6 @@ function ready() {
     SplashScreen.hide();
     window.NotificationDialog=NotificationDialog;
 }// of ready
-//});// of load ace
 });
 
 define("jsl_edit", function(){});
