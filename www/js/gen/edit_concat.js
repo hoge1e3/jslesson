@@ -2,7 +2,7 @@ Util=(function () {
 
 function getQueryString(key, default_)
 {
-   if (default_==null) default_="";
+    if (arguments.length===1) default_="";
    key = key.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
    var regex = new RegExp("[\\?&]"+key+"=([^&#]*)");
    var qs = regex.exec(window.location.href);
@@ -21,7 +21,7 @@ function startsWith(str,prefix) {
     return str.substring(0, prefix.length)===prefix;
 }
 function extend(d,s) {
-    for (var i in (s||{})) {d[i]=s[i];} 
+    for (var i in (s||{})) {d[i]=s[i];}
     return d;
 }
 // From http://hakuhin.jp/js/base64.html#BASE64_DECODE_ARRAY_BUFFER
@@ -12715,7 +12715,9 @@ function (sh,FS,DU,UI,S) {
     p.open=function (f,options) {
         options=options||{};
         var onload=options.onload || function () {};
-        var onerror=options.onerror || function () {};
+        var onerror=options.onerror || (window.onerror ? function () {
+            return window.onerror.apply(window,arguments);
+        }: function () {});
         delete options.onload;
         var dp=new DOMParser;
         var src=dp.parseFromString(f.text(),"text/html");
@@ -12840,7 +12842,8 @@ function (sh,FS,DU,UI,S) {
             iwin.onerror=function (message, source, lineno, colno,ex) {
                 source=iwin.LocalBrowserInfo.blob2originalURL(source+"");
                 iwin.LocalBrowserInfo.originalStackTrace(ex);
-                if (window.onerror) window.onerror(message, source, lineno, colno,ex);
+                return onerror(message, source, lineno, colno,ex);
+                //if (window.onerror) window.onerror(message, source, lineno, colno,ex);
             };
             idoc=iwin.document;
             /*idoc.write=function () {
@@ -13864,6 +13867,7 @@ function ready() {
                 ram=FS.get("/ram/build/");
                 FS.mount(ram.path(),"ram");
                 builder=new Builder(curPrj, ram);
+                window.BABuilder=builder;
                 console.log("c builderready");
                 builderReady();
             });

@@ -25,10 +25,10 @@ class JSQN {
         $res.=self::parseFrom($json->from);
 
         echo $res;
-        #$p=pdo();
-        #$sth=$pdo->prepare($res);
-        #$sth->execute(array());
-        3$p->query();
+        //$p=pdo();
+        //$sth=$pdo->prepare($res);
+        //$sth->execute(array());
+        //$p->query();
 
     }
     function parseFrom($f) {
