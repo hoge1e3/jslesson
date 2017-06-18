@@ -349,7 +349,8 @@ class ClassController {
                 }else{
                     $errcount[$log['user']]=1;
                 }
-                $runhistory[$log['user']].='<span onClick="alert('."'".str_replace("\n","\\n",json_decode($log['raw'])->code->C)."'".');"><font color="red">E</font></span>';
+                //$runhistory[$log['user']].='<span onClick="alert('."'".str_replace("\n","\\n",json_decode($log['raw'])->code->C)."'".');"><font color="red">E</font></span>';
+                $runhistory[$log['user']].='<font color="red">E</font>';
             }else{
                 $runhistory[$log['user']].='R';
             }

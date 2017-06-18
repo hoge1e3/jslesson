@@ -114,5 +114,38 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
     p.upload=function (pub) {
         return Sync.sync(this.dst,pub);
     };
+    p.silentRun=function (file,options) {
+        options=options||{};
+        // file: compiled html file
+        return DU.funcPromise(function (succ,err) {
+            if (options.timeout) {
+                setTimeout(function () {
+                    err(new Error("Timeout"));
+                },options.timeout);
+            }
+            requirejs(["LocalBrowser"],function (LocalBrowser) {
+                var hidden=$("<div>").hide().appendTo("body");
+                var b=new LocalBrowser(hidden);
+                b.open(file,{
+                    onerror:function (message, source, lineno, colno,ex) {
+                        err(ex||new Error(message+" at "+source+":"+lineno+":"+colno));
+                    },
+                    params:{stdin:options.stdin},
+                    globals: {
+                        runc_handleError:function (r) {
+                            err(r);
+                            b.close();
+                        },
+                        runc_sendResult: function (r) {
+                            //console.log("Result sent ",r);
+                            succ(r);
+                            b.close();
+                        }
+                    }
+                });
+            });
+            //BABuilder.silentRun(FS.get("/ram/build/P0414_2.html"),{stdin:"20\n15\n"}).then(function (r){console.log("R",r);},function (r){console.log("E",r);});
+        });
+    };
     return CBuilder;
 });

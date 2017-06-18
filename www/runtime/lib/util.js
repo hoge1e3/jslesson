@@ -2,9 +2,11 @@ Util=(function () {
 
 function getQueryString(key, default_)
 {
-   if (default_==null) default_="";
+   if (arguments.length===1) default_="";
+   //console.log("GQS",key,typeof LocalBrowserInfo);
    if (typeof LocalBrowserInfo==="object") {
-       return LocalBrowserInfo.params[key]||default_;
+       //console.log("GQS",LocalBrowserInfo.params,key);
+       return key in LocalBrowserInfo.params? LocalBrowserInfo.params[key] : default_;
    }
    key = key.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
    var regex = new RegExp("[\\?&]"+key+"=([^&#]*)");

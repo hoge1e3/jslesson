@@ -117,6 +117,7 @@ function ready() {
                 ram=FS.get("/ram/build/");
                 FS.mount(ram.path(),"ram");
                 builder=new Builder(curPrj, ram);
+                window.BABuilder=builder;
                 console.log("c builderready");
                 builderReady();
             });

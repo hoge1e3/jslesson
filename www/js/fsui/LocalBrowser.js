@@ -27,7 +27,9 @@ function (sh,FS,DU,UI,S) {
     p.open=function (f,options) {
         options=options||{};
         var onload=options.onload || function () {};
-        var onerror=options.onerror || function () {};
+        var onerror=options.onerror || (window.onerror ? function () {
+            return window.onerror.apply(window,arguments);
+        }: function () {});
         delete options.onload;
         var dp=new DOMParser;
         var src=dp.parseFromString(f.text(),"text/html");
@@ -152,7 +154,8 @@ function (sh,FS,DU,UI,S) {
             iwin.onerror=function (message, source, lineno, colno,ex) {
                 source=iwin.LocalBrowserInfo.blob2originalURL(source+"");
                 iwin.LocalBrowserInfo.originalStackTrace(ex);
-                if (window.onerror) window.onerror(message, source, lineno, colno,ex);
+                return onerror(message, source, lineno, colno,ex);
+                //if (window.onerror) window.onerror(message, source, lineno, colno,ex);
             };
             idoc=iwin.document;
             /*idoc.write=function () {

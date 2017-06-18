@@ -20,19 +20,21 @@ requirejs(["assert","Klass","FS","_Util"],function (assert,Klass,FS,_Util) {
           if ($("#console").length==0) {
             $("<pre>").attr({id:"console"}).appendTo("body");
           }
-          var s=Util.getQueryString("stdin");
-          if(s) scanf.STDIN=s.split("\n");
-    			promisize(main()).then(function () {
-        			parent.sendResult($("#console").text());
-    			},handleError);
+          var s=Util.getQueryString("stdin",null);
+          if(typeof s==="string") scanf.STDIN=s.split("\n");
+                promisize(main()).then(function () {
+                    var sr=window.runc_sendResult||parent.sendResult;
+                    sr($("#console").text());
+                },handleError);
   		}catch(e){
   		    handleError(e);
   		}
   		function handleError(e) {
-  		    console.log(e.stack);
-    			alert(e);
-    			parent.Tonyu.onRuntimeError(e);
-  		}
+            if (window.runc_handleError) return window.runc_handleError(e);
+            console.log(e.stack);
+            alert(e);
+            parent.Tonyu.onRuntimeError(e);
+        }
     });
     });
   });
