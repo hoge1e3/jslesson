@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__."/../Modules.php";
-req("dbconf");
-//require_once "db/config.php";
+if (!defined("PDO_DSN")) {//deprecated (moved to config/config.php)
+    require_once "db/config.php";
+}
 
 function pdo() {
     global $pdo_dbh;

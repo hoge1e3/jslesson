@@ -323,3 +323,16 @@ nowait \deg(d) {
     if (_err) throw _err;
     return _res;
 }
+\putToServer(key,value) {
+    var p=window.$.ajax(window.runtimePath+"a.php?KeyValue/put&key="+key+"&value="+value);
+    var r;
+    r=waitFor(p);
+    return r;
+}
+\getFromServer(key) {
+    var p=window.$.ajax(window.runtimePath+"a.php?KeyValue/get&key="+key);
+    var r;
+    r=waitFor(p);
+    return r;
+}
+

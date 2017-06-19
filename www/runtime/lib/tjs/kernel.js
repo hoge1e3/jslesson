@@ -1447,8 +1447,96 @@ Tonyu.klass.define({
         }
       });
     },
+    putToServer :function _trc_Parent_putToServer(key,value) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      var p;
+      var r;
+      
+      $LASTPOS=1008572;//jslker.Parent:8572
+      p = window.$.ajax(window.runtimePath+"a.php?KeyValue/put&key="+key+"&value="+value);
+      $LASTPOS=1008664;//jslker.Parent:8664
+      r;
+      $LASTPOS=1008676;//jslker.Parent:8676
+      r=_this.waitFor(p);
+      return r;
+    },
+    fiber$putToServer :function _trc_Parent_f_putToServer(_thread,key,value) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var p;
+      var r;
+      
+      $LASTPOS=1008572;//jslker.Parent:8572
+      p = window.$.ajax(window.runtimePath+"a.php?KeyValue/put&key="+key+"&value="+value);
+      $LASTPOS=1008664;//jslker.Parent:8664
+      r;
+      
+      _thread.enter(function _trc_Parent_ent_putToServer(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1008676;//jslker.Parent:8676
+            _this.fiber$waitFor(_thread, p);
+            __pc=1;return;
+          case 1:
+            r=_thread.retVal;
+            
+            _thread.exit(r);return;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    getFromServer :function _trc_Parent_getFromServer(key) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      var p;
+      var r;
+      
+      $LASTPOS=1008736;//jslker.Parent:8736
+      p = window.$.ajax(window.runtimePath+"a.php?KeyValue/get&key="+key);
+      $LASTPOS=1008812;//jslker.Parent:8812
+      r;
+      $LASTPOS=1008824;//jslker.Parent:8824
+      r=_this.waitFor(p);
+      return r;
+    },
+    fiber$getFromServer :function _trc_Parent_f_getFromServer(_thread,key) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var p;
+      var r;
+      
+      $LASTPOS=1008736;//jslker.Parent:8736
+      p = window.$.ajax(window.runtimePath+"a.php?KeyValue/get&key="+key);
+      $LASTPOS=1008812;//jslker.Parent:8812
+      r;
+      
+      _thread.enter(function _trc_Parent_ent_getFromServer(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1008824;//jslker.Parent:8824
+            _this.fiber$waitFor(_thread, p);
+            __pc=1;return;
+          case 1:
+            r=_thread.retVal;
+            
+            _thread.exit(r);return;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
     __dummy: false
   },
-  decls: {"methods":{"main":{"nowait":false},"__getter__Math":{"nowait":true},"__getter__document":{"nowait":true},"setInterval":{"nowait":false},"setTimeout":{"nowait":false},"catchException":{"nowait":false},"addText":{"nowait":false},"setText":{"nowait":false},"onClick":{"nowait":false},"onTouch":{"nowait":false},"setCanvas":{"nowait":false},"searchCanvas":{"nowait":false},"setColor":{"nowait":false},"fillRect":{"nowait":false},"getNumber":{"nowait":false},"getText":{"nowait":false},"setNumber":{"nowait":false},"changeImage":{"nowait":false},"move":{"nowait":false},"transform":{"nowait":false},"rotate":{"nowait":false},"resize":{"nowait":false},"wait":{"nowait":false},"rnd":{"nowait":false},"setBGColor":{"nowait":false},"newElement":{"nowait":false},"fillOval":{"nowait":false},"drawLine":{"nowait":false},"clearRect":{"nowait":false},"fillText":{"nowait":false},"new":{"nowait":false},"getkey":{"nowait":false},"dist":{"nowait":false},"angle":{"nowait":false},"rad":{"nowait":true},"deg":{"nowait":true},"sqrt":{"nowait":false},"sin":{"nowait":false},"cos":{"nowait":false},"tan":{"nowait":false},"parallel":{"nowait":false},"waitClick":{"nowait":false},"_waitFor":{"nowait":false},"waitFor":{"nowait":false}}}
+  decls: {"methods":{"main":{"nowait":false},"__getter__Math":{"nowait":true},"__getter__document":{"nowait":true},"setInterval":{"nowait":false},"setTimeout":{"nowait":false},"catchException":{"nowait":false},"addText":{"nowait":false},"setText":{"nowait":false},"onClick":{"nowait":false},"onTouch":{"nowait":false},"setCanvas":{"nowait":false},"searchCanvas":{"nowait":false},"setColor":{"nowait":false},"fillRect":{"nowait":false},"getNumber":{"nowait":false},"getText":{"nowait":false},"setNumber":{"nowait":false},"changeImage":{"nowait":false},"move":{"nowait":false},"transform":{"nowait":false},"rotate":{"nowait":false},"resize":{"nowait":false},"wait":{"nowait":false},"rnd":{"nowait":false},"setBGColor":{"nowait":false},"newElement":{"nowait":false},"fillOval":{"nowait":false},"drawLine":{"nowait":false},"clearRect":{"nowait":false},"fillText":{"nowait":false},"new":{"nowait":false},"getkey":{"nowait":false},"dist":{"nowait":false},"angle":{"nowait":false},"rad":{"nowait":true},"deg":{"nowait":true},"sqrt":{"nowait":false},"sin":{"nowait":false},"cos":{"nowait":false},"tan":{"nowait":false},"parallel":{"nowait":false},"waitClick":{"nowait":false},"_waitFor":{"nowait":false},"waitFor":{"nowait":false},"putToServer":{"nowait":false},"getFromServer":{"nowait":false}}}
 });
 //# sourceMappingURL=concat.js.map

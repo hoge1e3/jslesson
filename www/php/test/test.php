@@ -1,9 +1,10 @@
 <?php
-$mesg=true;
+echo BA_TOP."<BR>".BA_FS."<BR>".BA_LOG."<BR>".BA_HOME."<BR>".BA_PUB."<BR>";
+/*$mesg=true;
 echo "hoge=".($mesg=="requirepass");
 if ($mesg=="requirepass") {
     echo "requirepass";
-}
+}*/
 /*req("BAClass","pdo","auth");
 $c=new BAClass("devel");
 echo "PassREQ==".$c->passwordRequired()."!";

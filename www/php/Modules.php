@@ -70,6 +70,7 @@ $mod_aliases=array(
     "KeyValueController"=>"php/data",
     "DateUtil"=>"php",
     //----/AUTOGEN
+    "config"=>"config/config.php",
     "dbconf"=>"db/config.php",
     'foo' =>'bar'
 );
