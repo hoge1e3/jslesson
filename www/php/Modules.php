@@ -66,22 +66,26 @@ $mod_aliases=array(
     'server' => 'php/websock/server.php',
     "MarkTimeController" => "php/analysis/MarkTimeController.php",
     "LogFileToDBController" => "php/analysis",
+    "KeyValue"=>"php/data",
+    "KeyValueController"=>"php/data",
     "DateUtil"=>"php",
     //----/AUTOGEN
+    "dbconf"=>"db/config.php",
     'foo' =>'bar'
 );
 function req() {
     global $mod_aliases;
+    $top= __DIR__."/..";
     $args=func_get_args();
     foreach ($args as $a) {
         if (!isset($mod_aliases[$a])) {
             throw new Exception("module $a is not defined");
-        } 
+        }
         $fn=$mod_aliases[$a];
         if (!preg_match("/\\.php$/",$fn)) {
             $fn="$fn/$a.php";
         }
-        require_once $fn;
+        require_once $top."/".$fn;
     }
 }
 if (isset($_GET["foefosjvoisdjove9"])) {

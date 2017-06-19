@@ -125,6 +125,7 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
             }
             requirejs(["LocalBrowser"],function (LocalBrowser) {
                 var hidden=$("<div>").hide().appendTo("body");
+                dialogClosed=false;
                 var b=new LocalBrowser(hidden);
                 b.open(file,{
                     onerror:function (message, source, lineno, colno,ex) {

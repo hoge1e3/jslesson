@@ -306,3 +306,20 @@ nowait \deg(d) {
     }
     $("[name="+elem+"]").off("click","",_func);
 }
+\_waitFor(promise) {
+    var t=_thread;
+    t.suspend();
+    _err=null;
+    promise.then(\(r) {
+        _res=r;
+        t.steps();
+    },\(e) {
+        _err=e||"Error";
+        t.steps();
+    });
+}
+\waitFor(promise) {
+    _waitFor(promise);
+    if (_err) throw _err;
+    return _res;
+}

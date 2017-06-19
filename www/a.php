@@ -1,15 +1,17 @@
 <?php
 // Branch: master
-require_once"php/ErrorHandler.php";
-require_once"php/Modules.php";
+require_once __DIR__."/config/config.php";
+require_once __DIR__."/php/Modules.php";
+req("ErrorHandler");
+//require_once __DIR__."/php/ErrorHandler.php";
 function redirect($url,$params=null) {
     header("Location: a.php?$url&$params");
 }
 if (isset($argv[1]) && $argv[1]!="") {
     $qs=$argv[1];
-    require_once"php/MySession.php";
-    MySession::startWith($argv[2]);   
-} else {    
+    req("MySession");
+    MySession::startWith($argv[2]);
+} else {
     $qs=$_SERVER["QUERY_STRING"];
 }
 $action=preg_replace("/&.*/","",$qs);
@@ -45,8 +47,6 @@ $actions=array(
     "TagVsCluster"=>"php/analysis/TagVsCluster.php",
     "runit"=>"php/runit.php",
     "test"=>"php/test/test.php",
-    //"Teacher"=>"php/teacher/TeacherController.php",
-    //"Class"=>"php/teacher/ClassController.php",
     "resetRequests"=>"php/teacher/resetRequests.php",
     ""=>"index.html",
     "dummy"=>"hoge"

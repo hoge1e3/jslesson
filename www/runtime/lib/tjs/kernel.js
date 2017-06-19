@@ -1350,8 +1350,105 @@ Tonyu.klass.define({
         }
       });
     },
+    _waitFor :function _trc_Parent__waitFor(promise) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      var t;
+      
+      $LASTPOS=1008264;//jslker.Parent:8264
+      t = null;
+      $LASTPOS=1008284;//jslker.Parent:8284
+      t.suspend();
+      $LASTPOS=1008302;//jslker.Parent:8302
+      _this._err=null;
+      $LASTPOS=1008318;//jslker.Parent:8318
+      promise.then((function anonymous_8331(r) {
+        
+        $LASTPOS=1008347;//jslker.Parent:8347
+        _this._res=r;
+        $LASTPOS=1008364;//jslker.Parent:8364
+        t.steps();
+      }),(function anonymous_8382(e) {
+        
+        $LASTPOS=1008398;//jslker.Parent:8398
+        _this._err=e||"Error";
+        $LASTPOS=1008424;//jslker.Parent:8424
+        t.steps();
+      }));
+    },
+    fiber$_waitFor :function _trc_Parent_f__waitFor(_thread,promise) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var t;
+      
+      $LASTPOS=1008264;//jslker.Parent:8264
+      t = _thread;
+      $LASTPOS=1008284;//jslker.Parent:8284
+      t.suspend();
+      $LASTPOS=1008302;//jslker.Parent:8302
+      _this._err=null;
+      $LASTPOS=1008318;//jslker.Parent:8318
+      promise.then((function anonymous_8331(r) {
+        
+        $LASTPOS=1008347;//jslker.Parent:8347
+        _this._res=r;
+        $LASTPOS=1008364;//jslker.Parent:8364
+        t.steps();
+      }),(function anonymous_8382(e) {
+        
+        $LASTPOS=1008398;//jslker.Parent:8398
+        _this._err=e||"Error";
+        $LASTPOS=1008424;//jslker.Parent:8424
+        t.steps();
+      }));
+      
+      _thread.retVal=_this;return;
+    },
+    waitFor :function _trc_Parent_waitFor(promise) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      
+      $LASTPOS=1008473;//jslker.Parent:8473
+      _this._waitFor(promise);
+      $LASTPOS=1008497;//jslker.Parent:8497
+      if (_this._err) {
+        throw _this._err;
+        
+      }
+      return _this._res;
+    },
+    fiber$waitFor :function _trc_Parent_f_waitFor(_thread,promise) {
+      "use strict";
+      var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      
+      _thread.enter(function _trc_Parent_ent_waitFor(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1008473;//jslker.Parent:8473
+            _this.fiber$_waitFor(_thread, promise);
+            __pc=1;return;
+          case 1:
+            
+            $LASTPOS=1008497;//jslker.Parent:8497
+            if (_this._err) {
+              throw _this._err;
+              
+            }
+            _thread.exit(_this._res);return;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
     __dummy: false
   },
-  decls: {"methods":{"main":{"nowait":false},"__getter__Math":{"nowait":true},"__getter__document":{"nowait":true},"setInterval":{"nowait":false},"setTimeout":{"nowait":false},"catchException":{"nowait":false},"addText":{"nowait":false},"setText":{"nowait":false},"onClick":{"nowait":false},"onTouch":{"nowait":false},"setCanvas":{"nowait":false},"searchCanvas":{"nowait":false},"setColor":{"nowait":false},"fillRect":{"nowait":false},"getNumber":{"nowait":false},"getText":{"nowait":false},"setNumber":{"nowait":false},"changeImage":{"nowait":false},"move":{"nowait":false},"transform":{"nowait":false},"rotate":{"nowait":false},"resize":{"nowait":false},"wait":{"nowait":false},"rnd":{"nowait":false},"setBGColor":{"nowait":false},"newElement":{"nowait":false},"fillOval":{"nowait":false},"drawLine":{"nowait":false},"clearRect":{"nowait":false},"fillText":{"nowait":false},"new":{"nowait":false},"getkey":{"nowait":false},"dist":{"nowait":false},"angle":{"nowait":false},"rad":{"nowait":true},"deg":{"nowait":true},"sqrt":{"nowait":false},"sin":{"nowait":false},"cos":{"nowait":false},"tan":{"nowait":false},"parallel":{"nowait":false},"waitClick":{"nowait":false}}}
+  decls: {"methods":{"main":{"nowait":false},"__getter__Math":{"nowait":true},"__getter__document":{"nowait":true},"setInterval":{"nowait":false},"setTimeout":{"nowait":false},"catchException":{"nowait":false},"addText":{"nowait":false},"setText":{"nowait":false},"onClick":{"nowait":false},"onTouch":{"nowait":false},"setCanvas":{"nowait":false},"searchCanvas":{"nowait":false},"setColor":{"nowait":false},"fillRect":{"nowait":false},"getNumber":{"nowait":false},"getText":{"nowait":false},"setNumber":{"nowait":false},"changeImage":{"nowait":false},"move":{"nowait":false},"transform":{"nowait":false},"rotate":{"nowait":false},"resize":{"nowait":false},"wait":{"nowait":false},"rnd":{"nowait":false},"setBGColor":{"nowait":false},"newElement":{"nowait":false},"fillOval":{"nowait":false},"drawLine":{"nowait":false},"clearRect":{"nowait":false},"fillText":{"nowait":false},"new":{"nowait":false},"getkey":{"nowait":false},"dist":{"nowait":false},"angle":{"nowait":false},"rad":{"nowait":true},"deg":{"nowait":true},"sqrt":{"nowait":false},"sin":{"nowait":false},"cos":{"nowait":false},"tan":{"nowait":false},"parallel":{"nowait":false},"waitClick":{"nowait":false},"_waitFor":{"nowait":false},"waitFor":{"nowait":false}}}
 });
 //# sourceMappingURL=concat.js.map

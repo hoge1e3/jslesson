@@ -39,8 +39,8 @@ try {
     //$pdo = new PDO('pgsql:host=localhost;port=5432;dbname=ddb2013',"ddb","");
     //require_once "db/db.php";
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    
-    // デフォルトのフェッチモードを連想配列形式に設定 
+
+    // デフォルトのフェッチモードを連想配列形式に設定
     // (毎回PDO::FETCH_ASSOCを指定する必要が無くなる)
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
     foreach ($pdo->query("select * from fruit") as $rec) {
@@ -117,5 +117,3 @@ print "<BR>\n";
 */
 
 ?>
-
-
