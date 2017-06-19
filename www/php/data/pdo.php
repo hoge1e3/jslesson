@@ -13,12 +13,62 @@ function pdo() {
 }
 function pdo_new() {
     if (defined("PDO_USER")) {
-        return new PDO(PDO_DSN,PDO_USER,PDO_PASS);
+        $dbh=new PDO(PDO_DSN,PDO_USER,PDO_PASS);
     } else {
         $dbh=new PDO(PDO_DSN);
-        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        return $dbh;
     }
+    $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    return $dbh;
 }
-
+function pdo_select1() {
+    $rs=call_user_func_array("pdo_select",func_get_args());
+    foreach($rs as $r) {
+        return $r;
+    }
+    return null;
+}
+function pdo_select() {
+    $pdo=pdo();
+    $a=func_get_args();
+    $q=array_shift($a);
+    //echo $q;var_dump($a);
+    $sth=$pdo->prepare($q);
+    $sth->execute($a);
+    return $sth->fetchAll(PDO::FETCH_OBJ);
+}
+function pdo_insert($tbl, $vals) {
+    $pdo=pdo();
+    $q="insert into `$tbl`(";
+    $vs="";$com="";$vary=array();
+    foreach ($vals as $k=>$v) {
+        $q.="$com`$k`";
+        $vs.="$com?";
+        $com=", ";
+        array_push($vary,$v);
+    }
+    $q.=") values ($vs)";
+    //echo $q;var_dump($vary);
+    $sth=$pdo->prepare($q);
+    $sth->execute($vary);
+}
+function pdo_update($tbl,$key,$vals) {
+    $pdo=pdo();
+    $q="update `$tbl` set ";
+    $vs="";$com="";$vary=array();
+    $keyval=null;
+    foreach ($vals as $k=>$v) {
+        if ($k==$key) {
+            $keyval=$v;
+            continue;
+        }
+        $q.="$com`$k`=?";
+        $com=", ";
+        array_push($vary,$v);
+    }
+    $q.=" where `$key`=?";
+    array_push($vary, $keyval);
+    //echo $q;var_dump($vary);
+    $sth=$pdo->prepare($q);
+    $sth->execute($vary);
+}
 ?>

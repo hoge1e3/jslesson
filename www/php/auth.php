@@ -17,7 +17,7 @@ req("BATeacher");
 //ini_set('session.gc_divisor',1);
 //ini_set('session.gc_probability',1);
 
-$fs=new NativeFS(); 
+$fs=new NativeFS();
 $userDir=new SFile($fs,"user/");
 class Auth {
     const TEACHER="teacher";
@@ -99,7 +99,7 @@ class Auth {
 	    }
     }
     static function loginUser($class,$user,$pass){
-        //TODO    
+        //TODO
 	    $pdo = pdo();
     	$sth=$pdo->prepare("select * from user where class = ? and name = ? and pass = ?");
     	$sth->execute(array($class,$user,$pass));
@@ -121,7 +121,7 @@ class Auth {
         }
     }
     static function isTeacher() {//旧バージョン
-        return self::curUser()==self::TEACHER;       
+        return self::curUser()==self::TEACHER;
     }
     static function curTeacher() {
         return self::isTeacher2();
@@ -130,7 +130,7 @@ class Auth {
 	   if (MySession::has("teacher")) {
     	   $t=MySession::get("teacher");
     	   return new BATeacher($t);
-	   } 
+	   }
 	   return null;
         //return self::curUser2()->isTeacher();
     }
@@ -146,7 +146,7 @@ class Auth {
         } else {
             throw new Exception("You are not teacher of ".$class->id);
         }
-    } 
+    }
     static function isTeacherOf($class){
         //現在ログインしているユーザは$class の教員roleを持つか？
         $t=self::isTeacher2();
@@ -189,7 +189,7 @@ class Auth {
     }
     static function homeDir(){
         if (!self::loggedIn()) throw new Exception("Not logged in");
-        return "/home/".self::curClass()."/".self::curUser()."/";   
+        return "/home/".self::curClass()."/".self::curUser()."/";
     }
     static function home() {
         return new SFile(self::getFS(),self::homeDir());
@@ -206,6 +206,11 @@ class Auth {
 	   	} else {
 	   	    return null;
 	   	}
+    }
+    static function getPublishedDir($project) {
+        req("Published");
+        $user=self::curUser2();
+        return Published::getURL($user->_class->id, $user->name, $project);
     }
 }
 ?>

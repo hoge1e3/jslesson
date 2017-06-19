@@ -27,8 +27,8 @@ class LoginController {
     	</ul>
     	<a href="index.html">戻る</a><br>
     	<a href="?Teacher/login">教員の方はこちら</a>
-    <?php 
-    } 
+    <?php
+    }
     static function curClass() {
         $u=Auth::curUser2();
         if ($u)	print $u->_class->id;
@@ -69,7 +69,7 @@ class LoginController {
     	} else {
     	    self::form();
     	}
-    } 
+    }
     static function su() {// nariSUmasi
         $class=$_GET["class"];
         $userN=$_GET["user"];
@@ -94,7 +94,7 @@ class LoginController {
     	} else {
     	    self::passForm();
     	}
-    } 
+    }
     static function passForm() {
         $class=$_POST["class"];
         $user=$_POST["user"];
@@ -165,7 +165,11 @@ class LoginController {
             self::$mesg=$mesg;
             return self::register();
         }
-    	
+
+    }
+    static function getPublishedDir() {
+        $p=$_GET["project"];
+        echo Auth::getPublishedDir($p);
     }
 }
 ?>

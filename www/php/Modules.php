@@ -69,6 +69,7 @@ $mod_aliases=array(
     "KeyValue"=>"php/data",
     "KeyValueController"=>"php/data",
     "DateUtil"=>"php",
+    "Published"=>"php/user",
     //----/AUTOGEN
     "config"=>"config/config.php",
     "dbconf"=>"db/config.php",
