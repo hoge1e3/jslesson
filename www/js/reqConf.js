@@ -258,6 +258,7 @@ var reqConf={
             DtlBuilder:"build/dolittle/DtlBuilder",
             CBuilder:"build/c/CBuilder",
             wget:"fs2/wget",
+            zgenerator:"ctrans/zgenerator",
             logToServer: "jsl/logToServer",
             logToServer2: "jsl/logToServer2",
             "foo":"bar"

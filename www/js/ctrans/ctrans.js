@@ -1200,14 +1200,14 @@ window.MinimalParser= function () {
                 func="function* ";
             }
             rst=compound_statement_part.and(t("}")).ret(function (states) {
-                return ["scopes_"+depth,".",name,"=",
+                return extend(["scopes_"+depth,".",name,"=",
                     func,name,"(){",
     				"var ",curScopesName(),"={};",
                     "var ARGS=Array.prototype.slice.call(arguments);\n",
                     getParams,
 			        states,
         			"};"
-                ];
+                ],{type:"funcDecl",declarator:decl,statements:states});
             }).parse(st);
         });
         if (rst && rst.success) {
@@ -1261,14 +1261,14 @@ window.MinimalParser= function () {
                 func="function* ";
             }
             rst=t("{").and(compound_statement_part).and(t("}")).ret(function (_,states) {
-                return ["scopes_"+depth,".",name,"=",
+                return extend(["scopes_"+depth,".",name,"=",
                     func,name,"(){",
     				"var ",curScopesName(),"={};",
                     "var ARGS=Array.prototype.slice.call(arguments);\n",
                     getParams,
 			        states,
         			"};"
-                ];
+                ],{type:"funcDef",declarator:decl, statements:states});
             }).parse(st);
         });
         if (rst && rst.success) {
@@ -1375,7 +1375,7 @@ window.MinimalParser= function () {
     var topdecl = newDecl;
     //var topdecl = func.or(declaration);
 	program=newScope(topdecl.rep0()).and(space).and(sp.eof).ret(function (decls,space,eof){
-	    return decls;
+	    return extend(decls,{type:"program",decls:decls});
 	});
 
 	//preprocess
@@ -1446,6 +1446,7 @@ window.MinimalParser= function () {
 		    //ne.original=e;
 		    throw ne;
 		}
+        window.lastOutput=output;
     	return output;
     	function rowcol(p) {
 			var max=processed.substring(0,p);

@@ -82,6 +82,7 @@ return IndentBuffer=function (options) {
 				i++;
 			} else if (fstr=="%") {
 				$.print("%");
+                i++;
 			} else if (fstr=="f") {
 				shiftArg()($);
 				i++;
@@ -141,7 +142,7 @@ return IndentBuffer=function (options) {
 	};
 	$.addMapping=function (token) {
 	    //console.log("Token",token,$.srcFile+"");
-	    if (!$.srcFile) return ;    
+	    if (!$.srcFile) return ;
 	    // token:extend({text:String},{pos:Number}|{row:Number,col:Number})
 	    var rc;
 	    if (typeof token.row=="number" && typeof token.col=="number") {
