@@ -565,23 +565,21 @@ function ready() {
                 var curHTMLFile=curFiles[0];
                 var curLogicFile=curFiles[1];
 
-                var pub=Auth.publishedDir(curProjectDir.name());
+                var pub;
                 //var pub=Auth.remotePublics()/*FS.get("/public/")*/.rel(curProjectDir.name());
                 SplashScreen.show();
-                DU.timeout(0).then(function () {
-                    //alert(curLogicFile.path());
+                Auth.publishedDir(curProjectDir.name()).then(function (_p) {
+                    pub=_p;
                     return builder.build({mainFile:curLogicFile});
                 }).then(function () {
-                    //if (window.SplashScreen) window.SplashScreen.progress("Upload contents...");
                     return builder.upload(pub);
                 }).then(function () {
                     SplashScreen.hide();
+                    return Auth.publishedURL(curProjectDir.name());
+                }).then(function (_u) {
                     var cv=$("<div>");
                     cv.dialog();
-                    runURL=Auth.publishedURL(curProjectDir.name())+curHTMLFile.name();
-                    //runURL=WebSite.published+Auth.class+"/"+
-                    //Auth.user+"/public/"+pub.name()+curHTMLFile.name();
-                    //alert("synced "+runURL);
+                    runURL=_u+curHTMLFile.name();
                     cv.append($("<div>").append(
                         $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
                     ));
@@ -627,21 +625,24 @@ function ready() {
         if(lang=="js"){
     	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
             SplashScreen.show();
-            var pub=Auth.publishedDir(curProjectDir.name());
             //RunDialog2 (new version)
             try {
                 DU.timeout(0).then(function () {
                     var b=builder.build({mainFile:curJSFile});
                     if (ALWAYS_UPLOAD) {
                         return b.then(function () {
+                            return Auth.publishedDir(curProjectDir.name());
+                        }).then(function (pub) {
                             builder.upload(pub);
                         });
                     }
                     return b;
                 }).then(function () {
                     if (ALWAYS_UPLOAD) {
-                        var runURL=Auth.publishedURL(curProjectDir.name())+curHTMLFile.name();
-                        $("<iframe>").attr({src:runURL}).dialog({width:600,height:400});
+                        Auth.publishedURL(curProjectDir.name()).then(function (pub) {
+                            var runURL=pub+curHTMLFile.name();
+                            $("<iframe>").attr({src:runURL}).dialog({width:600,height:400});
+                        });
                         return;
                     }
                     //console.log(ram.ls());

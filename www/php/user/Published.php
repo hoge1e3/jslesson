@@ -12,7 +12,7 @@ class Published {
         if ($r) {
             return $r->url;
         }
-        $url=substr(md5("$class/$user/$project/"),0,8)."/";
+        $url=substr(md5("$class/$user/$project"),0,8)."/";
         pdo_insert("published",array("url"=>$url, "class"=>$class, "user"=>$user, "project"=>$project));
         return $url;
     }

@@ -34,14 +34,22 @@ define(["FS","md5"], function (FS,md5) {
         genHash:function (projectName) {
             return md5(this.class+"/"+this.user+"/"+projectName).substring(0,8)+"/";
         },
+        getHash: function (projectName) {
+            return $.ajax("a.php?Login/getPublishedDir",{
+                data: {
+                    project: projectName
+                }
+            })
+        },
         publishedDir: function (projectName) {
-            return FS.get("/pub/"+this.genHash(projectName));
-            //return this.remotePublics().rel(projectName);
+            return this.getHash(projectName).then(function (name){
+                return FS.get("/pub/"+name);
+            });
         },
         publishedURL: function (projectName) {
-            return WebSite.published+this.genHash(projectName);
-            // http://localhost/fs/home/0123/dolittle/public/Turtle2/Raw_k6.html
-            //return WebSite.published+this.class+"/"+this.user+"/public/"+projectName;
+            return this.getHash(projectName).then(function (name) {
+                return WebSite.published+name;
+            });
         },
         remotePublics: function () {
             return this.remoteProjects().rel("public/"); //changeHOME(1)
