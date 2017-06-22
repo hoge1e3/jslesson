@@ -121,7 +121,16 @@ class BAClass{
             $res[]=$rec;
         }
         return $res;
-
+    }
+    function getLogById($logid){
+        $pdo = pdo();
+        $sth=$pdo->prepare("select * from log where class = ? and id = ?");
+        $sth->execute(array($this->id,$logid));
+        $res=array();
+        foreach ($sth->fetchAll() as $rec) {
+            $res[]=$rec;
+        }
+        return $res;
     }
 }
 

@@ -1,6 +1,9 @@
 <?php
-throw new Exception("test");
-die("TEST");
+require_once "php/fs/SyncController.php";
+header("Content-type: text/json");
+echo ("{a:3}");
+//throw new Exception("test");
+//die("TEST");
 //echo BA_TOP."<BR>".BA_FS."<BR>".BA_LOG."<BR>".BA_HOME."<BR>".BA_PUB."<BR>";
 /*$mesg=true;
 echo "hoge=".($mesg=="requirepass");

@@ -349,8 +349,7 @@ class ClassController {
                 }else{
                     $errcount[$log['user']]=1;
                 }
-                //$runhistory[$log['user']].='<span onClick="alert('."'".str_replace("\n","\\n",json_decode($log['raw'])->code->C)."'".');"><font color="red">E</font></span>';
-                $runhistory[$log['user']].='<font color="red">E</font>';
+                $runhistory[$log['user']].='<span data-id='.$log['id'].' onClick="openFrame(this.getAttribute('."'".'data-id'."'".'));"><font color="red">E</font></span>';
             }else{
                 $runhistory[$log['user']].='R';
             }
@@ -362,9 +361,26 @@ class ClassController {
         }
         ?>
         <script type="text/javascript" src="js/lib/jquery-1.12.1.js"></script>
+        <script type="text/javascript" src="js/lib/jquery-ui.js"></script>
         <script type="text/javascript" src="js/lib/jquery.tablesorter.min.js"></script>
+        <link rel="stylesheet" href="css/jquery-ui.css"></link>
         <script>
             $(document).ready(function() { 
+                dx=0,dy=0;
+                $('#detail').dialog({
+                    autoOpen:false,
+                    width:550,
+                    height:400,
+                    modal:true,
+                    open:function(content){
+                        res='<pre id="res">'+$(this).dialog('option',"res")+'</pre>';
+                        $("#detail").append(res);
+                    },
+                    close:function(){
+                        $("#res").remove();
+                    }
+                });
+
             // call the tablesorter plugin 
                 $("table").tablesorter({ 
                 // define a custom text extraction function 
@@ -377,8 +393,40 @@ class ClassController {
                         return node.innerHTML; 
                     } 
                 }); 
-            }); 
+            });
+            $(window).click(function(e){
+                $("#detail").dialog('option',{position:{
+                    of:e,
+                    at:"center bottom",
+                    my:"center top+10"
+                    
+                }});
+            })
+            function openFrame(logid){
+                $.ajax({
+                    type: "POST",
+                    url: "a.php?Class/getLog",
+                    data: "logid="+logid,
+                    dataType: "json",
+                    success: function(data,dataType){
+                        //alert("SUCCESS\n"+data.detail+"\n\n"+data.code.C);
+                        //console.log(data.code.C);
+                        //console.log(data);
+                        res=data.filename+"\n"+data.result+"\n-------------\n"+data.code.C;
+                        //ifrm=document.getElementById("viewDetail");
+                        //ifrm.contentDocument.body.innerText=res;
+                        $("#detail").dialog('option',{"res":res});
+                        $("#detail").dialog('open');
+                    },
+                    error: function(xhr, textStatus, errorThrown){
+                        console.log("ログデータの取得に失敗しました。",xhr,textStatus,errorThrown);
+                        alert("ログデータの取得に失敗しました。"+textStatus);
+                    }
+                });
+                //alert(logid);
+            }
         </script>
+        <div id="detail" style="display:none;"></div>
         <h1><?=$class->id?> - ユーザ一覧</h1>
         <a href="a.php?Class/show">クラス管理に戻る</a><hr>
         対象の時刻を変える<br>
@@ -466,6 +514,11 @@ class ClassController {
         }else{
             return Array('h'=>'--','m'=>'--','s'=>'--');
         }
+    }
+    static function getLog(){
+        $class=Auth::curClass2();
+        $logid=$_POST["logid"];
+        print_r($class->getLogById($logid)[0]["raw"]);
     }
 }
 
