@@ -70,6 +70,7 @@ $mod_aliases=array(
     "KeyValueController"=>"php/data",
     "DateUtil"=>"php",
     "Published"=>"php/user",
+    "ClassMigrationController"=>"php/user",
     //----/AUTOGEN
     "config"=>"config/config.php",
     "dbconf"=>"db/config.php",
