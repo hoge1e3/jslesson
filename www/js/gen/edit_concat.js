@@ -7124,6 +7124,7 @@ return IndentBuffer=function (options) {
 				i++;
 			} else if (fstr=="%") {
 				$.print("%");
+                i++;
 			} else if (fstr=="f") {
 				shiftArg()($);
 				i++;
@@ -7183,7 +7184,7 @@ return IndentBuffer=function (options) {
 	};
 	$.addMapping=function (token) {
 	    //console.log("Token",token,$.srcFile+"");
-	    if (!$.srcFile) return ;    
+	    if (!$.srcFile) return ;
 	    // token:extend({text:String},{pos:Number}|{row:Number,col:Number})
 	    var rc;
 	    if (typeof token.row=="number" && typeof token.col=="number") {
@@ -7287,6 +7288,7 @@ return IndentBuffer=function (options) {
 	return $;
 };
 });
+
 if (typeof define!=="function") {
    define=require("requirejs").define;
 }
@@ -13513,14 +13515,22 @@ define('Auth',["FS","md5"], function (FS,md5) {
         genHash:function (projectName) {
             return md5(this.class+"/"+this.user+"/"+projectName).substring(0,8)+"/";
         },
+        getHash: function (projectName) {
+            return $.ajax("a.php?Login/getPublishedDir",{
+                data: {
+                    project: projectName
+                }
+            })
+        },
         publishedDir: function (projectName) {
-            return FS.get("/pub/"+this.genHash(projectName));
-            //return this.remotePublics().rel(projectName);
+            return this.getHash(projectName).then(function (name){
+                return FS.get("/pub/"+name);
+            });
         },
         publishedURL: function (projectName) {
-            return WebSite.published+this.genHash(projectName);
-            // http://localhost/fs/home/0123/dolittle/public/Turtle2/Raw_k6.html
-            //return WebSite.published+this.class+"/"+this.user+"/public/"+projectName;
+            return this.getHash(projectName).then(function (name) {
+                return WebSite.published+name;
+            });
         },
         remotePublics: function () {
             return this.remoteProjects().rel("public/"); //changeHOME(1)
@@ -13529,6 +13539,7 @@ define('Auth',["FS","md5"], function (FS,md5) {
     };
     return Auth;
 });
+
 define('CommentDialog',["UI"],function (UI) {
     var res={};
     res.show=function (file, options) {
@@ -14315,23 +14326,21 @@ function ready() {
                 var curHTMLFile=curFiles[0];
                 var curLogicFile=curFiles[1];
 
-                var pub=Auth.publishedDir(curProjectDir.name());
+                var pub;
                 //var pub=Auth.remotePublics()/*FS.get("/public/")*/.rel(curProjectDir.name());
                 SplashScreen.show();
-                DU.timeout(0).then(function () {
-                    //alert(curLogicFile.path());
+                Auth.publishedDir(curProjectDir.name()).then(function (_p) {
+                    pub=_p;
                     return builder.build({mainFile:curLogicFile});
                 }).then(function () {
-                    //if (window.SplashScreen) window.SplashScreen.progress("Upload contents...");
                     return builder.upload(pub);
                 }).then(function () {
                     SplashScreen.hide();
+                    return Auth.publishedURL(curProjectDir.name());
+                }).then(function (_u) {
                     var cv=$("<div>");
                     cv.dialog();
-                    runURL=Auth.publishedURL(curProjectDir.name())+curHTMLFile.name();
-                    //runURL=WebSite.published+Auth.class+"/"+
-                    //Auth.user+"/public/"+pub.name()+curHTMLFile.name();
-                    //alert("synced "+runURL);
+                    runURL=_u+curHTMLFile.name();
                     cv.append($("<div>").append(
                         $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
                     ));
@@ -14377,21 +14386,24 @@ function ready() {
         if(lang=="js"){
     	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
             SplashScreen.show();
-            var pub=Auth.publishedDir(curProjectDir.name());
             //RunDialog2 (new version)
             try {
                 DU.timeout(0).then(function () {
                     var b=builder.build({mainFile:curJSFile});
                     if (ALWAYS_UPLOAD) {
                         return b.then(function () {
+                            return Auth.publishedDir(curProjectDir.name());
+                        }).then(function (pub) {
                             builder.upload(pub);
                         });
                     }
                     return b;
                 }).then(function () {
                     if (ALWAYS_UPLOAD) {
-                        var runURL=Auth.publishedURL(curProjectDir.name())+curHTMLFile.name();
-                        $("<iframe>").attr({src:runURL}).dialog({width:600,height:400});
+                        Auth.publishedURL(curProjectDir.name()).then(function (pub) {
+                            var runURL=pub+curHTMLFile.name();
+                            $("<iframe>").attr({src:runURL}).dialog({width:600,height:400});
+                        });
                         return;
                     }
                     //console.log(ram.ls());

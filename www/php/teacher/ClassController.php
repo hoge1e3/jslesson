@@ -351,7 +351,7 @@ class ClassController {
                 }
                 $runhistory[$log['user']].='<span data-id='.$log['id'].' onClick="openFrame(this.getAttribute('."'".'data-id'."'".'));"><font color="red">E</font></span>';
             }else{
-                $runhistory[$log['user']].='R';
+                $runhistory[$log['user']].='<span data-id='.$log['id'].' onClick="openFrame(this.getAttribute('."'".'data-id'."'".'));">R</span>';
             }
             if(!isset($errcount[$log['user']])){
                 $errcount[$log['user']]=0;
