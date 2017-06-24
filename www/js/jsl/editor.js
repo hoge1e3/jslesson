@@ -715,12 +715,13 @@ function ready() {
                   return RunDialog2.show(indexF,
                   {height:screenH,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
               }).fail(function (e) {
-                  logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Compile Error",e+"","C");
                   if (e.pos) {
+                      logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Compile Error at "+e.pos,e+"","C");
                       var te=TError(e+"",curJSFile, e.pos);
   	                  showErrorPos($("#errorPos"),te);
                       displayMode("compile_error");
                   } else {
+                      logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Compile Error",e+"","C");
                       Tonyu.onRuntimeError(e);
                   }
                   console.log("CFAIL",e.stack);

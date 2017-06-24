@@ -52,7 +52,7 @@ class ClassController {
         $class=Auth::curClass2();
         ?>
         <h1><?=$class->id?> - クラス設定</h1>
-        <?php 
+        <?php
         if($class->passwordRequired()){
             echo 'パスワード設定:使用する<br>';
             echo '<a href="a.php?Class/setPasswordNouse">使用しないに変更</a>';
@@ -108,19 +108,19 @@ class ClassController {
                 $l->filename=$tmpf[4]."/".$tmpf[5];
             }
             ?>
-            <tr><th><a href="a.php?Login/check&class=<?=$class->id?>&user=<?=$s->name?>" 
+            <tr><th><a href="a.php?Login/check&class=<?=$class->id?>&user=<?=$s->name?>"
 	            target="stutab"><?=$s->name?></a></th>
 	            <th pass="<?=$pass?>" onclick="if(this.innerHTML=='表示')this.innerHTML=this.getAttribute('pass');else this.innerHTML='表示';">表示</th>
             <th><?=$n?></th>
             </tr>
-            
+
             <?php
             /*<th><?=$l->date?>, <?=$l->time?></th><th><?=$l->filename?></th><th><?=$l->result?></th><th res="<?=$l->detail?>" onclick="alert(this.getAttribute('res'));">詳細</th>
             <th prog='<?=$l->code->C."\n---------------\n".$l->code->HTML?>' onclick="alert(this.getAttribute('prog'));">コード</th>*/
         }
         /*
-            
-        
+
+
         $class->mkdir();
         $mesg="";
         $handle=opendir("fs/home/".$class->id."/");
@@ -138,12 +138,12 @@ class ClassController {
         for($i=0;$i<count($files);$i++){
             ?>
             <!--
-            <a href="a.php?Login/su&class=<?=$class->id?>&user=<?=$files[$sortedKeys[$i]]?>" 
+            <a href="a.php?Login/su&class=<?=$class->id?>&user=<?=$files[$sortedKeys[$i]]?>"
                 target="stutab">
             -->
             <?= $files[$sortedKeys[$i]] ?>
             <!--</a>--><br/>
-            <?php 
+            <?php
         }*/
         ?>
         </table>
@@ -153,16 +153,16 @@ class ClassController {
         /*
         (BAのプロジェクト編集画面からAjaxで要求)
         メニュー構成：
-        配布 → 
+        配布 →
             ファイル ${file}（ファイル名）を配布
             プロジェクト ${dir}（プロジェクト名）を配布
-        
+
         パラメタ
         class クラスID
         prj   プロジェクト名
         file  ファイル名（ファイルのコピーの場合．ディレクトリまるごとの場合省略する)
         cont  中身（穴が開いている状態の）
-        
+
         classの各ユーザの同一フォルダ/同一ファイルにコピー
         ファイルの場合，options.json もコピーする
         もし同一ファイルがあったらコピーしない
@@ -204,7 +204,7 @@ class ClassController {
                 }
          */ }
         }
-        
+
         foreach($class->getAllStu() as $bau){
             $u=$home->rel($bau->name."/");
             $p=$u->rel($prj);
@@ -223,8 +223,8 @@ class ClassController {
             }
             */
         }
-        
-        
+
+
         print("配布しました");
     }
     static function registerUserForm() {
@@ -303,7 +303,7 @@ class ClassController {
                 }
             }
         }
-        
+
     }
     static function showStatus(){
         date_default_timezone_set('Asia/Tokyo');
@@ -365,7 +365,7 @@ class ClassController {
         <script type="text/javascript" src="js/lib/jquery.tablesorter.min.js"></script>
         <link rel="stylesheet" href="css/jquery-ui.css"></link>
         <script>
-            $(document).ready(function() { 
+            $(document).ready(function() {
                 dx=0,dy=0;
                 $('#detail').dialog({
                     autoOpen:false,
@@ -381,25 +381,25 @@ class ClassController {
                     }
                 });
 
-            // call the tablesorter plugin 
-                $("table").tablesorter({ 
-                // define a custom text extraction function 
-                    textExtraction: function(node) { 
-                        // extract data from markup and return it  
+            // call the tablesorter plugin
+                $("table").tablesorter({
+                // define a custom text extraction function
+                    textExtraction: function(node) {
+                        // extract data from markup and return it
                         console.log(node.getAttribute("data-rate"));
                         if(node.getAttribute("data-rate")!=null){
                             return (parseInt(node.getAttribute("data-rate"))+100)+"";
                         }
-                        return node.innerHTML; 
-                    } 
-                }); 
+                        return node.innerHTML;
+                    }
+                });
             });
             $(window).click(function(e){
                 $("#detail").dialog('option',{position:{
                     of:e,
                     at:"center bottom",
                     my:"center top+10"
-                    
+
                 }});
             })
             function openFrame(logid){
@@ -497,7 +497,7 @@ class ClassController {
             <td bgcolor=<?=$timecaution?>><?=str_pad($time['h'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['m'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['s'],2,0,STR_PAD_LEFT)?></td>
             <td><?=$latestfile[$k]?></td><td><?=$runhistory[$k]?></td>
             </tr>
-            
+
             <?php
         }
         ?>
@@ -518,7 +518,8 @@ class ClassController {
     static function getLog(){
         $class=Auth::curClass2();
         $logid=$_POST["logid"];
-        print_r($class->getLogById($logid)[0]["raw"]);
+        $lg=$class->getLogById($logid);
+        print_r($lg[0]["raw"]);
     }
 }
 
