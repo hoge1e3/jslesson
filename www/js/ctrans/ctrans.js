@@ -834,7 +834,7 @@ window.MinimalParser= function () {
 			    ):
 			    defaultInitializer(declarator.vtype,ctx.depth),";\n"
 			];
-			if (
+			/*if (
 			    (declarator.vtype) instanceof T.Array
 			    && initializer
 			    && initializer.type==="arrayInit"
@@ -844,7 +844,7 @@ window.MinimalParser= function () {
     			    dtl,",",
     			    ctx.depth>0,
     			");\n"]);
-			}
+			}*/
 			/*if(declarator.isArray){
 				$.isArray=declarator.isArray;
 				$.isLength=declarator.isLength;

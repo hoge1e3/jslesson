@@ -41,8 +41,8 @@ function scanf(line, dest) {
 	line=ch_ptr_to_str(line);
 	if (scanf.STDIN) {
 	    afterScan(scanf.STDIN.shift());
-	} else if (window.AsyncByGenerator && 
-	    window.AsyncByGenerator.supportsGenerator && 
+	} else if (window.AsyncByGenerator &&
+	    window.AsyncByGenerator.supportsGenerator &&
 	    $("#console")[0]) {
 	    return new Promise(function (p) {
 	        var box=$("<input>").on("keydown",function (e) {
@@ -50,7 +50,7 @@ function scanf(line, dest) {
 	            if (e.originalEvent.keyCode==13) {
 	                $(this).remove();
 	                p(this.value);
-	            }   
+	            }
 	        });
 	        $("#console").append(box);
 	        box.focus();
@@ -81,7 +81,7 @@ function scanf(line, dest) {
     		dest=null;
     	    break;
     	}
-    	
+
     	if(dest && typeof dest.write=="function") {
     	    if (dest.type instanceof CType.Base) {
         		dest.write(cast(dest.type,val));
@@ -93,6 +93,58 @@ function scanf(line, dest) {
     }
 }
 function printf() {
+	// from http://d.hatena.ne.jp/uupaa/20080301/1204380616
+    var rv = [], i = 0, v, width, precision, sign, idx, argv = arguments, next = 0;
+    var unsign = function(val) { return (val >= 0) ? val : val % 0x100000000 + 0x100000000; };
+    var getArg = function() { return argv[idx ? idx - 1 : next++]; };
+	var parseInt2=function (arg) {
+		var res=0;
+		switch(typeof arg){
+		case "number": case "boolean":
+			res=cast(CType.int,arg);
+			break;
+		}
+		return res;
+	};
+	var s = (ch_ptr_to_str(getArg())+ "     ").split(""); // add dummy 5 chars.
+
+    for (; i < s.length - 5; ++i) {
+      if (s[i] !== "%") { rv.push(s[i]); continue; }
+
+      ++i, idx = 0, precision = undefined;
+
+      // arg-index-specifier
+      if (!isNaN(parseInt(s[i])) && s[i + 1] === "$") { idx = parseInt(s[i]); i += 2; }
+      // sign-specifier
+      sign = (s[i] !== "#") ? false : ++i, true;
+      // width-specifier
+      width = (isNaN(parseInt(s[i]))) ? 0 : parseInt(s[i++]);
+      // precision-specifier
+      if (s[i] === "." && !isNaN(parseInt(s[i + 1]))) { precision = parseInt(s[i + 1]); i += 2; }
+
+      switch (s[i]) {
+      case "d": v = parseInt2(getArg()).toString(); break;
+      case "u": v = parseInt2(getArg()); if (!isNaN(v)) { v = unsign(v).toString(); } break;
+      case "o": v = parseInt2(getArg()); if (!isNaN(v)) { v = (sign ? "0"  : "") + unsign(v).toString(8); } break;
+      case "x": v = parseInt2(getArg()); if (!isNaN(v)) { v = (sign ? "0x" : "") + unsign(v).toString(16); } break;
+      case "X": v = parseInt2(getArg()); if (!isNaN(v)) { v = (sign ? "0X" : "") + unsign(v).toString(16).toUpperCase(); } break;
+      case "f": v = parseFloat(getArg()).toFixed(precision||6); break;
+      case "c": width = 0; v = getArg(); v = (typeof v === "number") ? String.fromCharCode(v) : NaN; break;
+      case "s": width = 0; v = ch_ptr_to_str(getArg()); if (precision) { v = v.substring(0, precision); } break;
+      case "%": width = 0; v = s[i]; break;
+      default:  width = 0; v = "%" + ((width) ? width.toString() : "") + s[i].toString(); break;
+      }
+      if (isNaN(v)) { v = v.toString(); }
+      (v.length < width) ? rv.push(" ".repeat(width - v.length), v) : rv.push(v);
+    }
+    var line=rv.join("");
+	lineBuf.push(line);
+	if (lineBuf.length>5) lineBuf.shift();
+	var con=(printf.STDOUT||$("#console"));
+	con.append(line);
+	if (con.text().length>65536) throw new Error("printfによる出力が多すぎます");
+}
+function printfOLD() {
     //var line=format.replace(/%d/,value);
 	var args=Array.prototype.slice.call(arguments);
 	var line=args.shift();
@@ -141,7 +193,7 @@ function printf() {
 		    else if (arg.read && arg.offset) {
 		        res=ch_arr_to_str(fillStr(arg));
 		    } else if (arg instanceof Array) {
-		        res=ch_arr_to_str(arg);       
+		        res=ch_arr_to_str(arg);
 		    }*/
 		    return ch_ptr_to_str(arg);
 		case "%Q":
@@ -196,7 +248,7 @@ function fillStr(str,n) {
             if (i>100) break;
         }*/
         if (!str.read()) {
-            z=true;        
+            z=true;
         }
         if (z) {
             dst[i]=0;
@@ -211,7 +263,7 @@ function fillStr(str,n) {
 function strncpy(dst, src,n) {
     dst=pointerize(dst);
     var r=dst;
-    src=fillStr(src,n);    
+    src=fillStr(src,n);
     for (var i=0;i<n;i++) {
         dst.write(src[i]);
         dst=dst.offset(1);
@@ -291,8 +343,8 @@ function strstr(haystack, needle) {
             //console.log(i+j,j,h,n);
             if (h!==n) break;
         }
-        if (j===nlen) return haystack.offset(i); 
-    } 
+        if (j===nlen) return haystack.offset(i);
+    }
     return NULL;
 }
 function memcmp(s1,s2,n) {
@@ -321,13 +373,13 @@ function memcpy(dst, src,n) {
 function usleep(msec) {
     loop_start2();
     return new Promise(function (succ) {
-        setTimeout(succ,msec/1000); 
+        setTimeout(succ,msec/1000);
     });
 }
 function sleep(msec) {
     loop_start2();
     return new Promise(function (succ) {
-        setTimeout(succ,msec*1000); 
+        setTimeout(succ,msec*1000);
     });
 }
 RAND_MAX=0x7fffffff;
