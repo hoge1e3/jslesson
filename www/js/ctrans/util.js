@@ -51,11 +51,12 @@ function copyArray(dst,src,type) {
 }
 function copyStruct2(dst,src,type) {
     //console.log("CopyStruct",dst,src);
-    type.members.forEach(function (m) {
+    type.members.forEach(function (m,i) {
         var k=m.name+"";
-        if ((m.vtype) instanceof CType.Struct) copyStruct2(dst[k],src[k],m.vtype);
-        else if ((m.vtype) instanceof CType.Array) copyArray(dst[k],src[k],m.vtype);
-        else dst[k]=src[k];
+        var val=src.IS_POINTER ? src.offset(i).read() : src[k];
+        if ((m.vtype) instanceof CType.Struct) copyStruct2(dst[k],val,m.vtype);
+        else if ((m.vtype) instanceof CType.Array) copyArray(dst[k],val,m.vtype);
+        else dst[k]=val;
     });
     return dst;
 }
@@ -69,17 +70,25 @@ function pointer(obj,key,type,ofs) {
     return {
         obj:obj,
         key:key,
+        isValidBorder: function () {
+            if (obj instanceof Array && typeof key==="number") {
+                if (key<0 || key>=obj.length) {
+                    return false;
+                }
+            }
+            return true;
+        },
         checkBorder: function () {
             if (obj instanceof Array && typeof key==="number") {
                 if (key<0 || key>=obj.length) {
                     throw new Error("配列の"+key+"番目にアクセスしようとしました．"+
                     "この配列の有効な添字は[0]から["+(obj.length-1)+"]までです");
                 }
-            }  
+            }
         },
-        read: function () { 
+        read: function () {
             this.checkBorder();
-            return checkDust(obj[key]);
+            return obj[key];
         },
         write: function (v) { this.writeOp("=",v);},
 		writeOp:function(op,v){
@@ -173,7 +182,7 @@ function str_to_ch_ptr(str){
 function ch_ptr_to_str(ptr) {
 	var line="";
 	if (typeof ptr==="string") return ptr;
-	if (ptr instanceof Array) ptr=pointer(ptr,0); 
+	if (ptr instanceof Array) ptr=pointer(ptr,0);
 	var c;
 	for(;c=ptr.read();ptr=ptr.offset(1)){
 	    line+=(String.fromCharCode(c));
@@ -212,7 +221,7 @@ function dustValue() {
 function doNotification(mesg) {
     if (parent && parent.NotificationDialog) {
         parent.NotificationDialog.show(mesg);
-    }    
+    }
 }
 function checkDust(v,name) {
     if (v===dustValue()) {
@@ -231,7 +240,7 @@ function initialValue(vtype,hasDust) {
     } else if (vtype instanceof CType.Struct) {
         e=StructObj(vtype);
     }
-    return e;    
+    return e;
 }
 function arrInit2(vtype,length,hasDust){
     var res=[];
@@ -242,7 +251,7 @@ function arrInit2(vtype,length,hasDust){
         } else if (vtype instanceof CType.Struct) {
             e=StructObj(vtype);
         }*/
-        res.push(e);    
+        res.push(e);
     }
     return pointer(res,0);
 }
@@ -265,13 +274,45 @@ function arrInit(){
 	return res;*/
 }
 
+function constructByArrInit(type,data) {
+    //console.log("cbai",type, data.obj);
+    var ary,str;
+    function get(i) {
+        if (!data.IS_POINTER) {
+            throw new Error("初期化子の書き方が違います");
+        }
+        var o=data.offset(i);
+        if (o.isValidBorder()) {
+            return o.read();
+        } else {
+            return dustValue();
+        }
+    }
+    if (type instanceof CType.Array) {
+        ary=[];
+        for (var i=0; i<type.length ;i++ ) {
+            ary.push(constructByArrInit(type.e, get(i)));
+        }
+        return pointer(ary,0);
+    } else if (type instanceof CType.Struct) {
+        str=StructObj(type);
+        type.members.forEach(function (m,i) {
+            var v=get(i);
+            str[m.name+""]=constructByArrInit(m.vtype, v);
+        });
+        return str;
+    } else {
+        return data;
+    }
+    return cast(type,data);
+}
 function cast(type,data){
     if (!(type instanceof CType.Base)) {
         console.log("ERR",type,": not a type");
         throw new Error(type+": not a type");
-    } 
+    }
     return type.cast(data);
-    
+
 	/*type=type.replace(/ /g,"_");
 	type=type.charAt(0).toUpperCase()+type.slice(1);
 
@@ -301,12 +342,12 @@ var casts={
 
 		return res;
 	},
-	
+
 	toChar:function(param){
 		var res=0;
 		param+=0;//bool to int
 		param&=0xffffffff;
-	
+
 		//if(param&0x80)res=param|0xffffff00;
 		//else res=param;
 		res=param;

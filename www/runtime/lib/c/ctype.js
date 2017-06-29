@@ -6,7 +6,7 @@ define(["Klass","assert"],function (Klass,assert) {
         $name:"ctype::Base",
         // Check var_of_this = var_of_t; is OK?
         assignableFrom: function (t) {//ctype.Base->Boolean
-            return t===this;  
+            return t===this;
         },
         // Check var_of_this = (t)var_of_t; is OK?
         castableFrom: function (t) {//ctype.Base->Boolean
@@ -14,14 +14,14 @@ define(["Klass","assert"],function (Klass,assert) {
         },
         binOpable: function (op,right) {
             if (op+""==="=" && this.assignableFrom(t)) return this;
-            return false;  
+            return false;
         },
         toLiteral:function () {
             console.log(this);
             throw new Error("toLiteral is not defined");
         },
         cast:function(param){return param;}
-    }); 
+    });
     t.Primitive=t.Base.inherit({
         $name:"ctype::Primitive",
         $fields: {name:String},
@@ -99,14 +99,14 @@ define(["Klass","assert"],function (Klass,assert) {
         }
     });
     //  int a[3][5];    a: Array(Array(int,5) ,3)
-    //  a[i]: Array(int,5)    
+    //  a[i]: Array(int,5)
 
     //  int a[3][];  //ERR?  a: Array(Array(int,-1) ,3)
-    //  a[i]: Array(int,5)    
-    //  int *a[3];           a: 
+    //  a[i]: Array(int,5)
+    //  int *a[3];           a:
 
     //  int a[][5];          a: Array(Array(int,5) ,-1)
-    //  a[i]: Array(int,5)    
+    //  a[i]: Array(int,5)
 
     t.Pointer=t.Base.inherit({
         $:["e"],
@@ -120,11 +120,11 @@ define(["Klass","assert"],function (Klass,assert) {
             }
             if (right instanceof t.Pointer) {
                 return this.e.assignableFrom(right.e);
-            }  
+            }
             return t.Pointer.super(this,"assignableFrom",right);
         },
         binOpable: function (op,right) {
-            // TODO: === in C?? 
+            // TODO: === in C??
             if (right instanceof t.Number && (op+""==="+" || op+""==="-")) return this;
             if (right instanceof t.Number && (op+""==="==="|| op+""==="!==")) return t.int;
             if (right instanceof t.Pointer && (op+""==="==="|| op+""==="!==")) return t.int;
@@ -137,14 +137,20 @@ define(["Klass","assert"],function (Klass,assert) {
         toLiteral: function () {
             return CTYPE_NAME+".Array("+this.e.toLiteral()+","+this.length+")";
         }
+        /*cast: function (val) {
+            if (val.IS_POINTER) {
+
+            }
+            return val;
+        }*/
         /*binOpable: function (op,right) {
             if (right instanceof t.Number && (op+""==="+" || op+""==="-" || op+""==="===" || op+""==="!==")) return true;
             return this.super("binOpable",op,right);
         }*/
-    }); 
+    });
     t.Function=t.Base.inherit({
         $:["ret","args"],
-        $fields: {ret:t.Base, args:Array/*[{vname:name, vtype:t.Base}]*/},        
+        $fields: {ret:t.Base, args:Array/*[{vname:name, vtype:t.Base}]*/},
         toLiteral: function () {
             return CTYPE_NAME+".Function("+
                 this.ret.toLiteral()+",["+
@@ -165,7 +171,7 @@ define(["Klass","assert"],function (Klass,assert) {
                 return "引数の数が違います．関数定義では"+
                     len+"個受け取るよう指定されていますが，"+
                     "呼び出し側では"+argTypes.length+"個渡しています";
-            }  
+            }
             for (var i=0; i<len;i++) {
                 //TODO check type compats
                 if (!this.args[i].vtype.assignableFrom(argTypes[i])) {
@@ -210,7 +216,7 @@ define(["Klass","assert"],function (Klass,assert) {
                 if (m.name+""===name+"") {
                     res=m;
                 }
-            }); 
+            });
             return res;
         }
     });
@@ -218,7 +224,7 @@ define(["Klass","assert"],function (Klass,assert) {
         $:["e"],
         $fields:{e:t.Base},
         toLiteral: function () {
-            return CTYPE_NAME+".TypeDef("+this.e.toLiteral()+")";    
+            return CTYPE_NAME+".TypeDef("+this.e.toLiteral()+")";
         }
     });
     return t;
@@ -232,12 +238,12 @@ define(["Klass","assert"],function (Klass,assert) {
 
 		return res;
 	},
-	
+
 	toChar:function(param){
 		var res=0;
 		param+=0;//bool to int
 		param&=0xffffffff;
-	
+
 		//if(param&0x80)res=param|0xffffff00;
 		//else res=param;
 		res=param;

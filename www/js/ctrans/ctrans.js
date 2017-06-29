@@ -825,9 +825,12 @@ window.MinimalParser= function () {
 		    var dtl=typeLit(declarator.vtype);
 			var $=[curScopesName(),".",declarator,"=",
 			    initializer?
-			    ((declarator.vtype) instanceof T.Struct?
-			        ["copyStruct2(",defaultInitializer(declarator.vtype,ctx.depth),",",initializer,",",dtl,")"]:
-			        ["cast(",dtl,",",initializer,")"]
+                (initializer.type==="arrayInit"?
+                    ["constructByArrInit(",dtl,",",initializer,")"]:
+			        ((declarator.vtype) instanceof T.Struct?
+			            ["copyStruct2(",defaultInitializer(declarator.vtype,ctx.depth),",",initializer,",",dtl,")"]:
+			            ["cast(",dtl,",",initializer,")"]
+                    )
 			    ):
 			    defaultInitializer(declarator.vtype,ctx.depth),";\n"
 			];

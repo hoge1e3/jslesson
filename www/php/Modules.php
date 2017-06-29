@@ -71,6 +71,8 @@ $mod_aliases=array(
     "DateUtil"=>"php",
     "Published"=>"php/user",
     "ClassMigrationController"=>"php/user",
+    "LogAnalysisController"=>"php/analysis",
+    "JSQN"=>"php/data",
     //----/AUTOGEN
     "config"=>"config/config.php",
     "dbconf"=>"db/config.php",
