@@ -70,7 +70,6 @@ function scanf(line, dest) {
     	    break;
     	case "%f":case "%lf":
     		val=parseFloat(input);
-
     	    break;
     	case "%c":
     		val=input.charCodeAt(0);
@@ -145,7 +144,7 @@ function printf() {
 	con.append(line);
 	if (con.text().length>65536) throw new Error("printfによる出力が多すぎます");
 }
-function printf1() {
+function printfOLD() {
     //var line=format.replace(/%d/,value);
 	var args=Array.prototype.slice.call(arguments);
 	var line=args.shift();
