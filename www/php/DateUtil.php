@@ -1,11 +1,11 @@
 <?php
 date_default_timezone_set("Asia/Tokyo");
 class DateUtil {
-    static function toString($d) {
+    static function toString($d,$format="Y-m-d H:i:s") {
         if (is_int($d)) {
             $da=new DateTime();
             $da->setTimeStamp($d);
-            return $da->format("Y-m-d H:i:s");
+            return $da->format($format);
         }
         return $d;
     }
@@ -21,7 +21,7 @@ class DateUtil {
     static function getYear($d) {
         $s=self::toString($d);
         return substr($s,0,4)-0;
-    }   
+    }
     static function getMonth($d) {
         $s=self::toString($d);
         return substr($s,5,2)-0;
@@ -53,7 +53,7 @@ class DateUtil {
 /*
 $i=DateUtil::toInt("2017/04/14 15:00:09");
 echo $i." ".time()."<BR>";
-echo DateUtil::toString($i);  
+echo DateUtil::toString($i);
 $i=time();
 $s=DateUtil::toString($i);
 echo "$s $i<BR>";

@@ -415,6 +415,9 @@ class ClassController {
                         res=data.filename+"\n"+data.result+"\n-------------\n"+data.code.C;
                         //ifrm=document.getElementById("viewDetail");
                         //ifrm.contentDocument.body.innerText=res;
+                        res=res.replace(/</g,"&lt;");
+                        res=res.replace(/>/g,"&gt;");
+                        console.log(res);
                         $("#detail").dialog('option',{"res":res});
                         $("#detail").dialog('open');
                     },
