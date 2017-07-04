@@ -21,7 +21,7 @@ function update(){
     }
     return new Promise(function (succ) {
         //console.log("Sleeping for ",msec);
-        setTimeout(succ,msec); 
+        setTimeout(succ,msec);
     });
 }
 var KeyInfo={
@@ -35,7 +35,7 @@ function initX() {
     if (window.xCanvas) return window.xCanvas;
     window.xCanvas=$("<canvas>").attr({width:500,height:500});
     $("body").append(window.xCanvas);
-    
+
     var stats=KeyInfo.stats;
     $(window).keydown(function (e) {
         var s=stats[e.keyCode];
@@ -44,10 +44,10 @@ function initX() {
             stats[e.keyCode]=1;
         }
         //console.log("key2",JSON.stringify(stats));
-        
+
     });
     $(window).keyup(function (e) {
-        stats[e.keyCode]=0; 
+        stats[e.keyCode]=0;
     });
     var codes=KeyInfo.codes;
     var i;
@@ -66,7 +66,7 @@ function setColor(r,g,b) {
 }
 function setLineWidth(w) {
     var ctx=initX()[0].getContext("2d");
-    ctx.lineWidth=w;    
+    ctx.lineWidth=w;
 }
 function drawGrid() {
     window.drawGridFlag=true;
@@ -80,8 +80,8 @@ function doDrawGrid() {
 	for (var i=0 ; i<c.width ; i+=10) {
 	    ctx.beginPath();
 	    ctx.lineWidth=(i % 100 ==0 ? 4 : 1);
-	    ctx.moveTo(i,0);    
-	    ctx.lineTo(i,c.height);    
+	    ctx.moveTo(i,0);
+	    ctx.lineTo(i,c.height);
 	    ctx.closePath();
 	    ctx.stroke();
 	}
@@ -89,8 +89,8 @@ function doDrawGrid() {
 	for (var i=0 ; i<c.height ; i+=10) {
 	    ctx.beginPath();
 	    ctx.lineWidth=(i % 100 ==0 ? 4 : 1);
-	    ctx.moveTo(0,i);    
-	    ctx.lineTo(c.width,i);    
+	    ctx.moveTo(0,i);
+	    ctx.lineTo(c.width,i);
 	    ctx.closePath();
 	    ctx.stroke();
 	}
@@ -120,15 +120,19 @@ function movePen(dx, dy) {
     ctx.lineTo(setPen.sx, setPen.sy);
     ctx.stroke();
 }
+function setTextSize(s) {
+    var ctx=initX()[0].getContext("2d");
+    ctx.font=s+"px monospaced";
+}
 function drawString(s, x, y, sz) {
     var ctx=initX()[0].getContext("2d");
     if (sz) {
         ctx.font = sz + "px monospace";
     }
-    ctx.fillText(s, x, y);
+    ctx.fillText(ch_ptr_to_str(s), x, y);
 }
 function drawText(s, x, y, sz) {
-    drawString(s+"",x,y,sz);
+    drawString(s,x,y,sz);
 }
 function drawNumber(s, x, y, sz) {
     drawString(s+"",x,y,sz);
