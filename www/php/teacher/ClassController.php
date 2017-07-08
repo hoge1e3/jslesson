@@ -349,15 +349,18 @@ class ClassController {
                 }else{
                     $errcount[$log['user']]=1;
                 }
-                $runhistory[$log['user']].='<span data-id='.$log['id'].' onClick="openFrame(this.getAttribute('."'".'data-id'."'".'));"><font color="red">E</font></span>';
+                $runhistory[$log['user']].='<span data-id='.$log['id'].' data-user='.$log['user'].' onClick="openFrame(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));"><font color="red">E</font></span>';
             }else{
-                $runhistory[$log['user']].='<span data-id='.$log['id'].' onClick="openFrame(this.getAttribute('."'".'data-id'."'".'));">R</span>';
+                $runhistory[$log['user']].='<span data-id='.$log['id'].' data-user='.$log['user'].' onClick="openFrame(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">R</span>';
             }
             if(!isset($errcount[$log['user']])){
                 $errcount[$log['user']]=0;
             }
             $latestrun[$log['user']]=$max-$log['time'];
             $latestfile[$log['user']]=$log['filename'];
+        }
+        foreach($runhistory as $runhistkey => $runhistval){
+            $runhistory[$runhistkey].='<br id="'.$runhistkey.'ui" style="display:none"><button id="'.$runhistkey.'ui" style="display:none">Prev</button>  <button id="'.$runhistkey.'ui" style="display:none">Next</button><br><textarea id="'.$runhistkey.'" style="display:none">test</textarea>';
         }
         ?>
         <script type="text/javascript" src="js/lib/jquery-1.12.1.js"></script>
@@ -367,20 +370,8 @@ class ClassController {
         <script>
             $(document).ready(function() {
                 dx=0,dy=0;
-                $('#detail').dialog({
-                    autoOpen:false,
-                    width:550,
-                    height:400,
-                    modal:true,
-                    open:function(content){
-                        res='<pre id="res">'+$(this).dialog('option',"res")+'</pre>';
-                        $("#detail").append(res);
-                    },
-                    close:function(){
-                        $("#res").remove();
-                    }
-                });
-
+                displayingId="";
+                
             // call the tablesorter plugin
                 $("table").tablesorter({
                 // define a custom text extraction function
@@ -394,32 +385,30 @@ class ClassController {
                     }
                 });
             });
-            $(window).click(function(e){
-                $("#detail").dialog('option',{position:{
-                    of:e,
-                    at:"center bottom",
-                    my:"center top+10"
-
-                }});
-            })
-            function openFrame(logid){
+            function openFrame(logid,userid){
                 $.ajax({
                     type: "POST",
                     url: "a.php?Class/getLog",
                     data: "logid="+logid,
                     dataType: "json",
                     success: function(data,dataType){
-                        //alert("SUCCESS\n"+data.detail+"\n\n"+data.code.C);
-                        //console.log(data.code.C);
-                        //console.log(data);
+                        console.log(data);
+                        
+                        if(displayingId!==""){
+                            $("[id="+displayingId+"ui]").css("display","none");
+                            $("#"+displayingId).css("display","none");
+                        }
+                        displayingId=userid;
                         res=data.filename+"\n"+data.result+"\n-------------\n"+data.code.C;
-                        //ifrm=document.getElementById("viewDetail");
-                        //ifrm.contentDocument.body.innerText=res;
                         res=res.replace(/</g,"&lt;");
                         res=res.replace(/>/g,"&gt;");
-                        console.log(res);
-                        $("#detail").dialog('option',{"res":res});
-                        $("#detail").dialog('open');
+                        $("[id="+displayingId+"ui]").css("display","inline");
+                        
+                        $("#"+userid).height(30);
+                        $("#"+userid).html(res);
+                        $("#"+userid).css("display","inline");
+                        $("#"+userid).width($("#"+userid).parent().width());
+                        $("#"+userid).height($("#"+userid).get(0).scrollHeight);
                     },
                     error: function(xhr, textStatus, errorThrown){
                         console.log("ログデータの取得に失敗しました。",xhr,textStatus,errorThrown);
@@ -523,6 +512,12 @@ class ClassController {
         $logid=$_POST["logid"];
         $lg=$class->getLogById($logid);
         print_r($lg[0]["raw"]);
+    }
+    static function getOneUsersLogId(){
+        $class=Auth::curClass2();
+        $logid=$_POST["userid"];
+        $lg=$class->getLogByUser($logid);
+        print_r($lg[0]);
     }
 }
 

@@ -1450,14 +1450,17 @@ Tonyu.klass.define({
     putToServer :function _trc_Parent_putToServer(key,value) {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      var url;
       var p;
       var r;
       
       $LASTPOS=1008572;//jslker.Parent:8572
-      p = window.$.ajax(window.runtimePath+"a.php?KeyValue/put&key="+key+"&value="+value);
-      $LASTPOS=1008664;//jslker.Parent:8664
+      url = window.location.href;
+      $LASTPOS=1008607;//jslker.Parent:8607
+      p = window.$.ajax(window.runtimePath+"a.php?KeyValue/put"+"&key="+key+"&value="+value+"&url="+url);
+      $LASTPOS=1008738;//jslker.Parent:8738
       r;
-      $LASTPOS=1008676;//jslker.Parent:8676
+      $LASTPOS=1008750;//jslker.Parent:8750
       r=_this.waitFor(p);
       return r;
     },
@@ -1466,12 +1469,15 @@ Tonyu.klass.define({
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
+      var url;
       var p;
       var r;
       
       $LASTPOS=1008572;//jslker.Parent:8572
-      p = window.$.ajax(window.runtimePath+"a.php?KeyValue/put&key="+key+"&value="+value);
-      $LASTPOS=1008664;//jslker.Parent:8664
+      url = window.location.href;
+      $LASTPOS=1008607;//jslker.Parent:8607
+      p = window.$.ajax(window.runtimePath+"a.php?KeyValue/put"+"&key="+key+"&value="+value+"&url="+url);
+      $LASTPOS=1008738;//jslker.Parent:8738
       r;
       
       _thread.enter(function _trc_Parent_ent_putToServer(_thread) {
@@ -1479,7 +1485,7 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1008676;//jslker.Parent:8676
+            $LASTPOS=1008750;//jslker.Parent:8750
             _this.fiber$waitFor(_thread, p);
             __pc=1;return;
           case 1:
@@ -1494,14 +1500,17 @@ Tonyu.klass.define({
     getFromServer :function _trc_Parent_getFromServer(key) {
       "use strict";
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
+      var url;
       var p;
       var r;
       
-      $LASTPOS=1008736;//jslker.Parent:8736
-      p = window.$.ajax(window.runtimePath+"a.php?KeyValue/get&key="+key);
-      $LASTPOS=1008812;//jslker.Parent:8812
+      $LASTPOS=1008810;//jslker.Parent:8810
+      url = window.location.href;
+      $LASTPOS=1008845;//jslker.Parent:8845
+      p = window.$.ajax(window.runtimePath+"a.php?KeyValue/get"+"&key="+key+"&url="+url);
+      $LASTPOS=1008954;//jslker.Parent:8954
       r;
-      $LASTPOS=1008824;//jslker.Parent:8824
+      $LASTPOS=1008966;//jslker.Parent:8966
       r=_this.waitFor(p);
       return r;
     },
@@ -1510,12 +1519,15 @@ Tonyu.klass.define({
       var _this=this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this);
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
+      var url;
       var p;
       var r;
       
-      $LASTPOS=1008736;//jslker.Parent:8736
-      p = window.$.ajax(window.runtimePath+"a.php?KeyValue/get&key="+key);
-      $LASTPOS=1008812;//jslker.Parent:8812
+      $LASTPOS=1008810;//jslker.Parent:8810
+      url = window.location.href;
+      $LASTPOS=1008845;//jslker.Parent:8845
+      p = window.$.ajax(window.runtimePath+"a.php?KeyValue/get"+"&key="+key+"&url="+url);
+      $LASTPOS=1008954;//jslker.Parent:8954
       r;
       
       _thread.enter(function _trc_Parent_ent_getFromServer(_thread) {
@@ -1523,7 +1535,7 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1008824;//jslker.Parent:8824
+            $LASTPOS=1008966;//jslker.Parent:8966
             _this.fiber$waitFor(_thread, p);
             __pc=1;return;
           case 1:

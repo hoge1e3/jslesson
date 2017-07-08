@@ -10,8 +10,28 @@ create table keyvalue (
 */
 req("pdo","auth");
 class KeyValue {
+    static $class;
+    static function selectClassByURL($url) {
+        //TODO: will deprecate by security issues
+        req("Published");
+        $class=Published::getClass($url);
+        if ($class) {
+            self::$class=new BAClass($class);
+        }
+    }
     static function getRecord($key) {
-        $class=Auth::curClass2();
+        if (!self::$class) {
+            $class=Auth::curClass2();
+        } else {
+            $class=self::$class;
+        }
+        if (!$class) throw new Exception("cannot get class info");
+        /*if (!$class) {
+            req("Published");
+            $class=Published::getClass($_SERVER["REQUEST_URI"]);
+            if (!$class) throw new Exception("cannot get class info: ".$_SERVER["REQUEST_URI"]);
+            $class=new BAClass($class);
+        }*/
         return pdo_select1("select * from `keyvalue` where `class`=? and `key`=?",$class->id,$key);
         /*$pdo=pdo();
         $sth=$pdo->prepare("select * from `keyvalue` where `class`=? and `key`=?");

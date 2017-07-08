@@ -3,6 +3,10 @@ req("KeyValue");
 class KeyValueController {
     static function get() {
         try {
+            if (isset($_GET["url"])) {
+                $url=$_GET["url"];
+                KeyValue::selectClassByURL($url);
+            }
             $k=$_GET["key"];
             $v=KeyValue::get($k);
             if ($v!=null) echo $v;
@@ -12,6 +16,10 @@ class KeyValueController {
     }
     static function put() {
         try {
+            if (isset($_GET["url"])) {
+                $url=$_GET["url"];
+                KeyValue::selectClassByURL($url);
+            }
             $k=$_GET["key"];
             $v=$_GET["value"];
             KeyValue::put($k,$v);

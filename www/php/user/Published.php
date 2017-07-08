@@ -17,11 +17,15 @@ class Published {
         return $url;
     }
     static function getRecord($url) {
+        $url=preg_replace("/\\?.*/","",$url);
+        if (preg_match("/([0-9a-fA-F]+\\/)[^\\/]*$/",$url,$m)) {
+            $url=$m[1];
+        }
         return pdo_select1("select * from published where url=?",$url);
     }
     static function getClass($url) {
         $r=self::getRecord($url);
-        if ($r) return $r->url;
+        if ($r) return $r->class;
         return null;
     }
     static function listProjects($class,$project) {

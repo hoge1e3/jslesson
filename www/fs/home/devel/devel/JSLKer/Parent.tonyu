@@ -324,13 +324,22 @@ nowait \deg(d) {
     return _res;
 }
 \putToServer(key,value) {
-    var p=window.$.ajax(window.runtimePath+"a.php?KeyValue/put&key="+key+"&value="+value);
+    var url=window.location.href;
+    var p=window.$.ajax(window.runtimePath+"a.php?KeyValue/put"+
+    "&key="+key+
+    "&value="+value+
+    "&url="+url
+    );
     var r;
     r=waitFor(p);
     return r;
 }
 \getFromServer(key) {
-    var p=window.$.ajax(window.runtimePath+"a.php?KeyValue/get&key="+key);
+    var url=window.location.href;
+    var p=window.$.ajax(window.runtimePath+"a.php?KeyValue/get"+
+    "&key="+key+
+    "&url="+url
+    );
     var r;
     r=waitFor(p);
     return r;

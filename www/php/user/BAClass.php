@@ -132,6 +132,16 @@ class BAClass{
         }
         return $res;
     }
+    function getLogByUser($userid){
+        $pdo = pdo();
+        $sth=$pdo->prepare("select id from log where class = ? and user = ?");
+        $sth->execute(array($this->id,$userid));
+        $res=array();
+        foreach ($sth->fetchAll() as $rec) {
+            $res[]=$rec;
+        }
+        return $res;
+    }
 }
 
 
