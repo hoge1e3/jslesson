@@ -28,21 +28,58 @@ native Error;
         }
     };
 }
-\addText(elem,val){
-    //document.getElementById(elem).innerHTML+=val;
-    if (document.baWriteTo) {
-        var dst=$("[name="+elem+"]")[0];
-        if (dst) document.baWriteTo(dst, val);
+\findElement(elem) {
+    if (elem instanceof $) return elem;
+    var res=$("[name="+elem+"]");
+    if (res[0]) return res;
+    return $("#"+elem);
+}
+\isFormElement(elem) {
+    elem=findElement(elem);
+    if (!elem[0]) return false;
+    var t=(""+elem[0].tagName).toLowerCase();
+    return t==="input" || t==="textarea";
+}
+\clearContent(elem) {
+    elem=findElement(elem);
+    if (isFormElement(elem)) {
+        elem.val("");
     } else {
-        $("[name="+elem+"]").append(val);
+        elem.empty();
+    }
+}
+\addText(elem,val){
+    elem=findElement(elem);
+    if (isFormElement(elem)) {
+        elem.val(elem.val()+val);   
+    } else {
+        if (document.baWriteTo) {
+            var dst=elem[0];
+            if (dst) document.baWriteTo(dst, val);
+        } else {
+            elem.append(val);
+        }
     }
 }
 \setText(elem,val){
-    $("[name="+elem+"]").empty();
+    clearContent(elem);
     addText(elem,val);
-    //document.getElementById(elem).innerHTML=val;
-    //$("[name="+elem+"]").text(val);
 }
+\getNumber(elem){
+    return getText(elem)-0;
+}
+\getText(elem){
+    elem=findElement(elem);
+    if (isFormElement(elem)) {
+        return elem.val();
+    } else {
+        return elem[0] && elem[0].innerHTML;
+    }
+}
+\setNumber(elem,num){
+    setText(elem,num);
+}
+
 \onClick(elem,func){
     var usepara,fname;
     if(typeof func == 'function'){
@@ -117,20 +154,6 @@ native Error;
         ctx=_canvas.getContext("2d");
         ctx.fillRect(x,y,w,h);
     }
-}
-\getNumber(elem){
-    //val=document.getElementsByName(elem)[0].value;
-    val=$("[name="+elem+"]").val();
-    return val-0;
-}
-\getText(elem){
-    //val=document.getElementsByName(elem)[0].value;
-    val=$("[name="+elem+"]").val();
-    return val;
-}
-\setNumber(elem,num){
-    //document.getElementsByName(elem)[0].innerHTML=num;
-    $("[name="+elem+"]").text(num);
 }
 
 \changeImage(elem,newsrc){

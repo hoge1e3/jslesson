@@ -53,6 +53,11 @@ requirejs(["Util"],function (Util){
             run+="_concat";
         }
     }
+    if (Util.getQueryString("clearLocalStorage","false")==="true") {
+        for (var k in localStorage) {
+            if (k !=="noconcat") delete localStorage[k];
+        }
+    }
     requirejs([run], function(){
         //SplashScreen.hide();
     });
