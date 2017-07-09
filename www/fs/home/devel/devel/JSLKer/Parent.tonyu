@@ -337,7 +337,7 @@ nowait \deg(d) {
         _res=r;
         t.steps();
     },\(e) {
-        _err=e||"Error";
+        _err=(e instanceof window.Error ? e : new Error(e.responseText || e+""));
         t.steps();
     });
 }
@@ -367,4 +367,27 @@ nowait \deg(d) {
     r=waitFor(p);
     return r;
 }
-
+\addLog(name,d1,d2,d3,d4) {
+    var url=window.location.href;
+    var params="&name="+name+"&url="+url;
+    if (d1!=null) params+="&data1="+d1;
+    if (d2!=null) params+="&data2="+d2;
+    if (d3!=null) params+="&data3="+d3;
+    if (d4!=null) params+="&data4="+d4;
+    var p=window.$.ajax(window.runtimePath+"a.php?BigData/add"+params);
+    var r;
+    r=waitFor(p);
+    return r;
+}
+\findLog(name,d1,d2,d3,d4) {
+    var url=window.location.href;
+    var params="&name="+name+"&url="+url;
+    if (d1!=null) params+="&data1="+d1;
+    if (d2!=null) params+="&data2="+d2;
+    if (d3!=null) params+="&data3="+d3;
+    if (d4!=null) params+="&data4="+d4;
+    var p=window.$.ajax(window.runtimePath+"a.php?BigData/find"+params);
+    var r;
+    r=waitFor(p);
+    return r;
+}
