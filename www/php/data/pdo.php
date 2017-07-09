@@ -27,13 +27,18 @@ function pdo_select1() {
     }
     return null;
 }
-function pdo_select() {
+function pdo_exec() {
     $pdo=pdo();
     $a=func_get_args();
     $q=array_shift($a);
     //echo $q;var_dump($a);
     $sth=$pdo->prepare($q);
+    if (count($a)===1 && is_array($a[0])) $a=$a[0];
     $sth->execute($a);
+    return $sth;
+}
+function pdo_select() {
+    $sth=call_user_func_array("pdo_exec",func_get_args());
     return $sth->fetchAll(PDO::FETCH_OBJ);
 }
 function pdo_insert($tbl, $vals) {

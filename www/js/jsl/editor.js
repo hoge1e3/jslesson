@@ -847,7 +847,7 @@ function ready() {
             logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",te.src+":"+te.pos+"\n"+te.mesg,langList[lang]);
         } else {
             if (isChrome) {
-                e.stack=e.stack.split("\n").map(bytes).join("\n");
+                e.stack=(""+e.stack).split("\n").map(bytes).join("\n");
                 //if (isChrome) { s=bytes(s); console.log("CONV",s); }
             }
             if (isFirefox) {
@@ -855,7 +855,7 @@ function ready() {
                     return String.fromCharCode("0x"+c);
                 });
             }
-            var stack = e.stack.split("\n");
+            var stack = (""+e.stack).split("\n");
             var cve;
             var rc=/:([0-9]+):([0-9]+)/;
             stack.forEach(function (s) {

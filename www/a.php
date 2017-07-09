@@ -1,6 +1,7 @@
 <?php
 // Branch: master
 require_once __DIR__."/php/Modules.php";
+require_once __DIR__."/php/params.php";
 req("config","ErrorHandler");
 //require_once __DIR__."/php/ErrorHandler.php";
 function redirect($url,$params=null) {

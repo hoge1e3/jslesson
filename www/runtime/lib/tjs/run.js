@@ -1,6 +1,18 @@
 function run(className) {
-   requirejs([window.runtimePath+"lib/tjs/TonyuLib.js"], function () {
-        requirejs([window.runtimePath+"lib/tjs/kernel.js"],function (){
+    requirejs.config({
+        shim: {
+            Tonyu: {
+                exports:"Tonyu"
+            }
+        },
+        paths: {
+          "Tonyu": window.runtimePath+"lib/tjs/TonyuLib",
+          "Tonyu.Iterator": window.runtimePath+"lib/tjs/Iterator",
+          "kernel": window.runtimePath+"lib/tjs/kernel",
+        }
+    });
+   requirejs(["Tonyu","Tonyu.Iterator"], function () {
+        requirejs(["kernel"],function (){
             requirejs(["user.js"],_run);
         });
    });
