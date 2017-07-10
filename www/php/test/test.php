@@ -1,5 +1,6 @@
 <?php
-print_r($_SERVER["REQUEST_URI"]);
+require_once __DIR__."/../analysis/AddErrorInfoController.php";
+//print_r($_SERVER["REQUEST_URI"]);
 /*require_once "php/fs/SyncController.php";
 header("Content-type: text/json");
 echo ("{a:3}");*/
