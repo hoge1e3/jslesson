@@ -367,9 +367,9 @@ nowait \deg(d) {
     r=waitFor(p);
     return r;
 }
-\addLog(name,d1,d2,d3,d4) {
+\addLog(group,practice,d1,d2,d3,d4) {
     var url=window.location.href;
-    var params="&name="+name+"&url="+url;
+    var params="&group="+group+"&practice="+practice+"&url="+url;
     if (d1!=null) params+="&data1="+d1;
     if (d2!=null) params+="&data2="+d2;
     if (d3!=null) params+="&data3="+d3;
@@ -379,9 +379,9 @@ nowait \deg(d) {
     r=waitFor(p);
     return r;
 }
-\findLog(name,d1,d2,d3,d4) {
+\findLog(group,practice,d1,d2,d3,d4) {
     var url=window.location.href;
-    var params="&name="+name+"&url="+url;
+    var params="&group="+group+"&practice="+practice+"&url="+url;
     if (d1!=null) params+="&data1="+d1;
     if (d2!=null) params+="&data2="+d2;
     if (d3!=null) params+="&data3="+d3;

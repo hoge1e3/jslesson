@@ -21,7 +21,8 @@ class BigData {
     }
     static function add(){
         $args=func_get_args();
-        $name=array_shift($args);
+        $group=array_shift($args);
+        $practice=array_shift($args);
         $nums=array();
         $strs=array();
         foreach ($args as $e) {
@@ -42,9 +43,9 @@ class BigData {
         $class=self::getClass();
         $user=Auth::curUser2();
         if ($user) {$userName=$user->name;} else {$userName="";}
-        pdo_exec("insert into bigdata(time,class,user,name,num1,str1,num2,str2,num3,str3,num4,str4)".
-                             "values (?   ,?    ,?   ,?   ,?   ,?   ,?   ,?   ,?   ,?   ,?   ,?   )",
-                               $time,$class->id,$userName,$name,
+        pdo_exec("insert into bigdata(time,class,`user`,`group`,practice,num1,str1,num2,str2,num3,str3,num4,str4)".
+                             "values (?   ,?    ,?     ,?      ,?       ,?   ,?   ,?   ,?   ,?   ,?   ,?   ,?)",
+                               $time,$class->id,$userName,$group,$practice,
                                $nums[0],$strs[0],$nums[1],$strs[1],$nums[2],$strs[2],$nums[3],$strs[3]
         );
     }
@@ -53,9 +54,11 @@ class BigData {
     }
     static function find(){
         $args=func_get_args();
-        $name=array_shift($args);
-        $placeholders=array($name);
-        $conds=array("name = ?");
+        $group=array_shift($args);
+        $practice=array_shift($args);
+        //$name=array_shift($args);
+        $placeholders=array($group, $practice);
+        $conds=array("`group` = ?", "practice = ?");
         // "<100", "<=100", "=100", "100", "hoge" , "%hoge%"
         foreach ($args as $i=>$e) {
             if (is_null($e)) continue;
