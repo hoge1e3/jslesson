@@ -231,6 +231,7 @@ var reqConf={
             exceptionCatcher:"lib/exceptionCatcher",
             Assets:"fs/Assets",
             "assert":"lib/assert",
+            Message:"lib/Message",
             /*"Content":"fs2/Content",
             "DataURL":"fs2/DataURL",
             "extend":"fs2/extend",

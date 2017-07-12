@@ -96,12 +96,12 @@ native Error;
         }
     }
     if (usepara) {
-        $("[name="+elem+"]").click(catchException \ {
+        findElement(elem).click(catchException \ {
             parallel(fname);
         });
     } else {
         //document.getElementsByName(elem)[0].onclick=func;
-        $("[name="+elem+"]").click(catchException(func));
+        findElement(elem).click(catchException(func));
     }
 }
 \onTouch(func){
@@ -133,7 +133,7 @@ native Error;
 }
 \setCanvas(canv){
     //canvas=document.getElementsByName(canv)[0];
-    _canvas=$("[name="+canv+"]")[0];
+    _canvas=findElement(canv)[0];
 }
 \searchCanvas(){
     if(!_canvas){
@@ -160,11 +160,11 @@ native Error;
     if (!(newsrc+"").match(/^http/)) {
         newsrc=window.runtimePath+newsrc;
     }
-    $("[name="+elem+"]").attr("src",newsrc);
+    findElement(elem).attr("src",newsrc);
 }
 
 \move(elem,x,y){
-    $("[name="+elem+"]").css({
+    findElement(elem).css({
         position:"absolute",
     left:x,top:y});
 }
@@ -177,19 +177,19 @@ native Error;
         scaleY=scaleX;
     }
     console.log(scaleX,scaleY);
-    $("[name="+elem+"]").css({
+    findElement(elem).css({
         position:"absolute",
         transform:"rotate("+angle+"deg) scale("+scaleX+","+scaleY+")"
     });
 }
 \rotate(elem,angle){
-    $("[name="+elem+"]").css({
+    findElement(elem).css({
         position:"absolute",
         transform:"rotate("+angle+"deg)"
     });
 }
 \resize(elem,w,h){
-    $("[name="+elem+"]").css({
+    findElement(elem).css({
         position:"absolute",
         transform:"scale("+w+","+h+")"
     });
@@ -327,7 +327,7 @@ nowait \deg(d) {
     while(clicked==0){
         wait(10);
     }
-    $("[name="+elem+"]").off("click","",_func);
+    findElement(elem).off("click","",_func);
 }
 \_waitFor(promise) {
     var t=_thread;

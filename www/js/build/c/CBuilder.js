@@ -16,7 +16,8 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
     p.progress=function (m) {
         if (window.SplashScreen) window.SplashScreen.progress(m);
     };
-    p.genHTML=function (f) {
+    p.genHTML=function (f,options) {
+        options=options||{};
         this.progress("generate "+f.src.html.name());
         //var curHTMLFile=d.rel(name+".html");
         var dp=new DOMParser;
@@ -24,15 +25,16 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
         var html=dom.getElementsByTagName("html")[0];
         var head=dom.getElementsByTagName("head")[0];
         var body=dom.getElementsByTagName("body")[0];
+        var runtimePath=options.runtimePath||WebSite.runtime;
         $(head).append($("<meta>").attr("charset","UTF-8"));
-        $(head).append($("<script>").text("window.runtimePath='"+WebSite.runtime+"';"));
+        $(head).append($("<script>").text("window.runtimePath='"+runtimePath+"';"));
         $(head).append($("<script>").text("window.sourceName='"+f.src.html.truncExt()+"';"));
         $(head).append($("<script>").text("window.onerror=window.onerror||"+
         function (e) {alert(e);}+";"));
 
         libs/*.concat(clibs)*/.map(function (r) {
-            return WebSite.runtime+r;
-        }).concat([WebSite.runtime+"lib/c/runc.js"]).forEach(function (src) {
+            return runtimePath+r;
+        }).concat([runtimePath+"lib/c/runc.js"]).forEach(function (src) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
             nn.setAttribute("src",src+"?"+requirejs.__urlPostfix);
@@ -83,7 +85,7 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
         })).then(DU.tr(function() {
             return DU.each(files,function (f) {
                 if (isNewer(f.dst.html, f.src.html)) return SplashScreen.waitIfBusy();
-                t.genHTML(f);
+                t.genHTML(f,options);
                 return SplashScreen.waitIfBusy();
             });
         }));
@@ -136,11 +138,13 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
                         runc_handleError:function (r) {
                             err(r);
                             b.close();
+                            hidden.remove();
                         },
                         runc_sendResult: function (r) {
                             //console.log("Result sent ",r);
                             succ(r);
                             b.close();
+                            hidden.remove();
                         }
                     }
                 });

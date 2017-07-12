@@ -26,6 +26,8 @@ function (sh,FS,DU,UI,S) {
     var urlparam=/\?.*$/;
     p.open=function (f,options) {
         options=options||{};
+        var iwin;
+        var idoc;
         var onload=options.onload || function () {};
         var onerror=options.onerror || (window.onerror ? function () {
             return window.onerror.apply(window,arguments);
@@ -43,8 +45,6 @@ function (sh,FS,DU,UI,S) {
         }
         this.iframe=i;
         var base=f.up();
-        var iwin;
-        var idoc;
         var thiz=this;
         var regsm=/sourceMappingURL\s*=\s*([^\s]*)/i;
         var regrc=/:([0-9]+):([0-9]+)/;
@@ -174,6 +174,7 @@ function (sh,FS,DU,UI,S) {
                 return appendTo(src.getElementsByTagName("html")[0],
                 idoc.getElementsByTagName("html")[0]);
             })).then(F(function () {
+                if(typeof (iwin.onload)==="function") iwin.onload();
                 onload.apply(i[0],[]);
             })).fail(onerror);
         });

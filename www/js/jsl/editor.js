@@ -616,7 +616,7 @@ function ready() {
         var curJSFile=curFiles[1];
 	    window.sendResult=function(resDetail){
             logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Run",resDetail,"C");
-        }
+        };
         stop();
         save();
         // display=none
@@ -715,13 +715,15 @@ function ready() {
                   return RunDialog2.show(indexF,
                   {height:screenH,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
               }).fail(function (e) {
+                  //var eobj={stack:e.stack,message:e+""};
+                  //for (var k in e) eobj[k]=e[k];
                   if (e.pos) {
-                      logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Compile Error at "+e.pos,e+"","C");
+                      logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Compile Error",e,"C");
                       var te=TError(e+"",curJSFile, e.pos);
   	                  showErrorPos($("#errorPos"),te);
                       displayMode("compile_error");
                   } else {
-                      logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Compile Error",e+"","C");
+                      logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Compile Error",e,"C");
                       Tonyu.onRuntimeError(e);
                   }
                   console.log("CFAIL",e.stack);

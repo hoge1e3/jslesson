@@ -35,8 +35,8 @@ class AddErrorInfoController {
     static function add() {
         $mesgs=self::getMesgs();
         $class=Auth::curClass2();
-        $r=pdo_select("select id,raw from log where class=?;",$class->id);
-        foreach($r as $e) {
+        $r=pdo_exec("select id,raw from log where class=?;",$class->id);
+        while ($e=$r->fetch(PDO::FETCH_OBJ)) {
             foreach($mesgs as $m) {
                 if (strstr($e->raw, $m)) {
                     pdo_insert("logtag", array("log"=>$e->id,"name"=>"errorType","value"=>$m));
@@ -44,6 +44,7 @@ class AddErrorInfoController {
                 }
             }
         }
+        $r->closeCursor();
         echo "Finish!<BR>";
     }
 }
