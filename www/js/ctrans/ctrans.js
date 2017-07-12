@@ -1425,12 +1425,19 @@ window.MinimalParser= function () {
 				//res();
 			} else {
 			    lines[i]=lines[i].replace(/(\'[^\']*\')|(\"[^\"]*\")|(\b[A-Za-z0-9]+\b)/g,function (s) {
-			        return (s in defines ? defines[s] : s );
+			        return (s in defines ? pad(defines[s],s.length) : s );
 			    });
 			}
 		}
 		//console.log("preproc",lines.join("\n"));
 		return lines.join("\n");
+        function pad(str,len) {
+            str=str+"";
+            while (str.length<len) {
+                str=" "+str;
+            }
+            return str;
+        }
 	};
 
 

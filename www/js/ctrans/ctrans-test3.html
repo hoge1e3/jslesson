@@ -19,6 +19,7 @@ file:///C:/bin/Dropbox/workspace/jslesson/www/js/ctrans2/ctrans-test3.html
             hoge:{exports:"fuga"}
         },
         paths: {
+            "Message": "../lib/Message",
             "assert": "../lib/assert",
             "ctrans/ctrans":"ctrans",
             "ctrans/ctype":"ctype",
@@ -106,7 +107,7 @@ async function loop() {
     function HERE(src,ln) {
         var a=src.split("\n");
         a.splice(ln-1,0,"↓!!!HERE!!!↓");
-        return a.join("\n");        
+        return a.join("\n");
     }
 }
 });

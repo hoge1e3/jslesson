@@ -2,7 +2,7 @@
 // schema
 // Log
 //  id time class user lang filename result detail
-//  raw (no index:JSON) 
+//  raw (no index:JSON)
 /*
 create table log(
     id integer primary key autoincrement,
@@ -64,8 +64,8 @@ class LogFileToDBController {
         //return ;
         $pdo = pdo();
 	    $sth=$pdo->prepare("insert into ".
-	    "log   (time,class,user,lang,filename,result,detail,raw) ".
-	    "values( ?  , ?   , ?  , ?  ,?       ,?     ,?     ,?  );");
+	    "log   (time,class,user,lang,filename,result,detail,raw,errorType,errorPos) ".
+	    "values( ?  , ?   , ?  , ?  ,?       ,?     ,?     ,?  ,?        ,?);");
         foreach ($files as $file) {
             $user=self::getUserName($c,$file->name());
             print "$c $user<BR>\n";//ob_flush ();
@@ -83,11 +83,25 @@ class LogFileToDBController {
                 else $filename=PathUtil::relPath($d->filename,$home);
                 if (!isset($d->result)) $result="";
                 else $result=$d->result;
-                /*if (!isset($d->detail))*/ $detail="";
-                //else $detail=$d->detail;
+                if (!isset($d->detail)) $detail="";
+                else $detail=$d->detail;
+                try {
+                    $errorType="";
+                    $errorPos="";
+                    //$detail=json_decode($detail);
+                    if (is_object($detail)) {
+                        if (isset($detail->errorType)) {
+                            $errorType=$detail->errorType;
+                        }
+                        if (isset($detail->pos)) {
+                            $errorPos=$detail->pos;
+                        }
+                        $detail=json_encode($detail);
+                    }
+                } catch(Exception $e) {}
                 //echo DateUtil::toString($time);
                 $a=array(
-        	        $time,$c,$user,$lang,$filename,$result,$detail,$raw
+        	        $time,$c,$user,$lang,$filename,$result,$detail,$raw,$errorType,$errorPos
     	        );
                 //var_dump($a);
         	    $sth->execute($a);
@@ -103,7 +117,7 @@ class LogFileToDBController {
         $postlen=strlen("-data.log");
         $user=substr($fn,$prelen, strlen($fn)-$postlen-$prelen ) ;
         return $user;
-    }    
+    }
     static function test(){
         $pdo = pdo();
 	    $sth=$pdo->prepare("insert into ".
@@ -112,7 +126,7 @@ class LogFileToDBController {
         $a=array(
         	        3,"くらす","ユーザ","ことば","ふぁいる","けっか","","生"
     	        );
-    	$sth->execute($a);        
+    	$sth->execute($a);
     }
 }
 
