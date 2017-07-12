@@ -113,7 +113,7 @@ window.MinimalParser= function () {
                         bys["function_definition"]) {
                         }
                         else {
-                            newError2(ctx.scope[k].vname,"''{1}''はすでに定義されています．",ctx.scope[k].vname);
+                            newError2(ctx.scope[k].vname,"'{1}'はすでに定義されています．",ctx.scope[k].vname);
                             //newError(ctx.scope[k].vname+"はすでに定義されています",ctx.scope[k].vname);
                         }
                     }

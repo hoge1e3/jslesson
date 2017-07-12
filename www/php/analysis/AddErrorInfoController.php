@@ -47,6 +47,43 @@ class AddErrorInfoController {
         $r->closeCursor();
         echo "Finish!<BR>";
     }
+    static function getAllStdIDs() {
+        $class=Auth::curClass2();
+        if (!Auth::isTeacherOf($class)) return ;
+        $res=pdo_select("select name from `user` where `class`=? ",$class->id);
+        $res=array_map(function ($e) { return $e->name; },$res);
+        header("Content-type: text/json");
+        echo json_encode($res);
+    }
+    static function getAllLogIDs() {
+        $class=Auth::curClass2();
+        if (!Auth::isTeacherOf($class)) return ;
+        $stdid=param("stdid");
+        $res=pdo_select("select id from `log` where `class`=? and `user`=? order by time",$class->id,$stdid);
+        $res=array_map(function ($e) { return $e->id; },$res);
+        header("Content-type: text/json");
+        echo json_encode($res);
+    }
+    static function getLog() {
+        $logid=param("logid");
+        $class=Auth::curClass2();
+        if (!Auth::isTeacherOf($class)) return ;
+        $res=pdo_select1("select * from `log` where id=?",$logid);
+        if ($res->class==$class->id) {
+            header("Content-type: text/json");
+            echo json_encode($res);
+        }
+    }
+    static function addErrorInfo() {
+        $class=Auth::curClass2();
+        if (!Auth::isTeacherOf($class)) return ;
+
+        $logid=param("logid");
+        $type=param("type");
+        $pos=param("pos");
+        pdo_update("log","id",array("id"=>$logid,"errorType"=>$type,"errorPos"=>$pos));
+        echo "OK";
+    }
 }
 
  ?>

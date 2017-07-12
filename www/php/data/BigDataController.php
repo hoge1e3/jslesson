@@ -9,10 +9,10 @@ class BigDataController {
             }
             $g=$_GET["group"];
             $p=$_GET["practice"];
-            $data1=params("data1");
-            $data2=params("data2");
-            $data3=params("data3");
-            $data4=params("data4");
+            $data1=param("data1",null);
+            $data2=param("data2",null);
+            $data3=param("data3",null);
+            $data4=param("data4",null);
             $v=BigData::find($g,$p,$data1,$data2,$data3,$data4);
             header("Content-type: text/json");
             echo json_encode($v);
@@ -29,10 +29,10 @@ class BigDataController {
             $g=$_GET["group"];
             $p=$_GET["practice"];
             //$n=$_GET["name"];
-            $data1=params("data1");
-            $data2=params("data2");
-            $data3=params("data3");
-            $data4=params("data4");
+            $data1=param("data1",null);
+            $data2=param("data2",null);
+            $data3=param("data3",null);
+            $data4=param("data4",null);
             if (BigData::looksLikeNum($data1)) $data1=$data1-0;
             if (BigData::looksLikeNum($data2)) $data2=$data2-0;
             if (BigData::looksLikeNum($data3)) $data3=$data3-0;
