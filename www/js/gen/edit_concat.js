@@ -12716,6 +12716,8 @@ function (sh,FS,DU,UI,S) {
     var urlparam=/\?.*$/;
     p.open=function (f,options) {
         options=options||{};
+        var iwin;
+        var idoc;
         var onload=options.onload || function () {};
         var onerror=options.onerror || (window.onerror ? function () {
             return window.onerror.apply(window,arguments);
@@ -12733,8 +12735,6 @@ function (sh,FS,DU,UI,S) {
         }
         this.iframe=i;
         var base=f.up();
-        var iwin;
-        var idoc;
         var thiz=this;
         var regsm=/sourceMappingURL\s*=\s*([^\s]*)/i;
         var regrc=/:([0-9]+):([0-9]+)/;
@@ -12864,6 +12864,7 @@ function (sh,FS,DU,UI,S) {
                 return appendTo(src.getElementsByTagName("html")[0],
                 idoc.getElementsByTagName("html")[0]);
             })).then(F(function () {
+                if(typeof (iwin.onload)==="function") iwin.onload();
                 onload.apply(i[0],[]);
             })).fail(onerror);
         });
@@ -13061,6 +13062,11 @@ define('logToServer2',[],function () {
 		code={};
 		code[lang]=codeL;
 		code["HTML"]=codeH;
+        if (detail instanceof Error) {
+            var eobj={stack:detail.stack,message:detail+""};
+            for (var k in detail) eobj[k]=detail[k];
+            detail=eobj;
+        }
 		return $.post(".?dump2",{data:JSON.stringify({date:d.getFullYear()+"/"+dataPadding(d.getMonth()+1)+"/"+dataPadding(d.getDate()),time:dataPadding(d.getHours())+":"+dataPadding(d.getMinutes())+":"+dataPadding(d.getSeconds()),lang:lang,filename:filePath,result:result,detail:detail,code:code})}).then(function (r) {
 			console.log(r);
 		}).fail(function(e){
@@ -13072,6 +13078,7 @@ define('logToServer2',[],function () {
     }
     return logToServer2;
 });
+
 define('zip',["FS","Shell","Util"],function (FS,sh,Util) {
     if (typeof JSZip=="undefined") return {};
     var zip={};
@@ -14377,7 +14384,7 @@ function ready() {
         var curJSFile=curFiles[1];
 	    window.sendResult=function(resDetail){
             logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Run",resDetail,"C");
-        }
+        };
         stop();
         save();
         // display=none
@@ -14476,13 +14483,15 @@ function ready() {
                   return RunDialog2.show(indexF,
                   {height:screenH,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
               }).fail(function (e) {
+                  //var eobj={stack:e.stack,message:e+""};
+                  //for (var k in e) eobj[k]=e[k];
                   if (e.pos) {
-                      logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Compile Error at "+e.pos,e+"","C");
+                      logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Compile Error",e,"C");
                       var te=TError(e+"",curJSFile, e.pos);
   	                  showErrorPos($("#errorPos"),te);
                       displayMode("compile_error");
                   } else {
-                      logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Compile Error",e+"","C");
+                      logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Compile Error",e,"C");
                       Tonyu.onRuntimeError(e);
                   }
                   console.log("CFAIL",e.stack);
@@ -14608,7 +14617,7 @@ function ready() {
             logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",te.src+":"+te.pos+"\n"+te.mesg,langList[lang]);
         } else {
             if (isChrome) {
-                e.stack=e.stack.split("\n").map(bytes).join("\n");
+                e.stack=(""+e.stack).split("\n").map(bytes).join("\n");
                 //if (isChrome) { s=bytes(s); console.log("CONV",s); }
             }
             if (isFirefox) {
@@ -14616,7 +14625,7 @@ function ready() {
                     return String.fromCharCode("0x"+c);
                 });
             }
-            var stack = e.stack.split("\n");
+            var stack = (""+e.stack).split("\n");
             var cve;
             var rc=/:([0-9]+):([0-9]+)/;
             stack.forEach(function (s) {
