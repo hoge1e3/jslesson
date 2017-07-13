@@ -856,7 +856,7 @@ window.MinimalParser= function () {
 		    // but init_decl_list can be 0 length ->parse OK
 		    //console.log("InitDecl",declarator,eq,initializer);
 		    var dtl=typeLit(declarator.vtype);
-			var $=[curScopesName(),".",declarator,"=",
+			var $=extend([curScopesName(),".",declarator,"=",
 			    initializer?
                 (initializer.type==="arrayInit"?
                     ["constructByArrInit(",dtl,",",initializer,")"]:
@@ -866,7 +866,7 @@ window.MinimalParser= function () {
                     )
 			    ):
 			    defaultInitializer(declarator.vtype,ctx.depth),";\n"
-			];
+			],{type:"init_declarator"});
 			/*if (
 			    (declarator.vtype) instanceof T.Array
 			    && initializer
@@ -1160,7 +1160,10 @@ window.MinimalParser= function () {
         var init_decl_head;
         if (head.type==="declaration_specifiers") {
             st=t(";").or(init_declarator).parse(st);
-            var init_decl_head=st.result[0];
+            if (!st.success) {
+                return st;
+            }
+            init_decl_head=st.result[0];
             if (init_decl_head+""===";") {
                 // spec ;
                 // TODO: yield  struct fred {int x,y;};
@@ -1185,11 +1188,17 @@ window.MinimalParser= function () {
         // spec init-decl<!> , init-decl ... ;
         // decl<!> {}
         st=t("{").or(t(",")).or(t(";")).parse(st);
+        if (!st.success) {
+            return st;
+        }
         var nx=st.result[0];
         if (nx+""===";") {
             return res(init_decl_head);
         } else if (nx+""===",") {
             st=init_declarator_list.and(t(";")).ret(getTh(0)).parse(st);
+            if (!st.success) {
+                return st;
+            }
             return res( [init_decl_head].concat(st.result[0]) );
         }
         var rst;
@@ -1199,6 +1208,9 @@ window.MinimalParser= function () {
             //st.success=false;return st;
         }
         var decl=init_decl_head.declarator;
+        if (!decl) {
+            console.log("INI",init_decl_head);
+        }
         var type=decl.vtype;
         if (!(type instanceof T.Function)) {
             throw newError2(decl,"関数定義に() がありません．");

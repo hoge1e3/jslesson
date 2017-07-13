@@ -87,14 +87,14 @@ class LogFileToDBController {
                 else $detail=$d->detail;
                 try {
                     $errorType="";
-                    $errorPos="";
+                    $errorPos=0;
                     //$detail=json_decode($detail);
                     if (is_object($detail)) {
                         if (isset($detail->errorType)) {
                             $errorType=$detail->errorType;
                         }
                         if (isset($detail->pos)) {
-                            $errorPos=$detail->pos;
+                            $errorPos=$detail->pos-0;
                         }
                         $detail=json_encode($detail);
                     }

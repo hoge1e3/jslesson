@@ -55,6 +55,8 @@ async function loop() {
 	while (!d.exists()) {
 	    d=FS.get(prompt("not found. input other:", d.path()) );
 	}
+    var lastSummary=d.rel("summary_last.txt");
+    var lastSumBuf=lastSummary.exists()?lastSummary.text().split(/\r?\n/):[];
 	var summary=d.rel("summary.txt");
 	var sumbuf=["file\tresult"];
     var files=[];
@@ -102,6 +104,11 @@ async function loop() {
 	    		console.log(e.stack);
 			}
 		}
+    }
+    for (var k=0;k<Math.max(sumbuf.length,lastSumBuf.length);k++) {
+        if (sumbuf[k]!==lastSumBuf[k]) {
+            console.log("DIFF!!",sumbuf[k],"<-",lastSumBuf[k]);
+        }
     }
     summary.text(sumbuf.join("\r\n"));
     function HERE(src,ln) {
