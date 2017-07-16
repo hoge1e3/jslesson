@@ -17,7 +17,7 @@ root.initialize.isEventHandler=true;
 root.extend=function (o) {
     for (var k in o) {
         this[k]=o[k];
-    }  
+    }
     return this;
 };
 root.showAliasState=function (dst) {
@@ -124,7 +124,7 @@ root.addAlias2=function () {
                     console.log("Warning! diferrent method ",
                     has[has.length-1], has[0],o[has[has.length-1]], o[has[0]]);
                     return;
-                } 
+                }
             }
         } else {
             /*if (methods[i] in o) {
@@ -164,11 +164,11 @@ root.addAlias=function () {
             var key="_KEY_"+al;
             Object.defineProperty(t,al,{
     	        enumerable:true,configurable:true,
-    	        get:function() { 
-    	            return (key in this ?this[key]:this[orig]); 
+    	        get:function() {
+    	            return (key in this ?this[key]:this[orig]);
     	        },
     	        set:function(v) {
-    	            return this[key]=v; 
+    	            return this[key]=v;
     	        }
             });
         });
@@ -184,7 +184,7 @@ root.findObject=function (obj) {
         obj=obj[0].toLowerCase()+obj.substring(1);
         //console.log("Retrying by",obj);
     }
-    return root[obj];    
+    return root[obj];
 };
 root.addAliasFromTable=function () {
     // objects, methods....
@@ -213,7 +213,7 @@ root.addAliasFromTable=function () {
                     if (o[has[has.length-1]]!==o[has[0]]) {
                         console.log("Warning! diferrent method ",has[has.length-1], has[0],o[has[has.length-1]], o[has[0]]);
                         return;
-                    } 
+                    }
                 }
             } else {
                 emp.push(methods[i]);
@@ -237,8 +237,18 @@ root.or=or;
 
 root.system=root.create().extend({
 	localize: localize,
+  use:function(filename){
+    $("<script src=\"/dtl/"+filename+".dtl.js\"></script>").appendTo("head");
+  },
 	new:function(obj){
-		return new(Function.prototype.bind.apply(obj,arguments));
+    var args=Array.prototype.slice.call(arguments);
+    args.shift();
+    //console.log(args);
+    var creater=function(args){
+      return obj.apply(this,args);
+    };
+    creater.prototype=obj.prototype;
+		return new creater(args);
 	},
 	sleep:function(time){
 		var start=new Date().getTime();
@@ -320,11 +330,10 @@ Object.defineProperty(Array,"create",{
 		return Array.prototype.slice.call(arguments);
 	}
 });
-Object.defineProperty(Array.prototype,"get",{ 
-    enumerable:false,configurable:true, 
-    value:function(index){return this[index-1];} 
-}); 
-
+Object.defineProperty(Array.prototype,"get",{
+	enumerable:false,configurable:true,
+	value:function(index){return this[index-1];}
+});
 Object.defineProperty(Array.prototype,"set",{
 	enumerable:false,configurable:true,
 	value:function(index,value){this[index-1]=value;return this;}
@@ -355,7 +364,7 @@ Object.defineProperty(Array.prototype,"each",{
 	value:function(func){
 		var res=undefined;
 		for(var i=0;i<this.length;i++){
-			res=func.execute(this[i]);
+			res=func.execute(this[i],i);
 		}
 		return res;
 	},
@@ -450,7 +459,7 @@ String.prototype.mul=function (s) {return this.toNumber()*(s+"").toNumber();};
 String.prototype.div=function (s) {return this.toNumber()/(s+"").toNumber();};
 String.prototype.mod=function (s) {return this.toNumber()%(s+"").toNumber();};
 var substr1=function(param){return this.substring(param-1);};
-var substr2=function(param1,param2){return this.substring(param1-1,param2);}
+var substr2=function(param1,param2){return this.substring(param1-1,param1-1+param2);}
 
 //Booleanオブジェクト
 Boolean.prototype.then=function(){return (this==true)?root._true:root._false;};
@@ -535,7 +544,7 @@ Number.prototype.fromCharCode=function(){
 
 var Random=new function(){
 	this.mtjs=new MersenneTwister();
-	
+
 };
 
 Random.setSeed=function(s){
@@ -564,8 +573,8 @@ Function.prototype.checkerror=function () {
         try {
            return f.apply(this,arguments);
         } catch(e) {
-            if (onerror) onerror(e.message,"unknown",1,1,e); 
-            else throw e; 
+            if (onerror) onerror(e.message,"unknown",1,1,e);
+            else throw e;
         }
     });
 };
@@ -614,17 +623,17 @@ function dtlbind(bound, f) {
     f.bound=bound;
     return f;
 };
+
 window.dtlbind=dtlbind;
 root._while=root.create();
-root._while.initialize=function(f){
-	this.s=f;
-};
-root._while.execute=function(f){
-	var res=undefined;
-	while(this.s()){
-		res=f.execute();
-	}
-	return res;
+root._while.initialize=function(cond){
+  this._while.execute=function(func){
+  	var res=undefined;
+  	while(cond.execute()){
+  		res=func.execute();
+  	}
+  	return res;
+  };
 };
 
 root._true=root.create();

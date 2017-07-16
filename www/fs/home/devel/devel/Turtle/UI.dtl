@@ -19,11 +19,11 @@ UI:setTrans=[|;str|
     this.
 ].
 UI:hide=[
-    [element] ! then [ element ! show] execute.
+    [element] ! then [ element ! hide] execute.
     this.
 ].
 UI:show=[
-    [element] ! then [ element ! hide] execute.
+    [element] ! then [ element ! show] execute.
     this.
 ].
 UI!"hide" "die" addAlias.
@@ -338,6 +338,14 @@ Button:read=[
 ].*/
 
 Field=UI! create.
+Field:action=[].
+Field:attachEvent=[|;t|
+    t=this.
+    element ! [|key|
+        [(key:which)==13]!then[t !（t!readString） action]execute
+    ] keypress
+].
+Field:setAction=[|a| action=a. this].
 Field:initialize=[|label|
     [label==undef]!then [label=! read] execute.
     element=$!"<input>" create 
@@ -481,3 +489,4 @@ TextArea:changeLine=[|no line|
     element ! ((element ! val)-0+by)  val.
     
 ].*/
+

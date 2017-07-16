@@ -27,7 +27,7 @@ var self=this;var 自分=self;
 return this['element'];
 })['then']()['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return this['element']['show']();
+return this['element']['hide']();
 }));
 return this;
 });
@@ -38,7 +38,7 @@ var self=this;var 自分=self;
 return this['element'];
 })['then']()['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;
-return this['element']['hide']();
+return this['element']['show']();
 }));
 return this;
 });
@@ -486,6 +486,29 @@ return this['element']['text']((((root['window']['parseInt']((label)))+(1))));
 return this;
 });
 this['Field']=this['UI']['create']();
+this['Field']['action']=dtlbind(this,function(){
+var self=this;var 自分=self;
+return });
+this['Field']['attachEvent']=dtlbind(this,function(){
+var self=this;var 自分=self;
+var t;
+t=this;
+return this['element']['keypress'](dtlbind(this,function(key){
+var self=this;var 自分=self;
+return dtlbind(this,function(){
+var self=this;var 自分=self;
+return ((key['which'])===(13));
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;
+return t['action']((t['readString']()));
+}));
+}));
+});
+this['Field']['setAction']=dtlbind(this,function(a){
+var self=this;var 自分=self;
+this['action']=a;
+return this;
+});
 this['Field']['initialize']=dtlbind(this,function(label){
 var self=this;var 自分=self;
 dtlbind(this,function(){
