@@ -338,7 +338,7 @@ window.MinimalParser= function () {
 			    identifier.isMacro=true;
 			    identifier.macroValue=defines[identifier+""];
 			    identifier.macroName=identifier+"";
-			    identifier.text=identifier.macroValue;
+			    identifier.text=identifier.macroValue+"";
 			    return identifier;
 			}
 			return identifier;
@@ -421,7 +421,7 @@ window.MinimalParser= function () {
 	direct_abstract_declarator=direct_abstract_declarator.rep0();
 
 	var abstract_declarator=direct_abstract_declarator;
-    var baseType;
+    var baseType=T.int;
 	// \declaration_specifiers
 	var declaration_specifier=storage_class_specifier.or(type_specifier).or(type_qualifier);
 	declaration_specifiers=declaration_specifier.rep1().ret(function(types){
@@ -527,7 +527,7 @@ window.MinimalParser= function () {
     		        addTypeDef($.vname,$.vtype.e);
     		    }
     		}
-    		addScope($.vname,{vtype:$.vtype, by:"direct_declarator"});
+    		addScope($.vname,{vtype:assert.is($.vtype,T.Base), by:"direct_declarator"});
     		//ctx.scope[$.vname+""]={vtype:$.vtype, depth: ctx.depth};
     		return $;
 	    }
@@ -619,7 +619,7 @@ window.MinimalParser= function () {
 	    return extend(["(",CD(left),op,CD(right),")"],{vtype:t});
 	}
 	function CD(e) {
-	    return ["checkDust(",e,")"];
+	    return extend(["checkDust(",e,")"],{});
 	}
 	//\mkpost
 	function mkpost(left,op){
@@ -1074,19 +1074,19 @@ window.MinimalParser= function () {
     	        //console.log("OP",right,right.vname);
     	        if (right.type==="post" && right.op.type==="index") {
 	                return extend( ["pointer(",right.left,",",right.op.index,")"] ,
-	                {vtype: T.Pointer(right.vtype)} );
+	                {vtype: T.Pointer(right.vtype),pos:op.pos} );
     	        } else if (right.type==="post" && right.op.type==="arrow") {
 	                return extend( ["pointer(",right.left,",",lit(right.op.vname),")"] ,
-	                {vtype: T.Pointer(right.vtype)} );
+	                {vtype: T.Pointer(right.vtype),pos:op.pos} );
     	        } else if (right.type==="post" && right.op.type==="dot") {
 	                return extend( ["pointer(",right.left,",",lit(right.op.vname),")"] ,
-	                {vtype: T.Pointer(right.vtype)} );
+	                {vtype: T.Pointer(right.vtype),pos:op.pos} );
     	        } else if (right.vname) {
                  	var s=findVariable(right.vname);
         			return extend(["pointer(",
-        			    ["scopes_"+s.depth, lit(right.vname), typeLit(s.vtype)].join(","),
+        			    "scopes_"+s.depth,",",lit(right.vname), ",",typeLit(s.vtype),
         			")"],
-        			{vtype: T.Pointer(s.vtype)} );
+        			{vtype: T.Pointer(s.vtype),pos:op.pos} );
     	        } else {
     	            console.log("Invalid &",right);
     	            throw newError2(right,"&の使い方がまちがっています．");
@@ -1098,7 +1098,8 @@ window.MinimalParser= function () {
     	        return extend(["(",right,").read()"], {
     	            type:"pointerDeref",
     	            vtype: right.vtype.e,
-    	            pointer: right
+    	            pointer: right,
+                    pos: op.pos
     	        });
     	    }
     	    return extend([op,wrapF(right)], {vtype:right.vtype});
@@ -1371,7 +1372,7 @@ window.MinimalParser= function () {
 	//var filename=t(/^[a-zA-Z][a-zA-Z0-9]*\.?[a-zA-Z0-9]+/);
 	var incl_filename=t(/^[^\>\"]+/);
 	var control_line=t("#").and(t("define")).and(identifier).and(t(/^.+/)).ret(function(s,def,befor,after){
-	    defines[befor]=after;
+	    defines[befor+""]=after;
 	});
 	var builtin_funcs={
 	    "stdio.h":
