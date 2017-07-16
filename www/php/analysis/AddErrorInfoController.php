@@ -84,6 +84,17 @@ class AddErrorInfoController {
         pdo_update("log","id",array("id"=>$logid,"errorType"=>$type,"errorPos"=>$pos));
         echo "OK";
     }
+    static function addSeq() {
+        $head=param("head");
+        $tail=param("tail");
+        $recovery=param("recovery");
+        if (pdo_select1("select * from errorSeq where head=? and tail=?",$head,$tail)) {
+            pdo_exec("update errorSeq set recovery=? where head=? and tail=?",$recovery,$head,$tail);
+        } else {
+            pdo_insert("errorSeq",array("head"=>$head,"tail"=>$tail,"recovery"=>$recovery));
+        }
+
+    }
 }
 
  ?>
