@@ -1,7 +1,9 @@
 define(["Tonyu","Tonyu.Compiler.JSGenerator","Tonyu.Compiler.Semantics",
-		"Tonyu.TraceTbl","FS","assert","DeferredUtil","compiledProject","IndentBuffer"],
+		"Tonyu.TraceTbl","FS","assert","DeferredUtil","compiledProject",
+		"source-map","TypeChecker"],
 		function (Tonyu,JSGenerator,Semantics,
-				ttb,FS,A,DU,CPR,IndentBuffer) {
+				ttb,FS,A,DU,CPR,
+				S,TypeChecker) {
 var TPRC=function (dir) {
 	A(FS.isFile(dir) && dir.isDir(), "projectCompiler: "+dir+" is not dir obj");
 	var TPR={env:{}};
@@ -22,11 +24,11 @@ var TPRC=function (dir) {
 		return env.options;
 	};
 	TPR.getEXT=function(){
-	var opt=TPR.getOptions();
-	if(!opt.language || opt.language=="js") TPR.EXT=".tonyu";
-	else TPR.EXT="."+opt.language;
-	return TPR.EXT;
-	}
+		var opt=TPR.getOptions();
+		if(!opt.language || opt.language=="js") TPR.EXT=".tonyu";
+		else TPR.EXT="."+opt.language;
+		return TPR.EXT;
+	};
 	TPR.setOptions=function (opt) {
 		TPR.getOptionsFile().obj(opt);
 	}; // ADDJSL
@@ -92,7 +94,7 @@ var TPRC=function (dir) {
 	};
 	TPR.getOutputFile=function (lang) {
 		var opt=TPR.getOptions();
-		var outF=TPR.resolve(A(opt.compiler.outputFile,"output file should be specified in options"));
+		var outF=TPR.resolve(A(opt.compiler.outputFile,"outputFile should be specified in options"));
 		if (outF.isDir()) {
 			throw new Error("out: directory style not supported");
 		}
@@ -112,10 +114,10 @@ var TPRC=function (dir) {
 	// Difference of ctx and env:  env is of THIS project. ctx is of cross-project
 	TPR.loadClasses=function (ctx/*or options(For external call)*/) {
 		Tonyu.runMode=false;
+		TPR.showProgress("LoadClasses: "+dir.name());
 		console.log("LoadClasses: "+dir.path());
 		ctx=initCtx(ctx);
 		var visited=ctx.visited||{};
-		//var classes=ctx.classes||{};
 		if (visited[TPR.path()]) return DU.directPromise();
 		visited[TPR.path()]=true;
 		return TPR.loadDependingClasses(ctx).then(function () {
@@ -125,97 +127,151 @@ var TPRC=function (dir) {
 				return TPR.compile(ctx);
 			} else {
 				var outF=TPR.getOutputFile("js");
-				return evalFile(outF).then(F(copyToClasses));
+				TPR.showProgress("Eval "+outF.name());
+				return evalFile(outF);//.then(F(copyToClasses));
 			}
 		});
-		function copyToClasses() {
-			var ns=TPR.getNamespace();
-			//same as compiledProject (XXXX)
-			var cls=Tonyu.classes;
-			ns.split(".").forEach(function (c) {
-				if (cls) cls=cls[c];
-				// comment out : when empty concat.js
-				//if (!cls) throw new Error("namespace Not found :"+ns);
-			});
-			if (cls) {
-				for (var cln in cls) {
-					var cl=cls[cln];
-					var m=Tonyu.klass.getMeta(cl);
-					ctx.classes[m.fullName]=m;
-				}
-			}
-			//------------------XXXX
-		}
 	};
 	function initCtx(ctx) {
+		//どうしてclassMetasとclassesをわけるのか？
+		// metaはFunctionより先に作られるから
 		var env=TPR.env;
 		if (!ctx) ctx={};
 		if (!ctx.visited) {
-			ctx={visited:{}, classes:(env.classes=env.classes||{}),options:ctx};
+			ctx={visited:{}, classes:(env.classes=env.classes||Tonyu.classMetas),options:ctx};
 		}
 		return ctx;
 	}
 	TPR.compile=function (ctx/*or options(For external call)*/) {
 		Tonyu.runMode=false;
+		TPR.showProgress("Compile: "+dir.name());
 		console.log("Compile: "+dir.path());
 		ctx=initCtx(ctx);
 		var myNsp=TPR.getNamespace();
+		var baseClasses,ctxOpt,env,myClasses,fileAddedOrRemoved,sf;
+		var compilingClasses;
 		return TPR.loadDependingClasses(ctx).then(F(function () {
-			var baseClasses=ctx.classes;
-			console.log("baseClasses", baseClasses);
-			var ctxOpt=ctx.options;
-			var env=TPR.env;
+			baseClasses=ctx.classes;
+			ctxOpt=ctx.options;
+			env=TPR.env;
 			env.aliases={};
+			env.parsedNode=env.parsedNode||{};
 			env.classes=baseClasses;
 			for (var n in baseClasses) {
 				var cl=baseClasses[n];
 				env.aliases[ cl.shortName] = cl.fullName;
 			}
-			var newClasses={};
-			var sf=TPR.sourceFiles(myNsp);
+			myClasses={};
+			fileAddedOrRemoved=!!ctxOpt.noIncremental;
+			sf=TPR.sourceFiles(myNsp);
 			for (var shortCn in sf) {
 				var f=sf[shortCn];
 				var fullCn=myNsp+"."+shortCn;
-				newClasses[fullCn]=baseClasses[fullCn]={
-						fullName:  fullCn,
-						shortName: shortCn,
-						namespace: myNsp,
-						src:{
-							tonyu: f
-						}
-				};
+				if (!baseClasses[fullCn]) {
+					console.log("Class",fullCn,"is added.");
+					fileAddedOrRemoved=true;
+				}
+				var m=Tonyu.klass.getMeta(fullCn);
+				myClasses[fullCn]=baseClasses[fullCn]=m;
+				Tonyu.extend(m,{
+					fullName:  fullCn,
+					shortName: shortCn,
+					namespace: myNsp
+				});
+				m.src=m.src||{};
+				m.src.tonyu=f;
 				env.aliases[shortCn]=fullCn;
 			}
-			for (var n in newClasses) {
-				console.log("initClassDecl: "+n);
-				Semantics.initClassDecls(newClasses[n], env);/*ENVC*/
+			for (var n in baseClasses) {
+				if (myClasses[n] && myClasses[n].src && !myClasses[n].src.js) {
+					//前回コンパイルエラーだとここにくるかも
+					console.log("Class",n,"has no js src");
+					fileAddedOrRemoved=true;
+				}
+				if (!myClasses[n] && baseClasses[n].namespace==myNsp) {
+					console.log("Class",n,"is removed");
+					Tonyu.klass.removeMeta(n);
+					fileAddedOrRemoved=true;
+				}
 			}
-			var ord=orderByInheritance(newClasses);/*ENVC*/
+			if (!fileAddedOrRemoved) {
+				compilingClasses={};
+				for (var n in myClasses) {
+					if (Tonyu.klass.shouldCompile(myClasses[n])) {
+						compilingClasses[n]=myClasses[n];
+					}
+				}
+			} else {
+				compilingClasses=myClasses;
+			}
+			for (var n in compilingClasses) {
+				console.log("initClassDecl: "+n);
+				Semantics.initClassDecls(compilingClasses[n], env);/*ENVC*/
+			}
+			var ord=orderByInheritance(myClasses);/*ENVC*/
 			ord.forEach(function (c) {
-				console.log("annotate :"+c.fullName);
-				Semantics.annotate(c, env);
+				if (compilingClasses[c.fullName]) {
+					console.log("annotate :"+c.fullName);
+					Semantics.annotate(c, env);
+				}
 			});
-			TPR.concatJS(ord);
+			try {
+				/*for (var n in compilingClasses) {
+					TypeChecker.checkTypeDecl(compilingClasses[n],env);
+				}
+				for (var n in compilingClasses) {
+					TypeChecker.checkExpr(compilingClasses[n],env);
+				}*/
+			} catch(e) {
+				console.log("Error in Typecheck(It doesnt matter because Experimental)",e.stack);
+			}
+			//throw "test break";
+			TPR.genJS(ord.filter(function (c) {
+				return compilingClasses[c.fullName];
+			}));
+			var copt=TPR.getOptions().compiler;
+			if (!copt.genAMD) {
+				return TPR.concatJS(ord);
+			}
 		}));
 	};
-	TPR.concatJS=function (ord) {
+	TPR.genJS=function (ord) {
+		// 途中でコンパイルエラーを起こすと。。。
 		var env=TPR.env;
-		var cbuf="";
-		var outf=TPR.getOutputFile();
-		var codeb=env.codeBuffer=IndentBuffer();
-		//codeb.printf("// Gen!%n");
 		ord.forEach(function (c) {
-			console.log("concatJS :",c.fullName);//,c.src.tonyu);
-			codeb.setSrcFile(c.src.tonyu);
+			console.log("genJS :"+c.fullName);
 			JSGenerator.genJS(c, env);
-			cbuf+=c.src.js+"\n";
 		});
-		//outf.text(cbuf);
-		//console.log("gencode", codeb.buf);
-		var mapf=outf.sibling(outf.name()+".map");
-		mapf.text(codeb.srcmap.toString());
-		outf.text(env.codeBuffer.buf+"\n//# sourceMappingURL="+mapf.name());
-		evalFile(outf);
+	};
+	TPR.concatJS=function (ord) {
+		//var cbuf="";
+		var outf=TPR.getOutputFile();
+		TPR.showProgress("generate :"+outf.name());
+		console.log("generate :"+outf);
+		var mapNode=new S.SourceNode(null,null,outf.path());
+		ord.forEach(function (c) {
+			var cbuf2,fn=null;
+			if (typeof (c.src.js)=="string") {
+				cbuf2=c.src.js+"\n";
+			} else if (FS.isFile(c.src.js)) {
+				fn=c.src.js.path();
+				cbuf2=c.src.js.text()+"\n";
+			} else {
+				throw new Error("Src for "+c.fullName+" not generated ");
+			}
+			var snd;
+			if (c.src.map) {
+				snd=S.SourceNode.fromStringWithSourceMap(cbuf2,new S.SourceMapConsumer(c.src.map));
+			} else {
+				snd=new S.SourceNode(null,null,fn,cbuf2);
+			}
+			mapNode.add(snd);
+		});
+		var mapFile=outf.sibling(outf.name()+".map");
+		var gc=mapNode.toStringWithSourceMap();
+		outf.text(gc.code+"\n//# sourceMappingURL="+mapFile.name());
+		mapFile.text(gc.map+"");
+		return evalFile(outf);
 	};
 	TPR.getDependingProjects=function () {
 		var opt=TPR.getOptions();
@@ -232,6 +288,7 @@ var TPRC=function (dir) {
 	TPR.dir=dir;
 	TPR.path=function () {return dir.path();};
 	TPR.sourceFiles=function (nsp) {// nsp==null => all
+		//nsp=nsp || TPR.getNamespace();//DELJSL
 		var dirs=TPR.sourceDirs(nsp);// ADDJSL
 		var res={};
 		for (var i=dirs.length-1; i>=0 ; i--) {
@@ -250,6 +307,7 @@ var TPRC=function (dir) {
 	};
 	TPR.sourceDirs=function (myNsp) {//ADDJSL  myNsp==null => All
 		var dp=TPR.getDependingProjects();
+		//var myNsp||TPR.getNamespace();//DELJSL
 		var dirs=[dir];
 		dp.forEach(function (dprj) {
 			var nsp=dprj.getNamespace();
@@ -348,8 +406,28 @@ var TPRC=function (dir) {
 			}
 		}
 	};
+	TPR.showProgress=function (m) {
+	};
+	TPR.setAMDPaths=function (paths) {
+		TPR.env.amdPaths=paths;
+	};
+	TPR.genXML=function (cname) {//"user.Main"
+		requirejs(["XMLBuffer"],function (x) {
+			var c=TPR.env.classes[cname];
+			if (!c) throw new Error("Class "+cname+" not found");
+			if (!c.node) throw new Error("Node not found compile it");
+			var b=x(c.src.tonyu.text());
+			b(c.node);
+			console.log(b.buf);
+		});
+	};
 	return TPR;
+}
+if (typeof sh=="object") {
+	sh.tonyuc=function (dir) {
+		var pr=TPRC(sh.resolve(dir));
+		return pr.compile();
+	};
 }
 return TPRC;
 });
-

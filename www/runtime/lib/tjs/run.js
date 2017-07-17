@@ -6,12 +6,16 @@ function run(className) {
             }
         },
         paths: {
+          "Klass": window.runtimePath+"lib/Klass", 
+          "assert": window.runtimePath+"lib/assert", 
+          "DeferredUtil": window.runtimePath+"lib/DeferredUtil", 
           "Tonyu": window.runtimePath+"lib/tjs/TonyuLib",
-          "Tonyu.Iterator": window.runtimePath+"lib/tjs/Iterator",
+          "Tonyu.Thread": window.runtimePath+"lib/tjs/TonyuThread",
+          "Tonyu.Iterator": window.runtimePath+"lib/tjs/TonyuIterator",
           "kernel": window.runtimePath+"lib/tjs/kernel",
         }
     });
-   requirejs(["Tonyu","Tonyu.Iterator"], function () {
+   requirejs(["Tonyu"], function () {
         requirejs(["kernel"],function (){
             requirejs(["user.js"],_run);
         });

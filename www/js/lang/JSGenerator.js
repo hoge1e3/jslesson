@@ -2,9 +2,9 @@ if (typeof define!=="function") {//B
 	define=require("requirejs").define;
 }
 define(["Tonyu", "Tonyu.Iterator", "TonyuLang", "ObjectMatcher", "TError", "IndentBuffer",
-		"context", "Visitor","Tonyu.Compiler"],
+		"context", "Visitor","Tonyu.Compiler","assert"],
 function(Tonyu, Tonyu_iterator, TonyuLang, ObjectMatcher, TError, IndentBuffer,
-		context, Visitor,cu) {
+		context, Visitor,cu,A) {
 return cu.JSGenerator=(function () {
 // TonyuソースファイルをJavascriptに変換する
 var TH="_thread",THIZ="_this", ARGS="_arguments",FIBPRE="fiber$", FRMPC="__pc", LASTPOS="$LASTPOS",CNTV="__cnt",CNTC=100;//G
@@ -13,7 +13,7 @@ var INVOKE_FUNC="Tonyu.invokeMethod";
 var CALL_FUNC="Tonyu.callFunc";
 var CHK_NN="Tonyu.checkNonNull";
 var CLASS_HEAD="Tonyu.classes.", GLOBAL_HEAD="Tonyu.globals.";
-var GET_THIS="this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this)";
+var GET_THIS="this";//"this.isTonyuObject?this:Tonyu.not_a_tonyu_object(this)";
 var USE_STRICT='"use strict";%n';
 var ITER="Tonyu.iterator";
 /*var ScopeTypes={FIELD:"field", METHOD:"method", NATIVE:"native",//B
@@ -36,7 +36,8 @@ function genJS(klass, env) {//B
 	function getSource(node) {
 		return cu.getSource(srcCont,node);
 	}
-	var buf=env.codeBuffer || IndentBuffer();
+	var buf=env.codeBuffer || IndentBuffer({fixLazyLength:6});
+	buf.setSrcFile(srcFile);
 	var printf=buf.printf;
 	var ctx=context();
 	var debug=false;
@@ -51,6 +52,7 @@ function genJS(klass, env) {//B
 	var ST=ScopeTypes;
 	var fnSeq=0;
 	var diagnose=env.options.compiler.diagnose;
+	var genMod=env.options.compiler.genAMD;
 
 	function annotation(node, aobj) {//B
 		return annotation3(klass.annotation,node,aobj);
@@ -91,7 +93,7 @@ function genJS(klass, env) {//B
 			buf.printf("%s",getClassName(n));
 		} else if (t==ST.GLOBAL) {
 			buf.printf("%s%s",GLOBAL_HEAD, n);
-		} else if (t==ST.PARAM || t==ST.LOCAL || t==ST.NATIVE) {
+		} else if (t==ST.PARAM || t==ST.LOCAL || t==ST.NATIVE || t==ST.MODULE) {
 			buf.printf("%s",n);
 		} else {
 			console.log("Unknown scope type: ",t);
@@ -116,6 +118,7 @@ function genJS(klass, env) {//B
 	}
 	function lastPosF(node) {//G
 		return function () {
+			if (ctx.noLastPos) return;
 			buf.printf("%s%s=%s;//%s%n", (env.options.compiler.commentLastPos?"//":""),
 					LASTPOS, traceTbl.add(klass/*.src.tonyu*/,node.pos ), klass.fullName+":"+node.pos);
 		};
@@ -185,15 +188,37 @@ function genJS(klass, env) {//B
 			}
 		},
 		varDecl: function (node) {
+			var a=annotation(node);
+			var thisForVIM=a.varInMain? THIZ+"." :"";
 			if (node.value) {
-				buf.printf("%v = %v", node.name, node.value );
+				var t=(!ctx.noWait) && annotation(node).fiberCall;
+				if (t) {
+					A.is(ctx.pc,Number);
+					buf.printf(//VDC
+						"%s.%s%s(%j);%n" +
+						"%s=%s;return;%n" +/*B*/
+						"%}case %d:%{"+
+						"%s%v=%s.retVal;%n",
+							THIZ, FIBPRE, t.N, [", ",[THNode].concat(t.A)],
+							FRMPC, ctx.pc,
+							ctx.pc++,
+							thisForVIM, node.name, TH
+					);
+				} else {
+					buf.printf("%s%v = %v;%n", thisForVIM, node.name, node.value);
+				}
 			} else {
-				buf.printf("%v", node.name);
+				//buf.printf("%v", node.name);
 			}
 		},
 		varsDecl: function (node) {
-			lastPosF(node)();
-			buf.printf("%j;", [";",node.decls]);
+			var decls=node.decls.filter(function (n) { return n.value; });
+			if (decls.length>0) {
+				lastPosF(node)();
+				decls.forEach(function (decl) {
+					buf.printf("%v",decl);
+				});
+			}
 		},
 		jsonElem: function (node) {
 			if (node.value) {
@@ -236,7 +261,7 @@ function genJS(klass, env) {//B
 							ctx.pc++
 				);
 			} else if (t.type=="ret") {
-				buf.printf(
+				buf.printf(//VDC
 						"%s.%s%s(%j);%n" +
 						"%s=%s;return;%n" +/*B*/
 						"%}case %d:%{"+
@@ -294,6 +319,15 @@ function genJS(klass, env) {//B
 			buf.printf("%v%v%v%v%v", node.left, node.op1, node.mid, node.op2, node.right);
 		},
 		prefix: function (node) {
+			if (node.op.text==="__typeof") {
+				var a=annotation(node.right);
+				if (a.vtype) {
+					buf.printf("%l",a.vtype.name||a.vtype.fullName||"No type name?");
+				} else {
+					buf.printf("%l","Any");
+				}
+				return;
+			}
 			buf.printf("%v %v", node.op, node.right);
 		},
 		postfix: function (node) {
@@ -341,6 +375,20 @@ function genJS(klass, env) {//B
 				buf.printf("break;%n");
 			}
 		},
+		"continue": function (node) {
+			if (!ctx.noWait) {
+				if (ctx.inTry && ctx.exitTryOnJump) throw TError("現実装では、tryの中にcontinue;は書けません",srcFile,node.pos);
+				if ( typeof (ctx.closestCnt)=="number" ) {
+					buf.printf("%s=%s; break;%n", FRMPC, ctx.closestCnt);
+				} else if (ctx.closestCnt) {
+					buf.printf("%s=%z; break;%n", FRMPC, ctx.closestCnt);
+				} else {
+					throw TError( "continue； は繰り返しの中で使います" , srcFile, node.pos);
+				}
+			} else {
+				buf.printf("continue;%n");
+			}
+		},
 		"try": function (node) {
 			var an=annotation(node);
 			if (!ctx.noWait &&
@@ -378,6 +426,71 @@ function genJS(klass, env) {//B
 		"throw": function (node) {
 			buf.printf("throw %v;%n",node.ex);
 		},
+		"switch": function (node) {
+			if (!ctx.noWait) {
+				var labels=node.cases.map(function (c) {
+					return buf.lazy();
+				});
+				if (node.defs) labels.push(buf.lazy());
+				buf.printf(
+						"switch (%v) {%{"+
+						"%f"+
+						"%n%}}%n"+
+						"break;%n"
+						,
+						node.value,
+						function setpc() {
+							var i=0;
+							node.cases.forEach(function (c) {
+								buf.printf("%}case %v:%{%s=%z;break;%n", c.value, FRMPC,labels[i]);
+								i++;
+							});
+							if (node.defs) {
+								buf.printf("%}default:%{%s=%z;break;%n", FRMPC, labels[i]);
+							}
+						});
+				var brkpos=buf.lazy();
+				ctx.enter({closestBrk:brkpos}, function () {
+					var i=0;
+					node.cases.forEach(function (c) {
+						buf.printf(
+								"%}case %f:%{"+
+								"%j%n"
+								,
+								function () { buf.print(labels[i].put(ctx.pc++)); },
+								["%n",c.stmts]);
+						i++;
+					});
+					if (node.defs) {
+						buf.printf(
+								"%}case %f:%{"+
+								"%j%n"
+								,
+								function () { buf.print(labels[i].put(ctx.pc++)); },
+								["%n",node.defs.stmts]);
+					}
+					buf.printf("case %f:%n",
+					function () { buf.print(brkpos.put(ctx.pc++)); });
+				});
+			} else {
+				buf.printf(
+						"switch (%v) {%{"+
+						"%j"+
+						(node.defs?"%v":"%D")+
+						"%n%}}"
+						,
+						node.value,
+						["%n",node.cases],
+						node.defs
+						);
+			}
+		},
+		"case": function (node) {
+			buf.printf("%}case %v:%{%j",node.value, ["%n",node.stmts]);
+		},
+		"default": function (node) {
+			buf.printf("%}default:%{%j", ["%n",node.stmts]);
+		},
 		"while": function (node) {
 			lastPosF(node)();
 			var an=annotation(node);
@@ -395,13 +508,40 @@ function genJS(klass, env) {//B
 						"%}case %f:%{",
 							pc,
 							node.cond, FRMPC, brkpos,
-							enterV({closestBrk:brkpos, exitTryOnJump:false}, node.loop),
+							enterV({closestBrk:brkpos, closestCnt:pc, exitTryOnJump:false}, node.loop),
 							FRMPC, pc,
 							function () { buf.print(brkpos.put(ctx.pc++)); }
 				);
 			} else {
 				ctx.enter({noWait:true},function () {
 					buf.printf("while (%v) {%{%f%n%}}", node.cond, noSurroundCompoundF(node.loop));
+				});
+			}
+		},
+		"do": function (node) {
+			lastPosF(node)();
+			var an=annotation(node);
+			if (!ctx.noWait &&
+					(an.fiberCallRequired || an.hasReturn)) {
+				var brkpos=buf.lazy();
+				var cntpos=buf.lazy();
+				var pc=ctx.pc++;
+				buf.printf(
+						"%}case %d:%{" +
+						"%f%n" +
+						"%}case %f:%{" +
+						"if (%v) { %s=%s; break; }%n"+
+						"%}case %f:%{",
+							pc,
+							enterV({closestBrk:brkpos, closestCnt:cntpos, exitTryOnJump:false}, node.loop),
+							function () { buf.print(cntpos.put(ctx.pc++)); },
+							node.cond, FRMPC, pc,
+							function () { buf.print(brkpos.put(ctx.pc++)); }
+				);
+			} else {
+				ctx.enter({noWait:true},function () {
+					buf.printf("do {%{%f%n%}} while (%v);%n",
+							noSurroundCompoundF(node.loop), node.cond );
 				});
 			}
 		},
@@ -426,7 +566,7 @@ function genJS(klass, env) {//B
 								pc,
 								itn, FRMPC, brkpos,
 								getElemF(itn, node.inFor.isVar, node.inFor.vars),
-								enterV({closestBrk:brkpos, exitTryOnJump:false}, node.loop),//node.loop,
+								enterV({closestBrk:brkpos, closestCnt: pc, exitTryOnJump:false}, node.loop),//node.loop,
 								FRMPC, pc,
 								function (buf) { buf.print(brkpos.put(ctx.pc++)); }
 					);
@@ -449,36 +589,52 @@ function genJS(klass, env) {//B
 				if (!ctx.noWait&&
 						(an.fiberCallRequired || an.hasReturn)) {
 					var brkpos=buf.lazy();
+					var cntpos=buf.lazy();
 					var pc=ctx.pc++;
 					buf.printf(
-							"%v;%n"+
+							"%v%n"+
 							"%}case %d:%{" +
 							"if (!(%v)) { %s=%z; break; }%n" +
 							"%f%n" +
+							"%}case %f:%{"+
 							"%v;%n" +
 							"%s=%s;break;%n" +
 							"%}case %f:%{",
 								node.inFor.init ,
 								pc,
 								node.inFor.cond, FRMPC, brkpos,
-								enterV({closestBrk:brkpos,exitTryOnJump:false}, node.loop),//node.loop,
+								enterV({closestBrk:brkpos,closestCnt:cntpos,exitTryOnJump:false}, node.loop),//node.loop,
+								function (buf) { buf.print(cntpos.put(ctx.pc++)); },
 								node.inFor.next,
 								FRMPC, pc,
 								function (buf) { buf.print(brkpos.put(ctx.pc++)); }
 					);
 				} else {
 					ctx.enter({noWait:true},function() {
-						buf.printf(
-							"%v%n"+
-							"while(%v) {%{" +
-								"%v%n" +
-								"%v;%n" +
-							"%}}",
-							node.inFor.init ,
-							node.inFor.cond,
-								node.loop,
-								node.inFor.next
-						);
+						if (node.inFor.init.type=="varsDecl" || node.inFor.init.type=="exprstmt") {
+							buf.printf(
+									"%v"+
+									"for (; %v ; %v) {%{"+
+										"%v%n" +
+									"%}}"
+										,
+									/*enterV({noLastPos:true},*/ node.inFor.init,
+									node.inFor.cond, node.inFor.next,
+									node.loop
+								);
+						} else {
+							buf.printf(
+									"%v%n"+
+									"while(%v) {%{" +
+										"%v%n" +
+										"%v;%n" +
+									"%}}",
+									node.inFor.init ,
+									node.inFor.cond,
+										node.loop,
+										node.inFor.next
+								);
+						}
 					});
 				}
 			}
@@ -496,7 +652,7 @@ function genJS(klass, env) {//B
 			var an=annotation(node);
 			if (!ctx.noWait &&
 					(an.fiberCallRequired || an.hasJump || an.hasReturn)) {
-				var fipos={}, elpos={};
+				var fipos=buf.lazy(), elpos=buf.lazy();
 				if (node._else) {
 					buf.printf(
 							"if (!(%v)) { %s=%z; break; }%n" +
@@ -637,33 +793,33 @@ function genJS(klass, env) {//B
 	v.def=function (node) {
 		console.log("Err node=");
 		console.log(node);
-		throw node.type+" is not defined in visitor:compiler2";
+		throw new Error(node.type+" is not defined in visitor:compiler2");
 	};
 	v.cnt=0;
 	function genSource() {//G
-		/*if (env.options.compiler.asModule) {
-			klass.moduleName=getClassName(klass);
-			printf("if (typeof requireSimulator=='object') requireSimulator.setName(%l);%n",klass.moduleName);
-			printf("//requirejs(['Tonyu'%f],function (Tonyu) {%{", function (){
-				getDependingClasses(klass).forEach(function (k) {
-					printf(",%l",k.moduleName);
-				});
-			});
-		}*/
 		ctx.enter({}, function () {
-			/*var nspObj=CLASS_HEAD+klass.namespace;
-			printf("Tonyu.klass.ensureNamespace(%s,%l);%n",CLASS_HEAD.replace(/\.$/,""), klass.namespace);
-			if (klass.superclass) {
-				printf("%s=Tonyu.klass(%s,[%s],{%{",
-						getClassName(klass),
-						getClassName(klass.superclass),
-						getClassNames(klass.includes).join(","));
-			} else {
-				printf("%s=Tonyu.klass([%s],{%{",
-						getClassName(klass),
-						getClassNames(klass.includes).join(","));
-			}*/
-			printf("Tonyu.klass.define({%{");
+			if (genMod) {
+				printf("define(function (require) {%{");
+				var reqs={Tonyu:1};
+				for (var mod in klass.decls.amds) {
+					reqs[mod]=1;
+				}
+				if (klass.superclass) {
+					var mod=klass.superclass.shortName;
+					reqs[mod]=1;
+				}
+				(klass.includes||[]).forEach(function (klass) {
+					var mod=klass.shortName;
+					reqs[mod]=1;
+				});
+				for (var mod in klass.decls.softRefClasses) {
+					reqs[mod]=1;
+				}
+				for (var mod in reqs) {
+					printf("var %s=require('%s');%n",mod,mod);
+				}
+			}
+			printf((genMod?"return ":"")+"Tonyu.klass.define({%{");
 			printf("fullName: %l,%n", klass.fullName);
 			printf("shortName: %l,%n", klass.shortName);
 			printf("namespace: %l,%n", klass.namespace);
@@ -688,6 +844,7 @@ function genJS(klass, env) {//B
 			printf("%}},%n");
 			printf("decls: %s%n", JSON.stringify(digestDecls(klass)));
 			printf("%}});");
+			if (genMod) printf("%n%}});");
 			//printf("%}});%n");
 		});
 		//printf("Tonyu.klass.addMeta(%s,%s);%n",
@@ -697,10 +854,23 @@ function genJS(klass, env) {//B
 		//}
 	}
 	function digestDecls(klass) {
-		var res={methods:{}};
+		var res={methods:{},fields:{}};
 		for (var i in klass.decls.methods) {
 			res.methods[i]=
 			{nowait:!!klass.decls.methods[i].nowait};
+		}
+		for (var i in klass.decls.fields) {
+			var src=klass.decls.fields[i];
+			var dst={};
+			console.log("digestDecls",src);
+			if (src.vtype) {
+			if (typeof (src.vtype)==="string") {
+				dst.vtype=src.vtype;
+			} else {
+				dst.vtype=src.vtype.fullName || src.vtype.name;
+			}
+			}
+			res.fields[i]=dst;
 		}
 		return res;
 	}
@@ -810,7 +980,7 @@ function genJS(klass, env) {//B
 		}
 	}
 	function genFuncExpr(node) {//G
-		var finfo=annotation(node);// annotateSubFuncExpr(node);
+		var finfo=annotation(node).info;// annotateSubFuncExpr(node);
 
 		buf.printf("(function %s(%j) {%{"+
 						"%f%n"+
@@ -836,7 +1006,7 @@ function genJS(klass, env) {//B
 //        return ("_trc_func_"+traceTbl.add(klass,pos )+"_"+(fnSeq++));//  Math.random()).replace(/\./g,"");
 	}
 	function genSubFunc(node) {//G
-		var finfo=annotation(node);// annotateSubFuncExpr(node);
+		var finfo=annotation(node).info;// annotateSubFuncExpr(node);
 		buf.printf("function %s(%j) {%{"+
 						"%f%n"+
 						"%f"+
@@ -872,12 +1042,19 @@ function genJS(klass, env) {//B
 		return OM.match(f, {ftype:"constructor"}) || OM.match(f, {name:"new"});
 	}
 	genSource();//G
-	klass.src.js=buf.buf;//G
+	if (genMod) {
+		klass.src.js=klass.src.tonyu.up().rel(klass.src.tonyu.truncExt()+".js");
+		klass.src.js.text(buf.buf);
+	} else {
+		klass.src.js=buf.buf;//G
+	}
 	if (debug) {
 		console.log("method4", buf.buf);
 		//throw "ERR";
 	}
-	return buf.buf;
+	var bufres=buf.close();
+	klass.src.map=buf.mapStr;
+	return bufres;
 }//B
 return {genJS:genJS};
 })();

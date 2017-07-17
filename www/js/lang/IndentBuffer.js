@@ -1,3 +1,6 @@
+if (typeof define!=="function") {
+	define=require("requirejs").define;
+}
 define(["assert","source-map"],function (A, S) {
 var Pos2RC=function (src) {
 	var $={};
@@ -37,10 +40,10 @@ return IndentBuffer=function (options) {
 		var fmt=args[0];
 		//console.log(fmt+ " -- "+arguments[0]+" --- "+arguments.length);
 		var ai=0;
-		function shiftArg() {
+		function shiftArg(nullable) {
 			ai++;
 			var res=args[ai];
-			if (res==null) {
+			if (res==null && !nullable) {
 				console.log(args);
 				throw new Error(ai+"th null param: fmt="+fmt);
 			}
@@ -103,18 +106,11 @@ return IndentBuffer=function (options) {
 					$.print(place.val);
 					return;
 				}
-				if (!place.gen) {
-					/*place.gen=("GENERETID"+Math.random()+"DITERENEG").replace(/\W/g,"");
-					place.reg=new RegExp(place.gen,"g");
-					//place.src=place.gen;
-					place.put=function (val) {
-						this.val=val;
-						$.buf=$.buf.replace(this.reg, val);
-						return val;
-					};*/
+				if (!place.inited) {
 					$.lazy(place);
 				}
-				$.print(place.gen);
+				place.print();
+				//$.print(place.gen);
 				i++;
 			} else if (fstr=="j") {
 				var sp_node=shiftArg();
@@ -132,7 +128,7 @@ return IndentBuffer=function (options) {
 				});
 				i++;
 			} else if (fstr=="D"){
-				shiftArg();
+				shiftArg(true);
 				i++;
 			} else {
 				i+=2;
@@ -193,15 +189,49 @@ return IndentBuffer=function (options) {
 	$.bufCol=1;
 	$.srcmap=new S.SourceMapGenerator();
 	$.lazy=function (place) {
-		//TODO: cannot use with sourcemap
 		if (!place) place={};
-		place.gen=("GENERETID"+Math.random()+"DITERENEG").replace(/\W/g,"");
-		place.reg=new RegExp(place.gen,"g");
+		if (options.fixLazyLength) {
+			place.length=place.length||options.fixLazyLength;
+			place.pad=place.pad||" ";
+			place.gen=(function () {
+				var r="";
+				for(var i=0;i<place.length;i++) r+=place.pad;
+				return r;
+			})();
+			place.puts=[];
+			$.useLengthPlace=true;
+		} else {
+			//cannot use with sourcemap
+			place.gen=("GENERETID"+Math.random()+"DITERENEG").replace(/\W/g,"");
+			place.reg=new RegExp(place.gen,"g");
+			A(!$.useLengthPlace,"GENERETID cannot be used");
+		}
+		place.inited=true;
 		//place.src=place.gen;
 		place.put=function (val) {
-			this.val=val;
-			$.buf=$.buf.replace(this.reg, val);
-			return val;
+			this.val=val+"";
+			if (this.puts) {
+				if (this.val.length>this.length) {
+					$.lazyOverflow=true;
+				}
+				while (this.val.length<this.length) {
+					this.val+=this.pad;
+				}
+				var place=this;
+				this.puts.forEach(function (i) {
+					var pl=$.buf.length;
+					$.buf=$.buf.substring(0,i)+place.val+$.buf.substring(i+place.length);
+					A.eq(pl,$.buf.length);
+				});
+			}
+			if (this.reg) {
+				$.buf=$.buf.replace(this.reg, val);
+			}
+			return this.val;
+		};
+		place.print=function () {
+			if (this.puts) this.puts.push($.buf.length);
+			$.print(this.gen);
 		};
 		return place;
 		//return {put: function () {} };
@@ -224,6 +254,10 @@ return IndentBuffer=function (options) {
 	};
 	$.toLiteral= function (s, quote) {
 		if (!quote) quote="'";
+	if (typeof s!=="string") {
+		console.log("no literal ",s);
+		throw new Error("toLiteral:"+s+" is not a literal");
+	}
 		s = s.replace(/\\/g, "\\\\");
 		s = s.replace(/\r/g, "\\r");
 		s = s.replace(/\n/g, "\\n");
@@ -234,8 +268,9 @@ return IndentBuffer=function (options) {
 	$.indentBuf="";
 	$.indentStr="  ";
 	$.close=function () {
+		$.mapStr=$.srcmap.toString();
 		if ($.mapFile && $.dstFile) {
-			$.mapFile.text($.srcmap.toString());
+			$.mapFile.text($.mapStr);
 			$.printf("%n//# sourceMappingURL=%s%n",$.mapFile.relPath($.dstFile.up()));
 		}
 		if ($.dstFile) {

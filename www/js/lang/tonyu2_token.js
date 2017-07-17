@@ -43,6 +43,7 @@ return TT=function () {
 			res.toString=function (){
 				return this.text;
 			};
+			res.isToken=true;
 			return res;
 		});
 		if (fst) res=res.first(space, fst);
@@ -98,17 +99,22 @@ return TT=function () {
 		dtk(DIV, name, parser, DIV);
 	}*/
 	var reserved={"function":true, "var":true , "return":true, "typeof": true, "if":true,
+			"__typeof": true,
 			"for":true,
 			"else": true,
 			"super": true,
 			"while":true,
+			"continue":true,
 			"break":true,
 			"do":true,
 			"switch":true,
+			"case":true,
+			"default":true,
 			"try": true,
 			"catch": true,
 			"finally": true,
 			"throw": true,
+			"of": true,
 			"in": true,
 			fiber:true,
 			"native": true,

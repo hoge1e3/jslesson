@@ -6,7 +6,7 @@ define(["Tonyu","ObjectMatcher", "TError"],
 			FIELD:"field", METHOD:"method", NATIVE:"native",//B
 			LOCAL:"local", THVAR:"threadvar",
 			PARAM:"param", GLOBAL:"global",
-			CLASS:"class"
+			CLASS:"class", MODULE:"module"
 	};
 	cu.ScopeTypes=ScopeTypes;
 	var symSeq=1;//B
@@ -50,11 +50,27 @@ define(["Tonyu","ObjectMatcher", "TError"],
 		}
 		return res;
 	}
+	cu.extend=function (res,aobj) {
+		for (var i in aobj) res[i]=aobj[i];
+		return res;
+	};
 	cu.annotation=annotation3;
 	function getSource(srcCont,node) {//B
 		return srcCont.substring(node.pos,node.pos+node.len);
 	}
 	cu.getSource=getSource;
+	cu.getField=function(klass,name){
+		if (klass instanceof Function) return null;
+		var res=null;
+		getDependingClasses(klass).forEach(function (k) {
+			if (res) return;
+			res=k.decls.fields[name];
+		});
+		if (typeof (res.vtype)==="string") {
+			res.vtype=Tonyu.classMetas[res.vtype] || window[res.vtype];
+		}
+		return res;
+	};
 	function getMethod2(klass,name) {//B
 		var res=null;
 		getDependingClasses(klass).forEach(function (k) {
@@ -83,7 +99,7 @@ define(["Tonyu","ObjectMatcher", "TError"],
 		if (!method.head) return res;
 		if (method.head.setter) res.push(method.head.setter.value);
 		var ps=method.head.params ? method.head.params.params : null;
-		if (ps && !ps.forEach) throw method+" is not array ";
+		if (ps && !ps.forEach) throw new Error(method+" is not array ");
 		if (ps) res=res.concat(ps);
 		return res;
 	}
