@@ -2,7 +2,7 @@
 // b(node);
 // console.log(b.buf);
 if (typeof define!=="function") {
-   define=require("requirejs").define;
+	define=require("requirejs").define;
 }
 define(["Parser"],
 function(Parser) {
