@@ -1224,6 +1224,11 @@ window.MinimalParser= function () {
             by: "function_definition_pre"
         });
         var depth=ctx.depth;
+        function checkReturn() {
+            if (name+""==="main") return "";
+            if (type.ret===T.void) return "";
+            return 'doNotification("関数'+name+'の戻り値が設定されていません");';
+        }
         newScope(function () {
             var getParams=[];
             if (params) params.forEach(function (param) {
@@ -1255,6 +1260,7 @@ window.MinimalParser= function () {
                     "var ARGS=Array.prototype.slice.call(arguments);\n",
                     getParams,
 			        states,
+                    checkReturn(),
         			"};"
                 ],{type:"funcDecl",declarator:decl,statements:states});
             }).parse(st);
