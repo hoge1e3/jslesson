@@ -59,10 +59,30 @@ class AddErrorInfoController {
         $class=Auth::curClass2();
         if (!Auth::isTeacherOf($class)) return ;
         $stdid=param("stdid");
-        $res=pdo_select("select id from `log` where `class`=? and `user`=? order by time",$class->id,$stdid);
+        $since=param("since",0);
+        $res=pdo_select("select id from `log` where `class`=? and `user`=? and time>=? order by time",$class->id,$stdid,$since);
         $res=array_map(function ($e) { return $e->id; },$res);
         header("Content-type: text/json");
         echo json_encode($res);
+    }
+    static function getLastErrorSeqTime() {
+        $stdid=param("stdid");
+        $class=Auth::curClass2();
+        if (!Auth::isTeacherOf($class)) return ;
+        $res=pdo_select1("select min(start) as start from errorSeqView where `class`=? and `user`=? and recovery=-1",$class->id,$stdid);
+        if (!is_null($res->start)) {
+            echo $res->start;
+        } else {
+            $res=pdo_select1("select max(end) as end from errorSeqView where `class`=? and `user`=? ",$class->id,$stdid);
+            if (!is_null($res->end)) {
+                echo $res->end;
+            } else {
+                echo "0";
+            }            
+        }
+        //header("Content-type: text/json");
+        //echo json_encode($res);
+
     }
     static function getLog() {
         $logid=param("logid");
