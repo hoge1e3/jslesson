@@ -68,6 +68,18 @@ function (Util, Tonyu, FS, FileList, FileMenu,
             if(cmtList.length>0){
                 var c=cmtList.join(",");
                 scoremsg="<span style='color:#ff0000'> 新しい採点結果が届いています(ファイル:"+c+")</span>";
+                if(typeof getCurrentEditorInfo!=="undefined"){
+                    var inf=getCurrentEditorInfo();
+                    var f=inf.file;
+                    var cmfile=f.sibling(f.truncExt()+".cmt.txt");
+                    $("#commentLink").empty();
+                    if (cmfile.exists()) {
+                        $("#commentLink").append("&nbsp;").append(
+                        $("<a>").text("採点結果").click(function () {
+                            CommentDialog.show(cmfile);
+                        }));
+                    }
+                }
                 NotificationDialog.show("新しい採点結果が届いています(ファイル:"+c+")");
             }else{
                 scoremsg="";
