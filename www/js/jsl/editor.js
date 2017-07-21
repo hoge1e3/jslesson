@@ -161,6 +161,18 @@ function ready() {
     	});
     	helpURL="http://bitarrow.eplang.jp/index.php?dolittle_use"
     	break;
+    case "tonyu":
+        requirejs(["TonyuBuilder","TonyuProject"],function(_,TPRC){
+            Builder=_;
+            console.log("tnub requirejsed");
+            $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+            ram=FS.get("/ram/build/");
+            FS.mount(ram.path(),"ram");
+            builder=new Builder(curPrj, ram);
+            curPrj=TPRC(curProjectDir);// curPrj re-construct!!!?
+            builderReady();
+        });
+        break;
     }
     function makeUI(){
         Columns.make(
@@ -214,12 +226,16 @@ function ready() {
                       {label:"エディタモード切替",id:"editorType",action:editorType}*/
                   ]},
                   {label:"使用方法",id:"openHelp"},
+                  {label:"ツール",id:"tool",sub:[
+                      {label:"画像リスト",id:"imageList",action:showImageList},
+                  ]},
                   {label:"配布",id:"distribute",sub:[
                       {label:"ファイルを配布",id:"distributeFile",action:distributeFile},
                       {label:"プロジェクトを配布",id:"distributePrj",action:distributePrj}
                   ]},
                 ]
         );
+        showToolMenu();
         showDistMenu();
     }
     function upFile() {
@@ -232,6 +248,14 @@ function ready() {
             }
         });
     }
+    function showImageList() {
+        DU.requirejs(["ResEditor"]).then(function (ResEditor) {
+            ResEditor(curPrj,"image");
+        }).fail(function (e) {
+            console.log(e.stack);
+            alert(e);
+        });
+    }
     function showDistMenu(){
         if(Auth.teacher!=""){
             dist="block";
@@ -240,6 +264,13 @@ function ready() {
         }
         console.log("Auth.teacher",Auth.teacher);
         $("#distribute").css("display",dist);
+    }
+    function showToolMenu() {
+        if (lang==="tonyu") {
+            $("#tool").css("display","block");
+        } else {
+            $("#tool").css("display","none");
+        }
     }
     function distributeFile() {
         //alert("distributeFile!");

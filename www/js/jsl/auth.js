@@ -1,16 +1,37 @@
-define(["FS","md5"], function (FS,md5) {
+define(["FS","md5","WebSite"], function (FS,md5,WebSite) {
     Auth={
         check:function () {
             var self=this;
             //console.log("CHK");
             return $.when(
-                $.get(".?Login/curclass&"+Math.random()),
-                $.get(".?Login/curuser&"+Math.random()),
-                $.get(".?Login/curTeacher&"+Math.random())
+                $.get(WebSite.controller+"?Login/curclass&"+Math.random()),
+                $.get(WebSite.controller+"?Login/curuser&"+Math.random()),
+                $.get(WebSite.controller+"?Login/curTeacher&"+Math.random())
             ).then(function (c,u,t) {
                 //console.log("CHKE",c[0],u[0]);
                 self.login(c[0],u[0],t[0]);
                 return self;
+            });
+        },
+        assertLogin: function (options) {
+            var self=this;
+            return DU.promise(function (succ,fail) {
+                if (self.loggedIn()) {
+                    onsucc();
+                } else {
+                    self.check().then(function () {
+                        if (!self.loggedIn()) {
+                            options.showLoginLink(WebSite.controller+"?Login/form");
+                        } else {
+                            onsucc();
+                        }
+                    });
+                }
+                function onsucc() {
+                    var userInfo={class:self.class,user:self.user};
+                    if (options.success) options.success(userInfo);
+                    succ(userInfo);
+                }
             });
         },
         loggedIn:function () {
@@ -35,7 +56,7 @@ define(["FS","md5"], function (FS,md5) {
             return md5(this.class+"/"+this.user+"/"+projectName).substring(0,8)+"/";
         },
         getHash: function (projectName) {
-            return $.ajax("a.php?Login/getPublishedDir",{
+            return $.ajax(WebSite.controller+"?Login/getPublishedDir",{
                 data: {
                     project: projectName
                 }

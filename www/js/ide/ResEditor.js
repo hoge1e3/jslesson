@@ -1,43 +1,52 @@
-define(["FS","UI","Blob","Auth","WebSite","Util"],
-        function (FS, UI,Blob,Auth,WebSite,Util) {
-    var ResEditor=function (prjDir, mediaType) {
+define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite"
+        ,"ImageDetailEditor","Util"],
+        function (FS, Tonyu, UI,IL,Blob,Auth,WebSite,
+                ImageDetailEditor,Util) {
+    var ResEditor=function (prj, mediaType) {
         var mediaInfos={
-            image:{name:"画像",exts:["png","gif","jpg"],path:"images/",key:"images",
-                extPattern:/\.(png|gif|jpe?g)$/i,contentType:/image\/(png|gif|jpe?g)/,
-                newItem:function (name) {
-                    var r={pwidth:32,pheight:32};
-                    if (name) r.name="$pat_"+name;
-                    return r;
+                image:{name:"画像",exts:["png","gif","jpg"],path:"images/",key:"images",
+                    extPattern:/\.(png|gif|jpe?g)$/i,contentType:/image\/(png|gif|jpe?g)/,
+                    newItem:function (name) {
+                        var r={type:"single"};//pwidth:32,pheight:32};
+                        if (name) r.name="$pat_"+name;
+                        return r;
+                    }
+                },
+                sound:{name:"音声",exts:["mp3","ogg","mp4","m4a","mid","wav"],path:"sounds/",key:"sounds",
+                    extPattern:/\.(mp3|ogg|mp4|m4a|midi?|wav)$/i,contentType:/((audio\/(mp3|ogg|x-m4a|midi?|wav))|(video\/mp4))/,
+                    newItem:function (name) {
+                        var r={};
+                        if (name) r.name="$se_"+name;
+                        return r;
+                    }
                 }
-            },
-            sound:{name:"音声",exts:["mp3","ogg"],path:"sounds/",key:"sounds",
-                extPattern:/\.(mp3|ogg)$/i,contentType:/audio\/(mp3|ogg)/,
-                newItem:function (name) {
-                    var r={};
-                    if (name) r.name="$se_"+name;
-                    return r;
-                }
-            }
         };
         var mediaInfo=mediaInfos[mediaType||"image"];
         var d=UI("div", {title:mediaInfo.name+"リスト"});
         d.css({height:200+"px", "overflow-v":"scroll"});
-        //var rsrc=prj.getResource();
-        //var rsrcDir=prjDir.rel(mediaInfo.path);
+        var rsrc=prj.getResource();
+        var rsrcDir=prj.getDir().rel(mediaInfo.path);
         var itemUIs=[];
-        //if (!rsrc) prj.setResource();
+        if (!rsrc) prj.setResource();
         function convURL(u) {
             try {
-                if (Util.endsWith(u,".ogg") || Util.endsWith(u,".mp3") ) {
-                    u="images/sound.png";
+                if (Util.endsWith(u,".ogg")) {
+                    u=WebSite.urlAliases["images/sound_ogg.png"];
+                } else if (Util.endsWith(u,".mp3")) {
+                    u=WebSite.urlAliases["images/sound_mp3.png"];
+                } else if (Util.endsWith(u,".mp4")) {
+                    u=WebSite.urlAliases["images/sound_mp4.png"];
+                } else if (Util.endsWith(u,".m4a")) {
+                    u=WebSite.urlAliases["images/sound_m4a.png"];
+                } else if (Util.endsWith(u,".mid") || Util.endsWith(u,".midi")) {
+                    u=WebSite.urlAliases["images/sound_mid.png"];
+                } else if (Util.endsWith(u,".wav")) {
+                    u=WebSite.urlAliases["images/sound_wav.png"];
                 }
-                return u;
+                return IL.convURL(u,prj.getDir());
             }catch(e) {
-                return "images/ecl.png";
+                return WebSite.urlAliases["images/ecl.png"];
             }
-        }
-        function getItems() {
-            return Blob.getItems(Auth,mediaInfo.path);
         }
         function reload() {
             d.empty();
@@ -45,24 +54,25 @@ define(["FS","UI","Blob","Auth","WebSite","Util"],
             var dragPoint=UI("div", {style:"margin:10px; padding:10px; border:solid blue 2px;",
                 on:{dragover: s, dragenter: s, drop:dropAdd}},dragMsg
             ).appendTo(d);
-            //rsrc=prj.getResource();
-            getItems().then(function (items) {
-                itemUIs=[];
-                var itemTbl=UI("div").appendTo(d);
-                items.forEach(function (item){
-                    var itemUI=genItemUI(item);
-                    itemUIs.push(itemUI);
-                    itemUI.appendTo(itemTbl);
-                });
+            rsrc=prj.getResource();
+            var items=rsrc[mediaInfo.key];
+            itemUIs=[];
+            var itemTbl=UI("div").appendTo(d);
+            items.forEach(function (item){
+                var itemUI=genItemUI(item);
+                itemUIs.push(itemUI);
+                itemUI.appendTo(itemTbl);
             });
             d.append(UI("div",{style:"clear:left;"},
-                ["button", {on:{click:function (){ add();}}}, "追加"],
-                ["button", {on:{click:function (){ d.dialog("close"); }}}, "完了"]
+                         ["button", {on:{click:function (){ add();}}}, "追加"],
+                         ["button", {on:{click:function (){ d.dialog("close"); }}}, "完了"]
             ));
             function dropAdd(e) {
                 eo=e.originalEvent;
                 var file = eo.dataTransfer.files[0];
-                if(!file.type.match(mediaInfo.contentType)[1]) {
+                var useBlob=WebSite.serverType=="BA" || WebSite.serverType=="GAE" && (file.size>1000*300);
+                if(!file.type.match(mediaInfo.contentType)) {
+                    alert("このファイルは追加できません："+(file.name));
                     e.stopPropagation();
                     e.preventDefault();
                     return false;
@@ -73,13 +83,36 @@ define(["FS","UI","Blob","Auth","WebSite","Util"],
                     itemExt=RegExp.lastMatch.toLowerCase();
                 }
                 var v=mediaInfo.newItem(itemName);
-                dragPoint.text("アップロード中...");
-                var prjN=prj.getName();
-                Blob.upload(Auth,file).then(function (){
-                    dragPoint.text(dragMsg);
-                    v.url="${blobPath}/"+u+"/"+prjN+"/"+file.name;
-                    add(v);
-                });
+                if (useBlob) {
+                    Auth.assertLogin({
+                        showLoginLink:function (u) {
+                            dragPoint.css("border","solid red 2px").empty().append(
+                                    UI("div","大きい"+mediaInfo.name+"を追加するには，ログインが必要です：",
+                                       ["a",{href:u,target:"login",style:"color: blue;"},"ログインする"])
+                            );
+                        }
+                    }).then(function (u) {
+                        dragPoint.text("アップロード中...");
+                        var prjN=prj.getName();
+                        var itemFile=rsrcDir.rel(itemName+itemExt);
+                        //Blob.upload=function(userInfo, project, path, file) {
+                        Blob.upload(u,prjN,  itemFile.relPath(prj.getDir()), file).then(function (url){
+                            dragPoint.text(dragMsg);
+                            v.url=url;//"${blobPath}/"+u+"/"+prjN+"/"+file.name;
+                            add(v);
+                        });
+                    });
+                } else {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        var fileContent = reader.result;
+                        var itemFile=rsrcDir.rel(itemName+itemExt);
+                        itemFile.setBytes(fileContent);
+                        v.url="ls:"+itemFile.relPath(prj.getDir());// fileContent;
+                        add(v);
+                    };
+                    reader.readAsArrayBuffer(file);
+                }
                 e.stopPropagation();
                 e.preventDefault();
                 return false;
@@ -87,13 +120,14 @@ define(["FS","UI","Blob","Auth","WebSite","Util"],
             function s(e) {
                 e.stopPropagation();
                 e.preventDefault();
+
             }
             function genItemUI(item) {
                 function detail() {
                     if (mediaType=="sound") return;
                     ImageDetailEditor.show(item,prj.getDir(), item.name, {
                         onclose: function () {
-                            //prj.setResource(rsrc);
+                            prj.setResource(rsrc);
                             reload();
                         }
                     });
@@ -154,9 +188,57 @@ define(["FS","UI","Blob","Auth","WebSite","Util"],
                 var item=v.data;
                 item.name=v.name.val();
             });
-            //console.log(rsrc);
-            //prj.setResource(rsrc);
+            console.log(rsrc);
+            prj.setResource(rsrc);
             reload();
+        }
+        function cleanFiles() {
+            var items=rsrc[mediaInfo.key];
+            Auth.currentUser(function (u,ct) {
+                if (!u) return;
+                var rtf=[];
+                items.forEach(function (item) {
+                    var a,ogg;
+                    if (a=Blob.isBlobURL(item.url)) {
+                        rtf.push(a.fileName);
+                        ogg=a.fileName.replace(/\.(mp3|mp4|m4a)$/,".ogg");
+                        if (ogg!=a.fileName) rtf.push(ogg);
+                    }
+                });
+                var data={
+                        user:u,
+                        project:prj.getName(),
+                        mediaType:mediaType,
+                        csrfToken:ct,
+                        retainFileNames:JSON.stringify(rtf)
+                };
+                console.log("retainBlobs",data);
+                //TODO: urlchange!
+                $.ajax({url:WebSite.serverTop+"/retainBlobs",type:"get",
+                    data:data
+                });
+            })
+            var cleanFile={};
+            if (rsrcDir.exists()) {
+                rsrcDir.each(function (f) {
+                    cleanFile["ls:"+f.relPath(prj.getDir())]=f;
+                });
+            }
+            rsrc=prj.getResource();
+            items.forEach(function (item){
+                delete cleanFile[item.url];
+                delete cleanFile[item.url.replace(/\.(mp3|mp4|m4a)$/,".ogg")];
+            });
+            console.log(cleanFile);
+            for (var ci in cleanFile) {
+                var cf=cleanFile[ci];
+                console.log(cf+" is removed");
+                cf.rm();
+            }
+        }
+        function toi(s) {
+            if (!s || s=="") return undefined;
+            return parseInt(s);
         }
         reload();
         d.dialog({
@@ -165,9 +247,10 @@ define(["FS","UI","Blob","Auth","WebSite","Util"],
             height: 500,
             close: function () {
                 update();
-                /*if (mediaType=="sound") {
+                cleanFiles();
+                if (mediaType=="sound") {
                     OggConverter.convert(rsrcDir);
-                }*/
+                }
             }
         });
     };

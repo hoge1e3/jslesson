@@ -22,7 +22,7 @@ define(["UI"], function (UI) {
 				 }}}]],
 				["div",
         			 ["span","プログラミング言語"],
-        			 ["select",{$edit:"lang",id:"prjLang"},
+        			 ["select",{$var:"lang",$edit:"lang",id:"prjLang"},
         			 ["option",{selected:"selected",value:"select"},"言語を選択してください"],
         			 ["option",{value:"js"},"JavaScript"],
         			 ["option",{value:"dtl"},"ドリトル"],
@@ -40,6 +40,9 @@ define(["UI"], function (UI) {
                 	 res.d.done();
                  }}}, "OK"]
             );
+            if (localStorage.noconcat) {
+                res.d.$vars.lang.append(UI("option",{value:"tonyu"},"Tonyu"));
+            }
         }
         var d=res.d;
         var model={name:options.defName||"",lang:"select"};

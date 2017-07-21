@@ -39,6 +39,9 @@ define([], function () {
                 return d.promise();
             },
             funcPromise:function (f) {
+                /*if (typeof Promise!=="undefined") {
+                    return new Promise(f);
+                }*/
                 var d=new $.Deferred;
                 try {
                     f(function (v) {
@@ -129,7 +132,7 @@ define([], function () {
             }
     };
     DU.begin=DU.try=DU.tr=DU.throwF;
-    DU.callbackToPromise=DU.funcPromise;
-    
+    DU.promise=DU.callbackToPromise=DU.funcPromise;
+
     return DU;
 });
