@@ -1,6 +1,7 @@
 <?php
 $mod_aliases=array(
     //----AUTOGEN
+    'BlobController' => "php/fs",
     'AddScoreInfo' => 'php/analysis/AddScoreInfo.php',
     'DetectFile' => 'php/analysis/DetectFile.php',
     'LogUtil' => 'php/analysis/LogUtil.php',

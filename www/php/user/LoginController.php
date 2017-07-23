@@ -171,5 +171,13 @@ class LoginController {
         $p=$_GET["project"];
         echo Auth::getPublishedDir($p);
     }
+    static function test() {
+        $actual_link = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+        //$SRV=($_SERVER['REQUEST_SCHEME']."://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'])    ;
+        //echo $actual_link;
+        $dir=preg_replace("/\\?.*/","",$actual_link);
+        $dir=preg_replace("/[^\\/]*$/","",$dir);
+        echo $dir;
+    }
 }
 ?>

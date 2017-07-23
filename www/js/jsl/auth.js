@@ -1,4 +1,4 @@
-define(["FS","md5","WebSite"], function (FS,md5,WebSite) {
+define(["FS","md5","WebSite","DeferredUtil"], function (FS,md5,WebSite,DU) {
     Auth={
         check:function () {
             var self=this;

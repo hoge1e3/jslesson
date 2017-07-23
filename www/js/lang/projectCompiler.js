@@ -11,6 +11,7 @@ var TPRC=function (dir) {
 	var F=DU.throwF;
 	TPR.env.traceTbl=traceTbl;
 	TPR.EXT=".tonyu";
+	TPR.getDir=function () {return dir;};
 	TPR.getOptionsFile=function () {
 		var resFile=dir.rel("options.json");
 		return resFile;
@@ -88,9 +89,18 @@ var TPRC=function (dir) {
 		});
 		return res;
 	};
+	TPR.getName=function () { return dir.name().replace(/\/$/,""); };
 	TPR.getNamespace=function () {
 		var opt=TPR.getOptions();
 		return A(opt.compiler.namespace,"namespace not specified opt="+JSON.stringify(opt));
+	};
+	TPR.getPublishedURL=function () {//ADDBA
+		return DU.requirejs(["Auth"]).then(function (Auth) {
+			Auth.publishedURL(TPR.getName()+"/");
+			if (!Auth.loggedIn()) throw new Error("Not loggedIn");
+			$.ajax(WebSite.controller+"?Login/getPublishedDir&project="+TPR.getName());
+
+		});
 	};
 	TPR.getOutputFile=function (lang) {
 		var opt=TPR.getOptions();

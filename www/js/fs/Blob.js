@@ -2,12 +2,11 @@ define(["Auth","WebSite","Util"],function (a,WebSite,Util) {
     var Blob={};
     var BLOB_PATH_EXPR="${blobPath}";
     Blob.BLOB_PATH_EXPR=BLOB_PATH_EXPR;
-    Blob.upload=function(userInfo, project, path, file) {
+    Blob.upload=function(project, path, file) {
         var fd = new FormData();
         fd.append("theFile", file);
-		fd.append("class",userInfo.class);
-        fd.append("user",userInfo.user);
-        fd.append("project",project);
+        // user/class is based on auth info
+		fd.append("project",project);
         fd.append("path",path);
         return $.ajax({
             url : WebSite.controller+"?Blob/upload",

@@ -160,7 +160,7 @@ return Tonyu.Project=function (dir, kernelDir) {
                 Tonyu.setGlobal(i, r.names[i]);
             }
             if (next) next();
-        });
+        },{prj:TPR});
     };
     TPR.getOptions=function () {
         env.options=null;
@@ -270,7 +270,6 @@ return Tonyu.Project=function (dir, kernelDir) {
     TPR.isKernelEditable=function () {
     	return env.options.kernelEditable;
     };
-    TPR.getDir=function () {return dir;};
     TPR.getName=function () { return dir.name().replace(/\/$/,""); };
     TPR.renameClassName=function (o,n) {// o: key of aliases
         return TPR.compile({noIncremental:true}).then(function () {

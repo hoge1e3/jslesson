@@ -1,7 +1,7 @@
 define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite"
-        ,"ImageDetailEditor","Util"],
+        ,"ImageDetailEditor","Util","Assets"],
         function (FS, Tonyu, UI,IL,Blob,Auth,WebSite,
-                ImageDetailEditor,Util) {
+                ImageDetailEditor,Util,Assets) {
     var ResEditor=function (prj, mediaType) {
         var mediaInfos={
                 image:{name:"画像",exts:["png","gif","jpg"],path:"images/",key:"images",
@@ -27,7 +27,7 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite"
         var rsrc=prj.getResource();
         var rsrcDir=prj.getDir().rel(mediaInfo.path);
         var itemUIs=[];
-        if (!rsrc) prj.setResource();
+        if (!rsrc) prj.setResource({images:[],sounds:[]});
         function convURL(u) {
             try {
                 if (Util.endsWith(u,".ogg")) {
@@ -43,7 +43,7 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite"
                 } else if (Util.endsWith(u,".wav")) {
                     u=WebSite.urlAliases["images/sound_wav.png"];
                 }
-                return IL.convURL(u,prj.getDir());
+                return Assets.resolve(u,prj);
             }catch(e) {
                 return WebSite.urlAliases["images/ecl.png"];
             }
@@ -96,10 +96,15 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite"
                         var prjN=prj.getName();
                         var itemFile=rsrcDir.rel(itemName+itemExt);
                         //Blob.upload=function(userInfo, project, path, file) {
-                        Blob.upload(u,prjN,  itemFile.relPath(prj.getDir()), file).then(function (url){
+                        var path=itemFile.relPath(prj.getDir());
+                        Blob.upload(prjN, path , file).then(function (url){
+                            alert(url);
                             dragPoint.text(dragMsg);
-                            v.url=url;//"${blobPath}/"+u+"/"+prjN+"/"+file.name;
+                            v.url=path;//"${blobPath}/"+u+"/"+prjN+"/"+file.name;
                             add(v);
+                        },function (e) {
+                            console.log(e);
+                            alert("Error: "+e);
                         });
                     });
                 } else {
@@ -194,30 +199,32 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite"
         }
         function cleanFiles() {
             var items=rsrc[mediaInfo.key];
-            Auth.currentUser(function (u,ct) {
-                if (!u) return;
-                var rtf=[];
-                items.forEach(function (item) {
-                    var a,ogg;
-                    if (a=Blob.isBlobURL(item.url)) {
-                        rtf.push(a.fileName);
-                        ogg=a.fileName.replace(/\.(mp3|mp4|m4a)$/,".ogg");
-                        if (ogg!=a.fileName) rtf.push(ogg);
-                    }
+            if (WebSite.serverType!=="BA") {
+                Auth.currentUser(function (u,ct) {
+                    if (!u) return;
+                    var rtf=[];
+                    items.forEach(function (item) {
+                        var a,ogg;
+                        if (a=Blob.isBlobURL(item.url)) {
+                            rtf.push(a.fileName);
+                            ogg=a.fileName.replace(/\.(mp3|mp4|m4a)$/,".ogg");
+                            if (ogg!=a.fileName) rtf.push(ogg);
+                        }
+                    });
+                    var data={
+                            user:u,
+                            project:prj.getName(),
+                            mediaType:mediaType,
+                            csrfToken:ct,
+                            retainFileNames:JSON.stringify(rtf)
+                    };
+                    console.log("retainBlobs",data);
+                    //TODO: urlchange!
+                    $.ajax({url:WebSite.serverTop+"/retainBlobs",type:"get",
+                        data:data
+                    });
                 });
-                var data={
-                        user:u,
-                        project:prj.getName(),
-                        mediaType:mediaType,
-                        csrfToken:ct,
-                        retainFileNames:JSON.stringify(rtf)
-                };
-                console.log("retainBlobs",data);
-                //TODO: urlchange!
-                $.ajax({url:WebSite.serverTop+"/retainBlobs",type:"get",
-                    data:data
-                });
-            })
+            }
             var cleanFile={};
             if (rsrcDir.exists()) {
                 rsrcDir.each(function (f) {

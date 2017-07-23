@@ -7,13 +7,14 @@ create table published (
 	project varchar(32)
 );*/
 class Published {
-    static function getURL($class,$user,$project) {
-        $r=pdo_select1("select * from published where `class`=? and `user`=? and `project`=? ",$class,$user,$project);
+    static function getURL($classID,$userName,$projectName) {
+        $r=pdo_select1("select * from published where `class`=? and `user`=? and `project`=? ",
+            $classID,$userName,$projectName);
         if ($r) {
             return $r->url;
         }
-        $url=substr(md5("$class/$user/$project"),0,8)."/";
-        pdo_insert("published",array("url"=>$url, "class"=>$class, "user"=>$user, "project"=>$project));
+        $url=substr(md5("$classID/$userName/$projectName"),0,8)."/";
+        pdo_insert("published",array("url"=>$url, "class"=>$classID, "user"=>$userName, "project"=>$projectName));
         return $url;
     }
     static function getRecord($url) {
@@ -28,8 +29,8 @@ class Published {
         if ($r) return $r->class;
         return null;
     }
-    static function listProjects($class,$project) {
-        return pdo_select("select * from published where `class`=? and `project`=? ",$class,$project);
+    static function listProjects($classID,$projectName) {
+        return pdo_select("select * from published where `class`=? and `project`=? ",$classID,$projectName);
     }
 }
 

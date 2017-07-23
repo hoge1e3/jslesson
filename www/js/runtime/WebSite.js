@@ -39,7 +39,22 @@ define([], function () {
 	WS.runtime=WS.serverTop+"runtime/";
 	//WS.published=WS.serverTop+"fs/home/";
 	WS.published=WS.serverTop+"fs/pub/";
-
+	WS.serverType="BA";
+	WS.urlAliases= {
+			"images/base.png":WS.runtime+"images/base.png",
+			"images/Sample.png":WS.runtime+"images/Sample.png",
+			"images/neko.png":WS.runtime+"images/neko.png",
+			"images/inputPad.png":WS.runtime+"images/inputPad.png",
+			"images/mapchip.png":WS.runtime+"images/mapchip.png",
+			"images/sound.png":WS.runtime+"images/sound.png",
+			"images/sound_ogg.png":WS.runtime+"images/sound_ogg.png",
+			"images/sound_mp3.png":WS.runtime+"images/sound_mp3.png",
+			"images/sound_mp4.png":WS.runtime+"images/sound_mp4.png",
+			"images/sound_m4a.png":WS.runtime+"images/sound_m4a.png",
+			"images/sound_mid.png":WS.runtime+"images/sound_mid.png",
+			"images/sound_wav.png":WS.runtime+"images/sound_wav.png",
+			"images/ecl.png":WS.runtime+"images/ecl.png"
+	};
 	/*if (WS.isNW) {
 		if (process.env.TONYU_HOME) {
 			WS.tonyuHome=process.env.TONYU_HOME.replace(/\\/g,"/");
