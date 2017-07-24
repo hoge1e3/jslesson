@@ -95,11 +95,12 @@ var TPRC=function (dir) {
 		return A(opt.compiler.namespace,"namespace not specified opt="+JSON.stringify(opt));
 	};
 	TPR.getPublishedURL=function () {//ADDBA
+		if (TPR._publishedURL) return TPR._publishedURL;
 		return DU.requirejs(["Auth"]).then(function (Auth) {
-			Auth.publishedURL(TPR.getName()+"/");
-			if (!Auth.loggedIn()) throw new Error("Not loggedIn");
-			$.ajax(WebSite.controller+"?Login/getPublishedDir&project="+TPR.getName());
-
+			return Auth.publishedURL(TPR.getName()+"/");
+		}).then(function (r) {
+			TPR._publishedURL=r;
+			return r;
 		});
 	};
 	TPR.getOutputFile=function (lang) {

@@ -1,4 +1,4 @@
-// Created at Sun Aug 21 2016 12:15:48 GMT+0900 (東京 (標準時))
+// Created at Sat Jul 22 2017 15:39:55 GMT+0900 (東京 (標準時))
 (function () {
 	var R={};
 	R.def=function (reqs,func,type) {
@@ -11,9 +11,14 @@
 		};
 		R.loadIfAvailable(m);
 	};
-	define=function (reqs,func) {
+	define=function () {
+		var a=Array.prototype.slice.call(arguments);
+		if (typeof a[0]==="string") R.curName=a.shift();
+		var reqs=a.shift();
+		var func=a.shift();
 		R.def(reqs,func,"define");
 	};
+	define.amd={jQuery:true};
 	/*require=*/requirejs=function (reqs,func) {
 		R.def(reqs,func,"require");
 	};
@@ -89,7 +94,7 @@
 requireSimulator.setName('extend');
 define([],function (){
    return function extend(d,s) {
-      for (var i in s) {d[i]=s[i];} 
+      for (var i in s) {d[i]=s[i];}
    };
 });
 
@@ -100,11 +105,21 @@ define([],function () {
     };
     var $a;
     Assertion.prototype={
+        _regedType:{},
+        registerType: function (name,t) {
+            this._regedType[name]=t;
+        },
+        MODE_STRICT:"strict",
+        MODE_DEFENSIVE:"defensive",
+        MODE_BOOL:"bool",
         fail:function () {
             var a=$a(arguments);
+            var value=a.shift();
             a=flatten(a);
-            a=this.failMesg.concat(a);
+            a=this.failMesg.concat(value).concat(a).concat(["mode",this._mode]);
             console.log.apply(console,a);
+            if (this.isDefensive()) return value;
+            if (this.isBool()) return false;
             throw new Error(a.join(" "));
         },
         subAssertion: function () {
@@ -113,71 +128,81 @@ define([],function () {
             return new Assertion(this.failMesg.concat(a));
         },
         assert: function (t,failMesg) {
-            if (!t) this.fail(failMesg);
+            if (!t) return this.fail(t,failMesg);
             return t;
         },
         eq: function (a,b) {
-            if (a!==b) this.fail(a,"!==",b);
-            return a;
+            if (a!==b) return this.fail(a,"!==",b);
+            return this.isBool()?true:a;
         },
         ne: function (a,b) {
-            if (a===b) this.fail(a,"===",b);
-            return a;
+            if (a===b) return this.fail(a,"===",b);
+            return this.isBool()?true:a;
         },
         isset: function (a, n) {
-            if (a==null) this.fail((n||"")+" is null/undef");
-            return a;
+            if (a==null) return this.fail(a, (n||"")+" is null/undef");
+            return this.isBool()?true:a;
         },
         is: function (value,type) {
             var t=type,v=value;
             if (t==null) {
-                this.fail("assert.is: type must be set");
+                return this.fail(value, "assert.is: type must be set");
                 // return t; Why!!!!???? because is(args,[String,Number])
             }
             if (t._assert_func) {
                 t._assert_func.apply(this,[v]);
-                return value;
+                return this.isBool()?true:value;
             }
             this.assert(value!=null,[value, "should be ",t]);
             if (t instanceof Array || (typeof global=="object" && typeof global.Array=="function" && t instanceof global.Array) ) {
                 if (!value || typeof value.length!="number") {
-                    this.fail(value, "should be array:");
+                    return this.fail(value, "should be array:");
                 }
                 var self=this;
                 for (var i=0 ;i<t.length; i++) {
                     var na=self.subAssertion("failed at ",value,"[",i,"]: ");
                     if (t[i]==null) {
-                        console.log("WOW!7", v[i],t[i])
+                        console.log("WOW!7", v[i],t[i]);
                     }
                     na.is(v[i],t[i]);
                 }
-                return value;
+                return this.isBool()?true:value;
             }
             if (t===String || t=="string") {
                 this.assert(typeof(v)=="string",[v,"should be a string "]);
-                return value;
+                return this.isBool()?true:value;
             }
             if (t===Number || t=="number") {
                 this.assert(typeof(v)=="number",[v,"should be a number"]);
-                return value;
+                return this.isBool()?true:value;
             }
             if (t instanceof RegExp || (typeof global=="object" && typeof global.RegExp=="function" && t instanceof global.RegExp)) {
                 this.is(v,String);
                 this.assert(t.exec(v),[v,"does not match to",t]);
-                return value;
+                return this.isBool()?true:value;
+            }
+            if (t===Function) {
+                this.assert(typeof v=="function",[v,"should be a function"]);
+                return this.isBool()?true:value;
             }
             if (typeof t=="function") {
                 this.assert((v instanceof t),[v, "should be ",t]);
-                return value;
+                return this.isBool()?true:value;
             }
             if (t && typeof t=="object") {
                 for (var k in t) {
                     var na=this.subAssertion("failed at ",value,".",k,":");
                     na.is(value[k],t[k]);
                 }
-                return value;
+                return this.isBool()?true:value;
             }
-            this.fail("Invaild type: ",t);
+            if (typeof t=="string") {
+                var ty=this._regedType[t];
+                if (ty) return this.is(value,ty);
+                //console.log("assertion Warning:","unregistered type:", t, "value:",value);
+                return this.isBool()?true:value;
+            }
+            return this.fail(value, "Invaild type: ",t);
         },
         ensureError: function (action, err) {
             try {
@@ -190,6 +215,18 @@ define([],function () {
                 return;
             }
             this.fail(action,"should throw an error",err);
+        },
+        setMode:function (mode) {
+            this._mode=mode;
+        },
+        isDefensive:function () {
+            return this._mode===this.MODE_DEFENSIVE;
+        },
+        isBool:function () {
+            return this._mode===this.MODE_BOOL;
+        },
+        isStrict:function () {
+            return !this.isDefensive() && !this.isBool();
         }
     };
     $a=function (args) {
@@ -197,7 +234,7 @@ define([],function () {
         for (var i=0; i<args.length ;i++) a.push(args[i]);
         return a;
     };
-    var top=new Assertion;
+    var top=new Assertion();
     var assert=function () {
         try {
             return top.assert.apply(top,arguments);
@@ -205,57 +242,31 @@ define([],function () {
             throw new Error(e.message);
         }
     };
-    ["is","isset","ne","eq","ensureError"].forEach(function (m) {
+    ["setMode","isDefensive","is","isset","ne","eq","ensureError"].forEach(function (m) {
         assert[m]=function () {
             try {
                 return top[m].apply(top,arguments);
             } catch(e) {
                 console.log(e.stack);
+                //if (top.isDefensive()) return arguments[0];
+                //if (top.isBool()) return false;
                 throw new Error(e.message);
             }
         };
     });
-    /*assert.is=function () {
-        try {
-            return top.is.apply(top,arguments);
-        } catch(e) {
-            console.log(e.stack);
-            throw new Error(e.message);
-        }
-    };
-    assert.isset=function () {
-        try {
-            return top.isset.apply(top,arguments);
-        } catch(e) {
-            throw new Error(e.message);
-        }
-    };
-    assert.ne=function () {
-        try {
-            return top.ne.apply(top,arguments);
-        } catch(e) {
-            throw new Error(e.message);
-        }
-    };
-    assert.eq=function () {
-        try {
-            return top.eq.apply(top,arguments);
-        } catch(e) {
-            throw new Error(e.message);
-        }
-    };
-    assert.ensureError=function () {
-        try {
-            return top.ensureError.apply(top,arguments);
-        } catch(e) {
-            throw new Error(e.message);
-        }
-    };*/
     assert.fail=top.fail.bind(top);
+    assert.MODE_STRICT=top.MODE_STRICT;
+    assert.MODE_DEFENSIVE=top.MODE_DEFENSIVE;
+    assert.MODE_BOOL=top.MODE_BOOL;
     assert.f=function (f) {
         return {
             _assert_func: f
         };
+    };
+    assert.opt=function (t) {
+        return assert.f(function (v) {
+            return v==null || v instanceof t;
+        });
     };
     assert.and=function () {
         var types=$a(arguments);
@@ -458,6 +469,11 @@ define([], function () {
       ".ico":"image/icon",
       ".mp3":"audio/mp3",
       ".ogg":"audio/ogg",
+      ".mp4":"video/mp4",
+      ".m4a":"audio/x-m4a",
+      ".mid":"audio/mid",
+      ".midi":"audio/mid",
+      ".wav":"audio/wav",
       ".txt":"text/plain",
       ".html":"text/html",
       ".htm":"text/html",
@@ -731,134 +747,166 @@ define(["extend","PathUtil","MIMETypes","assert"],function (extend, P, M,assert)
 
 requireSimulator.setName('WebSite');
 define(["PathUtil"], function (P) {
-    var loc=document.location.href;
-    var devMode=!!loc.match(/html\/dev\//) && !!loc.match(/localhost:3/);
-    var WebSite;
-    if (loc.match(/jsrun\.it/)) {
-        WebSite={
-            urlAliases: {
-                "images/Ball.png":"http://jsrun.it/assets/9/X/T/b/9XTbt.png",
-                "images/base.png":"http://jsrun.it/assets/6/F/y/3/6Fy3B.png",
-                "images/Sample.png":"http://jsrun.it/assets/s/V/S/l/sVSlZ.png",
-                "images/neko.png":"http://jsrun.it/assets/f/D/z/z/fDzze.png",//"http://jsrun.it/assets/j/D/9/q/jD9qQ.png",
-                "images/mapchip.png":"http://jsrun.it/assets/f/u/N/v/fuNvz.png",
-                "images/inputPad.png":"http://jsrun.it/assets/r/K/T/Y/rKTY9.png"
-            },top:"",devMode:devMode, pluginTop: "http://tonyuedit.appspot.com/js/plugins",
-            removeJSOutput:true
-        };
-    } else if (
-      loc.match(/tonyuexe\.appspot\.com/) ||
-      loc.match(/localhost:8887/) ||
- 	  (
- 	    /*(
- 	       loc.match(/^file:/) ||
- 	       loc.match(/localhost/) ||
-	       loc.match(/tonyuedit\.appspot\.com/)
-	    ) &&*/
-	    loc.match(/\/html\/((dev)|(build))\//)
-	  )
-    ) {
-        WebSite={
-            urlAliases: {
-                "images/Ball.png":"../../images/Ball.png",
-                "images/base.png":"../../images/base.png",
-                "images/Sample.png":"../../images/Sample.png",
-                "images/neko.png":"../../images/neko.png",
-                "images/inputPad.png":"../../images/inputPad.png",
-                "images/mapchip.png":"../../images/mapchip.png",
-                "images/sound.png":"../../images/sound.png",
-                    "images/ecl.png":"../../images/ecl.png"
-            },top:"../..",devMode:devMode
-        };
-    } else {
-        WebSite={
-           urlAliases: {}, top: ".",devMode:devMode
-        };
-    }
-    // from https://w3g.jp/blog/js_browser_sniffing2015
-    var u=window.navigator.userAgent.toLowerCase();
-    WebSite.tablet=(u.indexOf("windows") != -1 && u.indexOf("touch") != -1)
-    || u.indexOf("ipad") != -1
-    || (u.indexOf("android") != -1 && u.indexOf("mobile") == -1)
-    || (u.indexOf("firefox") != -1 && u.indexOf("tablet") != -1)
-    || u.indexOf("kindle") != -1
-    || u.indexOf("silk") != -1
-    || u.indexOf("playbook") != -1;
-    WebSite.mobile=(u.indexOf("windows") != -1 && u.indexOf("phone") != -1)
-    || u.indexOf("iphone") != -1
-    || u.indexOf("ipod") != -1
-    || (u.indexOf("android") != -1 && u.indexOf("mobile") != -1)
-    || (u.indexOf("firefox") != -1 && u.indexOf("mobile") != -1)
-    || u.indexOf("blackberry") != -1;
-
-    if (!WebSite.pluginTop) {
-        WebSite.pluginTop=WebSite.top+"/js/plugins";
-    }
-    WebSite.disableROM={};
-	if (loc.match(/tonyuedit\.appspot\.com/) || loc.match(/localhost:8888/) ) {
-	    //WebSite.disableROM={"ROM_d.js":true};
+	var loc=document.location.href;
+	var devMode=!!loc.match(/html\/dev\//) && !!loc.match(/localhost:3/);
+	var WebSite;
+	if (loc.match(/jsrun\.it/)) {
+		WebSite={
+			urlAliases: {
+				"images/Ball.png":"http://jsrun.it/assets/9/X/T/b/9XTbt.png",
+				"images/base.png":"http://jsrun.it/assets/6/F/y/3/6Fy3B.png",
+				"images/Sample.png":"http://jsrun.it/assets/s/V/S/l/sVSlZ.png",
+				"images/neko.png":"http://jsrun.it/assets/f/D/z/z/fDzze.png",//"http://jsrun.it/assets/j/D/9/q/jD9qQ.png",
+				"images/mapchip.png":"http://jsrun.it/assets/f/u/N/v/fuNvz.png",
+				"images/inputPad.png":"http://jsrun.it/assets/r/K/T/Y/rKTY9.png"
+			},top:"",devMode:devMode, pluginTop: "http://tonyuedit.appspot.com/js/plugins",
+			removeJSOutput:true
+		};
+	} else if (
+		loc.match(/tonyuexe\.appspot\.com/) ||
+		loc.match(/localhost:8887/) ||
+		(
+		/*(
+			loc.match(/^file:/) ||
+			loc.match(/localhost/) ||
+			loc.match(/tonyuedit\.appspot\.com/)
+		) &&*/
+		loc.match(/\/html\/((dev)|(build))\//)
+		)
+	) {
+		WebSite={
+			urlAliases: {
+				"images/Ball.png":"../../images/Ball.png",
+				"images/base.png":"../../images/base.png",
+				"images/Sample.png":"../../images/Sample.png",
+				"images/neko.png":"../../images/neko.png",
+				"images/inputPad.png":"../../images/inputPad.png",
+				"images/mapchip.png":"../../images/mapchip.png",
+				"images/sound.png":"../../images/sound.png",
+				"images/sound_ogg.png":"../../images/sound_ogg.png",
+				"images/sound_mp3.png":"../../images/sound_mp3.png",
+				"images/sound_mp4.png":"../../images/sound_mp4.png",
+				"images/sound_m4a.png":"../../images/sound_m4a.png",
+				"images/sound_mid.png":"../../images/sound_mid.png",
+				"images/sound_wav.png":"../../images/sound_wav.png",
+					"images/ecl.png":"../../images/ecl.png"
+			},top:"../..",devMode:devMode
+		};
+	} else if (
+		loc.match(/bitarrow/) ||
+		loc.match(/localhost.*pub/))  {
+		WebSite={};
+		var WS=WebSite;
+		WebSite.serverType="BA";
+		WS.runtime="../../../runtime/";
+		WS.urlAliases= {
+				"images/base.png":WS.runtime+"images/base.png",
+				"images/Sample.png":WS.runtime+"images/Sample.png",
+				"images/neko.png":WS.runtime+"images/neko.png",
+				"images/inputPad.png":WS.runtime+"images/inputPad.png",
+				"images/mapchip.png":WS.runtime+"images/mapchip.png",
+				"images/sound.png":WS.runtime+"images/sound.png",
+				"images/sound_ogg.png":WS.runtime+"images/sound_ogg.png",
+				"images/sound_mp3.png":WS.runtime+"images/sound_mp3.png",
+				"images/sound_mp4.png":WS.runtime+"images/sound_mp4.png",
+				"images/sound_m4a.png":WS.runtime+"images/sound_m4a.png",
+				"images/sound_mid.png":WS.runtime+"images/sound_mid.png",
+				"images/sound_wav.png":WS.runtime+"images/sound_wav.png",
+				"images/ecl.png":WS.runtime+"images/ecl.png"
+		};
+	} else {
+		WebSite={
+			urlAliases: {}, top: ".",devMode:devMode
+		};
 	}
-    if (loc.match(/\.appspot\.com/) ||  loc.match(/localhost:888[87]/)) {
-        WebSite.serverType="GAE";
-    }
-    if (loc.match(/localhost:3000/) ) {
-        WebSite.serverType="Node";
-    }
-    if (loc.match(/tonyuexe\.appspot\.com/) ||
-        loc.match(/localhost:8887/)) {
-        WebSite.serverTop=WebSite.top+"/exe"; // Fix NetModule.tonyu!!
-    } else {
-        WebSite.serverTop=WebSite.top+"/edit";// Fix NetModule.tonyu!!
-    }
-    WebSite.sampleImg=WebSite.top+"/images";
-    WebSite.blobPath=WebSite.serverTop+"/serveBlob";        //TODO: urlchange!
-    WebSite.isNW=(typeof process=="object" && process.__node_webkit);
-    WebSite.mp3Disabled=WebSite.isNW;
-    WebSite.tonyuHome="/Tonyu/";
-    WebSite.url={
-        getDirInfo:WebSite.serverTop+"/getDirInfo",
-        getFiles:WebSite.serverTop+"/File2LSSync",
-        putFiles:WebSite.serverTop+"/LS2FileSync"
-    };
-    if (WebSite.isNW) {
-        WebSite.cwd=P.directorify(process.cwd());
-        //WebSite.exeDir=WebSite.execDir=P.up(P.fixSep(process.execPath)); not suitable when mac
-        if (process.env.TONYU_HOME) {
-            WebSite.tonyuHome=P.directorify(process.env.TONYU_HOME);
-        } else {
-            WebSite.tonyuHome=P.rel(WebSite.cwd,"fs/Tonyu/");
-        }
-        WebSite.logdir=process.env.TONYU_LOGDIR;//"C:/var/log/Tonyu/";
-        WebSite.wwwDir=P.rel(WebSite.cwd,"www/");
-        WebSite.platform=process.platform;
-        WebSite.ffmpeg=P.rel(WebSite.cwd,(WebSite.platform=="win32"?
-                "ffmpeg/bin/ffmpeg.exe":"ffmpeg/bin/ffmpeg"));
-        WebSite.pkgInfo=require(P.rel(WebSite.cwd, "package.json"));
-        if (process.env.TONYU_PROJECTS) {
-            WebSite.projects=process.env.TONYU_PROJECTS.replace(/\\/g,"/").split(require('path').delimiter);
-        } else if ( WebSite.pkgInfo && WebSite.pkgInfo.config && WebSite.pkgInfo.config.prjDirs ){
-            WebSite.projects=WebSite.pkgInfo.config.prjDirs.map(function (d) {
-                d=P.directorify(d);
-                if (P.isAbsolute(d)) return d;
-                return P.rel(WebSite.cwd,d);
-            });
-        } else {
-            WebSite.projects=[P.rel(WebSite.cwd,"Projects/"),
-                              P.rel(WebSite.tonyuHome,"Projects/")];
-        }
-        WebSite.kernelDir=P.rel(WebSite.wwwDir,"Kernel/");
-    } else {
-        WebSite.wwwDir=location.protocol+"//"+location.host+"/";
-        WebSite.projects=[P.rel(WebSite.tonyuHome,"Projects/")];
-    }
-    if (loc.match(/tonyuedit\.appspot\.com/) ||
-        loc.match(/localhost:888/) ||
-        WebSite.isNW) {
-        WebSite.compiledKernel=WebSite.top+"/Kernel/js/concat.js";
-    } else {
-        WebSite.compiledKernel="http://tonyuexe.appspot.com/Kernel/js/concat.js";
-    }
-    return window.WebSite=WebSite;
+	// from https://w3g.jp/blog/js_browser_sniffing2015
+	var u=window.navigator.userAgent.toLowerCase();
+	WebSite.tablet=(u.indexOf("windows") != -1 && u.indexOf("touch") != -1)
+	|| u.indexOf("ipad") != -1
+	|| (u.indexOf("android") != -1 && u.indexOf("mobile") == -1)
+	|| (u.indexOf("firefox") != -1 && u.indexOf("tablet") != -1)
+	|| u.indexOf("kindle") != -1
+	|| u.indexOf("silk") != -1
+	|| u.indexOf("playbook") != -1;
+	WebSite.mobile=(u.indexOf("windows") != -1 && u.indexOf("phone") != -1)
+	|| u.indexOf("iphone") != -1
+	|| u.indexOf("ipod") != -1
+	|| (u.indexOf("android") != -1 && u.indexOf("mobile") != -1)
+	|| (u.indexOf("firefox") != -1 && u.indexOf("mobile") != -1)
+	|| u.indexOf("blackberry") != -1;
+
+	if (!WebSite.pluginTop) {
+		WebSite.pluginTop=WebSite.top+"/js/plugins";
+	}
+	WebSite.disableROM={};
+	if (loc.match(/tonyuedit\.appspot\.com/) || loc.match(/localhost:8888/) ) {
+		//WebSite.disableROM={"ROM_d.js":true};
+	}
+	if (loc.match(/\.appspot\.com/) ||  loc.match(/localhost:888[87]/)) {
+		WebSite.serverType="GAE";
+	}
+	if (loc.match(/localhost:3000/) ) {
+		WebSite.serverType="Node";
+	}
+	if (loc.match(/tonyuexe\.appspot\.com/) ||
+		loc.match(/localhost:8887/)) {
+		WebSite.serverTop=WebSite.top+"/exe"; // Fix NetModule.tonyu!!
+	} else {
+		WebSite.serverTop=WebSite.top+"/edit";// Fix NetModule.tonyu!!
+	}
+	WebSite.sampleImg=WebSite.top+"/images";
+	WebSite.blobPath=WebSite.serverTop+"/serveBlob";        //TODO: urlchange!
+	WebSite.isNW=(typeof process=="object" && process.__node_webkit);
+	WebSite.mp3Disabled=WebSite.isNW;
+	WebSite.tonyuHome="/Tonyu/";
+	WebSite.url={
+		getDirInfo:WebSite.serverTop+"/getDirInfo",
+		getFiles:WebSite.serverTop+"/File2LSSync",
+		putFiles:WebSite.serverTop+"/LS2FileSync"
+	};
+	if (WebSite.isNW) {
+		WebSite.cwd=P.directorify(process.cwd());
+		//WebSite.exeDir=WebSite.execDir=P.up(P.fixSep(process.execPath)); not suitable when mac
+		if (process.env.TONYU_HOME) {
+			WebSite.tonyuHome=P.directorify(process.env.TONYU_HOME);
+		} else {
+			WebSite.tonyuHome=P.rel(WebSite.cwd,"fs/Tonyu/");
+		}
+		WebSite.logdir=process.env.TONYU_LOGDIR;//"C:/var/log/Tonyu/";
+		WebSite.wwwDir=P.rel(WebSite.cwd,"www/");
+		WebSite.platform=process.platform;
+		WebSite.ffmpeg=P.rel(WebSite.cwd,(WebSite.platform=="win32"?
+				"ffmpeg/bin/ffmpeg.exe":"ffmpeg/bin/ffmpeg"));
+		WebSite.pkgInfo=require(P.rel(WebSite.cwd, "package.json"));
+		if (process.env.TONYU_PROJECTS) {
+			WebSite.projects=process.env.TONYU_PROJECTS.replace(/\\/g,"/").split(require('path').delimiter);
+		} else if ( WebSite.pkgInfo && WebSite.pkgInfo.config && WebSite.pkgInfo.config.prjDirs ){
+			WebSite.projects=WebSite.pkgInfo.config.prjDirs.map(function (d) {
+				d=P.directorify(d);
+				if (P.isAbsolute(d)) return d;
+				return P.rel(WebSite.cwd,d);
+			});
+		} else {
+			WebSite.projects=[P.rel(WebSite.cwd,"Projects/"),
+								P.rel(WebSite.tonyuHome,"Projects/")];
+		}
+		WebSite.kernelDir=P.rel(WebSite.wwwDir,"Kernel/");
+	} else {
+		WebSite.wwwDir=location.protocol+"//"+location.host+"/";
+		WebSite.projects=[P.rel(WebSite.tonyuHome,"Projects/")];
+	}
+	if (loc.match(/tonyuedit\.appspot\.com/) ||
+		loc.match(/localhost:888/)) {
+		WebSite.kernelDir=location.protocol+"//"+location.host+"/Kernel/";
+	}
+	if (loc.match(/tonyuedit\.appspot\.com/) ||
+		loc.match(/localhost:888/) ||
+		WebSite.isNW) {
+		WebSite.compiledKernel=WebSite.top+"/Kernel/js/concat.js";
+	} else {
+		WebSite.compiledKernel="http://tonyuexe.appspot.com/Kernel/js/concat.js";
+	}
+	return window.WebSite=WebSite;
 });
 
 requireSimulator.setName('Util');
@@ -1999,6 +2047,9 @@ SFile.prototype={
         if (pa==null) return null;
         return this._resolve(pa);
     },
+    sibling: function (relPath) {
+        return this.up().rel(relPath);
+    },
     rel: function (relPath) {
         A.is(relPath, P.Relative);
         this.assertDir();
@@ -2344,6 +2395,10 @@ define(["FS2","WebSite","NativeFS","LSFS", "PathUtil","Env","assert","SFile","Ro
     } else {
         rootFS=new RootFS(new LSFS(localStorage));
     }
+    FS.isFile=function (f) {
+        return SFile.is(f);
+    };
+    FS.PathUtil=P;
     FS.getRootFS=function () {return rootFS;};
     FS.get=function () {
         return rootFS.get.apply(rootFS,arguments);
@@ -2368,6 +2423,7 @@ define(["FS2","WebSite","NativeFS","LSFS", "PathUtil","Env","assert","SFile","Ro
     };
     return FS;
 });
+
 requireSimulator.setName('plugins');
 define(["WebSite"],function (WebSite){
     var plugins={};
@@ -2530,65 +2586,65 @@ define([], function () {
 });
 requireSimulator.setName('compiledProject');
 define(["DeferredUtil"], function (DU) {
-    var CPR=function (ns, url) {
-        return {
-            getNamespace:function () {return ns;},
-            sourceDir: function () {return null;},
-            getDependingProjects: function () {return [];},// virtual
-            loadDependingClasses: function (ctx) {
-                //Same as projectCompiler /TPR/this/ (XXXX)
-                var task=DU.directPromise();
-                var myNsp=this.getNamespace();
-                this.getDependingProjects().forEach(function (p) {
-                    if (p.getNamespace()==myNsp) return;
-                    task=task.then(function () {
-                        return p.loadClasses(ctx);
-                    });
-                });
-                return task;
-            },
-            loadClasses: function (ctx) {
-                console.log("Load compiled classes ns=",ns,"url=",url);
-                var d=new $.Deferred;
-                var head = document.getElementsByTagName("head")[0] || document.documentElement;
-                var script = document.createElement("script");
-                script.src = url;
-                var done = false;
-                script.onload = script.onreadystatechange = function() {
-                    if ( !done && (!this.readyState ||
-                            this.readyState === "loaded" || this.readyState === "complete") ) {
-                        done = true;
-                        script.onload = script.onreadystatechange = null;
-                        if ( head && script.parentNode ) {
-                            head.removeChild( script );
-                        }
-                        console.log("Done Load compiled classes ns=",ns,"url=",url,Tonyu.classes);
-                        //same as projectCompiler (XXXX)
-                        /*var cls=Tonyu.classes;
-                        ns.split(".").forEach(function (c) {
-                            if (cls) cls=cls[c];
-                            // comment out : when empty concat.js
-                            //if (!cls) throw new Error("namespace Not found :"+ns);
-                        });
-                        if (cls) {
-                            for (var cln in cls) {
-                                var cl=cls[cln];
-                                var m=Tonyu.klass.getMeta(cl);
-                                ctx.classes[m.fullName]=m;
-                            }
-                        }*/
-                        //------------------XXXX
-                        d.resolve();
-                    }
-                };
-                this.loadDependingClasses(ctx).then(function () {
-                    head.insertBefore( script, head.firstChild );
-                });
-                return d.promise();
-            }
-        }
-    };
-    return CPR;
+	var CPR=function (ns, url) {
+		return {
+			getNamespace:function () {return ns;},
+			sourceDir: function () {return null;},
+			getDependingProjects: function () {return [];},// virtual
+			loadDependingClasses: function (ctx) {
+				//Same as projectCompiler /TPR/this/ (XXXX)
+				var task=DU.directPromise();
+				var myNsp=this.getNamespace();
+				this.getDependingProjects().forEach(function (p) {
+					if (p.getNamespace()==myNsp) return;
+					task=task.then(function () {
+						return p.loadClasses(ctx);
+					});
+				});
+				return task;
+			},
+			loadClasses: function (ctx) {
+				console.log("Load compiled classes ns=",ns,"url=",url);
+				var d=new $.Deferred;
+				var head = document.getElementsByTagName("head")[0] || document.documentElement;
+				var script = document.createElement("script");
+				script.src = url;
+				var done = false;
+				script.onload = script.onreadystatechange = function() {
+					if ( !done && (!this.readyState ||
+							this.readyState === "loaded" || this.readyState === "complete") ) {
+						done = true;
+						script.onload = script.onreadystatechange = null;
+						if ( head && script.parentNode ) {
+							head.removeChild( script );
+						}
+						console.log("Done Load compiled classes ns=",ns,"url=",url,Tonyu.classes);
+						//same as projectCompiler (XXXX)
+						/*var cls=Tonyu.classes;
+						ns.split(".").forEach(function (c) {
+							if (cls) cls=cls[c];
+							// comment out : when empty concat.js
+							//if (!cls) throw new Error("namespace Not found :"+ns);
+						});
+						if (cls) {
+							for (var cln in cls) {
+								var cl=cls[cln];
+								var m=Tonyu.klass.getMeta(cl);
+								ctx.classes[m.fullName]=m;
+							}
+						}*/
+						//------------------XXXX
+						d.resolve();
+					}
+				};
+				this.loadDependingClasses(ctx).then(function () {
+					head.insertBefore( script, head.firstChild );
+				});
+				return d.promise();
+			}
+		}
+	};
+	return CPR;
 });
 requireSimulator.setName('compiledTonyuProject');
 define(["plugins","compiledProject"], function (plugins,CPR) {
@@ -2803,639 +2859,758 @@ define(["FS","Util","WebSite","PathUtil","assert"],
     return Shell;
 });
 
-requireSimulator.setName('Class');
+requireSimulator.setName('Klass');
 define(["assert"],function (A) {
-    function Class() {
-        var superClass,defs;
-        if (arguments.length==2) {
-            superClass=A.is(arguments[0],Function);
-            defs=A.is(arguments[1],Object);
-        } else if (arguments.length==1) {
-            superClass=Object;
-            defs=A.is(arguments[0],Object);
+    var Klass={};
+    Klass.define=function (pd) {
+        var p,parent;
+        if (pd.$parent) {
+            parent=pd.$parent;
+            p=Object.create(parent.prototype);
+            p.super=function () {
+                var a=Array.prototype.slice.call(arguments);
+                var n=a.shift();
+                return parent.prototype[n].apply(this,a);
+            };
+        } else {
+            p={};
         }
-        var c=defs.initialize || function (){};
-        var p=c.prototype;
-        for (var m in defs) {
-            p[m]=defs[m];
-        }
-        p.callSuper=function () {
-            var a=[];
-            for (var i=0; arguments.length;i++) {
-                a.push(arguments[i]);
+        var init=pd.$ || function (e) {
+            if (e && typeof e=="object") {
+                for (var k in e) {
+                    this[k]=e[k];
+                }
             }
-            var n=A.is(a.shift(),String);
-            var f=A.is(superClass.prototype[n], Function);
-            return f.apply(this,a);
         };
+        var fldinit;
+        var check;
+        if (init instanceof Array) {
+            fldinit=init;
+            init=function () {
+                var a=Array.prototype.slice.call(arguments);
+                for (var i=0;i<fldinit.length;i++) {
+                    if (a.length>0) this[fldinit[i]]=a.shift();
+                }
+            };
+        }
+        var klass;
+        function checkSchema(self) {
+            if (pd.$fields) {
+                //console.log("Checking schema",self,pd.$fields);
+                A.is(self,pd.$fields);
+            }
+        }
+        klass=function () {
+            if (! (this instanceof klass)) {
+                var res=Object.create(p);
+                init.apply(res,arguments);
+                checkSchema(res);
+                return res;
+            }
+            init.apply(this,arguments);
+            checkSchema(this);
+        };
+        if (parent) {
+            klass.super=function () {
+                var a=Array.prototype.slice.call(arguments);
+                var t=a.shift();
+                var n=a.shift();
+                return parent.prototype[n].apply(t,a);
+            };
+        }
+        klass.inherit=function (pd) {
+            pd.$parent=klass;
+            return Klass.define(pd);
+        };
+        klass.prototype=p;
+        for (var name in pd) {
+            if (name[0]=="$") continue;
+            if (name.substring(0,7)=="static$") {
+                klass[name.substring(7)]=pd[name];
+            } else {
+                if (isPropDesc(pd[name])) {
+                    Object.defineProperty(p,name,pd[name]);
+                } else {
+                    p[name]=pd[name];
+                }
+            }
+        }
+        p.$=init;
+        return klass;
+    };
+    function isPropDesc(o) {
+        if (typeof o!=="object") return false;
+        if (!o) return false;
+        var pk={configurable:1,enumerable:1,value:1,writable:1,get:1,set:1};
+        var c=0;
+        for (var k in o) {
+            if (!pk[k]) return false;
+            c+=pk[k];
+        }
         return c;
     }
-    return Class;
+    Klass.Function=function () {throw new Exception("Abstract");}
+    Klass.opt=A.opt;
+    return Klass;
 });
+/*
+requirejs(["Klass"],function (k) {
+  P=k.define ({
+     $:["x","y"]
+  });
+  p=P(2,3);
+  console.log(p.x,p.y);
+});
+*/
 requireSimulator.setName('Tonyu.Thread');
-define(["DeferredUtil","Class"],function (DU,Class) {
-    var cnts={enterC:{},exitC:0};
-    try {window.cnts=cnts;}catch(e){}
-    var TonyuThread=Class({
-        initialize: function TonyuThread() {
-            this.frame=null;
-            this._isDead=false;
-            //this._isAlive=true;
-            this.cnt=0;
-            this._isWaiting=false;
-            this.fSuspended=false;
-            this.tryStack=[];
-            this.preemptionTime=60;
-            this.onEndHandlers=[];
-            this.age=0; // inc if object pooled
-        },
-        isAlive:function isAlive() {
-            return !this.isDead();
-            //return this.frame!=null && this._isAlive;
-        },
-        isDead: function () {
-            return this._isDead=this._isDead || (this.frame==null) ||
-            (this._threadGroup && (
-                    this._threadGroup.objectPoolAge!=this.tGrpObjectPoolAge ||
-                    this._threadGroup.isDeadThreadGroup()
-            ));
-        },
-        setThreadGroup: function setThreadGroup(g) {// g:TonyuThread
-            this._threadGroup=g;
-            this.tGrpObjectPoolAge=g.objectPoolAge;
-            //if (g) g.add(fb);
-        },
-        isWaiting:function isWaiting() {
-            return this._isWaiting;
-        },
-        suspend:function suspend() {
-            this.fSuspended=true;
-            this.cnt=0;
-        },
-        enter:function enter(frameFunc) {
-            //var n=frameFunc.name;
-            //cnts.enterC[n]=(cnts.enterC[n]||0)+1;
-            this.frame={prev:this.frame, func:frameFunc};
-        },
-        apply:function apply(obj, methodName, args) {
-            if (!args) args=[];
-            var method;
-            if (typeof methodName=="string") {
-                method=obj["fiber$"+methodName];
-            }
-            if (typeof methodName=="function") {
-                method=methodName.fiber;
-            }
-            args=[this].concat(args);
-            var pc=0;
-            return this.enter(function (th) {
-                switch (pc){
-                case 0:
-                    method.apply(obj,args);
-                    pc=1;break;
-                case 1:
-                    th.notifyEnd(th.retVal);
-                    args[0].exit();
-                    pc=2;break;
-                }
-            });
-        },
-        notifyEnd:function (r) {
-            this.onEndHandlers.forEach(function (e) {
-                e(r);
-            });
-        },
-        on: function (type,f) {
-            if (type=="end") this.onEndHandlers.push(f);
-        },
-        gotoCatch: function gotoCatch(e) {
-            var fb=this;
-            if (fb.tryStack.length==0) {
-                fb.kill();
-                fb.handleEx(e);
-                return;
-            }
-            fb.lastEx=e;
-            var s=fb.tryStack.pop();
-            while (fb.frame) {
-                if (s.frame===fb.frame) {
-                    fb.catchPC=s.catchPC;
-                    break;
-                } else {
-                    fb.frame=fb.frame.prev;
-                }
-            }
-        },
-        startCatch: function startCatch() {
-            var fb=this;
-            var e=fb.lastEx;
-            fb.lastEx=null;
-            return e;
-        },
-        exit: function exit(res) {
-            //cnts.exitC++;
-            this.frame=(this.frame ? this.frame.prev:null);
-            this.retVal=res;
-        },
-        enterTry: function enterTry(catchPC) {
-            var fb=this;
-            fb.tryStack.push({frame:fb.frame,catchPC:catchPC});
-        },
-        exitTry: function exitTry() {
-            var fb=this;
-            fb.tryStack.pop();
-        },
-        waitEvent: function waitEvent(obj,eventSpec) { // eventSpec=[EventType, arg1, arg2....]
-            var fb=this;
-            fb.suspend();
-            if (!obj.on) return;
-            var h;
-            eventSpec=eventSpec.concat(function () {
-                fb.lastEvent=arguments;
-                fb.retVal=arguments[0];
-                h.remove();
-                fb.steps();
-            });
-            h=obj.on.apply(obj, eventSpec);
-        },
-        runAsync: function runAsync(f) {
-            var fb=this;
-            var succ=function () {
-                fb.retVal=arguments;
-                fb.steps();
-            };
-            var err=function () {
-                var msg="";
-                for (var i=0; i<arguments.length; i++) {
-                    msg+=arguments[i]+",";
-                }
-                if (msg.length==0) msg="Async fail";
-                var e=new Error(msg);
-                e.args=arguments;
-                fb.gotoCatch(e);
-                fb.steps();
-            };
-            fb.suspend();
-            setTimeout(function () {
-                f(succ,err);
-            },0);
-        },
-        waitFor: function waitFor(j) {
-            var fb=this;
-            fb._isWaiting=true;
-            fb.suspend();
-            return DU.ensureDefer(j).then(function (r) {
-                fb.retVal=r;
-                fb.steps();
-            }).fail(function (e) {
-                if (e instanceof Error) {
-                    fb.gotoCatch(e);
-                } else {
-                    var re=new Error(e);
-                    re.original=e;
-                    fb.gotoCatch(re);
-                }
-                fb.steps();
-            });
-        },
-        resume: function (retVal) {
-            this.retVal=retVal;
-            this.steps();
-        },
-        steps: function steps() {
-            var fb=this;
-            if (fb.isDead()) return;
-            var sv=Tonyu.currentThread;
-            Tonyu.currentThread=fb;
-            fb.cnt=fb.preemptionTime;
-            fb.preempted=false;
-            fb.fSuspended=false;
-            while (fb.cnt>0 && fb.frame) {
-                try {
-                    //while (new Date().getTime()<lim) {
-                    while (fb.cnt-->0 && fb.frame) {
-                        fb.frame.func(fb);
-                    }
-                    fb.preempted= (!fb.fSuspended) && fb.isAlive();
-                } catch(e) {
-                    fb.gotoCatch(e);
-                }
-            }
-            Tonyu.currentThread=sv;
-        },
-        kill: function kill() {
-            var fb=this;
-            //fb._isAlive=false;
-            fb._isDead=true;
-            fb.frame=null;
-        },
-        clearFrame: function clearFrame() {
-            this.frame=null;
-            this.tryStack=[];
-        }
-    });
-    return TonyuThread;
+define(["DeferredUtil","Klass"],function (DU,Klass) {
+	var cnts={enterC:{},exitC:0};
+	try {window.cnts=cnts;}catch(e){}
+	var TonyuThread=Klass.define({
+		$: function TonyuThread() {
+			this.frame=null;
+			this._isDead=false;
+			//this._isAlive=true;
+			this.cnt=0;
+			this._isWaiting=false;
+			this.fSuspended=false;
+			this.tryStack=[];
+			this.preemptionTime=60;
+			this.onEndHandlers=[];
+			this.onTerminateHandlers=[];
+			this.age=0; // inc if object pooled
+		},
+		isAlive:function isAlive() {
+			return !this.isDead();
+			//return this.frame!=null && this._isAlive;
+		},
+		isDead: function () {
+			return this._isDead=this._isDead || (this.frame==null) ||
+			(this._threadGroup && (
+					this._threadGroup.objectPoolAge!=this.tGrpObjectPoolAge ||
+					this._threadGroup.isDeadThreadGroup()
+			));
+		},
+		setThreadGroup: function setThreadGroup(g) {// g:TonyuThread
+			this._threadGroup=g;
+			this.tGrpObjectPoolAge=g.objectPoolAge;
+			//if (g) g.add(fb);
+		},
+		isWaiting:function isWaiting() {
+			return this._isWaiting;
+		},
+		suspend:function suspend() {
+			this.fSuspended=true;
+			this.cnt=0;
+		},
+		enter:function enter(frameFunc) {
+			//var n=frameFunc.name;
+			//cnts.enterC[n]=(cnts.enterC[n]||0)+1;
+			this.frame={prev:this.frame, func:frameFunc};
+		},
+		apply:function apply(obj, methodName, args) {
+			if (!args) args=[];
+			var method;
+			if (typeof methodName=="string") {
+				method=obj["fiber$"+methodName];
+				if (!method) {
+					throw new Error("メソッド"+methodName+"が見つかりません");
+				}
+			}
+			if (typeof methodName=="function") {
+				method=methodName.fiber;
+			}
+			args=[this].concat(args);
+			var pc=0;
+			return this.enter(function (th) {
+				switch (pc){
+				case 0:
+					method.apply(obj,args);
+					pc=1;break;
+				case 1:
+					th.termStatus="success";
+					th.notifyEnd(th.retVal);
+					args[0].exit();
+					pc=2;break;
+				}
+			});
+		},
+		notifyEnd:function (r) {
+			this.onEndHandlers.forEach(function (e) {
+				e(r);
+			});
+			this.notifyTermination({status:"success",value:r});
+		},
+		notifyTermination:function (tst) {
+			this.onTerminateHandlers.forEach(function (e) {
+				e(tst);
+			});
+		},
+		on: function (type,f) {
+			if (type==="end"||type==="success") this.onEndHandlers.push(f);
+			if (type==="terminate") {
+				this.onTerminateHandlers.push(f);
+				if (this.handleEx) delete this.handleEx;
+			}
+		},
+		promise: function () {
+			var fb=this;
+			return DU.funcPromise(function (succ,err) {
+				fb.on("terminate",function (st) {
+					if (st.status==="success") {
+						succ(st.value);
+					} else if (st.status==="exception"){
+						err(st.exception);
+					} else {
+						err(new Error(st.status));
+					}
+				});
+			});
+		},
+		then: function (succ,err) {
+			if (err) return this.proimse().then(succ,err);
+			else return this.proimse().then(succ);
+		},
+		fail: function (err) {
+			return this.promise().fail(err);
+		},
+		gotoCatch: function gotoCatch(e) {
+			var fb=this;
+			if (fb.tryStack.length==0) {
+				fb.termStatus="exception";
+				fb.kill();
+				if (fb.handleEx) fb.handleEx(e);
+				else fb.notifyTermination({status:"exception",exception:e});
+				return;
+			}
+			fb.lastEx=e;
+			var s=fb.tryStack.pop();
+			while (fb.frame) {
+				if (s.frame===fb.frame) {
+					fb.catchPC=s.catchPC;
+					break;
+				} else {
+					fb.frame=fb.frame.prev;
+				}
+			}
+		},
+		startCatch: function startCatch() {
+			var fb=this;
+			var e=fb.lastEx;
+			fb.lastEx=null;
+			return e;
+		},
+		exit: function exit(res) {
+			//cnts.exitC++;
+			this.frame=(this.frame ? this.frame.prev:null);
+			this.retVal=res;
+		},
+		enterTry: function enterTry(catchPC) {
+			var fb=this;
+			fb.tryStack.push({frame:fb.frame,catchPC:catchPC});
+		},
+		exitTry: function exitTry() {
+			var fb=this;
+			fb.tryStack.pop();
+		},
+		waitEvent: function waitEvent(obj,eventSpec) { // eventSpec=[EventType, arg1, arg2....]
+			var fb=this;
+			fb.suspend();
+			if (!obj.on) return;
+			var h;
+			eventSpec=eventSpec.concat(function () {
+				fb.lastEvent=arguments;
+				fb.retVal=arguments[0];
+				h.remove();
+				fb.steps();
+			});
+			h=obj.on.apply(obj, eventSpec);
+		},
+		runAsync: function runAsync(f) {
+			var fb=this;
+			var succ=function () {
+				fb.retVal=arguments;
+				fb.steps();
+			};
+			var err=function () {
+				var msg="";
+				for (var i=0; i<arguments.length; i++) {
+					msg+=arguments[i]+",";
+				}
+				if (msg.length==0) msg="Async fail";
+				var e=new Error(msg);
+				e.args=arguments;
+				fb.gotoCatch(e);
+				fb.steps();
+			};
+			fb.suspend();
+			setTimeout(function () {
+				f(succ,err);
+			},0);
+		},
+		waitFor: function waitFor(j) {
+			var fb=this;
+			fb._isWaiting=true;
+			fb.suspend();
+			if (j instanceof TonyuThread) j=j.promise();
+			return DU.ensureDefer(j).then(function (r) {
+				fb.retVal=r;
+				fb.steps();
+			}).fail(function (e) {
+				if (e instanceof Error) {
+					fb.gotoCatch(e);
+				} else {
+					var re=new Error(e);
+					re.original=e;
+					fb.gotoCatch(re);
+				}
+				fb.steps();
+			});
+		},
+		resume: function (retVal) {
+			this.retVal=retVal;
+			this.steps();
+		},
+		steps: function steps() {
+			var fb=this;
+			if (fb.isDead()) return;
+			var sv=Tonyu.currentThread;
+			Tonyu.currentThread=fb;
+			fb.cnt=fb.preemptionTime;
+			fb.preempted=false;
+			fb.fSuspended=false;
+			while (fb.cnt>0 && fb.frame) {
+				try {
+					//while (new Date().getTime()<lim) {
+					while (fb.cnt-->0 && fb.frame) {
+						fb.frame.func(fb);
+					}
+					fb.preempted= (!fb.fSuspended) && fb.isAlive();
+				} catch(e) {
+					fb.gotoCatch(e);
+				}
+			}
+			Tonyu.currentThread=sv;
+		},
+		kill: function kill() {
+			var fb=this;
+			//fb._isAlive=false;
+			fb._isDead=true;
+			fb.frame=null;
+			if (!fb.termStatus) {
+				fb.termStatus="killed";
+				fb.notifyTermination({status:"killed"});
+			}
+		},
+		clearFrame: function clearFrame() {
+			this.frame=null;
+			this.tryStack=[];
+		}
+	});
+	return TonyuThread;
 });
+
 requireSimulator.setName('Tonyu.Iterator');
-define(["Class"], function (Class) {
-    var ArrayValueIterator=Class({
-        initialize: function ArrayValueIterator(set) {
-            this.set=set;
-            this.i=0;
-        },
-        next:function () {
-            if (this.i>=this.set.length) return false;
-            this[0]=this.set[this.i];
-            this.i++;
-            return true;
-        }
-    });
-    var ArrayKeyValueIterator=Class({
-        initialize: function ArrayKeyValueIterator(set) {
-            this.set=set;
-            this.i=0;
-        },
-        next:function () {
-            if (this.i>=this.set.length) return false;
-            this[0]=this.i;
-            this[1]=this.set[this.i];
-            this.i++;
-            return true;
-        }
-    });
-    var ObjectKeyIterator=Class({
-        initialize: function ObjectKeyIterator(set) {
-            this.elems=[];
-            for (var k in set) {
-                this.elems.push(k);
-            }
-            this.i=0;
-        },
-        next:function () {
-            if (this.i>=this.elems.length) return false;
-            this[0]=this.elems[this.i];
-            this.i++;
-            return true;
-        }
-    });
-    var ObjectKeyValueIterator=Class({
-        initialize: function ObjectKeyValueIterator(set) {
-            this.elems=[];
-            for (var k in set) {
-                this.elems.push([k,set[k]]);
-            }
-            this.i=0;
-        },
-        next:function () {
-            if (this.i>=this.elems.length) return false;
-            this[0]=this.elems[this.i][0];
-            this[1]=this.elems[this.i][1];
-            this.i++;
-            return true;
-        }
-    });
+define(["Klass"], function (Klass) {
+	var ArrayValueIterator=Klass.define({
+		$: function ArrayValueIterator(set) {
+			this.set=set;
+			this.i=0;
+		},
+		next:function () {
+			if (this.i>=this.set.length) return false;
+			this[0]=this.set[this.i];
+			this.i++;
+			return true;
+		}
+	});
+	var ArrayKeyValueIterator=Klass.define({
+		$: function ArrayKeyValueIterator(set) {
+			this.set=set;
+			this.i=0;
+		},
+		next:function () {
+			if (this.i>=this.set.length) return false;
+			this[0]=this.i;
+			this[1]=this.set[this.i];
+			this.i++;
+			return true;
+		}
+	});
+	var ObjectKeyIterator=Klass.define({
+		$: function ObjectKeyIterator(set) {
+			this.elems=[];
+			for (var k in set) {
+				this.elems.push(k);
+			}
+			this.i=0;
+		},
+		next:function () {
+			if (this.i>=this.elems.length) return false;
+			this[0]=this.elems[this.i];
+			this.i++;
+			return true;
+		}
+	});
+	var ObjectKeyValueIterator=Klass.define({
+		$: function ObjectKeyValueIterator(set) {
+			this.elems=[];
+			for (var k in set) {
+				this.elems.push([k,set[k]]);
+			}
+			this.i=0;
+		},
+		next:function () {
+			if (this.i>=this.elems.length) return false;
+			this[0]=this.elems[this.i][0];
+			this[1]=this.elems[this.i][1];
+			this.i++;
+			return true;
+		}
+	});
 
 
-    function IT(set, arity) {
-        //var res={};
-       if (set.tonyuIterator) {
-    	   return set.tonyuIterator(arity);
-       } else if (set instanceof Array) {
-           //res.i=0;
-           if (arity==1) {
-               return new ArrayValueIterator(set);
-               /*res.next=function () {
-                   if (res.i>=set.length) return false;
-                   this[0]=set[res.i];
-                   res.i++;
-                   return true;
-               };*/
-           } else {
-               return new ArrayKeyValueIterator(set);
-               /*res.next=function () {
-                   if (res.i>=set.length) return false;
-                   this[0]=res.i;
-                   this[1]=set[res.i];
-                   res.i++;
-                   return true;
-               };*/
-           }
-       } else if (set instanceof Object){
-           //res.i=0;
-           //var elems=[];
-           if (arity==1) {
-               return new ObjectKeyIterator(set);
-               /*for (var k in set) {
-                   elems.push(k);
-               }
-               res.next=function () {
-                   if (res.i>=elems.length) return false;
-                   this[0]=elems[res.i];
-                   res.i++;
-                   return true;
-               };*/
-           } else {
-               return new ObjectKeyValueIterator(set);
-               /*for (var k in set) {
-                   elems.push([k, set[k]]);
-               }
-               res.next=function () {
-                   if (res.i>=elems.length) return false;
-                   this[0]=elems[res.i][0];
-                   this[1]=elems[res.i][1];
-                   res.i++;
-                   return true;
-               };*/
-           }
-       } else {
-           console.log(set);
-           throw new Error(set+" is not iterable");
-       }
-       return res;
-   }
+	function IT(set, arity) {
+		//var res={};
+		if (set.tonyuIterator) {
+			return set.tonyuIterator(arity);
+		} else if (set instanceof Array) {
+			//res.i=0;
+			if (arity==1) {
+				return new ArrayValueIterator(set);
+				/*res.next=function () {
+					if (res.i>=set.length) return false;
+					this[0]=set[res.i];
+					res.i++;
+					return true;
+				};*/
+			} else {
+				return new ArrayKeyValueIterator(set);
+				/*res.next=function () {
+					if (res.i>=set.length) return false;
+					this[0]=res.i;
+					this[1]=set[res.i];
+					res.i++;
+					return true;
+				};*/
+			}
+		} else if (set instanceof Object){
+			//res.i=0;
+			//var elems=[];
+			if (arity==1) {
+				return new ObjectKeyIterator(set);
+				/*for (var k in set) {
+					elems.push(k);
+				}
+				res.next=function () {
+					if (res.i>=elems.length) return false;
+					this[0]=elems[res.i];
+					res.i++;
+					return true;
+				};*/
+			} else {
+				return new ObjectKeyValueIterator(set);
+				/*for (var k in set) {
+					elems.push([k, set[k]]);
+				}
+				res.next=function () {
+					if (res.i>=elems.length) return false;
+					this[0]=elems[res.i][0];
+					this[1]=elems[res.i][1];
+					res.i++;
+					return true;
+				};*/
+			}
+		} else {
+			console.log(set);
+			throw new Error(set+" is not iterable");
+		}
+		return res;
+	}
 
 //   Tonyu.iterator=IT;
-    return IT;
+	return IT;
 });
+
 requireSimulator.setName('Tonyu');
 if (typeof define!=="function") {
-    define=require("requirejs").define;
+	define=require("requirejs").define;
 }
 define(["assert","Tonyu.Thread","Tonyu.Iterator","DeferredUtil"],
-        function (assert,TT,IT,DU) {
+		function (assert,TT,IT,DU) {
 return Tonyu=function () {
-    var preemptionTime=60;
-    function thread() {
-        var t=new TT;
-        t.handleEx=handleEx;
-        return t;
-    }
-    function timeout(t) {
-        return DU.funcPromise(function (s) {
-            setTimeout(s,t);
-        });
-    }
-    function animationFrame() {
-        return DU.funcPromise( function (f) {
-            requestAnimationFrame(f);
-        });
-    }
+	var preemptionTime=60;
+	function thread() {
+		var t=new TT;
+		t.handleEx=handleEx;
+		return t;
+	}
+	function timeout(t) {
+		return DU.funcPromise(function (s) {
+			setTimeout(s,t);
+		});
+	}
+	function animationFrame() {
+		return DU.funcPromise( function (f) {
+			requestAnimationFrame(f);
+		});
+	}
 
-    function handleEx(e) {
-        if (Tonyu.onRuntimeError) {
-            Tonyu.onRuntimeError(e);
-        } else {
-            if (typeof $LASTPOS=="undefined") $LASTPOS=0;
-            alert ("エラー! at "+$LASTPOS+" メッセージ  : "+e);
-            console.log(e.stack);
-            throw e;
-        }
-    }
-    klass=function () {
-        alert("この関数は古くなりました。コンパイルをやり直してください。 Deprecated. compile again.");
-        throw new Error("この関数は古くなりました。コンパイルをやり直してください。 Deprecated. compile again.");
-    };
-    klass.addMeta=addMeta;
-    function addMeta(fn,m) {
-        assert.is(arguments,[String,Object]);
-        return extend(klass.getMeta(fn), m);
-    }
-    klass.removeMeta=function (n) {
-        delete classMetas[n];
-    };
-    klass.getMeta=function (k) {// Class or fullName
-        if (typeof k=="function") {
-            return k.meta;
-        } else if (typeof k=="string"){
-            var mm = classMetas[k];
-            if (!mm) classMetas[k]=mm={};
-            return mm;
-        }
-    };
-    klass.ensureNamespace=function (top,nsp) {
-        var keys=nsp.split(".");
-        var o=top;
-        var i;
-        for (i=0; i<keys.length; i++) {
-            var k=keys[i];
-            if (!o[k]) o[k]={};
-            o=o[k];
-        }
-        return o;
-    };
-    Function.prototype.constructor=function () {
-        throw new Error("This method should not be called");
-    };
-    klass.define=function (params) {
-        // fullName, shortName,namspace, superclass, includes, methods:{name/fiber$name: func}, decls
-        var parent=params.superclass;
-        var includes=params.includes;
-        var fullName=params.fullName;
-        var shortName=params.shortName;
-        var namespace=params.namespace;
-        var methods=params.methods;
-        var decls=params.decls;
-        var nso=klass.ensureNamespace(Tonyu.classes, namespace);
-        var prot=methods;
-        var init=prot.initialize;
-        delete prot.initialize;
-        var res;
-        res=(init?
-            /*(parent? function () {
-                if (!(this instanceof res)) useNew(fullName);
-                if (Tonyu.runMode) init.apply(this,arguments);
-                else parent.apply(this,arguments);
-            }:function () {
-                if (!(this instanceof res)) useNew(fullName);
-                if (Tonyu.runMode) init.apply(this,arguments);
-            })*/
-            function () {
-                if (!(this instanceof res)) useNew(fullName);
-                init.apply(this,arguments);
-            }:
-            (parent? function () {
-                if (!(this instanceof res)) useNew(fullName);
-                parent.apply(this,arguments);
-            }:function (){
-                if (!(this instanceof res)) useNew(fullName);
-            })
-        );
-        nso[shortName]=res;
-        res.methods=prot;
-        includes.forEach(function (m) {
-            if (!m.methods) throw m+" Does not have methods";
-            for (var n in m.methods) {
-                if (!(n in prot)) {
-                    prot[n]=m.methods[n];
-                }
-            }
-        });
-        var props={};
-        var propReg=/^__([gs]et)ter__(.*)$/;
-        for (var k in prot) {
-            if (k.match(/^fiber\$/)) continue;
-            if (prot["fiber$"+k]) {
-                prot[k].fiber=prot["fiber$"+k];
-                prot[k].fiber.methodInfo={name:k,klass:res,fiber:true};
-            }
-            prot[k].methodInfo={name:k,klass:res};
-            var r=propReg.exec(k);
-            if (r) {
-                props[r[2]]=props[r[2]]||{};
-                props[r[2]][r[1]]=prot[k];
-            }
-        }
-        res.prototype=bless(parent, prot);
-        res.prototype.isTonyuObject=true;
-        for (var k in props) {
-            Object.defineProperty(res.prototype, k , props[k]);
-        }
-        res.meta=addMeta(fullName,{
-            fullName:fullName,shortName:shortName,namepsace:namespace,decls:decls,
-            superclass:parent ? parent.meta : null,func:res,
-            includes:includes.map(function(c){return c.meta;})
-        });
-        var m=klass.getMeta(res);
-        res.prototype.getClassInfo=function () {
-            return m;
-        };
-        return res;
-    };
-    klass.isSourceChanged=function (k) {
-        k=k.meta||k;
-        if (k.src && k.src.tonyu) {
-            if (!k.nodeTimestamp) return true;
-            return k.src.tonyu.lastUpdate()> k.nodeTimestamp;
-        }
-        return false;
-    };
-    klass.shouldCompile=function (k) {
-        k=k.meta||k;
-        if (klass.isSourceChanged(k)) return true;
-        var dks=klass.getDependingClasses(k);
-        for (var i=0 ; i<dks.length ;i++) {
-            if (klass.shouldCompile(dks[i])) return true;
-        }
-    };
-    klass.getDependingClasses=function (k) {
-        k=k.meta||k;
-        var res=[];
-        if (k.superclass) res=[k.superclass];
-        if (k.includes) res=res.concat(k.includes);
-        return res;
-    };
-    function bless( klass, val) {
-        if (!klass) return val;
-        return extend( Object.create(klass.prototype) , val);
-        //return extend( new klass() , val);
-    }
-    function extend (dst, src) {
-        if (src && typeof src=="object") {
-            for (var i in src) {
-                dst[i]=src[i];
-            }
-        }
-        return dst;
-    }
+	function handleEx(e) {
+		if (Tonyu.onRuntimeError) {
+			Tonyu.onRuntimeError(e);
+		} else {
+			if (typeof $LASTPOS=="undefined") $LASTPOS=0;
+			alert ("エラー! at "+$LASTPOS+" メッセージ  : "+e);
+			console.log(e.stack);
+			throw e;
+		}
+	}
+	klass=function () {
+		alert("この関数は古くなりました。コンパイルをやり直してください。 Deprecated. compile again.");
+		throw new Error("この関数は古くなりました。コンパイルをやり直してください。 Deprecated. compile again.");
+	};
+	klass.addMeta=addMeta;
+	function addMeta(fn,m) {
+		assert.is(arguments,[String,Object]);
+		return extend(klass.getMeta(fn), m);
+	}
+	klass.removeMeta=function (n) {
+		delete classMetas[n];
+	};
+	klass.getMeta=function (k) {// Class or fullName
+		if (typeof k=="function") {
+			return k.meta;
+		} else if (typeof k=="string"){
+			var mm = classMetas[k];
+			if (!mm) classMetas[k]=mm={};
+			return mm;
+		}
+	};
+	klass.ensureNamespace=function (top,nsp) {
+		var keys=nsp.split(".");
+		var o=top;
+		var i;
+		for (i=0; i<keys.length; i++) {
+			var k=keys[i];
+			if (!o[k]) o[k]={};
+			o=o[k];
+		}
+		return o;
+	};
+	Function.prototype.constructor=function () {
+		throw new Error("This method should not be called");
+	};
+	klass.define=function (params) {
+		// fullName, shortName,namspace, superclass, includes, methods:{name/fiber$name: func}, decls
+		var parent=params.superclass;
+		var includes=params.includes;
+		var fullName=params.fullName;
+		var shortName=params.shortName;
+		var namespace=params.namespace;
+		var methods=params.methods;
+		var decls=params.decls;
+		var nso=klass.ensureNamespace(Tonyu.classes, namespace);
+		var prot=methods;
+		var init=prot.initialize;
+		delete prot.initialize;
+		var res;
+		res=(init?
+			/*(parent? function () {
+				if (!(this instanceof res)) useNew(fullName);
+				if (Tonyu.runMode) init.apply(this,arguments);
+				else parent.apply(this,arguments);
+			}:function () {
+				if (!(this instanceof res)) useNew(fullName);
+				if (Tonyu.runMode) init.apply(this,arguments);
+			})*/
+			function () {
+				if (!(this instanceof res)) useNew(fullName);
+				init.apply(this,arguments);
+			}:
+			(parent? function () {
+				if (!(this instanceof res)) useNew(fullName);
+				parent.apply(this,arguments);
+			}:function (){
+				if (!(this instanceof res)) useNew(fullName);
+			})
+		);
+		nso[shortName]=res;
+		res.methods=prot;
+		includes.forEach(function (m) {
+			if (!m.methods) throw m+" Does not have methods";
+			for (var n in m.methods) {
+				if (!(n in prot)) {
+					prot[n]=m.methods[n];
+				}
+			}
+		});
+		var props={};
+		var propReg=/^__([gs]et)ter__(.*)$/;
+		for (var k in prot) {
+			if (k.match(/^fiber\$/)) continue;
+			if (prot["fiber$"+k]) {
+				prot[k].fiber=prot["fiber$"+k];
+				prot[k].fiber.methodInfo={name:k,klass:res,fiber:true};
+			}
+			prot[k].methodInfo={name:k,klass:res};
+			var r=propReg.exec(k);
+			if (r) {
+				props[r[2]]=props[r[2]]||{};
+				props[r[2]][r[1]]=prot[k];
+			}
+		}
+		res.prototype=bless(parent, prot);
+		res.prototype.isTonyuObject=true;
+		for (var k in props) {
+			Object.defineProperty(res.prototype, k , props[k]);
+		}
+		res.meta=addMeta(fullName,{
+			fullName:fullName,shortName:shortName,namepsace:namespace,decls:decls,
+			superclass:parent ? parent.meta : null,func:res,
+			includes:includes.map(function(c){return c.meta;})
+		});
+		var m=klass.getMeta(res);
+		res.prototype.getClassInfo=function () {
+			return m;
+		};
+		return res;
+	};
+	klass.isSourceChanged=function (k) {
+		k=k.meta||k;
+		if (k.src && k.src.tonyu) {
+			if (!k.nodeTimestamp) return true;
+			return k.src.tonyu.lastUpdate()> k.nodeTimestamp;
+		}
+		return false;
+	};
+	klass.shouldCompile=function (k) {
+		k=k.meta||k;
+		if (klass.isSourceChanged(k)) return true;
+		var dks=klass.getDependingClasses(k);
+		for (var i=0 ; i<dks.length ;i++) {
+			if (klass.shouldCompile(dks[i])) return true;
+		}
+	};
+	klass.getDependingClasses=function (k) {
+		k=k.meta||k;
+		var res=[];
+		if (k.superclass) res=[k.superclass];
+		if (k.includes) res=res.concat(k.includes);
+		return res;
+	};
+	function bless( klass, val) {
+		if (!klass) return val;
+		return extend( Object.create(klass.prototype) , val);
+		//return extend( new klass() , val);
+	}
+	function extend (dst, src) {
+		if (src && typeof src=="object") {
+			for (var i in src) {
+				dst[i]=src[i];
+			}
+		}
+		return dst;
+	}
 
-    //alert("init");
-    var globals={};
-    var classes={};// classes.namespace.classname= function
-    var classMetas={}; // classes.namespace.classname.meta ( or env.classes / ctx.classes)
-    function setGlobal(n,v) {
-        globals[n]=v;
-    }
-    function getGlobal(n) {
-        return globals[n];
-    }
-    function getClass(n) {
-        //CFN: n.split(".")
-        var ns=n.split(".");
-        var res=classes;
-        ns.forEach(function (na) {
-            if (!res) return;
-            res=res[na];
-        });
-        if (!res && ns.length==1) {
-            var found;
-            for (var nn in classes) {
-                var nr=classes[nn][n];
-                if (nr) {
-                    if (!res) { res=nr; found=nn+"."+n; }
-                    else throw new Error("曖昧なクラス名： "+nn+"."+n+", "+found);
-                }
-            }
-        }
-        return res;//classes[n];
-    }
-    function bindFunc(t,meth) {
-        if (typeof meth!="function") return meth;
-        var res=function () {
-            return meth.apply(t,arguments);
-        };
-        res.methodInfo=Tonyu.extend({thiz:t},meth.methodInfo||{});
-        if (meth.fiber) {
-            res.fiber=function fiber_func() {
-                return meth.fiber.apply(t,arguments);
-            };
-            res.fiber.methodInfo=Tonyu.extend({thiz:t},meth.fiber.methodInfo||{});
-        }
-        return res;
-    }
-    function invokeMethod(t, name, args, objName) {
-        if (!t) throw new Error(objName+"(="+t+")のメソッド "+name+"を呼び出せません");
-        var f=t[name];
-        if (typeof f!="function") throw new Error((objName=="this"? "": objName+".")+name+"(="+f+")はメソッドではありません");
-        return f.apply(t,args);
-    }
-    function callFunc(f,args, fName) {
-        if (typeof f!="function") throw new Error(fName+"は関数ではありません");
-        return f.apply({},args);
-    }
-    function checkNonNull(v, name) {
-        if (v!=v || v==null) throw new Error(name+"(="+v+")は初期化されていません");
-        return v;
-    }
-    function A(args) {
-        var res=[];
-        for (var i=1 ; i<args.length; i++) {
-            res[i-1]=args[i];
-        }
-        return res;
-    }
-    function useNew(c) {
-        throw new Error("クラス名"+c+"はnewをつけて呼び出して下さい。");
-    }
-    function not_a_tonyu_object(o) {
-        console.log("Not a tonyu object: ",o);
-        throw new Error(o+" is not a tonyu object");
-    }
-    function hasKey(k, obj) {
-        return k in obj;
-    }
-    function run(bootClassName) {
-        var bootClass=getClass(bootClassName);
-        if (!bootClass) throw new Error( bootClassName+" というクラスはありません");
-        Tonyu.runMode=true;
-        var boot=new bootClass();
-        var th=thread();
-        th.apply(boot,"main");
-        var TPR;
-        if (TPR=Tonyu.currentProject) {
-            TPR.runningThread=th;
-            TPR.runningObj=boot;
-        }
-        $LASTPOS=0;
-        th.steps();
-    }
-    return Tonyu={thread:thread, /*threadGroup:threadGroup,*/ klass:klass, bless:bless, extend:extend,
-            globals:globals, classes:classes, classMetas:classMetas, setGlobal:setGlobal, getGlobal:getGlobal, getClass:getClass,
-            timeout:timeout,animationFrame:animationFrame, /*asyncResult:asyncResult,*/
-            bindFunc:bindFunc,not_a_tonyu_object:not_a_tonyu_object,
-            hasKey:hasKey,invokeMethod:invokeMethod, callFunc:callFunc,checkNonNull:checkNonNull,
-            run:run,iterator:IT,
-            VERSION:1471749335201,//EMBED_VERSION
-            A:A};
+	//alert("init");
+	var globals={};
+	var classes={};// classes.namespace.classname= function
+	var classMetas={}; // classes.namespace.classname.meta ( or env.classes / ctx.classes)
+	function setGlobal(n,v) {
+		globals[n]=v;
+	}
+	function getGlobal(n) {
+		return globals[n];
+	}
+	function getClass(n) {
+		//CFN: n.split(".")
+		var ns=n.split(".");
+		var res=classes;
+		ns.forEach(function (na) {
+			if (!res) return;
+			res=res[na];
+		});
+		if (!res && ns.length==1) {
+			var found;
+			for (var nn in classes) {
+				var nr=classes[nn][n];
+				if (nr) {
+					if (!res) { res=nr; found=nn+"."+n; }
+					else throw new Error("曖昧なクラス名： "+nn+"."+n+", "+found);
+				}
+			}
+		}
+		return res;//classes[n];
+	}
+	function bindFunc(t,meth) {
+		if (typeof meth!="function") return meth;
+		var res=function () {
+			return meth.apply(t,arguments);
+		};
+		res.methodInfo=Tonyu.extend({thiz:t},meth.methodInfo||{});
+		if (meth.fiber) {
+			res.fiber=function fiber_func() {
+				return meth.fiber.apply(t,arguments);
+			};
+			res.fiber.methodInfo=Tonyu.extend({thiz:t},meth.fiber.methodInfo||{});
+		}
+		return res;
+	}
+	function invokeMethod(t, name, args, objName) {
+		if (!t) throw new Error(objName+"(="+t+")のメソッド "+name+"を呼び出せません");
+		var f=t[name];
+		if (typeof f!="function") throw new Error((objName=="this"? "": objName+".")+name+"(="+f+")はメソッドではありません");
+		return f.apply(t,args);
+	}
+	function callFunc(f,args, fName) {
+		if (typeof f!="function") throw new Error(fName+"は関数ではありません");
+		return f.apply({},args);
+	}
+	function checkNonNull(v, name) {
+		if (v!=v || v==null) throw new Error(name+"(="+v+")は初期化されていません");
+		return v;
+	}
+	function A(args) {
+		var res=[];
+		for (var i=1 ; i<args.length; i++) {
+			res[i-1]=args[i];
+		}
+		return res;
+	}
+	function useNew(c) {
+		throw new Error("クラス名"+c+"はnewをつけて呼び出して下さい。");
+	}
+	function not_a_tonyu_object(o) {
+		console.log("Not a tonyu object: ",o);
+		throw new Error(o+" is not a tonyu object");
+	}
+	function hasKey(k, obj) {
+		return k in obj;
+	}
+	function run(bootClassName) {
+		var bootClass=getClass(bootClassName);
+		if (!bootClass) throw new Error( bootClassName+" というクラスはありません");
+		Tonyu.runMode=true;
+		var boot=new bootClass();
+		var th=thread();
+		th.apply(boot,"main");
+		var TPR;
+		if (TPR=Tonyu.currentProject) {
+			TPR.runningThread=th;
+			TPR.runningObj=boot;
+		}
+		$LASTPOS=0;
+		th.steps();
+	}
+	return Tonyu={thread:thread, /*threadGroup:threadGroup,*/ klass:klass, bless:bless, extend:extend,
+			globals:globals, classes:classes, classMetas:classMetas, setGlobal:setGlobal, getGlobal:getGlobal, getClass:getClass,
+			timeout:timeout,animationFrame:animationFrame, /*asyncResult:asyncResult,*/
+			bindFunc:bindFunc,not_a_tonyu_object:not_a_tonyu_object,
+			hasKey:hasKey,invokeMethod:invokeMethod, callFunc:callFunc,checkNonNull:checkNonNull,
+			run:run,iterator:IT,
+			VERSION:1500705574229,//EMBED_VERSION
+			A:A};
 }();
 });
 requireSimulator.setName('PatternParser');
@@ -3571,9 +3746,10 @@ define(["Tonyu"], function (Tonyu) {
     return PP;
 });
 requireSimulator.setName('Assets');
-define(["WebSite","Util","Tonyu"],function (WebSite,Util,Tonyu) {
+define(["WebSite","Util","Tonyu","FS"],function (WebSite,Util,Tonyu,FS) {
     var Assets={};
-    Assets.resolve=function (url, baseDir) {
+    Assets.resolve=function (url, prj) {
+        var baseDir=FS.isFile(prj)?prj:prj.getDir();
         if (url==null) url="";
         url=url.replace(/\$\{([a-zA-Z0-9_]+)\}/g, function (t,name) {
             return WebSite[name];
@@ -3584,8 +3760,8 @@ define(["WebSite","Util","Tonyu"],function (WebSite,Util,Tonyu) {
             if (!baseDir) throw new Error("Basedir not specified");
             var f=baseDir.rel(rel);
             if (!f.exists()) throw new Error("Resource file not found: "+f);
-            if (WebSite.mp3Disabled && rel.match(/\.mp3$/)) {
-                var oggf=baseDir.rel(rel.replace(/\.mp3$/,".ogg"));
+            if (WebSite.mp3Disabled && rel.match(/\.(mp3|mp4|m4a)$/)) {
+                var oggf=baseDir.rel(rel.replace(/\.(mp3|mp4|m4a)$/,".ogg"));
                 if (oggf.exists()) {
                     f=oggf;
                 }
@@ -3597,6 +3773,7 @@ define(["WebSite","Util","Tonyu"],function (WebSite,Util,Tonyu) {
     Tonyu.Assets=Assets;
     return Assets;
 });
+
 requireSimulator.setName('ImageList');
 define(["PatternParser","Util","Assets","assert"], function (PP,Util,Assets,assert) {
     var cache={};
@@ -3628,7 +3805,7 @@ define(["PatternParser","Util","Assets","assert"], function (PP,Util,Assets,asse
             	proc.apply(cache[urlKey],[]);
             	return;
             }
-            url=IL.convURL(url,options.baseDir);
+            url=Assets.resolve(url,options.prj||options.baseDir);
             //if (!Util.startsWith(url,"data:")) url+="?" + new Date().getTime();
             var im=$("<img>");
             im.load(function () {
@@ -3638,7 +3815,9 @@ define(["PatternParser","Util","Assets","assert"], function (PP,Util,Assets,asse
             im.attr("src",url);
             function proc() {
                 var pw,ph;
-                if ((pw=resImg.pwidth) && (ph=resImg.pheight)) {
+                if (resImg.type=="single") {
+                    resa[i]=[{image:this, x:0,y:0, width:this.width, height:this.height}];
+                } else if ((pw=resImg.pwidth) && (ph=resImg.pheight)) {
                     var x=0, y=0, w=this.width, h=this.height;
                     var r=[];
                     while (true) {
@@ -3698,31 +3877,1568 @@ define(["PatternParser","Util","Assets","assert"], function (PP,Util,Assets,asse
         res.name=resImg.name;
         return assert.is(res,Array);
     };
-	IL.convURL=function (url, baseDir) {
-	    /*if (url==null) url="";
-	    url=url.replace(/\$\{([a-zA-Z0-9_]+)\}/g, function (t,name) {
-	        return WebSite[name];
-	    });
-        if (WebSite.urlAliases[url]) url=WebSite.urlAliases[url];
-	    if (Util.startsWith(url,"ls:")) {
-	        var rel=url.substring("ls:".length);
-	        if (!baseDir) throw new Error("Basedir not specified");
-	        var f=baseDir.rel(rel);
-	        if (!f.exists()) throw "ImageList file not found: "+f;
-	        url=f.text();
-	    }
-	    return url;*/
-	    return Assets.resolve(url, baseDir);
-	};
+	/*IL.convURL=function (url, prj) {
+
+	    return Assets.resolve(url, prj);
+	};*/
 	window.ImageList=IL;
     return IL;
 });
+
+requireSimulator.setName('PicoAudio');
+var PicoAudio = (function(){
+	function PicoAudio(_audioContext, _picoAudio){
+		var AudioContext = window.AudioContext || window.webkitAudioContext;
+		this.context = _audioContext ? _audioContext : new AudioContext();
+		this.settings = {
+			masterVolume: 1,
+			generateVolume: 0.15,
+			tempo: 120,
+			basePitch: 440,
+			resolution: 480,
+			hashLength: this.isAndroid() ? 25 : 50,
+			hashBuffer: 2,
+			isWebMIDI: false,
+			WebMIDIPortOutputs: null,
+			WebMIDIPortOutput: null,
+			WebMIDIPort: -1, // -1:auto
+			WebMIDIPortSysEx: true, // MIDIデバイスのフルコントロールをするかどうか（SysExを使うかどうか）(httpsじゃないと使えない？)
+			isReverb: !this.isAndroid(), // Android以外はリバーブON
+			reverbVolume: 1.5,
+			isChorus: true,
+			chorusVolume: 0.5,
+			isCC111: true,
+			dramMaxPlayLength: 0.5, // ドラムで一番長い音の秒数
+			loop: false
+		};
+		this.trigger = { isNoteTrigger: true, noteOn: function(){}, noteOff: function(){}, songEnd: function(){} };
+		this.states = { isPlaying: false, playIndex:0, startTime:0, stopTime:0, stopFuncs:[], webMIDIWaitState:null, webMIDIStopTime:0 };
+		this.hashedDataList = [];
+		this.hashedMessageList = [];
+		this.channels = [];
+		this.tempoTrack = [{ timing:0, value:120 },{ timing:0, value:120 }];
+		this.cc111Time = -1;
+		for(var i=0; i<17; i++)
+			this.channels.push([0,0,1]);
+		if(_picoAudio && _picoAudio.whitenoise){ // 使いまわし
+			this.whitenoise = _picoAudio.whitenoise;
+		} else {
+			this.whitenoise = this.context.createBuffer(2, this.context.sampleRate, this.context.sampleRate);
+			for (var ch=0; ch<2; ch++){
+				for (var i=0; i<this.context.sampleRate; i++){
+					this.whitenoise.getChannelData(ch)[i] = Math.random() * 2 - 1;
+				}
+			}
+		}
+		// リアルタイムで音量変更するためにdestination前にgainNodeを一つ噛ませる
+		this.masterGainNode = this.context.createGain();
+		this.masterGainNode.gain.value = this.settings.masterVolume;
+		// リバーブ用のインパルス応答音声データ作成（てきとう）
+		if(_picoAudio && _picoAudio.impulseResponse){ // 使いまわし
+			this.impulseResponse = _picoAudio.impulseResponse;
+		} else {
+			var sampleLength = this.context.sampleRate*3.5;
+			this.impulseResponse = this.context.createBuffer(2, sampleLength, this.context.sampleRate);
+			for(var ch = 0; ch<2; ch++){
+				var buf = this.impulseResponse.getChannelData(ch);
+				for (var i = 0; i<sampleLength; i++) {
+					var v = ((sampleLength-i)/sampleLength);
+					var s = i/this.context.sampleRate;
+					var r = i/sampleLength;
+					var d = (s < 0.030 ? 0 : v)
+					*(s >= 0.030 && s < 0.031 ? v*2 : v)
+					*(s >= 0.040 && s < 0.042 ? v*1.5 : v)
+					*(s >= 0.050 && s < 0.054 ? v*1.25 : v)
+					*Math.random()*0.2*Math.pow((v-0.030), 4);
+					buf[i] = d;
+				}
+			}
+		}
+		// リバーブ用（convolverは重いので１つだけ作成）
+		if(false && _picoAudio && _picoAudio.convolver){ // 使いまわし→リバーブの音量をミュートにできないので使いまわししない
+			this.convolver = _picoAudio.convolver;
+		} else {
+			//for (var i=0; i<16; i++) {
+			this.convolver = this.context.createConvolver();
+			this.convolver.buffer = this.impulseResponse;
+			this.convolver.normalize = false;
+			this.convolverGainNode = this.context.createGain();
+			this.convolverGainNode.gain.value = this.settings.reverbVolume;
+			this.convolver.connect(this.convolverGainNode);
+			this.convolverGainNode.connect(this.masterGainNode);
+			this.masterGainNode.connect(this.context.destination);
+			//}
+		}
+
+		if(false && _picoAudio && _picoAudio.chorusDelayNode){ // 使いまわし→コーラスの音量をミュートにできないので使いまわししない
+			this.chorusDelayNode = _picoAudio.chorusDelayNode;
+		} else {
+			//for (var i=0; i<16; i++) {
+			this.chorusDelayNode = this.context.createDelay();
+			this.chorusGainNode = this.context.createGain();
+			this.chorusOscillator = this.context.createOscillator();
+			this.chorusLfoGainNode = this.context.createGain();
+			this.chorusDelayNode.delayTime.value = 0.025;
+			this.chorusLfoGainNode.gain.value = 0.010;
+			this.chorusOscillator.frequency.value = 0.05;
+			this.chorusGainNode.gain.value = this.settings.chorusVolume;
+			this.chorusOscillator.connect(this.chorusLfoGainNode);
+			this.chorusLfoGainNode.connect(this.chorusDelayNode.delayTime);
+			this.chorusDelayNode.connect(this.chorusGainNode);
+			this.chorusGainNode.connect(this.masterGainNode);
+			this.masterGainNode.connect(this.context.destination);
+			this.chorusOscillator.start(0);
+			//}
+		}
+
+		this.onSongEndListener = null;
+	}
+
+	PicoAudio.prototype.createNote = function(option){
+		var nonStop = false;
+		if(option.channel){
+			switch(this.channels[option.channel][1]/10 || option.instrument){
+				case 0.2:
+				case 12: case 13: case 45: case 55:
+					nonStop = true;
+					break; // ピッチカート系減衰は後でstopさせる
+			}
+		}
+		var note = this.createBaseNote(option, true, false, nonStop);
+		var oscillator = note.oscillator;
+		var gainNode = note.gainNode;
+		var panNode = note.panNode;
+		var noiseCutGainNode = note.noiseCutGainNode;
+		var isPizzicato = false;
+		var that = this;
+		// 音色別の音色振り分け 書き方(ry
+		switch(this.channels[note.channel][0]/10 || option.instrument){
+			// Sine
+			case 0.1:
+			case  6: case 15: case 24: case 26: case 46: case 50: case 51:
+			case 52: case 53: case 54: case 82: case 85: case 86:
+			{
+				oscillator.type = "sine";
+				gainNode.gain.value *= 1.5;
+				break;
+			}
+			// Square
+			case 0.2:
+			case  4: case 12: case 13: case 16: case 19: case 20: case 32: case 34: case 45: case 48: case 49:
+			case 55: case 56: case 57: case 61: case 62: case 63: case 71: case 72: case 73: case 74: case 75:
+			case 76: case 77: case 78: case 79: case 80: case 84:
+			{
+				oscillator.type = "square";
+				gainNode.gain.value *= 0.8;
+				break;
+			}
+			// Sawtooth
+			case 0.3:
+			case  0: case  1: case  2: case  3: case  6: case  7: case 17: case 18: case 21: case 22: case 23:
+			case 27: case 28: case 29: case 30: case 36: case 37: case 38: case 39: case 40: case 41: case 42:
+			case 43: case 44: case 47: case 59: case 64: case 65: case 66: case 67: case 68: case 69: case 70:
+			case 71: case 82: case 87:
+			{
+				oscillator.type = "sawtooth";
+				break;
+			}
+			// Triangle
+			case 0.4:
+			case  8: case  9: case 10: case 11: case 14: case 25: case 31: case 33: case 35: case 58: case 60:
+			case 83: case 88: case 89: case 90: case 91: case 92: case 93: case 94: case 95:
+			{
+				oscillator.type = "triangle";
+				gainNode.gain.value *= 1.5;
+				break;
+			}
+			// Other - Square
+			default:{
+				oscillator.type = "square";
+			}
+		}
+		// 音色別の減衰　書き方ミスったなあ
+		switch(this.channels[note.channel][1]/10 || option.instrument){
+			//
+			case 0.2:
+			case 12: case 13: case 45: case 55:
+			{
+				isPizzicato = true;
+				gainNode.gain.value *= 1.1;
+				gainNode.gain.setValueAtTime(gainNode.gain.value, note.start);
+				gainNode.gain.linearRampToValueAtTime(0.0, note.start+0.2);
+				that.stopAudioNode(oscillator, note.start+0.5, gainNode);
+				break;
+			}
+			// ピアノ程度に伸ばす系
+			case 0.3:
+			case  0: case  1: case  2: case  3: case  6: case  9: case 11: case 14: case 15:
+			case 32: case 36: case 37: case 46: case 47:
+			{
+				gainNode.gain.value *= 1.1;
+				gainNode.gain.setValueAtTime(gainNode.gain.value, note.start);
+				gainNode.gain.linearRampToValueAtTime(gainNode.gain.value*0.95, note.start+0.1);
+				gainNode.gain.setValueAtTime(gainNode.gain.value*0.95, note.start+0.1);
+				gainNode.gain.linearRampToValueAtTime(0.0, note.start+1.5+note.velocity*3);
+				break;
+			}
+			// ギター系
+			case 0.4:
+			case 24: case 25: case 26: case 27: case 28: case 29: case 30: case 31: case 34:
+			{
+				gainNode.gain.value *= 1.1;
+				gainNode.gain.setValueAtTime(gainNode.gain.value, note.start);
+				gainNode.gain.linearRampToValueAtTime(0.0, note.start+1.0+note.velocity*4);
+				break;
+			}
+			// 減衰していくけど終わらない系
+			case 0.5:
+			case 4: case 5: case 7: case 8: case 10: case 33: case 35:
+			{
+				gainNode.gain.value *= 1.0;
+				gainNode.gain.setValueAtTime(gainNode.gain.value, note.start);
+				gainNode.gain.linearRampToValueAtTime(gainNode.gain.value*0.95, note.start+0.1);
+				gainNode.gain.setValueAtTime(gainNode.gain.value*0.95, note.start+0.1);
+				gainNode.gain.linearRampToValueAtTime(0.0, note.start+2.0+note.velocity*10);
+				break;
+			}
+			// 再生しない系
+			case 119:
+			{
+				gainNode.gain.value = 0;
+				that.stopAudioNode(oscillator, 0, gainNode);
+			}
+			default:{
+				//gainNode.gain.setValueAtTime(note.velocity, note.start);
+			}
+		}
+
+		if((oscillator.type == "sine" || oscillator.type == "triangle")
+			&& !isPizzicato && note.stop - note.start > 0.01){
+			// 終わり際に少し減衰しノイズ削減
+			noiseCutGainNode.gain.setValueAtTime(1, note.stop-0.005);
+			noiseCutGainNode.gain.linearRampToValueAtTime(0, note.stop);
+		}
+		return function(){
+			that.stopAudioNode(oscillator, 0, gainNode);
+		};
+	};
+
+	PicoAudio.prototype.createPercussionNote = function(option){
+		var note = this.createBaseNote(option, false);
+		var source = note.oscillator;
+		var gainNode = note.gainNode;
+		var panNode = note.panNode;
+		var start = note.start;
+		var stop = note.stop;
+		var velocity = note.velocity * ((option.expression ? option.expression[0].value : 100) / 127);
+		var note2 = this.createBaseNote(option, false, true);
+		var oscillator = note2.oscillator;
+		var gainNode2 = note2.gainNode;
+		var panNode2 = note2.panNode;
+		var that = this;
+		switch(option.pitch){
+			// Bass drum
+			case 35:
+			case 36:
+				// w
+				gainNode.gain.value = velocity*0.6;
+				source.playbackRate.value = 0.02;
+				that.stopAudioNode(source, start+0.07, gainNode);
+				// s
+				gainNode2.gain.value = velocity*1.1;
+				oscillator.frequency.setValueAtTime(120, start);
+				oscillator.frequency.linearRampToValueAtTime(50, start+0.07);
+				that.stopAudioNode(oscillator, start+0.07, gainNode2);
+				break;
+			// Snare
+			case 38:
+			case 40:
+				// w
+				source.playbackRate.value = 0.7;
+				that.stopAudioNode(source, start+0.05, gainNode);
+				// s
+				gainNode2.gain.setValueAtTime(velocity*0.8, start);
+				gainNode2.gain.linearRampToValueAtTime(0.0, start+0.05);
+				oscillator.frequency.setValueAtTime(300, start);
+				oscillator.frequency.linearRampToValueAtTime(200, start+0.05);
+				that.stopAudioNode(oscillator, start+0.05, gainNode2);
+				break;
+			// Toms
+			case 41: case 43: case 45:
+			case 47: case 48: case 50:
+				// w
+				source.playbackRate.value = 0.01;
+				that.stopAudioNode(source, start+0.1, gainNode);
+				// s
+				oscillator.type = "square";
+				gainNode2.gain.setValueAtTime(velocity, start);
+				gainNode2.gain.linearRampToValueAtTime(0.01, start+0.1);
+				oscillator.frequency.setValueAtTime(150+20*(option.pitch-40), start);
+				oscillator.frequency.linearRampToValueAtTime(50+20*(option.pitch-40), start+0.1);
+				that.stopAudioNode(oscillator, start+0.1, gainNode2);
+				break;
+			// Close Hihat
+			case 42:
+			case 44:
+				source.playbackRate.value = 1.5;
+				that.stopAudioNode(source, start+0.02, gainNode);
+				that.stopAudioNode(oscillator, 0, gainNode2);
+				break;
+			// Open Hihat
+			case 46:
+				source.playbackRate.value = 1.5;
+				that.stopAudioNode(source, start+0.3, gainNode);
+				gainNode.gain.setValueAtTime(velocity*0.9, start);
+				gainNode.gain.linearRampToValueAtTime(0.0, start+0.3);
+				that.stopAudioNode(oscillator, 0, gainNode2);
+				break;
+			// Cymbal
+			case 49: case 51: case 52:
+			case 53: case 55: case 57:
+				source.playbackRate.value = 1.2;
+				that.stopAudioNode(source, start+0.5, gainNode);
+				gainNode.gain.setValueAtTime(velocity*1, start);
+				gainNode.gain.linearRampToValueAtTime(0.0, start+0.5);
+				that.stopAudioNode(oscillator, 0, gainNode2);
+				break;
+			// Cymbal2
+			case 51:
+				source.playbackRate.value = 1.1;
+				that.stopAudioNode(source, start+0.4, gainNode);
+				gainNode.gain.setValueAtTime(velocity*0.8, start);
+				gainNode.gain.linearRampToValueAtTime(0.0, start+0.4);
+				that.stopAudioNode(oscillator, 0, gainNode2);
+				break;
+			// Cymbal3
+			case 59:
+				source.playbackRate.value = 1.8;
+				that.stopAudioNode(source, start+0.3, gainNode);
+				gainNode.gain.setValueAtTime(velocity*0.5, start);
+				gainNode.gain.linearRampToValueAtTime(0.0, start+0.3);
+				that.stopAudioNode(oscillator, 0, gainNode2);
+				break;
+			// Bongo
+			case 60: case 61:
+				// w
+				source.playbackRate.value = 0.03;
+				that.stopAudioNode(source, start+0.03, gainNode);
+				// s
+				gainNode2.gain.setValueAtTime(velocity*0.8, start);
+				gainNode2.gain.linearRampToValueAtTime(0.0, start+0.1);
+				oscillator.frequency.setValueAtTime(400-40*(option.pitch-60), start);
+				oscillator.frequency.linearRampToValueAtTime(450-40*(option.pitch-60), start+0.1);
+				that.stopAudioNode(oscillator, start+0.1, gainNode2);
+				break;
+			// mute Conga
+			case 62:
+				// w
+				source.playbackRate.value = 0.03;
+				that.stopAudioNode(source, start+0.03, gainNode);
+				// s
+				gainNode2.gain.setValueAtTime(velocity, start);
+				gainNode2.gain.linearRampToValueAtTime(0.0, start+0.03);
+				oscillator.frequency.setValueAtTime(200, start);
+				oscillator.frequency.linearRampToValueAtTime(250, start+0.03);
+				that.stopAudioNode(oscillator, start+0.03, gainNode2);
+				break;
+			// open Conga
+			case 63: case 64:
+				// w
+				source.playbackRate.value = 0.03;
+				that.stopAudioNode(source, start+0.03, gainNode);
+				// s
+				gainNode2.gain.setValueAtTime(velocity, start);
+				gainNode2.gain.linearRampToValueAtTime(0.0, start+0.1);
+				oscillator.frequency.setValueAtTime(200-30*(option.pitch-63), start);
+				oscillator.frequency.linearRampToValueAtTime(250-30*(option.pitch-63), start+0.1);
+				that.stopAudioNode(oscillator, start+0.1, gainNode2);
+				break;
+			// Cowbell, Claves
+			case 56:
+			case 75:
+				// w
+				source.playbackRate.value = 0.01;
+				that.stopAudioNode(source, start+0.1, gainNode);
+				// s
+				gainNode2.gain.setValueAtTime(velocity, start);
+				gainNode2.gain.linearRampToValueAtTime(0.0, start+0.1);
+				oscillator.frequency.setValueAtTime(1000+48*(option.pitch-56), start);
+				that.stopAudioNode(oscillator, start+0.1, gainNode2);
+				break;
+			// mute triangle
+			case 80:
+				// w
+				source.playbackRate.value = 5;
+				gainNode.gain.setValueAtTime(velocity*0.5, start);
+				gainNode.gain.linearRampToValueAtTime(0.0, start+0.2);
+				that.stopAudioNode(source, start+0.05, gainNode);
+				// s
+				oscillator.type = "triangle"
+				gainNode2.gain.setValueAtTime(velocity*0.7, start);
+				gainNode2.gain.linearRampToValueAtTime(0.0, start+0.2);
+				oscillator.frequency.setValueAtTime(6000, start);
+				that.stopAudioNode(oscillator, start+0.05, gainNode2);
+				break;
+			// open triangle
+			case 81:
+				// w
+				source.playbackRate.value = 5;
+				gainNode.gain.setValueAtTime(velocity*0.9, start);
+				gainNode.gain.linearRampToValueAtTime(0.0, start+0.5);
+				that.stopAudioNode(source, start+0.5, gainNode);
+				// s
+				oscillator.type = "triangle"
+				gainNode2.gain.setValueAtTime(velocity*0.8, start);
+				gainNode2.gain.linearRampToValueAtTime(0.0, start+0.3);
+				oscillator.frequency.setValueAtTime(6000, start);
+				that.stopAudioNode(oscillator, start+0.3, gainNode2);
+				break;
+			default:
+				source.playbackRate.value = option.pitch/69*2;
+				that.stopAudioNode(source, start+0.05, gainNode);
+				that.stopAudioNode(oscillator, 0, gainNode2);
+		}
+		return function(){
+			that.stopAudioNode(source, 0, gainNode);
+			that.stopAudioNode(oscillator, 0, gainNode2);
+		};
+	};
+
+	PicoAudio.prototype.createBaseNote = function(option, isExpression, nonChannel, nonStop){
+		var settings = this.settings;
+		var context = this.context;
+		var songStartTime = this.states.startTime;
+		var start = this.getTime(option.start) + songStartTime;
+		var stop = this.getTime(option.stop) + songStartTime;
+		var pitch = settings.basePitch * Math.pow(Math.pow(2, 1/12), (option.pitch || 69) - 69);
+		var channel = nonChannel ? 0 : (option.channel || 0);
+		var velocity = (option.velocity) * Number(nonChannel ? 1 : (this.channels[channel][2] || 1)) * settings.generateVolume;
+		var oscillator = channel!=9 ? context.createOscillator() : context.createBufferSource();
+		var panNode = context.createStereoPanner ? context.createStereoPanner() :
+				context.createPanner ? context.createPanner() : { pan: { setValueAtTime: function(){} } };
+		var gainNode = context.createGain();
+		var noiseCutGainNode = context.createGain();
+		var that = this;
+
+		if(!context.createStereoPanner && context.createPanner) {
+			// iOS, Old Browser
+			var panValue = option.pan && option.pan[0].value != 64 ? (option.pan[0].value / 127) * 2 - 1 : 0;
+			if(panValue > 1.0) panValue = 1.0;
+			var panAngle = panValue * 90;
+			var panX = Math.sin(panAngle * (Math.PI / 180));
+			var panZ = -Math.cos(panAngle * (Math.PI / 180));
+			panNode.panningModel = "equalpower";
+			panNode.setPosition(panX, 0, panZ);
+		} else if(context.createStereoPanner){
+			var panValue = option.pan && option.pan[0].value != 64 ? (option.pan[0].value / 127) * 2 - 1 : 0;
+			if(panValue > 1.0) panValue = 1.0;
+			panNode.pan.value = panValue;
+		}
+
+		gainNode.gain.value = velocity * ((option.expression ? option.expression[0].value : 100) / 127);
+		if(channel!=9){
+			oscillator.type = option.type || "sine";
+			oscillator.detune.value = 0;
+			oscillator.frequency.value = pitch;
+			option.pitchBend ? option.pitchBend.forEach(function(p){
+				oscillator.frequency.setValueAtTime(
+					settings.basePitch * Math.pow(Math.pow(2, 1/12), option.pitch - 69 + p.value),
+					that.getTime(p.timing) + songStartTime
+				);
+			}) : false;
+		} else {
+			oscillator.loop = true;
+			oscillator.buffer = this.whitenoise
+		}
+		if(isExpression){
+			option.expression ? option.expression.forEach(function(p){
+				gainNode.gain.setValueAtTime(
+					velocity * (p.value / 127),
+					that.getTime(p.timing) + songStartTime
+				);
+			}) : false;
+		}
+		if(context.createStereoPanner || context.createPanner){
+			var firstPan = true;
+			if(context.createStereoPanner) {
+				option.pan ? option.pan.forEach(function(p){
+					if(firstPan){
+						firstPan = false;
+						return;
+					}
+					var v = p.value == 64 ? 0 : (p.value / 127) * 2 - 1;
+					if(v > 1.0) v = 1.0;
+					panNode.pan.setValueAtTime(
+						v,
+						that.getTime(p.timing) + songStartTime
+					);
+				}) : false;
+			} else if(context.createPanner){
+				if(panNode.positionX) {
+					// Old Browser
+					option.pan ? option.pan.forEach(function(p){
+						if(firstPan){
+							firstPan = false;
+							return;
+						}
+						var v = p.value == 64 ? 0 : (p.value / 127) * 2 - 1;
+						if(v > 1.0) v = 1.0;
+						var a = v * 90;
+						var x = Math.sin(a * (Math.PI / 180));
+						var z = -Math.cos(a * (Math.PI / 180));
+						panNode.positionX.setValueAtTime(x, that.getTime(p.timing) + songStartTime);
+						panNode.positionY.setValueAtTime(0, that.getTime(p.timing) + songStartTime);
+						panNode.positionZ.setValueAtTime(z, that.getTime(p.timing) + songStartTime);
+					}) : false;
+				} else {
+					// iOS
+					// setValueAtTimeが使えないためsetTimeoutでパンの動的変更
+					option.pan ? option.pan.forEach(function(p){
+						if(firstPan){
+							firstPan = false;
+							return;
+						}
+						var reservePan = setTimeout(function(){
+							that.clearFunc("pan", reservePan)
+							var v = p.value == 64 ? 0 : (p.value / 127) * 2 - 1;
+							if(v > 1.0) v = 1.0;
+							var a = v * 90;
+							var x = Math.sin(a * (Math.PI / 180));
+							var z = -Math.cos(a * (Math.PI / 180));
+							panNode.setPosition(x, 0, z);
+						}, (that.getTime(p.timing) + songStartTime - context.currentTime) * 1000);
+						that.pushFunc({
+							pan: reservePan,
+							stopFunc: function(){ clearTimeout(reservePan); }
+						});
+					}) : false;
+				}
+			}
+			oscillator.connect(panNode);
+			panNode.connect(gainNode);
+		} else {
+			oscillator.connect(gainNode);
+		}
+		gainNode.connect(noiseCutGainNode);
+		noiseCutGainNode.connect(this.masterGainNode);
+		this.masterGainNode.connect(context.destination);
+
+		if(channel!=9 && option.modulation && (option.modulation.length >= 2 || option.modulation[0].value > 0)){
+			var modulationOscillator = context.createOscillator();
+			var modulationGainNode = context.createGain();
+			firstPan = true;
+			option.modulation ? option.modulation.forEach(function(p){
+				if(firstPan){
+					firstPan = false;
+					return;
+				}
+				var m = p.value / 127;
+				if(m > 1.0) m = 1.0;
+				modulationGainNode.gain.setValueAtTime(
+					pitch * 10 / 440 * m,
+					that.getTime(p.timing) + songStartTime
+				);
+			}) : false;
+			var m = option.modulation ? option.modulation[0].value / 127 : 0;
+			if(m > 1.0) m = 1.0;
+			modulationGainNode.gain.value = pitch * 10 / 440 * m;
+			modulationOscillator.frequency.value = 6;
+			modulationOscillator.connect(modulationGainNode);
+			modulationGainNode.connect(oscillator.frequency);
+		}
+
+		if(this.settings.isReverb && option.reverb && (option.reverb.length >= 2 || option.reverb[0].value > 0)){
+			var convolver = this.convolver;
+			var masterGainNode = this.masterGainNode;
+			var convolverGainNode = context.createGain();
+			firstPan = true;
+			option.reverb ? option.reverb.forEach(function(p){
+				if(firstPan){
+					firstPan = false;
+					return;
+				}
+				var r = p.value / 127;
+				if(r > 1.0) r = 1.0;
+				convolverGainNode.gain.setValueAtTime(
+					r,
+					that.getTime(p.timing) + songStartTime
+				);
+			}) : false;
+			var r = option.reverb ? option.reverb[0].value / 127 : 0;
+			if(r > 1.0) r = 1.0;
+			convolverGainNode.gain.value = r;
+			gainNode.connect(convolverGainNode);
+			convolverGainNode.connect(convolver);
+		}
+
+		if(this.settings.isChorus && option.chorus && (option.chorus.length >= 2 || option.chorus[0].value > 0)){
+			var chorusDelayNode = this.chorusDelayNode;
+			var masterGainNode = this.masterGainNode;
+			var chorusGainNode = context.createGain();
+			firstPan = true;
+			option.chorus ? option.chorus.forEach(function(p){
+				if(firstPan){
+					firstPan = false;
+					return;
+				}
+				var c = p.value / 127;
+				if(c > 1.0) c = 1.0;
+				chorusGainNode.gain.setValueAtTime(
+					c,
+					that.getTime(p.timing) + songStartTime
+				);
+			}) : false;
+			var c = option.chorus ? option.chorus[0].value / 127 : 0;
+			if(c > 1.0) c = 1.0;
+			chorusGainNode.gain.value = c;
+			gainNode.connect(chorusGainNode);
+			chorusGainNode.connect(chorusDelayNode);
+		}
+
+		if(modulationOscillator){
+			modulationOscillator.start(start);
+			this.stopAudioNode(modulationOscillator, stop, modulationGainNode);
+		}
+
+		oscillator.start(start);
+		if(channel!=9 && !nonChannel && !nonStop){
+			this.stopAudioNode(oscillator, stop, gainNode);
+		}
+
+		return {
+			start: start,
+			stop: stop,
+			pitch: pitch,
+			channel: channel,
+			velocity: velocity,
+			oscillator: oscillator,
+			panNode: panNode,
+			gainNode: gainNode,
+			noiseCutGainNode: noiseCutGainNode
+		};
+	};
+
+	PicoAudio.prototype.startWebMIDI = function(){
+		var outputs;
+		var that = this;
+		if(!navigator.requestMIDIAccess) return;
+		// 1回目：ブラウザにMIDIデバイスのフルコントロールを要求する(SysExの使用を要求)
+		// 2回目：MIDIデバイスのフルコントロールがブロックされたら、SysEx無しでMIDIアクセスを要求する
+		var sysEx = this.settings.WebMIDIPortSysEx;
+		var midiAccessSuccess = function(midiAccess){
+			outputs = midiAccess.outputs;
+			that.settings.WebMIDIPortOutputs = outputs;
+			var output;
+			if(that.settings.WebMIDIPort==-1){
+				that.settings.WebMIDIPortOutputs.forEach(function(o){
+					if(!output) output = o;
+				});
+			} else {
+				output = that.settings.WebMIDIPortOutputs.get(settings.WebMIDIPort);
+			}
+			that.settings.WebMIDIPortOutput = output;
+			that.settings.WebMIDIPortSysEx = sysEx;
+			if(output){
+				output.open();
+				that.initStatus(); // リセットイベント（GMシステム・オン等）を送るため呼び出す
+			}
+			return outputs;
+		};
+		var midiAccessFailure = function(err){
+			console.log(err);
+			if(sysEx){
+				sysEx = false;
+				navigator.requestMIDIAccess({sysex: sysEx})
+					.then(midiAccessSuccess)
+					.catch(midiAccessFailure);
+			}
+		};
+		navigator.requestMIDIAccess({sysex: sysEx})
+			.then(midiAccessSuccess)
+			.catch(midiAccessFailure);
+		// 終了時に鳴らしている音を切る
+		window.addEventListener('unload', function(e) {
+			for(var t=0; t<16; t++){
+				that.settings.WebMIDIPortOutput.send([0xB0+t, 120, 0]);
+				for(var i=0; i<128; i++){
+					that.settings.WebMIDIPortOutput.send([0x80+t, i, 0]);
+				}
+			}
+		});
+	};
+
+	PicoAudio.prototype.initStatus = function(isSongLooping, isLight){
+		if(this.settings.isWebMIDI){ // initStatus()連打の対策
+			if(this.states.webMIDIWaitState!=null) return;
+		}
+		this.stop(isSongLooping);
+		var tempwebMIDIStopTime = this.states.webMIDIStopTime;
+		this.states = { isPlaying: false, playIndex:0, startTime:0, stopTime:0, stopFuncs:[], webMIDIWaitState:null, webMIDIStopTime:0 };
+		this.states.webMIDIStopTime = tempwebMIDIStopTime; // 値を初期化しない
+		if(this.settings.isWebMIDI && !isLight){
+			if(isSongLooping)
+				return;
+			if(this.settings.WebMIDIPortOutput==null){
+				this.startWebMIDI();
+				return;
+			}
+			if(this.settings.WebMIDIPortSysEx){
+				// GM1システム・オン
+				this.settings.WebMIDIPortOutput.send([0xF0, 0x7E, 0x7F, 0x09, 0x01, 0xF7]);
+			} else {
+				// SysExの使用が拒否されているので、できる限り設定値を初期値に戻す
+				for(var t=0; t<16; t++){
+					this.settings.WebMIDIPortOutput.send([0xC0+t, 0]);
+					this.settings.WebMIDIPortOutput.send([0xE0+t, 0, 64]);
+					// ピッチあたりのずれがひどくなる場合がある　よくわからない
+					this.settings.WebMIDIPortOutput.send([0xB0+t, 100, 0]);
+					this.settings.WebMIDIPortOutput.send([0xB0+t, 101, 0]);
+					this.settings.WebMIDIPortOutput.send([0xB0+t, 6, 2]); //pitchbend
+					this.settings.WebMIDIPortOutput.send([0xB0+t, 100, 1]);
+					this.settings.WebMIDIPortOutput.send([0xB0+t, 96, 0]);
+					this.settings.WebMIDIPortOutput.send([0xB0+t, 97, 64]);　//tuning?
+					this.settings.WebMIDIPortOutput.send([0xB0+t, 7, 100]); // volume
+					this.settings.WebMIDIPortOutput.send([0xB0+t, 10, 64]); // pan
+					this.settings.WebMIDIPortOutput.send([0xB0+t, 11, 127]); // expression
+					//this.settings.WebMIDIPortOutput.send([0xB0+t, 91, 40]); // リバーブ以外のエフェクトに設定される場合がありそうなのでコメントアウト
+					//this.settings.WebMIDIPortOutput.send([0xB0+t, 93, 0]); // コーラス以外のエフェクトに設定されるのか音が出なくなる場合があるのでコメントアウト
+					this.settings.WebMIDIPortOutput.send([0xB0+t, 98, 0]);
+					this.settings.WebMIDIPortOutput.send([0xB0+t, 99, 0]);
+					//this.settings.WebMIDIPortOutput.send([0xB0+t, 121, 0]);
+					this.settings.WebMIDIPortOutput.send([0xB0+t, 122, 0]);
+				}
+			}
+		}
+	};
+
+	PicoAudio.prototype.stop = function(isSongLooping){
+		var states = this.states;
+		var that = this;
+		if(states.isPlaying==false) return;
+		states.isPlaying = false;
+		states.playIndex -= this.settings.hashBuffer + 1;
+		states.stopTime = this.context.currentTime;
+		states.stopFuncs.forEach(function(n){
+			n.stopFunc();
+		});
+		states.stopFuncs = [];
+		if(this.settings.isWebMIDI){
+			if(isSongLooping)
+				return;
+			if(this.settings.WebMIDIPortOutput==null)
+				return;
+			states.webMIDIStopTime = this.context.currentTime;
+			setTimeout(function(){
+				for(var t=0; t<16; t++){
+					that.settings.WebMIDIPortOutput.send([0xB0+t, 120, 0]);
+					for(var i=0; i<128; i++){
+						that.settings.WebMIDIPortOutput.send([0x80+t, i, 0]);
+					}
+				}
+			}, 200);
+		}
+	};
+
+	PicoAudio.prototype.play = function(isSongLooping){
+		var context = this.context;
+		var settings = this.settings;
+		var trigger = this.trigger;
+		var states = this.states;
+		var hashedDataList = this.hashedDataList;
+		var that = this;
+		if(states.isPlaying==true) return;
+		if(settings.isWebMIDI && !isSongLooping){
+			// Web MIDI API使用時はstop()から800ms程待機すると音がバグりにくい
+			if(states.webMIDIWaitState != "completed"){
+				if(states.webMIDIWaitState != "waiting"){ // play()連打の対策
+					// stop()から800ms後にplay()を実行
+					states.webMIDIWaitState = "waiting";
+					var waitTime = 800 - (context.currentTime - states.webMIDIStopTime)*1000;
+					if(states.webMIDIStopTime==0) waitTime = 800; // MIDI Portをopenして最初に呼び出すときも少し待つ
+					setTimeout(function(){
+						that.states.webMIDIWaitState = "completed";
+						that.states.isPlaying = false;
+						that.play();
+					}, waitTime);
+				}
+				return;
+			} else {
+				states.webMIDIWaitState = null;
+			}
+		}
+		var currentTime = this.context.currentTime;
+		var prevStartTime = states.startTime;
+		states.isPlaying = true;
+		states.startTime = !states.startTime && !states.stopTime ? currentTime : (states.startTime + currentTime - states.stopTime);
+		states.stopFuncs = [];
+		// 先頭の無音の時間をスキップ
+		var firstNoteOnTime = this.getTime(this.firstNoteOnTiming);
+		if (-states.startTime + currentTime < firstNoteOnTime) {
+			this.setStartTime(firstNoteOnTime + states.startTime - currentTime);
+		}
+		// 曲終了コールバックを予約
+		var reserveSongEnd;
+		var reserveSongEndFunc = function(){
+			that.clearFunc("rootTimeout", reserveSongEnd);
+			var finishTime = (that.settings.isCC111 && that.cc111Time != -1) ? that.getTime(that.lastNoteOffTiming) : that.getTime(that.getTiming(Number.MAX_SAFE_INTEGER));
+			if (finishTime - context.currentTime + states.startTime <= 0) {
+				// 予定の時間以降に曲終了
+				that.onSongEnd();
+			} else {
+				// 処理落ちしたりしてまだ演奏中の場合、1ms後に曲終了コールバックを呼び出すよう予約
+				reserveSongEnd = setTimeout(reserveSongEndFunc, 1);
+				that.pushFunc({
+					rootTimeout: reserveSongEnd,
+					stopFunc: function(){ clearTimeout(reserveSongEnd); }
+				});
+			}
+		};
+		var finishTime = (this.settings.isCC111 && this.cc111Time != -1) ? this.getTime(this.lastNoteOffTiming) : this.getTime(this.getTiming(Number.MAX_SAFE_INTEGER));
+		var reserveSongEndTime = (finishTime - context.currentTime + states.startTime) * 1000;
+		reserveSongEnd = setTimeout(reserveSongEndFunc, reserveSongEndTime);
+		that.pushFunc({
+			rootTimeout: reserveSongEnd,
+			stopFunc: function(){ clearTimeout(reserveSongEnd); }
+		});
+		(function playHash(idx){
+			states.playIndex = idx;
+			if(hashedDataList && hashedDataList[idx]){
+				hashedDataList[idx].forEach(function(note){
+					if(!settings.isWebMIDI) {
+						that.pushFunc({
+							note: note,
+							stopFunc: note.channel!=9 ? that.createNote(note) : that.createPercussionNote(note)
+						});
+					}
+					var noteOn = setTimeout(function(){
+						that.clearFunc("timeout", noteOn);
+						if(trigger.isNoteTrigger) trigger.noteOn(note);
+						var noteOff = setTimeout(function(){
+							that.clearFunc("timeout", noteOff);
+							that.clearFunc("note", note);
+							if(trigger.isNoteTrigger) trigger.noteOff(note);
+						}, note.channel!=9 ? (that.getTime(note.stop) - that.getTime(note.start)) * 1000 : that.settings.dramMaxPlayLength * 1000);
+						that.pushFunc({
+							timeout: noteOff,
+							stopFunc: function(){ clearTimeout(noteOff); }
+						});
+					}, (that.getTime(note.start) - context.currentTime + states.startTime) * 1000);
+					that.pushFunc({
+						timeout: noteOn,
+						stopFunc: function(){ clearTimeout(noteOn); }
+					});
+				});
+			}
+			if(settings.isWebMIDI && that.hashedMessageList && that.hashedMessageList[idx]){
+				that.hashedMessageList[idx].forEach(function(message){
+					if(settings.WebMIDIPortOutput!=null){
+						if(message.message[0]!=0xff && (that.settings.WebMIDIPortSysEx || (message.message[0]!=0xf0 && message.message[0]!=0xf7))){
+							try{
+								settings.WebMIDIPortOutput.send(message.message,
+									(that.getTime(message.timing) - context.currentTime + window.performance.now()/1000 + states.startTime) * 1000);
+							}catch(e){
+								console.log(e, message.message);
+							}
+						}
+					}
+				});
+			}
+			if(idx < hashedDataList.length){
+				if(idx - Math.floor((context.currentTime - states.startTime) * 1000 / settings.hashLength) <= settings.hashBuffer){
+					playHash(idx + 1);
+				} else {
+					var reserve = setTimeout(function(){
+						playHash(idx + 1);
+						that.clearFunc("rootTimeout", reserve);
+					}, settings.hashLength);
+					that.pushFunc({
+						rootTimeout: reserve,
+						stopFunc: function(){ clearTimeout(reserve); }
+					});
+				}
+			} else {
+				trigger.songEnd();
+			}
+		})(states.playIndex || 0);
+	};
+
+	PicoAudio.prototype.setData = function(data){
+		if(this.states.isPlaying) this.stop();
+		this.settings.resolution = data.header.resolution;
+		this.settings.tempo = data.tempo || 120;
+		this.tempoTrack = data.tempoTrack;
+		this.cc111Time = data.cc111Time;
+		this.firstNoteOnTiming = data.firstNoteOnTiming;
+		this.lastNoteOffTiming = data.lastNoteOffTiming;
+		var that = this;
+		var hashedDataList = [];
+		data.channels.forEach(function(channel){
+			channel.notes.forEach(function(note){
+				var option = note;
+				var time = that.getTime(note.start) * (1000/that.settings.hashLength);
+				if(!hashedDataList[Math.floor(time)])
+					hashedDataList[Math.floor(time)] = [];
+				hashedDataList[Math.floor(time)].push(note);
+			});
+		});
+		if(this.settings.isWebMIDI){
+			var hashedMessageList = [];
+			data.messages.forEach(function(message){
+				var time = that.getTime(message.timing) * (1000/that.settings.hashLength);
+				if(!hashedMessageList[Math.floor(time)])
+					hashedMessageList[Math.floor(time)] = [];
+				hashedMessageList[Math.floor(time)].push(message);
+			});
+			this.hashedMessageList = hashedMessageList;
+		}
+		this.hashedDataList = hashedDataList;
+		this.initStatus();
+		return this;
+	};
+
+	PicoAudio.prototype.getMasterVolume = function(){
+		return this.settings.masterVolume;
+	};
+
+	PicoAudio.prototype.setMasterVolume = function(volume){
+		this.settings.masterVolume = volume;
+		this.masterGainNode.gain.value = this.settings.masterVolume;
+	};
+
+	PicoAudio.prototype.isLoop = function(){
+		return this.settings.loop;
+	};
+
+	PicoAudio.prototype.setLoop = function(loop){
+		this.settings.loop = loop;
+	};
+
+	PicoAudio.prototype.isWebMIDI = function(){
+		return this.settings.isWebMIDI;
+	};
+
+	PicoAudio.prototype.setWebMIDI = function(enable){
+		this.settings.isWebMIDI = enable;
+	};
+
+	PicoAudio.prototype.isCC111 = function(){
+		return this.settings.isCC111;
+	};
+
+	PicoAudio.prototype.setCC111 = function(enable){
+		this.settings.isCC111 = enable;
+	};
+
+	PicoAudio.prototype.setStartTime = function(offset){
+		this.states.startTime -= offset;
+		this.states.playIndex = Math.floor(offset * 1000 / this.settings.hashLength);
+	};
+
+	PicoAudio.prototype.setOnSongEndListener = function(listener){
+		this.onSongEndListener = listener;
+	};
+
+	PicoAudio.prototype.onSongEnd = function(){
+		if(this.onSongEndListener){
+			var isStopFunc = this.onSongEndListener();
+			if(isStopFunc) return;
+		}
+		if(this.settings.loop){
+			this.initStatus(true);
+			if(this.settings.isCC111 && this.cc111Time != -1){
+				this.setStartTime(this.getTime(this.cc111Time));
+			}
+			this.play(true);
+		}
+	};
+
+	PicoAudio.prototype.isReverb = function(){
+		return this.settings.isReverb;
+	};
+
+	PicoAudio.prototype.setReverb = function(enable){
+		this.settings.isReverb = enable;
+	};
+
+	PicoAudio.prototype.getReverbVolume = function(){
+		return this.settings.reverbVolume;
+	};
+
+	PicoAudio.prototype.setReverbVolume = function(volume){
+		this.settings.reverbVolume = volume;
+	};
+
+	PicoAudio.prototype.isChorus = function(){
+		return this.settings.isChorus;
+	};
+
+	PicoAudio.prototype.setChorus = function(enable){
+		this.settings.isChorus = enable;
+	};
+
+	PicoAudio.prototype.getChorusVolume = function(){
+		return this.settings.chorusVolume;
+	};
+
+	PicoAudio.prototype.setChorusVolume = function(volume){
+		this.settings.chorusVolume = volume;
+	};
+
+	PicoAudio.prototype.isAndroid = function(){
+		var u = navigator.userAgent.toLowerCase();
+		return u.indexOf("android") != -1 && u.indexOf("windows") == -1;
+	};
+
+	PicoAudio.prototype.getTime = function(timing){
+		var time = 0;
+		var tempo = 120;
+		var currentTiming = 0;
+		var that = this;
+		this.tempoTrack.some(function(tempoObj){
+			if(timing < tempoObj.timing)
+				return true;
+			time += (60 / tempo / that.settings.resolution) * (tempoObj.timing - currentTiming);
+			currentTiming = tempoObj.timing;
+			tempo = tempoObj.value;
+		});
+		time += (60 / tempo / that.settings.resolution) * (timing - currentTiming);
+		return time;
+	};
+
+	PicoAudio.prototype.getTiming = function(time){
+		var totalTime = 0;
+		var tempo = 120;
+		var currentTiming = 0;
+		var that = this;
+		this.tempoTrack.some(function(tempoObj){
+			totalTime += (60 / tempo / that.settings.resolution) * (tempoObj.timing - currentTiming);
+			if(totalTime > time){
+				totalTime -= (60 / tempo / that.settings.resolution) * (tempoObj.timing - currentTiming);
+				currentTiming += (time - totalTime) / (60 / tempo / that.settings.resolution);
+				return true;
+			}
+			currentTiming = tempoObj.timing;
+			tempo = tempoObj.value;
+		});
+		return currentTiming;
+	};
+
+	PicoAudio.prototype.parseSMF = function(smf){
+		if(smf[0] != 77 || smf[1] != 84 || smf[2] != 104 || smf[3] != 100)
+			return "Not Sandard MIDI File.";
+		var data = new Object;
+		var p = 4;
+		var header = new Object();
+		header.size = getInt(smf.subarray(4, 8));
+		header.format = smf[9];
+		header.trackcount = getInt(smf.subarray(10, 12));
+		header.timemanage = smf[12];
+		header.resolution = getInt(smf.subarray(12, 14));
+		p += 4+header.size;
+		//var tracks = new Array();
+		var tempoTrack = new Array();
+		var beatTrack = new Array();
+		var channels = new Array();
+		var cc111Time = -1;
+		var firstNoteOnTiming = Number.MAX_SAFE_INTEGER; // 最初のノートオンのTick
+		var lastNoteOffTiming = 0; // 最後のノートオフのTick
+		for(var i=0; i<16; i++){
+			var channel = new Object();
+			channels.push(channel);
+			channel.messages = [];
+			channel.notes = [];
+		}
+		var songLength = 0;
+		if(this.settings.isWebMIDI) var messages = [];
+		for(var t=0; t<header.trackcount; t++){
+			if(smf[p] != 77 || smf[p+1] != 84 || smf[p+2] != 114 || smf[p+3] != 107)
+				return "Irregular SMF.";
+			p += 4;
+			var track = new Object();
+			//tracks.push(track);
+			//track.size = getInt(smf.subarray(p, p+4));
+			//p += 4;
+			//track.notes = [];
+			var endPoint = p+4 + getInt(smf.subarray(p, p+4));
+			p += 4;
+			var time = 0;
+			var lastState = 1;
+			while(p<endPoint){
+				// DeltaTime
+				if(lastState!=null){
+					var lengthAry = variableLengthToInt(smf.subarray(p, p+5));
+					var dt = lengthAry[0];
+					time += dt;
+					if(time>100000000) time = 100000000; // 長すぎる曲は途中で打ち切る(PicotuneのCanvas生成で時間がかかるため)
+					p += lengthAry[1];
+				}
+				// WebMIDIAPI
+				if(this.settings.isWebMIDI) var cashP = p;
+				// Events
+				var mesIdx;
+				var mesObj = {timing:time, mes:[]};
+				switch(Math.floor(smf[p]/0x10)){
+					case 0x8: // Note OFF - 8[ch], Pitch, Velocity
+					case 0x9: // Note ON - 9[ch], Pitch, Velocity
+					case 0xA: // Polyfonic Key Pressure - A[ch], Pitch?, Velocity?
+					case 0xB: // Control Change - B[ch],,
+					case 0xE: // PitchBend Change - E[ch],,
+						lastState = smf[p];
+						// チャンネル毎に仕分けた後に解析する
+						mesObj.mes.push(smf[p], smf[p+1], smf[p+2]);
+						// デルタタイムの順番になるように配列に挿入
+						var channelMessages = channels[lastState&0x0F].messages;
+						for(mesIdx=channelMessages.length-1; mesIdx>=0; mesIdx--){
+							var tempMesObj = channelMessages[mesIdx];
+							if (time >= tempMesObj.timing) break;
+						}
+						mesIdx++;
+						channelMessages.splice(mesIdx, 0, mesObj);
+						p+=3;
+						break;
+					case 0xC: // Program Change - C[ch],
+					case 0xD: // Channel Pre - D[ch],
+						lastState = smf[p];
+						// チャンネル毎に仕分けた後に解析する
+						mesObj.mes.push(smf[p], smf[p+1]);
+						// デルタタイムの順番になるように配列に挿入
+						var channelMessages = channels[lastState&0x0F].messages;
+						for(mesIdx=channelMessages.length-1; mesIdx>=0; mesIdx--){
+							var tempMesObj = channelMessages[mesIdx];
+							if (time >= tempMesObj.timing) break;
+						}
+						mesIdx++;
+						channelMessages.splice(mesIdx, 0, mesObj);
+						p+=2;
+						break;
+					// SysEx Events or Meta Events - F[ch], ...
+					case 0xF:{
+						//lastState = smf[p]; <- ランニングナントカは無いらしい
+						switch(smf[p]){
+							case 0xF0:
+							case 0xF7:
+								// SysEx Events
+								var lengthAry = variableLengthToInt(smf.subarray(p+1, p+1+4));
+
+								// Master Volume
+								if(lengthAry[0]>=7 && smf[p+2]==0x7f && smf[p+3]==0x7f && smf[p+4]==0x04 && smf[p+5]==0x01){
+									// 全チャンネルにMasterVolumeメッセージを挿入する
+									for(var i=0; i<16; i++) {
+										// 0xF0, 6(length), 0x7f, 0x7f, 0x04, 0x01, 0xNN, volume
+										mesObj.mes.push(smf[p], lengthAry[0]-1, smf[p+2], smf[p+3], smf[p+4], smf[p+5], smf[p+6], smf[p+7]);
+										// デルタタイムの順番になるように配列に挿入
+										var channelMessages = channels[i].messages;
+										for(mesIdx=channelMessages.length-1; mesIdx>=0; mesIdx--){
+											var tempMesObj = channelMessages[mesIdx];
+											if(time >= tempMesObj.timing) break;
+										}
+										mesIdx++;
+										channelMessages.splice(mesIdx, 0, mesObj);
+									}
+								}
+
+								p+=1+lengthAry[1]+lengthAry[0];
+								break;
+							case 0xF1:
+								p+=2;
+								break;
+							case 0xF2:
+								p+=3;
+								break;
+							case 0xF3:
+								p+=2;
+								break;
+							case 0xF6:
+							case 0xF8:
+							case 0xFA:
+							case 0xFB:
+							case 0xFC:
+							case 0xFE:
+								p+=1;
+								break;
+							case 0xFF:{
+								// Meta Events
+								switch(smf[p+1]){
+									case 0x00:
+									case 0x01:
+									case 0x02:
+									case 0x03:
+									case 0x04:
+									case 0x05:
+									case 0x06:
+									case 0x07:
+									case 0x20:
+										break;
+									case 0x2F:
+										time += header.resolution - dt;
+										break;
+									// Tempo
+									case 0x51:
+										data.tempo = 60*1000000/(smf[p+3]*0x10000 + smf[p+4]*0x100 + smf[p+5]);
+										tempoTrack.push({
+											timing: time,
+											value: 60*1000000/(smf[p+3]*0x10000 + smf[p+4]*0x100 + smf[p+5])
+										});
+										break;
+									case 0x54:
+										break;
+									// Beat
+									case 0x58:
+										beatTrack.push({
+											timing: time,
+											value: [smf[p+3], Math.pow(2, smf[p+4])]
+										});
+										break;
+									case 0x59:
+									case 0x7F:
+										break;
+								}
+								var lengthAry = variableLengthToInt(smf.subarray(p+2, p+2+4));
+								p+=2+lengthAry[1]+lengthAry[0];
+								break;
+							}
+						}
+						break;
+					}
+					default: {
+						if(lastState == null)
+							return "Irregular SMF.";
+						p--;
+						smf[p] = lastState; // TODO 上書きしないようにしたい
+						lastState = null;
+					}
+				}
+				// WebMIDIAPI
+				if(this.settings.isWebMIDI){
+					if(lastState!=null){
+						var state = smf[cashP];
+						if(state==0xF0 || state==0xF7){
+							if(this.settings.WebMIDIPortSysEx){
+								// 長さ情報を取り除いて純粋なSysExメッセージにする
+								var lengthAry = variableLengthToInt(smf.subarray(cashP+1, cashP+1+4));
+								var sysExStartP = cashP+1+lengthAry[1];
+								var sysExEndP = sysExStartP+lengthAry[0];
+								var webMIDIMes = new Uint8Array(1 + lengthAry[0]);
+								webMIDIMes[0] = state;
+								var size = sysExEndP - sysExStartP;
+								for (var i=0; i<size; i++)
+									webMIDIMes[i+1] = smf[sysExStartP + i];
+								messages.push({ message: webMIDIMes, timing: time });
+							}
+						} else {
+							messages.push({ message: smf.subarray(cashP, p), timing: time });
+						}
+					}
+				}
+			}
+			if(songLength<time) songLength = time;
+		}
+		tempoTrack.push({ timing:songLength, value:120 });
+
+		// Midi Events (0x8n - 0xEn) parse
+		for(var ch=0; ch<channels.length; ch++){
+			var channel = channels[ch];
+			var p = 0;
+			var endPoint = channel.messages.length;
+			var dataEntry = 2;
+			var pitchBend = 0;
+			var pan = 64;
+			var expression = 127;
+			var velocity = 100;
+			var modulation = 0;
+			var reverb = 0;
+			var chorus = 0;
+			var nrpnLsb = 127;
+			var nrpnMsb = 127;
+			var rpnLsb = 127;
+			var rpnMsb = 127;
+			var instrument = null;
+			var masterVolume = 127;
+			var nowNoteOnIdxAry = [];
+			while(p<endPoint){
+				var mesObj = channel.messages[p];
+				// DeltaTime
+				var time = mesObj.timing;
+				// Events
+				var mes = channel.messages[p].mes;
+				switch(Math.floor(mes[0]/0x10)){
+					// Note OFF - 8[ch], Pitch, Velocity
+					case 0x8:
+						var i=0;
+						nowNoteOnIdxAry.some(function(idx){
+							var note = channel.notes[idx];
+							if(note.pitch==mes[1] && note.stop==null){
+								note.stop = time;
+								nowNoteOnIdxAry.splice(i, 1);
+								if(time > lastNoteOffTiming){
+									lastNoteOffTiming = time;
+								}
+								return true;
+							}
+							i++;
+						});
+						break;
+					// Note ON - 9[ch], Pitch, Velocity
+					case 0x9:
+						if(mes[2]!=0){
+							var note = {
+								start: time,
+								stop: null,
+								pitch: mes[1],
+								pitchBend: [{timing:time,value:pitchBend}],
+								pan: [{timing:time,value:pan}],
+								expression: [{timing:time,value:expression*(masterVolume/127)}],
+								velocity: (mes[2]/127)*(velocity/127),
+								modulation: [{timing:time,value:modulation}],
+								reverb: [{timing:time,value:reverb}],
+								chorus: [{timing:time,value:chorus}],
+								instrument: instrument,
+								channel: ch
+							};
+							nowNoteOnIdxAry.push(channel.notes.length);
+							channel.notes.push(note);
+							if(time < firstNoteOnTiming){
+								firstNoteOnTiming = time;
+							}
+						} else {
+							var i=0;
+							nowNoteOnIdxAry.some(function(idx){
+								var note = channel.notes[idx];
+								if(note.pitch==mes[1] && note.stop==null){
+									note.stop = time;
+									nowNoteOnIdxAry.splice(i, 1);
+									if(time > lastNoteOffTiming){
+										lastNoteOffTiming = time;
+									}
+									return true;
+								}
+								i++;
+							});
+						}
+						break;
+					// Polyfonic Key Pressure - A[ch], Pitch?, Velocity?
+					case 0xA:
+						break;
+					// Control Change - B[ch],,
+					case 0xB:
+						switch(mes[1]){
+							case 1:
+								modulation = mes[2];
+								nowNoteOnIdxAry.forEach(function(idx){
+									var note = channel.notes[idx];
+									note.modulation.push({
+										timing: time,
+										value: modulation
+									});
+								});
+								break;
+							case 6:
+								if(rpnLsb==0 && rpnMsb==0){
+									// RLSB=0 & RMSB=0 -> 6はピッチ
+									dataEntry = mes[2];
+									if(dataEntry > 24){
+										dataEntry = 24;
+									}
+								}
+								if(nrpnLsb==8 && nrpnMsb==1){
+									// (保留)ビブラート・レイト(GM2/GS/XG)
+									//console.log("CC  8 1 6 "+mes[2]+" time:"+time);
+								} else if(nrpnLsb==9 && nrpnMsb==1){
+									// (保留)ビブラート・デプス(GM2/GS/XG)
+									//console.log("CC  9 1 6 "+mes[2]+" time:"+time);
+								} else if(nrpnLsb==10 && nrpnMsb==1){
+									// (保留)ビブラート・ディレイ(GM2/GS/XG)
+									//console.log("CC 10 1 6 "+mes[2]+" time:"+time);
+								}
+								break;
+							case 7:
+								velocity = mes[2];
+								break;
+							case 10:
+								//Pan
+								pan = mes[2];
+								nowNoteOnIdxAry.forEach(function(idx){
+									var note = channel.notes[idx];
+									note.pan.push({
+										timing: time,
+										value: pan
+									});
+								});
+								break;
+							case 11:
+								//Expression
+								expression = mes[2];
+								nowNoteOnIdxAry.forEach(function(idx){
+									var note = channel.notes[idx];
+									note.expression.push({
+										timing: time,
+										value: expression*(masterVolume/127)
+									});
+								});
+								break;
+							case 91:
+								reverb = mes[2];
+								nowNoteOnIdxAry.forEach(function(idx){
+									var note = channel.notes[idx];
+									note.reverb.push({
+										timing: time,
+										value: reverb
+									});
+								});
+								break;
+							case 93:
+								chorus = mes[2];
+								nowNoteOnIdxAry.forEach(function(idx){
+									var note = channel.notes[idx];
+									note.chorus.push({
+										timing: time,
+										value: chorus
+									});
+								});
+								break;
+							case 98:
+								nrpnLsb = mes[2];
+								break;
+							case 99:
+								nrpnMsb = mes[2];
+								break;
+							case 100:
+								rpnLsb = mes[2];
+								break;
+							case 101:
+								rpnMsb = mes[2];
+								break;
+							case 111: // RPGツクール用ループ
+								if(cc111Time == -1){
+									cc111Time = time;
+								}
+								break;
+						}
+						break;
+					// Program Change - C[ch],
+					case 0xC:
+						instrument = mes[1];
+						break;
+					// Channel Pre - D[ch],
+					case 0xD:
+						break;
+					// PitchBend Change - E[ch],,
+					case 0xE:
+						pitchBend = ((mes[2]*128+mes[1])-8192)/8192*dataEntry;
+						nowNoteOnIdxAry.forEach(function(idx){
+							var note = channel.notes[idx];
+							note.pitchBend.push({
+								timing: time,
+								value: pitchBend
+							});
+						});
+						break;
+					case 0xF:
+						//lastState = smf[p]; <- ランニングナントカは無いらしい
+						switch(mes[0]){
+							case 0xF0:
+							case 0xF7:
+								// Master Volume
+								if(mes[1]>=6 && mes[2]==0x7f && mes[3]==0x7f && mes[4]==0x04 && mes[5]==0x01){
+									var vol = mes[7];
+									if(vol > 127) vol = 127;
+									masterVolume = vol;
+									nowNoteOnIdxAry.forEach(function(idx){
+										var note = channel.notes[idx];
+										note.expression.push({
+											timing: time,
+											value: expression*(masterVolume/127)
+										});
+									});
+								}
+								break;
+						}
+						break;
+					default: {
+						return "Error parseSMF.";
+					}
+				}
+				p++;
+			}
+			delete channel.messages;
+		}
+
+		data.header = header;
+		data.tempoTrack = tempoTrack;
+		data.beatTrack = beatTrack;
+		data.channels = channels;
+		data.songLength = songLength;
+		data.cc111Time = cc111Time;
+		data.firstNoteOnTiming = firstNoteOnTiming;
+		data.lastNoteOffTiming = lastNoteOffTiming;
+		if(this.settings.isWebMIDI) data.messages = messages;
+
+		function getInt(arr){
+			var value = 0;
+			for (var  i=0;i<arr.length;i++){
+				value = (value << 8) + arr[i];
+			}
+			return value;
+		}
+		function variableLengthToInt(arr) {
+			var i = 0;
+			var value = 0;
+			while(i<arr.length-1 && arr[i]>=0x80){
+				if (i < 4) value = (value<<7) + (arr[i]-0x80);
+				i++;
+			}
+			value = (value<<7) + arr[i];
+			i++;
+			return [value, i];
+		}
+		return data;
+	};
+
+	PicoAudio.prototype.stopAudioNode = function(tar, time, gainNode){
+		try{
+			if(time > 0) {
+				tar.stop(time);
+			} else {
+				tar.stop(this.context.currentTime+0.005);
+				gainNode.gain.cancelScheduledValues(this.context.currentTime);
+				gainNode.gain.linearRampToValueAtTime(0, this.context.currentTime+0.005);
+			}
+		} catch(e) {
+			// iOS
+			gainNode.gain.cancelScheduledValues(time);
+			if(time <= 0) {
+				gainNode.gain.linearRampToValueAtTime(0, this.context.currentTime+0.005);
+			}
+		}
+	};
+
+	PicoAudio.prototype.pushFunc = function(tar){
+		if(!tar.note && !tar.rootTimeout && !this.trigger.isNoteTrigger) return;
+		this.states.stopFuncs.push(tar);
+	};
+
+	PicoAudio.prototype.clearFunc = function(tar1, tar2){
+		if(tar1!="note" && tar1!="rootTimeout" && !this.trigger.isNoteTrigger) return;
+		var that = this;
+		that.states.stopFuncs.some(function(n, i){
+			if(n[tar1] == tar2){
+				that.states.stopFuncs.splice(i, 1);
+				return true;
+			}
+		});
+	};
+
+	return PicoAudio;
+})();
+
 requireSimulator.setName('T2MediaLib');
 // forked from makkii_bcr's "T2MediaLib" http://jsdo.it/makkii_bcr/3ioQ
 // T2MediaLib_BGMPlayer //
 
 var T2MediaLib_BGMPlayer = function(arg_id) {
     this.id = arg_id;
+    this.playingState = "stop";
+    this.playingStatePending = null;
     this.playingBGM = null;
     this.playingBGMName = null;
     this.bgmPause = 0;
@@ -3734,111 +5450,395 @@ var T2MediaLib_BGMPlayer = function(arg_id) {
     this.bgmPauseLoopEnd = 0;
     this.bgmVolume = 1.0;
     this.bgmTempo = 1.0;
+    this.bgmPan = 0.0;
+    this.picoAudio = null;//new PicoAudio(T2MediaLib.context);
+    this.picoAudioSetDataBGMName = null; // 前回のsetDataした曲を再び使う場合は、setDataを省略して軽量化する
+    this.PICO_AUDIO_VOLUME_COEF = 1;//0.2;
 };
 
 // BGM関数郡 //
 
 T2MediaLib_BGMPlayer.prototype.playBGM = function(idx, loop, offset, loopStart, loopEnd) {
     if (!T2MediaLib.context) return null;
-    var bgm = this.playingBGM;
-    if (bgm instanceof AudioBufferSourceNode) bgm.stop(0);
-    this.playingBGM = T2MediaLib.playSE(idx, this.bgmVolume, this.bgmTempo, offset, loop, loopStart, loopEnd);
+    this.stopBGM();
+
+    var soundData = T2MediaLib.soundDataAry[idx];
+    if (soundData == null) return null;
+    if (!soundData.isDecodeComplete()) {
+        if (!soundData.isDecoding()) {
+            var that = this;
+            var callbacks = {};
+            callbacks.succ = function() {
+                var pending = that.playingStatePending; // 途中で値が変わるため保存
+                that._setPlayingState("stop", true);
+                if (pending != "stop") {
+                    that.playBGM(idx, loop, offset, loopStart, loopEnd);
+                }
+                if (pending == "pause") {
+                    that.pauseBGM();
+                }
+            };
+            callbacks.err = function() {
+                that._setPlayingState("stop", true);
+            };
+            this.playingBGMName = idx;
+            this._setPlayingState("decoding", true);
+            T2MediaLib.decodeSound(idx, callbacks);
+        }
+        return this;
+    }
+
+    var decodedData = soundData.decodedData;
+    if (decodedData instanceof AudioBuffer) {
+        // MP3, Ogg, AAC, WAV
+        this.playingBGM = T2MediaLib.playSE(idx, this.bgmVolume, this.bgmPan, this.bgmTempo, offset, loop, loopStart, loopEnd);
+    } else if (decodedData instanceof Object) {
+        // Midi
+        if (this.picoAudio == null) {
+            this.picoAudio = new PicoAudio(T2MediaLib.context, T2MediaLib.picoAudio); // AudioContextオブジェクトがmax6つまで？なので使いまわす
+        }
+        if (idx != this.picoAudioSetDataBGMName) {
+            this.picoAudio.setData(decodedData);
+            this.picoAudioSetDataBGMName = idx;
+        } else {
+            this.picoAudio.initStatus();
+        }
+        this.picoAudio.setLoop(loop);
+        this.picoAudio.setMasterVolume(this.PICO_AUDIO_VOLUME_COEF * this.bgmVolume * T2MediaLib.bgmMasterVolume * T2MediaLib.masterVolume);
+        if (!offset) {
+            offset = 0;
+        } else {
+            var bgmLengthTime = this.picoAudio.getTime(this.picoAudio.getTiming(Number.MAX_SAFE_INTEGER));
+            if      (offset > bgmLengthTime) offset = bgmLengthTime;
+            else if (offset < 0.0) offset = 0.0;
+        }
+        this.picoAudio.setStartTime(offset);
+        this.picoAudio.play();
+        this.playingBGM = this.picoAudio;
+    }
     this.playingBGMName = idx;
     this.bgmPause = 0;
-    return this.playingBGM;
+    this._setPlayingState("play");
+    return this;
 };
 T2MediaLib_BGMPlayer.prototype.stopBGM = function() {
     var bgm = this.playingBGM;
-    if (!(bgm instanceof AudioBufferSourceNode)) return null;
-    bgm.stop(0);
+    if (bgm instanceof PicoAudio) {
+        // Midi
+        this.picoAudio.stop();
+    } else if (bgm instanceof AudioBufferSourceNode) {
+        // MP3, Ogg, AAC, WAV
+        bgm.stop(0);
+    }
     this.playingBGM = null;
-    return bgm;
+    this.playingBGMName = null;
+    this._setPlayingState("stop");
+    return this;
 };
 T2MediaLib_BGMPlayer.prototype.pauseBGM = function() {
     var bgm = this.playingBGM;
-    if (!(bgm instanceof AudioBufferSourceNode)) return null;
-    if (this.bgmPause === 0) {
-        this.bgmPauseTime = this.getBGMCurrentTime();
-        this.bgmPauseLoopStart = bgm.loopStart;
-        this.bgmPauseLoopEnd = bgm.loopEnd;
-        this.bgmPauseLoop = bgm.loop;
-        this.bgmPauseCurrentTime = bgm.context.currentTime;
-        this.bgmPauseTempo = T2MediaLib.bgmTempo;
-        bgm.stop(0);
-        this.bgmPause = 1;
+    if (bgm instanceof PicoAudio) {
+        // Midi
+        if (this.bgmPause === 0) {
+            this.bgmPauseTime = this.getBGMCurrentTime();
+            this.bgmPauseCurrentTime = bgm.context.currentTime;
+            bgm.stop();
+            this.bgmPause = 1;
+        }
+    } else if (bgm instanceof AudioBufferSourceNode) {
+        // MP3, Ogg, AAC, WAV
+        if (this.bgmPause === 0) {
+            this.bgmPauseTime = this.getBGMCurrentTime();
+            this.bgmPauseLoopStart = T2MediaLib.getSELoopStartTime(bgm);
+            this.bgmPauseLoopEnd = T2MediaLib.getSELoopEndTime(bgm);
+            this.bgmPauseLoop = T2MediaLib.isSELoop(bgm);
+            this.bgmPauseCurrentTime = bgm.context.currentTime;
+            this.bgmPauseTempo = this.bgmTempo;
+            bgm.stop(0);
+            this.bgmPause = 1;
+        }
     }
-    return bgm;
+    if (this.playingState != "stop") {
+        this._setPlayingState("pause");
+    }
+    return this;
 };
 T2MediaLib_BGMPlayer.prototype.resumeBGM = function() {
     var bgm = this.playingBGM;
-    if (!(bgm instanceof AudioBufferSourceNode)) return null;
-    if (this.bgmPause === 1) {
-        bgm = this.playBGM(this.playingBGMName, this.bgmPauseLoop, this.bgmPauseTime, this.bgmPauseLoopStart, this.bgmPauseLoopEnd);
-        this.bgmPause = 0;
+    if (bgm instanceof PicoAudio) {
+        // Midi
+        if (this.bgmPause === 1) {
+            bgm.play();
+            this.bgmPause = 0;
+        }
+    } else if (bgm instanceof AudioBufferSourceNode) {
+        // MP3, Ogg, AAC, WAV
+        if (this.bgmPause === 1) {
+            bgm = this.playBGM(this.playingBGMName, this.bgmPauseLoop, this.bgmPauseTime, this.bgmPauseLoopStart, this.bgmPauseLoopEnd);
+        }
     }
-    return bgm;
+    return this;
+};
+T2MediaLib_BGMPlayer.prototype.onChangeBGMMasterVolume = function() {
+    this.setBGMVolume(this.getBGMVolume());
+};
+T2MediaLib_BGMPlayer.prototype.getBGMVolume = function() {
+    return this.bgmVolume;
 };
 T2MediaLib_BGMPlayer.prototype.setBGMVolume = function(vol) {
     var bgm = this.playingBGM;
-    if (!(bgm instanceof AudioBufferSourceNode)) return null;
     this.bgmVolume = vol;
-    T2MediaLib.setSEVolume(bgm, vol);
+    if (bgm instanceof PicoAudio) {
+        // Midi
+        this.picoAudio.setMasterVolume(this.PICO_AUDIO_VOLUME_COEF * vol * T2MediaLib.bgmMasterVolume * T2MediaLib.masterVolume);
+    } else if (bgm instanceof AudioBufferSourceNode) {
+        // MP3, Ogg, AAC, WAV
+        bgm.gainNode.gain.value = vol * T2MediaLib.bgmMasterVolume * T2MediaLib.masterVolume;
+        //↓seMasterVolumeが音量に乗算されてしまう
+        //T2MediaLib.setSEVolume(bgm, vol);
+    }
+    return this;
+};
+T2MediaLib_BGMPlayer.prototype.getBGMTempo = function() {
+    return this.bgmTempo;
 };
 T2MediaLib_BGMPlayer.prototype.setBGMTempo = function(tempo) {
+    // MP3, Ogg, AAC, WAV
     var bgm = this.playingBGM;
-    if (!(bgm instanceof AudioBufferSourceNode)) return null;
 
-    if (this.bgmPause === 0) {
+    if (tempo <= 0) tempo = 1;
+    if ((bgm instanceof AudioBufferSourceNode) && this.bgmPause === 0) {
         bgm.plusTime -= (T2MediaLib.context.currentTime - bgm.playStartTime) * (tempo - this.bgmTempo);
     }
     this.bgmTempo = tempo;
     T2MediaLib.setSERate(bgm, tempo);
+    return this;
+};
+T2MediaLib_BGMPlayer.prototype.getBGMPan = function() {
+    return this.bgmPan;
+};
+T2MediaLib_BGMPlayer.prototype.setBGMPan = function(pan) {
+    var bgm = this.playingBGM;
+    this.bgmPan = pan;
+    if (bgm instanceof AudioBufferSourceNode) {
+        // MP3, Ogg, AAC, WAV
+        T2MediaLib.setSEPan(bgm, pan);
+    }
+    return this;
+};
+T2MediaLib_BGMPlayer.prototype.isBGMLoop = function() {
+    var bgm = this.playingBGM;
+    if (bgm instanceof PicoAudio) {
+        // Midi
+        return this.picoAudio.isLoop();
+    } else if (bgm instanceof AudioBufferSourceNode) {
+        // MP3, Ogg, AAC, WAV
+        if (this.bgmPause === 1) {
+            return this.bgmPauseLoop;
+        } else {
+            return T2MediaLib.isSELoop(bgm);
+        }
+    }
+    return null;
+};
+T2MediaLib_BGMPlayer.prototype.setBGMLoop = function(loop) {
+    var bgm = this.playingBGM;
+    if (bgm instanceof PicoAudio) {
+        // Midi
+        this.picoAudio.setLoop(loop);
+    } else if (bgm instanceof AudioBufferSourceNode) {
+        // MP3, Ogg, AAC, WAV
+        if (this.bgmPause === 1) {
+            this.bgmPauseLoop = loop;
+        } else {
+            T2MediaLib.setSELoop(bgm, loop);
+        }
+    }
+    return this;
+};
+T2MediaLib_BGMPlayer.prototype.getBGMLoopStartTime = function() {
+    var bgm = this.playingBGM;
+    if (bgm instanceof PicoAudio) {
+        // Midi
+        return 0;
+    } else if (bgm instanceof AudioBufferSourceNode) {
+        // MP3, Ogg, AAC, WAV
+        if (this.bgmPause === 1) {
+            return this.bgmPauseLoopStart;
+        } else {
+            return T2MediaLib.getSELoopStartTime(bgm);
+        }
+    }
+    return null;
+};
+T2MediaLib_BGMPlayer.prototype.setBGMLoopStartTime = function(loopStart) {
+    var bgm = this.playingBGM;
+    if (bgm instanceof AudioBufferSourceNode) {
+        // MP3, Ogg, AAC, WAV
+        if (this.bgmPause === 1) {
+            this.bgmPauseLoopStart = loopStart;
+        } else {
+            return T2MediaLib.setSELoopStartTime(bgm, loopStart);
+        }
+    }
+    return this;
+};
+T2MediaLib_BGMPlayer.prototype.getBGMLoopEndTime = function() {
+    var bgm = this.playingBGM;
+    if (bgm instanceof PicoAudio) {
+        // Midi
+        return this.getBGMLength();
+    } else if (bgm instanceof AudioBufferSourceNode) {
+        // MP3, Ogg, AAC, WAV
+        if (this.bgmPause === 1) {
+            return this.bgmPauseLoopEnd;
+        } else {
+            return T2MediaLib.getSELoopEndTime(bgm);
+        }
+    }
+    return null;
+};
+T2MediaLib_BGMPlayer.prototype.setBGMLoopEndTime = function(loopEnd) {
+    var bgm = this.playingBGM;
+    if (bgm instanceof AudioBufferSourceNode) {
+        // MP3, Ogg, AAC, WAV
+        if (this.bgmPause === 1) {
+            this.bgmPauseLoopEnd = loopEnd;
+        } else {
+            return T2MediaLib.setSELoopEndTime(bgm, loopEnd);
+        }
+    }
+    return this;
 };
 T2MediaLib_BGMPlayer.prototype.getBGMCurrentTime = function() {
     var bgm = this.playingBGM;
-    if (!(bgm instanceof AudioBufferSourceNode)) return null;
-    var time, time2, currenTime, tempo, plusTime, minusTime, mod;
-
-    if (this.bgmPause === 0) {
-        currenTime = T2MediaLib.context.currentTime;
-        tempo = this.bgmTempo;
-    } else {
-        currenTime = this.bgmPauseCurrentTime;
-        tempo = this.bgmPauseTempo;
-    }
-
-    time2 = (currenTime - bgm.playStartTime) * tempo + bgm.plusTime;
-    if (bgm.loop) {
-        if (bgm.loopEnd - bgm.loopStart > 0) { // ループ範囲正常
-
-            if (time2 < bgm.loopStart) { // ループ範囲前
-                plusTime  = 0;
-                minusTime = 0;
-                mod = bgm.buffer.duration;
-            } else { // ループ範囲内
-                plusTime  = bgm.loopStart;
-                minusTime = bgm.loopStart;
-                mod = bgm.loopEnd - bgm.loopStart;
-            }
-        } else { // ループ範囲マイナス（ループ無効）
-            mod = bgm.buffer.duration;
-            plusTime = 0;
-            minusTime = 0;
+    if (bgm instanceof PicoAudio) {
+        // Midi
+        var time;
+        if (this.bgmPause === 0) {
+            time = this.picoAudio.getTime(this.picoAudio.getTiming(this.picoAudio.context.currentTime - this.picoAudio.states.startTime));
+        } else {
+            time = this.bgmPauseTime;
         }
-    }
+        return time;
+    } else if (bgm instanceof AudioBufferSourceNode) {
+        // MP3, Ogg, AAC, WAV
+        var time, time2, currenTime, tempo, plusTime, minusTime, mod;
 
-    if (bgm.loop) {
-        time = ((time2 - minusTime) % mod) + plusTime;
-    } else {
-        time = time2;
-        if (time > bgm.buffer.duration) time = bgm.buffer.duration;
+        if (this.bgmPause === 0) {
+            currenTime = T2MediaLib.context.currentTime;
+            tempo = this.bgmTempo;
+        } else {
+            currenTime = this.bgmPauseCurrentTime;
+            tempo = this.bgmPauseTempo;
+        }
+
+        time2 = (currenTime - bgm.playStartTime) * tempo + bgm.plusTime;
+        if (bgm.loop) {
+            if (bgm.loopEnd - bgm.loopStart > 0) { // ループ範囲正常
+
+                if (time2 < bgm.loopStart) { // ループ範囲前
+                    plusTime  = 0;
+                    minusTime = 0;
+                    mod = bgm.buffer.duration;
+                } else { // ループ範囲内
+                    plusTime  = bgm.loopStart;
+                    minusTime = bgm.loopStart;
+                    mod = bgm.loopEnd - bgm.loopStart;
+                }
+            } else { // ループ範囲マイナス（ループ無効）
+                mod = bgm.buffer.duration;
+                plusTime = 0;
+                minusTime = 0;
+            }
+        }
+
+        if (bgm.loop) {
+            time = ((time2 - minusTime) % mod) + plusTime;
+        } else {
+            time = time2;
+            if (time > bgm.buffer.duration) time = bgm.buffer.duration;
+        }
+        return time;
     }
-    return time;
+    return null;
 };
 T2MediaLib_BGMPlayer.prototype.getBGMLength = function() {
     var bgm = this.playingBGM;
-    if (!(bgm instanceof AudioBufferSourceNode)) return null;
-    return bgm.buffer.duration;
+    if (bgm instanceof PicoAudio) {
+        // Midi
+        return this.picoAudio.getTime(this.picoAudio.getTiming(Number.MAX_SAFE_INTEGER));
+    } else if (bgm instanceof AudioBufferSourceNode) {
+        // MP3, Ogg, AAC, WAV
+        return bgm.buffer.duration;
+    }
+    return null;
+};
+T2MediaLib_BGMPlayer.prototype.getPlayingBGMName = function() {
+    return this.playingBGMName;
+};
+T2MediaLib_BGMPlayer.prototype.setOnBGMEndListener = function(listener) {
+    if (this.picoAudio == null) {
+        this.picoAudio.setOnSongEndListener(listener);
+    }
+};
+T2MediaLib_BGMPlayer.prototype.getPlayingState = function() {
+    return this.playingState;
+};
+T2MediaLib_BGMPlayer.prototype._setPlayingState = function(state, force) {
+    if (force || this.playingState != "decoding") {
+        this.playingState = state;
+        this.playingStatePending = null;
+    } else {
+        this.playingStatePending = state;
+    }
+};
+
+// T2MediaLib_SoundData //
+
+var T2MediaLib_SoundData = function(idx, url) {
+    this.state = "none"; // "none":データなし, "loading":読み込み中, "loaded":読み込み完了, "decoding":デコード中, "decoded":デコード完了, "error":エラー
+    this.errorID = null;
+    this.url = null;
+    this.fileData = null;
+    this.decodedData = null;
+};
+T2MediaLib_SoundData.prototype.onLoad = function(url) {
+    this.state = "loading";
+    this.url = url;
+};
+T2MediaLib_SoundData.prototype.onLoadComplete = function(data) {
+    this.state = "loaded";
+    this.fileData = data;
+};
+T2MediaLib_SoundData.prototype.onDecode = function() {
+    this.state = "decoding";
+};
+T2MediaLib_SoundData.prototype.onDecodeComplete = function(data) {
+    this.state = "decoded";
+    this.decodedData = data;
+};
+T2MediaLib_SoundData.prototype.onError = function(errorID) {
+    this.state = "error";
+    this.errorID = errorID;
+};
+T2MediaLib_SoundData.prototype.isLoadComplete = function() {
+    switch(this.state) {
+        case "loaded":
+        case "decoding":
+        case "decoded":
+            return true;
+    }
+    return false;
+};
+T2MediaLib_SoundData.prototype.isDecoding = function() {
+    return this.state == "decoding";
+};
+T2MediaLib_SoundData.prototype.isDecodeComplete = function() {
+    return this.state == "decoded";
+};
+T2MediaLib_SoundData.prototype.getDecodedData = function() {
+    return this.decodedData;
 };
 
 
@@ -3849,24 +5849,16 @@ T2MediaLib_BGMPlayer.prototype.getBGMLength = function() {
 
 var T2MediaLib = {
     context : null,
+    picoAudio : null,
 
-    seDataAry : {
-        data : []
-    },
+    soundDataAry : [], // T2MediaLib_SoundData
 
     bgmPlayerMax : 16,
-    bgmPlayerAry : [],
-    playingBGM : null,
-    playingBGMName : null,
-    bgmPause : 0,
-    bgmPauseTime : 0,
-    bgmPauseCurrentTime : 0,
-    bgmPauseTempo : 0,
-    bgmPauseLoop : false,
-    bgmPauseLoopStart : 0,
-    bgmPauseLoopEnd : 0,
-    bgmVolume : 1.0,
-    bgmTempo : 1.0,
+    bgmPlayerAry : [], // T2MediaLib_BGMPlayer
+
+    masterVolume : 1.0,
+    seMasterVolume : 1.0,
+    bgmMasterVolume : 1.0,
 
     playingAudio : null,
     audioVolume : 1.0,
@@ -3876,7 +5868,6 @@ var T2MediaLib = {
     },
 
     // 初期化 //
-
     init : function() {
         if (this.inited) return;
         this.inited=true;
@@ -3896,83 +5887,88 @@ var T2MediaLib = {
             for (var i=0; i<T2MediaLib.bgmPlayerMax; i++) {
                 T2MediaLib.bgmPlayerAry[i] = new T2MediaLib_BGMPlayer(i);
             }
+            // MIDIデコード用PicoAudio生成
+            T2MediaLib.picoAudio = new PicoAudio(T2MediaLib.context);
         }
     },
 
     // CLEAR系関数 //
     allClearData : function() {
-        var dataAry = T2MediaLib.seDataAry.data;
+        var dataAry = T2MediaLib.soundDataAry;
         for (var data in dataAry) {
             delete dataAry[data];
         }
     },
     clearData : function(idx) {
-        var dataAry = T2MediaLib.seDataAry.data;
+        var dataAry = T2MediaLib.soundDataAry;
         delete dataAry[idx];
     },
 
-
-    // SEメソッド郡 //
-    loadSEFromArray: function (idx, array) {
-        var ctx=T2MediaLib.context;
-        var myArrayBuffer = ctx.createBuffer(
-            1, array.length, ctx.sampleRate);
-        var nowBuffering = myArrayBuffer.getChannelData(0);
-        for (var i = 0; i < array.length ; i++) {
-             nowBuffering[i] = array[i];
-        }
-        //var source = ctx.createBufferSource();
-        // set the buffer in the AudioBufferSourceNode
-        //source.buffer = myArrayBuffer;
-        T2MediaLib.seDataAry.data[idx]=myArrayBuffer;//source;
+    // SE&BGMの音量 //
+    getMasterVolume : function() {
+        return T2MediaLib.masterVolume;
     },
-    loadSE : function(idx, url, callbacks) { //@hoge1e3
+    setMasterVolume : function(vol) {
+        T2MediaLib.masterVolume = vol;
+        for (var i=0; i<T2MediaLib.bgmPlayerMax; i++) {
+            var bgmPlayer = T2MediaLib.bgmPlayerAry[i];
+            if (!(bgmPlayer instanceof T2MediaLib_BGMPlayer)) continue;
+            bgmPlayer.onChangeBGMMasterVolume();
+        }
+    },
+
+    // 配列データからサウンドを作成・登録
+    loadSoundFromArray : function (idx, array1, array2) {
+        T2MediaLib.soundDataAry[idx] = new T2MediaLib_SoundData();
+
+        var ctx = T2MediaLib.context;
+        var numOfChannels = array1 != null && array2 != null ? 2 : 1;
+        var audioBuffer = ctx.createBuffer(numOfChannels, array.length, ctx.sampleRate);
+        var buffer1 = audioBuffer.getChannelData(0);
+        var buffer2 = array2 != null ? audioBuffer.getChannelData(1) : null;
+        for (var i = 0; i < array.length ; i++) {
+             buffer1[i] = array1[i];
+        }
+        if (buffer2) {
+            for (var i = 0; i < array.length ; i++) {
+                 buffer2[i] = array2[i];
+            }
+        }
+        T2MediaLib.soundDataAry[idx].onDecodeComplete(audioBuffer);
+    },
+    // サウンドの受信・デコード・登録
+    loadSound : function(idx, url, callbacks) { //@hoge1e3
+        T2MediaLib.soundDataAry[idx] = new T2MediaLib_SoundData();
+
         if (!T2MediaLib.context || T2MediaLib.disabled) {
-            T2MediaLib.seDataAry.data[idx] = -1;
+            T2MediaLib.soundDataAry[idx].onError("FUNC_DISABLED_ERROR");
             return null;
         }
         if (typeof WebSite=="object" && WebSite.mp3Disabled) {
-            url=url.replace(/\.mp3$/,".ogg");
+            url=url.replace(/\.(mp3|mp4|m4a)$/,".ogg");
         }
         var xhr = new XMLHttpRequest();
         xhr.onload = function() {
-            if (xhr.status === 200 || xhr.status=== 0 /*@hoge1e3 for node-webkit base64url */) {
+            if (xhr.status === 200 || xhr.status === 0 /*@hoge1e3 for node-webkit base64url */) {
                 var arrayBuffer = xhr.response;
                 if (arrayBuffer instanceof ArrayBuffer) {
-                    var successCallback = function(audioBuffer) {
-                        /*
-                        window.alert('Success : ' +
-                                     'sampleRate:' + audioBuffer.sampleRate + '\n' +
-                                     'length:' + audioBuffer.length + '\n' +
-                                     'duration:' + audioBuffer.duration + '\n' +
-                                     'numberOfChannels:' + audioBuffer.numberOfChannels + '\n');
-                        */
-                        T2MediaLib.seDataAry.data[idx] = audioBuffer;
-                        if (callbacks && callbacks.succ) callbacks.succ(idx);//@hoge1e3
-                    };
-                    var errorCallback = function(error) {
-                        if (error instanceof Error) {
-                            console.log('T2MediaLib: '+error.message,url);
-                        } else {
-                            console.log('T2MediaLib: Error decodeAudioData()',url);
-                        }
-                        T2MediaLib.seDataAry.data[idx] = -4;
-                        if (callbacks && callbacks.err) callbacks.err(idx,T2MediaLib.seDataAry.data[idx]);//@hoge1e3
-                    };
-                    T2MediaLib.context.decodeAudioData(arrayBuffer, successCallback, errorCallback);
+                    T2MediaLib.soundDataAry[idx].onLoadComplete(arrayBuffer);
+                    if (callbacks && callbacks.succ) callbacks.succ(idx);
                 } else {
-                    T2MediaLib.seDataAry.data[idx] = -3;
-                    if (callbacks && callbacks.err) callbacks.err(idx,T2MediaLib.seDataAry.data[idx]);//@hoge1e3
+                    T2MediaLib.soundDataAry[idx].onError("XHR_RESPONSE_ERROR");
+                    if (callbacks && callbacks.err) callbacks.err(idx,T2MediaLib.soundDataAry[idx]);//@hoge1e3
                 }
             } else {
-                T2MediaLib.seDataAry.data[idx] = -2;
-                if (callbacks && callbacks.err) callbacks.err(idx,T2MediaLib.seDataAry.data[idx]);//@hoge1e3
+                T2MediaLib.soundDataAry[idx].onError("XHR_STATUS_ERROR");
+                if (callbacks && callbacks.err) callbacks.err(idx,T2MediaLib.soundDataAry[idx]);//@hoge1e3
             }
         };
         xhr.onerror=function (e) {//@hoge1e3
+            T2MediaLib.soundDataAry[idx].onError("XHR_ERROR");
             if (callbacks && callbacks.err) callbacks.err(idx,e+"");
         };
-        T2MediaLib.seDataAry.data[idx] = null;
+
+        T2MediaLib.soundDataAry[idx].onLoad(url);
         if (url.match(/^data:/) && Util && Util.Base64_To_ArrayBuffer) {//@hoge1e3
             xhr={onload:xhr.onload};
             xhr.response=Util.Base64_To_ArrayBuffer( url.replace(/^data:audio\/[a-zA-Z0-9]+;base64,/i,""));
@@ -3985,35 +5981,97 @@ var T2MediaLib = {
         }
         //setTimeout(T2MediaLib.activate.bind(T2MediaLib),0);
     },
+    decodeSound: function(idx, callbacks) {
+        var soundData = T2MediaLib.soundDataAry[idx];
+        if (soundData == null) return;
+
+        var arrayBuffer = soundData.fileData;
+        soundData.onDecode();
+        if (soundData.url.match(/\.(midi?)$/) || soundData.url.match(/^data:audio\/mid/)) {
+            // Midi
+            // PicoAudio.jsにデコードしてもらう
+            if (T2MediaLib.picoAudio == null) {
+                T2MediaLib.picoAudio = new PicoAudio(T2MediaLib.context);
+            }
+            var smf = new Uint8Array(arrayBuffer);
+            var data = T2MediaLib.picoAudio.parseSMF(smf);
+            T2MediaLib.soundDataAry[idx].onDecodeComplete(data);
+            if (callbacks && callbacks.succ) callbacks.succ(idx);
+        } else {
+            // MP3, Ogg, AAC, WAV
+            var successCallback = function(audioBuffer) {
+                T2MediaLib.soundDataAry[idx].onDecodeComplete(audioBuffer);
+                if (callbacks && callbacks.succ) callbacks.succ(idx);//@hoge1e3
+            };
+            var errorCallback = function(error) {
+                if (error instanceof Error) {
+                    console.log('T2MediaLib: '+error.message, url);
+                } else {
+                    console.log('T2MediaLib: Error decodeAudioData()', url);
+                }
+                T2MediaLib.soundDataAry[idx].onError("DECODE_ERROR");
+                if (callbacks && callbacks.err) callbacks.err(idx, T2MediaLib.soundDataAry[idx]);//@hoge1e3
+            };
+            T2MediaLib.context.decodeAudioData(arrayBuffer, successCallback, errorCallback);
+        }
+    },
     activate: function () {
       // create empty buffer
         this.init();
         if (this.isActivated) return;
         this.isActivated=true;
         var myContext=T2MediaLib.context;
-    	var buffer = myContext.createBuffer(1, Math.floor(myContext.sampleRate/32), myContext.sampleRate);
-    	var ary = buffer.getChannelData(0);
-    	var lam = Math.floor(myContext.sampleRate/860);
+        var buffer = myContext.createBuffer(1, Math.floor(myContext.sampleRate/32), myContext.sampleRate);
+        var ary = buffer.getChannelData(0);
+        var lam = Math.floor(myContext.sampleRate/860);
         for (var i = 0; i < ary.length; i++) {
-    	     ary[i] = (i % lam<lam/2?0.1:-0.1)*(i<lam?2:1) ;
-    	}
+             //ary[i] = (i % lam<lam/2?0.1:-0.1)*(i<lam?2:1) ;
+             ary[i] = 0; // 無音化
+        }
         //console.log(ary);
-	    var source = myContext.createBufferSource();
-	    source.buffer = buffer;
-    	// connect to output (your speakers)
-    	source.connect(myContext.destination);
+        var source = myContext.createBufferSource();
+        source.buffer = buffer;
+        // connect to output (your speakers)
+        source.connect(myContext.destination);
         // play the file
-	    if (source.noteOn) source.noteOn(0);
-	    else if (source.start) source.start(0);
+        if (source.noteOn) source.noteOn(0);
+        else if (source.start) source.start(0);
     },
-    playSE : function(idx, vol, rate, offset, loop, loopStart, loopEnd) {
+    getSoundData : function(idx) {
+        var soundDataObj = T2MediaLib.soundDataAry[idx];
+        if (soundDataObj) {
+            return soundDataObj.getDecodedData();
+        } else {
+            return null;
+        }
+    },
+
+    // SEメソッド郡 //
+
+    playSE : function(idx, vol, pan, rate, offset, loop, loopStart, loopEnd) {
         if (!T2MediaLib.context) return null;
-        var audioBuffer = T2MediaLib.seDataAry.data[idx];
+        var soundData = T2MediaLib.soundDataAry[idx];
+        if (soundData == null) return null;
+        if (!soundData.isDecodeComplete()) {
+            var callbacks = {};
+            callbacks.succ = function() {
+                T2MediaLib.playSE(idx, vol, pan, rate, offset, loop, loopStart, loopEnd);
+            };
+            callbacks.err = function() {
+            };
+            T2MediaLib.decodeSound(idx, callbacks);
+            return null;
+        }
+
+        var audioBuffer = soundData.decodedData;
         if (!(audioBuffer instanceof AudioBuffer)) return null;
 
         // 引数チェック
-        if (vol === null) {
-            vol = 1;
+        if (vol == null) {
+            vol = 1.0;
+        }
+        if (pan == null) {
+            pan = 0.0;
         }
         if (!rate) rate = 1.0;
         if (!offset) {
@@ -4039,20 +6097,36 @@ var T2MediaLib = {
         var source = T2MediaLib.context.createBufferSource();
         T2MediaLib.context.createGain = T2MediaLib.context.createGain || T2MediaLib.context.createGainNode;
         var gainNode = T2MediaLib.context.createGain();
+        var panNode = T2MediaLib.context.createPanner();
 
         source.buffer = audioBuffer;
-
-        source.loop               = loop;
-        source.loopStart          = loopStart;
-        source.loopEnd            = loopEnd;//audioBuffer.duration;
+        source.loop = loop;
+        source.loopStart = loopStart;
+        source.loopEnd = loopEnd;//audioBuffer.duration;
         source.playbackRate.value = rate;
 
-        // 通常ノード接続
-        //source.connect(T2MediaLib.context.destination);
-
-        // 音量変更できるようノード接続
+        // 音量＆パン設定
         source.connect(gainNode);
-        gainNode.connect(T2MediaLib.context.destination);
+        gainNode.connect(panNode);
+        panNode.connect(T2MediaLib.context.destination);
+        panNode.panningModel = "equalpower";
+        if      (pan < -1.0) pan = -1.0;
+        else if (pan >  1.0) pan =  1.0;
+        var panAngle = pan * 90;
+        var panX = Math.sin(panAngle * (Math.PI / 180));
+        var panZ = -Math.cos(panAngle * (Math.PI / 180));
+        if (pan === -1.0 || pan === 1.0) panZ = 0; // 6.123233995736766e-17となるので0にしておく
+        if (panNode.positionX) {
+            panNode.positionX.value = panX;
+            panNode.positionY.value = 0;
+            panNode.positionZ.value = panZ;
+        } else {
+            panNode.setPosition(panX, 0, panZ);
+        }
+        // 左右どちらかにパンがよると、音量が大きくなるので半減する
+        //gainNode.gain.value = vol / (1 + Math.abs(pan));
+        // ↑パンはそいうものらしいので、音量はそのままにする
+        gainNode.gain.value = vol * T2MediaLib.seMasterVolume * T2MediaLib.masterVolume;
 
         // ループ開始位置修正
         var offset_adj;
@@ -4064,6 +6138,9 @@ var T2MediaLib = {
 
         // 変数追加
         source.gainNode = gainNode;
+        source.volumeValue = vol;
+        source.panNode = panNode;
+        source.panValue = pan;
         source.playStartTime = T2MediaLib.context.currentTime;
         source.playOffset = offset_adj;
         source.plusTime = offset_adj;
@@ -4071,8 +6148,6 @@ var T2MediaLib = {
         // 再生
         source.start = source.start || source.noteOn;
         source.stop  = source.stop  || source.noteOff;
-
-        gainNode.gain.value = vol * vol;
 
         if (offset) {
             if (loop) source.start(0, offset, 86400);
@@ -4082,17 +6157,12 @@ var T2MediaLib = {
         }
 
         source.onended = function(event) {
-            //console.log('"on' + event.type + '" event handler !!');
-            //source.stop(0);
-
-            delete source.gainNode;
-            //delete source.playStartTime;
-            //delete source.playOffset;
-            //delete source.plusTime;
-
+            source.disconnect();
             source.onended = null;
+            delete source.gainNode;
+            delete source.panNode;
         };
-        //console.log(source);
+
         return source;
     },
     stopSE : function(sourceObj) {
@@ -4100,24 +6170,79 @@ var T2MediaLib = {
         sourceObj.stop(0);
         return sourceObj;
     },
+    getSEMasterVolume : function() {
+        return T2MediaLib.seMasterVolume;
+    },
+    setSEMasterVolume : function(vol) {
+        T2MediaLib.seMasterVolume = vol;
+    },
+    getSEVolume : function(sourceObj) {
+        if (!(sourceObj instanceof AudioBufferSourceNode)) return null;
+        return source.volumeValue;
+    },
     setSEVolume : function(sourceObj, vol) {
         if (!(sourceObj instanceof AudioBufferSourceNode)) return null;
-        sourceObj.gainNode.gain.value = vol * vol;
+        sourceObj.gainNode.gain.value = vol * T2MediaLib.seMasterVolume * T2MediaLib.masterVolume;
+        source.volumeValue = vol;
+        return sourceObj;
+    },
+    getSERate : function(sourceObj) {
+        if (!(sourceObj instanceof AudioBufferSourceNode)) return null;
+        return sourceObj.playbackRate.value;
     },
     setSERate : function(sourceObj, rate) {
         if (!(sourceObj instanceof AudioBufferSourceNode)) return null;
         sourceObj.playbackRate.value = rate;
     },
-    getSEData : function(idx) {
-        return T2MediaLib.seDataAry.data[idx];
+    getSEPan : function(sourceObj) {
+        if (!(sourceObj instanceof AudioBufferSourceNode)) return null;
+        return sourceObj.panValue;
     },
-
+    setSEPan : function(sourceObj, pan) {
+        if (!(sourceObj instanceof AudioBufferSourceNode)) return null;
+        var panNode = sourceObj.panNode;
+        if      (pan < -1.0) pan = -1.0;
+        else if (pan >  1.0) pan =  1.0;
+        var panAngle = pan * 90;
+        var panX = Math.sin(panAngle * (Math.PI / 180));
+        var panZ = Math.cos(panAngle * (Math.PI / 180));
+        if (pan === -1.0 || pan === 1.0) panZ = 0; // 6.123233995736766e-17となるので0にしておく
+        if (panNode.positionX) {
+            panNode.positionX.value = panX;
+            panNode.positionY.value = 0;
+            panNode.positionZ.value = panZ;
+        } else {
+            panNode.setPosition(panX, 0, panZ);
+        }
+        sourceObj.panValue = pan;
+    },
+    isSELoop : function(sourceObj) {
+        if (!(sourceObj instanceof AudioBufferSourceNode)) return null;
+        return sourceObj.loop;
+    },
+    setSELoop : function(sourceObj, loop) {
+        if (!(sourceObj instanceof AudioBufferSourceNode)) return null;
+        sourceObj.loop = loop;
+    },
+    getSELoopStartTime : function(sourceObj) {
+        if (!(sourceObj instanceof AudioBufferSourceNode)) return null;
+        return sourceObj.loopStart;
+    },
+    setSELoopStartTime : function(sourceObj, loopStart) {
+        if (!(sourceObj instanceof AudioBufferSourceNode)) return null;
+        sourceObj.loopStart = loopStart;
+    },
+    getSELoopEndTime : function(sourceObj) {
+        if (!(sourceObj instanceof AudioBufferSourceNode)) return null;
+        return sourceObj.loopEnd;
+    },
+    setSELoopEndTime : function(sourceObj, loopEnd) {
+        if (!(sourceObj instanceof AudioBufferSourceNode)) return null;
+        sourceObj.loopEnd = loopEnd;
+    },
 
     // BGMメソッド郡 //
 
-    loadBGM : function(idx, url, callbacks) {
-        return T2MediaLib.loadSE(idx, url, callbacks);
-    },
     playBGM : function(id, idx, loop, offset, loopStart, loopEnd) {
         if (id < 0 || T2MediaLib.bgmPlayerMax <= id) return null;
         var bgmPlayer = T2MediaLib.bgmPlayerAry[id];
@@ -4142,17 +6267,88 @@ var T2MediaLib = {
         if (!(bgmPlayer instanceof T2MediaLib_BGMPlayer)) return null;
         return bgmPlayer.resumeBGM();
     },
+    getBGMMasterVolume : function() {
+        return T2MediaLib.bgmMasterVolume;
+    },
+    setBGMMasterVolume : function(vol) {
+        T2MediaLib.bgmMasterVolume = vol;
+        for (var i=0; i<T2MediaLib.bgmPlayerMax; i++) {
+            var bgmPlayer = T2MediaLib.bgmPlayerAry[i];
+            if (!(bgmPlayer instanceof T2MediaLib_BGMPlayer)) continue;
+            bgmPlayer.onChangeBGMMasterVolume();
+        }
+    },
+    getBGMVolume : function(id) {
+        if (id < 0 || T2MediaLib.bgmPlayerMax <= id) return null;
+        var bgmPlayer = T2MediaLib.bgmPlayerAry[id];
+        if (!(bgmPlayer instanceof T2MediaLib_BGMPlayer)) return null;
+        return bgmPlayer.getBGMVolume();
+    },
     setBGMVolume : function(id, vol) {
         if (id < 0 || T2MediaLib.bgmPlayerMax <= id) return null;
         var bgmPlayer = T2MediaLib.bgmPlayerAry[id];
         if (!(bgmPlayer instanceof T2MediaLib_BGMPlayer)) return null;
         return bgmPlayer.setBGMVolume(vol);
     },
+    getBGMTempo : function(id) {
+        if (id < 0 || T2MediaLib.bgmPlayerMax <= id) return null;
+        var bgmPlayer = T2MediaLib.bgmPlayerAry[id];
+        if (!(bgmPlayer instanceof T2MediaLib_BGMPlayer)) return null;
+        return bgmPlayer.getBGMTempo();
+    },
     setBGMTempo : function(id, tempo) {
         if (id < 0 || T2MediaLib.bgmPlayerMax <= id) return null;
         var bgmPlayer = T2MediaLib.bgmPlayerAry[id];
         if (!(bgmPlayer instanceof T2MediaLib_BGMPlayer)) return null;
         return bgmPlayer.setBGMTempo(tempo);
+    },
+    getBGMPan : function(id) {
+        if (id < 0 || T2MediaLib.bgmPlayerMax <= id) return null;
+        var bgmPlayer = T2MediaLib.bgmPlayerAry[id];
+        if (!(bgmPlayer instanceof T2MediaLib_BGMPlayer)) return null;
+        return bgmPlayer.getBGMPan();
+    },
+    setBGMPan : function(id, pan) {
+        if (id < 0 || T2MediaLib.bgmPlayerMax <= id) return null;
+        var bgmPlayer = T2MediaLib.bgmPlayerAry[id];
+        if (!(bgmPlayer instanceof T2MediaLib_BGMPlayer)) return null;
+        return bgmPlayer.setBGMPan(pan);
+    },
+    isBGMLoop : function(id) {
+        if (id < 0 || T2MediaLib.bgmPlayerMax <= id) return null;
+        var bgmPlayer = T2MediaLib.bgmPlayerAry[id];
+        if (!(bgmPlayer instanceof T2MediaLib_BGMPlayer)) return null;
+        return bgmPlayer.isBGMLoop();
+    },
+    setBGMLoop : function(id, loop) {
+        if (id < 0 || T2MediaLib.bgmPlayerMax <= id) return null;
+        var bgmPlayer = T2MediaLib.bgmPlayerAry[id];
+        if (!(bgmPlayer instanceof T2MediaLib_BGMPlayer)) return null;
+        return bgmPlayer.setBGMLoop(loop);
+    },
+    getBGMLoopStartTime : function(id) {
+        if (id < 0 || T2MediaLib.bgmPlayerMax <= id) return null;
+        var bgmPlayer = T2MediaLib.bgmPlayerAry[id];
+        if (!(bgmPlayer instanceof T2MediaLib_BGMPlayer)) return null;
+        return bgmPlayer.getBGMLoopStartTime();
+    },
+    setBGMLoopStartTime : function(id, loopStart) {
+        if (id < 0 || T2MediaLib.bgmPlayerMax <= id) return null;
+        var bgmPlayer = T2MediaLib.bgmPlayerAry[id];
+        if (!(bgmPlayer instanceof T2MediaLib_BGMPlayer)) return null;
+        return bgmPlayer.setBGMLoopStartTime(loopStart);
+    },
+    getBGMLoopEndTime : function(id) {
+        if (id < 0 || T2MediaLib.bgmPlayerMax <= id) return null;
+        var bgmPlayer = T2MediaLib.bgmPlayerAry[id];
+        if (!(bgmPlayer instanceof T2MediaLib_BGMPlayer)) return null;
+        return bgmPlayer.getBGMLoopEndTime();
+    },
+    setBGMLoopEndTime : function(id, loopEnd) {
+        if (id < 0 || T2MediaLib.bgmPlayerMax <= id) return null;
+        var bgmPlayer = T2MediaLib.bgmPlayerAry[id];
+        if (!(bgmPlayer instanceof T2MediaLib_BGMPlayer)) return null;
+        return bgmPlayer.setBGMLoopEndTime(loopEnd);
     },
     getBGMCurrentTime : function(id) {
         if (id < 0 || T2MediaLib.bgmPlayerMax <= id) return null;
@@ -4166,8 +6362,17 @@ var T2MediaLib = {
         if (!(bgmPlayer instanceof T2MediaLib_BGMPlayer)) return null;
         return bgmPlayer.getBGMLength();
     },
-    getBGMData : function(idx) {
-        return T2MediaLib.getSEData(idx);
+    getPlayingBGMName : function(id) {
+        if (id < 0 || T2MediaLib.bgmPlayerMax <= id) return null;
+        var bgmPlayer = T2MediaLib.bgmPlayerAry[id];
+        if (!(bgmPlayer instanceof T2MediaLib_BGMPlayer)) return null;
+        return bgmPlayer.getPlayingBGMName();
+    },
+    setOnBGMEndListener : function(id, listener) {
+        if (id < 0 || T2MediaLib.bgmPlayerMax <= id) return null;
+        var bgmPlayer = T2MediaLib.bgmPlayerAry[id];
+        if (!(bgmPlayer instanceof T2MediaLib_BGMPlayer)) return null;
+        return bgmPlayer.setOnBGMEndListener(listener);
     },
     getBGMPlayerMax : function() {
         return T2MediaLib.bgmPlayerMax;
@@ -4176,6 +6381,17 @@ var T2MediaLib = {
         for (var i=0; i<T2MediaLib.bgmPlayerMax; i++) {
             T2MediaLib.stopBGM(i);
         }
+    },
+    allResetBGM : function() {
+        for (var i=0; i<T2MediaLib.bgmPlayerMax; i++) {
+            T2MediaLib.stopBGM(i);
+            T2MediaLib.setBGMVolume(i, 1.0);
+            T2MediaLib.setBGMTempo(i, 1.0);
+            T2MediaLib.setBGMPan(i, 0.0);
+        }
+        T2MediaLib.setMasterVolume(1.0);
+        T2MediaLib.setSEMasterVolume(1.0);
+        T2MediaLib.setBGMMasterVolume(1.0);
     },
 
     // Audioメソッド郡 //
@@ -4265,48 +6481,6 @@ var T2MediaLib = {
     }
 };
 
-// 旧名。そのうち消す
-//T2SoundLib = T2MediaLib;
-
-
-
-// テスト
-//'http://jsrun.it/assets/c/X/4/S/cX4S7.ogg'
-//'http://jsrun.it/assets/5/Z/s/x/5ZsxE.ogg'
-
-//alert((!window.hasOwnProperty('webkitAudioContext'))+" "+(window.webkitAudioContext.prototype.createGain===undefined));
-
-//T2MediaLib.init();
-
-
-//playSE : function(idx, vol, rate, offset, loop, loopStart, loopEnd) {
-//T2MediaLib.loadSE('test','http://jsrun.it/assets/5/Z/s/x/5ZsxE.ogg');
-//setTimeout(function(){ bgm1 = T2MediaLib.playSE('test', 1.0, 1.0, 0, true, 0, 0); }, 500);
-//setTimeout(function(){ T2MediaLib.stopSE(bgm1); }, 5000);
-
-/*
-//playSE : function(idx, vol, rate, offset, loop, loopStart, loopEnd) {
-T2MediaLib.loadSE('test','http://jsrun.it/assets/c/X/4/S/cX4S7.ogg');
-setTimeout(function(){ bgm1 = T2MediaLib.playSE('test', 1.0, 1.1, 8, true, 12, 19); }, 500);
-setTimeout(function(){ bgm1.playbackRate.value = 1.2; }, 5000);
-setTimeout(function(){ bgm1.stop(); }, 6000);
-setTimeout(function(){ T2MediaLib.playSE('test'); }, 7000);
-//setTimeout(function(){ T2MediaLib.stopSE(bgm1); }, 5000);
-*/
-/*
-T2MediaLib.loadAudio('test','http://jsrun.it/assets/c/X/4/S/cX4S7.ogg');
-T2MediaLib.loadAudio('test2','http://jsrun.it/assets/q/S/1/C/qS1Ch.ogg');
-setTimeout(function(){ T2MediaLib.playAudio('test'); }, 5000);
-setTimeout(function(){ T2MediaLib.playAudio('test2'); }, 1000);
-setTimeout(function(){ T2MediaLib.playAudio('test', true, 11.5); console.log(T2MediaLib.getAudioCurrentTime()); console.log(T2MediaLib.getAudioLength());}, 1050);
-setTimeout(function(){ T2MediaLib.setAudioTempo(1.5); }, 3000);
-setTimeout(function(){ T2MediaLib.setAudioVolume(0.5); }, 6000);
-setTimeout(function(){ T2MediaLib.setAudioPosition(20); }, 7000);
-setTimeout(function(){ T2MediaLib.stopAudio(); }, 10000);
-*/
-
-
-
 requireSimulator.setName('exceptionCatcher');
 define([], function () {
     var res={};
@@ -4359,6 +6533,7 @@ define(["Util","exceptionCatcher"],function (Util, EC) {
             $edits.forEach(function (edit) {
                 $edits.writeToJq(edit.params.$edit, edit.jq);
             });
+            $edits.validator.on.validate.call($edits.validator, $edits.model);
         };
         $edits.writeToJq=function ($edit, jq) {
         	var m=$edits.model;
@@ -4609,64 +6784,77 @@ define(["UI"],function (UI) {
     return UIDiag;
 });
 requireSimulator.setName('runtime');
-requirejs(["ImageList","T2MediaLib","Tonyu","UIDiag"], function () {
+requirejs(["ImageList","PicoAudio","T2MediaLib","Tonyu","UIDiag"], function () {
 
 });
 requireSimulator.setName('runScript2');
 requirejs(["FS","compiledTonyuProject","Shell","runtime","WebSite","LSFS","Tonyu","NativeFS"],
-        function (FS,  CPTR, sh,  rt,WebSite,LSFS,Tonyu) {
-    $(function () {
+		function (FS,  CPTR, sh,  rt,WebSite,LSFS,Tonyu) {
+	$(function () {
 
-        SplashScreen={
-            hide: function () {$("#splash").hide();},
-            show:function(){},
-            progress:function(t) {$("#splash").text(t);}
-        };
+		SplashScreen={
+			hide: function () {$("#splash").hide();},
+			show:function(){},
+			progress:function(t) {$("#splash").text(t);}
+		};
 
-        var w=$(window).width();
-        var h=$(window).height();
-        $("body").css({overflow:"hidden", margin:"0px"});
-        var cv=$("<canvas>").attr({width: w-10, height:h-10}).appendTo("body");
-        $(window).resize(onResize);
-        function onResize() {
-            w=$(window).width();
-            h=$(window).height();
-            cv.attr({width: w-10, height: h-10});
-        }
+		function getMargin() {
+			var u = navigator.userAgent.toLowerCase();
+			if ((u.indexOf("iphone") != -1
+				|| u.indexOf("ipad") != -1
+				|| u.indexOf("ipod") != -1
+				) && window != window.parent) {
+				return 40;
+			}
+			return 0;
+		}
 
-        var curProjectDir;
-        if (WebSite.isNW) {
-            var home=location.href.replace(/^file:\/\//,"");
-            if (home.match(/^\/[a-z]:/i)) {
-                home=home.replace(/^\//,"");
-            }
-            home=FS.get(home);
-            if (!home.isDir()) home=home.up();
-            curProjectDir=home.rel("data/");
-        } else {
-            var locs=location.href.replace(/\?.*/,"").split(/\//);
-            var prj=locs.pop() || "runscript";
-            var user=locs.pop() || "nobody";
-            var home=FS.get(WebSite.tonyuHome);
-            var ramHome=FS.get("/ram/");
-            FS.mount(ramHome.path(), LSFS.ramDisk() );
-            curProjectDir=ramHome;
-            var actualFilesDir=home.rel(user+"/"+prj+"/");
-            ramHome.rel("files/").link(actualFilesDir);
-        }
+		var margin = getMargin();
+		var w=$(window).width();
+		var h=$(window).height();
+		$("body").css({overflow:"hidden", margin:"0px"});
+		var cv=$("<canvas>").attr({width: w-margin, height:h-margin}).appendTo("body");
+		$(window).resize(onResize);
+		function onResize() {
+			var margin = getMargin();
+			w=$(window).width();
+			h=$(window).height();
+			cv.attr({width: w-margin, height: h-margin});
+		}
 
-        loadFiles(curProjectDir);
-        sh.cd(curProjectDir);
-        WebSite.compiledKernel="js/kernel.js";
-        var curPrj=CPTR("user", "js/concat.js",curProjectDir);
-        start();
-        function start() {
-            Tonyu.currentProject=Tonyu.globals.$currentProject=curPrj;
-            var o=curPrj.getOptions();
-            curPrj.runScriptMode=true;
-            curPrj.run(o.run.bootClass);
-        }
-    });
+		var curProjectDir;
+		if (WebSite.isNW) {
+			var home=location.href.replace(/^file:\/\//,"");
+			if (home.match(/^\/[a-z]:/i)) {
+				home=home.replace(/^\//,"");
+			}
+			home=FS.get(home);
+			if (!home.isDir()) home=home.up();
+			curProjectDir=home.rel("data/");
+		} else {
+			var locs=location.href.replace(/\?.*/,"").split(/\//);
+			var prj=locs.pop() || "runscript";
+			var user=locs.pop() || "nobody";
+			var home=FS.get(WebSite.tonyuHome);
+			var ramHome=FS.get("/ram/");
+			FS.mount(ramHome.path(), LSFS.ramDisk() );
+			curProjectDir=ramHome;
+			var actualFilesDir=home.rel(user+"/"+prj+"/");
+			ramHome.rel("files/").link(actualFilesDir);
+		}
+
+		loadFiles(curProjectDir);
+		sh.cd(curProjectDir);
+		WebSite.compiledKernel="js/kernel.js";
+		var curPrj=CPTR("user", "js/concat.js",curProjectDir);
+		start();
+		function start() {
+			Tonyu.currentProject=Tonyu.globals.$currentProject=curPrj;
+			var o=curPrj.getOptions();
+			curPrj.runScriptMode=true;
+			curPrj.run(o.run.bootClass);
+		}
+	});
 });
 
 requireSimulator.setName();

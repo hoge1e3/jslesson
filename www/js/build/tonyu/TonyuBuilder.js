@@ -1,11 +1,12 @@
-define(["FS","Util","WebSite","plugins","Shell","Tonyu"],
-        function (FS,Util,WebSite,plugins,sh,Tonyu) {
+define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync"],
+        function (FS,Util,WebSite,plugins,sh,Tonyu,Sync) {
     var MkRun=function (prj, dst) {
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
     };
     var p=MkRun.prototype;
-    p.build=function () {
+    p.build=function (options) {
+        FS.mount(location.protocol+"//"+location.host+"/", "web");
         var prj=this.prj;
         var dest=this.dst;
         options=options||{};
@@ -13,24 +14,23 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu"],
         var resc=prj.getResource();
         var opt=prj.getOptions();
         var loadFilesBuf="function loadFiles(dir){\n";
-        var runtimeDir=FS.get(location.href.
-        replace(/\?.*/,"").
-        replace(/\/[^\/]*/,"")+"runtime");//WebSite.wwwDir);
-        var jsDir=runtimeDir.rel("lib/tonyu/");
+        var runtimeDir=FS.get(WebSite.runtime);
+        var tonyuLibDir=runtimeDir.rel("lib/tonyu/");
         if (options.copySrc) copySrc();
-        return $.when(
-                //copySampleImages(),
-                convertLSURL(resc.images),
-                convertLSURL(resc.sounds),
+        return prj.loadClasses().then(function() {
+            return $.when(
+                //convertLSURL(resc.images),
+                //convertLSURL(resc.sounds),
                 genFilesJS(),
                 copyScripts(),
                 copyPlugins(),
                 copyLibs(),
-                copyResources("images/"),
-                copyResources("sounds/"),
+                //copyResources("images/"),
+                //copyResources("sounds/"),
                 copyIndexHtml(),
                 genReadme()
-        );
+            );
+        });
 
         function genReadme() {
             dest.rel("Readme.txt").text(
@@ -55,20 +55,20 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu"],
         }
         function copyIndexHtml() {
             //  runtime\lib\tonyu\index.html
-            return runtimeDir.rel("index.html").copyTo(dest);
+            return tonyuLibDir.rel("index.html").copyTo(dest);
         }
         function copyScripts() {
             var usrjs=prjDir.rel("js/concat.js");
-            //var kerjs=FS.get(WebSite.kernelDir).rel("js/concat.js");
-            //var runScr2=jsDir.rel("gen/runScript2_concat.js");
+            var kerjs=tonyuLibDir.rel("kernel.js");
+            //var runScr2=tonyuLibDir.rel("gen/runScript2_concat.js");
             return $.when(
-                usrjs.copyTo(dest.rel("js/concat.js"))//,
-                //kerjs.copyTo(dest.rel("js/kernel.js")),
+                usrjs.copyTo(dest.rel("js/concat.js")),
+                kerjs.copyTo(dest.rel("js/kernel.js"))//,
                 //runScr2.copyTo(dest.rel("js/runScript2_concat.js"))
             );
         }
         function copyPlugins() {
-            var pluginDir=jsDir.rel("plugins/");
+            var pluginDir=tonyuLibDir.rel("plugins/");
             if (!opt.plugins) return;
             // TODO opt.plugins is now hash, but array is preferrable....
             var args=[];
@@ -80,10 +80,10 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu"],
             return $.when.apply($,args);
         }
         function copyLibs() {
-            return $.when(
-                    jsDir.rel("lib/jquery-1.10.1.js").copyTo(dest.rel("js/lib/")),
-                    jsDir.rel("lib/require.js").copyTo(dest.rel("js/lib/"))
-            );
+            /*return $.when(
+                    runtimeDir.rel("lib/jquery-1.12.1.js").copyTo(dest.rel("js/lib/")),
+                    runtimeDir.rel("lib/require.js").copyTo(dest.rel("js/lib/"))
+            );*/
         }
         function addFileToLoadFiles(name, data) {
             loadFilesBuf+="\tdir.rel('"+name+"').obj("+JSON.stringify(data)+");\n";
@@ -127,7 +127,7 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu"],
         }
     };
     p.upload=function (pub) {
-        return Sync.sync(this.dst,pub);  
+        return Sync.sync(this.dst,pub,{excludes:["images/","sounds/"]});
     };
     return MkRun;
 });

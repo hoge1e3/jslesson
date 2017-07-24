@@ -39,7 +39,8 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     var langList={
         "js":"JavaScript",
         "c":"C",
-        "dtl":"Dolittle"
+        "dtl":"Dolittle",
+        "tonyu":"Tonyu"
     };
     var helpURL;
     var unsaved=false;
@@ -163,14 +164,19 @@ function ready() {
     	break;
     case "tonyu":
         requirejs(["TonyuBuilder","TonyuProject"],function(_,TPRC){
+            Tonyu.defaultOptions={
+                compiler: { defaultSuperClass: "Actor"},
+                run: {mainClass: "Main", bootClass: "Boot"},
+                kernelEditable: false
+            };
             Builder=_;
             console.log("tnub requirejsed");
             $("#fullScr").attr("href","javascript:;").text("別ページで表示");
             ram=FS.get("/ram/build/");
             FS.mount(ram.path(),"ram");
-            builder=new Builder(curPrj, ram);
             curPrj=TPRC(curProjectDir);// curPrj re-construct!!!?
-            builderReady();
+            builder=new Builder(curPrj, ram);
+            curPrj.getPublishedURL().then(builderReady);
         });
         break;
     }
@@ -497,6 +503,7 @@ function ready() {
     fl.ls(curProjectDir);
     console.log("listing", curProjectDir.path(),"done");
     function builderReady() {
+        window.curPrj=curPrj;
         autoexec();
     }
     function autoexec() {
@@ -611,14 +618,14 @@ function ready() {
                 var pub;
                 //var pub=Auth.remotePublics()/*FS.get("/public/")*/.rel(curProjectDir.name());
                 SplashScreen.show();
-                Auth.publishedDir(curProjectDir.name()).then(function (_p) {
+                Auth.publishedDir(curProject.getName()+"/").then(function (_p) {
                     pub=_p;
                     return builder.build({mainFile:curLogicFile});
                 }).then(function () {
                     return builder.upload(pub);
                 }).then(function () {
                     SplashScreen.hide();
-                    return Auth.publishedURL(curProjectDir.name());
+                    return Auth.publishedURL(curProject.getName()+"/");
                 }).then(function (_u) {
                     var cv=$("<div>");
                     cv.dialog();
@@ -803,7 +810,42 @@ function ready() {
 	            if(e) console.log(e.stack);
                 SplashScreen.hide();
             }
-    	}
+        } else if (lang=="tonyu") {
+            try {
+                SplashScreen.show();
+                $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+                DU.timeout(0).then(function () {
+                    return builder.build({mainFile:curJSFile}).then(function () {
+                        return Auth.publishedDir(curPrj.getName()+"/");
+                    }).then(function (pub) {
+                        console.log("Tonyu sync to ",pub.path());
+                        builder.upload(pub);
+                        return Auth.publishedURL(curPrj.getName()+"/");
+                    }).then(function (pub) {
+                        $("<iframe>").attr({src: pub}).dialog({width:600,height:400});
+                    });
+                }).fail(function (e) {
+                    //var eobj={stack:e.stack,message:e+""};
+                    //for (var k in e) eobj[k]=e[k];
+                    if (e.pos) {
+                        logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"Tonyu Compile Error",e,"Tonyu");
+                        var te=TError(e+"",curJSFile, e.pos);
+    	                  showErrorPos($("#errorPos"),te);
+                        displayMode("compile_error");
+                    } else {
+                        logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"Tonyu Compile Error",e,"Tonyu");
+                        Tonyu.onRuntimeError(e);
+                    }
+                    console.log("TONYUFAIL",e.stack);
+                }).always(function () {
+                    SplashScreen.hide();
+                    return sync();
+                });
+            }catch(e) {
+                if(e) console.log(e.stack);
+                SplashScreen.hide();
+            }
+        }
     }
     window.moveFromFrame=function (name) {
         A.is(name,String);

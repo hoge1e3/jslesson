@@ -55,6 +55,7 @@ define([], function () {
 			"images/sound_wav.png":WS.runtime+"images/sound_wav.png",
 			"images/ecl.png":WS.runtime+"images/ecl.png"
 	};
+	WebSite.compiledKernel=WebSite.runtime+"/lib/tonyu/kernel.js";
 	/*if (WS.isNW) {
 		if (process.env.TONYU_HOME) {
 			WS.tonyuHome=process.env.TONYU_HOME.replace(/\\/g,"/");

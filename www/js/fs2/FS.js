@@ -1744,6 +1744,218 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
     return LSFS;
 
 });
+/**
+ *
+ * jquery.binarytransport.js
+ *
+ * @description. jQuery ajax transport for making binary data type requests.
+ * @version 1.0
+ * @author Henry Algus <henryalgus@gmail.com>
+ *
+ */
+
+// use this transport for "binary" data type
+$.ajaxTransport("+binary", function(options, originalOptions, jqXHR){
+    // check for conditions and support for blob / arraybuffer response type
+    if (window.FormData && ((options.dataType && (options.dataType == 'binary')) || (options.data && ((window.ArrayBuffer && options.data instanceof ArrayBuffer) || (window.Blob && options.data instanceof Blob)))))
+    {
+        return {
+            // create new XMLHttpRequest
+            send: function(headers, callback){
+                // setup all variables
+                var xhr = new XMLHttpRequest(),
+                url = options.url,
+                type = options.type,
+                async = options.async || true,
+                // blob or arraybuffer. Default is blob
+                dataType = options.responseType || "blob",
+                data = options.data || null,
+                username = options.username || null,
+                password = options.password || null;
+
+                xhr.addEventListener('load', function(){
+                    var data = {};
+                    data[options.dataType] = xhr.response;
+                    // make callback and send data
+                    callback(xhr.status, xhr.statusText, data, xhr.getAllResponseHeaders());
+                });
+
+                xhr.open(type, url, async, username, password);
+
+                // setup custom headers
+                for (var i in headers ) {
+                    xhr.setRequestHeader(i, headers[i] );
+                }
+
+                xhr.responseType = dataType;
+                xhr.send(data);
+            },
+            abort: function(){
+                jqXHR.abort();
+            }
+        };
+    }
+});
+define("jquery.binarytransport", function(){});
+
+define('DeferredUtil',[], function () {
+    var DU;
+    var DUBRK=function(r){this.res=r;};
+    DU={
+            ensureDefer: function (v) {
+                var d=new $.Deferred;
+                var isDeferred;
+                $.when(v).then(function (r) {
+                    if (!isDeferred) {
+                        setTimeout(function () {
+                            d.resolve(r);
+                        },0);
+                    } else {
+                        d.resolve(r);
+                    }
+                }).fail(function (r) {
+                    if (!isDeferred) {
+                        setTimeout(function () {
+                            d.reject(r);
+                        },0);
+                    } else {
+                        d.reject(r);
+                    }
+                });
+                isDeferred=true;
+                return d.promise();
+            },
+            directPromise:function (v) {
+                var d=new $.Deferred;
+                setTimeout(function () {d.resolve(v);},0);
+                return d.promise();
+            },
+            then: function (f) {
+                return DU.directPromise().then(f);
+            },
+            timeout:function (timeout) {
+                var d=new $.Deferred;
+                setTimeout(function () {d.resolve();},timeout);
+                return d.promise();
+            },
+            funcPromise:function (f) {
+                var d=new $.Deferred;
+                try {
+                    f(function (v) {
+                        d.resolve(v);
+                    },function (e) {
+                        d.reject(e);
+                    });
+                } catch(e) {
+                    d.reject(e);
+                }
+                return d.promise();
+            },
+            throwPromise:function (e) {
+                var d=new $.Deferred;
+                setTimeout(function () {
+                    d.reject(e);
+                }, 0);
+                return d.promise();
+            },
+            throwF: function (f) {
+                return function () {
+                    try {
+                        return f.apply(this,arguments);
+                    } catch(e) {
+                        console.log(e,e.stack);
+                        return DU.throwPromise(e);
+                    }
+                };
+            },
+            each: function (set,f) {
+                if (set instanceof Array) {
+                    return DU.loop(function (i) {
+                        if (i>=set.length) return DU.brk();
+                        return $.when(f(set[i],i)).then(function () {
+                            return i+1;
+                        });
+                    },0);
+                } else {
+                    var objs=[];
+                    for (var i in set) {
+                        objs.push({k:i,v:set[i]});
+                    }
+                    return DU.each(objs,function (e) {
+                        return f(e.k, e.v);
+                    });
+                }
+            },
+            loop: function (f,r) {
+                while(true) {
+                    if (r instanceof DUBRK) return r.res;
+                    var deff1=true, deff2=false;
+                    // ★ not deffered  ☆  deferred
+                    var r1=f(r);
+                    var dr=$.when(r1).then(function (r2) {
+                        r=r2;
+                        deff1=false;
+                        if (r instanceof DUBRK) return r.res;
+                        if (deff2) return DU.loop(f,r); //☆
+                    });
+                    deff2=true;
+                    if (deff1) return dr;//☆
+                    //★
+                }
+            },
+            brk: function (res) {
+                return new DUBRK(res);
+            },
+            tryLoop: function (f,r) {
+                return DU.loop(DU.tr(f),r);
+            },
+            tryEach: function (s,f) {
+                return DU.loop(s,DU.tr(f));
+            }
+    };
+    DU.begin=DU.tr=DU.throwF;
+    DU.callbackToPromise=DU.funcPromise;
+    
+    return DU;
+});
+define('WebFS',["FS2","jquery.binarytransport","DeferredUtil","Content","PathUtil"],
+        function (FS,j,DU,Content,P) {
+    // FS.mount(location.protocol+"//"+location.host+"/", "web");
+    var WebFS=function (){};
+    var p=WebFS.prototype=new FS;
+    FS.addFSType("web", function () {
+        return new WebFS;
+    });
+    p.fstype=function () {return "Web";};
+    p.supportsSync=function () {return false;};
+    p.inMyFS=function (path) {
+        return P.isURL(path);
+    };
+    FS.delegateMethods(p, {
+        exists: function () {return true;},
+        getContentAsync: function (path){
+            var t=this;
+            return DU.funcPromise(function (succ,err) {
+                $.get(path,function (blob) {
+                    var reader = new FileReader();
+                    reader.addEventListener("loadend", function() {
+                        succ(Content.bin(reader.result, t.getContentType(path)));
+                    });
+                    reader.readAsArrayBuffer(blob);
+                },"binary").fail(err);
+            });
+        },
+        /*setContentAsync: function (path){
+
+        },*/
+        getURL: function (path) {
+            return path;
+        }
+    });
+
+    return WebFS;
+
+});
 define('Env',["assert","PathUtil"],function (A,P) {
     var Env=function (value) {
         this.value=value;
@@ -1970,6 +2182,9 @@ SFile.prototype={
     },
     setText:function (t) {
         A.is(t,String);
+        if (this.isDir()) {
+            throw new Error("Cannot write to directory: "+this.path());
+        }
         if (this.isText()) {
             this.act.fs.setContent(this.act.path, Content.plainText(t));
         } else {
@@ -1991,6 +2206,9 @@ SFile.prototype={
         return this.act.fs.getContent(this.act.path);
     },
     setContent: function (c) {
+        if (this.isDir()) {
+            throw new Error("Cannot write to directory: "+this.path());
+        }
         return this.act.fs.setContentAsync(this.act.path,c);
     },
 
@@ -2165,6 +2383,12 @@ SFile.prototype={
     },
     getResolvedLinkPath: function () {
         return this.act.path;
+    },
+    getFS:function () {
+        return this.act.fs;
+    },
+    observe: function (h) {
+        return this.getFS().getRootFS().addObserver(this.path(),h);
     }
 };
 Object.defineProperty(SFile.prototype,"act",{
@@ -2235,15 +2459,42 @@ define('RootFS',["assert","FS2","PathUtil","SFile"], function (assert,FS,P,SFile
                 assert.is(path,P.Absolute);
                 return new SFile(this.resolveFS(path), path);
             },   
-            addObserver: function (f) {
+            addObserver: function () {
                 this.observers=this.observers||[];
-                this.observers.push(f);
+                var path,f;
+                if (arguments.length==2) {
+                    path=arguments[0];
+                    f=arguments[1];
+                } else if (arguments.length==1) {
+                    path="";
+                    f=arguments[0];
+                } else {
+                    throw new Error("Invalid argument spec");
+                }
+                assert.is(path,String);
+                assert.is(f,Function);
+                var observers=this.observers;
+                var observer={
+                    path:path,
+                    handler:f,
+                    remove: function () {
+                        var i=observers.indexOf(this);
+                        observers.splice(i,1);
+                    }
+                };
+                this.observers.push(observer);
+                return observer;
             },
             notifyChanged: function (path,metaInfo) {
                 if (!this.observers) return;
-                this.observers.forEach(function (f) {
-                    f(path,metaInfo);
+                this.observers.forEach(function (ob) {
+                    if (P.startsWith(path,ob.path)) {
+                        ob.handler(path,metaInfo);
+                    }
                 });
+            },
+            getRootFS:function () {
+                return this;
             }
     };
     for (var i in p) {
@@ -2251,8 +2502,8 @@ define('RootFS',["assert","FS2","PathUtil","SFile"], function (assert,FS,P,SFile
     }
     return RootFS;
 });
-define('FS',["FS2","NativeFS","LSFS", "PathUtil","Env","assert","SFile","RootFS","Content"],
-        function (FSClass,NativeFS,LSFS, P,Env,A,SFile,RootFS,Content) {
+define('FS',["FS2","NativeFS","LSFS", "WebFS", "PathUtil","Env","assert","SFile","RootFS","Content"],
+        function (FSClass,NativeFS,LSFS,WebFS, P,Env,A,SFile,RootFS,Content) {
     var FS={};
     if (typeof window=="object") window.FS=FS;
     var rootFS;

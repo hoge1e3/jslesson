@@ -93,7 +93,7 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite"
                         }
                     }).then(function (u) {
                         dragPoint.text("アップロード中...");
-                        var prjN=prj.getName();
+                        var prjN=prj.getName()+"/";
                         var itemFile=rsrcDir.rel(itemName+itemExt);
                         //Blob.upload=function(userInfo, project, path, file) {
                         var path=itemFile.relPath(prj.getDir());
@@ -130,7 +130,7 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite"
             function genItemUI(item) {
                 function detail() {
                     if (mediaType=="sound") return;
-                    ImageDetailEditor.show(item,prj.getDir(), item.name, {
+                    ImageDetailEditor.show(item, prj, item.name, {
                         onclose: function () {
                             prj.setResource(rsrc);
                             reload();
