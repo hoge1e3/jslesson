@@ -1,6 +1,7 @@
 {
   "name": "JSLesson",
   "main": "www/js/ctrans/ctrans-test3.html",
+  "main2": "Demo/index.html",
   "single-instance": false,
   "window": {
     "width": 1024,

@@ -602,7 +602,7 @@ function ready() {
     }
     var curName,runURL;
     $("#fullScr").click(function () {
-        if (lang=="dtl" || lang=="js" ||(!useOLDC && lang=="c")) {
+        if (lang=="dtl" || lang=="js" ||(!useOLDC && lang=="c") ||  lang=="tonyu") {
             var inf=getCurrentEditorInfo();
             if (!inf) {
                 alert("実行したファイルを選んでください");
@@ -618,18 +618,19 @@ function ready() {
                 var pub;
                 //var pub=Auth.remotePublics()/*FS.get("/public/")*/.rel(curProjectDir.name());
                 SplashScreen.show();
-                Auth.publishedDir(curProject.getName()+"/").then(function (_p) {
+                Auth.publishedDir(curPrj.getName()+"/").then(function (_p) {
                     pub=_p;
                     return builder.build({mainFile:curLogicFile});
                 }).then(function () {
                     return builder.upload(pub);
                 }).then(function () {
+                    console.log("tonyu upl done");
                     SplashScreen.hide();
-                    return Auth.publishedURL(curProject.getName()+"/");
+                    return Auth.publishedURL(curPrj.getName()+"/");
                 }).then(function (_u) {
                     var cv=$("<div>");
                     cv.dialog();
-                    runURL=_u+curHTMLFile.name();
+                    runURL=_u+(lang=="tonyu"?"index.html":curHTMLFile.name());
                     cv.append($("<div>").append(
                         $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
                     ));
@@ -819,17 +820,18 @@ function ready() {
                         return Auth.publishedDir(curPrj.getName()+"/");
                     }).then(function (pub) {
                         console.log("Tonyu sync to ",pub.path());
-                        builder.upload(pub);
+                        return builder.upload(pub);
+                    }).then(function () {
                         return Auth.publishedURL(curPrj.getName()+"/");
                     }).then(function (pub) {
-                        $("<iframe>").attr({src: pub}).dialog({width:600,height:400});
+                        $("<iframe>").attr({src: pub+"index.html"}).dialog({width:600,height:400});
                     });
                 }).fail(function (e) {
                     //var eobj={stack:e.stack,message:e+""};
                     //for (var k in e) eobj[k]=e[k];
                     if (e.pos) {
                         logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"Tonyu Compile Error",e,"Tonyu");
-                        var te=TError(e+"",curJSFile, e.pos);
+                        var te=TError(e+"",curJSFile, e.pos );
     	                  showErrorPos($("#errorPos"),te);
                         displayMode("compile_error");
                     } else {

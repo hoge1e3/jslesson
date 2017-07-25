@@ -34,10 +34,10 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
                 if (!k in a) console.log(k," is not in a",k[b]);
                 if (!k in b) console.log(k," is not in b",k[a]);
                 if (typeof k[a]=="object" && typeof k[b]=="object") {
-                    diffTree(k[a],k[b]);   
+                    diffTree(k[a],k[b]);
                 } else {
                     if (k[a]!=k[b]) console.log(k," is differ",k[a],k[b]);
-                }            
+                }
             }
         }
         function getLocalDirInfo() {
@@ -215,6 +215,7 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
                 return {uploadSkipped:true};
             }
             var req={base:remote.path(),data:JSON.stringify(uploads),token:""+Math.random()};
+            console.log("Data len=",req.data.length);
             req.pathInfo=A(WebSite.url.putFiles);
             status("putFiles", req);
             return $.ajax({  // TODO:requestFragment

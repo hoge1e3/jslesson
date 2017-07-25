@@ -2608,7 +2608,8 @@ define(["DeferredUtil"], function (DU) {
 				var d=new $.Deferred;
 				var head = document.getElementsByTagName("head")[0] || document.documentElement;
 				var script = document.createElement("script");
-				script.src = url;
+				script.src = url+"?"+Math.random();
+				console.log("LDCLS src",script.src);
 				var done = false;
 				script.onload = script.onreadystatechange = function() {
 					if ( !done && (!this.readyState ||
@@ -6846,6 +6847,9 @@ requirejs(["FS","compiledTonyuProject","Shell","runtime","WebSite","LSFS","Tonyu
 		loadFiles(curProjectDir);
 		sh.cd(curProjectDir);
 		WebSite.compiledKernel="js/kernel.js";
+		if (WebSite.serverType=="BA") {
+			WebSite.compiledKernel=window.runtimePath+"lib/tonyu/kernel.js";
+		}
 		var curPrj=CPTR("user", "js/concat.js",curProjectDir);
 		start();
 		function start() {
