@@ -447,6 +447,9 @@ define('DeferredUtil',[], function () {
                 return d.promise();
             },
             funcPromise:function (f) {
+                /*if (typeof Promise!=="undefined") {
+                    return new Promise(f);
+                }*/
                 var d=new $.Deferred;
                 try {
                     f(function (v) {
@@ -537,10 +540,11 @@ define('DeferredUtil',[], function () {
             }
     };
     DU.begin=DU.try=DU.tr=DU.throwF;
-    DU.callbackToPromise=DU.funcPromise;
-    
+    DU.promise=DU.callbackToPromise=DU.funcPromise;
+
     return DU;
 });
+
 define('Klass',["assert"],function (A) {
     var Klass={};
     Klass.define=function (pd) {
@@ -3037,6 +3041,218 @@ define('LSFS',["FS2","PathUtil","extend","assert","Util","Content"],
     return LSFS;
 
 });
+/**
+ *
+ * jquery.binarytransport.js
+ *
+ * @description. jQuery ajax transport for making binary data type requests.
+ * @version 1.0
+ * @author Henry Algus <henryalgus@gmail.com>
+ *
+ */
+
+// use this transport for "binary" data type
+$.ajaxTransport("+binary", function(options, originalOptions, jqXHR){
+    // check for conditions and support for blob / arraybuffer response type
+    if (window.FormData && ((options.dataType && (options.dataType == 'binary')) || (options.data && ((window.ArrayBuffer && options.data instanceof ArrayBuffer) || (window.Blob && options.data instanceof Blob)))))
+    {
+        return {
+            // create new XMLHttpRequest
+            send: function(headers, callback){
+                // setup all variables
+                var xhr = new XMLHttpRequest(),
+                url = options.url,
+                type = options.type,
+                async = options.async || true,
+                // blob or arraybuffer. Default is blob
+                dataType = options.responseType || "blob",
+                data = options.data || null,
+                username = options.username || null,
+                password = options.password || null;
+
+                xhr.addEventListener('load', function(){
+                    var data = {};
+                    data[options.dataType] = xhr.response;
+                    // make callback and send data
+                    callback(xhr.status, xhr.statusText, data, xhr.getAllResponseHeaders());
+                });
+
+                xhr.open(type, url, async, username, password);
+
+                // setup custom headers
+                for (var i in headers ) {
+                    xhr.setRequestHeader(i, headers[i] );
+                }
+
+                xhr.responseType = dataType;
+                xhr.send(data);
+            },
+            abort: function(){
+                jqXHR.abort();
+            }
+        };
+    }
+});
+define("jquery.binarytransport", function(){});
+
+define('DeferredUtil',[], function () {
+    var DU;
+    var DUBRK=function(r){this.res=r;};
+    DU={
+            ensureDefer: function (v) {
+                var d=new $.Deferred;
+                var isDeferred;
+                $.when(v).then(function (r) {
+                    if (!isDeferred) {
+                        setTimeout(function () {
+                            d.resolve(r);
+                        },0);
+                    } else {
+                        d.resolve(r);
+                    }
+                }).fail(function (r) {
+                    if (!isDeferred) {
+                        setTimeout(function () {
+                            d.reject(r);
+                        },0);
+                    } else {
+                        d.reject(r);
+                    }
+                });
+                isDeferred=true;
+                return d.promise();
+            },
+            directPromise:function (v) {
+                var d=new $.Deferred;
+                setTimeout(function () {d.resolve(v);},0);
+                return d.promise();
+            },
+            then: function (f) {
+                return DU.directPromise().then(f);
+            },
+            timeout:function (timeout) {
+                var d=new $.Deferred;
+                setTimeout(function () {d.resolve();},timeout);
+                return d.promise();
+            },
+            funcPromise:function (f) {
+                var d=new $.Deferred;
+                try {
+                    f(function (v) {
+                        d.resolve(v);
+                    },function (e) {
+                        d.reject(e);
+                    });
+                } catch(e) {
+                    d.reject(e);
+                }
+                return d.promise();
+            },
+            throwPromise:function (e) {
+                var d=new $.Deferred;
+                setTimeout(function () {
+                    d.reject(e);
+                }, 0);
+                return d.promise();
+            },
+            throwF: function (f) {
+                return function () {
+                    try {
+                        return f.apply(this,arguments);
+                    } catch(e) {
+                        console.log(e,e.stack);
+                        return DU.throwPromise(e);
+                    }
+                };
+            },
+            each: function (set,f) {
+                if (set instanceof Array) {
+                    return DU.loop(function (i) {
+                        if (i>=set.length) return DU.brk();
+                        return $.when(f(set[i],i)).then(function () {
+                            return i+1;
+                        });
+                    },0);
+                } else {
+                    var objs=[];
+                    for (var i in set) {
+                        objs.push({k:i,v:set[i]});
+                    }
+                    return DU.each(objs,function (e) {
+                        return f(e.k, e.v);
+                    });
+                }
+            },
+            loop: function (f,r) {
+                while(true) {
+                    if (r instanceof DUBRK) return r.res;
+                    var deff1=true, deff2=false;
+                    // ★ not deffered  ☆  deferred
+                    var r1=f(r);
+                    var dr=$.when(r1).then(function (r2) {
+                        r=r2;
+                        deff1=false;
+                        if (r instanceof DUBRK) return r.res;
+                        if (deff2) return DU.loop(f,r); //☆
+                    });
+                    deff2=true;
+                    if (deff1) return dr;//☆
+                    //★
+                }
+            },
+            brk: function (res) {
+                return new DUBRK(res);
+            },
+            tryLoop: function (f,r) {
+                return DU.loop(DU.tr(f),r);
+            },
+            tryEach: function (s,f) {
+                return DU.loop(s,DU.tr(f));
+            }
+    };
+    DU.begin=DU.tr=DU.throwF;
+    DU.callbackToPromise=DU.funcPromise;
+    
+    return DU;
+});
+define('WebFS',["FS2","jquery.binarytransport","DeferredUtil","Content","PathUtil"],
+        function (FS,j,DU,Content,P) {
+    // FS.mount(location.protocol+"//"+location.host+"/", "web");
+    var WebFS=function (){};
+    var p=WebFS.prototype=new FS;
+    FS.addFSType("web", function () {
+        return new WebFS;
+    });
+    p.fstype=function () {return "Web";};
+    p.supportsSync=function () {return false;};
+    p.inMyFS=function (path) {
+        return P.isURL(path);
+    };
+    FS.delegateMethods(p, {
+        exists: function () {return true;},
+        getContentAsync: function (path){
+            var t=this;
+            return DU.funcPromise(function (succ,err) {
+                $.get(path,function (blob) {
+                    var reader = new FileReader();
+                    reader.addEventListener("loadend", function() {
+                        succ(Content.bin(reader.result, t.getContentType(path)));
+                    });
+                    reader.readAsArrayBuffer(blob);
+                },"binary").fail(err);
+            });
+        },
+        /*setContentAsync: function (path){
+
+        },*/
+        getURL: function (path) {
+            return path;
+        }
+    });
+
+    return WebFS;
+
+});
 define('Env',["assert","PathUtil"],function (A,P) {
     var Env=function (value) {
         this.value=value;
@@ -3263,6 +3479,9 @@ SFile.prototype={
     },
     setText:function (t) {
         A.is(t,String);
+        if (this.isDir()) {
+            throw new Error("Cannot write to directory: "+this.path());
+        }
         if (this.isText()) {
             this.act.fs.setContent(this.act.path, Content.plainText(t));
         } else {
@@ -3284,6 +3503,9 @@ SFile.prototype={
         return this.act.fs.getContent(this.act.path);
     },
     setContent: function (c) {
+        if (this.isDir()) {
+            throw new Error("Cannot write to directory: "+this.path());
+        }
         return this.act.fs.setContentAsync(this.act.path,c);
     },
 
@@ -3458,6 +3680,12 @@ SFile.prototype={
     },
     getResolvedLinkPath: function () {
         return this.act.path;
+    },
+    getFS:function () {
+        return this.act.fs;
+    },
+    observe: function (h) {
+        return this.getFS().getRootFS().addObserver(this.path(),h);
     }
 };
 Object.defineProperty(SFile.prototype,"act",{
@@ -3528,15 +3756,42 @@ define('RootFS',["assert","FS2","PathUtil","SFile"], function (assert,FS,P,SFile
                 assert.is(path,P.Absolute);
                 return new SFile(this.resolveFS(path), path);
             },   
-            addObserver: function (f) {
+            addObserver: function () {
                 this.observers=this.observers||[];
-                this.observers.push(f);
+                var path,f;
+                if (arguments.length==2) {
+                    path=arguments[0];
+                    f=arguments[1];
+                } else if (arguments.length==1) {
+                    path="";
+                    f=arguments[0];
+                } else {
+                    throw new Error("Invalid argument spec");
+                }
+                assert.is(path,String);
+                assert.is(f,Function);
+                var observers=this.observers;
+                var observer={
+                    path:path,
+                    handler:f,
+                    remove: function () {
+                        var i=observers.indexOf(this);
+                        observers.splice(i,1);
+                    }
+                };
+                this.observers.push(observer);
+                return observer;
             },
             notifyChanged: function (path,metaInfo) {
                 if (!this.observers) return;
-                this.observers.forEach(function (f) {
-                    f(path,metaInfo);
+                this.observers.forEach(function (ob) {
+                    if (P.startsWith(path,ob.path)) {
+                        ob.handler(path,metaInfo);
+                    }
                 });
+            },
+            getRootFS:function () {
+                return this;
             }
     };
     for (var i in p) {
@@ -3544,8 +3799,8 @@ define('RootFS',["assert","FS2","PathUtil","SFile"], function (assert,FS,P,SFile
     }
     return RootFS;
 });
-define('FS',["FS2","NativeFS","LSFS", "PathUtil","Env","assert","SFile","RootFS","Content"],
-        function (FSClass,NativeFS,LSFS, P,Env,A,SFile,RootFS,Content) {
+define('FS',["FS2","NativeFS","LSFS", "WebFS", "PathUtil","Env","assert","SFile","RootFS","Content"],
+        function (FSClass,NativeFS,LSFS,WebFS, P,Env,A,SFile,RootFS,Content) {
     var FS={};
     if (typeof window=="object") window.FS=FS;
     var rootFS;
@@ -3665,10 +3920,27 @@ define('WebSite',[], function () {
 			getFiles:WS.phpTop+"getFiles.php",
 			putFiles:WS.phpTop+"putFiles.php"
 	};
+	WS.controller=WS.serverTop+"a.php";
 	WS.runtime=WS.serverTop+"runtime/";
 	//WS.published=WS.serverTop+"fs/home/";
 	WS.published=WS.serverTop+"fs/pub/";
-	
+	WS.serverType="BA";
+	WS.urlAliases= {
+			"images/base.png":WS.runtime+"images/base.png",
+			"images/Sample.png":WS.runtime+"images/Sample.png",
+			"images/neko.png":WS.runtime+"images/neko.png",
+			"images/inputPad.png":WS.runtime+"images/inputPad.png",
+			"images/mapchip.png":WS.runtime+"images/mapchip.png",
+			"images/sound.png":WS.runtime+"images/sound.png",
+			"images/sound_ogg.png":WS.runtime+"images/sound_ogg.png",
+			"images/sound_mp3.png":WS.runtime+"images/sound_mp3.png",
+			"images/sound_mp4.png":WS.runtime+"images/sound_mp4.png",
+			"images/sound_m4a.png":WS.runtime+"images/sound_m4a.png",
+			"images/sound_mid.png":WS.runtime+"images/sound_mid.png",
+			"images/sound_wav.png":WS.runtime+"images/sound_wav.png",
+			"images/ecl.png":WS.runtime+"images/ecl.png"
+	};
+	WebSite.compiledKernel=WebSite.runtime+"/lib/tonyu/kernel.js";
 	/*if (WS.isNW) {
 		if (process.env.TONYU_HOME) {
 			WS.tonyuHome=process.env.TONYU_HOME.replace(/\\/g,"/");
@@ -11668,8 +11940,9 @@ return Tonyu.TraceTbl=(function () {
 })();
 //if (typeof getReq=="function") getReq.exports("Tonyu.TraceTbl");
 });
-define('compiledProject',["DeferredUtil"], function (DU) {
+define('compiledProject',["DeferredUtil","assert"], function (DU,A) {
 	var CPR=function (ns, url) {
+		A.is(arguments,[String,String]);
 		return {
 			getNamespace:function () {return ns;},
 			sourceDir: function () {return null;},
@@ -11729,6 +12002,7 @@ define('compiledProject',["DeferredUtil"], function (DU) {
 	};
 	return CPR;
 });
+
 if (typeof define!=="function") {
 	define=require("requirejs").define;
 }
@@ -11898,6 +12172,7 @@ var TPRC=function (dir) {
 	var F=DU.throwF;
 	TPR.env.traceTbl=traceTbl;
 	TPR.EXT=".tonyu";
+	TPR.getDir=function () {return dir;};
 	TPR.getOptionsFile=function () {
 		var resFile=dir.rel("options.json");
 		return resFile;
@@ -11975,9 +12250,19 @@ var TPRC=function (dir) {
 		});
 		return res;
 	};
+	TPR.getName=function () { return dir.name().replace(/\/$/,""); };
 	TPR.getNamespace=function () {
 		var opt=TPR.getOptions();
 		return A(opt.compiler.namespace,"namespace not specified opt="+JSON.stringify(opt));
+	};
+	TPR.getPublishedURL=function () {//ADDBA
+		if (TPR._publishedURL) return TPR._publishedURL;
+		return DU.requirejs(["Auth"]).then(function (Auth) {
+			return Auth.publishedURL(TPR.getName()+"/");
+		}).then(function (r) {
+			TPR._publishedURL=r;
+			return r;
+		});
 	};
 	TPR.getOutputFile=function (lang) {
 		var opt=TPR.getOptions();
@@ -13148,10 +13433,10 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                 if (!k in a) console.log(k," is not in a",k[b]);
                 if (!k in b) console.log(k," is not in b",k[a]);
                 if (typeof k[a]=="object" && typeof k[b]=="object") {
-                    diffTree(k[a],k[b]);   
+                    diffTree(k[a],k[b]);
                 } else {
                     if (k[a]!=k[b]) console.log(k," is differ",k[a],k[b]);
-                }            
+                }
             }
         }
         function getLocalDirInfo() {
@@ -13329,6 +13614,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                 return {uploadSkipped:true};
             }
             var req={base:remote.path(),data:JSON.stringify(uploads),token:""+Math.random()};
+            console.log("Data len=",req.data.length);
             req.pathInfo=A(WebSite.url.putFiles);
             status("putFiles", req);
             return $.ajax({  // TODO:requestFragment
@@ -13842,10 +14128,18 @@ define('logToServer2',[],function () {
 		code["HTML"]=codeH;
         if (detail instanceof Error) {
             var eobj={stack:detail.stack,message:detail+""};
-            for (var k in detail) eobj[k]=detail[k];
+            for (var k in detail) {
+                if (k==="errorParams") {
+                    eobj[k]=detail[k]+"";
+                } else {
+                    eobj[k]=detail[k];
+                }
+            }
             detail=eobj;
         }
-		return $.post(".?dump2",{data:JSON.stringify({date:d.getFullYear()+"/"+dataPadding(d.getMonth()+1)+"/"+dataPadding(d.getDate()),time:dataPadding(d.getHours())+":"+dataPadding(d.getMinutes())+":"+dataPadding(d.getSeconds()),lang:lang,filename:filePath,result:result,detail:detail,code:code})}).then(function (r) {
+        var data={date:d.getFullYear()+"/"+dataPadding(d.getMonth()+1)+"/"+dataPadding(d.getDate()),time:dataPadding(d.getHours())+":"+dataPadding(d.getMinutes())+":"+dataPadding(d.getSeconds()),lang:lang,filename:filePath,result:result,detail:detail,code:code};
+        //console.log("DATA",data);
+		return $.post(".?dump2",{data:JSON.stringify(data)}).then(function (r) {
 			console.log(r);
 		}).fail(function(e){
 			console.log(e);
@@ -14264,19 +14558,40 @@ define("SplashScreen", (function (global) {
   }
 }(this))
 ;
-define('Auth',["FS","md5"], function (FS,md5) {
+define('Auth',["FS","md5","WebSite","DeferredUtil"], function (FS,md5,WebSite,DU) {
     Auth={
         check:function () {
             var self=this;
             //console.log("CHK");
             return $.when(
-                $.get(".?Login/curclass&"+Math.random()),
-                $.get(".?Login/curuser&"+Math.random()),
-                $.get(".?Login/curTeacher&"+Math.random())
+                $.get(WebSite.controller+"?Login/curclass&"+Math.random()),
+                $.get(WebSite.controller+"?Login/curuser&"+Math.random()),
+                $.get(WebSite.controller+"?Login/curTeacher&"+Math.random())
             ).then(function (c,u,t) {
                 //console.log("CHKE",c[0],u[0]);
                 self.login(c[0],u[0],t[0]);
                 return self;
+            });
+        },
+        assertLogin: function (options) {
+            var self=this;
+            return DU.promise(function (succ,fail) {
+                if (self.loggedIn()) {
+                    onsucc();
+                } else {
+                    self.check().then(function () {
+                        if (!self.loggedIn()) {
+                            options.showLoginLink(WebSite.controller+"?Login/form");
+                        } else {
+                            onsucc();
+                        }
+                    });
+                }
+                function onsucc() {
+                    var userInfo={class:self.class,user:self.user};
+                    if (options.success) options.success(userInfo);
+                    succ(userInfo);
+                }
             });
         },
         loggedIn:function () {
@@ -14301,7 +14616,7 @@ define('Auth',["FS","md5"], function (FS,md5) {
             return md5(this.class+"/"+this.user+"/"+projectName).substring(0,8)+"/";
         },
         getHash: function (projectName) {
-            return $.ajax("a.php?Login/getPublishedDir",{
+            return $.ajax(WebSite.controller+"?Login/getPublishedDir",{
                 data: {
                     project: projectName
                 }
@@ -14585,7 +14900,8 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     var langList={
         "js":"JavaScript",
         "c":"C",
-        "dtl":"Dolittle"
+        "dtl":"Dolittle",
+        "tonyu":"Tonyu"
     };
     var helpURL;
     var unsaved=false;
@@ -14707,6 +15023,23 @@ function ready() {
     	});
     	helpURL="http://bitarrow.eplang.jp/index.php?dolittle_use"
     	break;
+    case "tonyu":
+        requirejs(["TonyuBuilder","TonyuProject"],function(_,TPRC){
+            Tonyu.defaultOptions={
+                compiler: { defaultSuperClass: "Actor"},
+                run: {mainClass: "Main", bootClass: "Boot"},
+                kernelEditable: false
+            };
+            Builder=_;
+            console.log("tnub requirejsed");
+            $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+            ram=FS.get("/ram/build/");
+            FS.mount(ram.path(),"ram");
+            curPrj=TPRC(curProjectDir);// curPrj re-construct!!!?
+            builder=new Builder(curPrj, ram);
+            curPrj.getPublishedURL().then(builderReady);
+        });
+        break;
     }
     function makeUI(){
         Columns.make(
@@ -14760,12 +15093,16 @@ function ready() {
                       {label:"エディタモード切替",id:"editorType",action:editorType}*/
                   ]},
                   {label:"使用方法",id:"openHelp"},
+                  {label:"ツール",id:"tool",sub:[
+                      {label:"画像リスト",id:"imageList",action:showImageList},
+                  ]},
                   {label:"配布",id:"distribute",sub:[
                       {label:"ファイルを配布",id:"distributeFile",action:distributeFile},
                       {label:"プロジェクトを配布",id:"distributePrj",action:distributePrj}
                   ]},
                 ]
         );
+        showToolMenu();
         showDistMenu();
     }
     function upFile() {
@@ -14778,6 +15115,14 @@ function ready() {
             }
         });
     }
+    function showImageList() {
+        DU.requirejs(["ResEditor"]).then(function (ResEditor) {
+            ResEditor(curPrj,"image");
+        }).fail(function (e) {
+            console.log(e.stack);
+            alert(e);
+        });
+    }
     function showDistMenu(){
         if(Auth.teacher!=""){
             dist="block";
@@ -14786,6 +15131,13 @@ function ready() {
         }
         console.log("Auth.teacher",Auth.teacher);
         $("#distribute").css("display",dist);
+    }
+    function showToolMenu() {
+        if (lang==="tonyu") {
+            $("#tool").css("display","block");
+        } else {
+            $("#tool").css("display","none");
+        }
     }
     function distributeFile() {
         //alert("distributeFile!");
@@ -15012,6 +15364,7 @@ function ready() {
     fl.ls(curProjectDir);
     console.log("listing", curProjectDir.path(),"done");
     function builderReady() {
+        window.curPrj=curPrj;
         autoexec();
     }
     function autoexec() {
@@ -15110,7 +15463,7 @@ function ready() {
     }
     var curName,runURL;
     $("#fullScr").click(function () {
-        if (lang=="dtl" || lang=="js" ||(!useOLDC && lang=="c")) {
+        if (lang=="dtl" || lang=="js" ||(!useOLDC && lang=="c") ||  lang=="tonyu") {
             var inf=getCurrentEditorInfo();
             if (!inf) {
                 alert("実行したファイルを選んでください");
@@ -15126,18 +15479,19 @@ function ready() {
                 var pub;
                 //var pub=Auth.remotePublics()/*FS.get("/public/")*/.rel(curProjectDir.name());
                 SplashScreen.show();
-                Auth.publishedDir(curProjectDir.name()).then(function (_p) {
+                Auth.publishedDir(curPrj.getName()+"/").then(function (_p) {
                     pub=_p;
                     return builder.build({mainFile:curLogicFile});
                 }).then(function () {
                     return builder.upload(pub);
                 }).then(function () {
+                    console.log("tonyu upl done");
                     SplashScreen.hide();
-                    return Auth.publishedURL(curProjectDir.name());
+                    return Auth.publishedURL(curPrj.getName()+"/");
                 }).then(function (_u) {
                     var cv=$("<div>");
                     cv.dialog();
-                    runURL=_u+curHTMLFile.name();
+                    runURL=_u+(lang=="tonyu"?"index.html":curHTMLFile.name());
                     cv.append($("<div>").append(
                         $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
                     ));
@@ -15318,7 +15672,43 @@ function ready() {
 	            if(e) console.log(e.stack);
                 SplashScreen.hide();
             }
-    	}
+        } else if (lang=="tonyu") {
+            try {
+                SplashScreen.show();
+                $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+                DU.timeout(0).then(function () {
+                    return builder.build({mainFile:curJSFile}).then(function () {
+                        return Auth.publishedDir(curPrj.getName()+"/");
+                    }).then(function (pub) {
+                        console.log("Tonyu sync to ",pub.path());
+                        return builder.upload(pub);
+                    }).then(function () {
+                        return Auth.publishedURL(curPrj.getName()+"/");
+                    }).then(function (pub) {
+                        $("<iframe>").attr({src: pub+"index.html"}).dialog({width:600,height:400});
+                    });
+                }).fail(function (e) {
+                    //var eobj={stack:e.stack,message:e+""};
+                    //for (var k in e) eobj[k]=e[k];
+                    if (e.pos) {
+                        logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"Tonyu Compile Error",e,"Tonyu");
+                        var te=TError(e+"",curJSFile, e.pos );
+    	                  showErrorPos($("#errorPos"),te);
+                        displayMode("compile_error");
+                    } else {
+                        logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"Tonyu Compile Error",e,"Tonyu");
+                        Tonyu.onRuntimeError(e);
+                    }
+                    console.log("TONYUFAIL",e.stack);
+                }).always(function () {
+                    SplashScreen.hide();
+                    return sync();
+                });
+            }catch(e) {
+                if(e) console.log(e.stack);
+                SplashScreen.hide();
+            }
+        }
     }
     window.moveFromFrame=function (name) {
         A.is(name,String);
