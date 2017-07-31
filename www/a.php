@@ -26,7 +26,12 @@ if (count($actionAry)==2) {
     $method=$actionAry[1];
     $controller=$action."Controller";
     req($controller);
-    $controller::$method();
+    try {
+        $controller::$method();
+    } catch (Exception $e) {
+        http_response_code(500);
+        die($e);
+    }
     return;
 }
 $actions=array(

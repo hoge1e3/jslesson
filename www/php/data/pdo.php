@@ -56,7 +56,22 @@ function pdo_insert($tbl, $vals) {
     $sth=$pdo->prepare($q);
     $sth->execute($vary);
 }
+function pdo_find1($tbl,$keys) {
+    $q="select * from `$tbl` ";
+    $q.=" where ";$com="";
+    $vary=array();
+    foreach ($keys as $k=>$v) {
+        $q.="$com`$k`=?";
+        $com=" and ";
+        array_push($vary,$v);
+    }
+    $q.=" limit 1";
+    return pdo_select1($q,$vary);
+}
 function pdo_update($tbl,$key,$vals) {
+    if (is_array($key)) {
+        return pdo_update2($tbl,$key,$vals);
+    }
     $pdo=pdo();
     $q="update `$tbl` set ";
     $vs="";$com="";$vary=array();
@@ -76,4 +91,33 @@ function pdo_update($tbl,$key,$vals) {
     $sth=$pdo->prepare($q);
     $sth->execute($vary);
 }
+function pdo_insertOrUpdate($tbl,$keys,$vals) {
+    //echo $q;var_dump($vary);
+    $r=pdo_find1($tbl,$keys);
+    if ($r) {
+        return pdo_update2($tbl,$keys,$vals);
+    } else {
+        return pdo_insert($tbl,array_merge($keys,$vals));
+    }
+}
+function pdo_update2($tbl,$keys,$vals) {
+    $pdo=pdo();
+    $q="update `$tbl` set ";
+    $vs="";$com="";$vary=array();
+    foreach ($vals as $k=>$v) {
+        $q.="$com`$k`=?";
+        $com=", ";
+        array_push($vary,$v);
+    }
+    $q.=" where ";$com="";
+    foreach ($keys as $k=>$v) {
+        $q.="$com`$k`=?";
+        $com=" and ";
+        array_push($vary,$v);
+    }
+    //echo $q;var_dump($vary);
+    $sth=$pdo->prepare($q);
+    $sth->execute($vary);
+}
+
 ?>

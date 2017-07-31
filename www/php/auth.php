@@ -120,6 +120,17 @@ class Auth {
             throw new Exception("You are not the sudoer");
         }
     }
+    static function assertTeacher() {
+      $t=self::curTeacher();
+      if (!$t) {
+        throw new Exception("You are not the teacher");
+      }
+      $c=self::curClass2();
+      if ($t->isTeacherOf($c)) {
+        return $t;
+      }
+      throw new Exception("You are not the teacher");
+    }
     static function isTeacher() {//旧バージョン
         return self::curUser()==self::TEACHER;
     }

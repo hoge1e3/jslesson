@@ -78,7 +78,7 @@ class AddErrorInfoController {
                 echo $res->end;
             } else {
                 echo "0";
-            }            
+            }
         }
         //header("Content-type: text/json");
         //echo json_encode($res);
