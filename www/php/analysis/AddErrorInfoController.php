@@ -87,7 +87,8 @@ class AddErrorInfoController {
     static function getLog() {
         $logid=param("logid");
         $class=Auth::curClass2();
-        if (!Auth::isTeacherOf($class)) return ;
+        Auth::assertTeacher();
+        //if (!Auth::isTeacherOf($class)) return ;
         $res=pdo_select1("select * from `log` where id=?",$logid);
         if ($res->class==$class->id) {
             header("Content-type: text/json");

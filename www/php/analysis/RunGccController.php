@@ -12,34 +12,39 @@ class RunGccController {
 		while($o=$sth->fetch(PDO::FETCH_OBJ)) {
 			if (is_string($o->raw)) {
 				$raw=json_decode($o->raw);
-				if ($raw->code && $raw->code->C) {
+				if ($raw->code && isset($raw->code->C)) {
 					if (pdo_find1("logtag",array("log"=>$o->id,"name"=>"gccres"))) {
-						continue;
+						//continue;
 					}
 					print "<pre>".$raw->code->C."</pre>\n";
 					$f->rel("test.c")->text($raw->code->C);
 					$end=$f->rel("end.txt");
 					if ($end->exists()) $end->rm();
-					#echo "[".exec("sh perl/gcc.sh")."]";
-					echo "[".exec("cmd.exe /c perl\\gcc.bat")."]";
+					echo "[".exec("sh perl/gcc.sh")."]";
+					#echo "[".exec("cmd.exe /c perl\\gcc.bat")."]";
 					while(!$end->exists()) {
 						usleep(100);
 					}
-					$res="";
+					$val="Unknown";
 					if ($f->rel("test.exe")->exists() ){
-						$res.="[OK]";
+						$val="OK";//$res.="[OK]";
 					}
 					$err=$f->rel("err.txt");
-					$res.=$err->text();
+					$det=$err->text();
+					if ($det) {
+						if ($val=="OK") $val="warning";
+						else $val="error";
+					}
+					//$res=mb_substr($res,0,250);
+					//echo "$res\n".strlen($res);
 					pdo_insertOrUpdate("logtag",
 						array("log"=>$o->id,"name"=>"gccres"),
-						array("value"=>$res)
+						array("value"=>$val,"detail"=>$det)
 					);
-					echo "<pre>$res</pre>\n";
 				}
 			}
 			$cnt++;
-			if ($cnt>5) break;
+			//if ($cnt>5000) break;
 		}
 		//$sth->close();
 	}

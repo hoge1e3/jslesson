@@ -126,6 +126,9 @@ class Auth {
         throw new Exception("You are not the teacher");
       }
       $c=self::curClass2();
+      if (!$c) {
+        throw new Exception("You are not logged on any class");
+      }
       if ($t->isTeacherOf($c)) {
         return $t;
       }
