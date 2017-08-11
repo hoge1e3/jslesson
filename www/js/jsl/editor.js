@@ -505,6 +505,7 @@ function ready() {
     function builderReady() {
         window.curPrj=curPrj;
         autoexec();
+        autologexec();
     }
     function autoexec() {
         var autoexec=Util.getQueryString("autoexec",null);
@@ -512,6 +513,17 @@ function ready() {
         if (autoexec) {
             fl.select(curProjectDir.rel(autoexec));
             run();
+        }
+    }
+    function autologexec() {
+        var id=Util.getQueryString("autologexec",null);
+        if (id) {
+            $.ajax("a.php?AddErrorInfo/getLog&logid="+id).then(function (r) {
+               var raw=JSON.parse(r.raw);
+               fl.select(curProjectDir.rel("Test.c"));               
+               getCurrentEditorInfo().editor.getSession().getDocument().setValue(raw.code.C);
+               run();//$("#runMenu").click();
+            });
         }
     }
     function ls(){

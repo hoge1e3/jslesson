@@ -13,6 +13,7 @@ $mod_aliases=array(
     'TagUtil' => 'php/analysis/TagUtil.php',
     'TagVsCluster' => 'php/analysis/TagVsCluster.php',
     'VecUtil' => 'php/analysis/VecUtil.php',
+    'ErrorSeqController'=> 'php/analysis',
     'auth' => 'php/auth.php',
     'Auth' => 'php/auth.php',
     "RunGccController" => "php/analysis",

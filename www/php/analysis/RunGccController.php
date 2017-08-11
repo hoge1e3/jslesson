@@ -1,6 +1,46 @@
 <?php
 req("pdo","Auth","SFile","NativeFS");
 class RunGccController {
+	static function get() {
+		$class=Auth::curClass2();
+		Auth::assertTeacher();
+		$errTypes=array(
+		'%undefined reference to \`main%',
+		'%error: too few arguments to function%',
+		'%error: too many arguments to function%',
+		'%error: conflicting types for%',
+		'%undefined reference to%',
+		'%assignment to expression with array type%',
+		'%label not within a switch statement%',
+		'%lvalue required as increment operand%'
+		);
+
+		$q=<<<EOF
+select log.id as id,logtag.detail as detail,raw 
+from logtag inner join log on log.id=logtag.log 
+where class=? and name='gccres' and
+   errorType='No Error' and value='error'
+
+EOF;
+		$params=array($class->id);
+		foreach ($errTypes as $errType) {
+			$q.=" and not (logtag.detail like ? )";
+			$params[]=$errType;
+		}
+		echo $q;
+		var_dump($params);
+		$sth=pdo_exec($q,$params);
+		while($o=$sth->fetch(PDO::FETCH_OBJ)) {
+			if (is_string($o->raw)) {
+				$raw=json_decode($o->raw);
+				if ($raw->code && isset($raw->code->C)) {
+					print "<pre>".htmlspecialchars($raw->code->C)."</pre>";
+				}
+			}
+			print "<pre>".htmlspecialchars($o->detail)."</pre>";
+			print "<HR>";
+		}
+	}
 	static function run(){
 		//pdo_insertOrUpdate("logtag",array("log"=>19049,"name"=>"test"),array("value"=>"testval3"));
 		//return;
