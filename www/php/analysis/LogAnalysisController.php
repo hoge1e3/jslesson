@@ -1,5 +1,5 @@
 <?php
-req("auth","pdo","JSQN");
+req("auth","pdo","JSQN","DateUtil");
 class LogAnalysisController {
     static function read() {
         $class=Auth::curClass2();
@@ -82,6 +82,58 @@ class LogAnalysisController {
         <input type=submit>
         </form>
         <?php
+    }
+    static function outtime() {
+        $class=Auth::curClass2();
+        Auth::assertTeacher();
+        $t=Auth::curTeacher();
+        $outtimes=explode(",",param("outtimes"));
+        $outtimes=array_map(function ($e) {
+        	return $e-0;
+        },$outtimes);
+        $outtimes=implode(",",$outtimes);
+        $user=param("user");
+    	$q=<<<EOF
+select *
+from 
+  (select *, floor((time mod (7*86400))/3600) as t
+  from log where class=? and user=?
+  ) as temp
+where t not in ($outtimes) order by time;
+    	
+EOF;
+
+		$sth=pdo_exec($q,$class->id,$user);
+		while($r=$sth->fetch(PDO::FETCH_OBJ)) {
+			$raw=json_decode($r->raw);
+			$url="index.html?r=jsl_edit&dir=/home/".$class->id."/".$t->id."/TestC/&autologexec=".$r->id;
+			echo "<div class=logitem>";
+			echo "<div class=link><a href='$url' target=exe>ID=".$r->id."</a></div>";
+			echo "<div class=date>".DateUtil::toString($r->time-0)."</div>";
+			echo "<div class=file>".$r->filename."</div>";
+			echo "<div class=errorType>".$r->errorType."</div>";
+			/*if (isset($raw->code) && isset($raw->code->C)) {
+				$pos=$r->errorPos;
+				//echo "pos=".."<BR>";
+				$code=$raw->code->C;
+				$codehere=htmlspecialchars(mb_substr($code,0,$pos,"utf8")).
+				"<img src='images/ecl.png'/>".htmlspecialchars(mb_substr($code,$pos,null,"utf8"));
+				//$codehere.=" len ".strlen($code)." pos $pos";
+				if (isset($r->detail)) {
+					$dd=json_decode($r->detail);
+					if ($dd && isset($dd->stack))  {
+						echo "<pre class=stack>".htmlspecialchars($dd->stack)."</pre>";
+					}
+					//if ($dd && isset($dd->errorParams) && isset($dd->errorType))  {
+						//echo $dd->errorType."  ".implode(",",$dd->errorParams);
+					//}
+				}
+				echo "<pre class=prog>$codehere</pre>\n";
+			}*/
+			echo "</div>";
+			//var_dump($r);
+			echo "<hR>\n";
+		}
     }
 }
  ?>
