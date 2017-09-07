@@ -14,6 +14,7 @@ $mod_aliases=array(
     'TagVsCluster' => 'php/analysis/TagVsCluster.php',
     'VecUtil' => 'php/analysis/VecUtil.php',
     'ErrorSeqController'=> 'php/analysis',
+    "ZipController"=>"php/teacher",
     'auth' => 'php/auth.php',
     'Auth' => 'php/auth.php',
     "RunGccController" => "php/analysis",

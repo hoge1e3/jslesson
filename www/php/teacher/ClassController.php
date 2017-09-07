@@ -25,7 +25,8 @@ class ClassController {
         <a href="a.php?Class/config">クラスの設定をする</a><br>
         <a href="a.php?Class/registerUserForm">履修者を登録する</a><br>
         <a href="a.php?Class/showUsers">ユーザ一覧</a><br>
-        <a href="a.php?Class/showStatus">ユーザの状況一覧</a>
+        <a href="a.php?Class/showStatus">ユーザの状況一覧</a><BR>
+        <a href="a.php?Zip/download">ユーザの全ファイルダウンロード</a>
         <hr>
         <a href="." target="student">演習画面へ</a><hr>
         <?php
@@ -371,7 +372,7 @@ class ClassController {
             $(document).ready(function() {
                 dx=0,dy=0;
                 displayingId="";
-                
+
             // call the tablesorter plugin
                 $("table").tablesorter({
                 // define a custom text extraction function
@@ -393,7 +394,7 @@ class ClassController {
                     dataType: "json",
                     success: function(data,dataType){
                         console.log(data);
-                        
+
                         if(displayingId!==""){
                             $("[id="+displayingId+"ui]").css("display","none");
                             $("#"+displayingId).css("display","none");
@@ -403,7 +404,7 @@ class ClassController {
                         res=res.replace(/</g,"&lt;");
                         res=res.replace(/>/g,"&gt;");
                         $("[id="+displayingId+"ui]").css("display","inline");
-                        
+
                         $("#"+userid).height(30);
                         $("#"+userid).html(res);
                         $("#"+userid).css("display","inline");
