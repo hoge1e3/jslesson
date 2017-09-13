@@ -1868,13 +1868,14 @@ var requirejs, require, define;
                 node.addEventListener('load', context.onScriptLoad, false);
                 node.addEventListener('error', context.onScriptError, false);
             }
-            cvurl = (typeof LocalBrowserInfo=="object") ? 
+            //@hoge1e3
+            cvurl = (typeof LocalBrowserInfo=="object") ?
             LocalBrowserInfo.convertURL(url) : url;
             if (cvurl===url) {
                 if (!requirejs.__urlPostfix) {
                     requirejs.__urlPostfix=(
-                        typeof parent==="object" && 
-                        parent.requirejs && 
+                        typeof parent==="object" &&
+                        parent.requirejs &&
                         parent.requirejs.__urlPostfix
                     ) || String.fromCharCode(
                         Math.floor(Math.random()*9)+
