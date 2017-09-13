@@ -159,7 +159,7 @@ var TPRC=function (dir) {
 		console.log("Compile: "+dir.path());
 		ctx=initCtx(ctx);
 		var myNsp=TPR.getNamespace();
-		var baseClasses,ctxOpt,env,myClasses,fileAddedOrRemoved,sf;
+		var baseClasses,ctxOpt,env,myClasses,fileAddedOrRemoved,sf,ord;
 		var compilingClasses;
 		return TPR.loadDependingClasses(ctx).then(F(function () {
 			baseClasses=ctx.classes;
@@ -172,6 +172,8 @@ var TPRC=function (dir) {
 				var cl=baseClasses[n];
 				env.aliases[ cl.shortName] = cl.fullName;
 			}
+			return TPR.showProgress("scan sources");
+		})).then(F(function () {
 			myClasses={};
 			fileAddedOrRemoved=!!ctxOpt.noIncremental;
 			sf=TPR.sourceFiles(myNsp);
@@ -193,6 +195,8 @@ var TPRC=function (dir) {
 				m.src.tonyu=f;
 				env.aliases[shortCn]=fullCn;
 			}
+			return TPR.showProgress("update check");
+		})).then(F(function () {
 			for (var n in baseClasses) {
 				if (myClasses[n] && myClasses[n].src && !myClasses[n].src.js) {
 					//前回コンパイルエラーだとここにくるかも
@@ -215,11 +219,15 @@ var TPRC=function (dir) {
 			} else {
 				compilingClasses=myClasses;
 			}
+			return TPR.showProgress("initClassDecl");
+		})).then(F(function () {
 			for (var n in compilingClasses) {
 				console.log("initClassDecl: "+n);
 				Semantics.initClassDecls(compilingClasses[n], env);/*ENVC*/
 			}
-			var ord=orderByInheritance(myClasses);/*ENVC*/
+			return TPR.showProgress("order");
+		})).then(F(function () {
+			ord=orderByInheritance(myClasses);/*ENVC*/
 			ord.forEach(function (c) {
 				if (compilingClasses[c.fullName]) {
 					console.log("annotate :"+c.fullName);
@@ -236,10 +244,14 @@ var TPRC=function (dir) {
 			} catch(e) {
 				console.log("Error in Typecheck(It doesnt matter because Experimental)",e.stack);
 			}
+			return TPR.showProgress("genJS");
+		})).then(F(function () {
 			//throw "test break";
-			TPR.genJS(ord.filter(function (c) {
+			return TPR.genJS(ord.filter(function (c) {
 				return compilingClasses[c.fullName];
 			}));
+			//return TPR.showProgress("concat");
+		})).then(F(function () {
 			var copt=TPR.getOptions().compiler;
 			if (!copt.genAMD) {
 				return TPR.concatJS(ord);
@@ -249,9 +261,10 @@ var TPRC=function (dir) {
 	TPR.genJS=function (ord) {
 		// 途中でコンパイルエラーを起こすと。。。
 		var env=TPR.env;
-		ord.forEach(function (c) {
+		return DU.each(ord,function (c) {
 			console.log("genJS :"+c.fullName);
 			JSGenerator.genJS(c, env);
+			return TPR.showProgress("genJS :"+c.fullName);
 		});
 	};
 	TPR.concatJS=function (ord) {
