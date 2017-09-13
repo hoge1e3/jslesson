@@ -56,11 +56,18 @@ define(["FS","md5","WebSite","DeferredUtil"], function (FS,md5,WebSite,DU) {
             return md5(this.class+"/"+this.user+"/"+projectName).substring(0,8)+"/";
         },
         getHash: function (projectName) {
+            var self=this;
+            if (self.hashCache[projectName]) {
+                return $.when(self.hashCache[projectName]);
+            }
             return $.ajax(WebSite.controller+"?Login/getPublishedDir",{
                 data: {
                     project: projectName
                 }
-            })
+            }).then(function (res) {
+                self.hashCache[projectName]=res;
+                return res;
+            });
         },
         publishedDir: function (projectName) {
             return this.getHash(projectName).then(function (name){
@@ -75,7 +82,8 @@ define(["FS","md5","WebSite","DeferredUtil"], function (FS,md5,WebSite,DU) {
         remotePublics: function () {
             return this.remoteProjects().rel("public/"); //changeHOME(1)
             //return FS.get("/public/");//changeHOME
-        }
+        },
+        hashCache:{}
     };
     return Auth;
 });

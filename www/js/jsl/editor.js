@@ -520,7 +520,7 @@ function ready() {
         if (id) {
             $.ajax("a.php?AddErrorInfo/getLog&logid="+id).then(function (r) {
                var raw=JSON.parse(r.raw);
-               fl.select(curProjectDir.rel("Test.c"));               
+               fl.select(curProjectDir.rel("Test.c"));
                getCurrentEditorInfo().editor.getSession().getDocument().setValue(raw.code.C);
                run();//$("#runMenu").click();
             });
@@ -828,14 +828,20 @@ function ready() {
                 SplashScreen.show();
                 $("#fullScr").attr("href","javascript:;").text("別ページで表示");
                 DU.timeout(0).then(function () {
+                    var t=new Date().getTime();
                     return builder.build({mainFile:curJSFile}).then(function () {
-                        return Auth.publishedDir(curPrj.getName()+"/");
+                        var nt=new Date().getTime();
+                        console.log("Build time :",nt-t);
+                        return Auth.publishedDir(curPrj.getName()+"/");// !=URL
                     }).then(function (pub) {
-                        console.log("Tonyu sync to ",pub.path());
+                        console.log("Tonyu sync from ",builder.dst, "to ",pub.path());
+                        t=new Date().getTime();
                         return builder.upload(pub);
                     }).then(function () {
-                        return Auth.publishedURL(curPrj.getName()+"/");
+                        return Auth.publishedURL(curPrj.getName()+"/");// !=Dir
                     }).then(function (pub) {
+                        var nt=new Date().getTime();
+                        console.log("Upload time :",nt-t);
                         $("<iframe>").attr({src: pub+"index.html"}).dialog({width:600,height:400});
                     });
                 }).fail(function (e) {

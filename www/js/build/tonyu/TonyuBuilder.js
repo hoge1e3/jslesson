@@ -13,6 +13,7 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync"],
         var prjDir=prj.getDir();
         var resc=prj.getResource();
         var opt=prj.getOptions();
+        console.log("TB.OPT",opt);
         var loadFilesBuf="function loadFiles(dir){\n";
         var runtimeDir=FS.get(WebSite.runtime);
         var tonyuLibDir=runtimeDir.rel("lib/tonyu/");
