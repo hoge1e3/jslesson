@@ -1,3 +1,6 @@
+// How to build
+// cd scripts
+// ./copyKey.sh
 native setTimeout;
 native $;
 native window;
@@ -251,6 +254,7 @@ native Error;
 }
 \new() {
     // --- TODO
+    activityGroup=activityGroup||"default";
     keyData=[];
     document.onkeydown = function (e){
         if(!e) e = window.event;
@@ -351,23 +355,29 @@ nowait \deg(d) {
     var p=window.$.ajax(window.runtimePath+"a.php?KeyValue/put"+
     "&key="+key+
     "&value="+value+
-    "&url="+url
+    "&url="+url+
+    "&group="+activityGroup
     );
     var r;
     r=waitFor(p);
     return r;
+}
+\setGroup(g) {
+    activityGroup=g||"default";
 }
 \getFromServer(key) {
     var url=window.location.href;
     var p=window.$.ajax(window.runtimePath+"a.php?KeyValue/get"+
     "&key="+key+
-    "&url="+url
+    "&url="+url+
+    "&group="+activityGroup
     );
     var r;
     r=waitFor(p);
     return r;
 }
-\addLog(group,practice,d1,d2,d3,d4) {
+\addLog(practice,d1,d2,d3,d4) {
+    group=activityGroup;
     var url=window.location.href;
     var params="&group="+group+"&practice="+practice+"&url="+url;
     if (d1!=null) params+="&data1="+d1;
@@ -379,7 +389,8 @@ nowait \deg(d) {
     r=waitFor(p);
     return r;
 }
-\findLog(group,practice,d1,d2,d3,d4) {
+\findLog(practice,d1,d2,d3,d4) {
+    group=activityGroup;
     var url=window.location.href;
     var params="&group="+group+"&practice="+practice+"&url="+url;
     if (d1!=null) params+="&data1="+d1;

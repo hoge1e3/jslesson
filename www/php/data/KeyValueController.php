@@ -22,6 +22,7 @@ class KeyValueController {
             }
             $k=$_GET["key"];
             $v=$_GET["value"];
+            $g=param("group","default");
             KeyValue::put($k,$v);
             echo "OK";
         } catch (Exception $e) {
