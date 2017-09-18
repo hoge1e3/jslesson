@@ -222,6 +222,7 @@ function doNotification(mesg) {
     if (parent && parent.NotificationDialog) {
         parent.NotificationDialog.show(mesg);
     }
+    console.log("doNotification",mesg);
 }
 function checkDust(v,name) {
     if (v===dustValue()) {
