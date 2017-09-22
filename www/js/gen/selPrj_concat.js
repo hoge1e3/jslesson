@@ -4776,16 +4776,43 @@ return Tonyu=function () {
 		$LASTPOS=0;
 		th.steps();
 	}
+	var lastLoopCheck=new Date().getTime();
+	var prevCheckLoopCalled;
+	function checkLoop() {
+		var now=new Date().getTime();
+		if (now-lastLoopCheck>1000) {
+			resetLoopCheck(10000);
+			throw new Error("無限ループをストップしました"+(now-prevCheckLoopCalled));
+		}
+		prevCheckLoopCalled=now;
+	}
+	function resetLoopCheck(disableTime) {
+		lastLoopCheck=new Date().getTime()+(disableTime||0);
+	}
+	function is(obj,klass) {
+		if (klass===Number) {
+			return typeof obj==="number";
+		}
+		if (klass===String) {
+			return typeof obj==="string";
+		}
+		if (klass===Boolean) {
+			return typeof obj==="boolean";
+		}
+		//Functi.... never mind.
+	}
+	setInterval(resetLoopCheck,16);
 	return Tonyu={thread:thread, /*threadGroup:threadGroup,*/ klass:klass, bless:bless, extend:extend,
 			globals:globals, classes:classes, classMetas:classMetas, setGlobal:setGlobal, getGlobal:getGlobal, getClass:getClass,
 			timeout:timeout,animationFrame:animationFrame, /*asyncResult:asyncResult,*/
 			bindFunc:bindFunc,not_a_tonyu_object:not_a_tonyu_object,
 			hasKey:hasKey,invokeMethod:invokeMethod, callFunc:callFunc,checkNonNull:checkNonNull,
-			run:run,iterator:IT,
-			VERSION:1500189381377,//EMBED_VERSION
+			run:run,iterator:IT,checkLoop:checkLoop,resetLoopCheck:resetLoopCheck,
+			VERSION:1503453200013,//EMBED_VERSION
 			A:A};
 }();
 });
+
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -8878,8 +8905,11 @@ XMLBuffer=function (src) {
 			}
 		}
 		if (node==null) return;
-		if (attrName) $.tag("<attr_"+attrName+">");
-		if (node.type) $.tag("<"+node.type+">");
+		if (attrName) $.startTag("attr_"+attrName+"");
+		if (node.type) {
+			if (node.isToken) $.startTag("token_"+node.type+"");
+			else $.startTag(node.type+"");
+		}
 		if (node.text) $.src(r.text);
 		else {
 			var n=$.orderByPos(node);
@@ -8896,29 +8926,13 @@ XMLBuffer=function (src) {
 				$.src(src.substring($.srcLen, r.pos+r.len));
 			}
 		}
-		if (node.type) $.tag("</"+node.type+">");
-		if (attrName) $.tag("</attr_"+attrName+">");
-	};
-	$.orderByPos=XMLBuffer.orderByPos;/*function (node) {
-		var res=[];
-		if (node[XMLBuffer.SUBELEMENTS]) {
-			node[XMLBuffer.SUBELEMENTS].forEach(function (e) {
-				res.push(e);
-			});
-		} else {
-			for (var i in node) {
-				if (!node.hasOwnProperty(i)) continue;
-				if (node[i]==null || typeof node[i]=="string" || typeof node[i]=="number") continue;
-				if (typeof(node[i].pos)!="number") continue;
-				if (isNaN(parseInt(i)) && !(i+"").match(/-/)) { 			res.push({name: i, value: node[i]}); }
-				else { 			res.push({value: node[i]}); }
-			}
+		if (node.type) {
+			if (node.isToken) $.endTag("token_"+node.type+"");
+			else $.endTag(""+node.type+"");
 		}
-		res=res.sort(function (a,b) {
-			return a.value.pos-b.value.pos;
-		});
-		return res;
-	};*/
+		if (attrName) $.endTag("attr_"+attrName);
+	};
+	$.orderByPos=XMLBuffer.orderByPos;
 	$.src=function (str) {
 		$.buf+=str.replace(/&/g,"&amp;").replace(/>/g,"&gt;").replace(/</g,"&lt;");
 		$.srcLen+=str.length;
@@ -8926,26 +8940,48 @@ XMLBuffer=function (src) {
 	$.tag=function (str) {
 		$.buf+=str;
 	};
+	$.startTag=function (tagName) {
+		if (tagName.match(/^[a-zA-Z_0-9]+$/)) {
+			$.tag("<"+tagName+">");
+		} else {
+			$.tag("<token>");
+			//$.tag("<operator name=\""+tagName+"\">");
+		}
+	};
+	$.endTag=function (tagName) {
+		if (tagName.match(/^[a-zA-Z_0-9]+$/)) {
+			$.tag("</"+tagName+">");
+		} else {
+			$.tag("</token>");
+			//$.tag("</operator>");
+		}
+	};
 
 	$.buf="";
 	$.srcLen=0;
 	return $;
-}
+};
 XMLBuffer.orderByPos=function (node) {
 	var res=[];
-	if (node[XMLBuffer.SUBELEMENTS]) {
-		node[XMLBuffer.SUBELEMENTS].forEach(function (e) {
-			res.push(e);
+	/*if (node[XMLBuffer.SUBELEMENTS]) {
+		//console.log("subele",node);
+		node[XMLBuffer.SUBELEMENTS].forEach(function (e,i) {
+			if (e) {
+				res.push({value:e});
+			}
 		});
-	} else {
+	} else {*/
 		for (var i in node) {
 			if (!node.hasOwnProperty(i)) continue;
 			if (node[i]==null || typeof node[i]=="string" || typeof node[i]=="number") continue;
 			if (typeof(node[i].pos)!="number") continue;
-			if (isNaN(parseInt(i)) && !(i+"").match(/-/)) { 			res.push({name: i, value: node[i]}); }
-			else { 			res.push({value: node[i]}); }
+			if (isNaN(parseInt(i)) && !(i+"").match(/^-/)) {
+				res.push({name: i, value: node[i]}); 
+			} else {
+				res.push({value: node[i]}); 
+			}
 		}
-	}
+	//}
 	res=res.sort(function (a,b) {
 		return a.value.pos-b.value.pos;
 	});
@@ -9829,9 +9865,9 @@ return TonyuLang=function () {
 	var funcExpr=g("funcExpr").ands("funcExprHead","compound").ret("head","body");
 	var jsonElem=g("jsonElem").ands(
 			symbol.or(literal),
-			tk(":").and(expr).ret(function (c,v) {return v;}).opt()
+			tk(":").or(tk("=")).and(expr).ret(function (c,v) {return v;}).opt()
 	).ret("key","value");
-	var objlit=g("objlit").ands(tk("{"), jsonElem.sep0(tk(","),true),  tk("}")).ret(null, "elems");
+	var objlit=g("objlit").ands(tk("{"), jsonElem.sep0(tk(","),true), tk(",").opt(), tk("}")).ret(null, "elems");
 	var arylit=g("arylit").ands(tk("["), expr.sep0(tk(","),true),  tk("]")).ret(null, "elems");
 	var ext=g("extends").ands(tk("extends"),symbol.or(tk("null")), tk(";")).
 	ret(null, "superclassName");
@@ -10196,6 +10232,7 @@ function genJS(klass, env) {//B
 	var fnSeq=0;
 	var diagnose=env.options.compiler.diagnose;
 	var genMod=env.options.compiler.genAMD;
+	var doLoopCheck=!env.options.compiler.noLoopCheck;
 
 	function annotation(node, aobj) {//B
 		return annotation3(klass.annotation,node,aobj);
@@ -10657,7 +10694,10 @@ function genJS(klass, env) {//B
 				);
 			} else {
 				ctx.enter({noWait:true},function () {
-					buf.printf("while (%v) {%{%f%n%}}", node.cond, noSurroundCompoundF(node.loop));
+					buf.printf("while (%v) {%{"+
+						(doLoopCheck?"Tonyu.checkLoop();%n":"")+
+						"%f%n"+
+					"%}}", node.cond, noSurroundCompoundF(node.loop));
 				});
 			}
 		},
@@ -10683,8 +10723,11 @@ function genJS(klass, env) {//B
 				);
 			} else {
 				ctx.enter({noWait:true},function () {
-					buf.printf("do {%{%f%n%}} while (%v);%n",
-							noSurroundCompoundF(node.loop), node.cond );
+					buf.printf("do {%{"+
+						(doLoopCheck?"Tonyu.checkLoop();%n":"")+
+						"%f%n"+
+					"%}} while (%v);%n",
+						noSurroundCompoundF(node.loop), node.cond );
 				});
 			}
 		},
@@ -10758,6 +10801,7 @@ function genJS(klass, env) {//B
 							buf.printf(
 									"%v"+
 									"for (; %v ; %v) {%{"+
+										(doLoopCheck?"Tonyu.checkLoop();%n":"")+
 										"%v%n" +
 									"%}}"
 										,
@@ -10769,6 +10813,7 @@ function genJS(klass, env) {//B
 							buf.printf(
 									"%v%n"+
 									"while(%v) {%{" +
+										(doLoopCheck?"Tonyu.checkLoop();%n":"")+
 										"%v%n" +
 										"%v;%n" +
 									"%}}",
@@ -12026,7 +12071,7 @@ return Tonyu.TraceTbl=(function () {
 })();
 //if (typeof getReq=="function") getReq.exports("Tonyu.TraceTbl");
 });
-define('compiledProject',["DeferredUtil","assert"], function (DU,A) {
+define('compiledProject',["DeferredUtil","WebSite","assert"], function (DU,WebSite,A) {
 	var CPR=function (ns, url) {
 		A.is(arguments,[String,String]);
 		return {
@@ -12050,7 +12095,7 @@ define('compiledProject',["DeferredUtil","assert"], function (DU,A) {
 				var d=new $.Deferred;
 				var head = document.getElementsByTagName("head")[0] || document.documentElement;
 				var script = document.createElement("script");
-				script.src = url;
+				script.src = url+(WebSite.serverType==="BA"?"?"+Math.random():"");
 				var done = false;
 				script.onload = script.onreadystatechange = function() {
 					if ( !done && (!this.readyState ||
@@ -12406,7 +12451,7 @@ var TPRC=function (dir) {
 		console.log("Compile: "+dir.path());
 		ctx=initCtx(ctx);
 		var myNsp=TPR.getNamespace();
-		var baseClasses,ctxOpt,env,myClasses,fileAddedOrRemoved,sf;
+		var baseClasses,ctxOpt,env,myClasses,fileAddedOrRemoved,sf,ord;
 		var compilingClasses;
 		return TPR.loadDependingClasses(ctx).then(F(function () {
 			baseClasses=ctx.classes;
@@ -12419,6 +12464,8 @@ var TPRC=function (dir) {
 				var cl=baseClasses[n];
 				env.aliases[ cl.shortName] = cl.fullName;
 			}
+			return TPR.showProgress("scan sources");
+		})).then(F(function () {
 			myClasses={};
 			fileAddedOrRemoved=!!ctxOpt.noIncremental;
 			sf=TPR.sourceFiles(myNsp);
@@ -12440,6 +12487,8 @@ var TPRC=function (dir) {
 				m.src.tonyu=f;
 				env.aliases[shortCn]=fullCn;
 			}
+			return TPR.showProgress("update check");
+		})).then(F(function () {
 			for (var n in baseClasses) {
 				if (myClasses[n] && myClasses[n].src && !myClasses[n].src.js) {
 					//前回コンパイルエラーだとここにくるかも
@@ -12462,11 +12511,15 @@ var TPRC=function (dir) {
 			} else {
 				compilingClasses=myClasses;
 			}
+			return TPR.showProgress("initClassDecl");
+		})).then(F(function () {
 			for (var n in compilingClasses) {
 				console.log("initClassDecl: "+n);
 				Semantics.initClassDecls(compilingClasses[n], env);/*ENVC*/
 			}
-			var ord=orderByInheritance(myClasses);/*ENVC*/
+			return TPR.showProgress("order");
+		})).then(F(function () {
+			ord=orderByInheritance(myClasses);/*ENVC*/
 			ord.forEach(function (c) {
 				if (compilingClasses[c.fullName]) {
 					console.log("annotate :"+c.fullName);
@@ -12483,10 +12536,14 @@ var TPRC=function (dir) {
 			} catch(e) {
 				console.log("Error in Typecheck(It doesnt matter because Experimental)",e.stack);
 			}
+			return TPR.showProgress("genJS");
+		})).then(F(function () {
 			//throw "test break";
-			TPR.genJS(ord.filter(function (c) {
+			return TPR.genJS(ord.filter(function (c) {
 				return compilingClasses[c.fullName];
 			}));
+			//return TPR.showProgress("concat");
+		})).then(F(function () {
 			var copt=TPR.getOptions().compiler;
 			if (!copt.genAMD) {
 				return TPR.concatJS(ord);
@@ -12496,9 +12553,10 @@ var TPRC=function (dir) {
 	TPR.genJS=function (ord) {
 		// 途中でコンパイルエラーを起こすと。。。
 		var env=TPR.env;
-		ord.forEach(function (c) {
+		return DU.each(ord,function (c) {
 			console.log("genJS :"+c.fullName);
 			JSGenerator.genJS(c, env);
+			return TPR.showProgress("genJS :"+c.fullName);
 		});
 	};
 	TPR.concatJS=function (ord) {
@@ -13110,11 +13168,18 @@ define('Auth',["FS","md5","WebSite","DeferredUtil"], function (FS,md5,WebSite,DU
             return md5(this.class+"/"+this.user+"/"+projectName).substring(0,8)+"/";
         },
         getHash: function (projectName) {
+            var self=this;
+            if (self.hashCache[projectName]) {
+                return $.when(self.hashCache[projectName]);
+            }
             return $.ajax(WebSite.controller+"?Login/getPublishedDir",{
                 data: {
                     project: projectName
                 }
-            })
+            }).then(function (res) {
+                self.hashCache[projectName]=res;
+                return res;
+            });
         },
         publishedDir: function (projectName) {
             return this.getHash(projectName).then(function (name){
@@ -13129,7 +13194,8 @@ define('Auth',["FS","md5","WebSite","DeferredUtil"], function (FS,md5,WebSite,DU
         remotePublics: function () {
             return this.remoteProjects().rel("public/"); //changeHOME(1)
             //return FS.get("/public/");//changeHOME
-        }
+        },
+        hashCache:{}
     };
     return Auth;
 });
