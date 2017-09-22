@@ -8,7 +8,8 @@ class KeyValueController {
                 KeyValue::selectClassByURL($url);
             }
             $k=$_GET["key"];
-            $v=KeyValue::get($k);
+            $g=param("group","default");
+            $v=KeyValue::get($k,$g);
             if ($v!=null) echo $v;
         } catch (Exception $e) {
             echo $e;
@@ -23,7 +24,7 @@ class KeyValueController {
             $k=$_GET["key"];
             $v=$_GET["value"];
             $g=param("group","default");
-            KeyValue::put($k,$v);
+            KeyValue::put($k,$v,$g);
             echo "OK";
         } catch (Exception $e) {
             echo $e;
