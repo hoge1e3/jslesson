@@ -64,7 +64,7 @@ return Tonyu.TraceTbl=(function () {
 				console.log("fname found at ",r);
 				var slines=srcMap[k].split(/\n/);
 				var sid=null;
-				var row=trc1.row-1;
+				var row=trc1.row;//-1;
 				console.log("Scan from row=",row);
 				for (var j=row ; j>=0 ; j--) {
 					console.log("row ",j, slines[j]);
