@@ -14,6 +14,7 @@ define(["FS","Klass","source-map","DeferredUtil"], function (FS,Klass,S,DU) {
 			this.file=file;
 			this.base=this.file.up();
 			this.fileMap={};
+			this.registerGlobals();
 		},
 		//__file__: f,
 		//browser: thiz,
@@ -24,6 +25,13 @@ define(["FS","Klass","source-map","DeferredUtil"], function (FS,Klass,S,DU) {
 			} else {
 				this.window.location.href=url;
 			}
+		},
+		registerGlobals: function () {
+            if (this.options.globals) {
+                for(var k in this.options.globals) {
+                    this.window[k]=this.options.globals[k];
+                }
+            }
 		},
 		convertURL:function (url) {
 			if (this.fileMap[url]) {
@@ -128,6 +136,23 @@ define(["FS","Klass","source-map","DeferredUtil"], function (FS,Klass,S,DU) {
 				return onerror(message, source, lineno, colno,ex);
 				//if (window.onerror) window.onerror(message, source, lineno, colno,ex);
 			};
+		}, 
+		loadNode: function (f) {
+            var dp=new DOMParser();
+            var src=dp.parseFromString(f.text(),"text/html");
+            if (this.options.onparse) {
+                src=this.options.onparse(src,document);
+            }
+		    var self=this;
+		    var iwin=this.window;
+		    var idoc=iwin.document;
+            return $.when().then(function () {
+                return self.appendNode(
+                    src.getElementsByTagName("html")[0],
+                    idoc.getElementsByTagName("html")[0]);
+            }).then(function () {
+                if(typeof (iwin.onload)==="function") iwin.onload();
+            });
 		},
 		appendNode:function appendNode(src,dst) {
 			var self=this;
