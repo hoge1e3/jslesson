@@ -3400,11 +3400,25 @@ jQuery.extend( {
 					deferred.done( arguments ).fail( arguments );
 					return this;
 				},
+				"catch": function () {//@hoge1e3
+					return this.fail.apply(this,arguments);
+				},
 				then: function( /* fnDone, fnFail, fnProgress */ ) {
+					function throwF(f) {//@hoge1e3
+                        return function () {
+                            try {
+                                return f.apply(this,arguments);
+                            } catch(e) {
+            	                var d=new jQuery.Deferred;
+            	                d.reject(e);
+            	                return d.promise();
+                            }
+                        };
+                    }
 					var fns = arguments;
 					return jQuery.Deferred( function( newDefer ) {
 						jQuery.each( tuples, function( i, tuple ) {
-							var fn = jQuery.isFunction( fns[ i ] ) && fns[ i ];
+							var fn = jQuery.isFunction( fns[ i ] ) && throwF(fns[ i ]); //@hoge1e3
 
 							// deferred[ done | fail | progress ] for forwarding actions to newDefer
 							deferred[ tuple[ 1 ] ]( function() {
