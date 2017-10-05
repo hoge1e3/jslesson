@@ -1,9 +1,32 @@
 function run(className) {
-   requirejs([window.runtimePath+"lib/tjs/TonyuLib.js"], function () {
-        requirejs([window.runtimePath+"lib/tjs/kernel.js"],function (){
+    requirejs.config({
+        shim: {
+            Tonyu: {
+                exports:"Tonyu"
+            },
+            kernel: {
+                deps:["Tonyu"]
+            },
+            "user.js": {
+                deps:["kernel"]
+            }
+        },
+        paths: {
+          "Klass": window.runtimePath+"lib/Klass",
+          "assert": window.runtimePath+"lib/assert",
+          "FS": window.runtimePath+"lib/FS",
+          "DeferredUtil": window.runtimePath+"lib/DeferredUtil",
+          "Tonyu": window.runtimePath+"lib/tjs/TonyuLib",
+          "Tonyu.Thread": window.runtimePath+"lib/tjs/TonyuThread",
+          "Tonyu.Iterator": window.runtimePath+"lib/tjs/TonyuIterator",
+          "kernel": window.runtimePath+"lib/tjs/kernel",
+        }
+    });
+   //requirejs(["Tonyu"], function () {
+   //     requirejs(["kernel"],function (){
             requirejs(["user.js"],_run);
-        });
-   });
+   //     });
+   //});
    function _run() {
         var bootClass=Tonyu.getClass(className);
         if (!bootClass) throw TError( klass+" というクラスはありません", "不明" ,0);
