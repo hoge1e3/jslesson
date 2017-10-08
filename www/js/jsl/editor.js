@@ -673,6 +673,10 @@ function ready() {
             alert("実行したいファイルを開いてください。");
             return;
         }
+        var newwnd;
+        if (RunDialog2.hasLocalBrowserWindow()) {
+            newwnd=window.open("about:blank","LocalBrowserWindow","menubar=no,toolbar=no,width=500,height=500");
+        }
         var curFile=inf.file;
         var curFiles=fileSet(curFile);
         var curHTMLFile=curFiles[0];
@@ -711,7 +715,7 @@ function ready() {
                     //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
                     RunDialog2.show(indexF,
-                    {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+                    {window:newwnd,height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
                     logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"JS Run","実行しました","JavaScript");
                 }).fail(function (e) {
                     console.log(e.stack);
@@ -776,7 +780,7 @@ function ready() {
                   logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Run","実行しました","C");
                   console.log("screenH",screenH);
                   return RunDialog2.show(indexF,
-                  {height:screenH,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+                  {window:newwnd,height:screenH,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
               }).fail(function (e) {
                   //var eobj={stack:e.stack,message:e+""};
                   //for (var k in e) eobj[k]=e[k];
@@ -810,7 +814,7 @@ function ready() {
                     var indexF=ram.rel(curHTMLFile.name());
                     logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"Dolittle Run","実行しました","Dolittle");
                     return RunDialog2.show(indexF,
-                    {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+                    {window:newwnd,height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
                 }).fail(function (e) {
                     //console.log("FAIL", arguments);
                     Tonyu.onRuntimeError(e);

@@ -1,10 +1,25 @@
-define(["UI","LocalBrowser","DiagAdjuster"],
-function (UI, LocalBrowser,DA) {
+define(["UI","LocalBrowser","LocalBrowserWindow","DiagAdjuster"],
+function (UI, LocalBrowser,LocalBrowserWindow,DA) {
     var res={};
+    res.hasLocalBrowserWindow=function () {
+        return res.lbw && res.lbw.isActive();
+    };
     res.show=function (runFile, options) {
         options=options||{};
         options.height=options.height||600;
         options.width=options.width||16*((options.height+10)/9);
+        if (options.window && !options.window.closed) {
+            //if (res.hasLocalBrowserWindow()) res.lbw.close();
+            res.lbw=new LocalBrowserWindow({
+                window:options.window,
+                onload:function () {
+                    console.log(this);
+                    var cons=this.contentWindow.document.getElementById("console");
+                    if (cons) cons.style.fontSize=options.font+"px";
+                }
+            });
+            return res.lbw.open(runFile);
+        }
         window.dialogClosed=false;
         var d=res.embed(runFile, options);
         console.log("RunDialog2 options",options);
@@ -36,7 +51,19 @@ function (UI, LocalBrowser,DA) {
                     ["div",{$var:"browser"}],
                     ["button", {type:"button",$var:"OKButton", on:{click: function () {
                         res.d.dialog("close");
-                    }}}, "閉じる"]
+                    }}}, "閉じる"],
+                    ["button", {type:"button",$var:"WButton", on:{click: function () {
+                        if (res.hasLocalBrowserWindow()) res.lbw.close();
+                        res.lbw=new LocalBrowserWindow({
+                            onload:function () {
+                                console.log(this);
+                                var cons=this.contentWindow.document.getElementById("console");
+                                if (cons) cons.style.fontSize=options.font+"px";
+                            }
+                        });
+                        res.lbw.open(runFile);
+                        res.d.dialog("close");
+                    }}}, "別ウィンドウ"]
             );
             res.da=new DA(res.d);
             res.da.afterResize=function (d) {
