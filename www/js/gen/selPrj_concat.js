@@ -12049,7 +12049,7 @@ return Tonyu.TraceTbl=(function () {
 				console.log("fname found at ",r);
 				var slines=srcMap[k].split(/\n/);
 				var sid=null;
-				var row=trc1.row-1;
+				var row=trc1.row;//-1;
 				console.log("Scan from row=",row);
 				for (var j=row ; j>=0 ; j--) {
 					console.log("row ",j, slines[j]);
@@ -12071,6 +12071,7 @@ return Tonyu.TraceTbl=(function () {
 })();
 //if (typeof getReq=="function") getReq.exports("Tonyu.TraceTbl");
 });
+
 define('compiledProject',["DeferredUtil","WebSite","assert"], function (DU,WebSite,A) {
 	var CPR=function (ns, url) {
 		A.is(arguments,[String,String]);

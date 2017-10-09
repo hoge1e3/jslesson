@@ -675,7 +675,7 @@ function ready() {
         }
         var newwnd;
         if (RunDialog2.hasLocalBrowserWindow()) {
-            newwnd=window.open("about:blank","LocalBrowserWindow","menubar=no,toolbar=no,width=500,height=500");
+            newwnd=window.open("about:blank","LocalBrowserWindow"+Math.random(),"menubar=no,toolbar=no,width=500,height=500");
         }
         var curFile=inf.file;
         var curFiles=fileSet(curFile);
@@ -902,6 +902,7 @@ function ready() {
         alertOnce=function(){};
     };
     window.onerror=function (a,b,c,d,e) {
+        console.log("window.onerror",arguments);
         if (!e) return;
         return Tonyu.onRuntimeError(e);
     };
@@ -938,7 +939,7 @@ function ready() {
         if (tid) {
             te=curPrj.decodeTrace(tid);
         }
-        console.log("onRunTimeError:stackTrace1",e.stack,te,$LASTPOS);
+        console.log("onRunTimeError:stackTrace1",e,e.stack,te,$LASTPOS);
         if (te) {
             te.mesg=e;
             if (e.pluginName) {

@@ -29,6 +29,7 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass) {
         var idoc;
         var onload=options.onload || function () {};
         var onerror=options.onerror || (window.onerror ? function () {
+            //return window.onerror.apply(window,[0,0,0,0,e]);
             return window.onerror.apply(window,arguments);
         }: function () {});
         delete options.onload;

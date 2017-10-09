@@ -9,7 +9,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA) {
         options.height=options.height||600;
         options.width=options.width||16*((options.height+10)/9);
         if (options.window && !options.window.closed) {
-            //if (res.hasLocalBrowserWindow()) res.lbw.close();
+            if (res.hasLocalBrowserWindow()) res.lbw.close();
             res.lbw=new LocalBrowserWindow({
                 window:options.window,
                 onload:function () {
@@ -44,6 +44,14 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA) {
             }
         }
     };
+    function isie() {
+        if(navigator.userAgent.toLowerCase().indexOf('msie') != -1) {
+            return true;
+        }
+        if(navigator.userAgent.toLowerCase().indexOf('trident') != -1) {
+            return true;
+        }
+    }
     res.embed=function (runFile, options) {
         options=options||{};
         if (!res.d) {
@@ -52,7 +60,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA) {
                     ["button", {type:"button",$var:"OKButton", on:{click: function () {
                         res.d.dialog("close");
                     }}}, "閉じる"],
-                    ["button", {type:"button",$var:"WButton", on:{click: function () {
+                    (isie()?"":["button", {type:"button",$var:"WButton", on:{click: function () {
                         if (res.hasLocalBrowserWindow()) res.lbw.close();
                         res.lbw=new LocalBrowserWindow({
                             onload:function () {
@@ -63,7 +71,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA) {
                         });
                         res.lbw.open(runFile);
                         res.d.dialog("close");
-                    }}}, "別ウィンドウ"]
+                    }}}, "別ウィンドウ"])
             );
             res.da=new DA(res.d);
             res.da.afterResize=function (d) {

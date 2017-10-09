@@ -11963,7 +11963,7 @@ return Tonyu.TraceTbl=(function () {
 				console.log("fname found at ",r);
 				var slines=srcMap[k].split(/\n/);
 				var sid=null;
-				var row=trc1.row-1;
+				var row=trc1.row;//-1;
 				console.log("Scan from row=",row);
 				for (var j=row ; j>=0 ; j--) {
 					console.log("row ",j, slines[j]);
@@ -11985,6 +11985,7 @@ return Tonyu.TraceTbl=(function () {
 })();
 //if (typeof getReq=="function") getReq.exports("Tonyu.TraceTbl");
 });
+
 define('compiledProject',["DeferredUtil","WebSite","assert"], function (DU,WebSite,A) {
 	var CPR=function (ns, url) {
 		A.is(arguments,[String,String]);
@@ -13810,26 +13811,242 @@ define('RunDialog',["UI","DiagAdjuster"],function (UI,DA) {
     };
     return res;
 });
-define('LocalBrowser',["Shell", "FS","DeferredUtil","UI","source-map"],
-function (sh,FS,DU,UI,S) {
+define('LocalBrowserInfoClass',["FS","Klass","source-map","DeferredUtil"], function (FS,Klass,S,DU) {
+	var regsm=/sourceMappingURL\s*=\s*([^\s]*)/i;
+	var regrc=/:([0-9]+):([0-9]+)/;
+	var urlparam=/\?.*$/;
+	var singletonTag={body:1,head:1};
+
+	var LocalBrowserInfoClass=Klass.define({
+		$:function (browser, window, file, options) {
+			this.browser=browser;
+			this.options=options||{};
+			this.window=window;
+			this.params=options.params||{};
+			this.__file__=file;
+			this.file=file;
+			this.base=this.file.up();
+			this.fileMap={};
+			this.registerGlobals();
+		},
+		//__file__: f,
+		//browser: thiz,
+		//params: options.params||{},
+		open: function (url) {
+			if (FS.PathUtil.isRelativePath(url)) {
+				this.browser.open(this.file.up().rel(url));
+			} else {
+				this.window.location.href=url;
+			}
+		},
+		registerGlobals: function () {
+            if (this.options.globals) {
+                for(var k in this.options.globals) {
+                    this.window[k]=this.options.globals[k];
+                }
+            }
+		},
+		convertURL:function (url) {
+			if (this.fileMap[url]) {
+				return this.fileMap[url].blobUrl;
+			}
+			var urlHead=url.replace(urlparam,"");
+			if (FS.PathUtil.isURL(urlHead)) {
+				return url;
+			}
+			var base=this.base;
+			var file;
+			var blobUrl=url;
+			if (FS.PathUtil.isRelativePath(urlHead)) {
+				file=base.rel(urlHead);
+				if (file.exists()) {
+					blobUrl=this.file2blobURL(file);
+				}
+			} else {
+				file=FS.get(urlHead);
+			}
+			var smc;
+			if (FS.PathUtil.endsWith(urlHead,".js") && file.exists()) {
+				var r=regsm.exec(file.text());
+				if (r) {
+					var smf=file.sibling(r[1]);
+					if (smf.exists()) {
+						smc = new S.SourceMapConsumer(smf.obj());
+						console.log("Source map",smc);
+					}
+				}
+			}
+			this.fileMap[url]={
+				file:file,
+				blobUrl:blobUrl,
+			};
+			if(smc) this.fileMap[url].sourcemap=smc;
+			return this.fileMap[url].blobUrl;
+		},
+		blob2originalURL: function (line) {
+			for (var url in this.fileMap) {
+				var blobURL=this.fileMap[url].blobUrl;
+				var sourcemap=this.fileMap[url].sourcemap;
+				var idx=line.indexOf(blobURL);
+				if (idx>=0) {
+					var trail=line.substring(idx+blobURL.length);
+					var rr=regrc.exec(trail);
+					if (sourcemap && rr) {
+						var r=parseInt(rr[1]);
+						var c=parseInt(rr[2]);
+						var op;
+						op=sourcemap.originalPositionFor({
+							line: r, column:c,
+							bias:S.SourceMapConsumer.GREATEST_LOWER_BOUND
+						});
+						if (op.source==null) {
+							op=sourcemap.originalPositionFor({
+								line: r, column:c,
+								bias:S.SourceMapConsumer.LEAST_UPPER_BOUND
+							});
+						}
+						if (window.parent) {
+							window.parent.lastSourceMap=sourcemap;
+						}
+						console.log("Original", line, r,c,op);
+						line=line.substring(0,idx)+
+						op.source+":"+op.line+":"+op.column+")";
+						console.log("Converted", line);
+					} else {
+						line=line.substring(0,idx)+url+trail;
+					}
+				}
+			}
+			return line;
+		},
+		originalStackTrace: function (ex) {
+			if (ex && ex.stack) {
+				console.log("stack converting ",ex.stack);
+				var t=this;
+				ex.stack=(ex.stack+"").split("\n").map(function (l) {
+					return t.blob2originalURL(l);
+				}).join("\n");
+				console.log("stack converted!",ex.stack);
+			}
+			return ex;
+		},
+		file2blobURL:function (sfile) {
+			var iwin=this.window;
+			var blob;
+			if (sfile.isText()) {
+				blob = new iwin.Blob([sfile.text()], {type: sfile.contentType()});
+			} else {
+				blob = new iwin.Blob([sfile.bytes()], {type: sfile.contentType()});
+			}
+			var url = iwin.URL.createObjectURL(blob);
+			return url;
+		},
+		wrapErrorHandler: function (onerror){
+			var self=this;
+			self.window.onerror=function (message, source, lineno, colno,ex) {
+				source=self.blob2originalURL(source+"");
+				self.originalStackTrace(ex);
+				return onerror(message, source, lineno, colno,ex);
+				//if (window.onerror) window.onerror(message, source, lineno, colno,ex);
+			};
+		}, 
+		loadNode: function (f) {
+            var dp=new DOMParser();
+            var src=dp.parseFromString(f.text(),"text/html");
+            if (this.options.onparse) {
+                src=this.options.onparse(src,document);
+            }
+		    var self=this;
+		    var iwin=this.window;
+		    var idoc=iwin.document;
+            return $.when().then(function () {
+                return self.appendNode(
+                    src.getElementsByTagName("html")[0],
+                    idoc.getElementsByTagName("html")[0]);
+            }).then(function () {
+                if(typeof (iwin.onload)==="function") iwin.onload();
+            });
+		},
+		appendNode:function appendNode(src,dst) {
+			var self=this;
+			var idoc=this.window.document;
+			var c=src.childNodes;
+			return DU.tryLoop(function (i){
+				var d;
+				if (!(i<c.length)) return DU.brk();
+				var n=c[i];
+				switch (n.nodeType) {
+				case Node.ELEMENT_NODE:
+					var nn=singletonTag[n.tagName.toLowerCase()] ?
+					idoc.getElementsByTagName(n.tagName)[0]:
+					idoc.createElement(n.tagName);
+					var at=n.attributes;
+					// should charset must be set first than src
+					var names=[];
+					for (var j=0;j<at.length;j++) {
+						names.push(at[j].name);
+					}
+					var idx=names.indexOf("charset");
+					if (idx>=0) {
+						names.splice(idx,1);
+						names.unshift("charset");
+					}
+					names.forEach(function (name) {
+						var value=n.getAttribute(name);
+						if (n.tagName.toLowerCase()=="a" && name=="href" &&
+						FS.PathUtil.isRelativePath(value)) {
+							value="javascript:LocalBrowserInfo.open('"+value+"');";
+						}
+						if (name=="src") {
+							value=self.convertURL(value);
+							if (n.tagName.toLowerCase()=="script") {
+								d=new $.Deferred;
+								nn.onload = nn.onreadystatechange = function() {
+									d.resolve(i+1);
+								};
+							}
+						}
+						nn.setAttribute(name, value);
+					});
+					dst.appendChild(nn);
+					return $.when(d && d.promise()).then(function () {
+						return self.appendNode(n ,nn);
+					}).then (function () {
+						//return DU.timeout(100,i+1);
+						return i+1;//DU.timeout(0,i+1);
+					});
+				case Node.TEXT_NODE:
+					dst.appendChild(idoc.createTextNode(n.textContent));
+					break;
+				}
+				//return DU.timeout(100,i+1);
+				return i+1;//DU.timeout(0,i+1);
+			},0);
+		}
+
+	});
+	return LocalBrowserInfoClass;
+});
+
+define('LocalBrowser',["Shell", "FS","DeferredUtil","UI","source-map","LocalBrowserInfoClass"],
+function (sh,FS,DU,UI,S,LocalBrowserInfoClass) {
     var LocalBrowser={};
     var F=DU.tr;
     LocalBrowser=function (dom,options) {
-        this.iframeAttr=options||{};
-        this.iframeArea=dom;//=UI("iframe");
+        this.targetAttr=options||{};
+        this.targetArea=dom;//=UI("iframe");
     };
-    var singletonTag={body:1,head:1};
     p=LocalBrowser.prototype;
     p.close=function () {
-        $(this.iframeArea).empty();
+        $(this.targetArea).empty();
     };
     p.resize=function (w,h) {
         if (this.iframe) {
             this.iframe.attr({
                     width:w,height:h
             });
-            this.iframeAttr.width=w;
-            this.iframeAttr.height=h;
+            this.targetAttr.width=w;
+            this.targetAttr.height=h;
         }
     };
     p.focus=function () {
@@ -13845,217 +14062,47 @@ function (sh,FS,DU,UI,S) {
             return window.onerror.apply(window,arguments);
         }: function () {});
         delete options.onload;
-        var dp=new DOMParser;
+        /*var dp=new DOMParser;
         var src=dp.parseFromString(f.text(),"text/html");
         if (options.onparse) {
             src=options.onparse(src,document);
-        }
+        }*/
         var i=$("<iframe>");
-        i.attr(this.iframeAttr);
+        i.attr(this.targetAttr);
         if (isFirefox()) {
             i.attr("src",iframeSrcURL());
         }
         this.iframe=i;
         var base=f.up();
         var thiz=this;
-        var regsm=/sourceMappingURL\s*=\s*([^\s]*)/i;
-        var regrc=/:([0-9]+):([0-9]+)/;
         window.ifrm=i[0];
         var loaded;
         i.on("load",function () {
             if (loaded) return;
             loaded=true;
             iwin=i[0].contentWindow;
-            if (options.globals) {
+            /*if (options.globals) {
                 for(var k in options.globals) {
-                    //console.log("Reg global",k,options.globals[k]);
                     iwin[k]=options.globals[k];
                 }
-            }
-            iwin.LocalBrowserInfo={
-                __file__: f,
-                browser: thiz,
-                params: options.params||{},
-                open: function (url) {
-                    if (FS.PathUtil.isRelativePath(url)) {
-                        thiz.open(f.up().rel(url));
-                    } else {
-                        iwin.location.href=url;
-                    }
-                },
-                convertURL:function (url) {
-                    if (this.fileMap[url]) {
-                        return this.fileMap[url].blobUrl;
-                    }
-                    var urlHead=url.replace(urlparam,"");
-                    if (FS.PathUtil.isURL(urlHead)) {
-                        return url;
-                    }
-                    var file;
-                    if (FS.PathUtil.isRelativePath(urlHead)) {
-                        file=base.rel(urlHead);
-                    } else {
-                        file=FS.get(urlHead);
-                    }
-                    var smc;
-                    if (FS.PathUtil.endsWith(urlHead,".js") && file.exists()) {
-                        var r=regsm.exec(file.text());
-                        if (r) {
-                            var smf=file.sibling(r[1]);
-                            if (smf.exists()) {
-                                smc = new S.SourceMapConsumer(smf.obj());
-                                console.log("Source map",smc);
-                            }
-                        }
-                    }
-                    this.fileMap[url]={
-                        file:file,
-                        blobUrl:LocalBrowser.convertURL(iwin, url, base),
-                    };
-                    if(smc) this.fileMap[url].sourcemap=smc;
-                    return this.fileMap[url].blobUrl;
-                },
-                fileMap:{},
-                blob2originalURL: function (line) {
-                    for (var url in this.fileMap) {
-                        var blobURL=this.fileMap[url].blobUrl;
-                        var sourcemap=this.fileMap[url].sourcemap;
-                        var idx=line.indexOf(blobURL);
-                        if (idx>=0) {
-                            var trail=line.substring(idx+blobURL.length);
-                            var rr=regrc.exec(trail);
-                            if (sourcemap && rr) {
-                                var r=parseInt(rr[1]);
-                                var c=parseInt(rr[2]);
-                                var op;
-                                op=sourcemap.originalPositionFor({
-                                    line: r, column:c,
-                                    bias:S.SourceMapConsumer.GREATEST_LOWER_BOUND
-                                });
-                                if (op.source==null) {
-                                    op=sourcemap.originalPositionFor({
-                                        line: r, column:c,
-                                        bias:S.SourceMapConsumer.LEAST_UPPER_BOUND
-                                    });
-                                }
-                                if (window.parent) {
-                                    window.parent.lastSourceMap=sourcemap;
-                                }
-                                console.log("Original", line, r,c,op);
-                                line=line.substring(0,idx)+
-                                op.source+":"+op.line+":"+op.column+")";
-                                console.log("Converted", line);
-                            } else {
-                                line=line.substring(0,idx)+url+trail;
-                            }
-                        }
-                    }
-                    return line;
-                },
-                originalStackTrace: function (ex) {
-                    if (ex && ex.stack) {
-                        console.log("stack converting ",ex.stack);
-                        ex.stack=(ex.stack+"").split("\n").map(function (l) {
-                            return iwin.LocalBrowserInfo.blob2originalURL(l);
-                        }).join("\n");
-                        console.log("stack converted!",ex.stack);
-                    }
-                    return ex;
-                }
-            };
-            iwin.onerror=function (message, source, lineno, colno,ex) {
-                source=iwin.LocalBrowserInfo.blob2originalURL(source+"");
-                iwin.LocalBrowserInfo.originalStackTrace(ex);
-                return onerror(message, source, lineno, colno,ex);
-                //if (window.onerror) window.onerror(message, source, lineno, colno,ex);
-            };
-            idoc=iwin.document;
-            /*idoc.write=function () {
-                Array.prototype.slice.call(arguments).forEach(function (e) {
-                    var dp=new DOMParser;
-                    var r=dp.parseFromString(e,"text/html");
-                    appendTo(r.body,idoc.body);
-                    //idoc.body.innerHTML+=e;//appendChild(idoc.createTextNode(e));
-                });
-            };
-            idoc.writeln=function () {
-                idoc.write.apply(idoc,arguments);
-                idoc.write("\n");
-            };*/
-            return $.when().then(F(function () {
-                return appendTo(src.getElementsByTagName("html")[0],
-                idoc.getElementsByTagName("html")[0]);
+            }*/
+            iwin.LocalBrowserInfo=new LocalBrowserInfoClass(thiz,iwin,f,options);
+            iwin.LocalBrowserInfo.wrapErrorHandler(onerror);
+            //idoc=iwin.document;
+            return iwin.LocalBrowserInfo.loadNode(f).then(function () {
+                onload.apply(i[0],[]);
+            }).fail(onerror);
+            /*return $.when().then(F(function () {
+                return iwin.LocalBrowserInfo.appendNode(
+                    src.getElementsByTagName("html")[0],
+                    idoc.getElementsByTagName("html")[0]);
             })).then(F(function () {
                 if(typeof (iwin.onload)==="function") iwin.onload();
                 onload.apply(i[0],[]);
-            })).fail(onerror);
+            })).fail(onerror);*/
         });
-        $(this.iframeArea).empty().append(i);
+        $(this.targetArea).empty().append(i);
         return i[0];
-        function appendTo(src,dst) {
-            var c=src.childNodes;
-            return DU.tryLoop(function (i){
-                var d;
-                if (!(i<c.length)) return DU.brk();
-                var n=c[i];
-                switch (n.nodeType) {
-                case Node.ELEMENT_NODE:
-                    var nn=singletonTag[n.tagName.toLowerCase()] ?
-                    idoc.getElementsByTagName(n.tagName)[0]:
-                    idoc.createElement(n.tagName);
-                    var at=n.attributes;
-                    // should charset must be set first than src
-                    var names=[];
-                    for (var j=0;j<at.length;j++) {
-                        names.push(at[j].name);
-                    }
-                    var idx=names.indexOf("charset");
-                    if (idx>=0) {
-                        names.splice(idx,1);
-                        names.unshift("charset");
-                    }
-                    names.forEach(function (name) {
-                        var value=n.getAttribute(name);
-                        if (n.tagName.toLowerCase()=="a" && name=="href" &&
-                        FS.PathUtil.isRelativePath(value)) {
-                            value="javascript:LocalBrowserInfo.open('"+value+"');";
-                        }
-                        if (name=="src") {
-                            value=iwin.LocalBrowserInfo.convertURL(value);
-                            if (n.tagName.toLowerCase()=="script") {
-                                d=new $.Deferred;
-                                nn.onload = nn.onreadystatechange = function() {
-                                    d.resolve(i+1);
-                                };
-                            }
-                        }
-                        nn.setAttribute(name, value);
-                    });
-                    dst.appendChild(nn);
-                    return $.when(d && d.promise()).then(function () {
-                        return appendTo(n ,nn);
-                    }).then (function () {
-                        //return DU.timeout(100,i+1);
-                        return i+1;//DU.timeout(0,i+1);
-                    });
-                case Node.TEXT_NODE:
-                    dst.appendChild(idoc.createTextNode(n.textContent));
-                    break;
-                }
-                //return DU.timeout(100,i+1);
-                return i+1;//DU.timeout(0,i+1);
-            },0);
-        }
-    };
-    LocalBrowser.convertURL=function (iwin,url,base) {
-        var urlHead=url.replace(urlparam,"");
-        if (FS.PathUtil.isRelativePath(urlHead)) {
-            var sfile=base.rel(urlHead);
-            if (sfile.exists()) {
-                url=LocalBrowser.file2blobURL(iwin,sfile);
-            }
-        }
-        return url;
     };
     function isFirefox() {
         return navigator.userAgent.indexOf("Firefox")>=0;
@@ -14066,16 +14113,6 @@ function (sh,FS,DU,UI,S) {
         var url = URL.createObjectURL(blob);
         return url;
     }
-    LocalBrowser.file2blobURL=function (iwin,sfile) {
-        var blob;
-        if (sfile.isText()) {
-            blob = new iwin.Blob([sfile.text()], {type: sfile.contentType()});
-        } else {
-            blob = new iwin.Blob([sfile.bytes()], {type: sfile.contentType()});
-        }
-        var url = iwin.URL.createObjectURL(blob);
-        return url;
-    };
     if (typeof sh=="object") sh.browser=function (f,options) {
         f=this.resolve(f,true);
         var d=new $.Deferred;
@@ -14092,13 +14129,100 @@ function (sh,FS,DU,UI,S) {
     return LocalBrowser;
 });
 
-define('RunDialog2',["UI","LocalBrowser","DiagAdjuster"],
-function (UI, LocalBrowser,DA) {
+define('LocalBrowserWindow',["Shell", "FS","DeferredUtil","UI","source-map","LocalBrowserInfoClass"],
+function (sh,FS,DU,UI,S,LocalBrowserInfoClass) {
+    var LocalBrowserWindow=function (options) {
+        this.targetAttr=options||{};
+        this.window=options.window||window.open("about:blank","LocalBrowserWindow","menubar=no,toolbar=no,width=500,height=500");
+    };
+    p=LocalBrowserWindow.prototype;
+    p.close=function () {
+        this.window.close();
+    };
+    p.resize=function (w,h) {
+        //TODO
+    };
+    p.focus=function () {
+        if (this.window) {
+            //this.window.focus();
+            this.window=window.open("about:blank","LocalBrowserWindow","menubar=no,toolbar=no,width=500,height=500");
+        }
+    };
+    p.isActive=function () {
+        return (this.window && !this.window.closed);
+    };
+    var urlparam=/\?.*$/;
+    p.open=function (f,options) {
+        options=options||{};
+        var iwin=this.window;
+        var idoc;
+        var onload=options.onload || function () {};
+        var onerror=options.onerror || (window.onerror ? function () {
+            return window.onerror.apply(window,arguments);
+        }: function () {});
+        delete options.onload;
+        var base=f.up();
+        var thiz=this;
+        var loaded;
+        iwin.location.href="about:blank";
+        setTimeout(function () {
+            console.log("Loading...");
+            if (loaded) return;
+            loaded=true;
+            iwin.LocalBrowserInfo=new LocalBrowserInfoClass(thiz,iwin,f,options);
+            iwin.LocalBrowserInfo.wrapErrorHandler(onerror);
+            return iwin.LocalBrowserInfo.loadNode(f).then(function () {
+                onload.apply(i[0],[]);
+            }).fail(onerror);
+        },100);
+        return this.window;
+    };
+    function isFirefox() {
+        return navigator.userAgent.indexOf("Firefox")>=0;
+    }
+    function iframeSrcURL(){
+        var src="<!DOCTYPE HTML><html><head></head><body></body></html>";
+        var blob = new Blob([src], {type: "text/html"});
+        var url = URL.createObjectURL(blob);
+        return url;
+    }
+    if (typeof sh=="object") sh.browserw=function (f,options) {
+        f=this.resolve(f,true);
+        var d=new $.Deferred;
+        this.echo(place);
+        var w=new LocalBrowserWindow(options);
+        w.open(f,{onload:function () {
+            d.resolve();
+        },onerror:function (e) {
+            d.reject(e);
+        }});
+        return d.promise();
+    };
+    return LocalBrowserWindow;
+});
+
+define('RunDialog2',["UI","LocalBrowser","LocalBrowserWindow","DiagAdjuster"],
+function (UI, LocalBrowser,LocalBrowserWindow,DA) {
     var res={};
+    res.hasLocalBrowserWindow=function () {
+        return res.lbw && res.lbw.isActive();
+    };
     res.show=function (runFile, options) {
         options=options||{};
         options.height=options.height||600;
         options.width=options.width||16*((options.height+10)/9);
+        if (options.window && !options.window.closed) {
+            if (res.hasLocalBrowserWindow()) res.lbw.close();
+            res.lbw=new LocalBrowserWindow({
+                window:options.window,
+                onload:function () {
+                    console.log(this);
+                    var cons=this.contentWindow.document.getElementById("console");
+                    if (cons) cons.style.fontSize=options.font+"px";
+                }
+            });
+            return res.lbw.open(runFile);
+        }
         window.dialogClosed=false;
         var d=res.embed(runFile, options);
         console.log("RunDialog2 options",options);
@@ -14130,7 +14254,19 @@ function (UI, LocalBrowser,DA) {
                     ["div",{$var:"browser"}],
                     ["button", {type:"button",$var:"OKButton", on:{click: function () {
                         res.d.dialog("close");
-                    }}}, "閉じる"]
+                    }}}, "閉じる"],
+                    ["button", {type:"button",$var:"WButton", on:{click: function () {
+                        if (res.hasLocalBrowserWindow()) res.lbw.close();
+                        res.lbw=new LocalBrowserWindow({
+                            onload:function () {
+                                console.log(this);
+                                var cons=this.contentWindow.document.getElementById("console");
+                                if (cons) cons.style.fontSize=options.font+"px";
+                            }
+                        });
+                        res.lbw.open(runFile);
+                        res.d.dialog("close");
+                    }}}, "別ウィンドウ"]
             );
             res.da=new DA(res.d);
             res.da.afterResize=function (d) {
@@ -15600,6 +15736,10 @@ function ready() {
             alert("実行したいファイルを開いてください。");
             return;
         }
+        var newwnd;
+        if (RunDialog2.hasLocalBrowserWindow()) {
+            newwnd=window.open("about:blank","LocalBrowserWindow"+Math.random(),"menubar=no,toolbar=no,width=500,height=500");
+        }
         var curFile=inf.file;
         var curFiles=fileSet(curFile);
         var curHTMLFile=curFiles[0];
@@ -15638,7 +15778,7 @@ function ready() {
                     //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
                     RunDialog2.show(indexF,
-                    {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+                    {window:newwnd,height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
                     logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"JS Run","実行しました","JavaScript");
                 }).fail(function (e) {
                     console.log(e.stack);
@@ -15703,7 +15843,7 @@ function ready() {
                   logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Run","実行しました","C");
                   console.log("screenH",screenH);
                   return RunDialog2.show(indexF,
-                  {height:screenH,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+                  {window:newwnd,height:screenH,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
               }).fail(function (e) {
                   //var eobj={stack:e.stack,message:e+""};
                   //for (var k in e) eobj[k]=e[k];
@@ -15737,7 +15877,7 @@ function ready() {
                     var indexF=ram.rel(curHTMLFile.name());
                     logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"Dolittle Run","実行しました","Dolittle");
                     return RunDialog2.show(indexF,
-                    {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+                    {window:newwnd,height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
                 }).fail(function (e) {
                     //console.log("FAIL", arguments);
                     Tonyu.onRuntimeError(e);
