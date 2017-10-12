@@ -5,7 +5,8 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
-           "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog"
+           "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog",
+           "IframeDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -14,7 +15,8 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
-          CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog
+          CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog,
+          IframeDialog
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -708,7 +710,8 @@ function ready() {
                     if (ALWAYS_UPLOAD) {
                         Auth.publishedURL(curProjectDir.name()).then(function (pub) {
                             var runURL=pub+curHTMLFile.name();
-                            $("<iframe>").attr({src:runURL}).dialog({width:600,height:400});
+                            //$("<iframe>").attr({src:runURL}).dialog({width:600,height:400});
+                            IframeDialog.show(runURL,{width:600,height:400});
                         });
                         return;
                     }
@@ -846,7 +849,7 @@ function ready() {
                     }).then(function (pub) {
                         var nt=new Date().getTime();
                         console.log("Upload time :",nt-t);
-                        $("<iframe>").attr({src: pub+"index.html"}).dialog({width:600,height:400});
+                        IframeDialog.show(pub+"index.html",{width:600,height:400});
                     });
                 }).fail(function (e) {
                     //var eobj={stack:e.stack,message:e+""};

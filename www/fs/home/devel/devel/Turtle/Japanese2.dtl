@@ -112,6 +112,9 @@
     "use" "使う" addAlias
     "calibrate" "調整" addAlias
     "action" "動作" addAlias
+    "getA" "値A" addAlias
+    "getB" "値B" addAlias
+    "getC" "値C" addAlias
     "getXAcceleration" "左右の加速度?" addAlias
     "getYAcceleration" "前後の加速度?" addAlias
     "getZAcceleration" "上下の加速度?" addAlias.
@@ -143,6 +146,9 @@
     "getYaw" "ヨー?" "水平方向の傾き?" "水平の傾き?" addAlias
     "getRoll" "ロール?" "左右方向の傾き?" "左右の傾き?" addAlias
     "getPitch" "ピッチ?" "前後方向の傾き?" "前後の傾き?" addAlias
+    "getA" "値A" addAlias
+    "getB" "値B" addAlias
+    "getC" "値C" addAlias
     "calibrate" "調整" addAlias
     "use" "使う" addAlias.
     

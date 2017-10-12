@@ -26,7 +26,7 @@ var Calibratable={
             self.calibration={};
             self.rawKeys.forEach(function (k,i) {
                 self.calibration[self.calibratedKeys[i]]={rawkey:k,sgn:1};
-            });        
+            });
         }
         console.log("Calload", self.calibration);
     },
@@ -86,7 +86,7 @@ root.accelerationSensor.getCalibratedXY=function (raw,c) {
          return {x:raw.y*c.y, y:raw.x*c.x};
      } else {
          return {y:raw.y*c.y, x:raw.x*c.x};
-     }   
+     }
 };
 root.accelerationSensor.calibrate=Calibratable.calibrate;/*function () {
     var self=this;
@@ -107,6 +107,22 @@ root.accelerationSensor.getZAcceleration=function(){
 	if(this.initialized==false)this.init();
 	return this.z
 };
+root.accelerationSensor.getA=function(){
+	if(this.initialized==false)this.init();
+    if (!this.raw) return 0;
+	return this.raw.x||0;
+};
+root.accelerationSensor.getB=function(){
+	if(this.initialized==false)this.init();
+    if (!this.raw) return 0;
+    return this.raw.y||0;
+};
+root.accelerationSensor.getC=function(){
+	if(this.initialized==false)this.init();
+    if (!this.raw) return 0;
+    return this.raw.z||0;
+};
+
 root.accelerationSensor.setAction=function(f){
 	if(this.initialized==false)this.init();
 	if((typeof f)!="function")return this;
@@ -240,7 +256,7 @@ root.touchSensor.init=function(){
 			var width=window.$("#canvas").context.documentElement.clientWidth/2;
 			var height=window.$("#canvas").context.documentElement.clientHeight/2;
 			x=(evt.touches[0].clientX) || 0;
-			y=(evt.touches[0].clientY) || 0;	
+			y=(evt.touches[0].clientY) || 0;
 			self.x=x-width;
 			self.y=height-y;
 			self.action.execute(self.x,self.y);
@@ -361,6 +377,22 @@ root.gyroSensor.getPitch=function(){
 	if(this.initialized==false)this.init();
 	return this.y;
 };
+root.gyroSensor.getA=function(){
+	if(this.initialized==false)this.init();
+    if (!this.raw) return 0;
+	return this.raw.alpha||0;
+};
+root.gyroSensor.getB=function(){
+	if(this.initialized==false)this.init();
+    if (!this.raw) return 0;
+    return this.raw.beta||0;
+};
+root.gyroSensor.getC=function(){
+	if(this.initialized==false)this.init();
+    if (!this.raw) return 0;
+    return this.raw.gamma||0;
+};
+
 root.gyroSensor.setAction=function(f){
 	if(this.initialized==false)this.init();
 	if((typeof f)!="function")return this;
@@ -443,19 +475,19 @@ function startCalibrationOLD(onend) {
              return {x:raw.y*c.y, y:raw.x*c.x};
          } else {
              return {y:raw.y*c.y, x:raw.x*c.x};
-         }   
+         }
     };
     p.calibrationList=[
-        {f:false,x:1, y:1},   
-        {f:false,x:-1, y:1},   
-        {f:false,x:1, y:-1},   
-        {f:false,x:-1, y:-1},   
-        {f:true,x:1, y:1},   
-        {f:true,x:-1, y:1},   
-        {f:true,x:1, y:-1},   
-        {f:true,x:-1, y:-1}   
+        {f:false,x:1, y:1},
+        {f:false,x:-1, y:1},
+        {f:false,x:1, y:-1},
+        {f:false,x:-1, y:-1},
+        {f:true,x:1, y:1},
+        {f:true,x:-1, y:1},
+        {f:true,x:1, y:-1},
+        {f:true,x:-1, y:-1}
     ];
-    
+
     Accel.calibrated={f:false, x:1, y:1};
     var a=new Accel;
     a.calibrationMode=true;
@@ -480,7 +512,7 @@ function startCalibrationOLD(onend) {
                 if (c.dist<min) { Accel.calibrated=c; min=c.dist;}
             });
             localStorage.acceleratorCalibration=JSON.stringify( Accel.calibrated);
-             a.calibrationMode=false; 
+             a.calibrationMode=false;
         }
         if (cnt==5) {
             cve.remove();
@@ -488,7 +520,7 @@ function startCalibrationOLD(onend) {
             cnt=6;
             window.removeEventListener("devicemotion",hnd);
             clearInterval(timer);
-            onend( Accel.calibrated);            
+            onend( Accel.calibrated);
         }
         if (cnt>=4) {
             cv.fillStyle="black";
@@ -498,7 +530,7 @@ function startCalibrationOLD(onend) {
         cv.fillStyle="red";
     };
     timer=setInterval(function () {
-         cnt++;   
+         cnt++;
         a.dstDir+=Math.PI/2;
     },3000);
 }

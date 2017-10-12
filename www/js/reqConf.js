@@ -135,6 +135,7 @@ var reqConf={
             DistributeDialog: "ide/DistributeDialog",
             RunDialog: "ide/RunDialog",
             RunDialog2: "ide/RunDialog2",
+            IframeDialog: "ide/IframeDialog",
             RemoteProject: "ide/RemoteProject",
             WebSite: "runtime/WebSite",
             UI:"ui/UI",
