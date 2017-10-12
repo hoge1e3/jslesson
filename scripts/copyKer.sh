@@ -1,3 +1,4 @@
+# DO NOT EDIT by Atom!! Use TeraPad!!
 cd ../www/
 # dtl
 # open devel/devel/Turtle

@@ -61,13 +61,13 @@ this['addAlias']("Light","光");
 this['Light']['addAlias']("mix","混ぜる");
 this['Timer']['addAlias']("next_execute","次に実行");
 this['addAlias']("accelerationSensor","加速度センサ","加速度センサー");
-this['accelerationSensor']['addAlias']("setAction","動作設定")['addAlias']("use","使う")['addAlias']("calibrate","調整")['addAlias']("action","動作")['addAlias']("getXAcceleration","左右の加速度?")['addAlias']("getYAcceleration","前後の加速度?")['addAlias']("getZAcceleration","上下の加速度?");
+this['accelerationSensor']['addAlias']("setAction","動作設定")['addAlias']("use","使う")['addAlias']("calibrate","調整")['addAlias']("action","動作")['addAlias']("getA","値A")['addAlias']("getB","値B")['addAlias']("getC","値C")['addAlias']("getXAcceleration","左右の加速度?")['addAlias']("getYAcceleration","前後の加速度?")['addAlias']("getZAcceleration","上下の加速度?");
 this['addAlias']("compass","コンパス","磁気センサ","磁気センサー");
 this['compass']['addAlias']("use","使う")['addAlias']("setAction","動作設定")['addAlias']("action","動作")['addAlias']("getDirection","方向?","向き?");
 this['addAlias']("touchSensor","タッチセンサ","タッチセンサー");
 this['touchSensor']['addAlias']("setAction","動作設定")['addAlias']("action","動作")['addAlias']("use","使う")['addAlias']("getTouched","タッチした?","触れた?")['addAlias']("getTouching","タッチしている?","タッチしてる?","触れている?","触れてる?")['addAlias']("getX","横の位置?")['addAlias']("getY","縦の位置?");
 this['addAlias']("gyroSensor","ジャイロセンサ","ジャイロセンサー");
-this['gyroSensor']['addAlias']("setAction","動作設定")['addAlias']("action","動作")['addAlias']("use","使う")['addAlias']("getYaw","ヨー?","水平方向の傾き?","水平の傾き?")['addAlias']("getRoll","ロール?","左右方向の傾き?","左右の傾き?")['addAlias']("getPitch","ピッチ?","前後方向の傾き?","前後の傾き?")['addAlias']("calibrate","調整")['addAlias']("use","使う");
+this['gyroSensor']['addAlias']("setAction","動作設定")['addAlias']("action","動作")['addAlias']("use","使う")['addAlias']("getYaw","ヨー?","水平方向の傾き?","水平の傾き?")['addAlias']("getRoll","ロール?","左右方向の傾き?","左右の傾き?")['addAlias']("getPitch","ピッチ?","前後方向の傾き?","前後の傾き?")['addAlias']("getA","値A")['addAlias']("getB","値B")['addAlias']("getC","値C")['addAlias']("calibrate","調整")['addAlias']("use","使う");
 this['HTML']['読む']=dtlbind(this,function(x){
 var self=this;var 自分=self;
 return this['get']((x));
