@@ -36,7 +36,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     var isFirefox=navigator.userAgent.indexOf("Firefox")>=0;
     var isChrome=navigator.userAgent.indexOf("Chrome")>=0;
     var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
-    window.ALWAYS_UPLOAD=false;
+    var ALWAYS_UPLOAD=!!localStorage.ALWAYS_UPLOAD;
     var useOLDC=false;
     var langList={
         "js":"JavaScript",
@@ -707,19 +707,18 @@ function ready() {
                     }
                     return b;
                 }).then(function () {
+                    logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"JS Run","実行しました","JavaScript");
                     if (ALWAYS_UPLOAD) {
-                        Auth.publishedURL(curProjectDir.name()).then(function (pub) {
+                        return Auth.publishedURL(curProjectDir.name()).then(function (pub) {
                             var runURL=pub+curHTMLFile.name();
                             //$("<iframe>").attr({src:runURL}).dialog({width:600,height:400});
-                            IframeDialog.show(runURL,{width:600,height:400});
+                            return IframeDialog.show(runURL,{width:600,height:400});
                         });
-                        return;
                     }
                     //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
                     RunDialog2.show(indexF,
                     {window:newwnd,height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
-                    logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"JS Run","実行しました","JavaScript");
                 }).fail(function (e) {
                     console.log(e.stack);
     	            if (e.isTError) {
@@ -743,7 +742,7 @@ function ready() {
             sync
             */
 
-    	}else if(lang=="c"&&useOLDC){
+    	/*}else if(lang=="c"&&useOLDC){
     	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text());
     		var compiledFile=curPrj.getOutputFile();
     		var log={};
@@ -771,16 +770,32 @@ function ready() {
         			alert(e);
     			}
     		}
-            return sync();
+            return sync();*/
       } else if (lang=="c") {
           try {
             SplashScreen.show();
             $("#fullScr").attr("href","javascript:;").text("別ページで表示");
               DU.timeout(0).then(function () {
-                  return builder.build({mainFile:curJSFile});
+                  var b=builder.build({mainFile:curJSFile});
+                  if (ALWAYS_UPLOAD) {
+                      return b.then(function () {
+                          return Auth.publishedDir(curProjectDir.name());
+                      }).then(function (pub) {
+                          console.log("Upload comp",pub);
+                          return builder.upload(pub);
+                      });
+                  }
+                  return b;
               }).then(function () {
-                  var indexF=ram.rel(curHTMLFile.name());
                   logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Run","実行しました","C");
+                  if (ALWAYS_UPLOAD) {
+                      return Auth.publishedURL(curProjectDir.name()).then(function (pub) {
+                          var runURL=pub+curHTMLFile.name();
+                          console.log("Run url",runURL);
+                          return IframeDialog.show(runURL,{width:600,height:400});
+                      });
+                  }
+                  var indexF=ram.rel(curHTMLFile.name());
                   console.log("screenH",screenH);
                   return RunDialog2.show(indexF,
                   {window:newwnd,height:screenH,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
@@ -812,10 +827,26 @@ function ready() {
         	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
     	        $("#fullScr").attr("href","javascript:;").text("別ページで表示");
                 DU.timeout(0).then(function () {
-                    return builder.build({mainFile:curJSFile});
+                    var b=builder.build({mainFile:curJSFile});
+                    if (ALWAYS_UPLOAD) {
+                        return b.then(function () {
+                            return Auth.publishedDir(curProjectDir.name());
+                        }).then(function (pub) {
+                            console.log("Upload comp",pub);
+                            return builder.upload(pub);
+                        });
+                    }
+                    return b;
                 }).then(function () {
-                    var indexF=ram.rel(curHTMLFile.name());
                     logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"Dolittle Run","実行しました","Dolittle");
+                    if (ALWAYS_UPLOAD) {
+                        return Auth.publishedURL(curProjectDir.name()).then(function (pub) {
+                            var runURL=pub+curHTMLFile.name();
+                            console.log("Run url",runURL);
+                            return IframeDialog.show(runURL,{width:600,height:400});
+                        });
+                    }
+                    var indexF=ram.rel(curHTMLFile.name());
                     return RunDialog2.show(indexF,
                     {window:newwnd,height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
                 }).fail(function (e) {
@@ -924,6 +955,10 @@ function ready() {
         }
     };
     EC.handleException=Tonyu.onRuntimeError=function (e) {
+        if (e.type==="dialogClosed") {
+            console.log(e.stack);
+            return;
+        }
         var inf=getCurrentEditorInfo();
         if (!inf) {
             console.log(e.stack);

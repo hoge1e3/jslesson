@@ -1819,7 +1819,7 @@ var requirejs, require, define;
      */
     req.load = function (context, moduleName, url) {
         var config = (context && context.config) || {},
-            node,cvurl;
+            node,cvurl;//@hoge1e3
         if (isBrowser) {
             //In the browser so use a script tag
             node = req.createNode(config, moduleName, url);
@@ -1887,6 +1887,7 @@ var requirejs, require, define;
                 cvurl += (cvurl.indexOf("?")<0?"?":"&")+requirejs.__urlPostfix;
             }
             node.src=cvurl;
+            //end of @hoge1e3
 
             //For some cache cases in IE 6-8, the script executes before the end
             //of the appendChild execution, so to tie an anonymous define

@@ -10,7 +10,7 @@ requirejs.config({
       "Klass": window.runtimePath+"lib/Klass",
       "FS": window.runtimePath+"lib/FS",
       "_Util": window.runtimePath+"lib/util"
-    }
+  }
 });
 requirejs(["assert","Klass","FS","_Util"],function (assert,Klass,FS,_Util) {
   requirejs(["lib","util","ctype","x","AsyncByGenerator"],function (lib,u,c,x,ABG) {
@@ -32,8 +32,11 @@ requirejs(["assert","Klass","FS","_Util"],function (assert,Klass,FS,_Util) {
   		function handleError(e) {
             if (window.runc_handleError) return window.runc_handleError(e);
             console.log(e.stack);
-            alert(e);
-            parent.Tonyu.onRuntimeError(e);
+            if (parent && parent.Tonyu && typeof parent.Tonyu.onRuntimeError==="function") {
+                parent.Tonyu.onRuntimeError(e);
+            } else {
+                alert(e);
+            }
         }
     });
     });

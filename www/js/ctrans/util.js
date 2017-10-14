@@ -143,7 +143,11 @@ function loop_start2(){
     window.startTime=new Date().getTime();
 }
 function loop_chk2() {
-    if (window.parent && window.parent.dialogClosed) throw new Error("ダイアログが閉じられたので実行を停止しました");
+    if (window.parent && window.parent.dialogClosed) {
+        var e=new Error("ダイアログが閉じられたので実行を停止しました");
+        e.type="dialogClosed";
+        throw e;
+    }
     var now=new Date().getTime();
     if (now-window.startTime>5000) {
         //console.log(window.parent, window.opener);

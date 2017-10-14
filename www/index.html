@@ -47,6 +47,9 @@ requirejs(["Util"],function (Util){
         localStorage.noconcat=(noconcat==="true");
     }
     console.log("noconcat",noconcat);
+    var alu=Util.getQueryString("ALWAYS_UPLOAD","emp");
+    if (alu!=="emp") localStorage.ALWAYS_UPLOAD=(alu==="true");
+    console.log("ALWAYS_UPLOAD",!!localStorage.ALWAYS_UPLOAD);
     if (noconcat+""!="true") {
         console.log(reqConf.paths[run+"_concat"]);
         if (reqConf.paths[run+"_concat"]) {
