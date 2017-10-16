@@ -20,7 +20,23 @@ function run(className) {
           "Tonyu.Thread": window.runtimePath+"lib/tjs/TonyuThread",
           "Tonyu.Iterator": window.runtimePath+"lib/tjs/TonyuIterator",
           "kernel": window.runtimePath+"lib/tjs/kernel",
-        }
+      },
+      urlArgs: requirejs.version=="2.1.9"? "": function (id,url) {
+            //console.log("URLARGS",id,url);
+            if (url.match(/^http/)) {
+                try {
+                    if (window.parent===window) {
+                        return "";
+                    }
+                    return window.parent.requirejs.s.contexts._.config.urlArgs(id,url);
+                } catch (e) {
+                    console.log("URLARGS err",e.stack);
+                    return "";
+                }
+            } else {
+                return (url.indexOf("?")<0?"?":"&")+Math.random();
+            }
+       }
     });
    //requirejs(["Tonyu"], function () {
    //     requirejs(["kernel"],function (){

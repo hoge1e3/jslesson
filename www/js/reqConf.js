@@ -264,4 +264,10 @@ var reqConf={
         },
         "baseUrl": "js"
 };
+reqConf.urlArgsStr=reqConf.urlArgs=String.fromCharCode(
+    Math.floor(Math.random()*26)+
+    Math.floor(Math.random()*2)*32+65)+
+    String.fromCharCode(
+        Math.floor(Math.random()*26)+
+        Math.floor(Math.random()*2)*32+65);
 if (typeof exports!=="undefined") exports.conf=reqConf;

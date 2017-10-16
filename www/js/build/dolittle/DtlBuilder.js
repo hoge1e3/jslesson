@@ -1,25 +1,25 @@
-define(["assert","DeferredUtil","wget", "dolittle/minimal","IndentBuffer","Sync","FS","SplashScreen"], 
+define(["assert","DeferredUtil","wget", "dolittle/minimal","IndentBuffer","Sync","FS","SplashScreen"],
 function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
     DtlBuilder=function (prj, dst) {
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
     };
-    /*var images=["99.gif", "akazukin.gif", "apple.png", "arrow0.png", 
-    "arrow1.png", "arrow2.png", "arrow3.png", "ayumi.gif", 
-    "ayumi.png", "ayumiAka.gif", "ayumiAo.gif", "ayumiBlue.png", 
-    "ayumiKiiro.gif", "ayumiRed.png", "ayumiYellow.png", 
-    "ball.png", "base.png", "beetle.png", "bluefish.png", 
+    /*var images=["99.gif", "akazukin.gif", "apple.png", "arrow0.png",
+    "arrow1.png", "arrow2.png", "arrow3.png", "ayumi.gif",
+    "ayumi.png", "ayumiAka.gif", "ayumiAo.gif", "ayumiBlue.png",
+    "ayumiKiiro.gif", "ayumiRed.png", "ayumiYellow.png",
+    "ball.png", "base.png", "beetle.png", "bluefish.png",
     "book.png", "car.png", "clear.png", "copy.png",
-    "crab.png", "cut.png", "ecl.png", "editAdd.png", "fish.png", 
-    "heri.gif", "inputPad.png", "kuno.gif", "kuno.png", 
-    "mapchip.png", "myurobo.png", "neko.png", "neko1.png", 
-    "neko2.png", "niwa.gif", "nowprint.png", "paste.png", 
-    "pen.png", "rabbitBlue.png", "rabbitGreen.png", 
-    "rabbitRed.png", "rabbitYellow.png", "raceBlue.png", 
-    "raceGreen.png", "raceRed.png", "raceYellow.png", 
-    "redo.png", "rocket.gif", "runner.png", "Sample.png", 
-    "server.png", "soccer.png", "sound.png", "star.png", 
-    "tnu.ico", "tonbo.gif", "tonyu.png", "trumpet.png", 
+    "crab.png", "cut.png", "ecl.png", "editAdd.png", "fish.png",
+    "heri.gif", "inputPad.png", "kuno.gif", "kuno.png",
+    "mapchip.png", "myurobo.png", "neko.png", "neko1.png",
+    "neko2.png", "niwa.gif", "nowprint.png", "paste.png",
+    "pen.png", "rabbitBlue.png", "rabbitGreen.png",
+    "rabbitRed.png", "rabbitYellow.png", "raceBlue.png",
+    "raceGreen.png", "raceRed.png", "raceYellow.png",
+    "redo.png", "rocket.gif", "runner.png", "Sample.png",
+    "server.png", "soccer.png", "sound.png", "star.png",
+    "tnu.ico", "tonbo.gif", "tonyu.png", "trumpet.png",
     "tulip.png", "ui-icons_888888_256x240.png", "undo.png", "usa.gif"].map(
         function (n) {return "images/"+n;});*/
     var libs=["jquery-1.12.1","require"].map(function (n) {
@@ -69,7 +69,13 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
         }).concat([f.name+".js"]).forEach(function (src) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
-            nn.setAttribute("src",src+"?"+requirejs.__urlPostfix);
+            var src2;
+            if (FS.PathUtil.isURL(src)) {
+                src2=src+requirejs.s.contexts._.config.urlArgs("",src);
+            } else {
+                src2=src+(src.indexOf("?")<0?"?":"&")+Math.random();
+            }
+            nn.setAttribute("src",src2);
             body.appendChild(nn);
         });
         return f.dst.html.text("<!DOCTYPE HTML>\n<html>"+html.innerHTML+"</html>");
@@ -77,7 +83,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
     function isNewer(a,b) {
         if (!a.exists()) return false;
         return a.lastUpdate()>b.lastUpdate();
-    }   
+    }
     p.build=function (options) {
         options=options||{};
         var mainFilePath=options.mainFile && options.mainFile.path();
@@ -106,6 +112,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
         }).then(DU.tr(function () {
             return DU.each(files,function (f) {
                 t.progress("Transpile "+f.src.dtl.name());
+                console.log("File new?",f.src.html.name(), isNewer(f.dst.html, f.src.html), isNewer(f.dst.js, f.src.dtl));
                 var isMainFile=(f.src.dtl.path()==mainFilePath);
                 if (!isMainFile && isNewer(f.dst.js, f.src.dtl)) return SplashScreen.waitIfBusy();
                 if (f.dst.dtlvm) return compileVM(f);
@@ -114,15 +121,16 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
                 var js=dtlParser.parse(f.src.dtl.text(),{indentBuffer:buf,src:f.src.dtl.name(),
                 throwCompileErrorOnRuntime:!isMainFile});
                 buf.close();
-                return SplashScreen.waitIfBusy();
-            });
-        })).then(DU.tr(function() {
-            return DU.each(files,function (f) {
-                if (isNewer(f.dst.html, f.src.html)) return SplashScreen.waitIfBusy();
                 t.genHTML(f);
                 return SplashScreen.waitIfBusy();
             });
-        }));         
+        }))/*.then(DU.tr(function() {
+            return DU.each(files,function (f) {
+                if (isNewer(f.dst.html, f.src.html) && isNewer(f.dst.js, f.src.dtl)) return SplashScreen.waitIfBusy();
+                t.genHTML(f);
+                return SplashScreen.waitIfBusy();
+            });
+        }))*/;
     };
     function isVM(src) {
         return src.match(/RUN_AT_SERVER/);
@@ -148,7 +156,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
         });
     }
     p.upload=function (pub) {
-        return Sync.sync(this.dst,pub);  
+        return Sync.sync(this.dst,pub);
     };
     return DtlBuilder;
 });

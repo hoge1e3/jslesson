@@ -37,7 +37,9 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
         }).concat([runtimePath+"lib/c/runc.js"]).forEach(function (src) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
-            nn.setAttribute("src",src+"?"+requirejs.__urlPostfix);
+            var src2;
+            src2=src+requirejs.s.contexts._.config.urlArgs("",src);
+            nn.setAttribute("src",src2);
             body.appendChild(nn);
         });
         return f.dst.html.text("<!DOCTYPE HTML>\n<html>"+html.innerHTML+"</html>");

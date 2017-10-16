@@ -1,4 +1,4 @@
-define(["assert","DeferredUtil","wget","Sync"], 
+define(["assert","DeferredUtil","wget","Sync"],
 function (A,DU,wget,Sync) {
     TJSBuilder=function (prj, dst) {
         this.prj=prj;// TPRC
@@ -49,7 +49,9 @@ function (A,DU,wget,Sync) {
         ["lib/jquery-1.12.1.js","lib/require.js","lib/tjs/run.js"].forEach(function (src) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
-            nn.setAttribute("src",WebSite.runtime+src);
+            var url=WebSite.runtime+src;
+            url+=requirejs.s.contexts._.config.urlArgs("",url);
+            nn.setAttribute("src",url);
             body.appendChild(nn);
         });
         var nn=document.createElement("script");
@@ -64,8 +66,8 @@ function (A,DU,wget,Sync) {
         var curPrj=this.prj;
         var opt=curPrj.getOptions();
         console.log("opT",opt);
-        if (opt.compiler && 
-        opt.compiler.dependingProjects && 
+        if (opt.compiler &&
+        opt.compiler.dependingProjects &&
         opt.compiler.dependingProjects[0]){
             if (opt.compiler.dependingProjects[0].compiledURL=="${JSLKer}/js/concat.js") {
                 opt.compiler.dependingProjects[0].compiledURL="${JSLKer}";
@@ -75,7 +77,7 @@ function (A,DU,wget,Sync) {
         var dst=this.dst;
         var t=this;
         return /*this.dlFiles()*/$.when().then(function () {
-            return curPrj.loadClasses();            
+            return curPrj.loadClasses();
         }).then(function() {
             var concat=curPrj.getOutputFile();
             dst.rel("user.js").copyFrom(concat);
@@ -83,10 +85,10 @@ function (A,DU,wget,Sync) {
                 if (f.ext()!=".html")  return;
                 t.genHTML(f.truncExt());
             });
-        });            
+        });
     };
     p.upload=function (pub) {
-        return Sync.sync(this.dst,pub);  
+        return Sync.sync(this.dst,pub);
     };
     return TJSBuilder;
 });

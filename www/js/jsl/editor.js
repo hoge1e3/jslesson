@@ -36,7 +36,8 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     var isFirefox=navigator.userAgent.indexOf("Firefox")>=0;
     var isChrome=navigator.userAgent.indexOf("Chrome")>=0;
     var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
-    var ALWAYS_UPLOAD=!!localStorage.ALWAYS_UPLOAD;
+    var ALWAYS_UPLOAD=(localStorage.ALWAYS_UPLOAD==="true");
+    console.log("ALWAYS_UPLOAD",ALWAYS_UPLOAD);
     var useOLDC=false;
     var langList={
         "js":"JavaScript",

@@ -1893,7 +1893,7 @@ var requirejs, require, define;
      */
     req.load = function (context, moduleName, url) {
         var config = (context && context.config) || {},
-            node, cvurl;//@hoge1e3
+            node;
         if (isBrowser) {
             //In the browser so use a script tag
             node = req.createNode(config, moduleName, url);
@@ -1942,9 +1942,7 @@ var requirejs, require, define;
                 node.addEventListener('load', context.onScriptLoad, false);
                 node.addEventListener('error', context.onScriptError, false);
             }
-            //@hoge1e3
-            cvurl = (typeof LocalBrowserInfo=="object") ? LocalBrowserInfo.convertURL(url) : url;
-            node.src = cvurl;
+            node.src = url;
 
             //Calling onNodeCreated after all properties on the node have been
             //set, but before it is placed in the DOM.

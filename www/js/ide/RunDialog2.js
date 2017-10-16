@@ -60,7 +60,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA) {
                     ["button", {type:"button",$var:"OKButton", on:{click: function () {
                         res.d.dialog("close");
                     }}}, "閉じる"],
-                    (isie()?"":["button", {type:"button",$var:"WButton", on:{click: function () {
+                    (true?"":["button", {type:"button",$var:"WButton", on:{click: function () {
                         if (res.hasLocalBrowserWindow()) res.lbw.close();
                         res.lbw=new LocalBrowserWindow({
                             onload:function () {

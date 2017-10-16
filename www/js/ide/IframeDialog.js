@@ -41,7 +41,8 @@ function (UI ,DA) {
                         res.d.dialog("close");
                     }}}, "閉じる"],
                     (["button", {type:"button",$var:"WButton", on:{click: function () {
-                        res.window=window.open(url,"LocalBrowserWindow","menubar=no,toolbar=no,width=500,height=500");
+                        if (res.window && !res.window.closed) res.window.close();
+                        res.window=window.open(url,"LocalBrowserWindow"+Math.random(),"menubar=no,toolbar=no,width=500,height=500");
                     }}}, "別ウィンドウ"])
             );
             res.iframe=res.d.$vars.iframe;
