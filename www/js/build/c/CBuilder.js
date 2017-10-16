@@ -75,22 +75,23 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
             return DU.each(files,function (f) {
                 t.progress("Transpile "+f.src.c.name());
                 var isMainFile=(f.src.c.path()==mainFilePath);
-                if (!isMainFile && isNewer(f.dst.js, f.src.c)) return SplashScreen.waitIfBusy();
+                if (!isMainFile && isNewer(f.dst.js, f.src.c) && isNewer(f.dst.html, f.src.html)) return SplashScreen.waitIfBusy();
                 /*var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
                 buf.setSrcFile(f.src.dtl);
                 var js=dtlParser.parse(f.src.dtl.text(),{indentBuffer:buf,src:f.src.dtl.name(),
                 throwCompileErrorOnRuntime:!isMainFile});
                 buf.close();*/
                 compile(f.src.c,f.dst.js,{noReturn:true});
+                t.genHTML(f,options);
                 return SplashScreen.waitIfBusy();
             });
-        })).then(DU.tr(function() {
+        }))/*.then(DU.tr(function() {
             return DU.each(files,function (f) {
                 if (isNewer(f.dst.html, f.src.html)) return SplashScreen.waitIfBusy();
                 t.genHTML(f,options);
                 return SplashScreen.waitIfBusy();
             });
-        }));
+        }))*/;
     };
     function isVM(src) {
         return src.match(/RUN_AT_SERVER/);

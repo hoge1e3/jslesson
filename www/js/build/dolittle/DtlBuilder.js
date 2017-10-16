@@ -112,9 +112,9 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
         }).then(DU.tr(function () {
             return DU.each(files,function (f) {
                 t.progress("Transpile "+f.src.dtl.name());
-                console.log("File new?",f.src.html.name(), isNewer(f.dst.html, f.src.html), isNewer(f.dst.js, f.src.dtl));
+                //console.log("File new?",f.src.html.name(), isNewer(f.dst.html, f.src.html), isNewer(f.dst.js, f.src.dtl));
                 var isMainFile=(f.src.dtl.path()==mainFilePath);
-                if (!isMainFile && isNewer(f.dst.js, f.src.dtl)) return SplashScreen.waitIfBusy();
+                if (!isMainFile && isNewer(f.dst.js, f.src.dtl) && isNewer(f.dst.html, f.src.html)) return SplashScreen.waitIfBusy();
                 if (f.dst.dtlvm) return compileVM(f);
                 var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
                 buf.setSrcFile(f.src.dtl);

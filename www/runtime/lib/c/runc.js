@@ -15,12 +15,12 @@ requirejs.config({
         //console.log("URLARGS",id,url);
         if (url.match(/^http/)) {
             try {
-                if (window.parent===window) {
+                if (window.opener===window) {
                     return "";
                 }
-                return window.parent.requirejs.s.contexts._.config.urlArgs(id,url);
+                return window.opener.requirejs.s.contexts._.config.urlArgs(id,url);
             } catch (e) {
-                console.log("URLARGS err",e.stack);
+                //console.log("URLARGS err",e.stack);
                 return "";
             }
         } else {
