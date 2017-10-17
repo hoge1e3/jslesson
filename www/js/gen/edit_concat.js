@@ -14059,6 +14059,7 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass) {
         var idoc;
         var onload=options.onload || function () {};
         var onerror=options.onerror || (window.onerror ? function () {
+            //return window.onerror.apply(window,[0,0,0,0,e]);
             return window.onerror.apply(window,arguments);
         }: function () {});
         delete options.onload;
@@ -14129,12 +14130,13 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass) {
     return LocalBrowser;
 });
 
-define('LocalBrowserWindow',["Shell", "FS","DeferredUtil","UI","source-map","LocalBrowserInfoClass"],
-function (sh,FS,DU,UI,S,LocalBrowserInfoClass) {
+define('LocalBrowserWindow',["Shell", "FS","DeferredUtil","UI","source-map","LocalBrowserInfoClass","WebSite"],
+function (sh,FS,DU,UI,S,LocalBrowserInfoClass,WebSite) {
     var LocalBrowserWindow=function (options) {
         this.targetAttr=options||{};
         this.window=options.window||window.open("about:blank","LocalBrowserWindow","menubar=no,toolbar=no,width=500,height=500");
     };
+    var BLANK_URL=WebSite.runtime+"blank.html";
     p=LocalBrowserWindow.prototype;
     p.close=function () {
         this.window.close();
@@ -14145,7 +14147,7 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass) {
     p.focus=function () {
         if (this.window) {
             //this.window.focus();
-            this.window=window.open("about:blank","LocalBrowserWindow","menubar=no,toolbar=no,width=500,height=500");
+            this.window=window.open(BLANK_URL,"LocalBrowserWindow","menubar=no,toolbar=no,width=500,height=500");
         }
     };
     p.isActive=function () {
@@ -14158,23 +14160,27 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass) {
         var idoc;
         var onload=options.onload || function () {};
         var onerror=options.onerror || (window.onerror ? function () {
+//            return window.onerror.apply(window,[0,0,0,0,e]);
             return window.onerror.apply(window,arguments);
         }: function () {});
         delete options.onload;
         var base=f.up();
         var thiz=this;
         var loaded;
-        iwin.location.href="about:blank";
-        setTimeout(function () {
+        window.lastLBW=this;
+        window.LBW_onload=(function () {
             console.log("Loading...");
             if (loaded) return;
             loaded=true;
             iwin.LocalBrowserInfo=new LocalBrowserInfoClass(thiz,iwin,f,options);
             iwin.LocalBrowserInfo.wrapErrorHandler(onerror);
             return iwin.LocalBrowserInfo.loadNode(f).then(function () {
-                onload.apply(i[0],[]);
-            }).fail(onerror);
-        },100);
+                onload.apply(iwin,[]);
+            }).fail(function (e) {
+                onerror.apply(iwin,[0,0,0,0,e]);
+            });
+        });
+        iwin.location.href=BLANK_URL;
         return this.window;
     };
     function isFirefox() {
@@ -14247,6 +14253,14 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA) {
             }
         }
     };
+    function isie() {
+        if(navigator.userAgent.toLowerCase().indexOf('msie') != -1) {
+            return true;
+        }
+        if(navigator.userAgent.toLowerCase().indexOf('trident') != -1) {
+            return true;
+        }
+    }
     res.embed=function (runFile, options) {
         options=options||{};
         if (!res.d) {
@@ -14255,7 +14269,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA) {
                     ["button", {type:"button",$var:"OKButton", on:{click: function () {
                         res.d.dialog("close");
                     }}}, "閉じる"],
-                    ["button", {type:"button",$var:"WButton", on:{click: function () {
+                    (true?"":["button", {type:"button",$var:"WButton", on:{click: function () {
                         if (res.hasLocalBrowserWindow()) res.lbw.close();
                         res.lbw=new LocalBrowserWindow({
                             onload:function () {
@@ -14266,7 +14280,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA) {
                         });
                         res.lbw.open(runFile);
                         res.d.dialog("close");
-                    }}}, "別ウィンドウ"]
+                    }}}, "別ウィンドウ"])
             );
             res.da=new DA(res.d);
             res.da.afterResize=function (d) {
@@ -15061,6 +15075,79 @@ define('FileUploadDialog',["FS","UI"],function (FS,UI) {
     };
     return res; 
 });
+define('IframeDialog',["UI","DiagAdjuster"],
+function (UI ,DA) {
+    var res={};
+    res.show=function (url, options) {
+        options=options||{};
+        options.height=options.height||600;
+        options.width=options.width||16*((options.height+10)/9);
+        if (options.window && !options.window.closed) {
+            options.window.location.href=url;
+            return;
+        }
+        window.dialogClosed=false;
+        var d=res.embed(url, options);
+        console.log("IframeDialog options",options);
+        d.dialog({
+            width:options.width,
+            height:options.height,
+            position: { my: "center top", at: "right bottom"},
+            close:function(){
+                window.dialogClosed=true;
+                //if (res.b) res.b.close();
+                if(typeof options.toEditor == "function")options.toEditor();
+            },
+            resize:handleResize
+        });//,height:options.height?options.height-50:400});
+        setTimeout(function () {
+            if (!res.iframe[0].contentWindow.onerror) res.iframe[0].contentWindow.onerror=window.onerror;
+        },100);
+        handleResize();
+        function handleResize() {
+            if (res.da) {
+                res.da.handleResize();
+            }
+        }
+    };
+    res.embed=function (url, options) {
+        res.url=url;
+        options=options||{};
+        if (!res.d) {
+            res.d=UI("div",{title:"実行画面ダイアログ",id:"runDlg",css:{overflow:"hidden"}},
+                    ["div",{$var:"browser"},
+                        ["iframe",{$var:"iframe",src:url}]
+                    ],
+                    ["button", {type:"button",$var:"OKButton", on:{click: function () {
+                        res.d.dialog("close");
+                    }}}, "閉じる"],
+                    (["button", {type:"button",$var:"WButton", on:{click: function () {
+                        if (res.window && !res.window.closed) res.window.close();
+                        res.window=window.open(res.url,"LocalBrowserWindow"+Math.random(),"menubar=no,toolbar=no,width=500,height=500");
+                        if (!res.window.onerror) res.window.onerror=window.onerror;
+                    }}}, "別ウィンドウ"])
+            );
+            res.iframe=res.d.$vars.iframe;
+            res.da=new DA(res.d);
+            res.da.afterResize=function (d) {
+                if (res.iframe) {
+                    res.iframe.attr({
+                        width:d.width(),
+                        height:d.height()-res.d.$vars.OKButton.height()});
+                }
+            };
+        } else {
+            res.iframe[0].contentWindow.location.href=url;
+        }
+        setTimeout(function () {
+            res.iframe.focus();
+        },100);
+        //if (res.da) res.da.handleResize();
+        return res.d;
+    };
+    return res;
+});
+
 requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "showErrorPos", "fixIndent",  "ProjectCompiler",
            "Shell","ShellUI","KeyEventChecker",
@@ -15068,7 +15155,8 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
-           "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog"
+           "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog",
+           "IframeDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -15077,7 +15165,8 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           UI, UIDiag,WebSite,EC,TTB,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
-          CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog
+          CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog,
+          IframeDialog
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -15097,7 +15186,8 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     var isFirefox=navigator.userAgent.indexOf("Firefox")>=0;
     var isChrome=navigator.userAgent.indexOf("Chrome")>=0;
     var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
-    window.ALWAYS_UPLOAD=false;
+    var ALWAYS_UPLOAD=(localStorage.ALWAYS_UPLOAD==="true");
+    console.log("ALWAYS_UPLOAD",ALWAYS_UPLOAD);
     var useOLDC=false;
     var langList={
         "js":"JavaScript",
@@ -15768,18 +15858,18 @@ function ready() {
                     }
                     return b;
                 }).then(function () {
+                    logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"JS Run","実行しました","JavaScript");
                     if (ALWAYS_UPLOAD) {
-                        Auth.publishedURL(curProjectDir.name()).then(function (pub) {
+                        return Auth.publishedURL(curProjectDir.name()).then(function (pub) {
                             var runURL=pub+curHTMLFile.name();
-                            $("<iframe>").attr({src:runURL}).dialog({width:600,height:400});
+                            //$("<iframe>").attr({src:runURL}).dialog({width:600,height:400});
+                            return IframeDialog.show(runURL,{width:600,height:400});
                         });
-                        return;
                     }
                     //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
                     RunDialog2.show(indexF,
                     {window:newwnd,height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
-                    logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"JS Run","実行しました","JavaScript");
                 }).fail(function (e) {
                     console.log(e.stack);
     	            if (e.isTError) {
@@ -15803,7 +15893,7 @@ function ready() {
             sync
             */
 
-    	}else if(lang=="c"&&useOLDC){
+    	/*}else if(lang=="c"&&useOLDC){
     	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text());
     		var compiledFile=curPrj.getOutputFile();
     		var log={};
@@ -15831,16 +15921,32 @@ function ready() {
         			alert(e);
     			}
     		}
-            return sync();
+            return sync();*/
       } else if (lang=="c") {
           try {
             SplashScreen.show();
             $("#fullScr").attr("href","javascript:;").text("別ページで表示");
               DU.timeout(0).then(function () {
-                  return builder.build({mainFile:curJSFile});
+                  var b=builder.build({mainFile:curJSFile});
+                  if (ALWAYS_UPLOAD) {
+                      return b.then(function () {
+                          return Auth.publishedDir(curProjectDir.name());
+                      }).then(function (pub) {
+                          console.log("Upload comp",pub);
+                          return builder.upload(pub);
+                      });
+                  }
+                  return b;
               }).then(function () {
-                  var indexF=ram.rel(curHTMLFile.name());
                   logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Run","実行しました","C");
+                  if (ALWAYS_UPLOAD) {
+                      return Auth.publishedURL(curProjectDir.name()).then(function (pub) {
+                          var runURL=pub+curHTMLFile.name();
+                          console.log("Run url",runURL);
+                          return IframeDialog.show(runURL,{width:600,height:400});
+                      });
+                  }
+                  var indexF=ram.rel(curHTMLFile.name());
                   console.log("screenH",screenH);
                   return RunDialog2.show(indexF,
                   {window:newwnd,height:screenH,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
@@ -15872,10 +15978,26 @@ function ready() {
         	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
     	        $("#fullScr").attr("href","javascript:;").text("別ページで表示");
                 DU.timeout(0).then(function () {
-                    return builder.build({mainFile:curJSFile});
+                    var b=builder.build({mainFile:curJSFile});
+                    if (ALWAYS_UPLOAD) {
+                        return b.then(function () {
+                            return Auth.publishedDir(curProjectDir.name());
+                        }).then(function (pub) {
+                            console.log("Upload comp",pub);
+                            return builder.upload(pub);
+                        });
+                    }
+                    return b;
                 }).then(function () {
-                    var indexF=ram.rel(curHTMLFile.name());
                     logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"Dolittle Run","実行しました","Dolittle");
+                    if (ALWAYS_UPLOAD) {
+                        return Auth.publishedURL(curProjectDir.name()).then(function (pub) {
+                            var runURL=pub+curHTMLFile.name();
+                            console.log("Run url",runURL);
+                            return IframeDialog.show(runURL,{width:600,height:400});
+                        });
+                    }
+                    var indexF=ram.rel(curHTMLFile.name());
                     return RunDialog2.show(indexF,
                     {window:newwnd,height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
                 }).fail(function (e) {
@@ -15909,7 +16031,7 @@ function ready() {
                     }).then(function (pub) {
                         var nt=new Date().getTime();
                         console.log("Upload time :",nt-t);
-                        $("<iframe>").attr({src: pub+"index.html"}).dialog({width:600,height:400});
+                        IframeDialog.show(pub+"index.html",{width:600,height:400});
                     });
                 }).fail(function (e) {
                     //var eobj={stack:e.stack,message:e+""};
@@ -15965,6 +16087,7 @@ function ready() {
         alertOnce=function(){};
     };
     window.onerror=function (a,b,c,d,e) {
+        console.log("window.onerror",arguments);
         if (!e) return;
         return Tonyu.onRuntimeError(e);
     };
@@ -15983,6 +16106,10 @@ function ready() {
         }
     };
     EC.handleException=Tonyu.onRuntimeError=function (e) {
+        if (e.type==="dialogClosed") {
+            console.log(e.stack);
+            return;
+        }
         var inf=getCurrentEditorInfo();
         if (!inf) {
             console.log(e.stack);
@@ -16001,7 +16128,7 @@ function ready() {
         if (tid) {
             te=curPrj.decodeTrace(tid);
         }
-        console.log("onRunTimeError:stackTrace1",e.stack,te,$LASTPOS);
+        console.log("onRunTimeError:stackTrace1",e,e.stack,te,$LASTPOS);
         if (te) {
             te.mesg=e;
             if (e.pluginName) {

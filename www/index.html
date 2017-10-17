@@ -19,6 +19,22 @@
 </head>
 
 <body>
+    <script id="BAVersion">
+var BitArrow={version:"20171017101452",//VERSION_STRING
+checkVer:function () {
+    if (!localStorage.BAVer || localStorage.BAVer<this.version) {
+        console.log("Version up ",localStorage.BAVer," to ",this.version);
+        localStorage.BAVer=this.version;
+        localStorage.BAUrlArgs=String.fromCharCode(
+            Math.floor(Math.random()*26)+
+            Math.floor(Math.random()*2)*32+65)+
+            String.fromCharCode(
+                Math.floor(Math.random()*26)+
+                Math.floor(Math.random()*2)*32+65);
+    }
+    this.urlArgs=localStorage.BAUrlArgs;
+}};BitArrow.checkVer();
+    </script>
 <script src="js/lib/jquery-1.12.1.js" type="text/javascript"></script>
 <script src="js/lib/SplashScreen.js" type="text/javascript"></script>
 <script>SplashScreen.show();</script>
@@ -44,16 +60,19 @@ requirejs(["Util"],function (Util){
     	if (isNode) noconcat=true;
     	else noconcat=(localStorage.noconcat==="true");
     } else {
-        localStorage.noconcat=(noconcat==="true");
+        noconcat=(noconcat==="true");
+        localStorage.noconcat=noconcat+"";
     }
     console.log("noconcat",noconcat);
     var alu=Util.getQueryString("ALWAYS_UPLOAD","emp");
     if (alu!=="emp") localStorage.ALWAYS_UPLOAD=(alu==="true");
-    if (noconcat+""!="true") {
+    if (!noconcat) {
         console.log(reqConf.paths[run+"_concat"]);
         if (reqConf.paths[run+"_concat"]) {
             run+="_concat";
         }
+    } else {
+        delete localStorage.BAVer;
     }
     if (Util.getQueryString("clearLocalStorage","false")==="true") {
         for (var k in localStorage) {

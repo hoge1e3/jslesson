@@ -23,6 +23,9 @@ function (UI ,DA) {
             },
             resize:handleResize
         });//,height:options.height?options.height-50:400});
+        setTimeout(function () {
+            if (!res.iframe[0].contentWindow.onerror) res.iframe[0].contentWindow.onerror=window.onerror;
+        },100);
         handleResize();
         function handleResize() {
             if (res.da) {
@@ -31,6 +34,7 @@ function (UI ,DA) {
         }
     };
     res.embed=function (url, options) {
+        res.url=url;
         options=options||{};
         if (!res.d) {
             res.d=UI("div",{title:"実行画面ダイアログ",id:"runDlg",css:{overflow:"hidden"}},
@@ -42,7 +46,8 @@ function (UI ,DA) {
                     }}}, "閉じる"],
                     (["button", {type:"button",$var:"WButton", on:{click: function () {
                         if (res.window && !res.window.closed) res.window.close();
-                        res.window=window.open(url,"LocalBrowserWindow"+Math.random(),"menubar=no,toolbar=no,width=500,height=500");
+                        res.window=window.open(res.url,"LocalBrowserWindow"+Math.random(),"menubar=no,toolbar=no,width=500,height=500");
+                        if (!res.window.onerror) res.window.onerror=window.onerror;
                     }}}, "別ウィンドウ"])
             );
             res.iframe=res.d.$vars.iframe;

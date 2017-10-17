@@ -1,4 +1,5 @@
 function run(className) {
+    var R=window.BitArrow ? window.BitArrow.runtimePath : window.runtimePath;
     requirejs.config({
         shim: {
             Tonyu: {
@@ -12,23 +13,20 @@ function run(className) {
             }
         },
         paths: {
-          "Klass": window.runtimePath+"lib/Klass",
-          "assert": window.runtimePath+"lib/assert",
-          "FS": window.runtimePath+"lib/FS",
-          "DeferredUtil": window.runtimePath+"lib/DeferredUtil",
-          "Tonyu": window.runtimePath+"lib/tjs/TonyuLib",
-          "Tonyu.Thread": window.runtimePath+"lib/tjs/TonyuThread",
-          "Tonyu.Iterator": window.runtimePath+"lib/tjs/TonyuIterator",
-          "kernel": window.runtimePath+"lib/tjs/kernel",
+          "Klass": R+"lib/Klass",
+          "assert": R+"lib/assert",
+          "FS": R+"lib/FS",
+          "DeferredUtil": R+"lib/DeferredUtil",
+          "Tonyu": R+"lib/tjs/TonyuLib",
+          "Tonyu.Thread": R+"lib/tjs/TonyuThread",
+          "Tonyu.Iterator": R+"lib/tjs/TonyuIterator",
+          "kernel": R+"lib/tjs/kernel",
       },
       urlArgs: requirejs.version=="2.1.9"? "": function (id,url) {
             //console.log("URLARGS",id,url);
             if (url.match(/^http/)) {
                 try {
-                    if (window.opener===window) {
-                        return "";
-                    }
-                    return window.opener.requirejs.s.contexts._.config.urlArgs(id,url);
+                    return (url.indexOf("?")<0?"?":"&")+BitArrow.urlArgs;
                 } catch (e) {
                     //console.log("URLARGS err",e.stack);
                     return "";
@@ -38,11 +36,7 @@ function run(className) {
             }
        }
     });
-   //requirejs(["Tonyu"], function () {
-   //     requirejs(["kernel"],function (){
-            requirejs(["user.js"],_run);
-   //     });
-   //});
+    requirejs(["user.js"],_run);
    function _run() {
         var bootClass=Tonyu.getClass(className);
         if (!bootClass) throw TError( klass+" というクラスはありません", "不明" ,0);
@@ -52,7 +46,13 @@ function run(className) {
         th.apply(boot,"main");
         $LASTPOS=0;
         if (typeof SplashScreen!="undefined") SplashScreen.hide();
-        th.steps();
+        function runThread() {
+            th.steps();
+            if (th.preempted) {
+                setTimeout(runThread,0);
+            }
+        }
+        runThread();
         if (window.curTh) window.curTh.kill();
         window.curTh=th;
 	    return th;

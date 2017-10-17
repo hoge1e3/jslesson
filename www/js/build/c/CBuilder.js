@@ -27,6 +27,13 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
         var body=dom.getElementsByTagName("body")[0];
         var runtimePath=options.runtimePath||WebSite.runtime;
         $(head).append($("<meta>").attr("charset","UTF-8"));
+        if (window.BitArrow) {
+            var ba={
+                version:BitArrow.version,
+                urlArgs:BitArrow.urlArgs,
+                runtimePath:runtimePath};
+            $(head).append($("<script>").text("window.BitArrow="+JSON.stringify(ba)+";"));
+        }
         $(head).append($("<script>").text("window.runtimePath='"+runtimePath+"';"));
         $(head).append($("<script>").text("window.sourceName='"+f.src.html.truncExt()+"';"));
         $(head).append($("<script>").text("window.onerror=window.onerror||"+

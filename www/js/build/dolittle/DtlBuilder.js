@@ -60,6 +60,13 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
         var head=dom.getElementsByTagName("head")[0];
         var body=dom.getElementsByTagName("body")[0];
         $(head).append($("<meta>").attr("charset","UTF-8"));
+        if (window.BitArrow) {
+            var ba={
+                version:BitArrow.version,
+                urlArgs:BitArrow.urlArgs,
+                runtimePath:WebSite.runtime};
+            $(head).append($("<script>").text("window.BitArrow="+JSON.stringify(ba)+";"));
+        }
         $(head).append($("<script>").text("window.runtimePath='"+WebSite.runtime+"';"));
         $(head).append($("<script>").text("window.onerror=window.onerror||"+
         function (e) {alert(e);}+";"));

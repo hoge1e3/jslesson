@@ -201,10 +201,14 @@ native Error;
 \wait(time) {
     time=time||100;
     var t=_thread;
-    t.suspend();
-    setTimeout(catchException(\(){
+    var runThread=catchException \{
         t.steps();
-    }),time);
+        if (t.preempted) {
+            setTimeout(runThread,0);
+        }
+    };
+    t.suspend();
+    setTimeout(runThread,time);
 }
 \rnd(max) {
     return Math.floor(Math.random()*max);

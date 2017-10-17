@@ -1,34 +1,33 @@
-requirejs.config({
-    paths: {
-      "lib": window.runtimePath+"lib/c/lib",
-      "util": window.runtimePath+"lib/c/util",
-      "ctype": window.runtimePath+"lib/c/ctype",
-      "x": window.runtimePath+"lib/c/x",
-      "AsyncByGenerator": window.runtimePath+"lib/c/AsyncByGenerator",
-      "AsyncByGeneratorRaw": window.runtimePath+"lib/c/AsyncByGeneratorRaw",
-      "assert": window.runtimePath+"lib/assert",
-      "Klass": window.runtimePath+"lib/Klass",
-      "FS": window.runtimePath+"lib/FS",
-      "_Util": window.runtimePath+"lib/util"
-  },
-  urlArgs: requirejs.version=="2.1.9"? "": function (id,url) {
-        //console.log("URLARGS",id,url);
-        if (url.match(/^http/)) {
-            try {
-                if (window.opener===window) {
+(function () {
+    var R=window.BitArrow ? window.BitArrow.runtimePath : window.runtimePath;
+    requirejs.config({
+        paths: {
+          "lib": R+"lib/c/lib",
+          "util": R+"lib/c/util",
+          "ctype": R+"lib/c/ctype",
+          "x": R+"lib/c/x",
+          "AsyncByGenerator": R+"lib/c/AsyncByGenerator",
+          "AsyncByGeneratorRaw": R+"lib/c/AsyncByGeneratorRaw",
+          "assert": R+"lib/assert",
+          "Klass": R+"lib/Klass",
+          "FS": R+"lib/FS",
+          "_Util": R+"lib/util"
+      },
+      urlArgs: requirejs.version=="2.1.9"? "": function (id,url) {
+            //console.log("URLARGS",id,url);
+            if (url.match(/^http/)) {
+                try {
+                    return (url.indexOf("?")<0?"?":"&")+BitArrow.urlArgs;
+                } catch (e) {
+                    //console.log("URLARGS err",e.stack);
                     return "";
                 }
-                return window.opener.requirejs.s.contexts._.config.urlArgs(id,url);
-            } catch (e) {
-                //console.log("URLARGS err",e.stack);
-                return "";
+            } else {
+                return (url.indexOf("?")<0?"?":"&")+Math.random();
             }
-        } else {
-            return (url.indexOf("?")<0?"?":"&")+Math.random();
         }
-    }
-
-});
+    });
+})();
 requirejs(["assert","Klass","FS","_Util"],function (assert,Klass,FS,_Util) {
   requirejs(["lib","util","ctype","x","AsyncByGenerator"],function (lib,u,c,x,ABG) {
       ABG.ready(function(){

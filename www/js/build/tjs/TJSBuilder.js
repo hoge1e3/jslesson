@@ -40,6 +40,13 @@ function (A,DU,wget,Sync) {
         metacharset.setAttribute("charset","UTF-8");
         head.appendChild(metacharset);*/
         $(head).append($("<meta>").attr("charset","UTF-8"));
+        if (window.BitArrow) {
+            var ba={
+                version:BitArrow.version,
+                urlArgs:BitArrow.urlArgs,
+                runtimePath:WebSite.runtime};
+            $(head).append($("<script>").text("window.BitArrow="+JSON.stringify(ba)+";"));
+        }
         $(head).append($("<script>").text("window.$LASTPOS=0;window.runtimePath='"+WebSite.runtime+"';"));
         var nn=document.createElement("script");
         nn.setAttribute("charset","utf-8");
