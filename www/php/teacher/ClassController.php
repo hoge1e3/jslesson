@@ -78,14 +78,32 @@ class ClassController {
     }
     static function showUsers(){
         $class=Auth::curClass2();
+        $students=$class->getAllStu();
+        if (isset($_GET["card"])) {
+            $i=0;
+            foreach($students as $s){
+                $pass=$s->getPass();
+                echo "<div style='padding:30px;'>";
+                echo "BitArrow アクセス情報<BR>";
+                echo "http://bitarrow.eplang.jp/bitarrowbeta/<BR>";
+                echo "クラス名: ".$class->id."<BR>";
+                echo "ユーザ名: ".$s->name."<BR>";
+                echo "パスワード: ".$pass."<BR>";
+                echo "</div>";
+                echo "<HR>";
+                $i++;
+                if ($i%5==0) echo "<div style='page-break-after: always;'></div>";
+            }
+            return;
+        }
         ?>
         <h1><?=$class->id?> - ユーザ一覧</h1>
         <a href="a.php?Class/show">クラス管理に戻る</a><hr>
+        <a href="a.php?Class/showUsers&card=1">カードに印刷</a><hr>
         <table border=1>
             <tr><th>ユーザID</th><th>パスワード</th><th>名前</th></tr>
         <?php
         //<th>実行時刻</th><th>実行ファイル</th><th>実行結果</th><th>実行詳細</th><th>プログラム</th>
-        $students=$class->getAllStu();
         foreach($students as $s){
             $pass=$s->getPass();
             $s->getOptions();
