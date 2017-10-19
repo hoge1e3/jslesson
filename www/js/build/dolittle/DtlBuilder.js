@@ -77,7 +77,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
             var src2;
-            if (FS.PathUtil.isURL(src)) {
+            if (FS.PathUtil.isURL(src) && requirejs.version!=="2.1.9") {
                 src2=src+requirejs.s.contexts._.config.urlArgs("",src);
             } else {
                 src2=src+(src.indexOf("?")<0?"?":"&")+Math.random();

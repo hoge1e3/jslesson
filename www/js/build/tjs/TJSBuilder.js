@@ -57,7 +57,9 @@ function (A,DU,wget,Sync) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
             var url=WebSite.runtime+src;
-            url+=requirejs.s.contexts._.config.urlArgs("",url);
+            if (requirejs.version!=="2.1.9") {
+                url+=requirejs.s.contexts._.config.urlArgs("",url);
+            }
             nn.setAttribute("src",url);
             body.appendChild(nn);
         });

@@ -44,8 +44,10 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
         }).concat([runtimePath+"lib/c/runc.js"]).forEach(function (src) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
-            var src2;
-            src2=src+requirejs.s.contexts._.config.urlArgs("",src);
+            var src2=src;
+            if (requirejs.version!=="2.1.9") {
+                src2=src+requirejs.s.contexts._.config.urlArgs("",src);
+            }
             nn.setAttribute("src",src2);
             body.appendChild(nn);
         });
