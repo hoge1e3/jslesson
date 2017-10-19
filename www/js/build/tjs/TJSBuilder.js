@@ -57,7 +57,7 @@ function (A,DU,wget,Sync) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
             var url=WebSite.runtime+src;
-            if (requirejs.version!=="2.1.9") {
+            if (requirejs.version!=="2.1.9" && typeof requirejs.s.contexts._.config.urlArgs==="function") {
                 url+=requirejs.s.contexts._.config.urlArgs("",url);
             }
             nn.setAttribute("src",url);

@@ -45,7 +45,7 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
             var src2=src;
-            if (requirejs.version!=="2.1.9") {
+            if (requirejs.version!=="2.1.9" && typeof requirejs.s.contexts._.config.urlArgs==="function") {
                 src2=src+requirejs.s.contexts._.config.urlArgs("",src);
             }
             nn.setAttribute("src",src2);
