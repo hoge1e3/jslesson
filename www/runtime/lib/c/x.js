@@ -1,6 +1,12 @@
 function fillRect(x,y,w,h) {
     var ctx=initX()[0].getContext("2d");
     ctx.fillRect(x,y,w,h);
+    writeGraphicsLog("fillRect("+[x,y,w,h].join(",")+");\n");
+}
+function writeGraphicsLog(s) {
+    if (typeof writeGraphicsLog.buffer==="string") {
+        writeGraphicsLog.buffer+=s;
+    }
 }
 function clear() {
     var c=initX()[0];
@@ -10,6 +16,7 @@ function clear() {
     fillRect(0,0,c.width,c.height);
     ctx.fillStyle=saveFillStyle;
     if (window.drawGridFlag) doDrawGrid();
+    writeGraphicsLog("clear();\n");
 }
 function update(){
     var msec=16;
@@ -19,6 +26,7 @@ function update(){
         if (stats[i]>0) {stats[i]++;}
         if (stats[i]==-1) stats[i]=1;
     }
+    writeGraphicsLog("update();\n");
     return new Promise(function (succ) {
         //console.log("Sleeping for ",msec);
         setTimeout(succ,msec);
@@ -63,6 +71,7 @@ function setColor(r,g,b) {
     var ctx=initX()[0].getContext("2d");
     ctx.fillStyle="rgb("+[Math.floor(r-0),Math.floor(g-0),Math.floor(b-0)].join(",")+")";
     ctx.strokeStyle="rgb("+[Math.floor(r-0),Math.floor(g-0),Math.floor(b-0)].join(",")+")";
+    writeGraphicsLog("setColor("+[r,g,b].join(",")+");\n");
 }
 function setLineWidth(w) {
     var ctx=initX()[0].getContext("2d");
@@ -108,6 +117,7 @@ function setPen(x, y) {
     var ctx=initX()[0].getContext("2d");
     setPen.sx = x;
     setPen.sy = y;
+    writeGraphicsLog("setPen("+[x,y].join(",")+");\n");
 }
 setPen.sx=0;
 setPen.sy=0;
@@ -119,6 +129,7 @@ function movePen(dx, dy) {
     setPen.sy += dy;
     ctx.lineTo(setPen.sx, setPen.sy);
     ctx.stroke();
+    writeGraphicsLog("movePen("+[dx,dy].join(",")+");\n");
 }
 function setTextSize(s) {
     var ctx=initX()[0].getContext("2d");
@@ -156,6 +167,7 @@ function fillOval(x, y, w, h) {
     ctx.arc(x / a + r, y + r, r, 0, Math.PI * 2, true);
     ctx.fill();
     ctx.restore();
+    writeGraphicsLog("fillOval("+[x,y,w,h].join(",")+");\n");
 }
 function getkey(code) {
     var ctx=initX()[0].getContext("2d");

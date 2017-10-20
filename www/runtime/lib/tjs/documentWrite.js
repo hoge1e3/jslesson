@@ -45,6 +45,7 @@ document.baWriteTo = function(dst,content) {
                     });
                     dst.appendChild(nn);
                     appendTo(n, nn);
+                    break;
                 case Node.TEXT_NODE:
                     dst.appendChild(document.createTextNode(n.textContent));
                     break;
