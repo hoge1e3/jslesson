@@ -15853,7 +15853,7 @@ function ready() {
                         return b.then(function () {
                             return Auth.publishedDir(curProjectDir.name());
                         }).then(function (pub) {
-                            builder.upload(pub);
+                            return builder.upload(pub);
                         });
                     }
                     return b;

@@ -13680,20 +13680,24 @@ define('RenameProjectDialog',["UI"], function (UI) {
 
 define('RemoteProject',[],function () {
     RemoteProject={};
+    RemoteProject.url=function () {
+        return "runDtl.php?"+Math.random();
+    };
 	RemoteProject.list=function () {
-	    return $.get("runDtl.php",{file:"/scripts/ListProjects.dtlvm"});
+	    return $.get(this.url(),{file:"/scripts/ListProjects.dtlvm"});
 	};
 	RemoteProject.delete=function (n) {
-	    return $.get("runDtl.php",{file:"/scripts/DeleteProject.dtlvm",project:n+"/"});
+	    return $.get(this.url(),{file:"/scripts/DeleteProject.dtlvm",project:n+"/"});
 	};
 	RemoteProject.rename=function (from,to) {
-	    return $.get("runDtl.php",{
+	    return $.get(this.url(),{
 	        file:"/scripts/RenameProject.dtlvm",
 	        from:from+"/",to:to+"/"
 	    });
 	};
 	return RemoteProject;
 });
+
 window.SplashScreen=window.SplashScreen||(function () {
     var s=$("<img>").css({position:"absolute",
             left: 100, top:100, fontSize: 30, //background: "white",

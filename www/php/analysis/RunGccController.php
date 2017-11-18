@@ -16,8 +16,8 @@ class RunGccController {
 		);
 
 		$q=<<<EOF
-select log.id as id,logtag.detail as detail,raw 
-from logtag inner join log on log.id=logtag.log 
+select log.id as id,logtag.detail as detail,raw
+from logtag inner join log on log.id=logtag.log
 where class=? and name='gccres' and
    errorType='No Error' and value='error'
 
@@ -42,19 +42,24 @@ EOF;
 		}
 	}
 	static function run(){
+		// run with:
+		// php a.php RunGcc/run <SESSION_ID>
 		//pdo_insertOrUpdate("logtag",array("log"=>19049,"name"=>"test"),array("value"=>"testval3"));
 		//return;
 		$class=Auth::curClass2();
 		Auth::assertTeacher();
 		$cnt=0;
 		$f=new SFile(new NativeFS("perl/"),"");
-		$sth=pdo_exec("select * from log where class=? and lang='C'",$class->id);
+		$sth=pdo_exec("select * from log where class=? and lang='C' and ".
+		"not ( log.id in (select log from logtag where name='gccres'))",$class->id);
+		//$sth=pdo_exec("select * from log where class=? and lang='C'",$class->id);
 		while($o=$sth->fetch(PDO::FETCH_OBJ)) {
 			if (is_string($o->raw)) {
 				$raw=json_decode($o->raw);
 				if ($raw->code && isset($raw->code->C)) {
 					if (pdo_find1("logtag",array("log"=>$o->id,"name"=>"gccres"))) {
-						//continue;
+						print "Skip ".$o->id."\n";
+						continue;
 					}
 					print "<pre>".$raw->code->C."</pre>\n";
 					$f->rel("test.c")->text($raw->code->C);
