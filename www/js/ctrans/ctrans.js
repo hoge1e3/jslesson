@@ -1385,6 +1385,76 @@ window.MinimalParser= function () {
 	var control_line=t("#").and(t("define")).and(identifier).and(t(/^.+/)).ret(function(s,def,befor,after){
 	    defines[befor+""]=after;
 	});
+  var include_files={"stdio.h":function (){/*
+    typedef struct{int p;} FILE;
+  void printf();
+  void scanf();
+  void sleep(int s);
+  void usleep(int s);
+  FILE* fopen(char *f,char *m);
+  void fclose(FILE *fp);
+  void fputs(char *s,FILE *fp);
+  void fgets(char *s,int l,FILE *fp);
+  */},
+  "stdlib.h":function () {/*
+  int rand();
+  */},
+  "string.h":function () {/*
+  int strlen(char *s);
+  char* strcpy(char *d,char *s);
+  char* strncpy(char *d,char *s,int l);
+  int strcmp(char *a,char *b);
+  int strncmp(char *a,char *b,int n);
+  char* strcat(char *a,char *b);
+  char* strncat(char *a,char *b,int n);
+  char* memset(char *dst,char c,int n);
+  char* index(char *h,char n);
+  char* rindex(char *h,char n);
+  int memcmp(char *a,char *b,int n);
+  char* memcpy(char *d,char *s,int n);
+  char* strstr(char *h,char *n);
+  */},
+  "math.h":function () {/*
+  double abs(double n);
+  double acos(double n);
+  double asin(double n);
+  double atan(double n);
+  double atan2(double y,double x);
+  double ceil(double n);
+  double cos(double n);
+  double exp(double n);
+  double floor(double n);
+  double log();
+  double max(double a,double b);
+  double min(double a,double b);
+  double pow(double a,double b);
+  double random();
+  double round(double n);
+  double sin(double n);
+  double sqrt(double n);
+  double tan(double n);
+  */},
+  "x.h":function () {/*
+  void fillRect(double x,double y,double w,double h);
+  void clear();
+  void update();
+  void setColor(double r,double g,double b);
+  void drawGrid();
+  void drawNumber(double v,double x,double y);
+  void drawLine(double sx,double sy,double dx,double dy);
+  void setPen(double x,double y);
+  void movePen(double x,double y);
+  void fillOval(double x,double y,double w,double h);
+  void drawText(char *s,double x,double y);
+  void drawString(char *s,double x,double y);
+  void setTextSize(double sz);
+  int getkey(char *n);
+  void setLineWidth(double w);
+  */}
+  };
+  for (var k in include_files) {
+    include_files[k]=(include_files[k]+"").replace(/.*\/\*/,"").replace(/\*\/.*/,"");
+  }
 	var builtin_funcs={
 	    "stdio.h":
 	        ["printf","scanf","sleep","usleep","fopen","fclose","fputs","fgets"],
