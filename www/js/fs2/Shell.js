@@ -76,9 +76,10 @@ define(["FS","assert"],
     Shell.rm=function (file, options) {
         if (!options) options={};
         if (options.notrash) {
-            file=resolve(file, false);
+            /*file=resolve(file, false);
             file.removeWithoutTrash();
-            return 1;
+            return 1;*/
+            options.noTrash=true;
         }
         file=resolve(file, true);
         if (file.isDir() && options.r) {
@@ -89,10 +90,10 @@ define(["FS","assert"],
                     sum+=Shell.rm(f, options);
                 }
             });
-            dir.rm();
+            dir.rm(options);
             return sum+1;
         } else {
-            file.rm();
+            file.rm(options);
             return 1;
         }
     };
@@ -100,7 +101,7 @@ define(["FS","assert"],
         file=resolve(file, false);
         if (file.exists()) throw new Error(file+" : exists");
         return file.mkdir();
-        
+
     };
     Shell.cat=function (file,options) {
         file=resolve(file, true);

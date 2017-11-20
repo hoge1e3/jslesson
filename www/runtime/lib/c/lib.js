@@ -35,6 +35,73 @@ function log(){
     	}
     };
 }*/
+function cjsFileHome() {
+	return FS.get("/c-js/");//.ls()
+}
+function fopen(file, mode) {
+	file=ch_ptr_to_str(file);
+	mode=ch_ptr_to_str(mode);
+	var f=cjsFileHome().rel(file);
+	var fp={
+		file:f,
+		mode:mode,
+		isFP:true
+	};
+	if (mode.indexOf("r")>=0) {
+		if (!f.exists()) {
+			throw new Error("ファイル "+file+"はありません．");
+		}
+		fp.pos=0;
+		fp.text=f.text();
+	} else if (mode.indexOf("w")>=0) {
+		fp.pos=0;
+		fp.text="";
+	} else if (mode.indexOf("a")>=0) {
+		if (!f.exists()) {
+			fp.pos=0;fp.text="";
+		} else {
+			fp.text=f.text();fp.pos=fp.text.length;
+		}
+	} else {
+		throw new Error('fopenの第２引数には "r" "w" "a" のいずれかを指定してください．→'+mode);
+	}
+	return fp;
+}
+function fputs(str,fp) {
+	if (!fp||!fp.isFP) throw new Error("fputs: 第2引数がファイルではありません");
+	if (fp.closed) throw new Error("fputs: このファイルはすでに閉じられています");
+	if (fp.mode==="r") throw new Error("読み込み中のファイルにfputsはできません");
+	str=ch_ptr_to_str(str);
+	fp.text+=str;
+	fp.pos+=str.length;
+}
+function fgets(str,len,fp) {
+	if (!fp||!fp.isFP) throw new Error("fgets: 第3引数がファイルではありません");
+	if (fp.closed) throw new Error("fgets: このファイルはすでに閉じられています");
+	if (fp.mode!=="r") throw new Error("書き込み中のファイルにfgetsはできません");
+	len--;//for \0
+	var heading=f.text.substring(fp.pos);
+	var llen=heading.indexOf("\n");
+	if (llen<0) llen=heading.length;
+	else llen++;
+	if (llen>len) llen=len;
+	var line=heading.substring(0,llen);
+	fp.pos+=llen;
+	return strcpy(str,str_to_ch_ptr(line));
+}
+function fclose(fp) {
+	if (!fp||!fp.isFP) throw new Error("fclose: 引数がファイルではありません");
+	if (fp.closed) throw new Error("fclose: このファイルはすでに閉じられています");
+	fp.file.text(fp.text);
+	fp.closed=true;
+}
+/*function fprintf() {
+	var args=Array.prototype.slice.call(arguments);
+	var fp=args.shift();
+	var format=args.shift();
+
+
+}*/
 function scanf(line, dest) {
     //console.log(dest);
 	var val;

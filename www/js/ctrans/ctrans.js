@@ -86,12 +86,13 @@ window.MinimalParser= function () {
 	        //return res;
 	    });
 	}
+    var topLevelScope={NULL:{vtype:T.Pointer(T.void),depth:0}};
 	//\newScope
 	function newScope(parser) {
 	    var entf=function () {
             var depth=0;
             if ((typeof (ctx.depth))=="number") depth=ctx.depth+1;
-            var ns=Object.create(ctx.scope||{});
+            var ns=Object.create(ctx.scope||topLevelScope);
             //ns[DEPTH]=depth;
             //scids.push(ns);
             var nc={scope:ns ,depth:depth };
@@ -312,6 +313,10 @@ window.MinimalParser= function () {
 	ret(function (r) {
 	    return extend(r,{vtype:T.int});
 	});
+    /*var null_constant=t(/^NULL/).
+	ret(function (r) {
+	    return extend(r,{vtype:T.Pointer(T.void)});
+	});*/
 	var character_constant=t(/^\'[^\'\\]\'/).ret(function (s) {
     	return parse_char_const(s.text);
 	}).or(t(/^\'\\.\'/).ret(function (s) {
@@ -1382,7 +1387,7 @@ window.MinimalParser= function () {
 	});
 	var builtin_funcs={
 	    "stdio.h":
-	        ["printf","scanf","sleep","usleep"],
+	        ["printf","scanf","sleep","usleep","fopen","fclose","fputs","fgets"],
 	    "stdlib.h":
 	        ["rand"],
 	    "string.h":
@@ -1415,6 +1420,9 @@ window.MinimalParser= function () {
 	control_line=t("#").and(t("include")).and(t("<").or(t("\""))).and(incl_filename).and(t(">").or(t("\""))).ret(function(){
 	    var filename=arguments[3];
 	    //console.log("filename",filename);
+        if (include_files[filename.text]) {
+            return include_files[filename.text];
+        }/*
 	    if (builtin_funcs[filename.text]) {
 	        return builtin_funcs[filename.text].map(function (n) {
     	        var ret=builtin_funcs_ret[n] ||
@@ -1422,7 +1430,7 @@ window.MinimalParser= function () {
     	        ||"void";
     	        return ret+" "+n+"();";
 	        }).join("\n");
-	    } else {
+	    }*/ else {
             newError2(filename, "#include<{1}>に該当するファイル名がありません．",filename.text);
 	    }
 	}).or(control_line);
@@ -1462,7 +1470,7 @@ window.MinimalParser= function () {
 
 	parser.parse=function (str) {
 	    startSeq=0;
-		defines={NULL:0,RAND_MAX:0x7fffffff};
+		defines={RAND_MAX:0x7fffffff};
 		var output="";
 		errors=[];
 		typeDefs=[];

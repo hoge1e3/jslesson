@@ -115,11 +115,11 @@ define(["Klass","assert"],function (Klass,assert) {
             return CTYPE_NAME+".Pointer("+this.e.toLiteral()+")";
         },
         assignableFrom: function (right) {
-            if (right instanceof t.Number) {
+            /*if (right instanceof t.Number) {
                 return true;
-            }
+            }*/
             if (right instanceof t.Pointer) {
-                return this.e.assignableFrom(right.e);
+                return this.e===t.void || right.e===t.void || this.e.assignableFrom(right.e);
             }
             return t.Pointer.super(this,"assignableFrom",right);
         },

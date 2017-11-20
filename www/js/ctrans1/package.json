@@ -1,7 +1,0 @@
-{
-  "name": "ctrans-test.html",
-  "main": "ctrans-test.html",
-  "scripts": {
-    "start": "nw"
-  }
-}
