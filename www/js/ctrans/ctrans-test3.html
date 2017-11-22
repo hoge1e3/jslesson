@@ -30,6 +30,7 @@ file:///C:/bin/Dropbox/workspace/jslesson/www/js/ctrans2/ctrans-test3.html
         }
     })
 </script>
+<script src="scanf.js"></script>
 <script src="lib.js"></script>
 <script src="util.js"></script>
 
@@ -51,10 +52,13 @@ function (FS,MinimalParser,beautify,js_gen,ABG) {
     ABG.ready(loop);
 async function loop() {
     //  ここは、自分のテストしたいC言語ファイルのあるディレクトリを指定
-	var d=FS.get("C:/bin/Dropbox/tuat/tcc_test2");
+	var d=FS.get("C:/bin/Dropbox/tuat/tcc_test2/");
 	while (!d.exists()) {
 	    d=FS.get(prompt("not found. input other:", d.path()) );
 	}
+    window.cjsFileHome=function () {
+        return d;
+    };
     var lastSummary=d.rel("summary_last.txt");
     var lastSumBuf=lastSummary.exists()?lastSummary.text().split(/\r?\n/):[];
 	var summary=d.rel("summary.txt");
@@ -74,6 +78,12 @@ async function loop() {
 			program=beautify.js_beautify(js_gen(tree));
 			var output=f.up().rel(f.truncExt()+".js");
 			output.text(program);
+            var inputF=f.up().rel(f.truncExt()+".input");
+            if (inputF.exists()) {
+                scanf.STDIN=inputF.lines();
+            } else {
+                delete scanf.STDIN;
+            }
 			var func=new Function(program);
 			await promisize(func());
 			var expect=f.up().rel(f.truncExt()+".expect");
@@ -85,7 +95,7 @@ async function loop() {
 			} else {
     			console.log("Fail:", f.path());
     			console.log("Output:",buf,str_to_ch_arr(buf));
-    			console.log("Expected:",expectxt);// ,str_to_ch_arr(expectxt));
+    			console.log("Expected:",expectxt,str_to_ch_arr(expectxt));
 			    sumbuf.push(f.relPath(d)+"\tFail");
 			}
 		}catch(e){

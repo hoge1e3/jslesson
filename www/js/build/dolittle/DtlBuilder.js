@@ -64,6 +64,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
             var ba={
                 version:BitArrow.version,
                 urlArgs:BitArrow.urlArgs,
+                publishedURL:BitArrow.publishedURL,
                 runtimePath:WebSite.runtime};
             $(head).append($("<script>").text("window.BitArrow="+JSON.stringify(ba)+";"));
         }

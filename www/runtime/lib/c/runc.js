@@ -3,6 +3,7 @@
     requirejs.config({
         paths: {
           "lib": R+"lib/c/lib",
+          "scanf": R+"lib/c/scanf",
           "util": R+"lib/c/util",
           "ctype": R+"lib/c/ctype",
           "x": R+"lib/c/x",
@@ -29,7 +30,7 @@
     });
 })();
 requirejs(["assert","Klass","FS","_Util"],function (assert,Klass,FS,_Util) {
-  requirejs(["lib","util","ctype","x","AsyncByGenerator"],function (lib,u,c,x,ABG) {
+  requirejs(["scanf","lib","util","ctype","x","AsyncByGenerator"],function (_s,lib,u,c,x,ABG) {
       ABG.ready(function(){
     requirejs([window.sourceName],function () {
       try{

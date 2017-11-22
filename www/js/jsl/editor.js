@@ -313,7 +313,12 @@ function ready() {
     function distributePrj() {
         alert("distributePrj!");
     }
-
+    function checkPublishedURL() {
+        Auth.publishedURL(curPrj.getName()+"/").then(function (u) {
+            if (window.BitArrow) window.BitArrow.publishedURL=u;
+        });
+    }
+    checkPublishedURL();
     makeMenu();
 
     var screenH;

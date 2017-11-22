@@ -1,5 +1,6 @@
 lineBuf=[];
-NULL=0;
+NULL=undefined;
+EOF=-1;
 function log(){
 	console.log(arguments);
 }
@@ -36,7 +37,13 @@ function log(){
     };
 }*/
 function cjsFileHome() {
-	return FS.get("/c-js/");//.ls()
+	var d;
+	if (window.BitArrow && typeof window.BitArrow.publishedURL==="string") {
+		var a=window.BitArrow.publishedURL.replace(/\/$/,"").split("/");
+		d=a.pop();
+	}
+	if (!d) d="unknown";
+	return FS.get("/c-js/").rel(d+"/");
 }
 function fopen(file, mode) {
 	file=ch_ptr_to_str(file);
@@ -80,14 +87,15 @@ function fgets(str,len,fp) {
 	if (fp.closed) throw new Error("fgets: このファイルはすでに閉じられています");
 	if (fp.mode!=="r") throw new Error("書き込み中のファイルにfgetsはできません");
 	len--;//for \0
-	var heading=f.text.substring(fp.pos);
-	var llen=heading.indexOf("\n");
-	if (llen<0) llen=heading.length;
-	else llen++;
-	if (llen>len) llen=len;
-	var line=heading.substring(0,llen);
-	fp.pos+=llen;
-	return strcpy(str,str_to_ch_ptr(line));
+	var heading=fp.text.substring(fp.pos);
+	var inputLen=heading.indexOf("\n");
+	if (inputLen<0) inputLen=heading.length;
+	else inputLen++;
+	if (inputLen>len) inputLen=len;
+	if (inputLen===0) return NULL;
+	var input=heading.substring(0,inputLen);
+	fp.pos+=inputLen;
+	return strcpy(str,str_to_ch_ptr(input));
 }
 function fclose(fp) {
 	if (!fp||!fp.isFP) throw new Error("fclose: 引数がファイルではありません");
@@ -95,16 +103,36 @@ function fclose(fp) {
 	fp.file.text(fp.text);
 	fp.closed=true;
 }
-/*function fprintf() {
+function fprintf() {
+	var a=Array.prototype.slice.call(arguments);
+	var fp=a.shift();
+	var line=sprintfJS.apply(this,a);
+	return fputs(str_to_ch_ptr(line),fp);
+}
+function fscanf() {
 	var args=Array.prototype.slice.call(arguments);
 	var fp=args.shift();
-	var format=args.shift();
-
-
-}*/
-function scanf(line, dest) {
+	if (!fp||!fp.isFP) throw new Error("fscanf: 第1引数がファイルではありません");
+	if (fp.closed) throw new Error("fscanf: このファイルはすでに閉じられています");
+	if (fp.mode!=="r") throw new Error("書き込み中のファイルにfscanfはできません");
+	var input;
+	do {
+		var heading=fp.text.substring(fp.pos);
+		if (heading.trim()==="") {
+			fp.pos+=heading.length;
+			return EOF;
+		}
+		var inputLen=heading.indexOf("\n");
+		if (inputLen<0) inputLen=heading.length;
+		else inputLen++;
+		input=heading.substring(0,inputLen);
+		fp.pos+=inputLen;
+	} while (input.trim()==="");
+	args.unshift(str_to_ch_ptr(input));
+	return sscanf.apply(this,args);
+}
+function scanfOLD(line, dest) {
     //console.log(dest);
-	var val;
 	line=ch_ptr_to_str(line);
 	if (scanf.STDIN) {
 	    afterScan(scanf.STDIN.shift());
@@ -127,9 +155,11 @@ function scanf(line, dest) {
         afterScan(input);
 	}
     function afterScan(input) {
+		var val;
     	loop_start2();
         if (input.toLowerCase()=="^c") throw new Error("実行を停止しました");
-        printf(str_to_ch_ptr(input+"\n"));
+		printScanfLine(input+"\n");
+		//printf(str_to_ch_ptr(input+"\n"));
     	var format=line.match(/%d|%c|%x|%#x|%lf|%f|%s/);
     	switch(format+""){
     	case "%d":
@@ -159,7 +189,67 @@ function scanf(line, dest) {
     	//else dest=val;
     }
 }
-function printf() {
+function scanf() {
+	var args=Array.prototype.slice.call(arguments);
+    if (scanf.STDIN) {
+		return afterScan(scanf.STDIN.shift());
+	} else if (window.AsyncByGenerator &&
+	    window.AsyncByGenerator.supportsGenerator &&
+	    $("#console")[0]) {
+	    return new Promise(function (p) {
+	        var box=$("<input>").on("keydown",function (e) {
+	            console.log(e);
+	            if (e.originalEvent.keyCode==13) {
+	                $(this).remove();
+	                p(this.value);
+	            }
+	        });
+	        $("#console").append(box);
+	        box.focus();
+	    }).then(afterScan);
+	} else {
+        var input=prompt(lineBuf.join("")+"\n(実行を停止するには^Cを入力)","");
+		afterScan(input);
+	}
+	function afterScan(input) {
+		if (input.toLowerCase()=="^c") throw new Error("実行を停止しました");
+        printScanfLine(input+"\n");
+		//printf(str_to_ch_ptr(input+"\n"));
+		args.unshift(str_to_ch_ptr(input));
+		return sscanf.apply(this,args);
+	}
+}
+function sscanf() {
+	var dests=Array.prototype.slice.call(arguments);
+	var line=ch_ptr_to_str(dests.shift());
+	var format=ch_ptr_to_str(dests.shift());
+//TODO
+//https://github.com/Lellansin/node-scanf/blob/master/lib/scanf.js
+	var r=sscanfJS(line,format);
+	if (dests.length!==r.length) {
+		throw new Error("scanfやfscanfで読んだ行に含まれる値の個数("+r.length+")と、"+
+			"格納先の変数の個数("+dests.length+")が一致しません。");
+	}
+	r.forEach(function (val,i) {
+		var dest=dests[i];
+		if(dest && typeof dest.write=="function") {
+			if (typeof val==="string") {
+				var src=str_to_ch_ptr(val);
+	    		strcpy(dest, src);
+			} else if (dest.type instanceof CType.Base) {
+        		dest.write(cast(dest.type,val));
+    	    } else {
+        		dest.write(val);
+    	    }
+    	} else {
+			throw new Error("読み込む変数はポインタでなければなりません。変数の前に&を付け忘れていませんか？");
+		}
+	});
+	return dests.length;
+}
+
+function sprintfJS() {
+	//  input -> chrptr  output->jsString
 	// from http://d.hatena.ne.jp/uupaa/20080301/1204380616
     var rv = [], i = 0, v, width, precision, sign, idx, argv = arguments, next = 0;
     var unsign = function(val) { return (val >= 0) ? val : val % 0x100000000 + 0x100000000; };
@@ -205,76 +295,22 @@ function printf() {
       (v.length < width) ? rv.push(" ".repeat(width - v.length), v) : rv.push(v);
     }
     var line=rv.join("");
+	return line;
+}
+function printf() {
+	var line=sprintfJS.apply(this,arguments);
 	lineBuf.push(line);
 	if (lineBuf.length>5) lineBuf.shift();
 	var con=(printf.STDOUT||$("#console"));
 	con.append(line);
 	if (con.text().length>65536) throw new Error("printfによる出力が多すぎます");
 }
-function printfOLD() {
-    //var line=format.replace(/%d/,value);
-	var args=Array.prototype.slice.call(arguments);
-	var line=args.shift();
-	line=ch_ptr_to_str(line);
-	//if(Array.isArray(line))line=ch_ptr_to_str(line);
-	//else line=""+line;
-	line=line.replace(/%d|%c|%x|%#x|%u|%lf|%f|%s|%Q/g,function (fmt) {
-        var arg=args.shift();
-		switch(fmt){
-		case "%d":
-			var res="0";
-			switch(typeof arg){
-			case "number": case "boolean":
-				res=cast(CType.int,arg);
-				break;
-			}
-			return res;
-		case "%c":
-			var res=" ";
-			if(typeof arg=="number")res=String.fromCharCode(arg);
-			else if(typeof arg=="string")res=arg+"";
-			return res;
-		case "%x":
-			var res="0";
-			if(typeof arg=="number")res=(arg>>>0).toString(16);
-			return res;
-		case "%#x":
-			var res="0";
-			if(typeof arg=="number")res="0x"+(arg>>>0).toString(16);
-			return res;
-		case "%u":
-			var res="0";
-			if(typeof arg=="number")res=arg>>>0;
-			return res;
-		case "%f":
-			var res="0.000000";
-			if(typeof arg=="number")res=arg;
-			return res;
-		case "%lf":
-			var res="0.000000";
-			if(typeof arg=="number")res=arg;
-			return res;
-		case "%s":
-		    /*var res="";
-		    if (typeof arg=="string") res=arg;
-		    else if (arg.read && arg.offset) {
-		        res=ch_arr_to_str(fillStr(arg));
-		    } else if (arg instanceof Array) {
-		        res=ch_arr_to_str(arg);
-		    }*/
-		    return ch_ptr_to_str(arg);
-		case "%Q":
-		    console.log("%Q",arg);
-		    return arg+"";
-		default:
-		    return "ERR";
-		}
-	});
+function printScanfLine(line) {
 	lineBuf.push(line);
 	if (lineBuf.length>5) lineBuf.shift();
-	var con=(printf.STDOUT||$("#console"));
-	con.append(line);
-	if (con.text().length>65536) throw new Error("printfによる出力が多すぎます");
+	if (!printf.STDOUT) {
+		$("#console").append(line);
+	}
 }
 // also in ctrans.js
 ["abs","acos","asin","atan","atan2","ceil","cos","exp","floor",

@@ -1382,11 +1382,9 @@ window.MinimalParser= function () {
 	//control
 	//var filename=t(/^[a-zA-Z][a-zA-Z0-9]*\.?[a-zA-Z0-9]+/);
 	var incl_filename=t(/^[^\>\"]+/);
-	var control_line=t("#").and(t("define")).and(identifier).and(t(/^.+/)).ret(function(s,def,befor,after){
-	    defines[befor+""]=after;
-	});
   var include_files={"stdio.h":function (){/*
     typedef struct{int p;} FILE;
+#define EOF -1
   void printf();
   void scanf();
   void sleep(int s);
@@ -1394,7 +1392,9 @@ window.MinimalParser= function () {
   FILE* fopen(char *f,char *m);
   void fclose(FILE *fp);
   void fputs(char *s,FILE *fp);
-  void fgets(char *s,int l,FILE *fp);
+  int fscanf();
+  void fprintf();
+  char* fgets(char *s,int l,FILE *fp);
   */},
   "stdlib.h":function () {/*
   int rand();
@@ -1487,11 +1487,14 @@ window.MinimalParser= function () {
 	    "strlen":"int",
 	    "getkey":"int"
 	};
+    var control_line=t("#").and(t("define")).and(identifier).and(t(/^.+/)).ret(function(s,def,befor,after){
+	    defines[befor+""]=after;
+	});
 	control_line=t("#").and(t("include")).and(t("<").or(t("\""))).and(incl_filename).and(t(">").or(t("\""))).ret(function(){
 	    var filename=arguments[3];
 	    //console.log("filename",filename);
         if (include_files[filename.text]) {
-            return include_files[filename.text];
+            return preprocess(include_files[filename.text]);
         }/*
 	    if (builtin_funcs[filename.text]) {
 	        return builtin_funcs[filename.text].map(function (n) {

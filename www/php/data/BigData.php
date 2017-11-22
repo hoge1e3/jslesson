@@ -54,11 +54,12 @@ class BigData {
     }
     static function find(){
         $args=func_get_args();
+        $class=self::getClass();
         $group=array_shift($args);
         $practice=array_shift($args);
         //$name=array_shift($args);
-        $placeholders=array($group, $practice);
-        $conds=array("`group` = ?", "practice = ?");
+        $placeholders=array($class->id, $group, $practice);
+        $conds=array("`class` = ?", "`group` = ?", "practice = ?");
         // "<100", "<=100", "=100", "100", "hoge" , "%hoge%"
         foreach ($args as $i=>$e) {
             if (is_null($e)) continue;

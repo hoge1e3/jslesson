@@ -7,11 +7,11 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
     var libs=["jquery-1.12.1","require"].map(function (n) {
         return "lib/"+n+".js";
     });
-    var clibs=["lib","util","ctype","x","AsyncByGenerator","AsyncByGeneratorRaw"].map(
+    /*var clibs=["scanf","lib","util","ctype","x","AsyncByGenerator","AsyncByGeneratorRaw"].map(
         function (n) {
             return "lib/c/"+n+".js";
         }
-    );
+    );*/
     var p=CBuilder.prototype;
     p.progress=function (m) {
         if (window.SplashScreen) window.SplashScreen.progress(m);
@@ -31,6 +31,7 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
             var ba={
                 version:BitArrow.version,
                 urlArgs:BitArrow.urlArgs,
+                publishedURL:BitArrow.publishedURL,
                 runtimePath:runtimePath};
             $(head).append($("<script>").text("window.BitArrow="+JSON.stringify(ba)+";"));
         }
