@@ -1398,6 +1398,7 @@ window.MinimalParser= function () {
   */},
   "stdlib.h":function () {/*
   int rand();
+  int exit(int status);
   */},
   "string.h":function () {/*
   int strlen(char *s);
@@ -1457,9 +1458,9 @@ window.MinimalParser= function () {
   }
 	var builtin_funcs={
 	    "stdio.h":
-	        ["printf","scanf","sleep","usleep","fopen","fclose","fputs","fgets"],
+	        ["printf","scanf","sleep","usleep","fopen","fclose","fputs","fgets","fprintf","fscanf","FILE"],
 	    "stdlib.h":
-	        ["rand"],
+	        ["rand","exit"],
 	    "string.h":
 	        ["strlen","strcpy","strncpy","strcmp","strncmp",
 	            "strcat","strncat","memset","index","rindex",

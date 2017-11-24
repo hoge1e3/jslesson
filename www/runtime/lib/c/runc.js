@@ -35,7 +35,12 @@ requirejs(["assert","Klass","FS","_Util"],function (assert,Klass,FS,_Util) {
     requirejs([window.sourceName],function () {
       try{
           if ($("#console").length==0) {
-            $("<pre>").attr({id:"console"}).appendTo("body");
+            if (parent && parent.editorTextSize) {
+                var size=parent.editorTextSize+"px";
+            }else{
+                var size="";
+            } 
+            $("<pre>").attr({id:"console",style:"font-size:"+size+";"}).appendTo("body");
           }
           var s=Util.getQueryString("stdin",null);
           if(typeof s==="string") scanf.STDIN=s.split("\n");
@@ -47,6 +52,7 @@ requirejs(["assert","Klass","FS","_Util"],function (assert,Klass,FS,_Util) {
   		    handleError(e);
   		}
   		function handleError(e) {
+            if (e.suppressHandleError) return ;
             if (window.runc_handleError) return window.runc_handleError(e);
             console.log(e.stack);
             if (parent && parent.Tonyu && typeof parent.Tonyu.onRuntimeError==="function") {

@@ -333,6 +333,7 @@ function ready() {
     }
     onResize();
     var desktopEnv=loadDesktopEnv();
+    window.editorTextSize=desktopEnv.editorFontSize||18;
     var runMenuOrd=desktopEnv.runMenuOrd;
     var editors={};
 
@@ -1260,9 +1261,11 @@ function ready() {
     function textSize() {
         var prog=getCurrentEditor();
         var s=prompt("エディタの文字の大きさ", desktopEnv.editorFontSize||18);
+        if(s==null) return;
         desktopEnv.editorFontSize=parseInt(s);
         if (prog) prog.setFontSize(desktopEnv.editorFontSize||18);
         saveDesktopEnv();
+        window.editorTextSize=desktopEnv.editorFontSize||18;
     }
     function editorType() {
         var prog=getCurrentEditor();
