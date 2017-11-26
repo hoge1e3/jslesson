@@ -214,10 +214,10 @@ function ready() {
     }
     makeUI();
     function makeMenu() {
-        Menu.make({label:"Bit Arrow",id:"home"},
+        Menu.make({label:"Bit Arrow",id:"home",sub:
                 [
                   //{label:"Bit Arrow"/*,href:"index.html"*/,id:"home"},
-                  {label:"ファイル",sub:[
+                  {label:"ファイル",id:"fileMenu",sub:[
                       {label:"新規",id:"newFile"},
                       {label:"名前変更",id:"mvFile"},
                       {label:"コピー",id:"cpFile"},
@@ -235,14 +235,14 @@ function ready() {
                       {label:"エディタモード切替",id:"editorType",action:editorType}*/
                   ]},
                   {label:"使用方法",id:"openHelp"},
-                  {label:"ツール",id:"tool",sub:[
+                  /*{label:"ツール",id:"tool",sub:[
                       {label:"画像リスト",id:"imageList",action:showImageList},
                   ]},
                   {label:"配布",id:"distribute",sub:[
                       {label:"ファイルを配布",id:"distributeFile",action:distributeFile},
                       {label:"プロジェクトを配布",id:"distributePrj",action:distributePrj}
-                  ]},
-                ]
+                  ]},*/
+              ]}
         );
         showToolMenu();
         showDistMenu();
@@ -257,6 +257,23 @@ function ready() {
             }
         });
     }
+    function showFileList() {
+        function cjsFileHome() {
+        	var d;
+        	if (window.BitArrow && typeof window.BitArrow.publishedURL==="string") {
+        		var a=window.BitArrow.publishedURL.replace(/\/$/,"").split("/");
+        		d=a.pop();
+        	}
+        	if (!d) d="unknown";
+        	return FS.get("/c-js/").rel(d+"/");
+        }
+        DU.requirejs(["FileBrowser"]).then(function (FileBrowser) {
+            FileBrowser.show(cjsFileHome() ,{l:true});
+        }).fail(function (e) {
+            console.log(e.stack);
+            alert(e);
+        });
+    }
     function showImageList() {
         DU.requirejs(["ResEditor"]).then(function (ResEditor) {
             ResEditor(curPrj,"image");
@@ -267,18 +284,33 @@ function ready() {
     }
     function showDistMenu(){
         if(Auth.teacher!=""){
-            dist="block";
+            Menu.appendMain(
+                {label:"配布",id:"distribute",sub:[
+                    {label:"ファイルを配布",id:"distributeFile",action:distributeFile},
+                    {label:"プロジェクトを配布",id:"distributePrj",action:distributePrj}
+                ]}
+            );
+            //dist="block";
         }else{
-            dist="none";
+            //dist="none";
         }
-        console.log("Auth.teacher",Auth.teacher);
-        $("#distribute").css("display",dist);
+        //console.log("Auth.teacher",Auth.teacher);
+        //$("#distribute").css("display",dist);
     }
     function showToolMenu() {
         if (lang==="tonyu") {
-            $("#tool").css("display","block");
+            Menu.appendSub(
+                {label:"ツール",id:"tool"},
+                {label:"画像リスト",id:"imageList",action:showImageList}
+            );
+            //$("#tool").css("display","block");
+        } else if (lang==="c") {
+            Menu.appendSub(
+                {label:"ツール",id:"tool"},
+                {label:"ファイルブラウザ",id:"fileList",action:showFileList}
+            );
         } else {
-            $("#tool").css("display","none");
+            //$("#tool").css("display","none");
         }
     }
     function distributeFile() {

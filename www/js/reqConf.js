@@ -210,6 +210,7 @@ var reqConf={
             ShellUI:"fsui/ShellUI",
             //Shell2:"fsui/Shell2",
             LocalBrowser:"fsui/LocalBrowser",
+            FileBrowser:"fsui/FileBrowser",
             LocalBrowserWindow:"fsui/LocalBrowserWindow",
             LocalBrowserInfoClass:"fsui/LocalBrowserInfoClass",
             ShellParser: "fsui/ShellParser",
