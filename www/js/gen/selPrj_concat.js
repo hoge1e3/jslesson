@@ -3182,9 +3182,11 @@ define('assert',[],function () {
 
 define('Shell',["FS","assert"],
         function (FS,assert) {
-    console.log("Shell load!!");
     var Shell={};
     var PathUtil=assert(FS.PathUtil);
+    Shell.newCommand=function (name,func) {
+        this[name]=func;
+    };
     Shell.cd=function (dir) {
         Shell.cwd=resolve(dir,true);
         return Shell.pwd();
@@ -3217,7 +3219,8 @@ define('Shell',["FS","assert"],
     Shell.resolve=resolve;
     function resolve(v, mustExist) {
         var r=resolve2(v);
-        if (mustExist && !r.exists()) throw r+": no such file or directory";
+        if (!FS.SFile.is(r)) {console.log(r," is not file");}
+        if (mustExist && !r.exists()) throw new Error(r+": no such file or directory");
         return r;
     }
     function resolve2(v) {
@@ -3258,10 +3261,9 @@ define('Shell',["FS","assert"],
     Shell.rm=function (file, options) {
         if (!options) options={};
         if (options.notrash) {
-            /*file=resolve(file, false);
+            file=resolve(file, false);
             file.removeWithoutTrash();
-            return 1;*/
-            options.noTrash=true;
+            return 1;
         }
         file=resolve(file, true);
         if (file.isDir() && options.r) {
@@ -3272,10 +3274,10 @@ define('Shell',["FS","assert"],
                     sum+=Shell.rm(f, options);
                 }
             });
-            dir.rm(options);
+            dir.rm();
             return sum+1;
         } else {
-            file.rm(options);
+            file.rm();
             return 1;
         }
     };
@@ -3351,7 +3353,7 @@ define('Shell',["FS","assert"],
         return r;
     };
     Shell.getvar=function (k) {
-        return this.vars[k];
+        return this.vars[k] || (process && process.env[k]);
     };
     Shell.get=Shell.getvar;
     Shell.set=function (k,v) {
@@ -3366,6 +3368,25 @@ define('Shell',["FS","assert"],
     Shell.exists=function (f) {
         f=this.resolve(f);
         return f.exists();
+    };
+    Shell.dl=function (f) {
+        return f.download();
+    };
+    Shell.zip=function () {
+        var t=this;
+        var a=Array.prototype.slice.call(arguments).map(function (e) {
+            if (typeof e==="string") return t.resolve(e);
+            return e;
+        });
+        return FS.zip.zip.apply(FS.zip,a);
+    };
+    Shell.unzip=function () {
+        var t=this;
+        var a=Array.prototype.slice.call(arguments).map(function (e) {
+            if (typeof e==="string") return t.resolve(e);
+            return e;
+        });
+        return FS.zip.unzip.apply(FS.zip,a);
     };
 
     Shell.prompt=function () {};
@@ -3385,7 +3406,6 @@ define('Shell',["FS","assert"],
     } else {
         sh.cd("/");
     }
-    console.log("Shell load end!!",window.sh);
     return Shell;
 });
 

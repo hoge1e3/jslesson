@@ -13094,9 +13094,11 @@ return TPRC;
 
 define('Shell',["FS","assert"],
         function (FS,assert) {
-    console.log("Shell load!!");
     var Shell={};
     var PathUtil=assert(FS.PathUtil);
+    Shell.newCommand=function (name,func) {
+        this[name]=func;
+    };
     Shell.cd=function (dir) {
         Shell.cwd=resolve(dir,true);
         return Shell.pwd();
@@ -13129,7 +13131,8 @@ define('Shell',["FS","assert"],
     Shell.resolve=resolve;
     function resolve(v, mustExist) {
         var r=resolve2(v);
-        if (mustExist && !r.exists()) throw r+": no such file or directory";
+        if (!FS.SFile.is(r)) {console.log(r," is not file");}
+        if (mustExist && !r.exists()) throw new Error(r+": no such file or directory");
         return r;
     }
     function resolve2(v) {
@@ -13170,10 +13173,9 @@ define('Shell',["FS","assert"],
     Shell.rm=function (file, options) {
         if (!options) options={};
         if (options.notrash) {
-            /*file=resolve(file, false);
+            file=resolve(file, false);
             file.removeWithoutTrash();
-            return 1;*/
-            options.noTrash=true;
+            return 1;
         }
         file=resolve(file, true);
         if (file.isDir() && options.r) {
@@ -13184,10 +13186,10 @@ define('Shell',["FS","assert"],
                     sum+=Shell.rm(f, options);
                 }
             });
-            dir.rm(options);
+            dir.rm();
             return sum+1;
         } else {
-            file.rm(options);
+            file.rm();
             return 1;
         }
     };
@@ -13263,7 +13265,7 @@ define('Shell',["FS","assert"],
         return r;
     };
     Shell.getvar=function (k) {
-        return this.vars[k];
+        return this.vars[k] || (process && process.env[k]);
     };
     Shell.get=Shell.getvar;
     Shell.set=function (k,v) {
@@ -13278,6 +13280,25 @@ define('Shell',["FS","assert"],
     Shell.exists=function (f) {
         f=this.resolve(f);
         return f.exists();
+    };
+    Shell.dl=function (f) {
+        return f.download();
+    };
+    Shell.zip=function () {
+        var t=this;
+        var a=Array.prototype.slice.call(arguments).map(function (e) {
+            if (typeof e==="string") return t.resolve(e);
+            return e;
+        });
+        return FS.zip.zip.apply(FS.zip,a);
+    };
+    Shell.unzip=function () {
+        var t=this;
+        var a=Array.prototype.slice.call(arguments).map(function (e) {
+            if (typeof e==="string") return t.resolve(e);
+            return e;
+        });
+        return FS.zip.unzip.apply(FS.zip,a);
     };
 
     Shell.prompt=function () {};
@@ -13297,7 +13318,6 @@ define('Shell',["FS","assert"],
     } else {
         sh.cd("/");
     }
-    console.log("Shell load end!!",window.sh);
     return Shell;
 });
 
@@ -13835,7 +13855,8 @@ define('Columns',["UI"],function (UI) {
 
 define('Menu',["UI"], function (UI) {
     var Menu={};
-    Menu.make=function (title, hier) {
+    Menu.makeOLD=function (title, hier) {
+        if (title.sub) hier=title.sub;
         /*
            [{label:"main1",id:"main1",sub:[{label:"sub1", id:"sub1", action:f}]]
          */
@@ -13884,8 +13905,93 @@ define('Menu',["UI"], function (UI) {
                 ]
         ));
     };
+    Menu.make=function (title, hier) {
+        if (title.sub) hier=title.sub;
+        this.initMenuBar(title);
+        /*
+           [{label:"main1",id:"main1",sub:[{label:"sub1", id:"sub1", action:f}]]
+         */
+        hier.forEach(function (mainMenuItem) {
+            Menu.appendMain(mainMenuItem);
+        });
+    };
+    Menu.initMenuBar=function (title) {
+        if (this.ul1)return;
+        var ul1=UI("ul", {"class":"nav navbar-nav"});
+        var menu=UI("div",{"class":"collapse navbar-collapse"},ul1);
+        $("body").append(UI(
+          "div",{"class":"navbar navbar-inverse navbar-fixed-top",id:"navBar"},
+                ["div",{"class":"container",id:"nav-A"},
+                    ["div", {"class":"navbar-header",id:"nav-B"},
+                        ["button",{type:"button", "class":"navbar-toggle",
+                            "data-toggle":"collapse",
+                            "data-target":".navbar-collapse"},
+                            ["span",{"class":"icon-bar"}],
+                            ["span",{"class":"icon-bar"}],
+                            ["span",{"class":"icon-bar"}]
+                        ],
+                        ["a", {"class":"navbar-brand" ,href:"#",id:title.id},title.label]
+                    ],
+                    menu
+                ]
+        ));
+        this.ul1=ul1;
+    };
+    Menu.appendMain=function (mainMenuItem) {
+        //[{label:"main1",id:"main1",sub:[{label:"sub1", id:"sub1", action:f}]]
+        var ul1=this.ul1;
+        var li=UI("li",
+                ["a",{
+                    href:(mainMenuItem.href||"#"),
+                    id:mainMenuItem.id,
+                    "class":(mainMenuItem.sub?"dropdown-toggle":null),
+                    "data-toggle":(mainMenuItem.sub?"dropdown":null)
+                }, mainMenuItem.label]
+        );
+        ul1.append(li);
+        if (mainMenuItem.sub) {
+            var ul2=UI("ul",{
+                id:"submenu_"+mainMenuItem.id,
+                "class":"dropdown-menu"
+            });
+            li.append(ul2);
+            mainMenuItem.sub.forEach(function (subMenuItem) {
+                Menu.appendSub(mainMenuItem,subMenuItem);
+            });
+        }
+    };
+    Menu.appendSub=function (mainObj,subMenuItem) {
+        var mainID;
+        switch (typeof mainObj) {
+            case "object":
+            mainID=mainObj.id;
+            mainObj.sub=[subMenuItem];
+            break;
+            case "string":
+            mainID=mainObj;
+            mainObj={label:mainID,id:mainID};
+            break;
+        }
+        var ul2=$("#submenu_"+mainID);
+        if (ul2.length==0) {
+            Menu.appendMain(mainObj);
+            //ul2=$("#submenu_"+mainID);
+            return;
+        }
+        ul2.append(UI("li",
+            ["a", {
+                 id:subMenuItem.id,
+                 href:subMenuItem.href||"#",
+                 on:{
+                     click:subMenuItem.action
+                 }
+            },subMenuItem.label]
+        ));
+    };
+
     return Menu;
 });
+
 define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
         function (FS,sh,WebSite,A,DU) {
     var Sync={};
@@ -15794,10 +15900,10 @@ function ready() {
     }
     makeUI();
     function makeMenu() {
-        Menu.make({label:"Bit Arrow",id:"home"},
+        Menu.make({label:"Bit Arrow",id:"home",sub:
                 [
                   //{label:"Bit Arrow"/*,href:"index.html"*/,id:"home"},
-                  {label:"ファイル",sub:[
+                  {label:"ファイル",id:"fileMenu",sub:[
                       {label:"新規",id:"newFile"},
                       {label:"名前変更",id:"mvFile"},
                       {label:"コピー",id:"cpFile"},
@@ -15815,14 +15921,14 @@ function ready() {
                       {label:"エディタモード切替",id:"editorType",action:editorType}*/
                   ]},
                   {label:"使用方法",id:"openHelp"},
-                  {label:"ツール",id:"tool",sub:[
+                  /*{label:"ツール",id:"tool",sub:[
                       {label:"画像リスト",id:"imageList",action:showImageList},
                   ]},
                   {label:"配布",id:"distribute",sub:[
                       {label:"ファイルを配布",id:"distributeFile",action:distributeFile},
                       {label:"プロジェクトを配布",id:"distributePrj",action:distributePrj}
-                  ]},
-                ]
+                  ]},*/
+              ]}
         );
         showToolMenu();
         showDistMenu();
@@ -15837,6 +15943,23 @@ function ready() {
             }
         });
     }
+    function showFileList() {
+        function cjsFileHome() {
+        	var d;
+        	if (window.BitArrow && typeof window.BitArrow.publishedURL==="string") {
+        		var a=window.BitArrow.publishedURL.replace(/\/$/,"").split("/");
+        		d=a.pop();
+        	}
+        	if (!d) d="unknown";
+        	return FS.get("/c-js/").rel(d+"/");
+        }
+        DU.requirejs(["FileBrowser"]).then(function (FileBrowser) {
+            FileBrowser.show(cjsFileHome() ,{l:true});
+        }).fail(function (e) {
+            console.log(e.stack);
+            alert(e);
+        });
+    }
     function showImageList() {
         DU.requirejs(["ResEditor"]).then(function (ResEditor) {
             ResEditor(curPrj,"image");
@@ -15847,18 +15970,33 @@ function ready() {
     }
     function showDistMenu(){
         if(Auth.teacher!=""){
-            dist="block";
+            Menu.appendMain(
+                {label:"配布",id:"distribute",sub:[
+                    {label:"ファイルを配布",id:"distributeFile",action:distributeFile},
+                    {label:"プロジェクトを配布",id:"distributePrj",action:distributePrj}
+                ]}
+            );
+            //dist="block";
         }else{
-            dist="none";
+            //dist="none";
         }
-        console.log("Auth.teacher",Auth.teacher);
-        $("#distribute").css("display",dist);
+        //console.log("Auth.teacher",Auth.teacher);
+        //$("#distribute").css("display",dist);
     }
     function showToolMenu() {
         if (lang==="tonyu") {
-            $("#tool").css("display","block");
+            Menu.appendSub(
+                {label:"ツール",id:"tool"},
+                {label:"画像リスト",id:"imageList",action:showImageList}
+            );
+            //$("#tool").css("display","block");
+        } else if (lang==="c") {
+            Menu.appendSub(
+                {label:"ツール",id:"tool"},
+                {label:"ファイルブラウザ",id:"fileList",action:showFileList}
+            );
         } else {
-            $("#tool").css("display","none");
+            //$("#tool").css("display","none");
         }
     }
     function distributeFile() {
