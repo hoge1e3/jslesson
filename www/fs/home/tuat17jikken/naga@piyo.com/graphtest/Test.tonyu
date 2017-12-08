@@ -1,0 +1,11 @@
+p=new Plot("s");
+var src=[];
+for(var i=-10;i<10;i+=0.1){
+    var x=i;
+    var y=2*x*x-10;
+    var tmpObj={"x":x,"y":y};
+    src.push(tmpObj);
+}
+p.setRange([-10,10],[-10,10]);
+p.lineChart(src,"x","y");
+

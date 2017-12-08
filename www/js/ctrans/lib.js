@@ -56,7 +56,8 @@ function fopen(file, mode) {
 	};
 	if (mode.indexOf("r")>=0) {
 		if (!f.exists()) {
-			throw new Error("ファイル "+file+"はありません．");
+			//throw new Error("ファイル "+file+"はありません．");
+			return NULL;
 		}
 		fp.pos=0;
 		fp.text=f.text();
@@ -212,8 +213,9 @@ function scanf() {
 		afterScan(input);
 	}
 	function afterScan(input) {
+		loop_start2();
 		if (input.toLowerCase()=="^c") throw new Error("実行を停止しました");
-		printScanfLine(input+"\n");
+        printScanfLine(input+"\n");
 		//printf(str_to_ch_ptr(input+"\n"));
 		args.unshift(str_to_ch_ptr(input));
 		return sscanf.apply(this,args);
@@ -488,5 +490,11 @@ function sleep(msec) {
 RAND_MAX=0x7fffffff;
 function rand() {
     return Math.floor(Math.random()*RAND_MAX);
+}
+function exit(status) {
+	var e=new Error("exit()によりプログラムが終了しました");
+	e.suppressHandleError=!status;
+	e.status=status;
+	throw e;
 }
 window.print=function() {throw new Error("print関数はありません。printfの間違いではないですか？");};

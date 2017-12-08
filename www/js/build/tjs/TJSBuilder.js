@@ -54,6 +54,11 @@ function (A,DU,wget,Sync) {
         nn.setAttribute("src",WebSite.runtime+"lib/tjs/documentWrite.js");
         head.appendChild(nn);
 
+        var nn=document.createElement("script");
+        nn.setAttribute("charset","utf-8");
+        nn.setAttribute("src",WebSite.runtime+"lib/plotly-latest.min.js");
+        head.appendChild(nn);
+
         ["lib/jquery-1.12.1.js","lib/require.js","lib/tjs/run.js"].forEach(function (src) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
