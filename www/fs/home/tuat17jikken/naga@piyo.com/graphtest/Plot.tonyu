@@ -1,5 +1,7 @@
 native window;
-
+native console;
+native parseFloat;
+native Math;
 function new(div){
     this._place=div;
     this._xaxname="";
@@ -13,6 +15,7 @@ function setCorrelation(src,x,y,min,max,interval){
     if((min>max && interval>0) || (min<=max && interval<0) || interval==0){
         return;
     }
+    console.log(min,max,interval);
     this._corObj=_correlation(src,x,y,min,max,interval);
     this._isDrawCor=true;
 }
@@ -30,7 +33,24 @@ function lineChart(src,xaxis,yaxis){
 function barChart(src,xaxis,yaxis){
     _drawGraph(src,"bar",xaxis,yaxis);
 }
-function scatterChart(src,xaxis,yaxis){
+function _min(src,k){
+    var ary=new Array();
+    for(var i=0;i<src.length;i++){
+        ary.push(src[i][k]);
+    }
+    ary.sort(function(a,b){return a-b;});
+    return ary[0];
+}
+function _max(src,k){
+    var ary=new Array();
+    for(var i=0;i<src.length;i++){
+        ary.push(src[i][k]);
+    }
+    ary.sort(function(a,b){return b-a;});
+    return ary[0];
+}
+function scatterChart(src,xaxis,yaxis,isCor){
+    if(isCor==true) setCorrelation(src,xaxis,yaxis,parseFloat(_min(src,xaxis)),parseFloat(_max(src,xaxis)),parseFloat((_max(src,xaxis)-_min(src,xaxis))/10));
     _drawGraph(src,"scatter",xaxis,yaxis);
 }
 function _drawGraph(src,type,xaxis,yaxis){
@@ -166,6 +186,7 @@ function _correlation(dataObj,d1,d2,min,max,interval){
     var x=[];
     var y=[];
     for(var i=min;i<=max;i=i+interval){
+        console.log(i);
         x.push(i);
         y.push(a*i+b);
     }

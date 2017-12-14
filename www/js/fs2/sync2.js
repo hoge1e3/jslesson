@@ -1,7 +1,6 @@
 define(["FS","Shell","WebSite","assert","DeferredUtil"],
         function (FS,sh,WebSite,A,DU) {
     var Sync={};
-    var F=DU.begin;
     //var PathUtil=FS.PathUtil; Not avail
     sh.sync=function () {
         // sync options:o      local=remote=cwd
@@ -140,7 +139,7 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
             type:"get",
             url:A(WebSite.url.getDirInfo),
             data:req
-        }).then(F(function n1(gd) {
+        }).then(function n1(gd) {
             curRemoteDirInfo=gd.data;
             var d;
             if (options.v) sh.echo("getDirInfo",gd);
@@ -190,7 +189,7 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
                 url:A(WebSite.url.getFiles),
                 data:req
             });
-        })).then(F(function n2(dlData) {
+        }).then(function n2(dlData) {
             //dlData=JSON.parse(dlData);
             if (options.v) sh.echo("dlData:",dlData);
             var base=local;//FS.get(dlData.base);
@@ -223,7 +222,7 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
                 url:req.pathInfo,
                 data:req
             });
-        })).then(F(function n3(res){
+        }).then(function n3(res){
             if (options.v) sh.echo("putFiles res=",res);
             if (!downloadSkipped) {
                 var newLocalDirInfo=getLocalDirInfo();
@@ -240,7 +239,7 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
             var upds=[];
             for (var i in uploads) upds.push(i);
             return res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};
-        }));
+        });
     };
     sh.rsh=function () {
         var a=[];

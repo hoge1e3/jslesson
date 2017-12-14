@@ -1,3 +1,4 @@
+native console;
 p=new Plot("s");
 var src=[];
 var d1raw=getText("data1");
@@ -11,5 +12,5 @@ for(var i=0;i<d1L.length;i++){
     var tmpObj={"data1":d1[1],"data2":d2[1],"data3":d1[0]};
     src.push(tmpObj);
 }
-p.setCorrelation(src,"data1","data2",10,75,(75-10)/100);
-p.scatterChart(src,"data1","data2",corObj);
+console.log(src);
+p.scatterChart(src,"data1","data2",true);
