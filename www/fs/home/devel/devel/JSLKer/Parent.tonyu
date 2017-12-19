@@ -7,6 +7,7 @@ native window;
 native console;
 native Tonyu;
 native Error;
+native BitArrow;
 
 \Math {
     return window.Math;
@@ -405,4 +406,18 @@ nowait \deg(d) {
     var r;
     r=waitFor(p);
     return r;
+}
+\curProject() {
+    var url;
+    if (typeof BitArrow==="object" && BitArrow.publishedURL) {
+        url=BitArrow.publishedURL;
+    } else {
+        url=window.location.href;
+    }
+    var params="&url="+url;
+    var p=window.$.ajax(window.runtimePath+"a.php?KeyValue/info"+params);
+    var r;
+    r=waitFor(p);
+    return r;
+    
 }

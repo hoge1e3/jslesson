@@ -119,7 +119,7 @@ define(["Klass","assert"],function (Klass,assert) {
                 return true;
             }*/
             if (right instanceof t.Pointer) {
-                return this.e.assignableFrom(right.e);
+                return this.e===t.void || right.e===t.void || this.e.assignableFrom(right.e);
             }
             return t.Pointer.super(this,"assignableFrom",right);
         },

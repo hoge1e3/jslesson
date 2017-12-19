@@ -1,5 +1,5 @@
 <?php
-req("KeyValue");
+req("KeyValue","Published");
 class KeyValueController {
     static function get() {
         try {
@@ -30,6 +30,10 @@ class KeyValueController {
             echo $e;
         }
     }
-
+    static function info() {
+      $r=Published::getRecord(param("url"));
+      header("Content-type: text/json;charset=utf8");
+      echo json_encode($r);
+    }
 }
  ?>

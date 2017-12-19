@@ -39,6 +39,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     var ALWAYS_UPLOAD=(localStorage.ALWAYS_UPLOAD==="true");
     console.log("ALWAYS_UPLOAD",ALWAYS_UPLOAD);
     var useOLDC=false;
+    if (typeof BitArrow==="object") BitArrow.curProjectDir=curProjectDir.path();
     var langList={
         "js":"JavaScript",
         "c":"C",
