@@ -1,13 +1,16 @@
 define(["UI","LocalBrowser","LocalBrowserWindow","DiagAdjuster"],
 function (UI, LocalBrowser,LocalBrowserWindow,DA) {
     var res={};
+    var geom=res.geom={};
     res.hasLocalBrowserWindow=function () {
         return res.lbw && res.lbw.isActive();
     };
     res.show=function (runFile, options) {
         options=options||{};
-        options.height=options.height||600;
-        options.width=options.width||16*((options.height+10)/9);
+        options.height=options.height||geom.height||600;
+        options.width=options.width||geom.width||16*((options.height+10)/9);
+        if (!geom.height) geom.height=options.height;
+        if (!geom.width) geom.width=options.width;
         if (options.window && !options.window.closed) {
             if (res.hasLocalBrowserWindow()) res.lbw.close();
             res.lbw=new LocalBrowserWindow({
@@ -24,20 +27,43 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA) {
         var d=res.embed(runFile, options);
         console.log("RunDialog2 options",options);
         d.dialog({
+            //left: 50,top:50,
             width:options.width,
             height:options.height,
-            position: { my: "center top", at: "right bottom"},
+            position: (
+                geom.top?{
+                    my: "left top",
+                    at: "left+"+geom.left+" top+"+geom.top
+                }:{ my: "center top", at: "right bottom"}
+            ),
+            //position: { my: "center top", at: "right bottom"},
             close:function(){
                 window.dialogClosed=true;
                 if (res.b) res.b.close();
                 if(typeof options.toEditor == "function")options.toEditor();
             },
-            resize:handleResize
+            resize:handleResize,
+            drag:handleDrag
         });//,height:options.height?options.height-50:400});
         handleResize();
-        function handleResize() {
+        function handleDrag(e,ngeom) {
+          if (ngeom) {
+              //geom.width=ngeom.size.width;
+              //geom.height=ngeom.size.height;
+              geom.left=ngeom.position.left;
+              geom.top=ngeom.position.top;
+          }
+        }
+        function handleResize(e,ngeom) {
+            //console.log("RSZ",arguments);
             if (res.b/* && res.b.iframe*/) {
                 res.b.resize(d.width(),d.height()-d.$vars.OKButton.height());
+                if (ngeom) {
+                    geom.width=ngeom.size.width;
+                    geom.height=ngeom.size.height;
+                    geom.left=ngeom.position.left;
+                    geom.top=ngeom.position.top;
+                }
                 /*res.b.iframe.attr({
                     width:d.width(),
                     height:d.height()-d.$vars.OKButton.height()});*/

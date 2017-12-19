@@ -13995,7 +13995,6 @@ define('Menu',["UI"], function (UI) {
 define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
         function (FS,sh,WebSite,A,DU) {
     var Sync={};
-    var F=DU.begin;
     //var PathUtil=FS.PathUtil; Not avail
     sh.sync=function () {
         // sync options:o      local=remote=cwd
@@ -14134,7 +14133,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             type:"get",
             url:A(WebSite.url.getDirInfo),
             data:req
-        }).then(F(function n1(gd) {
+        }).then(function n1(gd) {
             curRemoteDirInfo=gd.data;
             var d;
             if (options.v) sh.echo("getDirInfo",gd);
@@ -14184,7 +14183,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                 url:A(WebSite.url.getFiles),
                 data:req
             });
-        })).then(F(function n2(dlData) {
+        }).then(function n2(dlData) {
             //dlData=JSON.parse(dlData);
             if (options.v) sh.echo("dlData:",dlData);
             var base=local;//FS.get(dlData.base);
@@ -14217,7 +14216,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                 url:req.pathInfo,
                 data:req
             });
-        })).then(F(function n3(res){
+        }).then(function n3(res){
             if (options.v) sh.echo("putFiles res=",res);
             if (!downloadSkipped) {
                 var newLocalDirInfo=getLocalDirInfo();
@@ -14234,7 +14233,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             var upds=[];
             for (var i in uploads) upds.push(i);
             return res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};
-        }));
+        });
     };
     sh.rsh=function () {
         var a=[];
@@ -14746,13 +14745,16 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass,WebSite) {
 define('RunDialog2',["UI","LocalBrowser","LocalBrowserWindow","DiagAdjuster"],
 function (UI, LocalBrowser,LocalBrowserWindow,DA) {
     var res={};
+    var size=res.size={};
     res.hasLocalBrowserWindow=function () {
         return res.lbw && res.lbw.isActive();
     };
     res.show=function (runFile, options) {
         options=options||{};
-        options.height=options.height||600;
-        options.width=options.width||16*((options.height+10)/9);
+        options.height=options.height||size.h||600;
+        options.width=options.width||size.w||16*((options.height+10)/9);
+        if (!size.h) size.h=options.height;
+        if (!size.w) size.w=options.width;
         if (options.window && !options.window.closed) {
             if (res.hasLocalBrowserWindow()) res.lbw.close();
             res.lbw=new LocalBrowserWindow({
@@ -14769,6 +14771,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA) {
         var d=res.embed(runFile, options);
         console.log("RunDialog2 options",options);
         d.dialog({
+            //left: 50,top:50,
             width:options.width,
             height:options.height,
             position: { my: "center top", at: "right bottom"},
@@ -14780,9 +14783,14 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA) {
             resize:handleResize
         });//,height:options.height?options.height-50:400});
         handleResize();
-        function handleResize() {
+        function handleResize(e,geom) {
+            //console.log("RSZ",arguments);
             if (res.b/* && res.b.iframe*/) {
                 res.b.resize(d.width(),d.height()-d.$vars.OKButton.height());
+                if (geom) {
+                    size.w=geom.size.width;
+                    size.h=geom.size.height;
+                }
                 /*res.b.iframe.attr({
                     width:d.width(),
                     height:d.height()-d.$vars.OKButton.height()});*/
@@ -16442,8 +16450,12 @@ function ready() {
                     }
                     //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
-                    RunDialog2.show(indexF,
-                    {window:newwnd,height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+                    RunDialog2.show(indexF,{
+                        window:newwnd,
+                        height:RunDialog2.size.h||screenH-50,
+                        toEditor:focusToEditor,
+                        font:desktopEnv.editorFontSize||18
+                    });
                 }).fail(function (e) {
                     console.log(e.stack);
     	            if (e.isTError) {

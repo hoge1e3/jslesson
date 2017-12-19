@@ -756,8 +756,12 @@ function ready() {
                     }
                     //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
-                    RunDialog2.show(indexF,
-                    {window:newwnd,height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+                    RunDialog2.show(indexF,{
+                        window:newwnd,
+                        height:RunDialog2.geom.height||screenH-50,
+                        toEditor:focusToEditor,
+                        font:desktopEnv.editorFontSize||18
+                    });
                 }).fail(function (e) {
                     console.log(e.stack);
     	            if (e.isTError) {
