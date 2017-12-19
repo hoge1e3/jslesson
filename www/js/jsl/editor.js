@@ -841,7 +841,8 @@ function ready() {
                   var indexF=ram.rel(curHTMLFile.name());
                   console.log("screenH",screenH);
                   return RunDialog2.show(indexF,
-                  {window:newwnd,height:screenH,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+                  {window:newwnd,height:RunDialog2.geom.height||screenH-50,
+                    toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
               }).fail(function (e) {
                   //var eobj={stack:e.stack,message:e+""};
                   //for (var k in e) eobj[k]=e[k];
@@ -891,7 +892,8 @@ function ready() {
                     }
                     var indexF=ram.rel(curHTMLFile.name());
                     return RunDialog2.show(indexF,
-                    {window:newwnd,height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+                    {window:newwnd,height:RunDialog2.geom.height||screenH-50,
+                      toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
                 }).fail(function (e) {
                     //console.log("FAIL", arguments);
                     Tonyu.onRuntimeError(e);

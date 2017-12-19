@@ -14745,16 +14745,16 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass,WebSite) {
 define('RunDialog2',["UI","LocalBrowser","LocalBrowserWindow","DiagAdjuster"],
 function (UI, LocalBrowser,LocalBrowserWindow,DA) {
     var res={};
-    var size=res.size={};
+    var geom=res.geom={};
     res.hasLocalBrowserWindow=function () {
         return res.lbw && res.lbw.isActive();
     };
     res.show=function (runFile, options) {
         options=options||{};
-        options.height=options.height||size.h||600;
-        options.width=options.width||size.w||16*((options.height+10)/9);
-        if (!size.h) size.h=options.height;
-        if (!size.w) size.w=options.width;
+        options.height=options.height||geom.height||600;
+        options.width=options.width||geom.width||16*((options.height+10)/9);
+        if (!geom.height) geom.height=options.height;
+        if (!geom.width) geom.width=options.width;
         if (options.window && !options.window.closed) {
             if (res.hasLocalBrowserWindow()) res.lbw.close();
             res.lbw=new LocalBrowserWindow({
@@ -14774,22 +14774,39 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA) {
             //left: 50,top:50,
             width:options.width,
             height:options.height,
-            position: { my: "center top", at: "right bottom"},
+            position: (
+                geom.top?{
+                    my: "left top",
+                    at: "left+"+geom.left+" top+"+geom.top
+                }:{ my: "center top", at: "right bottom"}
+            ),
+            //position: { my: "center top", at: "right bottom"},
             close:function(){
                 window.dialogClosed=true;
                 if (res.b) res.b.close();
                 if(typeof options.toEditor == "function")options.toEditor();
             },
-            resize:handleResize
+            resize:handleResize,
+            drag:handleDrag
         });//,height:options.height?options.height-50:400});
         handleResize();
-        function handleResize(e,geom) {
+        function handleDrag(e,ngeom) {
+          if (ngeom) {
+              //geom.width=ngeom.size.width;
+              //geom.height=ngeom.size.height;
+              geom.left=ngeom.position.left;
+              geom.top=ngeom.position.top;
+          }
+        }
+        function handleResize(e,ngeom) {
             //console.log("RSZ",arguments);
             if (res.b/* && res.b.iframe*/) {
                 res.b.resize(d.width(),d.height()-d.$vars.OKButton.height());
-                if (geom) {
-                    size.w=geom.size.width;
-                    size.h=geom.size.height;
+                if (ngeom) {
+                    geom.width=ngeom.size.width;
+                    geom.height=ngeom.size.height;
+                    geom.left=ngeom.position.left;
+                    geom.top=ngeom.position.top;
                 }
                 /*res.b.iframe.attr({
                     width:d.width(),
@@ -16452,7 +16469,7 @@ function ready() {
                     var indexF=ram.rel(curHTMLFile.name());
                     RunDialog2.show(indexF,{
                         window:newwnd,
-                        height:RunDialog2.size.h||screenH-50,
+                        height:RunDialog2.geom.height||screenH-50,
                         toEditor:focusToEditor,
                         font:desktopEnv.editorFontSize||18
                     });
@@ -16535,7 +16552,8 @@ function ready() {
                   var indexF=ram.rel(curHTMLFile.name());
                   console.log("screenH",screenH);
                   return RunDialog2.show(indexF,
-                  {window:newwnd,height:screenH,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+                  {window:newwnd,height:RunDialog2.geom.height||screenH-50,
+                    toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
               }).fail(function (e) {
                   //var eobj={stack:e.stack,message:e+""};
                   //for (var k in e) eobj[k]=e[k];
@@ -16585,7 +16603,8 @@ function ready() {
                     }
                     var indexF=ram.rel(curHTMLFile.name());
                     return RunDialog2.show(indexF,
-                    {window:newwnd,height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+                    {window:newwnd,height:RunDialog2.geom.height||screenH-50,
+                      toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
                 }).fail(function (e) {
                     //console.log("FAIL", arguments);
                     Tonyu.onRuntimeError(e);
