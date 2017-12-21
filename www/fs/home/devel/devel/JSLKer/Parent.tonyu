@@ -355,7 +355,7 @@ nowait \deg(d) {
     if (_err) throw _err;
     return _res;
 }
-\putToServer(key,value) {
+/*\putToServer(key,value) {
     var url=window.location.href;
     var p=window.$.ajax(window.runtimePath+"a.php?KeyValue/put"+
     "&key="+key+
@@ -363,6 +363,17 @@ nowait \deg(d) {
     "&url="+url+
     "&group="+activityGroup
     );
+    var r;
+    r=waitFor(p);
+    return r;
+}*/
+\putToServer(key,value) {
+    var url=window.location.href;
+    var p=window.$.ajax({
+        url: window.runtimePath+"a.php?KeyValue/put",
+        type:'POST',
+        data : {key : key, value : value, url : url, group : activityGroup}
+    });
     var r;
     r=waitFor(p);
     return r;

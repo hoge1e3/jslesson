@@ -525,15 +525,15 @@ Tonyu.klass.define({
       var data1Var;
       var data2Var;
       var o;
-      var _it_626;
-      var _it_627;
+      var _it_18;
+      var _it_19;
       var k;
       var v;
-      var _it_628;
+      var _it_20;
       var data1Sdev;
       var data2Sdev;
       var dataCov;
-      var _it_629;
+      var _it_21;
       var cor;
       var a;
       var b;
@@ -563,9 +563,9 @@ Tonyu.klass.define({
       data2Var = 0;
       
       $LASTPOS=1003508;//user.Plot:3508
-      _it_626=Tonyu.iterator(dataObj,1);
-      while(_it_626.next()) {
-        o=_it_626[0];
+      _it_18=Tonyu.iterator(dataObj,1);
+      while(_it_18.next()) {
+        o=_it_18[0];
         
         $LASTPOS=1003540;//user.Plot:3540
         data1Ave+=o[d1]-0;
@@ -578,9 +578,9 @@ Tonyu.klass.define({
       $LASTPOS=1003638;//user.Plot:3638
       data2Ave=data2Ave/dataObj.length;
       $LASTPOS=1003775;//user.Plot:3775
-      _it_627=Tonyu.iterator(dataObj,1);
-      while(_it_627.next()) {
-        o=_it_627[0];
+      _it_19=Tonyu.iterator(dataObj,1);
+      while(_it_19.next()) {
+        o=_it_19[0];
         
         $LASTPOS=1003807;//user.Plot:3807
         data1Dev.push(o[d1]-data1Ave);
@@ -589,10 +589,10 @@ Tonyu.klass.define({
         
       }
       $LASTPOS=1003990;//user.Plot:3990
-      _it_628=Tonyu.iterator(data1Dev,2);
-      while(_it_628.next()) {
-        k=_it_628[0];
-        v=_it_628[1];
+      _it_20=Tonyu.iterator(data1Dev,2);
+      while(_it_20.next()) {
+        k=_it_20[0];
+        v=_it_20[1];
         
         $LASTPOS=1004025;//user.Plot:4025
         data1Var+=Math.pow(data1Dev[k],2);
@@ -614,10 +614,10 @@ Tonyu.klass.define({
       dataCov = 0;
       
       $LASTPOS=1004498;//user.Plot:4498
-      _it_629=Tonyu.iterator(data1Dev,2);
-      while(_it_629.next()) {
-        k=_it_629[0];
-        v=_it_629[1];
+      _it_21=Tonyu.iterator(data1Dev,2);
+      while(_it_21.next()) {
+        k=_it_21[0];
+        v=_it_21[1];
         
         $LASTPOS=1004533;//user.Plot:4533
         dataCov+=data1Dev[k]*data2Dev[k];
@@ -669,15 +669,15 @@ Tonyu.klass.define({
       var data1Var;
       var data2Var;
       var o;
-      var _it_626;
-      var _it_627;
+      var _it_18;
+      var _it_19;
       var k;
       var v;
-      var _it_628;
+      var _it_20;
       var data1Sdev;
       var data2Sdev;
       var dataCov;
-      var _it_629;
+      var _it_21;
       var cor;
       var a;
       var b;
@@ -707,9 +707,9 @@ Tonyu.klass.define({
       data2Var = 0;
       
       $LASTPOS=1003508;//user.Plot:3508
-      _it_626=Tonyu.iterator(dataObj,1);
-      while(_it_626.next()) {
-        o=_it_626[0];
+      _it_18=Tonyu.iterator(dataObj,1);
+      while(_it_18.next()) {
+        o=_it_18[0];
         
         $LASTPOS=1003540;//user.Plot:3540
         data1Ave+=o[d1]-0;
@@ -722,9 +722,9 @@ Tonyu.klass.define({
       $LASTPOS=1003638;//user.Plot:3638
       data2Ave=data2Ave/dataObj.length;
       $LASTPOS=1003775;//user.Plot:3775
-      _it_627=Tonyu.iterator(dataObj,1);
-      while(_it_627.next()) {
-        o=_it_627[0];
+      _it_19=Tonyu.iterator(dataObj,1);
+      while(_it_19.next()) {
+        o=_it_19[0];
         
         $LASTPOS=1003807;//user.Plot:3807
         data1Dev.push(o[d1]-data1Ave);
@@ -733,10 +733,10 @@ Tonyu.klass.define({
         
       }
       $LASTPOS=1003990;//user.Plot:3990
-      _it_628=Tonyu.iterator(data1Dev,2);
-      while(_it_628.next()) {
-        k=_it_628[0];
-        v=_it_628[1];
+      _it_20=Tonyu.iterator(data1Dev,2);
+      while(_it_20.next()) {
+        k=_it_20[0];
+        v=_it_20[1];
         
         $LASTPOS=1004025;//user.Plot:4025
         data1Var+=Math.pow(data1Dev[k],2);
@@ -758,10 +758,10 @@ Tonyu.klass.define({
       dataCov = 0;
       
       $LASTPOS=1004498;//user.Plot:4498
-      _it_629=Tonyu.iterator(data1Dev,2);
-      while(_it_629.next()) {
-        k=_it_629[0];
-        v=_it_629[1];
+      _it_21=Tonyu.iterator(data1Dev,2);
+      while(_it_21.next()) {
+        k=_it_21[0];
+        v=_it_21[1];
         
         $LASTPOS=1004533;//user.Plot:4533
         dataCov+=data1Dev[k]*data2Dev[k];
@@ -1006,6 +1006,157 @@ Tonyu.klass.define({
     __dummy: false
   },
   decls: {"methods":{"main":{"nowait":false}},"fields":{"src":{},"p":{},"i":{},"x":{},"y":{},"tmpObj":{}}}
+});
+Tonyu.klass.define({
+  fullName: 'user.Postget',
+  shortName: 'Postget',
+  namespace: 'user',
+  superclass: Tonyu.classes.jslker.Parent,
+  includes: [],
+  methods: {
+    main :function _trc_Postget_main() {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=4000015;//user.Postget:15
+      _this.onClick("b",Tonyu.bindFunc(_this,_this.send));
+      $LASTPOS=4000034;//user.Postget:34
+      _this.setText("a",_this.getFromServer("testkey"));
+    },
+    fiber$main :function _trc_Postget_f_main(_thread) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      
+      _thread.enter(function _trc_Postget_ent_main(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=4000015;//user.Postget:15
+            _this.fiber$onClick(_thread, "b", Tonyu.bindFunc(_this,_this.send));
+            __pc=1;return;
+          case 1:
+            
+            $LASTPOS=4000034;//user.Postget:34
+            _this.fiber$setText(_thread, "a", _this.getFromServer("testkey"));
+            __pc=2;return;
+          case 2:
+            
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    send :function _trc_Postget_send() {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=4000094;//user.Postget:94
+      _this.t=_this.getText("t");
+      $LASTPOS=4000114;//user.Postget:114
+      _this.putToServer("testkey",_this.t);
+      $LASTPOS=4000144;//user.Postget:144
+      _this.v=_this.getFromServer("testkey");
+      $LASTPOS=4000176;//user.Postget:176
+      _this.setText("a",_this.v);
+    },
+    fiber$send :function _trc_Postget_f_send(_thread) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      
+      _thread.enter(function _trc_Postget_ent_send(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=4000094;//user.Postget:94
+            _this.fiber$getText(_thread, "t");
+            __pc=1;return;
+          case 1:
+            _this.t=_thread.retVal;
+            
+            $LASTPOS=4000114;//user.Postget:114
+            _this.fiber$putToServer(_thread, "testkey", _this.t);
+            __pc=2;return;
+          case 2:
+            
+            $LASTPOS=4000144;//user.Postget:144
+            _this.fiber$getFromServer(_thread, "testkey");
+            __pc=3;return;
+          case 3:
+            _this.v=_thread.retVal;
+            
+            $LASTPOS=4000176;//user.Postget:176
+            _this.fiber$setText(_thread, "a", _this.v);
+            __pc=4;return;
+          case 4:
+            
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    putToServer :function _trc_Postget_putToServer(key,value) {
+      "use strict";
+      var _this=this;
+      var url;
+      var p;
+      var r;
+      
+      $LASTPOS=4000226;//user.Postget:226
+      url = window.location.href;
+      
+      $LASTPOS=4000260;//user.Postget:260
+      p = window.$.ajax({url: window.runtimePath+"a.php?KeyValue/put",type: 'POST',data: {key: key,value: value,url: url,group: _this.activityGroup}});
+      
+      
+      $LASTPOS=4000456;//user.Postget:456
+      r=_this.waitFor(p);
+      return r;
+    },
+    fiber$putToServer :function _trc_Postget_f_putToServer(_thread,key,value) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var url;
+      var p;
+      var r;
+      
+      $LASTPOS=4000226;//user.Postget:226
+      url = window.location.href;
+      
+      $LASTPOS=4000260;//user.Postget:260
+      p = window.$.ajax({url: window.runtimePath+"a.php?KeyValue/put",type: 'POST',data: {key: key,value: value,url: url,group: _this.activityGroup}});
+      
+      
+      
+      _thread.enter(function _trc_Postget_ent_putToServer(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=4000456;//user.Postget:456
+            _this.fiber$waitFor(_thread, p);
+            __pc=1;return;
+          case 1:
+            r=_thread.retVal;
+            
+            _thread.exit(r);return;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    __dummy: false
+  },
+  decls: {"methods":{"main":{"nowait":false},"send":{"nowait":false},"putToServer":{"nowait":false}},"fields":{"t":{},"v":{}}}
 });
 
 //# sourceMappingURL=concat.js.map

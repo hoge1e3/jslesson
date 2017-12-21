@@ -1717,14 +1717,14 @@ Tonyu.klass.define({
       var p;
       var r;
       
-      $LASTPOS=1009162;//jslker.Parent:9162
+      $LASTPOS=1009438;//jslker.Parent:9438
       url = window.location.href;
       
-      $LASTPOS=1009197;//jslker.Parent:9197
-      p = window.$.ajax(window.runtimePath+"a.php?KeyValue/put"+"&key="+key+"&value="+value+"&url="+url+"&group="+_this.activityGroup);
+      $LASTPOS=1009473;//jslker.Parent:9473
+      p = window.$.ajax({url: window.runtimePath+"a.php?KeyValue/put",type: 'POST',data: {key: key,value: value,url: url,group: _this.activityGroup}});
       
       
-      $LASTPOS=1009370;//jslker.Parent:9370
+      $LASTPOS=1009675;//jslker.Parent:9675
       r=_this.waitFor(p);
       return r;
     },
@@ -1737,11 +1737,11 @@ Tonyu.klass.define({
       var p;
       var r;
       
-      $LASTPOS=1009162;//jslker.Parent:9162
+      $LASTPOS=1009438;//jslker.Parent:9438
       url = window.location.href;
       
-      $LASTPOS=1009197;//jslker.Parent:9197
-      p = window.$.ajax(window.runtimePath+"a.php?KeyValue/put"+"&key="+key+"&value="+value+"&url="+url+"&group="+_this.activityGroup);
+      $LASTPOS=1009473;//jslker.Parent:9473
+      p = window.$.ajax({url: window.runtimePath+"a.php?KeyValue/put",type: 'POST',data: {key: key,value: value,url: url,group: _this.activityGroup}});
       
       
       
@@ -1750,7 +1750,7 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1009370;//jslker.Parent:9370
+            $LASTPOS=1009675;//jslker.Parent:9675
             _this.fiber$waitFor(_thread, p);
             __pc=1;return;
           case 1:
@@ -1766,7 +1766,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1009423;//jslker.Parent:9423
+      $LASTPOS=1009728;//jslker.Parent:9728
       _this.activityGroup=g||"default";
     },
     fiber$setGroup :function _trc_Parent_f_setGroup(_thread,g) {
@@ -1775,7 +1775,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1009423;//jslker.Parent:9423
+      $LASTPOS=1009728;//jslker.Parent:9728
       _this.activityGroup=g||"default";
       
       _thread.retVal=_this;return;
@@ -1787,14 +1787,14 @@ Tonyu.klass.define({
       var p;
       var r;
       
-      $LASTPOS=1009482;//jslker.Parent:9482
+      $LASTPOS=1009787;//jslker.Parent:9787
       url = window.location.href;
       
-      $LASTPOS=1009517;//jslker.Parent:9517
+      $LASTPOS=1009822;//jslker.Parent:9822
       p = window.$.ajax(window.runtimePath+"a.php?KeyValue/get"+"&key="+key+"&url="+url+"&group="+_this.activityGroup);
       
       
-      $LASTPOS=1009668;//jslker.Parent:9668
+      $LASTPOS=1009973;//jslker.Parent:9973
       r=_this.waitFor(p);
       return r;
     },
@@ -1807,10 +1807,10 @@ Tonyu.klass.define({
       var p;
       var r;
       
-      $LASTPOS=1009482;//jslker.Parent:9482
+      $LASTPOS=1009787;//jslker.Parent:9787
       url = window.location.href;
       
-      $LASTPOS=1009517;//jslker.Parent:9517
+      $LASTPOS=1009822;//jslker.Parent:9822
       p = window.$.ajax(window.runtimePath+"a.php?KeyValue/get"+"&key="+key+"&url="+url+"&group="+_this.activityGroup);
       
       
@@ -1820,7 +1820,7 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1009668;//jslker.Parent:9668
+            $LASTPOS=1009973;//jslker.Parent:9973
             _this.fiber$waitFor(_thread, p);
             __pc=1;return;
           case 1:
@@ -1840,39 +1840,39 @@ Tonyu.klass.define({
       var p;
       var r;
       
-      $LASTPOS=1009738;//jslker.Parent:9738
+      $LASTPOS=1010043;//jslker.Parent:10043
       _this.group=_this.activityGroup;
-      $LASTPOS=1009764;//jslker.Parent:9764
+      $LASTPOS=1010069;//jslker.Parent:10069
       url = window.location.href;
       
-      $LASTPOS=1009799;//jslker.Parent:9799
+      $LASTPOS=1010104;//jslker.Parent:10104
       params = "&group="+_this.group+"&practice="+practice+"&url="+url;
       
-      $LASTPOS=1009866;//jslker.Parent:9866
+      $LASTPOS=1010171;//jslker.Parent:10171
       if (d1!=null) {
-        $LASTPOS=1009880;//jslker.Parent:9880
+        $LASTPOS=1010185;//jslker.Parent:10185
         params+="&data1="+d1;
       }
-      $LASTPOS=1009907;//jslker.Parent:9907
+      $LASTPOS=1010212;//jslker.Parent:10212
       if (d2!=null) {
-        $LASTPOS=1009921;//jslker.Parent:9921
+        $LASTPOS=1010226;//jslker.Parent:10226
         params+="&data2="+d2;
       }
-      $LASTPOS=1009948;//jslker.Parent:9948
+      $LASTPOS=1010253;//jslker.Parent:10253
       if (d3!=null) {
-        $LASTPOS=1009962;//jslker.Parent:9962
+        $LASTPOS=1010267;//jslker.Parent:10267
         params+="&data3="+d3;
       }
-      $LASTPOS=1009989;//jslker.Parent:9989
+      $LASTPOS=1010294;//jslker.Parent:10294
       if (d4!=null) {
-        $LASTPOS=1010003;//jslker.Parent:10003
+        $LASTPOS=1010308;//jslker.Parent:10308
         params+="&data4="+d4;
       }
-      $LASTPOS=1010030;//jslker.Parent:10030
+      $LASTPOS=1010335;//jslker.Parent:10335
       p = window.$.ajax(window.runtimePath+"a.php?BigData/add"+params);
       
       
-      $LASTPOS=1010115;//jslker.Parent:10115
+      $LASTPOS=1010420;//jslker.Parent:10420
       r=_this.waitFor(p);
       return r;
     },
@@ -1886,35 +1886,35 @@ Tonyu.klass.define({
       var p;
       var r;
       
-      $LASTPOS=1009738;//jslker.Parent:9738
+      $LASTPOS=1010043;//jslker.Parent:10043
       _this.group=_this.activityGroup;
-      $LASTPOS=1009764;//jslker.Parent:9764
+      $LASTPOS=1010069;//jslker.Parent:10069
       url = window.location.href;
       
-      $LASTPOS=1009799;//jslker.Parent:9799
+      $LASTPOS=1010104;//jslker.Parent:10104
       params = "&group="+_this.group+"&practice="+practice+"&url="+url;
       
-      $LASTPOS=1009866;//jslker.Parent:9866
+      $LASTPOS=1010171;//jslker.Parent:10171
       if (d1!=null) {
-        $LASTPOS=1009880;//jslker.Parent:9880
+        $LASTPOS=1010185;//jslker.Parent:10185
         params+="&data1="+d1;
       }
-      $LASTPOS=1009907;//jslker.Parent:9907
+      $LASTPOS=1010212;//jslker.Parent:10212
       if (d2!=null) {
-        $LASTPOS=1009921;//jslker.Parent:9921
+        $LASTPOS=1010226;//jslker.Parent:10226
         params+="&data2="+d2;
       }
-      $LASTPOS=1009948;//jslker.Parent:9948
+      $LASTPOS=1010253;//jslker.Parent:10253
       if (d3!=null) {
-        $LASTPOS=1009962;//jslker.Parent:9962
+        $LASTPOS=1010267;//jslker.Parent:10267
         params+="&data3="+d3;
       }
-      $LASTPOS=1009989;//jslker.Parent:9989
+      $LASTPOS=1010294;//jslker.Parent:10294
       if (d4!=null) {
-        $LASTPOS=1010003;//jslker.Parent:10003
+        $LASTPOS=1010308;//jslker.Parent:10308
         params+="&data4="+d4;
       }
-      $LASTPOS=1010030;//jslker.Parent:10030
+      $LASTPOS=1010335;//jslker.Parent:10335
       p = window.$.ajax(window.runtimePath+"a.php?BigData/add"+params);
       
       
@@ -1924,7 +1924,7 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1010115;//jslker.Parent:10115
+            $LASTPOS=1010420;//jslker.Parent:10420
             _this.fiber$waitFor(_thread, p);
             __pc=1;return;
           case 1:
@@ -1944,39 +1944,39 @@ Tonyu.klass.define({
       var p;
       var r;
       
-      $LASTPOS=1010186;//jslker.Parent:10186
+      $LASTPOS=1010491;//jslker.Parent:10491
       _this.group=_this.activityGroup;
-      $LASTPOS=1010212;//jslker.Parent:10212
+      $LASTPOS=1010517;//jslker.Parent:10517
       url = window.location.href;
       
-      $LASTPOS=1010247;//jslker.Parent:10247
+      $LASTPOS=1010552;//jslker.Parent:10552
       params = "&group="+_this.group+"&practice="+practice+"&url="+url;
       
-      $LASTPOS=1010314;//jslker.Parent:10314
+      $LASTPOS=1010619;//jslker.Parent:10619
       if (d1!=null) {
-        $LASTPOS=1010328;//jslker.Parent:10328
+        $LASTPOS=1010633;//jslker.Parent:10633
         params+="&data1="+d1;
       }
-      $LASTPOS=1010355;//jslker.Parent:10355
+      $LASTPOS=1010660;//jslker.Parent:10660
       if (d2!=null) {
-        $LASTPOS=1010369;//jslker.Parent:10369
+        $LASTPOS=1010674;//jslker.Parent:10674
         params+="&data2="+d2;
       }
-      $LASTPOS=1010396;//jslker.Parent:10396
+      $LASTPOS=1010701;//jslker.Parent:10701
       if (d3!=null) {
-        $LASTPOS=1010410;//jslker.Parent:10410
+        $LASTPOS=1010715;//jslker.Parent:10715
         params+="&data3="+d3;
       }
-      $LASTPOS=1010437;//jslker.Parent:10437
+      $LASTPOS=1010742;//jslker.Parent:10742
       if (d4!=null) {
-        $LASTPOS=1010451;//jslker.Parent:10451
+        $LASTPOS=1010756;//jslker.Parent:10756
         params+="&data4="+d4;
       }
-      $LASTPOS=1010478;//jslker.Parent:10478
+      $LASTPOS=1010783;//jslker.Parent:10783
       p = window.$.ajax(window.runtimePath+"a.php?BigData/find"+params);
       
       
-      $LASTPOS=1010564;//jslker.Parent:10564
+      $LASTPOS=1010869;//jslker.Parent:10869
       r=_this.waitFor(p);
       return r;
     },
@@ -1990,35 +1990,35 @@ Tonyu.klass.define({
       var p;
       var r;
       
-      $LASTPOS=1010186;//jslker.Parent:10186
+      $LASTPOS=1010491;//jslker.Parent:10491
       _this.group=_this.activityGroup;
-      $LASTPOS=1010212;//jslker.Parent:10212
+      $LASTPOS=1010517;//jslker.Parent:10517
       url = window.location.href;
       
-      $LASTPOS=1010247;//jslker.Parent:10247
+      $LASTPOS=1010552;//jslker.Parent:10552
       params = "&group="+_this.group+"&practice="+practice+"&url="+url;
       
-      $LASTPOS=1010314;//jslker.Parent:10314
+      $LASTPOS=1010619;//jslker.Parent:10619
       if (d1!=null) {
-        $LASTPOS=1010328;//jslker.Parent:10328
+        $LASTPOS=1010633;//jslker.Parent:10633
         params+="&data1="+d1;
       }
-      $LASTPOS=1010355;//jslker.Parent:10355
+      $LASTPOS=1010660;//jslker.Parent:10660
       if (d2!=null) {
-        $LASTPOS=1010369;//jslker.Parent:10369
+        $LASTPOS=1010674;//jslker.Parent:10674
         params+="&data2="+d2;
       }
-      $LASTPOS=1010396;//jslker.Parent:10396
+      $LASTPOS=1010701;//jslker.Parent:10701
       if (d3!=null) {
-        $LASTPOS=1010410;//jslker.Parent:10410
+        $LASTPOS=1010715;//jslker.Parent:10715
         params+="&data3="+d3;
       }
-      $LASTPOS=1010437;//jslker.Parent:10437
+      $LASTPOS=1010742;//jslker.Parent:10742
       if (d4!=null) {
-        $LASTPOS=1010451;//jslker.Parent:10451
+        $LASTPOS=1010756;//jslker.Parent:10756
         params+="&data4="+d4;
       }
-      $LASTPOS=1010478;//jslker.Parent:10478
+      $LASTPOS=1010783;//jslker.Parent:10783
       p = window.$.ajax(window.runtimePath+"a.php?BigData/find"+params);
       
       
@@ -2028,7 +2028,7 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1010564;//jslker.Parent:10564
+            $LASTPOS=1010869;//jslker.Parent:10869
             _this.fiber$waitFor(_thread, p);
             __pc=1;return;
           case 1:
@@ -2049,24 +2049,24 @@ Tonyu.klass.define({
       var r;
       
       
-      $LASTPOS=1010632;//jslker.Parent:10632
+      $LASTPOS=1010937;//jslker.Parent:10937
       if (typeof  BitArrow==="object"&&BitArrow.publishedURL) {
-        $LASTPOS=1010700;//jslker.Parent:10700
+        $LASTPOS=1011005;//jslker.Parent:11005
         url=BitArrow.publishedURL;
         
       } else {
-        $LASTPOS=1010750;//jslker.Parent:10750
+        $LASTPOS=1011055;//jslker.Parent:11055
         url=window.location.href;
         
       }
-      $LASTPOS=1010788;//jslker.Parent:10788
+      $LASTPOS=1011093;//jslker.Parent:11093
       params = "&url="+url;
       
-      $LASTPOS=1010817;//jslker.Parent:10817
+      $LASTPOS=1011122;//jslker.Parent:11122
       p = window.$.ajax(window.runtimePath+"a.php?KeyValue/info"+params);
       
       
-      $LASTPOS=1010904;//jslker.Parent:10904
+      $LASTPOS=1011209;//jslker.Parent:11209
       r=_this.waitFor(p);
       return r;
     },
@@ -2081,20 +2081,20 @@ Tonyu.klass.define({
       var r;
       
       
-      $LASTPOS=1010632;//jslker.Parent:10632
+      $LASTPOS=1010937;//jslker.Parent:10937
       if (typeof  BitArrow==="object"&&BitArrow.publishedURL) {
-        $LASTPOS=1010700;//jslker.Parent:10700
+        $LASTPOS=1011005;//jslker.Parent:11005
         url=BitArrow.publishedURL;
         
       } else {
-        $LASTPOS=1010750;//jslker.Parent:10750
+        $LASTPOS=1011055;//jslker.Parent:11055
         url=window.location.href;
         
       }
-      $LASTPOS=1010788;//jslker.Parent:10788
+      $LASTPOS=1011093;//jslker.Parent:11093
       params = "&url="+url;
       
-      $LASTPOS=1010817;//jslker.Parent:10817
+      $LASTPOS=1011122;//jslker.Parent:11122
       p = window.$.ajax(window.runtimePath+"a.php?KeyValue/info"+params);
       
       
@@ -2104,7 +2104,7 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1010904;//jslker.Parent:10904
+            $LASTPOS=1011209;//jslker.Parent:11209
             _this.fiber$waitFor(_thread, p);
             __pc=1;return;
           case 1:

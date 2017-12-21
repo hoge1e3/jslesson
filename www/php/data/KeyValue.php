@@ -8,7 +8,7 @@ create table keyvalue (
 	`value` text
 );
 */
-req("pdo","auth");
+req("pdo","auth","DateUtil");
 class KeyValue {
     static $class;
     static function selectClassByURL($url) {
@@ -19,29 +19,37 @@ class KeyValue {
             self::$class=new BAClass($class);
         }
     }
-    static function getRecord($key,$group="default") {
+    static function getCurClass() {
         if (!self::$class) {
             $class=Auth::curClass2();
         } else {
             $class=self::$class;
         }
         if (!$class) throw new Exception("cannot get class info");
-        /*if (!$class) {
-            req("Published");
-            $class=Published::getClass($_SERVER["REQUEST_URI"]);
-            if (!$class) throw new Exception("cannot get class info: ".$_SERVER["REQUEST_URI"]);
-            $class=new BAClass($class);
-        }*/
+        return $class;
+    }
+    static function ls($group="default") {
+        $class=self::getCurClass();
+        $a=pdo_select("select * from `keyvalue` ".
+        "where `class`=? and `group`=?",
+        $class->id,$group);
+        $res=array();
+        $res['class']=$class->id;
+        $res['group']=$group;
+        $res['data']=array();
+        foreach ($a as $e) {
+            $rese=new stdClass;
+            $rese->lastUpdate=$e->time-0;
+            //$rese->name=$e->key;
+            $res['data'][$e->key]=$rese;
+        }
+        return $res;
+    }
+    static function getRecord($key,$group="default") {
+        $class=self::getCurClass();
         return pdo_select1("select * from `keyvalue` ".
         "where `class`=? and `key`=? and `group`=?",
         $class->id,$key,$group);
-        /*$pdo=pdo();
-        $sth=$pdo->prepare("select * from `keyvalue` where `class`=? and `key`=?");
-        $sth->execute(array($class->id,$key));
-        foreach ($sth->fetchAll() as $rec) {
-            return $rec;
-        }
-        return null;*/
     }
     static function get($key,$group="default") {
         $r=self::getRecord($key,$group);
@@ -51,14 +59,16 @@ class KeyValue {
         return $r->value;
     }
     static function put($key,$value,$group="default") {
-        $class=Auth::curClass2();
+        $class=self::getCurClass();
         $r=self::getRecord($key,$group);
         $pdo=pdo();
         if ($r==null) {
-            pdo_insert("keyvalue", array("class"=>$class->id,"key"=>$key,"value"=>$value,"group"=>$group));
+            pdo_insert("keyvalue",
+            array("time"=>DateUtil::now(), "class"=>$class->id,"key"=>$key,"value"=>$value,"group"=>$group));
             //$sth=$pdo->prepare("insert into keyvalue(`class`,`key`,`value`) values(?,?,?)");
             //$sth->execute(array($class->id,$key,$value));
         } else {
+            $r->time=DateUtil::now();
             $r->value=$value;
             pdo_update("keyvalue", "id", $r);
             //$sth=$pdo->prepare("update keyvalue set `value`=?  where `id`=?");
