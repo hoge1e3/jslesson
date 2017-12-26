@@ -184,6 +184,13 @@ var scanf = (function() {
         return result;
     };
 
+    var getChar = function(pre, next) {
+        var text = getInput(pre, next, '.');
+        if (!text) {
+            return null;
+        }
+        return text.charCodeAt(0);
+    };
     var getInteger = function(pre, next) {
         var text = getInput(pre, next, '[-]?[A-Za-z0-9]+');
         if (!text) {
@@ -250,6 +257,8 @@ var scanf = (function() {
                 ret = getInteger(pre, next);
                 break;
             case '%c': // TODO getChar
+                ret = getChar(pre, next);
+                break;
             case '%s':
                 ret = getString(pre, next);
                 break;
