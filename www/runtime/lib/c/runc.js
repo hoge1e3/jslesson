@@ -33,21 +33,22 @@ requirejs(["assert","Klass","FS","_Util"],function (assert,Klass,FS,_Util) {
   requirejs(["scanf","lib","util","ctype","x","AsyncByGenerator"],function (_s,lib,u,c,x,ABG) {
       ABG.ready(function(){
     requirejs([window.sourceName],function () {
-      try{
-          if ($("#console").length==0) {
-            if (parent && parent.editorTextSize) {
-                var size=parent.editorTextSize+"px";
-            }else{
-                var size="";
-            } 
-            $("<pre>").attr({id:"console",style:"font-size:"+size+";"}).appendTo("body");
-          }
-          var s=Util.getQueryString("stdin",null);
-          if(typeof s==="string") scanf.STDIN=s.split("\n");
-                promisize(main()).then(function () {
-                    var sr=window.runc_sendResult||parent.sendResult;
-                    sr($("#console").text());
-                },handleError);
+        try{
+            if ($("#console").length==0) {
+                if (parent && parent.editorTextSize) {
+                    var size=parent.editorTextSize+"px";
+                }else{
+                    var size="";
+                }
+                $("<pre>").attr({id:"console",style:"font-size:"+size+";"}).appendTo("body");
+            }
+            var s=Util.getQueryString("stdin",null);
+            if(typeof s==="string") scanf.STDIN=s.split("\n");
+            if (typeof main!=="function") throw new Error("main関数がありません");
+            promisize(main()).then(function () {
+                var sr=window.runc_sendResult||parent.sendResult;
+                sr($("#console").text());
+            },handleError);
   		}catch(e){
   		    handleError(e);
   		}

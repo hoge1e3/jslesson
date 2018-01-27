@@ -99,6 +99,7 @@ window.MinimalParser= function () {
             return nc;
 	    };
         var checkDuplicate=function (r) {
+            //console.log("CHKDUP",ctx.scope);
             for (var k in ctx.scope) {
                 if (ctx.scope[k].depth===ctx.depth) {
                     var o=ctx.scope[k].occurence;
@@ -112,11 +113,17 @@ window.MinimalParser= function () {
                         if (cnt==2 &&
                         bys["direct_declarator"] &&
                         bys["function_definition"]) {
+                            //OK
                         }
                         else {
                             newError2(ctx.scope[k].vname,"'{1}'はすでに定義されています．",ctx.scope[k].vname);
                             //newError(ctx.scope[k].vname+"はすでに定義されています",ctx.scope[k].vname);
                         }
+                    }
+                    if (cnt==1 && ctx.scope[k].vtype instanceof T.Function
+                        && !bys["function_definition"]) {
+                            // printf...
+                        //newError2(ctx.scope[k].vname,"'{1}'はプロトタイプ宣言されていますが，定義がありません．",ctx.scope[k].vname);
                     }
                 }
             }
@@ -143,6 +150,10 @@ window.MinimalParser= function () {
 	        return res;
 	    });
 	}
+    function saveBaseTypeInjector(a) {var s=baseType;a();baseType=s;}
+    function saveBaseType(parser) {// parser -> parser
+        return inject(parser, saveBaseTypeInjector);
+    }
 	function ajoin(sep,a) {
 	    a=a.slice();
 	    for (var i=a.length-1;i>0 ;i--) {
@@ -295,9 +306,11 @@ window.MinimalParser= function () {
 	}).ret(function (e) {
 	    return {vtype:ctx.scope[e.text].vtype.e};
 	});
+    // \type_specifier
 	var type_specifier=t(/^(?:void|char|short|int|long|float|double|signed|unsigned)\b/).
 	    or(struct_or_union_specifier_lazy)/*.or(enum_specifier_lazy)*/.or(typedef_name);
-	var type_qualifier=t(/^(?:const|volatile)/);
+    // \type_qualifier
+    var type_qualifier=t(/^(?:const|volatile)/);
 	var type_qualifiers=type_qualifier.rep1();
 	var unary_operator=t(/^(?:\*|\+|\-|\~|\!|\&)/);//&
 	var assignment_operator=t(/^(?:=|\*\=|\/=|\%\=|\+=|\-\=|<<=|>>=|\&=|\^=|\|=)/);
@@ -363,16 +376,12 @@ window.MinimalParser= function () {
 	//\struct_declaration
 	var struct_declaration_raw=specifier_qualifier_list_lazy.ret(function (types) {
         baseType=typeNamesToType(types);
-        console.log("216:baseType",baseType);
+        console.log("375:baseType",baseType);
         return baseType;
     }).and(struct_declarator_list).and(t(";")).ret(function (t,decl,sc) {
         return decl;
     });
-	var struct_declaration=inject(struct_declaration_raw,function (a) {
-	    var saveBaseType=baseType;
-        a();
-        baseType=saveBaseType;
-    });
+	var struct_declaration=saveBaseType(struct_declaration_raw);
 	//\struct_or_union_specifier
 	struct_or_union_specifier=struct_or_union.and(identifier.opt()).
     	and(newScope( t("{").and(struct_declaration.rep1()).and(t("}")) ))
@@ -409,6 +418,9 @@ window.MinimalParser= function () {
 
     // \specifier_qualifier_list
 	specifier_qualifier_list=type_qualifier.or(type_specifier).rep1();
+    //type_specifier=t(/^(?:void|char|short|int|long|float|double|signed|unsigned)\b/).
+	//or(struct_or_union_specifier_lazy)/*.or(enum_specifier_lazy)*/.or(typedef_name);
+    //const volatile
 
 	//var direct_abstract_declarator=direct_abstract_declarator.opt().and(t("[")).and(/*constant_*/expression_lazy.opt()).and(t("]")).ret(function(direct_abstract_declarator,lsb,const_expr,rsb){return [direct_abstract_declarator,"[",const_expr,"]"];});
 	//direct_abstract_declarator=direct_abstract_declarator.or(direct_abstract_declarator.opt().and(t("(")).and(parameter_type_list_lazy.opt()).and(t(")")).ret(function(direct_abstract_declarator,lp,parameter_type_list,rp){return [direct_abstract_declarator,"(",parameter_type_list,")"];}));
@@ -539,7 +551,7 @@ window.MinimalParser= function () {
 	);
 	var pointer=t("*");//.and(type_qualifiers.opt()).ret(function(mul,type_qualifiers){return [];});
     //\declarator = pointer? direct-declarator  (pointer? まだ)
-	declarator=inject(
+	declarator=saveBaseType(
 	    pointer.rep0().ret(function (ps) {
     	    for (var i=0 ; i<ps.length; i++) {
     	        baseType=T.Pointer(baseType);
@@ -548,8 +560,7 @@ window.MinimalParser= function () {
     	}).and(direct_declarator).ret(function (t,d) {
     	    //console.log("Decl-or",d);
     	    return d;
-    	}),
-    	function (a) {var s=baseType;a();baseType=s;}
+    	})
     );
     //\parameter_declaration
 	var parameter_declaration=declaration_specifiers.and(declarator)
@@ -565,11 +576,7 @@ window.MinimalParser= function () {
 	//	.ret(function(comma,parameter_declaration){return [",",parameter_declaration];});
 	//\parameter_list
 	var parameter_list_raw=parameter_declaration.sep0(t(","),true);
-	parameter_list=inject(parameter_list_raw,function (a) {
-	    var saveBaseType=baseType;
-        a();
-        baseType=saveBaseType;
-    });
+	parameter_list=saveBaseType(parameter_list_raw);
 	/*.
 	or(t("void").ret(function () {
 	    console.log("VOID read!");
@@ -1135,21 +1142,21 @@ window.MinimalParser= function () {
 	    });
 	}
 
-	var init_param=declarator/*.and(t("=").and(initializer).opt()).ret(MKARY)*/;
-	var func_param=declaration_specifiers.and(init_param).ret(
+	//var init_param=declarator/*.and(t("=").and(initializer).opt()).ret(MKARY)*/;
+	/*var func_param=declaration_specifiers.and(init_param).ret(
 	    function (decl_spec, declarator) {
 	        var $=["scopes_"+(ctx.depth+1)+".", //TODO
-				declarator,"=","ARGS.shift();","/*", typeLit(declarator.vtype),"*/"];
+				declarator,"=","ARGS.shift();","/*", typeLit(declarator.vtype),"*"+"/"];
 			$.pname=declarator.vname;
 			$.ptype=declarator.vtype;//ctx.depth+1;
 		    return $;
-	    });
-	var func_param_list=_void.or(func_param.sep0(t(","),true))
+	    });*/
+	/*var func_param_list=_void.or(func_param.sep0(t(","),true))
 		.ret(function(params){
 		    if (!(params instanceof Array)) return [];//void
 		    return params;
-		});
-    // \newDecl
+		});*/
+    // \newDecl  \funcDef
     // spec ;
     // spec init-decl ;
     // spec decl {}
@@ -1193,20 +1200,25 @@ window.MinimalParser= function () {
         // spec decl <!>{}
         // spec init-decl<!> , init-decl ... ;
         // decl<!> {}
+        // note: <!> is current position
         st=t("{").or(t(",")).or(t(";")).parse(st);
         if (!st.success) {
             return st;
         }
         var nx=st.result[0];
         if (nx+""===";") {
+            // spec init-decl ;<!>
             return res(init_decl_head);
         } else if (nx+""===",") {
+            // spec init-decl ,<!> init-decl ... ;
             st=init_declarator_list.and(t(";")).ret(getTh(0)).parse(st);
             if (!st.success) {
                 return st;
             }
             return res( [init_decl_head].concat(st.result[0]) );
         }
+        // spec decl {<!>}
+        // decl {<!>}
         var rst;
         var init=init_decl_head.initializer;
         if (init) {
@@ -1280,7 +1292,7 @@ window.MinimalParser= function () {
     }
     //-----------
     // \func  (unused)
-    var func_head=declaration_specifiers.opt().ret(function (r) {
+    /*var func_head=declaration_specifiers.opt().ret(function (r) {
         baseType=r?r.vtype:T.int;
     }).and(declarator).ret(function (_,r){return r;});
     var func=func_head.and(Parser.create(function (st) {
@@ -1311,7 +1323,7 @@ window.MinimalParser= function () {
         	    	]);
                 } else if (param.vtype!==T.void) {
                     getParams.push(["scopes_"+(ctx.depth)+".",
-	    			param.vname,"=","ARGS.shift();","/*", typeLit(param.vtype),"*/"]);
+	    			param.vname,"=","ARGS.shift();","/*", typeLit(param.vtype),"*"+"/"]);
                 }
             });
             var func="function ";
@@ -1332,17 +1344,13 @@ window.MinimalParser= function () {
             }).parse(st);
         });
         if (rst && rst.success) {
-            /*if (ctx.scope[name+""].hasDefinition) {
-                console.log("ERRalr",decl);
-                throw newError(name+"はすでに定義されています．",decl);
-            }*/
             addScope(name,{by:"function_definition"});
         }
         return rst;
     })).ret(function (_,r) {
         //console.log(JSON.stringify( r) );
         return r;
-    });
+    });*/
     //\addScope
     function addScope(name,obj) {
         obj.depth=ctx.depth;
@@ -1456,6 +1464,14 @@ window.MinimalParser= function () {
   for (var k in include_files) {
     include_files[k]=(include_files[k]+"").replace(/.*\/\*/,"").replace(/\*\/.*/,"");
   }
+    function findFuncFromIncludes(name) {
+        var pat=new RegExp("\\b"+name+"\\b");
+        for(var k in include_files) {
+            if (pat.exec(include_files[k])) {
+                return k;
+            }
+        }
+    }
 	var builtin_funcs={
 	    "stdio.h":
 	        ["printf","scanf","sleep","usleep","fopen","fclose","fputs","fgets","fprintf","fscanf","FILE"],

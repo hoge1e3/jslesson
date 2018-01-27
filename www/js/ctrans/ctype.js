@@ -56,11 +56,16 @@ define(["Klass","assert"],function (Klass,assert) {
     	}
     });
     t.void=t.Primitive({name:"void"});
-    t.char=t.Number({name:"char",numOrd:1,max:0xff});
-    t.byte=t.char;
-    t.int=t.Number({name:"int",numOrd:2,max:0xffffffff});
-    t.float=t.Number({name:"float",numOrd:9});
-    t.double=t.Number({name:"double",numOrd:10});
+    t.Char=t.Number.inherit({name:"char",numOrd:1,max:0xff});
+    t.char=t.Char();
+    t.Byte=t.Number.inherit({name:"byte",numOrd:1,max:0xff});
+    t.byte=t.Byte();
+    t.Int=t.Number.inherit({name:"int",numOrd:2,max:0xffffffff});
+    t.int=t.Int();//t.Number({name:"int",numOrd:2,max:0xffffffff});
+    t.Float=t.Number.inherit({name:"float",numOrd:9});
+    t.float=t.Float();
+    t.Double=t.Number.inherit({name:"double",numOrd:10});
+    t.double=t.Double();
     t.Unsigned=t.Number.inherit({
         $:["e"],
         $fields: {e:t.Number},
