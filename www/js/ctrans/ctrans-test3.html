@@ -115,11 +115,14 @@ async function loop() {
 			}
 		}
     }
+    var hasDiff;
     for (var k=0;k<Math.max(sumbuf.length,lastSumBuf.length);k++) {
         if (sumbuf[k]!==lastSumBuf[k]) {
+            hasDiff=true;
             console.log("DIFF!!",sumbuf[k],"<-",lastSumBuf[k]);
         }
     }
+    if (!hasDiff) console.log("No diff deteced.");
     summary.text(sumbuf.join("\r\n"));
     function HERE(src,ln) {
         var a=src.split("\n");

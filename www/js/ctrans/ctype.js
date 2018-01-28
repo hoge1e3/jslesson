@@ -20,7 +20,12 @@ define(["Klass","assert"],function (Klass,assert) {
             console.log(this);
             throw new Error("toLiteral is not defined");
         },
-        cast:function(param){return param;}
+        cast:function(param){return param;},
+        modifiers: {
+            get: function(){
+                return this._mods=this._mods||{};
+            }
+        }
     });
     t.Primitive=t.Base.inherit({
         $name:"ctype::Primitive",
@@ -125,7 +130,9 @@ define(["Klass","assert"],function (Klass,assert) {
                 return true;
             }*/
             if (right instanceof t.Pointer) {
-                return this.e===t.void || right.e===t.void || this.e.assignableFrom(right.e);
+                return this.e instanceof t.Void ||
+                right.e instanceof t.Void ||
+                this.e.assignableFrom(right.e);
             }
             return t.Pointer.super(this,"assignableFrom",right);
         },
@@ -160,7 +167,7 @@ define(["Klass","assert"],function (Klass,assert) {
         },
         match: function (argTypes) {
             if (this.args.length===0) return true;
-            if (this.args[0].vtype===t.void) {
+            if (this.args[0].vtype instanceof t.Void) {
                 if (argTypes.length!==0) {
                     return ["(void)で宣言された関数には引数を渡せません"];
                 }

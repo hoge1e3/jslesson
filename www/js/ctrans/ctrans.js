@@ -87,7 +87,7 @@ window.MinimalParser= function () {
 	        //return res;
 	    });
 	}
-    var topLevelScope={NULL:{vtype:T.Pointer(T.void),depth:0}};
+    var topLevelScope={NULL:{vtype:T.Pointer(T.Void()),depth:0}};
 	//\newScope
 	function newScope(parser) {
 	    var entf=function () {
@@ -329,7 +329,7 @@ window.MinimalParser= function () {
 	});
     /*var null_constant=t(/^NULL/).
 	ret(function (r) {
-	    return extend(r,{vtype:T.Pointer(T.void)});
+	    return extend(r,{vtype:T.Pointer(T.Void())});
 	});*/
 	var character_constant=t(/^\'[^\'\\]\'/).ret(function (s) {
     	return parse_char_const(s.text);
@@ -461,7 +461,7 @@ window.MinimalParser= function () {
 	            case "double": res=T.Double();break;
 	            case "byte": res=T.Byte();break;
 	            case "char": res=T.Char();break;
-	            case "void": res=T.void;break;
+	            case "void": res=T.Void();break;
 	            case "unsigned": res=T.Unsigned(res||T.Int());break;
 	            case "long": res=T.Long(res||T.Int());break;
 	            case "short": res=T.Short(res||T.Int());break;
@@ -570,7 +570,7 @@ window.MinimalParser= function () {
 		        vtype:declarator.vtype,
 		        vname:declarator.vname});
 		}).or(t("void").ret(function () {
-	    return {vtype:T.void,vname:"boido_baryuu"};})
+	    return {vtype:T.Void(),vname:"boido_baryuu"};})
 	);
     //\parameter_type_list
 	//parameter_type_list=t(",").and(parameter_declaration)
@@ -1244,7 +1244,7 @@ window.MinimalParser= function () {
         var depth=ctx.depth;
         function checkReturn() {
             if (name+""==="main") return "";
-            if (type.ret===T.void) return "";
+            if (type.ret instanceof T.Void) return "";
             return 'doNotification("関数'+name+'の戻り値が設定されていません");';
         }
         newScope(function () {
@@ -1260,7 +1260,7 @@ window.MinimalParser= function () {
         	    			"ARGS.shift(),",
         	    			vt,");\n",
         	    	]);
-                } else if (param.vtype!==T.void) {
+                } else if ( !(param.vtype instanceof T.Void) ) {
                     getParams.push(["scopes_"+(ctx.depth)+".",
 	    			param.vname,"=","ARGS.shift();","/*", typeLit(param.vtype),"*/"]);
                 }
@@ -1291,67 +1291,6 @@ window.MinimalParser= function () {
     function getTh(n) {
         return function () {return arguments[n];}
     }
-    //-----------
-    // \func  (unused)
-    /*var func_head=declaration_specifiers.opt().ret(function (r) {
-        baseType=r?r.vtype:T.Int();
-    }).and(declarator).ret(function (_,r){return r;});
-    var func=func_head.and(Parser.create(function (st) {
-        var decl=st.result[0];
-        //console.log("FUNC declor",decl);
-        var type=decl.vtype;
-        var name=decl.vname;
-        var params=decl.params;
-        //console.log("TNP",type,name,params);
-        addScope(name,{
-            vtype:type,
-            by: "function_definition_pre"
-        });
-        var depth=ctx.depth;
-        var rst;
-        newScope(function () {
-            var getParams=[];
-            if (params) params.forEach(function (param) {
-                addScope(param.vname,{vtype:param.vtype,by:"param"});
-                if ((param.vtype) instanceof T.Struct) {
-                    var vn="scopes_"+(ctx.depth)+"."+param.vname;
-                    var vt=typeLit(param.vtype);
-                    getParams.push([
-                        vn,"=","copyStruct2(",
-                            "StructObj(",vt,"),",
-        	    			"ARGS.shift(),",
-        	    			vt,");\n",
-        	    	]);
-                } else if (param.vtype!==T.void) {
-                    getParams.push(["scopes_"+(ctx.depth)+".",
-	    			param.vname,"=","ARGS.shift();","/*", typeLit(param.vtype),"*"+"/"]);
-                }
-            });
-            var func="function ";
-            if (supportsAsync) {
-                func="async function ";
-            } else if (ABG.supportsGenerator) {
-                func="function* ";
-            }
-            rst=t("{").and(compound_statement_part).and(t("}")).ret(function (_,states) {
-                return extend(["scopes_"+depth,".",name,"=",
-                    func,name,"(){",
-    				"var ",curScopesName(),"={};",
-                    "var ARGS=Array.prototype.slice.call(arguments);\n",
-                    getParams,
-			        states,
-        			"};"
-                ],{type:"funcDef",declarator:decl, statements:states});
-            }).parse(st);
-        });
-        if (rst && rst.success) {
-            addScope(name,{by:"function_definition"});
-        }
-        return rst;
-    })).ret(function (_,r) {
-        //console.log(JSON.stringify( r) );
-        return r;
-    });*/
     //\addScope
     function addScope(name,obj) {
         obj.depth=ctx.depth;
