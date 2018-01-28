@@ -260,7 +260,7 @@ function sprintfJS() {
 		var res=0;
 		switch(typeof arg){
 		case "number": case "boolean":
-			res=cast(CType.int,arg);
+			res=cast(CType.Int(),arg);
 			break;
 		}
 		return res;

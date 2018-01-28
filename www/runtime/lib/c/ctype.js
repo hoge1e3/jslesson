@@ -131,8 +131,8 @@ define(["Klass","assert"],function (Klass,assert) {
         binOpable: function (op,right) {
             // TODO: === in C??
             if (right instanceof t.Number && (op+""==="+" || op+""==="-")) return this;
-            if (right instanceof t.Number && (op+""==="==="|| op+""==="!==")) return t.int;
-            if (right instanceof t.Pointer && (op+""==="==="|| op+""==="!==")) return t.int;
+            if (right instanceof t.Number && (op+""==="==="|| op+""==="!==")) return t.Int();
+            if (right instanceof t.Pointer && (op+""==="==="|| op+""==="!==")) return t.Int();
             return t.Pointer.super(this,"binOpable",op,right);
         }
     });

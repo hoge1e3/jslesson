@@ -198,7 +198,7 @@ window.MinimalParser= function () {
             return {
                 depth:0,
                 vname:n.macroName,
-                vtype:T.int,//TODO vtype other than int
+                vtype:T.Int(),//TODO vtype other than int
                 isMacro:true,
                 macroValue:n.macroValue
             };
@@ -321,11 +321,11 @@ window.MinimalParser= function () {
 	var reg_str = RegExp("^[^\"^\”]*");
 	//文字列の正規表現
 	var string = t(/^\"[^\"\n]*\"/).ret(function(str){
-		return extend(["str_to_ch_ptr(",str,")"],{type:"string",vtype:T.Array(T.char)});
+		return extend(["str_to_ch_ptr(",str,")"],{type:"string",vtype:T.Array(T.Char())});
 	});
 	var integer_constant=t(/^0[xX][0-9a-fA-F]+/).or(t(/^0[bB][01]+/)).or(t(/^[0-9]+/)).
 	ret(function (r) {
-	    return extend(r,{vtype:T.int});
+	    return extend(r,{vtype:T.Int()});
 	});
     /*var null_constant=t(/^NULL/).
 	ret(function (r) {
@@ -342,11 +342,11 @@ window.MinimalParser= function () {
 	}));
 	function parse_char_const(s) {
 	    var v=eval(s).charCodeAt(0);
-	    return {value:v, vtype:T.char,toString:function(){return v+"";}};
+	    return {value:v, vtype:T.Char(),toString:function(){return v+"";}};
 	}
 	var floating_constant=t(/^[0-9]+\.[0-9]*/).
 	ret(function (r) {
-	    return extend(r,{vtype:T.float});
+	    return extend(r,{vtype:T.Float()});
 	});
 	var constant=floating_constant.or(character_constant).or(integer_constant)/*.or(enumeration_constant)*/;
 	//\identifier
@@ -439,7 +439,7 @@ window.MinimalParser= function () {
 	direct_abstract_declarator=direct_abstract_declarator.rep0();
 
 	var abstract_declarator=direct_abstract_declarator;
-    var baseType=T.int;
+    var baseType=T.Int();
 	// \declaration_specifiers
 	var declaration_specifier=storage_class_specifier.or(type_specifier).or(type_qualifier);
 	declaration_specifiers=declaration_specifier.rep1().ret(function(types){
@@ -456,15 +456,15 @@ window.MinimalParser= function () {
 	            continue;
 	        }
 	        switch (type.text) {
-	            case "int": res=T.int;break;
-	            case "float": res=T.float;break;
-	            case "double": res=T.double;break;
-	            case "byte": res=T.byte;break;
-	            case "char": res=T.char;break;
+	            case "int": res=T.Int();break;
+	            case "float": res=T.Float();break;
+	            case "double": res=T.Double();break;
+	            case "byte": res=T.Byte();break;
+	            case "char": res=T.Char();break;
 	            case "void": res=T.void;break;
-	            case "unsigned": res=T.Unsigned(res||T.int);break;
-	            case "long": res=T.Long(res||T.int);break;
-	            case "short": res=T.Short(res||T.int);break;
+	            case "unsigned": res=T.Unsigned(res||T.Int());break;
+	            case "long": res=T.Long(res||T.Int());break;
+	            case "short": res=T.Short(res||T.Int());break;
 	            case "typedef":
 	                if (!res) {
     	                console.log("TYPEDEF error",types);
@@ -1194,7 +1194,7 @@ window.MinimalParser= function () {
             }
         } else {
             //decl {}
-            baseType=T.int;
+            baseType=T.Int();
             init_decl_head=head;
         }
         // spec init-decl <!>;
@@ -1294,7 +1294,7 @@ window.MinimalParser= function () {
     //-----------
     // \func  (unused)
     /*var func_head=declaration_specifiers.opt().ret(function (r) {
-        baseType=r?r.vtype:T.int;
+        baseType=r?r.vtype:T.Int();
     }).and(declarator).ret(function (_,r){return r;});
     var func=func_head.and(Parser.create(function (st) {
         var decl=st.result[0];

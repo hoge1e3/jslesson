@@ -55,7 +55,8 @@ define(["Klass","assert"],function (Klass,assert) {
     		return v;
     	}
     });
-    t.void=t.Primitive({name:"void"});
+    t.Void=t.Primitive.inherit({name:"void"});
+    t.void=t.Void();
     t.Char=t.Number.inherit({name:"char",numOrd:1,max:0xff});
     t.char=t.Char();
     t.Byte=t.Number.inherit({name:"byte",numOrd:1,max:0xff});
@@ -131,8 +132,8 @@ define(["Klass","assert"],function (Klass,assert) {
         binOpable: function (op,right) {
             // TODO: === in C??
             if (right instanceof t.Number && (op+""==="+" || op+""==="-")) return this;
-            if (right instanceof t.Number && (op+""==="==="|| op+""==="!==")) return t.int;
-            if (right instanceof t.Pointer && (op+""==="==="|| op+""==="!==")) return t.int;
+            if (right instanceof t.Number && (op+""==="==="|| op+""==="!==")) return t.Int();
+            if (right instanceof t.Pointer && (op+""==="==="|| op+""==="!==")) return t.Int();
             return t.Pointer.super(this,"binOpable",op,right);
         }
     });
