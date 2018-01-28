@@ -1,5 +1,6 @@
 define(["ctrans/ctype","AsyncByGenerator","Parser","context","ExpressionParser","assert","Message"],
 function (T,ABG,Parser,context,ExpressionParser,assert,Message) {
+//(T|CType)\.(char|byte|int|double|float)
 window.MinimalParser= function () {
     var supportsAsync=false;
     /*try {
