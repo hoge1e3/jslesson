@@ -322,11 +322,11 @@ window.MinimalParser= function () {
 	var reg_str = RegExp("^[^\"^\”]*");
 	//文字列の正規表現
 	var string = t(/^\"[^\"\n]*\"/).ret(function(str){
-		return extend(["str_to_ch_ptr(",str,")"],{type:"string",vtype:T.Array(T.Char())});
+		return extend(["str_to_ch_ptr(",str,")"],{type:"string",vtype:T.Array(T.Char()),isConst:true});
 	});
 	var integer_constant=t(/^0[xX][0-9a-fA-F]+/).or(t(/^0[bB][01]+/)).or(t(/^[0-9]+/)).
 	ret(function (r) {
-	    return extend(r,{vtype:T.Int()});
+	    return extend(r,{vtype:T.Int(),isConst:true});
 	});
     /*var null_constant=t(/^NULL/).
 	ret(function (r) {
@@ -343,11 +343,11 @@ window.MinimalParser= function () {
 	}));
 	function parse_char_const(s) {
 	    var v=eval(s).charCodeAt(0);
-	    return {value:v, vtype:T.Char(),toString:function(){return v+"";}};
+	    return {value:v, vtype:T.Char(),toString:function(){return v+"";},isConst:true};
 	}
 	var floating_constant=t(/^[0-9]+\.[0-9]*/).
 	ret(function (r) {
-	    return extend(r,{vtype:T.Float()});
+	    return extend(r,{vtype:T.Float(),isConst:true});
 	});
 	var constant=floating_constant.or(character_constant).or(integer_constant)/*.or(enumeration_constant)*/;
 	//\identifier
@@ -664,7 +664,9 @@ window.MinimalParser= function () {
 	                failWithCon(left,op,t,"Cannot resolve type of left[op]");
 	            }
 	            t=t.e;
-	        }
+	        } else {
+                newError2(left,"配列やポインタでないものに対して添字を使おうとしています");
+            }
 	        expr=["pointer(",left,",",op.index,").read()"];
         } if (op+""==="++" || op+""==="--") {
 	        //var op2=(op+"")[0]+"=";
@@ -839,7 +841,7 @@ window.MinimalParser= function () {
     			    "))"]),
     			    {vtype:unary_expr.vtype}
     			);
-		    } else if (unary_expr.isMacro) {
+		    } else if (unary_expr.isMacro || unary_expr.isConst) {
 		        newError2(unary_expr,"左辺に定数は書けません．");
 		    }
 			return extend(
@@ -992,7 +994,12 @@ window.MinimalParser= function () {
 			"}"];
 		});
 	compound_statement=newScope(compound_statement);
-	var switch_compound_statement=t("{").and(compound_statement_part).and(t("}"))
+	var switch_compound_statement=t("{").and(
+            ent(
+                function (){return {switchLabels:{}};},
+                compound_statement_part
+            )
+        ).and(t("}"))
 		.ret(function(lcb,states,rcb){return ["{",states,"}"];});
 	var expression_statement=expression.opt().and(t(";"))
 		.ret(function(state,semicolon){return [state,";"];});
@@ -1000,6 +1007,13 @@ window.MinimalParser= function () {
 		.ret(function(identifier,colon,state){return [identifier,":",state];});
 	labeled_statement=labeled_statement.or(t("case").and(constant_expression)
 		.and(t(":")).and(statement_lazy).ret(function(_case,constant_expr,colon,state){
+            if (!ctx.switchLabels) {
+                newError2("case はswitch文の中で使います");
+            }
+            if (ctx.switchLabels[constant_expr+""]) {
+                newError2(constant_expr, "{1} はすでにcase文にあります",constant_expr+"");
+            }
+            ctx.switchLabels[constant_expr+""]=1;
 			return ["case",constant_expr,":",state];
 		}));
 	labeled_statement=labeled_statement.or(t("default").and(t(":")).and(statement_lazy)
