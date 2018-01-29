@@ -1,6 +1,6 @@
 define(["ctrans/ctype","AsyncByGenerator","Parser","context","ExpressionParser","assert","Message"],
 function (T,ABG,Parser,context,ExpressionParser,assert,Message) {
-//(T|CType)\.(char|byte|int|double|float)
+//\b(t|T|CType)\.(char|byte|int|double|float|void)\b
 window.MinimalParser= function () {
     var supportsAsync=false;
     /*try {
@@ -121,10 +121,11 @@ window.MinimalParser= function () {
                             //newError(ctx.scope[k].vname+"はすでに定義されています",ctx.scope[k].vname);
                         }
                     }
-                    if (cnt==1 && ctx.scope[k].vtype instanceof T.Function
-                        && !bys["function_definition"]) {
-                            // printf...
-                        //newError2(ctx.scope[k].vname,"'{1}'はプロトタイプ宣言されていますが，定義がありません．",ctx.scope[k].vname);
+                    if (cnt==1 &&
+                        ctx.scope[k].vtype instanceof T.Function &&
+                        !ctx.scope[k].vtype.modifiers.extern &&
+                        !bys["function_definition"]) {
+                        newError2(ctx.scope[k].vname,"'{1}'はプロトタイプ宣言されていますが，定義がありません．",ctx.scope[k].vname);
                     }
                 }
             }
@@ -472,11 +473,20 @@ window.MinimalParser= function () {
     	                //throw newError("typedef 型 型名; という形式で定義してください",type);
 	                }
 	                res=T.TypeDef(res); break;
-	            case "static": break;//TODO
+                case "extern":
+                case "register":
+                case "auto":
+                case "static":
+                case "const":
+                case "volatile":
+                    if (!res) {
+                        console.log("modifiers error",types);
+                        throw newError2(type,"'{1}'の後ろには型名が必要です．",type.text);
+                    }
+                    res.modifiers[type.text]=1; break;
 	            default:
 	                console.log("Not a valid type:",types,"["+i+"]");
                     throw newError2(type,"'{1}' is not a valid type",type.text);
-	                //throw newError(type.text+" is not a valid type",type);
 	        }
 	    }
 	    assert.is(res,T.Base);
@@ -521,19 +531,23 @@ window.MinimalParser= function () {
     		$.vtype=baseType;
     		for (var i=direct_decl_tails.length-1;i>=0;i--) {
     		    var tail=direct_decl_tails[i];
+                var otype=$.vtype;
     		    switch(tail.type) {
 		        case "decl_array":
-		            $.vtype=T.Array($.vtype,tail.elementLength);
+		            $.vtype=T.Array(otype,tail.elementLength);
+                    $.vtype.extendModifiers(otype);
 		            break;
     		    case "decl_params":
     		        //console.log("DECLPARAM",direct_decl_head,baseType,$);
-    		        $.vtype=T.Function($.vtype,tail.params);
+    		        $.vtype=T.Function(otype,tail.params);
+                    $.vtype.extendModifiers(otype);
     		        $.params=tail.params;
 		            break;
     		    /*case "decl_idents":
     		        $.vtype=T.Function($.vtype,[]);
 		            break;*/
 		        }
+
     		}
     		$.vname=direct_decl_head.vname;
     		if (($.vtype) instanceof T.TypeDef) {
@@ -555,7 +569,9 @@ window.MinimalParser= function () {
 	declarator=saveBaseType(
 	    pointer.rep0().ret(function (ps) {
     	    for (var i=0 ; i<ps.length; i++) {
-    	        baseType=T.Pointer(baseType);
+                var otype=baseType;
+    	        baseType=T.Pointer(otype);
+                baseType.extendModifiers(otype);
     	    }
     	    return baseType;
     	}).and(direct_declarator).ret(function (t,d) {
@@ -1317,6 +1333,12 @@ window.MinimalParser= function () {
         //console.log("addScope",obj.by,name+"",ctx.depth);
         // TODO check vtype compat
         for (var k in obj) {
+            if (k==="vtype" && v[k]) {
+                assert.is(v[k],T.Base);
+                if (!v[k].equals(obj[k])) {
+                    newError2(name,"{1} の型が以前の宣言と異なります",name);
+                }
+            }
             v[k]=obj[k];
         }
         if (name!=="boido_baryuu") {
@@ -1333,72 +1355,72 @@ window.MinimalParser= function () {
   var include_files={"stdio.h":function (){/*
     typedef struct{int p;} FILE;
 #define EOF -1
-  void printf();
-  void scanf();
-  void sleep(int s);
-  void usleep(int s);
-  FILE* fopen(char *f,char *m);
-  void fclose(FILE *fp);
-  void fputs(char *s,FILE *fp);
-  int fscanf();
-  void fprintf();
-  char* fgets(char *s,int l,FILE *fp);
+extern void printf();
+extern void scanf();
+extern void sleep(int s);
+extern void usleep(int s);
+extern FILE* fopen(char *f,char *m);
+extern void fclose(FILE *fp);
+extern void fputs(char *s,FILE *fp);
+extern int fscanf();
+extern void fprintf();
+extern char* fgets(char *s,int l,FILE *fp);
   */},
   "stdlib.h":function () {/*
-  int rand();
-  int exit(int status);
+extern int rand();
+extern int exit(int status);
   */},
   "string.h":function () {/*
-  int strlen(char *s);
-  char* strcpy(char *d,char *s);
-  char* strncpy(char *d,char *s,int l);
-  int strcmp(char *a,char *b);
-  int strncmp(char *a,char *b,int n);
-  char* strcat(char *a,char *b);
-  char* strncat(char *a,char *b,int n);
-  char* memset(char *dst,char c,int n);
-  char* index(char *h,char n);
-  char* rindex(char *h,char n);
-  int memcmp(char *a,char *b,int n);
-  char* memcpy(char *d,char *s,int n);
-  char* strstr(char *h,char *n);
+extern int strlen(char *s);
+extern char* strcpy(char *d,char *s);
+extern char* strncpy(char *d,char *s,int l);
+extern int strcmp(char *a,char *b);
+extern int strncmp(char *a,char *b,int n);
+extern char* strcat(char *a,char *b);
+extern char* strncat(char *a,char *b,int n);
+extern char* memset(char *dst,char c,int n);
+extern char* index(char *h,char n);
+extern char* rindex(char *h,char n);
+extern int memcmp(char *a,char *b,int n);
+extern char* memcpy(char *d,char *s,int n);
+extern char* strstr(char *h,char *n);
   */},
   "math.h":function () {/*
-  double abs(double n);
-  double acos(double n);
-  double asin(double n);
-  double atan(double n);
-  double atan2(double y,double x);
-  double ceil(double n);
-  double cos(double n);
-  double exp(double n);
-  double floor(double n);
-  double log();
-  double max(double a,double b);
-  double min(double a,double b);
-  double pow(double a,double b);
-  double random();
-  double round(double n);
-  double sin(double n);
-  double sqrt(double n);
-  double tan(double n);
+  extern double abs(double n);
+  extern double acos(double n);
+  extern double asin(double n);
+  extern double atan(double n);
+  extern double atan2(double y,double x);
+  extern double ceil(double n);
+  extern double cos(double n);
+  extern double exp(double n);
+  extern double floor(double n);
+  extern double log();
+  extern double max(double a,double b);
+  extern double min(double a,double b);
+  extern double pow(double a,double b);
+  extern double random();
+  extern double round(double n);
+  extern double sin(double n);
+  extern double sqrt(double n);
+  extern double tan(double n);
   */},
   "x.h":function () {/*
-  void fillRect(double x,double y,double w,double h);
-  void clear();
-  void update();
-  void setColor(double r,double g,double b);
-  void drawGrid();
-  void drawNumber(double v,double x,double y);
-  void drawLine(double sx,double sy,double dx,double dy);
-  void setPen(double x,double y);
-  void movePen(double x,double y);
-  void fillOval(double x,double y,double w,double h);
-  void drawText(char *s,double x,double y);
-  void drawString(char *s,double x,double y);
-  void setTextSize(double sz);
-  int getkey(char *n);
-  void setLineWidth(double w);
+  extern void fillRect(double x,double y,double w,double h);
+  extern void clear();
+  extern void update();
+  extern void setColor(double r,double g,double b);
+  extern void drawGrid();
+  extern void drawNumber(double v,double x,double y);
+  extern void drawLine(double sx,double sy,double dx,double dy);
+  extern void setPen(double x,double y);
+  extern void movePen(double x,double y);
+  extern void fillOval(double x,double y,double w,double h);
+  extern void drawText(char *s,double x,double y);
+  extern void drawString(char *s,double x,double y);
+  extern void setTextSize(double sz);
+  extern int getkey(char *n);
+  extern void setLineWidth(double w);
   */}
   };
   for (var k in include_files) {

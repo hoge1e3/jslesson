@@ -179,7 +179,6 @@ function str_to_ch_ptr(str){
 	var $=[];
 	str=str+"";
 	for(var i=0;i<str.length;i++){$.push(str.charCodeAt(i));}
-	//for(var i=0;i<str.length;i++){$.push(cast(CType.char,str.charCodeAt(i)));}
 	$.push(0);
 	return pointer($,0);
 }
@@ -197,7 +196,6 @@ function ch_ptr_to_str(ptr) {
 function str_to_ch_arr(str){
 	var $=[];
 	for(var i=0;i<str.length;i++){$.push(str.charCodeAt(i));}
-	//for(var i=0;i<str.length;i++){$.push(cast(CType.char,str.charCodeAt(i)));}
 	$.push(0);
 	return $;
 }

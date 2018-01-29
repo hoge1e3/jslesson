@@ -12,6 +12,9 @@ define(["Klass","assert"],function (Klass,assert) {
         castableFrom: function (t) {//ctype.Base->Boolean
             return this.assignableFrom(t);
         },
+        equals: function (o) {
+            return this===o;
+        },
         binOpable: function (op,right) {
             if (op+""==="=" && this.assignableFrom(t)) return this;
             return false;
@@ -25,11 +28,20 @@ define(["Klass","assert"],function (Klass,assert) {
             get: function(){
                 return this._mods=this._mods||{};
             }
+        },
+        extendModifiers: function (t) {
+            for(var k in t.modifiers) {
+                this.modifiers[k]=t.modifiers[k];
+            }
+            return this;
         }
     });
     t.Primitive=t.Base.inherit({
         $name:"ctype::Primitive",
         $fields: {name:String},
+        equals: function (o) {
+            return this.name===o.name;
+        },
         toLiteral:function () {
             return CTYPE_NAME+"['"+this.name+"']";
         }
@@ -60,6 +72,7 @@ define(["Klass","assert"],function (Klass,assert) {
     		return v;
     	}
     });
+    // t.void , t.int could not abolish... used in concat.js like CType['int']
     t.Void=t.Primitive.inherit({name:"void"});
     t.void=t.Void();
     t.Char=t.Number.inherit({name:"char",numOrd:1,max:0xff});
@@ -81,6 +94,10 @@ define(["Klass","assert"],function (Klass,assert) {
         numOrd: {
             get: function () {return this.e.numOrd;}
         },
+        equals: function (o) {
+            return (o instanceof t.Unsigned) &&
+            this.e.equals(o.e);
+        },
         cast:function (v) {
             v=this.e.cast(v);
             if (v<0) {
@@ -95,6 +112,10 @@ define(["Klass","assert"],function (Klass,assert) {
         numOrd: {
             get: function () {return this.e.numOrd+1;}
         },
+        equals: function (o) {
+            return (o instanceof t.Long) &&
+            this.e.equals(o.e);
+        },
         toLiteral: function () {
             return CTYPE_NAME+".Long("+this.e.toLiteral()+")";
         }
@@ -104,6 +125,10 @@ define(["Klass","assert"],function (Klass,assert) {
         $fields:{e:t.Number},
         numOrd: {
             get: function () {return this.e.numOrd-1;}
+        },
+        equals: function (o) {
+            return (o instanceof t.Short) &&
+            this.e.equals(o.e);
         },
         toLiteral: function () {
             return CTYPE_NAME+".Short("+this.e.toLiteral()+")";
@@ -136,6 +161,10 @@ define(["Klass","assert"],function (Klass,assert) {
             }
             return t.Pointer.super(this,"assignableFrom",right);
         },
+        equals: function (o) {
+            return (o instanceof t.Pointer) &&
+            this.e.equals(o.e);
+        },
         binOpable: function (op,right) {
             // TODO: === in C??
             if (right instanceof t.Number && (op+""==="+" || op+""==="-")) return this;
@@ -149,6 +178,10 @@ define(["Klass","assert"],function (Klass,assert) {
         $fields: {e:t.Base},//, length:Klass.opt(Number)}, // null for []
         toLiteral: function () {
             return CTYPE_NAME+".Array("+this.e.toLiteral()+","+this.length+")";
+        },
+        equals: function (o) {
+            return (o instanceof t.Array) &&
+            this.e.equals(o.e);
         }
         /*binOpable: function (op,right) {
             if (right instanceof t.Number && (op+""==="+" || op+""==="-" || op+""==="===" || op+""==="!==")) return true;
@@ -189,7 +222,19 @@ define(["Klass","assert"],function (Klass,assert) {
                 }
             }
             return true;
-        }
+        },
+        equals: function (o) {
+            return (o instanceof t.Function) &&
+            this.ret.equals(o.ret) && alleq(this.args,o.args);
+            function alleq(a,b) {
+                if (a.length!==b.length) return false;
+                for (var i=0;i<a.length;i++) {
+                    if (!a[i].vtype.equals(b[i].vtype)) return false;
+                }
+                return true;
+            }
+        },
+
     });
     t.Member=Klass.define({
         $name:"Member",
