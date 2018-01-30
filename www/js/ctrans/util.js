@@ -291,9 +291,21 @@ function constructByArrInit(type,data) {
             return dustValue();
         }
     }
+    function len() {
+        var i=0;
+        for (;;i++) {
+            var o=data.offset(i);
+            if (!o.isValidBorder()) {
+                break;
+            }
+        }
+        return i;
+    }
     if (type instanceof CType.Array) {
         ary=[];
-        for (var i=0; i<type.length ;i++ ) {
+        var l=type.length;
+        if (l==null) l=len();
+        for (var i=0; i<l ;i++ ) {
             ary.push(constructByArrInit(type.e, get(i)));
         }
         return pointer(ary,0);

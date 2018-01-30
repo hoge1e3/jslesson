@@ -853,12 +853,41 @@ window.MinimalParser= function () {
 	expression=assign;
 	var array_initializer=t("{").and(initializer_lazy.sep0(t(","),true)).and(t("}")).
 	ret(function(lcb,initializers,rcb){
-    var a=["pointer([",ajoin(",",initializers),"],0)"];
-    return extend(a,{
+        var a=["pointer([",ajoin(",",initializers),"],0)"];
+        return extend(a,{
+            initializers: initializers,
 	        elementLength:initializers.length, //DO NOT use length ... it truncates actual length
 	        type:"arrayInit"
 	    });
 	});
+    function checkArrayInitType(dstType, src) {
+        assert.is(dstType, T.Base,"dstType");
+        // src: {initializers, type:"arrayInit"} | {vtype:}
+        if (src.type==="arrayInit") {
+            if (dstType instanceof T.Array) {
+                var inis=src.initializers;
+                for (var i=0;i<inis.length;i++) {
+                    checkArrayInitType( dstType.e , inis[i]);
+                }
+            } else if (dstType instanceof T.Struct) {
+                var inis=src.initializers;
+                if (dstType.members.length!= inis.length) {
+                    newError2(src, "初期化子における構造体のメンバーの個数が違います");
+                }
+                for (var i=0;i<dstType.members.length;i++) {
+                    checkArrayInitType( dstType.members[i].vtype , inis[i]);
+                }
+            } else {
+                newError2(src,"{...}形式の初期化子は配列または構造体に使います");
+            }
+        } else if (src.vtype) {
+            if (!dstType.assignableFrom(src.vtype)) {
+                newError2(src,"この初期化子は代入できません");
+            }
+        } else {
+            newError2(src,"初期化子のエラー");
+        }
+    }
 	// \initializer
 	initializer=assign.or(array_initializer);
 	function defaultInitializer(vtype,depth) {
@@ -915,7 +944,11 @@ window.MinimalParser= function () {
 			}*/
 			$.declarator=declarator;
 			$.initializer=initializer;
-    		if ((declarator.vtype) instanceof T.Function) {
+            if (initializer) {
+                checkArrayInitType(declarator.vtype,initializer);
+                //console.log("Initor",declarator.vtype,initializer);
+    		}
+            if ((declarator.vtype) instanceof T.Function) {
     		    //プロトタイプ宣言はコードを生成しない
     		    $.unshift("/*");
     		    $.push("*/");

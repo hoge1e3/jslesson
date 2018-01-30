@@ -1,5 +1,8 @@
 define(["Klass","assert"],function (Klass,assert) {
     var t={};
+    var bitWiseOp={
+        "|":1, "&":1 , "<<":1, ">>":1, "^":1,"~":1
+    };
     var CTYPE_NAME="CType";
     window[CTYPE_NAME]=t;
     t.Base=Klass.define({
@@ -57,7 +60,9 @@ define(["Klass","assert"],function (Klass,assert) {
             return t.Number.super(this,"castableFrom",type);
         },
         binOpable: function (op,right) {
-            if (right instanceof t.Number) return this;
+            if (right instanceof t.Number) {
+                if (!bitWiseOp[op+""] ) return this;
+            }
             return t.Number.super(this,"binOpable",op,right);
         },
         cast:function(v){
@@ -75,11 +80,19 @@ define(["Klass","assert"],function (Klass,assert) {
     // t.void , t.int could not abolish... used in concat.js like CType['int']
     t.Void=t.Primitive.inherit({name:"void"});
     t.void=t.Void();
-    t.Char=t.Number.inherit({name:"char",numOrd:1,max:0xff});
+    t.IntNum=t.Number.inherit({
+        binOpable: function (op,right) {
+            if (right instanceof t.IntNum) return this;
+            if (right instanceof t.Number &&
+                !bitWiseOp[op+""] ) return this;
+            return t.Number.super(this,"binOpable",op,right);
+        }
+    })
+    t.Char=t.IntNum.inherit({name:"char",numOrd:1,max:0xff});
     t.char=t.Char();
-    t.Byte=t.Number.inherit({name:"byte",numOrd:1,max:0xff});
+    t.Byte=t.IntNum.inherit({name:"byte",numOrd:1,max:0xff});
     t.byte=t.Byte();
-    t.Int=t.Number.inherit({name:"int",numOrd:2,max:0xffffffff});
+    t.Int=t.IntNum.inherit({name:"int",numOrd:2,max:0xffffffff});
     t.int=t.Int();//t.Number({name:"int",numOrd:2,max:0xffffffff});
     t.Float=t.Number.inherit({name:"float",numOrd:9});
     t.float=t.Float();
