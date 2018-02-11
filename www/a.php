@@ -3,6 +3,16 @@
 require_once __DIR__."/php/Modules.php";
 require_once __DIR__."/php/param.php";
 req("config","ErrorHandler");
+function makeURL($action,$controller,$params=null) {
+    $u=preg_replace("/\\?.*/","",$_SERVER["REQUEST_URI"]);
+    $u="$u?$action/$controller";
+    if ($params!=null) {
+        foreach ($params as $k=>$v) {
+            $u.="$k=".urlencode($v);
+        }
+    }
+    return $u;
+}
 //require_once __DIR__."/php/ErrorHandler.php";
 function redirect($url,$params=null) {
     header("Location: a.php?$url&$params");
