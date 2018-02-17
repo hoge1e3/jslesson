@@ -122,6 +122,7 @@ var reqConf={
             timbre: "lib/timbre",
             SoundDiag: "runtime/soundDiag",
             T2MediaLib: "lib/T2MediaLib",
+            assignmentDialog:"ide/",
             KernelDiffDialog: "ide/KernelDiffDialog",
             NotificationDialog: "ide/NotificationDialog",
             searchDialog: "ide/searchDialog",
@@ -260,6 +261,7 @@ var reqConf={
             ImageList: "build/tonyu/graphics/ImageList",
             ImageRect: "build/tonyu/graphics/ImageRect",
             ImageDetailEditor: "build/tonyu/ImageDetailEditor",
+            DateUtil: "lib/",
 
             "foo":"bar"
         },
@@ -271,4 +273,8 @@ var reqConf={
                 Math.floor(Math.random()*26)+
                 Math.floor(Math.random()*2)*32+65)
 };
+(function(){
+    for (var k in reqConf.paths)
+    if (reqConf.paths[k].match(/\/$/)) reqConf.paths[k]+=k;
+})();
 if (typeof exports!=="undefined") exports.conf=reqConf;

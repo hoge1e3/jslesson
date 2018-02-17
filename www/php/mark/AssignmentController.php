@@ -1,21 +1,39 @@
 <?php
-req("auth","pdo");
+req("auth","pdo","Assignment");
 class AssignmentController {
-    function add() {
+    static function add() {
         Auth::assertTeacher();
         $class=Auth::curClass2();
-        $a=new Assignment($class, param("name"));
+        $name=param("name");
+        $a=new Assignment($class, $name);
+        if ($a->exists()) return err("$name は存在します.");
         foreach(Assignment::schema() as $k=>$t) {
-            $val=param($k);
+            $val=param($k,null);
             if ($t==="object") $val=json_decode($val);
             $a->{$k}=$val;
         }
         $a->save();
+        echo "OK";
     }
-    function edit() {
+    static function rename() {
         Auth::assertTeacher();
         $class=Auth::curClass2();
+        $b=new Assignment($class, param("origname"));
         $a=new Assignment($class, param("name"));
+        if (!$b->exists()) {
+            return err($b->name." は存在しません.");
+        }
+        if ($a->exists()) {
+            return err($a->name." は存在します.");
+        }
+        $b->renameTo($a->name);
+    }
+    static function edit() {
+        Auth::assertTeacher();
+        $class=Auth::curClass2();
+        $name=param("name");
+        $a=new Assignment($class, $name);
+        if (!$a->exists()) return err($name." は存在しません.");
         $a->load();
         foreach(Assignment::schema() as $k=>$t) {
             $val=param($k,null);
@@ -24,30 +42,38 @@ class AssignmentController {
             $a->{$k}=$val;
         }
         $a->save();
+        echo "OK";
     }
-    function list() {
+    static function list() {
         Auth::assertTeacher();
         $class=Auth::curClass2();
         $res=pdo_select("select * from assignment where class=?",
         $class->id);
         $file=param("file",null);
         if ($file) $res=self::byFile($res);
-        return json_encode($res);
+        header("Content-type: text/json");
+        echo json_encode($res);
     }
-    function get() {
+    static function get() {
         Auth::assertTeacher();
         $class=Auth::curClass2();
         $name=param("name");
-        $res=pdo_select1("select * from assignment where class=? and name=?" ,
-        $class->id,$name);
-        return $res;
+        $a=new Assignment($class,$name);
+        if (!$a->exists()) return err("$name は存在しません.");
+        $res=$a->record();
+        header("Content-type: text/json");
+        $res->files=json_decode($res->files);
+        echo json_encode($res);
     }
-    function byFile($res,$file) {
+    static function byFile($res,$file) {
         $res2=array();
         foreach ($res as $a) {
             $files=json_parse($a->files);
-            if ($files->{$file}) {
-                $res2[]=$a;
+            foreach ($files as $filee=>$t) {
+                if (PathUtil::startWith( $filee, $file)) {
+                    $res2[]=$a;
+                    break;
+                }
             }
         }
         return json_encode($res2);
@@ -55,5 +81,8 @@ class AssignmentController {
 
 }
 
-
+function err($err){
+    http_response_code(500);
+    echo $err;
+}
 ?>

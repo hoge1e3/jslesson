@@ -1,4 +1,9 @@
 define([], function () {
+    var root=(
+        typeof window!=="undefined" ? window :
+        typeof self!=="undefined" ? self :
+        typeof global!=="undefined" ? global : null
+    );
     //  promise.then(S,F)  and promise.then(S).fail(F) is not same!
     //  ->  when fail on S,  F is executed?
     var DU;
@@ -47,6 +52,27 @@ define([], function () {
             if (DU.confing.useJQ) {
                 return $.when(p);
             }*/
+        },
+        throwNowIfRejected: function (p) {
+            // If Promise p has already rejected, throws the rejeceted reason immediately.
+            var state;
+            var err;
+            var res=p.then(function (r) {
+                if (!state) {
+                    state="resolved";
+                }
+                return r;
+            },function (e) {
+                if (!state) {
+                    state="rejected";
+                    err=e;
+                } else {
+                    return DU.reject(e);
+                }
+            });
+            if (!state) state="notyet";
+            if (state==="rejected") throw err;
+            return res;
         },
         assertResolved: function (p) {
             var res,resolved;
@@ -222,21 +248,32 @@ define([], function () {
                 return DU.callbackToPromise(function (s) {$(s);});
             },
             requirejs:function (modules) {
-                if (!window.requirejs) throw new Error("requirejs is not loaded");
+                if (!root.requirejs) throw new Error("requirejs is not loaded");
                 return DU.callbackToPromise(function (s) {
-                    window.requirejs(modules,s);
+                    root.requirejs(modules,s);
                 });
             }
     };
     DU.NOP=function (r) {return r;};
+    DU.E=function () {
+        console.log("DUE",arguments);
+        DU.errorHandler.apply(DU,arguments);
+    };
+    DU.errorHandler=function (e) {
+        console.error.apply(console,arguments);
+        alert(e);
+    };
+    DU.setE=function (f) {
+        DU.errorHandler=f;
+    };
     DU.begin=DU.try=DU.tr=DU.throwF;
     DU.promise=DU.callbackToPromise=DU.funcPromise;
     DU.when1=DU.resolve;
     DU.config={};
-    if (window.$ && window.$.Deferred) {
+    if (root.$ && root.$.Deferred) {
         DU.config.useJQ=true;
     }
-    DU.external={Promise:window.Promise};
-    if (!window.DeferredUtil) window.DeferredUtil=DU;
+    DU.external={Promise:root.Promise};
+    if (!root.DeferredUtil) root.DeferredUtil=DU;
     return DU;
 });

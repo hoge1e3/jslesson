@@ -6,7 +6,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
            "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog",
-           "IframeDialog"
+           "IframeDialog","assignmentDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -16,7 +16,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
           CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog,
-          IframeDialog
+          IframeDialog,assignmentDialog
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -101,6 +101,11 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     function firstSync() {
         return Auth.check().then(sync);
     }
+    DU.setE(function(e) {
+        e=e.responseText||e;
+        console.error("Err",e);
+        alert(e);
+    });
     $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"])).
     then(ready).fail(function (e) {
         alert("エラー"+e);
@@ -286,9 +291,10 @@ function ready() {
     function showDistMenu(){
         if(Auth.teacher!=""){
             Menu.appendMain(
-                {label:"配布",id:"distribute",sub:[
+                {label:"教員",id:"distribute",sub:[
                     {label:"ファイルを配布",id:"distributeFile",action:distributeFile},
-                    {label:"プロジェクトを配布",id:"distributePrj",action:distributePrj}
+                    {label:"プロジェクトを配布",id:"distributePrj",action:distributePrj},
+                    {label:"課題作成",id:"assignment",action:assignment}
                 ]}
             );
             //dist="block";
@@ -297,6 +303,9 @@ function ready() {
         }
         //console.log("Auth.teacher",Auth.teacher);
         //$("#distribute").css("display",dist);
+    }
+    function assignment() {
+        assignmentDialog.show(curProjectDir);
     }
     function showToolMenu() {
         if (lang==="tonyu") {
@@ -1010,10 +1019,10 @@ function ready() {
             console.log(e.stack);
             alert(e.stack);
         }
-        var curFile=inf.file;
-        var curFiles=fileSet(curFile);
-        var curHTMLFile=curFiles[0];
-        var curJSFile=curFiles[1];
+        var curFile=inf && inf.file;
+        var curFiles=curFile && fileSet(curFile);
+        var curHTMLFile=curFiles && curFiles[0];
+        var curJSFile=curFiles && curFiles[1];
         Tonyu.globals.$lastError=e;
         //A.is(e,Error);// This will fail when error from iframe.
         A(e,"Error is empty");
@@ -1040,7 +1049,9 @@ function ready() {
             }
             stop();
             //logToServer("JS Runtime Error!\n"+te.src+":"+te.pos+"\n"+te.mesg+"\nJS Runtime Error End!");
-            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",te.src+":"+te.pos+"\n"+te.mesg,langList[lang]);
+            if (curJSFile) {
+                logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",te.src+":"+te.pos+"\n"+te.mesg,langList[lang]);
+            }
         } else {
             if (isChrome) {
                 e.stack=(""+e.stack).split("\n").map(bytes).join("\n");
@@ -1075,7 +1086,9 @@ function ready() {
             ["button",{on:{click:function(){console.log("onerr");$(this).parent().parent().css("display","none");}}},"閉じる"]).dialog({width:800});
             stop();
             //logToServer(e.stack || e);
-            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",e.stack || e,langList[lang]);
+            if (curJSFile) {
+                logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",e.stack || e,langList[lang]);
+            }
         }
     };
     $("#search").click(F(function () {

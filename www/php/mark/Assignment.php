@@ -14,12 +14,20 @@ class Assignment {
     }
     function __construct($class,$name) {
         $this->_class=$class;
-        $this->name=name;
+        $this->name=$name;
+        $this->loaded=false;
     }
-    function load() {
+    function record() {
         $s=pdo_select1("select * ".
         "from assignment where class=? and name=? ",
         $this->_class->id, $this->name);
+        return $s;
+    }
+    function exists() {
+        return $this->record();
+    }
+    function load() {
+        $s=$this->exists();
         $this->id=$s->id;
         $this->name=$s->name;
         foreach(self::schema() as $k=>$t) {
@@ -28,6 +36,11 @@ class Assignment {
             $this->{$k}=$val;
         }
         $this->loaded=true;
+    }
+    function renameTo($to) {
+        $this->load();
+        pdo_update2("assignment",
+        array("id"=>$this->id),array("name"=>$to));
     }
     function save() {
         if ($this->loaded) $this->update();

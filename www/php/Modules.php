@@ -81,6 +81,8 @@ $mod_aliases=array(
     "ClassMigrationController"=>"php/user",
     "LogAnalysisController"=>"php/analysis",
     "JSQN"=>"php/data",
+    "AssignmentController"=>"php/mark",
+    "Assignment"=>"php/mark",
     //----/AUTOGEN
     "config"=>"config/config.php",
     "dbconf"=>"db/config.php",
