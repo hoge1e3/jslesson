@@ -13,7 +13,9 @@ class AssignmentController {
             $a->{$k}=$val;
         }
         $a->save();
-        echo "OK";
+        $na=new Assignment($class, $name);
+        $na->load();
+        echo $na->id;
     }
     static function rename() {
         Auth::assertTeacher();
@@ -64,6 +66,13 @@ class AssignmentController {
         header("Content-type: text/json");
         $res->files=json_decode($res->files);
         echo json_encode($res);
+    }
+    static function del() {
+        Auth::assertTeacher();
+        $class=Auth::curClass2();
+        $id=param("id")-0;
+        Assignment::del($class, $id);
+        echo "OK";
     }
     static function byFile($res,$file) {
         $res2=array();

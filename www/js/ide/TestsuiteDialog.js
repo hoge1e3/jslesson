@@ -1,10 +1,15 @@
 define(["Klass","UI","assert","DateUtil","DeferredUtil"],
 function (Klass,UI,A,DateUtil,DU) {
-    var AssignmentDialog=Klass.define({
+    var TestsuiteDialog=Klass.define({
         $this:"t",
+        controller: "Testsuite",
         dialogParam: {
             width:500,
             height:400
+        },
+        $:function (t,assignment) {
+            t.assignment=assignment;
+            t.prefix=t.assignment.name+"-";
         },
         setEditMode: function (t) {
             t.button.text("更新");
@@ -23,7 +28,7 @@ function (Klass,UI,A,DateUtil,DU) {
             t.dom=t.dom||t.createDOM();
             //t.dom.dialog(t.dialogParam);
             t.mode=null;
-            $.post("a.php?Assignment/get",{
+            $.post("a.php?"+t.controller+"/get",{
                 name: name
             }).then(function (a) {
                 console.log("got",a);
@@ -31,42 +36,25 @@ function (Klass,UI,A,DateUtil,DU) {
                 t.setEditMode();
                 t.name.val(a.name);
                 t.origname.val(a.name);
-                for (var k in a.files) {
-                    t.file.val(k);
-                }
-                t.time.val(DateUtil.format(a.time-0,"YYYY/MM/DD"));
-                t.deadline.val(DateUtil.format(a.deadline-0,"YYYY/MM/DD"));
-                t.description.val(a.description);
-            },function (e) {
-                console.error(e.responseText);
-            });
+                t.input.val(a.input);
+            }).catch(DU.E);
         },
-        add: function (t,file) {
+        add: function (t) {
             var dir;
-            if (file) {
-                if (file.isDir()) {
-                    dir=file;
-                    file=null;
-                } else {
-                    dir=file.up();
-                }
-                t.file.val(file||"");
-                t.prefix=dir.name().replace(/\//g,"-");
-            }
             t.name.val(t.prefix);
-            t.description.val("");
+            t.input.val("");
             t.setAddMode();
         },
-        show: function (t,file) {
+        show: function (t) {
             t.dom=t.dom||t.createDOM();
             t.dom.dialog(t.dialogParam);
-            t.add(file);
+            t.add();
             //console.log("tlist",t.showList());
             t.showList();
         },
         showList:function (t) {
             t.list.empty();
-            return $.get("a.php?Assignment/list").then(function (r) {
+            return $.get("a.php?"+t.controller+"/list").then(function (r) {
                 t.list.empty();
                 t.list.append(UI("div",
                     ["a",{href:"javascript:;",on:{
@@ -161,7 +149,7 @@ function (Klass,UI,A,DateUtil,DU) {
             console.log("post param",param);
             switch (t.mode) {
             case "add":
-            return $.post("a.php?Assignment/add",param).then(function (r){
+            return $.post("a.php?"+t.controller+"/add",param).then(function (r){
                 t.cur=param;
                 t.cur.id=r-0;
                 t.showMesg("追加しました");
@@ -171,13 +159,13 @@ function (Klass,UI,A,DateUtil,DU) {
             },DU.E);
             case "edit":
             if (t.origname.val()!==t.name.val()) {
-                return $.post("a.php?Assignment/rename",param).then(function (r){
+                return $.post("a.php?"+t.controller+"/rename",param).then(function (r){
                     t.showList();
                     t.showMesg("更新しました");
                     console.log("Result",r);
                 },DU.E);
             } else {
-                return $.post("a.php?Assignment/edit",param).then(function (r){
+                return $.post("a.php?"+t.controller+"/edit",param).then(function (r){
                     t.showMesg("更新しました");
                     console.log("Result",r);
                 },DU.E);
@@ -189,7 +177,7 @@ function (Klass,UI,A,DateUtil,DU) {
         del: function (t) {
             if (t.mode!=="edit") return;
             if (!confirm(t.cur.name+"を削除しますか？")) return;
-            $.get("a.php?Assignment/del&id="+t.cur.id).then(function (r){
+            $.get("a.php?"+t.controller+"/del&id="+t.cur.id).then(function (r){
                 t.showMesg("削除しました");
                 t.add();
                 t.showList();
@@ -197,6 +185,5 @@ function (Klass,UI,A,DateUtil,DU) {
             },DU.E);
         }
     });
-    assignmentDialog=new AssignmentDialog();
-    return assignmentDialog;
+    return TestsuiteDialog;
 });

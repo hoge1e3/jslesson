@@ -75,5 +75,9 @@ class Assignment {
             "id"=>$this->id
         ),$rec);
     }
+    static function del($class, $id) {
+        pdo_exec("delete from assignment ".
+        "where class=? and id=?",$class->id,$id);
+    }
 }
 ?>
