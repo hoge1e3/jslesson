@@ -1,37 +1,35 @@
 <?php
-req("pdo","BAClass");
-class Assignment {
+req("pdo","Assignment");
+class Testcase {
     var $id;
-    var $_class;
+    var $assignment;
     var $name;
-    var $base; // "name"  or "id"
+    var $base;
     static function schema() {
         return array(
-            "description"=>"string",
-            "files"=>"object",
-            "time"=>"integer",
-            "deadline"=>"integer"
+            "input"=>"string"
         );
     }
-    function __construct($classOrID,$name=null) {
+    function __construct($assignmentOrID,$name=null) {
         if ($name==null) {
             $this->base="id";
-            $this->id=$classOrID;
+            $this->id=$assignmentOrID;
+            if (!is_int($this->id)) throw new Exception("invalid arg for id");
         } else {
             $this->base="name";
-            $this->_class=$classOrID;
+            $this->assignment=$assignmentOrID;
             $this->name=$name;
+            $this->loaded=false;
         }
-        $this->loaded=false;
     }
     function record() {
         if ($this->base=="name") {
             $s=pdo_select1("select * ".
-            "from assignment where class=? and name=? ",
-            $this->_class->id, $this->name);
+            "from testcase where assignment=? and name=? ",
+            $this->assignment->id, $this->name);
         } else {
             $s=pdo_select1("select * ".
-            "from assignment where id=? ",
+            "from testcase where id=? ",
             $this->id);
         }
         return $s;
@@ -44,7 +42,8 @@ class Assignment {
         $this->id=$s->id;
         $this->name=$s->name;
         if ($this->base=="id") {
-            $this->_class=new BAClass($s->{"class"});
+            $this->assignment=new Assignment($s->assignment);
+            $this->assignment->load();
         }
         foreach(self::schema() as $k=>$t) {
             $val=$s->{$k};
@@ -55,7 +54,7 @@ class Assignment {
     }
     function renameTo($to) {
         $this->load();
-        pdo_update2("assignment",
+        pdo_update2("testcase",
         array("id"=>$this->id),array("name"=>$to));
     }
     function save() {
@@ -64,7 +63,7 @@ class Assignment {
     }
     function insert() {
         $rec=array(
-            "class"=>$this->_class->id,
+            "assignment"=>$this->assignment->id,
             "name"=>$this->name
         );
         foreach(self::schema() as $k=>$t) {
@@ -72,11 +71,11 @@ class Assignment {
             if ($t==="object") $val=json_encode($val);
             $rec[$k]=$val;
         }
-        pdo_insert("assignment",$rec);
+        pdo_insert("testcase",$rec);
     }
     function update() {
         $chk=pdo_select1("select * ".
-        "from assignment where id<>? and name=? ",
+        "from testcase where id<>? and name=? ",
         $this->id, $this->name);
         if ($chk) throw new Exception($this->name."はすでに存在します．");
         $rec=array(
@@ -87,13 +86,13 @@ class Assignment {
             if ($t==="object") $val=json_encode($val);
             $rec[$k]=$val;
         }
-        pdo_update2("assignment",array(
+        pdo_update2("testcase",array(
             "id"=>$this->id
         ),$rec);
     }
     function del() {
-        pdo_exec("delete from assignment ".
-        "where class=? and id=?",$this->_class->id,$this->id);
+        pdo_exec("delete from testcase ".
+        "where id=?",$this->id);
     }
 }
 ?>

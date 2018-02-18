@@ -83,6 +83,8 @@ $mod_aliases=array(
     "JSQN"=>"php/data",
     "AssignmentController"=>"php/mark",
     "Assignment"=>"php/mark",
+    "TestcaseController"=>"php/mark",
+    "Testcase"=>"php/mark",
     //----/AUTOGEN
     "config"=>"config/config.php",
     "dbconf"=>"db/config.php",

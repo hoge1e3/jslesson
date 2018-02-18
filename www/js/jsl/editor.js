@@ -236,11 +236,11 @@ function ready() {
                       {label:"停止(F2)",id:"stopMenu",action:stop},
                   ]*/},
                   {label:"保存",id:"save"},
+                  {label:"提出",id:"submit"},
                   {label:"設定",sub:[
                       {label:"エディタの文字の大きさ",id:"textsize",action:textSize}/*,
                       {label:"エディタモード切替",id:"editorType",action:editorType}*/
-                  ]},
-                  {label:"使用方法",id:"openHelp"},
+                  ]}
                   /*{label:"ツール",id:"tool",sub:[
                       {label:"画像リスト",id:"imageList",action:showImageList},
                   ]},
@@ -252,6 +252,7 @@ function ready() {
         );
         showToolMenu();
         showDistMenu();
+        Menu.appendMain({label:"使用方法",id:"openHelp"});
     }
     function upFile() {
         FileUploadDialog.show(curProjectDir,{
@@ -262,6 +263,9 @@ function ready() {
                 sync();
             }
         });
+    }
+    function submit() {
+        alert("提出したと思います");
     }
     function showFileList() {
         function cjsFileHome() {
@@ -326,6 +330,11 @@ function ready() {
     function distributeFile() {
         //alert("distributeFile!");
         curPrjDir=curProjectDir.name();
+        var inf=getCurrentEditorInfo();
+        if (!inf) {
+            alert("配布したいファイルを開いてください。");
+            return;
+        }
         curFile=getCurrentEditorInfo().file;
         DistributeDialog.show(curFile.text(),function(text,overwrite){
             console.log(text,overwrite);
@@ -1352,6 +1361,7 @@ function ready() {
             return "保存されていないデータがあります。\nこれまでの作業を保存するためには一度実行してください。";
         }
     });
+    $("#submit").click(submit);
     $("#save").click(F(function () {
         save();
         sync();

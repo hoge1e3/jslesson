@@ -2,25 +2,26 @@ define(["Klass","UI","assert","DateUtil","DeferredUtil"],
 function (Klass,UI,A,DateUtil,DU) {
     var TestsuiteDialog=Klass.define({
         $this:"t",
-        controller: "Testsuite",
+        controller: "Testcase",
         dialogParam: {
             width:500,
             height:400
         },
         $:function (t,assignment) {
             t.assignment=assignment;
+            t.assignmentParam="&assignment="+t.assignment.id;
             t.prefix=t.assignment.name+"-";
         },
         setEditMode: function (t) {
             t.button.text("更新");
             t.mode="edit";
-            t.editTestB.prop("disabled",false);
+            t.genOutB.prop("disabled",false);
             t.delB.prop("disabled",false);
         },
         setAddMode: function (t) {
             t.button.text("追加");
             t.mode="add";
-            t.editTestB.prop("disabled",true);
+            t.genOutB.prop("disabled",true);
             t.delB.prop("disabled",true);
             delete t.cur;
         },
@@ -29,6 +30,7 @@ function (Klass,UI,A,DateUtil,DU) {
             //t.dom.dialog(t.dialogParam);
             t.mode=null;
             $.post("a.php?"+t.controller+"/get",{
+                assignment: t.assignment.id,
                 name: name
             }).then(function (a) {
                 console.log("got",a);
@@ -54,7 +56,8 @@ function (Klass,UI,A,DateUtil,DU) {
         },
         showList:function (t) {
             t.list.empty();
-            return $.get("a.php?"+t.controller+"/list").then(function (r) {
+            return $.get("a.php?"+t.controller+"/list"+t.assignmentParam).then(function (r) {
+                console.log("list ",r);
                 t.list.empty();
                 t.list.append(UI("div",
                     ["a",{href:"javascript:;",on:{
@@ -74,37 +77,21 @@ function (Klass,UI,A,DateUtil,DU) {
         },
         createDOM: function (t) {
             t.dom=UI(
-                "div",{title:"課題の管理"},
+                "div",{title:"テストケースの管理"},
                 ["div",{css:{float:"left"},$var:"list"}],
                 ["div",{css:{float:"right"}},
                 ["form",{action:"javascript:;",name:"as_edit"},
                     ["div",
-                        ["label",{for:"name"},"課題名"],
+                        ["label",{for:"name"},"テストケース名"],
                         ["input",{name:"name"}],
                         ["input",{type:"hidden",name:"origname"}]
                     ],
                     ["div",
-                        ["label",{for:"description"},"説明"],
-                        ["textarea",{rows:5,cols:32,name:"description"}]
-                    ],
-                    ["div",
-                        ["label",{for:"time"},"出題日"],
-                        ["input",{name:"time",
-                        value:DateUtil.format(new Date,"YYYY/MM/DD")}]
-                    ],
-                    ["div",
-                        ["label",{for:"deadline"},"締切日"],
-                        ["input",{name:"deadline",
-                        value:DateUtil.format(
-                            new Date().getTime()+1000*365*86400,"YYYY/MM/DD"
-                        )}]
-                    ],
-                    ["div",
-                        ["label",{for:"file"},"ファイル"],
-                        ["input",{name:"file"}]
+                        ["label",{for:"input"},"入力"],
+                        ["textarea",{rows:5,cols:32,name:"input"}]
                     ],
                     ["button",{name:"button",on:{click:t.$bind.post}},"追加"],
-                    ["button",{name:"editTestB",on:{click:t.$bind.editTest}},"テストケース編集"],
+                    ["button",{name:"genOutB",on:{click:t.$bind.genOutB}},"出力生成"],
                     ["button",{name:"delB",on:{click:t.$bind.del}},"削除"],
                     ["span",{$var:"mesg"}]
                 ]]
@@ -113,14 +100,11 @@ function (Klass,UI,A,DateUtil,DU) {
             t.list=t.dom.$vars.list;
             t.mesg=t.dom.$vars.mesg;
             t.name=$(form.name);
-            t.editTestB=$(form.editTestB);
+            t.genOutB=$(form.genOutB);
             t.delB=$(form.delB);
             t.origname=$(form.origname);
-            t.description=$(form.description);
-            t.file=$(form.file);
+            t.input=$(form.input);
             t.button=$(form.button);
-            t.time=$(form.time);
-            t.deadline=$(form.deadline);
             return t.dom;
         },
         showMesg: function (t,text) {
@@ -137,15 +121,11 @@ function (Klass,UI,A,DateUtil,DU) {
         },
         post: function (t) {
             var param={
+                assignment: t.assignment.id,
                 origname:t.origname.val(),
                 name:t.name.val(),
-                description:t.description.val(),
-                time:new Date(t.time.val()).getTime(),
-                deadline:new Date(t.deadline.val()).getTime(),
-                files:{}
+                input:t.input.val()
             };
-            param.files[t.file.val()]=true;
-            param.files=JSON.stringify(param.files);
             console.log("post param",param);
             switch (t.mode) {
             case "add":
@@ -155,6 +135,7 @@ function (Klass,UI,A,DateUtil,DU) {
                 t.showMesg("追加しました");
                 t.showList();
                 t.setEditMode();
+                t.origname.val(param.name);
                 console.log("Result",r,param);
             },DU.E);
             case "edit":
@@ -183,6 +164,9 @@ function (Klass,UI,A,DateUtil,DU) {
                 t.showList();
                 console.log("Result",r);
             },DU.E);
+        },
+        dispose: function (t) {
+            if (t.dom) t.dom.remove();
         }
     });
     return TestsuiteDialog;

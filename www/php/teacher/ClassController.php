@@ -369,8 +369,10 @@ class ClassController {
                     $errcount[$log['user']]=1;
                 }
                 $runhistory[$log['user']].='<span data-id='.$log['id'].' data-user='.$log['user'].' onClick="openFrame(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));"><font color="red">E</font></span>';
-            }else{
+            }else if(strpos($log['result'],'Run')!==false){
                 $runhistory[$log['user']].='<span data-id='.$log['id'].' data-user='.$log['user'].' onClick="openFrame(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">R</span>';
+            }else if(strpos($log['result'],'Save')!==false){
+                $runhistory[$log['user']].='<span data-id='.$log['id'].' data-user='.$log['user'].' onClick="openFrame(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">S</span>';
             }
             if(!isset($errcount[$log['user']])){
                 $errcount[$log['user']]=0;
@@ -379,7 +381,7 @@ class ClassController {
             $latestfile[$log['user']]=$log['filename'];
         }
         foreach($runhistory as $runhistkey => $runhistval){
-            $runhistory[$runhistkey].='<br id="'.$runhistkey.'ui" style="display:none"><button id="'.$runhistkey.'ui" style="display:none">Prev</button>  <button id="'.$runhistkey.'ui" style="display:none">Next</button><br><textarea id="'.$runhistkey.'" style="display:none">test</textarea>';
+            $runhistory[$runhistkey].='<br id="'.$runhistkey.'ui" style="display:none"><button id="'.$runhistkey.'ui" style="display:none">Prev</button>  <button id="'.$runhistkey.'ui" style="display:none">Next</button><span id="'.$runhistkey.'res" style="display:none"></span><br><textarea id="'.$runhistkey.'" style="display:none" onclick="this.select(0,this.value.length)">test</textarea>';
         }
         ?>
         <script type="text/javascript" src="js/lib/jquery-1.12.1.js"></script>
@@ -415,18 +417,24 @@ class ClassController {
 
                         if(displayingId!==""){
                             $("[id="+displayingId+"ui]").css("display","none");
+                            $("[id="+displayingId+"res]").css("display","none");
                             $("#"+displayingId).css("display","none");
                         }
                         displayingId=userid;
-                        res=data.filename+"\n"+data.result+"\n-------------\n"+data.code.C;
+						code=data.code.C || data.code.JavaScript ||data.code.Dolittle;
+                        //res=data.filename+"\n"+data.result+"\n-------------\n"+data.code.C;
+                        res=code;
                         res=res.replace(/</g,"&lt;");
                         res=res.replace(/>/g,"&gt;");
                         $("[id="+displayingId+"ui]").css("display","inline");
+						$("[id="+displayingId+"res]").css("display","inline");
 
+						
+                        $("#"+userid+"res").html("<br>"+data.filename+"<br>"+data.result);
                         $("#"+userid).height(30);
                         $("#"+userid).html(res);
                         $("#"+userid).css("display","inline");
-                        $("#"+userid).width($("#"+userid).parent().width());
+                        //$("#"+userid).width($("#"+userid).parent().width());
                         $("#"+userid).height($("#"+userid).get(0).scrollHeight);
                     },
                     error: function(xhr, textStatus, errorThrown){

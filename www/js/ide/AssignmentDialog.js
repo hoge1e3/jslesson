@@ -1,5 +1,5 @@
-define(["Klass","UI","assert","DateUtil","DeferredUtil"],
-function (Klass,UI,A,DateUtil,DU) {
+define(["Klass","UI","assert","DateUtil","DeferredUtil","TestsuiteDialog"],
+function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
     var AssignmentDialog=Klass.define({
         $this:"t",
         dialogParam: {
@@ -11,6 +11,7 @@ function (Klass,UI,A,DateUtil,DU) {
             t.mode="edit";
             t.editTestB.prop("disabled",false);
             t.delB.prop("disabled",false);
+
         },
         setAddMode: function (t) {
             t.button.text("追加");
@@ -145,6 +146,9 @@ function (Klass,UI,A,DateUtil,DU) {
         editTest: function (t) {
             if (t.mode!=="edit") throw new Error("Not edit mode");
             console.log(t.cur);
+            if (t.testsuiteDialog) t.testsuiteDialog.dispose();
+            t.testsuiteDialog=new TestsuiteDialog(t.cur);
+            t.testsuiteDialog.show();
             //alert("Edit"+d);
         },
         post: function (t) {
@@ -167,6 +171,7 @@ function (Klass,UI,A,DateUtil,DU) {
                 t.showMesg("追加しました");
                 t.showList();
                 t.setEditMode();
+                t.origname.val(t.name.val());
                 console.log("Result",r,param);
             },DU.E);
             case "edit":
