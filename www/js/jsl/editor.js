@@ -6,7 +6,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
            "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog",
-           "IframeDialog","assignmentDialog"
+           "IframeDialog","assignmentDialog","SubmitDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -16,7 +16,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
           CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog,
-          IframeDialog,assignmentDialog
+          IframeDialog,assignmentDialog,SubmitDialog
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -264,8 +264,11 @@ function ready() {
             }
         });
     }
+    var submitDialog;
     function submit() {
-        alert("提出したと思います");
+        if (!submitDialog) submitDialog=new SubmitDialog(curPrj);
+        var inf=getCurrentEditorInfo();
+        submitDialog.show(inf.file);
     }
     function showFileList() {
         function cjsFileHome() {

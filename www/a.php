@@ -32,11 +32,11 @@ if (preg_match("/=/",$action)) {
 }
 $actionAry=explode("/",$action);
 if (count($actionAry)==2) {
-    $action=$actionAry[0];
-    $method=$actionAry[1];
-    $controller=$action."Controller";
-    req($controller);
     try {
+        $action=$actionAry[0];
+        $method=$actionAry[1];
+        $controller=$action."Controller";
+        req($controller);
         $controller::$method();
     } catch (Exception $e) {
         http_response_code(500);

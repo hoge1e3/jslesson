@@ -47,7 +47,7 @@ class AssignmentController {
         echo "OK";
     }
     static function list() {
-        Auth::assertTeacher();
+        //Auth::assertTeacher();
         $class=Auth::curClass2();
         $res=pdo_select("select * from assignment where class=?",
         $class->id);
@@ -57,7 +57,7 @@ class AssignmentController {
         echo json_encode($res);
     }
     static function get() {
-        Auth::assertTeacher();
+        //Auth::assertTeacher();
         $class=Auth::curClass2();
         $name=param("name");
         $a=new Assignment($class,$name);
@@ -90,9 +90,21 @@ class AssignmentController {
                 }
             }
         }
-        return json_encode($res2);
+        return $res2;
     }
+    static function submit() {
+        req("Submission");
+        //$class=Auth::curClass2();
+        $user=Auth::curUser2();
+        //$user->name
+        $sub=new Submission();
+        $sub->user=$user;
+        $sub->assignment=new Assignment(
+            $user->_class,param("name"));
+        $sub->files=json_decode(param("files"));
+        $sub->save();
 
+    }
 }
 
 function err($err){

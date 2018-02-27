@@ -3,8 +3,8 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
     var AssignmentDialog=Klass.define({
         $this:"t",
         dialogParam: {
-            width:500,
-            height:400
+            width:600,
+            height:600
         },
         setEditMode: function (t) {
             t.button.text("更新");
@@ -38,6 +38,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
                 t.time.val(DateUtil.format(a.time-0,"YYYY/MM/DD"));
                 t.deadline.val(DateUtil.format(a.deadline-0,"YYYY/MM/DD"));
                 t.description.val(a.description);
+                t.criteria.val(a.criteria);
             },function (e) {
                 console.error(e.responseText);
             });
@@ -97,8 +98,8 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
                         ["input",{type:"hidden",name:"origname"}]
                     ],
                     ["div",
-                        ["label",{for:"description"},"説明"],
-                        ["textarea",{rows:5,cols:32,name:"description"}]
+                        ["div",["label",{for:"description"},"説明"]],
+                        ["textarea",{rows:5,cols:40,name:"description"}]
                     ],
                     ["div",
                         ["label",{for:"time"},"出題日"],
@@ -116,8 +117,12 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
                         ["label",{for:"file"},"ファイル"],
                         ["input",{name:"file"}]
                     ],
+                    ["div",
+                        ["div",["label",{for:"criteria"},"採点基準"]],
+                        ["textarea",{rows:10,cols:40,name:"criteria"}]
+                    ],
                     ["button",{name:"button",on:{click:t.$bind.post}},"追加"],
-                    ["button",{name:"editTestB",on:{click:t.$bind.editTest}},"テストケース編集"],
+//                    ["button",{name:"editTestB",on:{click:t.$bind.editTest}},"テストケース編集"],
                     ["button",{name:"delB",on:{click:t.$bind.del}},"削除"],
                     ["span",{$var:"mesg"}]
                 ]]
@@ -129,6 +134,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
             t.editTestB=$(form.editTestB);
             t.delB=$(form.delB);
             t.origname=$(form.origname);
+            t.criteria=$(form.criteria);
             t.description=$(form.description);
             t.file=$(form.file);
             t.button=$(form.button);
@@ -155,6 +161,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
             var param={
                 origname:t.origname.val(),
                 name:t.name.val(),
+                criteria:t.criteria.val(),
                 description:t.description.val(),
                 time:new Date(t.time.val()).getTime(),
                 deadline:new Date(t.deadline.val()).getTime(),

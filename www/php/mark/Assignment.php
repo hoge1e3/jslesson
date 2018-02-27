@@ -8,10 +8,14 @@ class Assignment {
     static function schema() {
         return array(
             "description"=>"string",
+            "criteria"=>"string",
             "files"=>"object",
             "time"=>"integer",
             "deadline"=>"integer"
         );
+    }
+    static function table() {
+        return "assignment";
     }
     function __construct($classOrID,$name=null) {
         if ($name==null) {
@@ -27,11 +31,11 @@ class Assignment {
     function record() {
         if ($this->base=="name") {
             $s=pdo_select1("select * ".
-            "from assignment where class=? and name=? ",
+            "from ".self::table()." where class=? and name=? ",
             $this->_class->id, $this->name);
         } else {
             $s=pdo_select1("select * ".
-            "from assignment where id=? ",
+            "from ".self::table()." where id=? ",
             $this->id);
         }
         return $s;
@@ -40,7 +44,12 @@ class Assignment {
         return $this->record();
     }
     function load() {
+        if ($this->loaded) return;
         $s=$this->record();
+        $this->fromRecord($s);
+        $this->loaded=true;
+    }
+    function fromRecord($s) {
         $this->id=$s->id;
         $this->name=$s->name;
         if ($this->base=="id") {
@@ -51,18 +60,8 @@ class Assignment {
             if ($t==="object") $val=json_decode($val);
             $this->{$k}=$val;
         }
-        $this->loaded=true;
     }
-    function renameTo($to) {
-        $this->load();
-        pdo_update2("assignment",
-        array("id"=>$this->id),array("name"=>$to));
-    }
-    function save() {
-        if ($this->loaded) $this->update();
-        else $this->insert();
-    }
-    function insert() {
+    function toRecord() {
         $rec=array(
             "class"=>$this->_class->id,
             "name"=>$this->name
@@ -72,28 +71,34 @@ class Assignment {
             if ($t==="object") $val=json_encode($val);
             $rec[$k]=$val;
         }
-        pdo_insert("assignment",$rec);
+        return $rec;
+    }
+    function renameTo($to) {
+        $this->load();
+        pdo_update2(self::table(),
+        array("id"=>$this->id),array("name"=>$to));
+    }
+    function save() {
+        if ($this->loaded) $this->update();
+        else $this->insert();
+    }
+    function insert() {
+        $rec=$this->toRecord();
+        pdo_insert(self::table(),$rec);
     }
     function update() {
         $chk=pdo_select1("select * ".
-        "from assignment where id<>? and name=? ",
+        "from ".self::table()." where id<>? and name=? ",
         $this->id, $this->name);
         if ($chk) throw new Exception($this->name."はすでに存在します．");
-        $rec=array(
-            "name"=>$this->name
-        );
-        foreach(self::schema() as $k=>$t) {
-            $val=$this->{$k};
-            if ($t==="object") $val=json_encode($val);
-            $rec[$k]=$val;
-        }
-        pdo_update2("assignment",array(
+        $rec=$this->toRecord();
+        pdo_update2(self::table(),array(
             "id"=>$this->id
         ),$rec);
     }
     function del() {
-        pdo_exec("delete from assignment ".
-        "where class=? and id=?",$this->_class->id,$this->id);
+        pdo_exec("delete from ".self::table().
+        " where class=? and id=?",$this->_class->id,$this->id);
     }
 }
 ?>

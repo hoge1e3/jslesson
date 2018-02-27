@@ -52,7 +52,7 @@ class Auth {
         }
     }
     static function resetPermitted() {
-        curUser2()->resetPermitted(MySession::get("pin"));
+        self::curUser2()->resetPermitted(MySession::get("pin"));
     }
     static function userDir() {
         global $userDir;
