@@ -15830,7 +15830,19 @@ define('DateUtil',[],function (){
         }
         return format;
     };
-    return {format:format};
+    var toUnixTime = function (date) {
+        if (!(date instanceof Date)) date=new Date(date);
+        var t=date.getTime();
+        return Math.floor(t/1000);
+    };
+    var fromUnixTime = function (ut) {
+        return new Date((ut-0)*1000);
+    };
+    return {
+        format:format,
+        toUnixTime:toUnixTime,
+        fromUnixTime:fromUnixTime
+    };
 });
 
 define('TestsuiteDialog',["Klass","UI","assert","DateUtil","DeferredUtil"],
@@ -16042,8 +16054,8 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
                 for (var k in a.files) {
                     t.file.val(k);
                 }
-                t.time.val(DateUtil.format(a.time-0,"YYYY/MM/DD"));
-                t.deadline.val(DateUtil.format(a.deadline-0,"YYYY/MM/DD"));
+                t.time.val(DateUtil.format(DateUtil.fromUnixTime(a.time),"YYYY/MM/DD"));
+                t.deadline.val(DateUtil.format(DateUtil.fromUnixTime(a.deadline),"YYYY/MM/DD"));
                 t.description.val(a.description);
                 t.criteria.val(a.criteria);
             },function (e) {
@@ -16170,8 +16182,8 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
                 name:t.name.val(),
                 criteria:t.criteria.val(),
                 description:t.description.val(),
-                time:new Date(t.time.val()).getTime(),
-                deadline:new Date(t.deadline.val()).getTime(),
+                time:DateUtil.toUnixTime(t.time.val()),
+                deadline:DateUtil.toUnixTime(t.deadline.val()),
                 files:{}
             };
             param.files[t.file.val()]=true;
@@ -16220,7 +16232,8 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
     return assignmentDialog;
 });
 
-define('SubmitDialog',["UI","Klass","DeferredUtil"],function (UI,Klass,DU){
+define('SubmitDialog',["UI","Klass","DeferredUtil"],
+function (UI,Klass,DU){
     var SubmitDialog=Klass.define({
         $this:"t",
         $: function (t,prj) {

@@ -16,5 +16,17 @@ define([],function (){
         }
         return format;
     };
-    return {format:format};
+    var toUnixTime = function (date) {
+        if (!(date instanceof Date)) date=new Date(date);
+        var t=date.getTime();
+        return Math.floor(t/1000);
+    };
+    var fromUnixTime = function (ut) {
+        return new Date((ut-0)*1000);
+    };
+    return {
+        format:format,
+        toUnixTime:toUnixTime,
+        fromUnixTime:fromUnixTime
+    };
 });
