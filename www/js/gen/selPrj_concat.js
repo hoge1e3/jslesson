@@ -3871,6 +3871,11 @@ define('UI',["Util","exceptionCatcher"],function (Util, EC) {
 });
 
 define('DeferredUtil',[], function () {
+    var root=(
+        typeof window!=="undefined" ? window :
+        typeof self!=="undefined" ? self :
+        typeof global!=="undefined" ? global : null
+    );
     //  promise.then(S,F)  and promise.then(S).fail(F) is not same!
     //  ->  when fail on S,  F is executed?
     var DU;
@@ -3919,6 +3924,27 @@ define('DeferredUtil',[], function () {
             if (DU.confing.useJQ) {
                 return $.when(p);
             }*/
+        },
+        throwNowIfRejected: function (p) {
+            // If Promise p has already rejected, throws the rejeceted reason immediately.
+            var state;
+            var err;
+            var res=p.then(function (r) {
+                if (!state) {
+                    state="resolved";
+                }
+                return r;
+            },function (e) {
+                if (!state) {
+                    state="rejected";
+                    err=e;
+                } else {
+                    return DU.reject(e);
+                }
+            });
+            if (!state) state="notyet";
+            if (state==="rejected") throw err;
+            return res;
         },
         assertResolved: function (p) {
             var res,resolved;
@@ -4094,22 +4120,33 @@ define('DeferredUtil',[], function () {
                 return DU.callbackToPromise(function (s) {$(s);});
             },
             requirejs:function (modules) {
-                if (!window.requirejs) throw new Error("requirejs is not loaded");
+                if (!root.requirejs) throw new Error("requirejs is not loaded");
                 return DU.callbackToPromise(function (s) {
-                    window.requirejs(modules,s);
+                    root.requirejs(modules,s);
                 });
             }
     };
     DU.NOP=function (r) {return r;};
+    DU.E=function () {
+        console.log("DUE",arguments);
+        DU.errorHandler.apply(DU,arguments);
+    };
+    DU.errorHandler=function (e) {
+        console.error.apply(console,arguments);
+        alert(e);
+    };
+    DU.setE=function (f) {
+        DU.errorHandler=f;
+    };
     DU.begin=DU.try=DU.tr=DU.throwF;
     DU.promise=DU.callbackToPromise=DU.funcPromise;
     DU.when1=DU.resolve;
     DU.config={};
-    if (window.$ && window.$.Deferred) {
+    if (root.$ && root.$.Deferred) {
         DU.config.useJQ=true;
     }
-    DU.external={Promise:window.Promise};
-    if (!window.DeferredUtil) window.DeferredUtil=DU;
+    DU.external={Promise:root.Promise};
+    if (!root.DeferredUtil) root.DeferredUtil=DU;
     return DU;
 });
 
@@ -4502,7 +4539,14 @@ define('Klass',["assert"],function (A) {
         } else {
             p={};
         }
-        var init=pd.$ || function (e) {
+        var thisName,singletonName;
+        if (pd.$this) {
+            thisName=pd.$this;
+        }
+        if (pd.$singleton) {
+            singletonName=pd.$singleton;
+        }
+        var init=wrap(pd.$) || function (e) {
             if (e && typeof e=="object") {
                 for (var k in e) {
                     this[k]=e[k];
@@ -4553,18 +4597,61 @@ define('Klass',["assert"],function (A) {
         for (var name in pd) {
             if (name[0]=="$") continue;
             if (name.substring(0,7)=="static$") {
-                klass[name.substring(7)]=pd[name];
+                klass[name.substring(7)]=wrapStatic(pd[name]);
             } else {
                 if (isPropDesc(pd[name])) {
-                    Object.defineProperty(p,name,pd[name]);
+                    Object.defineProperty(p,name,wrap(pd[name]));
                 } else {
-                    p[name]=pd[name];
+                    p[name]=wrap(pd[name]);
                 }
             }
         }
+        function wrapStatic(m) {
+            if (!singletonName) return m;
+            var args=getArgs(m);
+            if (args[0]!==singletonName) return m;
+            return (function () {
+                var a=Array.prototype.slice.call(arguments);
+                a.unshift(klass);
+                return m.apply(klass,a);
+            });
+        }
+        function wrap(m) {
+            if (!thisName) return m;
+            if (isPropDesc(m)) {
+                for (var k in m) {
+                    m[k]=wrap(m[k]);
+                }
+                return m;
+            }
+            if (typeof m!=="function") return m;
+            var args=getArgs(m);
+            if (args[0]!==thisName) return m;
+            return (function () {
+                var a=Array.prototype.slice.call(arguments);
+                a.unshift(this);
+                return m.apply(this,a);
+            });
+        }
         p.$=init;
+        Object.defineProperty(p,"$bind",{
+            get: function () {
+                if (!this.__bounded) {
+                    this.__bounded=new Klass.Binder(this);
+                }
+                return this.__bounded;
+            }
+        });
         return klass;
     };
+    function getArgs(f) {
+        var fpat=/function[^\(]+\(([^\)]*)\)/;
+        var r=fpat.exec(f+"");
+        if (r) {
+            return r[1].replace(/\s/g,"").split(",");
+        }
+        return [];
+    }
     function isPropDesc(o) {
         if (typeof o!=="object") return false;
         if (!o) return false;
@@ -4578,17 +4665,32 @@ define('Klass',["assert"],function (A) {
     }
     Klass.Function=function () {throw new Exception("Abstract");}
     Klass.opt=A.opt;
+    Klass.Binder=Klass.define({
+        $this:"t",
+        $:function (t,target) {
+            for (var k in target) (function (k){
+                if (typeof target[k]!=="function") return;
+                t[k]=function () {
+                    var a=Array.prototype.slice.call(arguments);
+                    //console.log(this, this.__target);
+                    //A(this.__target,"target is not set");
+                    return target[k].apply(target,a);
+                };
+            })(k);
+        }
+    });
     return Klass;
 });
 /*
 requirejs(["Klass"],function (k) {
   P=k.define ({
      $:["x","y"]
-  });    
+  });
   p=P(2,3);
   console.log(p.x,p.y);
 });
-*/;
+*/
+;
 define('Tonyu.Thread',["DeferredUtil","Klass"],function (DU,Klass) {
 	var cnts={enterC:{},exitC:0};
 	try {window.cnts=cnts;}catch(e){}

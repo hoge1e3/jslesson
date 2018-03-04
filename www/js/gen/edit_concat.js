@@ -407,6 +407,11 @@ define('assert',[],function () {
 });
 
 define('DeferredUtil',[], function () {
+    var root=(
+        typeof window!=="undefined" ? window :
+        typeof self!=="undefined" ? self :
+        typeof global!=="undefined" ? global : null
+    );
     //  promise.then(S,F)  and promise.then(S).fail(F) is not same!
     //  ->  when fail on S,  F is executed?
     var DU;
@@ -455,6 +460,27 @@ define('DeferredUtil',[], function () {
             if (DU.confing.useJQ) {
                 return $.when(p);
             }*/
+        },
+        throwNowIfRejected: function (p) {
+            // If Promise p has already rejected, throws the rejeceted reason immediately.
+            var state;
+            var err;
+            var res=p.then(function (r) {
+                if (!state) {
+                    state="resolved";
+                }
+                return r;
+            },function (e) {
+                if (!state) {
+                    state="rejected";
+                    err=e;
+                } else {
+                    return DU.reject(e);
+                }
+            });
+            if (!state) state="notyet";
+            if (state==="rejected") throw err;
+            return res;
         },
         assertResolved: function (p) {
             var res,resolved;
@@ -630,22 +656,33 @@ define('DeferredUtil',[], function () {
                 return DU.callbackToPromise(function (s) {$(s);});
             },
             requirejs:function (modules) {
-                if (!window.requirejs) throw new Error("requirejs is not loaded");
+                if (!root.requirejs) throw new Error("requirejs is not loaded");
                 return DU.callbackToPromise(function (s) {
-                    window.requirejs(modules,s);
+                    root.requirejs(modules,s);
                 });
             }
     };
     DU.NOP=function (r) {return r;};
+    DU.E=function () {
+        console.log("DUE",arguments);
+        DU.errorHandler.apply(DU,arguments);
+    };
+    DU.errorHandler=function (e) {
+        console.error.apply(console,arguments);
+        alert(e);
+    };
+    DU.setE=function (f) {
+        DU.errorHandler=f;
+    };
     DU.begin=DU.try=DU.tr=DU.throwF;
     DU.promise=DU.callbackToPromise=DU.funcPromise;
     DU.when1=DU.resolve;
     DU.config={};
-    if (window.$ && window.$.Deferred) {
+    if (root.$ && root.$.Deferred) {
         DU.config.useJQ=true;
     }
-    DU.external={Promise:window.Promise};
-    if (!window.DeferredUtil) window.DeferredUtil=DU;
+    DU.external={Promise:root.Promise};
+    if (!root.DeferredUtil) root.DeferredUtil=DU;
     return DU;
 });
 
@@ -664,7 +701,14 @@ define('Klass',["assert"],function (A) {
         } else {
             p={};
         }
-        var init=pd.$ || function (e) {
+        var thisName,singletonName;
+        if (pd.$this) {
+            thisName=pd.$this;
+        }
+        if (pd.$singleton) {
+            singletonName=pd.$singleton;
+        }
+        var init=wrap(pd.$) || function (e) {
             if (e && typeof e=="object") {
                 for (var k in e) {
                     this[k]=e[k];
@@ -715,18 +759,61 @@ define('Klass',["assert"],function (A) {
         for (var name in pd) {
             if (name[0]=="$") continue;
             if (name.substring(0,7)=="static$") {
-                klass[name.substring(7)]=pd[name];
+                klass[name.substring(7)]=wrapStatic(pd[name]);
             } else {
                 if (isPropDesc(pd[name])) {
-                    Object.defineProperty(p,name,pd[name]);
+                    Object.defineProperty(p,name,wrap(pd[name]));
                 } else {
-                    p[name]=pd[name];
+                    p[name]=wrap(pd[name]);
                 }
             }
         }
+        function wrapStatic(m) {
+            if (!singletonName) return m;
+            var args=getArgs(m);
+            if (args[0]!==singletonName) return m;
+            return (function () {
+                var a=Array.prototype.slice.call(arguments);
+                a.unshift(klass);
+                return m.apply(klass,a);
+            });
+        }
+        function wrap(m) {
+            if (!thisName) return m;
+            if (isPropDesc(m)) {
+                for (var k in m) {
+                    m[k]=wrap(m[k]);
+                }
+                return m;
+            }
+            if (typeof m!=="function") return m;
+            var args=getArgs(m);
+            if (args[0]!==thisName) return m;
+            return (function () {
+                var a=Array.prototype.slice.call(arguments);
+                a.unshift(this);
+                return m.apply(this,a);
+            });
+        }
         p.$=init;
+        Object.defineProperty(p,"$bind",{
+            get: function () {
+                if (!this.__bounded) {
+                    this.__bounded=new Klass.Binder(this);
+                }
+                return this.__bounded;
+            }
+        });
         return klass;
     };
+    function getArgs(f) {
+        var fpat=/function[^\(]+\(([^\)]*)\)/;
+        var r=fpat.exec(f+"");
+        if (r) {
+            return r[1].replace(/\s/g,"").split(",");
+        }
+        return [];
+    }
     function isPropDesc(o) {
         if (typeof o!=="object") return false;
         if (!o) return false;
@@ -740,17 +827,32 @@ define('Klass',["assert"],function (A) {
     }
     Klass.Function=function () {throw new Exception("Abstract");}
     Klass.opt=A.opt;
+    Klass.Binder=Klass.define({
+        $this:"t",
+        $:function (t,target) {
+            for (var k in target) (function (k){
+                if (typeof target[k]!=="function") return;
+                t[k]=function () {
+                    var a=Array.prototype.slice.call(arguments);
+                    //console.log(this, this.__target);
+                    //A(this.__target,"target is not set");
+                    return target[k].apply(target,a);
+                };
+            })(k);
+        }
+    });
     return Klass;
 });
 /*
 requirejs(["Klass"],function (k) {
   P=k.define ({
      $:["x","y"]
-  });    
+  });
   p=P(2,3);
   console.log(p.x,p.y);
 });
-*/;
+*/
+;
 define('Tonyu.Thread',["DeferredUtil","Klass"],function (DU,Klass) {
 	var cnts={enterC:{},exitC:0};
 	try {window.cnts=cnts;}catch(e){}
@@ -15710,6 +15812,486 @@ function (UI ,DA) {
     return res;
 });
 
+define('DateUtil',[],function (){
+    //https://qiita.com/osakanafish/items/c64fe8a34e7221e811d0
+    var format = function (date, format) {
+        if (!(date instanceof Date)) date=new Date(date);
+        if (!format) format = 'YYYY-MM-DD hh:mm:ss.SSS';
+        format = format.replace(/YYYY/g, date.getFullYear());
+        format = format.replace(/MM/g, ('0' + (date.getMonth() + 1)).slice(-2));
+        format = format.replace(/DD/g, ('0' + date.getDate()).slice(-2));
+        format = format.replace(/hh/g, ('0' + date.getHours()).slice(-2));
+        format = format.replace(/mm/g, ('0' + date.getMinutes()).slice(-2));
+        format = format.replace(/ss/g, ('0' + date.getSeconds()).slice(-2));
+        if (format.match(/S/g)) {
+            var milliSeconds = ('00' + date.getMilliseconds()).slice(-3);
+            var length = format.match(/S/g).length;
+            for (var i = 0; i < length; i++) format = format.replace(/S/, milliSeconds.substring(i, i + 1));
+        }
+        return format;
+    };
+    return {format:format};
+});
+
+define('TestsuiteDialog',["Klass","UI","assert","DateUtil","DeferredUtil"],
+function (Klass,UI,A,DateUtil,DU) {
+    var TestsuiteDialog=Klass.define({
+        $this:"t",
+        controller: "Testcase",
+        dialogParam: {
+            width:500,
+            height:400
+        },
+        $:function (t,assignment) {
+            t.assignment=assignment;
+            t.assignmentParam="&assignment="+t.assignment.id;
+            t.prefix=t.assignment.name+"-";
+        },
+        setEditMode: function (t) {
+            t.button.text("更新");
+            t.mode="edit";
+            t.genOutB.prop("disabled",false);
+            t.delB.prop("disabled",false);
+        },
+        setAddMode: function (t) {
+            t.button.text("更新");
+//            t.button.text("追加");
+            t.mode="add";
+            t.genOutB.prop("disabled",true);
+            t.delB.prop("disabled",true);
+            delete t.cur;
+        },
+        edit: function (t,name) {
+            t.dom=t.dom||t.createDOM();
+            //t.dom.dialog(t.dialogParam);
+            t.mode=null;
+            $.post("a.php?"+t.controller+"/get",{
+                assignment: t.assignment.id,
+                name: name
+            }).then(function (a) {
+                console.log("got",a);
+                t.cur=a;
+                t.setEditMode();
+                t.name.val(a.name);
+                t.origname.val(a.name);
+                t.input.val(a.input);
+            }).catch(DU.E);
+        },
+        add: function (t) {
+            var dir;
+            t.name.val(t.prefix);
+            t.input.val("");
+            t.setAddMode();
+        },
+        show: function (t) {
+            t.dom=t.dom||t.createDOM();
+            t.dom.dialog(t.dialogParam);
+            t.add();
+            //console.log("tlist",t.showList());
+            t.showList();
+        },
+        showList:function (t) {
+            t.list.empty();
+            return $.get("a.php?"+t.controller+"/list"+t.assignmentParam).then(function (r) {
+                console.log("list ",r);
+                t.list.empty();
+                t.list.append(UI("div",
+                    ["a",{href:"javascript:;",on:{
+                        click: function () {
+                            t.add();
+                        }
+                    }},"新規"]));
+                r.forEach(function (e) {
+                    t.list.append(UI("div",
+                    ["a",{href:"javascript:;",on:{
+                        click: function () {
+                            t.edit(e.name);
+                        }
+                    }},e.name]));
+                });
+            }).catch(DU.E);
+        },
+        createDOM: function (t) {
+            t.dom=UI(
+                "div",{title:"採点基準の管理"},
+                ["div",{css:{float:"left",display:"none"},$var:"list"}],
+                ["div",{css:{float:"right"}},
+                ["form",{action:"javascript:;",name:"as_edit"},
+                    ["div",
+                        ["label",{for:"input"},"採点基準"],
+                        ["div",
+                            ["textarea",{rows:10,cols:32,name:"input"}]
+                        ]
+                    ],
+                    ["button",{name:"button",on:{click:t.$bind.post}},"更新"],
+                    //["button",{name:"genOutB",on:{click:t.$bind.genOutB}},"出力生成"],
+                    //["button",{name:"delB",on:{click:t.$bind.del}},"削除"],
+                    ["span",{$var:"mesg"}]
+                ]]
+            );
+            var form=t.dom.find("form")[0];
+            t.list=t.dom.$vars.list;
+            t.mesg=t.dom.$vars.mesg;
+            t.name=$(form.name);
+            t.genOutB=$(form.genOutB);
+            t.delB=$(form.delB);
+            t.origname=$(form.origname);
+            t.input=$(form.input);
+            t.button=$(form.button);
+            return t.dom;
+        },
+        showMesg: function (t,text) {
+            if (t._etimer) clearTimeout(t._etimer);
+            t.mesg.text(text);
+            t._etimer=setTimeout(function () {
+                t.mesg.text("");
+            },1000);
+        },
+        editTest: function (t) {
+            if (t.mode!=="edit") throw new Error("Not edit mode");
+            console.log(t.cur);
+            //alert("Edit"+d);
+        },
+        post: function (t) {
+            var param={
+                assignment: t.assignment.id,
+                origname:t.origname.val(),
+                name:t.name.val(),
+                input:t.input.val()
+            };
+            console.log("post param",param);
+            switch (t.mode) {
+            case "add":
+            return $.post("a.php?"+t.controller+"/add",param).then(function (r){
+                t.cur=param;
+                t.cur.id=r-0;
+                t.showMesg("追加しました");
+                t.showList();
+                t.setEditMode();
+                t.origname.val(param.name);
+                console.log("Result",r,param);
+            },DU.E);
+            case "edit":
+            if (t.origname.val()!==t.name.val()) {
+                return $.post("a.php?"+t.controller+"/rename",param).then(function (r){
+                    t.showList();
+                    t.showMesg("更新しました");
+                    console.log("Result",r);
+                },DU.E);
+            } else {
+                return $.post("a.php?"+t.controller+"/edit",param).then(function (r){
+                    t.showMesg("更新しました");
+                    console.log("Result",r);
+                },DU.E);
+            }
+            default:
+                alert("No mode "+t.mode);
+            }
+        },
+        del: function (t) {
+            if (t.mode!=="edit") return;
+            if (!confirm(t.cur.name+"を削除しますか？")) return;
+            $.get("a.php?"+t.controller+"/del&id="+t.cur.id).then(function (r){
+                t.showMesg("削除しました");
+                t.add();
+                t.showList();
+                console.log("Result",r);
+            },DU.E);
+        },
+        dispose: function (t) {
+            if (t.dom) t.dom.remove();
+        }
+    });
+    return TestsuiteDialog;
+});
+
+define('assignmentDialog',["Klass","UI","assert","DateUtil","DeferredUtil","TestsuiteDialog"],
+function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
+    var AssignmentDialog=Klass.define({
+        $this:"t",
+        dialogParam: {
+            width:600,
+            height:600
+        },
+        setEditMode: function (t) {
+            t.button.text("更新");
+            t.mode="edit";
+            t.editTestB.prop("disabled",false);
+            t.delB.prop("disabled",false);
+
+        },
+        setAddMode: function (t) {
+            t.button.text("追加");
+            t.mode="add";
+            t.editTestB.prop("disabled",true);
+            t.delB.prop("disabled",true);
+            delete t.cur;
+        },
+        edit: function (t,name) {
+            t.dom=t.dom||t.createDOM();
+            //t.dom.dialog(t.dialogParam);
+            t.mode=null;
+            $.post("a.php?Assignment/get",{
+                name: name
+            }).then(function (a) {
+                console.log("got",a);
+                t.cur=a;
+                t.setEditMode();
+                t.name.val(a.name);
+                t.origname.val(a.name);
+                for (var k in a.files) {
+                    t.file.val(k);
+                }
+                t.time.val(DateUtil.format(a.time-0,"YYYY/MM/DD"));
+                t.deadline.val(DateUtil.format(a.deadline-0,"YYYY/MM/DD"));
+                t.description.val(a.description);
+                t.criteria.val(a.criteria);
+            },function (e) {
+                console.error(e.responseText);
+            });
+        },
+        add: function (t,file) {
+            var dir;
+            if (file) {
+                if (file.isDir()) {
+                    dir=file;
+                    file=null;
+                } else {
+                    dir=file.up();
+                }
+                t.file.val(file||"");
+                t.prefix=dir.name().replace(/\//g,"-");
+            }
+            t.name.val(t.prefix);
+            t.description.val("");
+            t.setAddMode();
+        },
+        show: function (t,file) {
+            t.dom=t.dom||t.createDOM();
+            t.dom.dialog(t.dialogParam);
+            t.add(file);
+            //console.log("tlist",t.showList());
+            t.showList();
+        },
+        showList:function (t) {
+            t.list.empty();
+            return $.get("a.php?Assignment/list").then(function (r) {
+                t.list.empty();
+                t.list.append(UI("div",
+                    ["a",{href:"javascript:;",on:{
+                        click: function () {
+                            t.add();
+                        }
+                    }},"新規"]));
+                r.forEach(function (e) {
+                    t.list.append(UI("div",
+                    ["a",{href:"javascript:;",on:{
+                        click: function () {
+                            t.edit(e.name);
+                        }
+                    }},e.name]));
+                });
+            }).catch(DU.E);
+        },
+        createDOM: function (t) {
+            t.dom=UI(
+                "div",{title:"課題の管理"},
+                ["div",{css:{float:"left"},$var:"list"}],
+                ["div",{css:{float:"right"}},
+                ["form",{action:"javascript:;",name:"as_edit"},
+                    ["div",
+                        ["label",{for:"name"},"課題名"],
+                        ["input",{name:"name"}],
+                        ["input",{type:"hidden",name:"origname"}]
+                    ],
+                    ["div",
+                        ["div",["label",{for:"description"},"説明"]],
+                        ["textarea",{rows:5,cols:40,name:"description"}]
+                    ],
+                    ["div",
+                        ["label",{for:"time"},"出題日"],
+                        ["input",{name:"time",
+                        value:DateUtil.format(new Date,"YYYY/MM/DD")}]
+                    ],
+                    ["div",
+                        ["label",{for:"deadline"},"締切日"],
+                        ["input",{name:"deadline",
+                        value:DateUtil.format(
+                            new Date().getTime()+1000*365*86400,"YYYY/MM/DD"
+                        )}]
+                    ],
+                    ["div",
+                        ["label",{for:"file"},"ファイル"],
+                        ["input",{name:"file"}]
+                    ],
+                    ["div",
+                        ["div",["label",{for:"criteria"},"採点基準"]],
+                        ["textarea",{rows:10,cols:40,name:"criteria"}]
+                    ],
+                    ["button",{name:"button",on:{click:t.$bind.post}},"追加"],
+//                    ["button",{name:"editTestB",on:{click:t.$bind.editTest}},"テストケース編集"],
+                    ["button",{name:"delB",on:{click:t.$bind.del}},"削除"],
+                    ["span",{$var:"mesg"}]
+                ]]
+            );
+            var form=t.dom.find("form")[0];
+            t.list=t.dom.$vars.list;
+            t.mesg=t.dom.$vars.mesg;
+            t.name=$(form.name);
+            t.editTestB=$(form.editTestB);
+            t.delB=$(form.delB);
+            t.origname=$(form.origname);
+            t.criteria=$(form.criteria);
+            t.description=$(form.description);
+            t.file=$(form.file);
+            t.button=$(form.button);
+            t.time=$(form.time);
+            t.deadline=$(form.deadline);
+            return t.dom;
+        },
+        showMesg: function (t,text) {
+            if (t._etimer) clearTimeout(t._etimer);
+            t.mesg.text(text);
+            t._etimer=setTimeout(function () {
+                t.mesg.text("");
+            },1000);
+        },
+        editTest: function (t) {
+            if (t.mode!=="edit") throw new Error("Not edit mode");
+            console.log(t.cur);
+            if (t.testsuiteDialog) t.testsuiteDialog.dispose();
+            t.testsuiteDialog=new TestsuiteDialog(t.cur);
+            t.testsuiteDialog.show();
+            //alert("Edit"+d);
+        },
+        post: function (t) {
+            var param={
+                origname:t.origname.val(),
+                name:t.name.val(),
+                criteria:t.criteria.val(),
+                description:t.description.val(),
+                time:new Date(t.time.val()).getTime(),
+                deadline:new Date(t.deadline.val()).getTime(),
+                files:{}
+            };
+            param.files[t.file.val()]=true;
+            param.files=JSON.stringify(param.files);
+            console.log("post param",param);
+            switch (t.mode) {
+            case "add":
+            return $.post("a.php?Assignment/add",param).then(function (r){
+                t.cur=param;
+                t.cur.id=r-0;
+                t.showMesg("追加しました");
+                t.showList();
+                t.setEditMode();
+                t.origname.val(t.name.val());
+                console.log("Result",r,param);
+            },DU.E);
+            case "edit":
+            if (t.origname.val()!==t.name.val()) {
+                return $.post("a.php?Assignment/rename",param).then(function (r){
+                    t.showList();
+                    t.showMesg("更新しました");
+                    console.log("Result",r);
+                },DU.E);
+            } else {
+                return $.post("a.php?Assignment/edit",param).then(function (r){
+                    t.showMesg("更新しました");
+                    console.log("Result",r);
+                },DU.E);
+            }
+            default:
+                alert("No mode "+t.mode);
+            }
+        },
+        del: function (t) {
+            if (t.mode!=="edit") return;
+            if (!confirm(t.cur.name+"を削除しますか？")) return;
+            $.get("a.php?Assignment/del&id="+t.cur.id).then(function (r){
+                t.showMesg("削除しました");
+                t.add();
+                t.showList();
+                console.log("Result",r);
+            },DU.E);
+        }
+    });
+    assignmentDialog=new AssignmentDialog();
+    return assignmentDialog;
+});
+
+define('SubmitDialog',["UI","Klass","DeferredUtil"],function (UI,Klass,DU){
+    var SubmitDialog=Klass.define({
+        $this:"t",
+        $: function (t,prj) {
+            t.prj=prj;
+        },
+        show: function (t,file) {
+            t.dom=t.dom||t.createDOM();
+            t.dom.dialog();
+            var path=t.prj.getDir().name()+file.name();
+            return $.get(WebSite.controller+"?Assignment/list").
+            then(function (r) {
+                r.forEach(function (e) {
+                    if (e.files[path]) e.ord=0;
+                    else e.ord=1;
+                });
+                r=r.sort(function (a,b) {
+                    var c=a.ord-b.ord;
+                    if (c!=0) return c;
+                    return (a.name>b.name ? 1:-1);
+                });
+                console.log(r);
+                r.forEach(function (n) {
+
+                    $(t.form.name).append(
+                        UI("option",{value:n.name},n.name)
+                    );
+                });
+                t.form.file.value=path;
+            });
+        },
+        createDOM:function (t) {
+            t.dom=UI("div",{title:"課題の提出"},
+            ["form",{action:"javascript:;",$var:"form"},
+                ["div",
+                    ["label",{for:"name"},"課題名"],
+                    ["select",{name:"name"}],
+                ],
+                ["div",
+                    ["label",{for:"file"},"ファイル名"],
+                    ["input",{name:"file"}],
+                ],
+                ["div",
+                    ["input",{type:"submit",name:"button",
+                    on:{click:t.$bind.submit}},"提出"]
+                ],
+            ]);
+            t.form=t.dom.$vars.form[0];
+            return t.dom;
+        },
+        submit: function (t) {
+            var param={};
+            var names=["name","file"];
+            names.forEach(function (name) {
+                param[name]=t.form[name].value;
+            });
+            var fobj=t.prj.getDir().up().rel(param.file);
+            console.log(fobj.path());
+            param.files={};
+            param.files[param.file]=fobj.text();
+            delete param.file;
+            param.files=JSON.stringify(param.files);
+            console.log("submit",param);
+            $.get(WebSite.controller+"?Assignment/submit",param).then(function (r) {
+                console.log(r);
+                alert("提出しました");
+            },DU.E);
+        }
+    });
+    return SubmitDialog;
+});
+
 requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "showErrorPos", "fixIndent",  "ProjectCompiler",
            "Shell","ShellUI","KeyEventChecker",
@@ -15718,7 +16300,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
            "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog",
-           "IframeDialog"
+           "IframeDialog","assignmentDialog","SubmitDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -15728,7 +16310,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
           CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog,
-          IframeDialog
+          IframeDialog,assignmentDialog,SubmitDialog
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -15813,6 +16395,11 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     function firstSync() {
         return Auth.check().then(sync);
     }
+    DU.setE(function(e) {
+        e=e.responseText||e;
+        console.error("Err",e);
+        alert(e);
+    });
     $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"])).
     then(ready).fail(function (e) {
         alert("エラー"+e);
@@ -15943,11 +16530,11 @@ function ready() {
                       {label:"停止(F2)",id:"stopMenu",action:stop},
                   ]*/},
                   {label:"保存",id:"save"},
+                  {label:"提出",id:"submit"},
                   {label:"設定",sub:[
                       {label:"エディタの文字の大きさ",id:"textsize",action:textSize}/*,
                       {label:"エディタモード切替",id:"editorType",action:editorType}*/
-                  ]},
-                  {label:"使用方法",id:"openHelp"},
+                  ]}
                   /*{label:"ツール",id:"tool",sub:[
                       {label:"画像リスト",id:"imageList",action:showImageList},
                   ]},
@@ -15959,6 +16546,7 @@ function ready() {
         );
         showToolMenu();
         showDistMenu();
+        Menu.appendMain({label:"使用方法",id:"openHelp"});
     }
     function upFile() {
         FileUploadDialog.show(curProjectDir,{
@@ -15969,6 +16557,12 @@ function ready() {
                 sync();
             }
         });
+    }
+    var submitDialog;
+    function submit() {
+        if (!submitDialog) submitDialog=new SubmitDialog(curPrj);
+        var inf=getCurrentEditorInfo();
+        submitDialog.show(inf.file);
     }
     function showFileList() {
         function cjsFileHome() {
@@ -15998,9 +16592,10 @@ function ready() {
     function showDistMenu(){
         if(Auth.teacher!=""){
             Menu.appendMain(
-                {label:"配布",id:"distribute",sub:[
+                {label:"教員",id:"distribute",sub:[
                     {label:"ファイルを配布",id:"distributeFile",action:distributeFile},
-                    {label:"プロジェクトを配布",id:"distributePrj",action:distributePrj}
+                    {label:"プロジェクトを配布",id:"distributePrj",action:distributePrj},
+                    {label:"課題作成",id:"assignment",action:assignment}
                 ]}
             );
             //dist="block";
@@ -16009,6 +16604,9 @@ function ready() {
         }
         //console.log("Auth.teacher",Auth.teacher);
         //$("#distribute").css("display",dist);
+    }
+    function assignment() {
+        assignmentDialog.show(curProjectDir);
     }
     function showToolMenu() {
         if (lang==="tonyu") {
@@ -16029,6 +16627,11 @@ function ready() {
     function distributeFile() {
         //alert("distributeFile!");
         curPrjDir=curProjectDir.name();
+        var inf=getCurrentEditorInfo();
+        if (!inf) {
+            alert("配布したいファイルを開いてください。");
+            return;
+        }
         curFile=getCurrentEditorInfo().file;
         DistributeDialog.show(curFile.text(),function(text,overwrite){
             console.log(text,overwrite);
@@ -16722,10 +17325,10 @@ function ready() {
             console.log(e.stack);
             alert(e.stack);
         }
-        var curFile=inf.file;
-        var curFiles=fileSet(curFile);
-        var curHTMLFile=curFiles[0];
-        var curJSFile=curFiles[1];
+        var curFile=inf && inf.file;
+        var curFiles=curFile && fileSet(curFile);
+        var curHTMLFile=curFiles && curFiles[0];
+        var curJSFile=curFiles && curFiles[1];
         Tonyu.globals.$lastError=e;
         //A.is(e,Error);// This will fail when error from iframe.
         A(e,"Error is empty");
@@ -16752,7 +17355,9 @@ function ready() {
             }
             stop();
             //logToServer("JS Runtime Error!\n"+te.src+":"+te.pos+"\n"+te.mesg+"\nJS Runtime Error End!");
-            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",te.src+":"+te.pos+"\n"+te.mesg,langList[lang]);
+            if (curJSFile) {
+                logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",te.src+":"+te.pos+"\n"+te.mesg,langList[lang]);
+            }
         } else {
             if (isChrome) {
                 e.stack=(""+e.stack).split("\n").map(bytes).join("\n");
@@ -16787,7 +17392,9 @@ function ready() {
             ["button",{on:{click:function(){console.log("onerr");$(this).parent().parent().css("display","none");}}},"閉じる"]).dialog({width:800});
             stop();
             //logToServer(e.stack || e);
-            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",e.stack || e,langList[lang]);
+            if (curJSFile) {
+                logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",e.stack || e,langList[lang]);
+            }
         }
     };
     $("#search").click(F(function () {
@@ -17051,6 +17658,7 @@ function ready() {
             return "保存されていないデータがあります。\nこれまでの作業を保存するためには一度実行してください。";
         }
     });
+    $("#submit").click(submit);
     $("#save").click(F(function () {
         save();
         sync();
