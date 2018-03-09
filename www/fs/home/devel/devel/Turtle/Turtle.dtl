@@ -15,10 +15,12 @@ turtle:initialize=[|;t|
     ! (baseURL+img) getImageSize .
     element ! "transform" "scale(1,-1)" attr.
     element ! [t!action] click.//@hoge1e3
-    ! "black" lineColor.
+    [_lineCol]!else[! "black" lineColor]execute.
     !newLineG.
     isShowing=false.
     !appear.
+    self:pos=self:pos!(Vec2:O)add.
+    self:dir=self:dir.
 ].
 turtle:width=32.
 turtle:height=32.
@@ -89,7 +91,8 @@ turtle:closePath=[
 ].
 turtle!"closePath" "close" addAlias.
 turtle:lineColor=[|col|
-    _lineCol=col.this.
+	[col]!then[_lineCol=col]execute.
+	this.
 ].
 turtle:lineWidth=[|w|
     w=!(w)num.
@@ -127,6 +130,9 @@ turtle:setTrans=[|;str|
     "data-trans" ((pos:x)+","+(pos:y)+","+dir) attr.
     [isShowing] ! then [ ! checkCrash ] execute.
     this.
+].
+turtle:polygon=[|d n|
+    [self!(d)forward(360/n)rightturn]!(n)repeat.
 ].
 :action=[].
 :action:isEventHandler=true.

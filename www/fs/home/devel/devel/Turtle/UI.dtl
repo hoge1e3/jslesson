@@ -6,7 +6,7 @@ Screen:width?=[
 Screen:height?=[
     $ ! (window) create height.
 ].
-Screen:paint=[|c| 
+Screen:paint=[|c|
     $ ! "body" create "background-color" (c+"") css.
 ].
 ! "Screen" "Panel" addAlias.
@@ -32,12 +32,12 @@ UI!"show" "appear" addAlias.
 UI:top=((Screen! height?)/2) - 20.
 UI:autoLayout=[
     UILayout! (this) add.
-    /*[last] ! then [
-        ! (last ! right?) (last ! top?) moveTo
+    [last] ! then [
+        ! ((last ! right?)+10) (last ! top?) moveTo
     ] else [
-        !  (-(Screen ! width?) / 2+20) (top) moveTo. 
+        !  (-(Screen ! width?) / 2+20) (top) moveTo.
     ] execute.
-    UI:last=this.*/
+    UI:last=this.
 ].
 UI:moveTo=[|left top|
     UILayout! (this) (left) (top) remove.
@@ -47,28 +47,28 @@ UI:moveBy=[|dx dy|
     ! ((!left?)+dx) ((!top?)+dy) moveTo
 ].
 UI:left?=[
-    [element] ! then [ 
+    [element] ! then [
         (element ! offset):left-((UI:container ! offset):left)
-    ] else [0] execute.  
+    ] else [0] execute.
 ].
 UI ! "left?" "xpos?" addAlias.
 UI:right?=[
     (! left?) + (! width?)
 ].
 UI:top?=[
-    [element] ! then [ 
-        -((element ! offset):top-((UI:container ! offset):top)) 
-    ] else [0] execute.  
+    [element] ! then [
+        -((element ! offset):top-((UI:container ! offset):top))
+    ] else [0] execute.
 ].
 UI ! "top?" "ypos?" addAlias.
 UI:bottom?=[
     (! top?) - (! height?)
 ].
 UI:width?=[//offsetWidth??
-    [element] ! then [ element ! outerWidth] else [0] execute.  
+    [element] ! then [ element ! outerWidth] else [0] execute.
 ].
 UI:height?=[
-    [element] ! then [ element ! outerHeight] else [0] execute.  
+    [element] ! then [ element ! outerHeight] else [0] execute.
 ].
 UI:width=[|w|
     [element] ! then [ element ! (w) width ] execute. this.
@@ -77,14 +77,14 @@ UI:height=[|w|
     [element] ! then [ element ! (w) height ] execute. this.
 ].
 UI:nextLine=[|;top left|
-    /*[last] ! then [
+    [last] ! then [
         console ! "NL" (Screen! width?) (last!bottom?) log.
         left=-(Screen! width?) /2 + 20.
         //top=(UI:top)-((UI:last) ! outerHeight).
         top=last ! bottom?.
         !(left) (top) moveTo.
-    ] execute.    */
-    UILayout! (this) br.
+    ] execute.
+    //UILayout! (this) br.
     this.
 ].
 UI:write=[|m|
@@ -109,7 +109,7 @@ UI:num2str=[|v;r|
         v=((window:Math) ! (v*num2strDigits) round) /num2strDigits.
     ] execute.
     v+""
-    //    [ (! (r-v) abs) <0.00000001 ] ! then [ r+"" ] else [v+""] execute. 
+    //    [ (! (r-v) abs) <0.00000001 ] ! then [ r+"" ] else [v+""] execute.
 ].
 UI:int2str=UI:num2str.
 UI:str2num=[|s;r|
@@ -134,11 +134,11 @@ UI:dec=[|by|
     ! ( (! read)-by) write.
 ].
 UI! "dec" "decrement" addAlias.
-/*本多追加分*/
+//本多追加分
 UI:paint=[|r g b;args c|
     args=:window:Array:prototype:slice!(arguments)call.
     [args:length==1]!then[
-        c=r.    
+        c=r.
     ]else[
         c=Color!(r)(g)(b)create.
     ]execute.
@@ -148,7 +148,7 @@ UI:paint=[|r g b;args c|
 UI:fontColor=[|r g b;args c|
     args=:window:Array:prototype:slice!(arguments)call.
     [args:length==1]!then[
-        c=r.    
+        c=r.
     ]else[
         c=Color!(r)(g)(b)create.
     ]execute.
@@ -165,31 +165,31 @@ UI:size=[|w h|
     "height" (h+"px") css.
     self
 ].
-/*以上*/
+//以上
 
 UI:attachEvent=[].
-UI:container=$ ! "<div>" create "body" appendTo 
-"position" "absolute" css 
-"left" ( (Screen!width?) / 2) css 
+UI:container=$ ! "<div>" create "body" appendTo
+"position" "absolute" css
+"left" ( (Screen!width?) / 2) css
 "top" ( (Screen!height?) / 2) css.
 $ ! (window) create ([
     UI:container !
-    "left" ( (Screen!width?) / 2) css 
+    "left" ( (Screen!width?) / 2) css
     "top" ( (Screen!height?) / 2) css.
 ] ! (this) bind) resize.
 UILayout=!create.
 UILayout:space=20.
 UILayout:initElem=[
     element=$!"<div>" create (UI:container) appendTo.
-    element ! 
+    element !
     "white-space" "nowrap" css
     "position" "absolute" css
-    "left" (-(Screen ! width?)/2 +space) css 
-    "top" (-(Screen! height?)/2+space) css. 
+    "left" (-(Screen ! width?)/2 +space) css
+    "top" (-(Screen! height?)/2+space) css.
     $ ! (window) create ([
-        element ! 
-        "left" (-(Screen ! width?)/2 +space) css 
-        "top" (-(Screen! height?)/2+space) css. 
+        element !
+        "left" (-(Screen ! width?)/2 +space) css
+        "top" (-(Screen! height?)/2+space) css.
     ] ! (this) bind ) resize.
 ].
 UILayout ! initElem.
@@ -201,7 +201,7 @@ UILayout:add=[|ui|
     ui:element ! "position" "static" css.
 ].
 UILayout:remove=[|ui left top|
-    [ui:inUILayout] ! then [ 
+    [ui:inUILayout] ! then [
         ui:element ! remove.
         ui:inUILayout=false.
         UI:container ! (ui:element) append.
@@ -230,7 +230,7 @@ Label:initialize=[|label;t|
 Label:fontColor=[|r g b;args c|
     args=:window:Array:prototype:slice!(arguments)call.
     [args:length==1]!then[
-        c=r.    
+        c=r.
     ]else[
         c=Color!(r)(g)(b)create.
     ]execute.
@@ -250,25 +250,21 @@ Button:attachEvent=[|;t| t=this. element ! [t ! action] click].
 Button:initialize=[|label key;t|
     t=this.
     [label==undef]!then [label=! read] execute.
-    element=$!"<button>" create 
-    (! (label) num2str) text 
+    element=$!"<button>" create
+    (! (label) num2str) text
     "vertical-align" "top" css
     "white-space" "nowrap" css.
-    //"position" "absolute" css. 
+    //"position" "absolute" css.
     //(container) appendTo.
     //! attachEvent.
     ! autoLayout.
-    /*本多追加分*/
-    element! "font-size" "1.0em" css
-    "white-space" "nowrap" css
-    "border-style" "none" css.
     [key]!then[
         :window![:window:document!"keydown"[|k|
                 [k:keyCode==(:Button:keyCodeDict!
                 ((key+"")!toUpperCase)read)]!then[t!action]execute.
         ](:true)addEventListener.]$.
     ]execute.
-    /*以上*/
+    // 以上
 ].
 Button:setAction=[|a|
     action=a.this.
@@ -276,7 +272,7 @@ Button:setAction=[|a|
 
 Button:keyCodeDict=Dict!create.
 [|;arr|
-    arr=Array!"0" "1" "2" "3" "4" "5" "6" "7" "8" "9"create. 
+    arr=Array!"0" "1" "2" "3" "4" "5" "6" "7" "8" "9"create.
     [|n|
         Button:keyCodeDict!(arr!(n)get)(n+47)write
     ]!(arr!length?)repeat.
@@ -298,9 +294,9 @@ Button:keyCodeDict=Dict!create.
     "OPEN_BRACKET" 219 write
     "CLOSE_BRACKET" 221 write
     "SEMICOLON" 186 write
-    "COMMA" 188 write 
+    "COMMA" 188 write
     "PERIOD" 190 write
-    "SLASH" 191 write 
+    "SLASH" 191 write
     "ENTER" 13 write
     "PAGE_UP" 33 write
     "PAGE_DOWN" 34 write
@@ -314,14 +310,14 @@ Button:keyCodeDict=Dict!create.
     "SHIFT" 16 write
     "CTRL" 17 write.
 ]!execute.
-/*Button:keyCodeDict![|k|
-    k=(k+"") ! toUpperCase.
-    [k=="LEFT"]!then[37]
-    else[k=="UP"]then[38]
-    else[k=="RIGHT"]then[39]
-    else[k=="DOWN"]then[40]
-    else[k=="SPACE"]then[32]execute.
-].*/
+// Button:keyCodeDict![|k|
+//     k=(k+"") ! toUpperCase.
+//     [k=="LEFT"]!then[37]
+//     else[k=="UP"]then[38]
+//     else[k=="RIGHT"]then[39]
+//     else[k=="DOWN"]then[40]
+//     else[k=="SPACE"]then[32]execute.
+// ].
 Button:inc=[|;label|
     label=(self:element!0 get):innerHTML.
     [label!(:window!"^([0-9０-９]+)$"RegExp)match]!then[
@@ -329,27 +325,32 @@ Button:inc=[|;label|
     ]execute.
     self
 ].
-/*Button:write=[|m|
-    [element] ! then [element ! (m) val] execute.
-    self
-].
-Button:read=[
-    [element] ! then [element ! val] else [""] execute.
-].*/
+// Button:write=[|m|
+//     [element] ! then [element ! (m) val] execute.
+//     self
+// ].
+// Button:read=[
+//     [element] ! then [element ! val] else [""] execute.
+// ].
 
 Field=UI! create.
 Field:action=[].
 Field:attachEvent=[|;t|
     t=this.
-    element ! [|key|
-        [(key:which)==13]!then[t !（t!readString） action]execute
-    ] keypress
+    element![|key|
+        [key:which==13]!then[
+            t!(t!readString)action
+        ]execute.
+    ]keypress.
 ].
-Field:setAction=[|a| action=a. this].
+Field:setAction=[|f|
+    self:action=f.
+    self.
+].
 Field:initialize=[|label|
     [label==undef]!then [label=! read] execute.
-    element=$!"<input>" create 
-    (!(label) num2str) val 
+    element=$!"<input>" create
+    (!(label) num2str) val
     "vertical-align" "top" css
     "white-space" "nowrap" css.
     //"position" "absolute" css.
@@ -370,8 +371,8 @@ TextArea:initialize=[|;label|
     label=! read.
     manualRow=false.
     manualCol=false.
-    element=$!"<textarea>" create 
-    (label) val 
+    element=$!"<textarea>" create
+    (label) val
     "vertical-align" "top" css.
     //"white-space" "nowrap" css.
     //"position" "absolute" css.
@@ -381,13 +382,13 @@ TextArea:initialize=[|;label|
     ! autoLayout.
     writeLn ! (self) (arguments) apply.
 ].
-TextArea:autoNewLine=[|f| 
+TextArea:autoNewLine=[|f|
     [f==undef] ! then [f=true] execute.
     isAutoBR=f.
     this.
 ].
 TextArea ! "autoNewLine" "autoBR" addAlias.
-TextArea:setReadOnly=[|f| 
+TextArea:setReadOnly=[|f|
     isReadOnly=f.
     [element]!then[element ! "readonly" (f) attr]execute.
     this.
@@ -396,12 +397,12 @@ TextArea:readOnly=[!(true) setReadOnly].
 TextArea:writable=[!(false) setReadOnly].
 TextArea ! "writable" "readWrite" addAlias.
 ListBox ! readOnly autoBR.
-TextArea:mblen=[|s;i c r| 
+TextArea:mblen=[|s;i c r|
     i=0.r=0.
     [i<(s:length)] ! while [
         c=s ! (i) charCodeAt.
         r=r+([c>=128] ! then [2] else[1] execute).
-        i=i+1.    
+        i=i+1.
     ] execute.
     r.
 ].
@@ -420,7 +421,7 @@ TextArea:setRow=[|r| element ! "rows"(r) attr. manualRow=true. self].
 TextArea:setCol=[|c| element ! "cols"(c) attr. manualCol=true. self].
 TextArea:overwrite=[|;a buf|
     ! clear.
-    writeLn ! (self) (arguments) apply. 
+    writeLn ! (self) (arguments) apply.
 ].
 TextArea:readString=[
     [element] ! then [element ! val] else [""] execute.
@@ -428,13 +429,13 @@ TextArea:readString=[
 TextArea:read=TextArea:readString.
 TextArea:write=[
     (Array:prototype:slice) ! (arguments) call [|cont|
-        /*[cont==null]!then [cont=""] execute.
-        [cont==undef]!then [cont=""] execute.
-        [cont:each] ! then [
-            cont ! [|e| ! (e) writeLn ] each.  
-        ] else [
-            ! ((!readString)+(!(cont) num2str)) rawOverwrite
-        ] execute.*/
+        // [cont==null]!then [cont=""] execute.
+        // [cont==undef]!then [cont=""] execute.
+        // [cont:each] ! then [
+        //     cont ! [|e| ! (e) writeLn ] each.
+        // ] else [
+        //     ! ((!readString)+(!(cont) num2str)) rawOverwrite
+        // ] execute.
         ! (cont) (isAutoBR) _write1
     ] each.
     ! autoResize.
@@ -448,20 +449,20 @@ TextArea:rawAppend=[|cont|
 ].
 TextArea:writeLn=[
     (Array:prototype:slice) ! (arguments) call [|cont|
-        /*[cont==null]!then [cont=""] execute.
-        [cont==undef]!then [cont=""] execute.
-        [cont:each] ! then [
-            cont ! [|e| ! (e) writeLn ] each.  
-        ] else [
-            ! (cont) write newLine.
-        ] execute.*/
+        // [cont==null]!then [cont=""] execute.
+        // [cont==undef]!then [cont=""] execute.
+        // [cont:each] ! then [
+        //     cont ! [|e| ! (e) writeLn ] each.
+        // ] else [
+        //     ! (cont) write newLine.
+        // ] execute.
         ! (cont) (true) _write1
     ] each.
     ! autoResize
 ].
 TextArea:_write1=[|cont br|
     [!(cont) (Array) instanceof] ! then [
-        cont ! [|e| ! (e) (br) _write1 ] each.  
+        cont ! [|e| ! (e) (br) _write1 ] each.
     ] else [
         ! (cont) rawAppend.
         [br]!then [! "\n" rawAppend] execute.
@@ -477,16 +478,60 @@ TextArea:clear=[! "" rawOverwrite.  ! autoResize].
 TextArea:readAsArray=[
     !read  "\n"  split [|e|e!=""] select ([|e|
         ! (e) str2num
-    ]!(self) bind)  map  
+    ]!(self) bind)  map
 ].
-TextArea:changeLine=[|no line| 
+TextArea:changeLine=[|no line|
     !(! readAsArray(no) (line) set) overwrite
 ].
 
+SelectMenu=UI!create.
+SelectMenu:action=[].
+SelectMenu:attachEvent=[|;t|
+    t=this.
+    element ! [|;num txt|
+        txt=t:element!"option:selected" find text.
+        num=t:element!val.
+        t ! (txt)(num) action
+    ] change.
+    element!([
+        element!"0"val.
+    ]!(self)bind)click.
+].
+SelectMenu:initialize=[|;args|
+    args=:window:Array:prototype:slice!(arguments)call.
+    optNum=0.
+    element=$!"<select>" create
+    (!(label) num2str) val
+    "min-width" "100px" css
+    "font-size" "1.3em" css
+    "vertical-align" "top" css
+    "white-space" "nowrap" css.
+    //"position" "absolute" css.
+    //(container) appendTo.
+    ! autoLayout.
+    args![|e|self!(e)add]each.
+].
+SelectMenu:add=[|;opt|
+    args=:window:Array:prototype:slice!(arguments)call.
+    args![|e|
+        [:window:Array!(e)isArray]!then[
+            e![|e_e|self!(e_e)add]each.
+        ]else[
+            opt=$!"<option>"create.
+            opt!"value"(self:optNum)attr.
+            opt!(e)text.
+            self:optNum=self:optNum+1.
+            self:element!(opt)append.
+        ]execute.
+    ]each.
+    self.
+].
 
-/*Field:inc=[|by|
-    by=[by] ! [1] or.
-    element ! ((element ! val)-0+by)  val.
-    
-].*/
+// !"SelectMenu" "選択メニュー"addAlias.
+// SelectMenu!"add" "書く"addAlias.
 
+// Field:inc=[|by|
+//     by=[by] ! [1] or.
+//     element ! ((element ! val)-0+by)  val.
+
+// ].

@@ -1,0 +1,11 @@
+テキストファイル＝！作る。
+テキストファイル：initialize=[|filename|
+    opt=system![]new.
+    opt:url="http://klab.eplang.jp/honda/data/"+(filename).
+    opt:async=:false.
+    file=window:$!(opt)ajax.
+    text=file:responseText.
+    arr=text!(window!"[\r\n]"RegExp)split.
+    arr.
+].
+テキストファイル：読む＝「arr」。

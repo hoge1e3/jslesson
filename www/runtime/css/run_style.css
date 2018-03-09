@@ -1,0 +1,29 @@
+@font-face{
+  font-family: monospace;
+  /* フォントの場所に合わせて下さい */
+  src: url(http://bitarrow.eplang.jp/bitarrow/runtime/lib/dtl/NotoSansMonoCJKjp-Regular.woff);
+  format(‘woff’);
+}
+textarea{
+  font-family: monospace;
+}
+
+button {
+    font-size:1em;
+    min-width:5em;
+    min-height:1em;
+    display: inline-block;
+    text-decoration: none;
+    color: #000;
+    background: #EFEFEF;/*色*/
+    border: solid 1px #000000;/*線色*/
+    border-radius: 4px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+    text-shadow: 0 1px 0 rgba(0,0,0,0.2);
+}
+
+button:active {/*押したとき*/
+    background: #DFDFDF;
+    box-shadow: none;
+    text-shadow: none;
+}

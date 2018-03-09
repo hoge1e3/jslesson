@@ -71,6 +71,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
         $(head).append($("<script>").text("window.runtimePath='"+WebSite.runtime+"';"));
         $(head).append($("<script>").text("window.onerror=window.onerror||"+
         function (e) {alert(e);}+";"));
+        $(head).append($("<link>").attr({"rel":"stylesheet","href":WebSite.runtime+"css/run_style.css"}));
 
         libs.concat(dtlibs).map(function (r) {
             return WebSite.runtime+r;
