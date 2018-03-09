@@ -6,7 +6,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
            "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog",
-           "IframeDialog","assignmentDialog","SubmitDialog"
+           "IframeDialog","AssignmentDialog","SubmitDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -16,7 +16,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
           CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog,
-          IframeDialog,assignmentDialog,SubmitDialog
+          IframeDialog,AssignmentDialog,SubmitDialog
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -311,8 +311,10 @@ function ready() {
         //console.log("Auth.teacher",Auth.teacher);
         //$("#distribute").css("display",dist);
     }
+    var assignmentDialog=new AssignmentDialog(curPrj);
     function assignment() {
-        assignmentDialog.show(curProjectDir);
+        var inf=getCurrentEditorInfo();
+        assignmentDialog.show(inf && inf.file);
     }
     function showToolMenu() {
         if (lang==="tonyu") {

@@ -2,6 +2,7 @@ define(["Klass","UI","assert","DateUtil","DeferredUtil","TestsuiteDialog"],
 function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
     var AssignmentDialog=Klass.define({
         $this:"t",
+        $:["prj"],
         dialogParam: {
             width:600,
             height:600
@@ -46,14 +47,11 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
         add: function (t,file) {
             var dir;
             if (file) {
-                if (file.isDir()) {
-                    dir=file;
-                    file=null;
-                } else {
-                    dir=file.up();
-                }
-                t.file.val(file||"");
-                t.prefix=dir.name().replace(/\//g,"-");
+                var prjTop=t.prj.getDir().up();
+                t.file.val(file.relPath(prjTop));
+                t.prefix=file.truncExt().replace(/[\/]/g,"-");
+            } else {
+                t.file.val("");
             }
             t.name.val(t.prefix);
             t.description.val("");
@@ -209,6 +207,6 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
             },DU.E);
         }
     });
-    assignmentDialog=new AssignmentDialog();
-    return assignmentDialog;
+    //assignmentDialog=new AssignmentDialog();
+    return AssignmentDialog;
 });
