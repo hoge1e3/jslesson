@@ -27,9 +27,10 @@ MinimalParser= function () {
 	        var s=Object.create(ctx.scope||{});
 					//修正点１
 	        ["self","this","自分"].forEach(function (k) {
-	            s[k]={type:"self", depth:depth};  
+	            s[k]={type:"self", depth:depth};
 	        });
 	        s["arguments"]={type:"arguments", depth:depth};
+					s["_rest"]={type:"_rest", depth:depth};
 	        return {scope: s ,depth:depth };
 	    },parser);
 	}
@@ -66,7 +67,7 @@ MinimalParser= function () {
 		    // a=空白またはコメント   b=読み込んだトークン
 			// テキストと位置情報をつけて返す．
     	    //console.log("READ ! ",b.pos,b.len, b.src.str.substring( b.pos, b.pos+b.len ));
-			return {pos:b.pos, 
+			return {pos:b.pos,
 					text: b.src.str.substring( b.pos, b.pos+b.len ) ,
 					toString: function (){
 						//return this.text+"("+this.pos+")";
@@ -75,7 +76,7 @@ MinimalParser= function () {
 			}
 		});
 	}
-	
+
 	//ブロックに引数を与える際の構文
 	var local_param_trim=function(_array){
 		var result="";
@@ -83,7 +84,7 @@ MinimalParser= function () {
 		return result;
 	};
 	var block_trim=function(w){
-		
+
 	};
     // \lazies
 	var expr,term,block,paren_expr,variable,infix_expr,program,statement_list;
@@ -133,7 +134,7 @@ MinimalParser= function () {
 	var deq=token(/^[=＝][=＝]/).ret(function(){return "===";});
 	var add=token(/^[+＋]/).ret(function(){return "+";});
 	var sub=token(/^[-−–－]/).ret(function(){return "-";});
-	var mul=token(/^[*×＊∗]/).ret(function(){return "*";}); 
+	var mul=token(/^[*×＊∗]/).ret(function(){return "*";});
 	var div=token(/^[/÷／]/).ret(function(){return "/";});
 	var gt=token(/^[>＞]/).ret(function(){return ">";});
 	var ge=token(/^(?:[>＞][=＝])|≧/).ret(function(){return ">=";});
@@ -175,7 +176,7 @@ MinimalParser= function () {
 		}
 		return extend(["(",v,")"],{type:"number",value:v});
 	});
-    //--------------ここから構文	
+    //--------------ここから構文
 	//括弧
 	var paren_expr = lp.and(expr_lazy).and(rp).
 	ret(function(_lp,_expr,_rp){
@@ -195,7 +196,7 @@ MinimalParser= function () {
 	//電文
 	var elec = simple.rep0().and(token_name).
 	ret(function(_params,_meth){
-	    return extend(["['"+_meth+"']","(",joinary(_params,","),")"], 
+	    return extend(["['"+_meth+"']","(",joinary(_params,","),")"],
 	    {type:"elec",subnodes:arguments});
 	}).sep1(semicolon.opt(),true);
 	//送信
@@ -235,7 +236,7 @@ MinimalParser= function () {
 	ret(function(_ls,_param,_semicolon,_local_param,_rs){
 	    _param.forEach(regParam);
 	    _local_param.forEach(regLocal);
-	    return extend([joinary(_param,","),local_param_trim(_local_param)], 
+	    return extend([joinary(_param,","),local_param_trim(_local_param)],
 	    {type:"block_param",subnodes:arguments});
 	});
 	function regParam(n,i) {
@@ -246,9 +247,10 @@ MinimalParser= function () {
 	}
 	var block = lsb.and(block_param.opt()).and(statement_list_lazy).and(rsb).
 	ret(function(_lsb,_param,_progs,_rsb){
-	    _param=_param||["",""]; 
+		// console.log(_progs);
+	    _param=_param||["",""];
 	    return extend(["dtlbind(this,function(",_param[0],
-	    "){\nvar self=this;var 自分=self;\n",_param[1],_progs,"})"], 
+	    "){\nvar self=this;var 自分=self;var _rest=Array.prototype.slice.call(arguments,"+(_param[0].length)+");\n",_param[1],_progs,"})"],
 	    {type:"block",subnodes:arguments,depth:ctx.depth});
 	});
 	block=newScope(block);
@@ -286,6 +288,13 @@ MinimalParser= function () {
                         depth:s.depth,
                         vmname: "arguments"
                     });
+								case "_rest":
+                    return extend(["_rest"],{
+                        type:"localVar",
+                        name:"_rest",
+                        depth:s.depth,
+                        vmname: "_rest"
+                    });
                 default:
                     throw new Exception("Invalid scope type:"+s.type);
             }
@@ -300,7 +309,7 @@ MinimalParser= function () {
             return extend(["this['"+n+"']"],{type:"field",name:n});
         }
     })).or(colon.and(token_name).ret(function (_,n) {
-            return extend(["root['"+n+"']"],{type:"rootVar",name:n});  
+            return extend(["root['"+n+"']"],{type:"rootVar",name:n});
         })
     ));
     varbuild.postfix(1,colon.and(token_name).ret(function (_,name) {
@@ -324,19 +333,19 @@ MinimalParser= function () {
 	    return extend([stmts,"return ",last], {type:"statement_list",subnodes:arguments});
 	});
     program = newScope(statement_list).and(space.opt());
-	/* 
+	/*
 	パーサに適用できるメソッド（いずれも新しいパーサを生成して返す）：
 	メソッド                         新しく生成されるパーサの動作
-	parser.and(parser2)       parser を解析し，続けて parser2 を解析する   
-	parser.ret(func)          parser の解析結果をfuncの第1引数に渡して，func を実行する．  
+	parser.and(parser2)       parser を解析し，続けて parser2 を解析する
+	parser.ret(func)          parser の解析結果をfuncの第1引数に渡して，func を実行する．
 	parser が複数のand でつながれている場合は， func は同じ数の引数をとる
-	parser.or(parser2)        parser を解析し，解析に失敗したときは parser2 を解析する  
-	parser.opt()              parser を解析し，失敗した場合は何もせずに解析に成功する．  parser自身の解析が失敗した場合の解析結果はnull 
+	parser.or(parser2)        parser を解析し，解析に失敗したときは parser2 を解析する
+	parser.opt()              parser を解析し，失敗した場合は何もせずに解析に成功する．  parser自身の解析が失敗した場合の解析結果はnull
 	parser.rep0()             parser を0回以上繰り返し解析する．  解析結果は， parserの各回の解析結果の配列
 	parser.rep1()             parser を1回以上繰り返し解析する．  解析結果は， parserの各回の解析結果の配列
 	parser.sep1(sep, true)     parser を繰り返し解析するが，それぞれの繰り返しの間に sep を解析する． カンマ区切りの解析などに使う．
 	第2引数が true の 場合，  解析結果は 各parserの解析結果の配列になる
-	第2引数が false の 場合，  {head: parser(1回目) , [ {sep: sep(n回目), value: parser(n+1回目) } ] }  
+	第2引数が false の 場合，  {head: parser(1回目) , [ {sep: sep(n回目), value: parser(n+1回目) } ] }
 	*/
 	function tap(x) {
 	    console.log("tap",typeof x,x);
