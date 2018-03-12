@@ -72,7 +72,8 @@ root.getAllDtlObjs=function (res,path) {
         } else {
             if (typeof e=="object" && e!==root && e!==null &&
             e!==window && e!==console && e!==document) {
-                console.log("Warning: not a dtl obj",path+":"+k);
+                //沢山ワーニングが出てくるので一時コメントアウト
+                //console.log("Warning: not a dtl obj",path+":"+k);
             }
         }
     }
@@ -142,7 +143,8 @@ root.addAlias2=function () {
         if (emp.length>0) root.addAlias.apply(o, [has[0]].concat(emp));
         return o[has[0]];
     } else {
-        console.log("Warning! method not found obj=",o.__name__,"meth=",methods);
+        //沢山警告出て来るので一時コメントアウト
+        // console.log("Warning! method not found obj=",o.__name__,"meth=",methods);
     }
     return;
 };
@@ -196,7 +198,8 @@ root.addAliasFromTable=function () {
     objects.forEach(function (obj) {
         var o=root[obj];//root.findObject(obj);
         if (!o) {
-            console.log("Warning! object ",obj," not found");
+            //沢山ワーニングが出てくるので一時コメントアウト
+            // console.log("Warning! object ",obj," not found");
             return;
         }
         if (typeof o === "boolean") return;
@@ -242,13 +245,19 @@ root.system=root.create().extend({
   },
 	new:function(obj){
     var args=Array.prototype.slice.call(arguments);
-    args.shift();
+    obj=args.shift();
     //console.log(args);
     var creater=function(args){
       return obj.apply(this,args);
     };
     creater.prototype=obj.prototype;
-		return new creater(args);
+    var res;
+    try{
+      res=new creater(args);
+    }catch(e){
+      res=new obj(args[0]);
+    }
+    return res;
 	},
 	sleep:function(time){
 		var start=new Date().getTime();
@@ -364,7 +373,7 @@ Object.defineProperty(Array.prototype,"each",{
 	value:function(func){
 		var res=undefined;
 		for(var i=0;i<this.length;i++){
-			res=func.execute(this[i],i);
+			res=func.execute(this[i],i+1);
 		}
 		return res;
 	},
@@ -460,6 +469,22 @@ String.prototype.div=function (s) {return this.toNumber()/(s+"").toNumber();};
 String.prototype.mod=function (s) {return this.toNumber()%(s+"").toNumber();};
 var substr1=function(param){return this.substring(param-1);};
 var substr2=function(param1,param2){return this.substring(param1-1,param1-1+param2);}
+String.prototype.execute=function(){
+  try{
+    var dtlNode=window.parent.MinimalParser.parseAsNode(this.toString());
+  }catch(e){
+    alert(e);
+    return;
+  }
+  try{
+    var js=window.parent.MinimalParser.node2js(dtlNode);
+    var f=new Function(js);
+    f.call(this);
+  }catch(e){
+    alert(e);
+    return;
+  }
+};
 
 //Booleanオブジェクト
 Boolean.prototype.then=function(){return (this==true)?root._true:root._false;};
@@ -481,6 +506,11 @@ Boolean.prototype.not=function(){return (false==this);};
 		return Math[k](this).degree();
 	};
 });
+Number.prototype.base=function(n){
+console.log(this);
+console.log(n);
+	return this.toString(n).toUpperCase();
+};
 Number.prototype.atan2=function(y){
 	return Math.atan2(y,this).degree();
 };

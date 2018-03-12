@@ -1,8 +1,8 @@
 (function(){return dtlbind(this,function(){
-var self=this;var 自分=self;
+var self=this;var 自分=self;var _rest=Array.prototype.slice.call(arguments,0);
 return ((this['window']['localStorage']['noLocalize'])!=="1");
 })['then']()['execute'](dtlbind(this,function(){
-var self=this;var 自分=self;
+var self=this;var 自分=self;var _rest=Array.prototype.slice.call(arguments,0);
 var aa;
 this['makeCaseInsensitiveAll']();
 aa=this['root']['addAlias'];
@@ -69,11 +69,11 @@ this['touchSensor']['addAlias']("setAction","動作設定")['addAlias']("action"
 this['addAlias']("gyroSensor","ジャイロセンサ","ジャイロセンサー");
 this['gyroSensor']['addAlias']("setAction","動作設定")['addAlias']("action","動作")['addAlias']("use","使う")['addAlias']("getYaw","ヨー?","水平方向の傾き?","水平の傾き?")['addAlias']("getRoll","ロール?","左右方向の傾き?","左右の傾き?")['addAlias']("getPitch","ピッチ?","前後方向の傾き?","前後の傾き?")['addAlias']("getA","値A")['addAlias']("getB","値B")['addAlias']("getC","値C")['addAlias']("calibrate","調整")['addAlias']("use","使う");
 this['HTML']['読む']=dtlbind(this,function(x){
-var self=this;var 自分=self;
+var self=this;var 自分=self;var _rest=Array.prototype.slice.call(arguments,1);
 return this['get']((x));
 });
 this['HTML']['位置']=dtlbind(this,function(x,y){
-var self=this;var 自分=self;
+var self=this;var 自分=self;var _rest=Array.prototype.slice.call(arguments,2);
 return this['move']((x),(y));
 });
 this['addAliasFromTable']("root","オブジェクト","Object");

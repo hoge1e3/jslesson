@@ -1,4 +1,4 @@
-テキストファイル＝！作る。
+テキストファイル＝！create。
 テキストファイル：initialize=[|filename|
     opt=system![]new.
     opt:url="http://klab.eplang.jp/honda/data/"+(filename).

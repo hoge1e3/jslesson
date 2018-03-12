@@ -1,8 +1,8 @@
 (function(){return dtlbind(this,function(){
-var self=this;var 自分=self;
+var self=this;var 自分=self;var _rest=Array.prototype.slice.call(arguments,0);
 return ((this['window']['localStorage']['noLocalize'])!=="1");
 })['then']()['execute'](dtlbind(this,function(){
-var self=this;var 自分=self;
+var self=this;var 自分=self;var _rest=Array.prototype.slice.call(arguments,0);
 var aa;
 var fp;
 var ap;
@@ -47,7 +47,7 @@ this['Actor']['addAlias']("forward","歩く")['addAlias']("turnRight","右回り
 this['addAlias']("turtle","タートル");
 this['タートル']['addAlias']("makeFigure","図形を作る");
 this['タートル']['戻る']=dtlbind(this,function(x){
-var self=this;var 自分=self;
+var self=this;var 自分=self;var _rest=Array.prototype.slice.call(arguments,1);
 return this['forward']((-x));
 });
 this['タートル']['ペンあり']=this['turtle']['penDown'];
@@ -58,12 +58,12 @@ this['Turtle']['addAlias']("action","動作")['addAlias']("setAction","動作設
 this['turtle']['歩く']=this['turtle']['forward'];
 this['turtle']['変身する']=this['turtle']['change'];
 this['タートル']['円']=dtlbind(this,function(r){
-var self=this;var 自分=self;
+var self=this;var 自分=self;var _rest=Array.prototype.slice.call(arguments,1);
 var d;
 d=(r*(0.1745328));
 this['戻る'](((d/(2))));
 dtlbind(this,function(){
-var self=this;var 自分=self;
+var self=this;var 自分=self;var _rest=Array.prototype.slice.call(arguments,0);
 return this['歩く']((d))['右回り']((10));
 })['repeat']((36));
 return this['歩く'](((d/(2))));
@@ -75,11 +75,11 @@ this['図形']['addAlias']("paint","塗る");
 this['図形']['結合する']=this['Figure']['makeGroup'];
 this['図形']['結合']=this['Figure']['makeGroup'];
 this['HTML']['読む']=dtlbind(this,function(x){
-var self=this;var 自分=self;
+var self=this;var 自分=self;var _rest=Array.prototype.slice.call(arguments,1);
 return this['get']((x));
 });
 this['HTML']['位置']=dtlbind(this,function(x,y){
-var self=this;var 自分=self;
+var self=this;var 自分=self;var _rest=Array.prototype.slice.call(arguments,2);
 return this['move']((x),(y));
 });
 this['addAlias']("Timer","タイマー");
