@@ -601,9 +601,15 @@ Function.prototype.checkerror=function () {
     var f=this;
     return dtlbind(f.bound, function () {
         try {
-           return f.apply(this,arguments);
+           var res=f.apply(this,arguments);
+           if (res && typeof res.catch==="function") {
+                return res.catch(function (e) {
+                    if (typeof onerror==="function") onerror(e.message,"unknown",1,1,e);
+                });
+           }
+           return res;
         } catch(e) {
-            if (onerror) onerror(e.message,"unknown",1,1,e);
+            if (typeof onerror==="function") onerror(e.message,"unknown",1,1,e);
             else throw e;
         }
     });
@@ -725,5 +731,33 @@ root.module=root.create().extend({
     root[f].prototype.__name__=f+":prototype";
 });
 root.Block=root.Function;
-
+DtlPromise={
+    create: function (f) {
+        var d=new $.Deferred;
+        f.execute(function (r){ return d.resolve(r)},
+        function (e) {return d.reject(e);});
+        return d.promise();
+    },
+    run:function (self,a) {
+        function isPromise(res) {
+            return typeof res!=="function" &&
+                res &&
+                typeof res.then==="function" &&
+                typeof res.catch==="function";
+        }
+        function loop() {
+            var res;
+            while (a.length>0) {
+                var f=a.shift();
+                if (typeof f!=="function") continue;
+                res=f.call(self);
+                if (isPromise(res)) {
+                    return res.then(loop);
+                }
+            }
+            return res;
+        }
+        return loop();
+    }
+};
 })();

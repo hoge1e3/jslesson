@@ -2,6 +2,7 @@ MinimalParser= function () {
 	var parser={};
 	var sp=Parser.StringParser; // 文字列を解析するパーサ
 	var ctx;
+	var USE_DTL_PROMISE=false;
 	function ent(entf, parser) {
         if (typeof parser == "function") {
 	       var res;
@@ -328,6 +329,14 @@ MinimalParser= function () {
     //プログラム := 文 . * (最後の.は省略可能)
 	statement_list = statement.sep0(period,true).and(period.opt()).
 	ret(function(_stmts){
+		if (USE_DTL_PROMISE) {
+			return extend(["return DtlPromise.run(this,[",
+				_stmts.map(function (n,i) {
+					return ["function () { return ",n,";}",
+					i<_stmts.length-1?",":""];
+				}),"]);"],
+			{type:"statement_list",subnodes:arguments,stmts:_stmts});
+		}
 	    var stmts=_stmts.slice();
 	    var last=stmts.pop();
 	    return extend([stmts,"return ",last], {type:"statement_list",subnodes:arguments});
