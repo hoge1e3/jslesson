@@ -50,5 +50,12 @@ Timer:after_execute=[|f|
     self:d![f!execute]then.
     self.
 ].
+Timer:wait=[
+    DtlPromise ! (self) [|succ|
+        ! [
+            succ! execute
+        ] after_execute 
+    ] wait.
+].
 Timer ! "after_execute" "execute_once" addAlias. 
 ! "Timer" "timer" addAlias.

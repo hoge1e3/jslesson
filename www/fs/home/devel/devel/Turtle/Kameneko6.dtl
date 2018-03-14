@@ -1,6 +1,6 @@
 // Dolittle
 // カメネコ本6(p28,29)
-module ! "Vec2" "Actor" "UI" "Timer" "Util" "Turtle" "Figure" "DOM" "Color" "Japanese" [
+module ! "Vec2" "Actor" "UI" "Timer" "Util" "Turtle" "Figure" "DOM" "Color" "Japanese2" [
     // タートルをつくる
     ボール＝タートル！作る  ペンなし。
     ボール！４５  向き  ０  −１００  位置。
@@ -32,11 +32,11 @@ module ! "Vec2" "Actor" "UI" "Timer" "Util" "Turtle" "Figure" "DOM" "Color" "Jap
     右ボタン＝ボタン！"  右  "  "RIGHT"  作る。
     右ボタン：動作＝「パドル！４０  ０  移動する。」。
     // 勝敗の判定
-    時計！「
-        「（得点！読む）＞＝４０」！なら「
-            ラベル！"  ゲームクリア  "  作る。
-        」そうでなければ「
-            ラベル！"  ゲームオーバー  "  作る。
-        」実行。
-    」最後に実行。
+    時計！待つ．
+    「（得点！読む）＞＝４０」！なら「
+        ラベル！"  ゲームクリア  "  作る。
+    」そうでなければ「
+        ラベル！"  ゲームオーバー  "  作る。
+    」実行。
+//」最後に実行。
 ] require。

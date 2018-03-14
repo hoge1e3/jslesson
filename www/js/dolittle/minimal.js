@@ -2,7 +2,7 @@ MinimalParser= function () {
 	var parser={};
 	var sp=Parser.StringParser; // 文字列を解析するパーサ
 	var ctx;
-	var USE_DTL_PROMISE=false;
+	var USE_DTL_PROMISE=true;
 	function ent(entf, parser) {
         if (typeof parser == "function") {
 	       var res;
@@ -251,7 +251,10 @@ MinimalParser= function () {
 		// console.log(_progs);
 	    _param=_param||["",""];
 	    return extend(["dtlbind(this,function(",_param[0],
-	    "){\nvar self=this;var 自分=self;var _rest=Array.prototype.slice.call(arguments,"+(_param[0].length)+");\n",_param[1],_progs,"})"],
+	    "){\nvar self=this;var 自分=self;"+
+		"var _args=Array.prototype.slice.call(arguments);"+
+		"var _rest=Array.prototype.slice.call(arguments,"+(_param[0].length)+");\n",
+		_param[1],_progs,"})"],
 	    {type:"block",subnodes:arguments,depth:ctx.depth});
 	});
 	block=newScope(block);
@@ -283,9 +286,9 @@ MinimalParser= function () {
                         vmname: "self"
                     });
                 case "arguments":
-                    return extend(["arguments"],{
+                    return extend(["_args"],{
                         type:"localVar",
-                        name:"arguments",
+                        name:"_args",
                         depth:s.depth,
                         vmname: "arguments"
                     });
@@ -307,7 +310,7 @@ MinimalParser= function () {
                 vmname: (s.type=="local"?"_local":"_param")+s.seq
             });*/
         } else {
-            return extend(["this['"+n+"']"],{type:"field",name:n});
+			return extend(["this['"+n+"']"],{type:"field",name:n});
         }
     })).or(colon.and(token_name).ret(function (_,n) {
             return extend(["root['"+n+"']"],{type:"rootVar",name:n});
@@ -427,8 +430,7 @@ MinimalParser= function () {
     	};
     	gen(p);
     	buf.print("}).checkerror().apply(root,[]);");
-    	//console.log("dtlgen",p,result);
-    	return buf.buf;
+		return buf.buf;
     };
 	return parser;
 }();

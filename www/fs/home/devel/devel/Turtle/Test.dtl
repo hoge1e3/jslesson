@@ -1,5 +1,21 @@
 module ! "Vec2" "Actor" "Group" "Util" "UI" "Timer" "Turtle" "Figure" "DOM" "Color" "Japanese2" [
-    かめた＝タートル！作る 100 歩く ２ 拡大する。
+    /*遅延＝「｜;なにか｜
+        なにか＝！作る．
+        DtlPromise ! (なにか)  [|succ fail|
+            タイマー！作る １ 間隔 １ 回数「
+                succ ! execute.
+            」実行．
+        ] wait.
+    」．*/
+    かめた＝タートル！作る．
+    ラベル！ "スタート" 作る．
+    タイマー！作る 20 回数「
+        かめた！ １０ 歩く．
+    」実行 待つ．
+    ラベル！ "ゴール" 作る．
+    
+    
+    //  かめた＝タートル！作る 100 歩く ２ 拡大する。
     
     /*て＝リスト！作る "cyan" paint "white" fontColor 20 fontSize。
     て！（システム！日付）書く。

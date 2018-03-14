@@ -731,28 +731,44 @@ root.module=root.create().extend({
     root[f].prototype.__name__=f+":prototype";
 });
 root.Block=root.Function;
-DtlPromise={
-    create: function (f) {
-        var d=new $.Deferred;
-        f.execute(function (r){ return d.resolve(r)},
-        function (e) {return d.reject(e);});
-        return d.promise();
+DtlPromise=root.DtlPromise={
+    IS: "IS_DTL_PROMISE",
+    // promisify
+    wait: function (obj,f) {// f:promise or func
+        var pro;
+        if (typeof f==="function"){
+            var d=new $.Deferred;
+            pro=d.promise();
+            f.execute(d.resolve.bind(d),d.reject.bind(d));
+        } else pro=f;
+        var cpro;
+        var IS=DtlPromise.IS;
+        var resolved;
+        obj[IS]=(obj[IS]?obj[IS].then(function () {
+            return pro;
+        }):pro).then(function (r) {
+            resolved=true;
+            if (obj[IS]===cpro) delete obj[IS];
+            return r;
+        });
+        if (resolved) delete obj[IS];
+        else cpro=obj[IS];
+        return obj;
+    },
+    is: function (res) {
+        return res && res[DtlPromise.IS];
     },
     run:function (self,a) {
-        function isPromise(res) {
-            return typeof res!=="function" &&
-                res &&
-                typeof res.then==="function" &&
-                typeof res.catch==="function";
-        }
         function loop() {
             var res;
             while (a.length>0) {
                 var f=a.shift();
                 if (typeof f!=="function") continue;
                 res=f.call(self);
-                if (isPromise(res)) {
-                    return res.then(loop);
+                var dp=DtlPromise.is(res);
+                if (dp) {
+                    // DtlPromise.run should return promisified object, not (native)promise
+                    return DtlPromise.wait(res, dp.then(loop));
                 }
             }
             return res;
