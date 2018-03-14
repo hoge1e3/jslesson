@@ -742,13 +742,15 @@ DtlPromise=root.DtlPromise={
             f.execute(d.resolve.bind(d),d.reject.bind(d));
         } else pro=f;
         var cpro;
+        var isp=DtlPromise.is(obj);
         var IS=DtlPromise.IS;
         var resolved;
-        obj[IS]=(obj[IS]?obj[IS].then(function () {
+        obj[IS]=(isp?isp.then(function () {
             return pro;
         }):pro).then(function (r) {
             resolved=true;
-            if (obj[IS]===cpro) delete obj[IS];
+            var isp=DtlPromise.is(obj);
+            if (isp===cpro) delete obj[IS];
             return r;
         });
         if (resolved) delete obj[IS];
@@ -756,7 +758,8 @@ DtlPromise=root.DtlPromise={
         return obj;
     },
     is: function (res) {
-        return res && res[DtlPromise.IS];
+        if (res && res[DtlPromise.IS] &&
+            res.hasOwnProperty(DtlPromise.IS)) return res[DtlPromise.IS];
     },
     run:function (self,a) {
         function loop() {
