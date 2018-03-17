@@ -34,8 +34,7 @@ cp $src/lib.js $dst
 cp $src/util.js $dst
 cp $src/x.js $dst
 cp $src/ctype.js $dst
-cp $src/AsyncByGenerator.js $dst
-cp $src/AsyncByGeneratorRaw.js $dst
+#cp $src/AsyncByGeneratorRaw.js $dst
 
 #common?
 src=./js/lib/
@@ -43,3 +42,4 @@ dst=./runtime/lib
 cp $src/assert.js $dst
 cp $src/Klass.js $dst
 cp js/fs2/FS.js $dst
+cp js/ctrans/AsyncByGenerator.js $dst

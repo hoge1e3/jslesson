@@ -602,12 +602,17 @@ root.system.handleError=function (e){
     if (typeof onerror==="function") onerror(e.message,"unknown",1,1,e);
     else throw e;
 };
+root.system.run2=function (res) {
+    if (AsyncByGenerator.isGenerator(res)) {
+        return AsyncByGenerator.run(res);
+    }
+    return res;
+};
 root.system.run=function (func) {
     try {
         var res=func.apply(root,[]);
         if (AsyncByGenerator.isGenerator(res)) {
             res=AsyncByGenerator.run(res);
-            if (typeof res.catch!=="function") console.log("ERR",res);
             return res.catch(root.system.handleError);
         }
     } catch (e) {
@@ -736,7 +741,7 @@ root.module=root.create().extend({
             }
         }
         return window.requirejs(reqs,function() {
-            if (func) return func.checkerror().execute(arguments);
+            if (func) return root.system.run2(func.checkerror().execute(arguments));
         });
     }
 });

@@ -25,7 +25,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG) {
     var libs=["jquery-1.12.1","require","AsyncByGenerator"].map(function (n) {
         return "lib/"+n+".js";
     });
-    var dtlibs=["mt","lib","polyk","calibration","devicemotion",
+    var dtlibs=["promise","mt","lib","polyk","calibration","devicemotion",
     "Dict","Vec2","Actor","Group","UI","Color","Timer",
     "Util","Turtle","Figure","DOM","TextFile","Japanese2"].map(
         function (n) {

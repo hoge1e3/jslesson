@@ -108,26 +108,39 @@ this['Actor']['initSVG']=dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
 var t;
 var wndj;
-var svgw;
-var svgh;
+var wndw;
+var wndh;
+var htmlj;
+var htmlw;
+var htmlh;
 this['svg']=this['$']['create']("svg");
 this['console']['log']("SVG",(this['svg']));
 wndj=this['$']['create']((this['window']));
-svgw=((wndj['width']())-(10));
-svgh=((wndj['height']())-(10));
+htmlj=root['window']['$'](("html"))['get']((0));
+htmlw=((root['window']['parseFloat']((htmlj['scrollWidth'])))-(10));
+htmlh=((root['window']['parseFloat']((htmlj['scrollHeight'])))-(10));
+wndw=((wndj['width']())-(10));
+wndh=((wndj['height']())-(10));
 dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
-return (svgh<=(0));
+return (wndh<=(0));
 })['then']()['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
-return svgh=((svgw/(16))*(9));
+return wndh=((wndw/(16))*(9));
+}));
+dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return (htmlh<=(0));
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return htmlh=((htmlw/(16))*(9));
 }));
 dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
 return (this['svg']['length']===(0));
 })['then']()['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
-return this['svg']=this['createSVGElem']("svg")['attr']("width",(svgw))['attr']("height",(svgh))['css']("position","absolute")['appendTo']("body");
+return this['svg']=this['createSVGElem']("svg")['attr']("id","turtle_svg")['attr']("width",(htmlw))['attr']("height",(htmlh))['css']("position","absolute")['appendTo']("body");
 }));
 this['svg_g']=this['svg']['find']("g");
 dtlbind(this,function(){
@@ -135,22 +148,50 @@ var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);va
 return (this['svg_g']['length']===(0));
 })['then']()['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
-return this['svg_g']=this['createSVGElem']("g")['attr']("transform",((((("translate("+((svgw/(2))))+",")+((svgh/(2))))+") scale(1,-1)")))['appendTo']((this['svg']));
+return this['svg_g']=this['createSVGElem']("g")['attr']("transform",((((("translate("+((wndw/(2))))+",")+((wndh/(2))))+") scale(1,-1)")))['appendTo']((this['svg']));
 }));
 t=this;
-wndj['resize'](dtlbind(this,function(){
-var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
-svgw=((wndj['width']())-(10));
-svgh=((wndj['height']())-(10));
+t['htmlResize']=dtlbind(this,function(htmlw,htmlh){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,2);
 dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
-return (svgh<=(0));
+return (htmlh<=(0));
 })['then']()['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
-return svgh=((svgw/(16))*(9));
+return htmlh=((htmlw/(16))*(9));
 }));
-(t['svg'])['attr']("width",(svgw))['attr']("height",(svgh));
-return (t['svg_g'])['attr']("transform",((((("translate("+((svgw/(2))))+",")+((svgh/(2))))+") scale(1,-1)")));
+return (t['svg'])['attr']("width",(htmlw))['attr']("height",(htmlh));
+});
+root['window']['setInterval']((dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+var htmlw;
+var htmlh;
+var wndw;
+var wndh;
+htmlw=((root['window']['parseFloat']((htmlj['scrollWidth'])))-(10));
+htmlh=((root['window']['parseFloat']((htmlj['scrollHeight'])))-(10));
+this['htmlw_old']=root['window']['parseFloat'](((t['svg'])['attr']("width")));
+this['htmlh_old']=root['window']['parseFloat'](((t['svg'])['attr']("height")));
+return dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return this['or']['true'](((htmlw!==this['htmlw_old'])),((htmlh!==this['htmlh_old'])));
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return t['htmlResize']['execute']((htmlw),(htmlh));
+}));
+})['bind']((this))),(100));
+wndj['resize'](dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+wndw=((wndj['width']())-(10));
+wndh=((wndj['height']())-(10));
+dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return (wndh<=(0));
+})['then']()['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return wndh=((wndw/(16))*(9));
+}));
+return (t['svg_g'])['attr']("transform",((((("translate("+((wndw/(2))))+",")+((wndh/(2))))+") scale(1,-1)")));
 }));
 return this['group']['element']=this['svg_g'];
 });

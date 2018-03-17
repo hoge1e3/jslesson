@@ -7,7 +7,7 @@ Actor:dir=0.
 Actor:num=[|x| [x]!then[x]else[0]execute ].
 //Actor:actorList=Array! create.
 Actor:createSVGElem=[|tag|
-    $! (document ! 
+    $! (document !
     "http://www.w3.org/2000/svg" (tag)
     createElementNS
     ) create.
@@ -45,12 +45,12 @@ Actor:group:members=Array!create.
 Actor:group:remove=[|m;i|
     i=members ! (m) indexOf.
     [i>=0] ! then [
-        members ! (i) (1) splice.    
-    ] execute.    
+        members ! (i) (1) splice.
+    ] execute.
     [m:element] ! then [m:element ! remove] execute.
 ].
 Actor:group:add=[|m;i|
-    [m:getCrashShape] ! then [] else [ system ! ("NO"+m) throw ]execute. 
+    [m:getCrashShape] ! then [] else [ system ! ("NO"+m) throw ]execute.
     i=members ! (m) indexOf.
     [i<0] ! then [
         members ! (m) push.
@@ -58,34 +58,53 @@ Actor:group:add=[|m;i|
     ] execute.
 ].
 
-Actor:initSVG=[|;t wndj svgw svgh|
+Actor:initSVG=[|;t wndj wndw wndh htmlj htmlw htmlh |
     svg=$ ! "svg" create.
     console ! "SVG" (svg) log.
     wndj=$ ! (window) create.
-    svgw=(wndj ! width)-10.
-    svgh=(wndj ! height)-10.
-    [svgh<=0] ! then [svgh=svgw/16*9] execute.
+    htmlj=:window!("html")$ 0 get.
+    htmlw=(:window!(htmlj:scrollWidth)parseFloat)-10.
+    htmlh=(:window!(htmlj:scrollHeight)parseFloat)-10.
+    wndw=(wndj ! width)-10.
+    wndh=(wndj ! height)-10.
+    [wndh<=0] ! then [wndh=wndw/16*9] execute.
+    [htmlh<=0] ! then [htmlh=htmlw/16*9] execute.
     [svg:length==0] ! then [
         //window ! (svgw+","+svgh) alert.
-        svg= !"svg" createSVGElem 
-        "width" (svgw) attr
-        "height" (svgh) attr
+        svg= !"svg" createSVGElem
+        "id" "turtle_svg" attr
+        "width" (htmlw) attr
+        "height" (htmlh) attr
         "position" "absolute" css
         "body" appendTo.
     ] execute.
     svg_g = svg ! "g" find.
     [svg_g:length==0] ! then [
-        svg_g= ! "g" createSVGElem 
-        "transform" ("translate("+(svgw/2)+","+(svgh/2)+") scale(1,-1)") attr 
+        svg_g= ! "g" createSVGElem
+        "transform" ("translate("+(wndw/2)+","+(wndh/2)+") scale(1,-1)") attr
         (svg) appendTo.
     ] execute.
     t=self.
+    t:htmlResize=[|htmlw htmlh|
+        [htmlh<=0] ! then [htmlh=htmlw/16*9] execute.
+        (t:svg) ! "width" (htmlw) attr "height" (htmlh) attr.
+    ].
+    :window ! ([|;htmlw htmlh wndw wndh|
+        htmlw=(:window!(htmlj:scrollWidth)parseFloat)-10.
+        htmlh=(:window!(htmlj:scrollHeight)parseFloat)-10.
+        htmlw_old=:window!((t:svg)!"width"attr)parseFloat.
+        htmlh_old=:window!((t:svg)!"height"attr)parseFloat.
+        [
+            or!(htmlw!=htmlw_old)(htmlh!=htmlh_old)true
+        ]!then[
+            t:htmlResize!(htmlw)(htmlh)execute.
+        ]execute.
+    ] !(this)bind) 100 setInterval.
     wndj ! [
-        svgw=(wndj ! width)-10.
-        svgh=(wndj ! height)-10.
-        [svgh<=0] ! then [svgh=svgw/16*9] execute.
-        (t:svg) ! "width" (svgw) attr "height" (svgh) attr.
-        (t:svg_g) !"transform" ("translate("+(svgw/2)+","+(svgh/2)+") scale(1,-1)") attr. 
+        wndw=(wndj ! width)-10.
+        wndh=(wndj ! height)-10.
+        [wndh<=0] ! then [wndh=wndw/16*9] execute.
+        (t:svg_g) !"transform" ("translate("+(wndw/2)+","+(wndh/2)+") scale(1,-1)") attr.
     ] resize.
     group:element=svg_g.
 ].
@@ -104,13 +123,13 @@ Actor:backward=[|by|
     by=!(by) num.
     ! (-by) forward.
 ].
-Actor:turnLeft=[|by| 
+Actor:turnLeft=[|by|
     by=!(by) num.
     dir=dir+by.
     !setTrans.
     this.
 ].
-Actor:turnRight=[|by| 
+Actor:turnRight=[|by|
     by=!(by) num.
     ! (-by) turnLeft.
 ].
@@ -125,11 +144,11 @@ Actor:getCrashShape=[
     (-width/2) (height/2) addVertex
     (dir) (pos) transform.
 ].
-/*Actor:getCrashPolygon=[
-    ! getWorldPolygon toPolyKArray.
-].*/
+//Actor:getCrashPolygon=[
+    //    ! getWorldPolygon toPolyKArray.
+//].
 Actor:crashTo=[|o|
-    [o:getCrashShape] ! then [] else [ system ! ("NO"+o) throw ]execute. 
+    [o:getCrashShape] ! then [] else [ system ! ("NO"+o) throw ]execute.
     
     (!getCrashShape) ! (o ! getCrashShape) intersects.
     //    (window:PolyK) ! (! getCrashPolygon) (o ! getCrashPolygon) Intersects.
@@ -145,9 +164,9 @@ Actor:setTrans=[|str|
     this.
 ].
 Actor:scale=[|s| _scale=_scale*s.!setTrans].
-Actor:moveTo=[|dx dy| 
+Actor:moveTo=[|dx dy|
     dx=!(dx) num.dy=!(dy) num.
-    pos=Vec2 !(dx)(dy) create. 
+    pos=Vec2 !(dx)(dy) create.
     ! setTrans
 ].
 Actor:moveToCenter=[
@@ -173,12 +192,12 @@ Actor ! "getDir" "direction?" addAlias.
 Actor:checkCrash=[|;t|
     [Actor:_doingCheckCrash] ! then [] else [
         Actor:_doingCheckCrash=1.//TODO:true
-        !allCrash [|a| 
+        !allCrash [|a|
             ! (a) collision.
             a ! (this) collision.
         ] each. //TODO: localize
         Actor:_doingCheckCrash=0.
-    ] execute. 
+    ] execute.
 ].
 Actor:allCrash=[|;t res|
     res=Array ! create.
