@@ -1,3 +1,4 @@
+//NOGENERATOR
 // Dolittle
 Group=(Actor:group) !create.
 Group:initialize=[|_members|

@@ -1,3 +1,4 @@
+//NOGENERATOR
 // Dolittle
 Vec2=! create. 
 Vec2:initialize=[|x y|

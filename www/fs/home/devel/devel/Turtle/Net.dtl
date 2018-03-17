@@ -1,3 +1,4 @@
+//NOGENERATOR
 // Concept code
 s=Server! "#ch1" connect.
 s ! "mesg" "hello" write.

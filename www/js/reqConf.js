@@ -88,9 +88,9 @@ var reqConf={
                 deps:["Parser"],
                 exports:"MinimalParser"
             },
-            /*AsyncByGenerator: {
+            AsyncByGenerator: {
                 exports: "AsyncByGenerator"
-            },*/
+            },
             cCompiler: {
                 deps: [
                     "ctrans/beautify",

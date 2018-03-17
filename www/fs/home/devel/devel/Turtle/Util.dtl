@@ -1,3 +1,4 @@
+//NOGENERATOR
 dq=:window:String!34 fromCharCode.
 ldq=:window:String!8220 fromCharCode.
 rdq=:window:String!8221 fromCharCode.  

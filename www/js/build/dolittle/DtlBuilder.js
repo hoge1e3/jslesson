@@ -1,5 +1,5 @@
-define(["assert","DeferredUtil","wget", "dolittle/minimal","IndentBuffer","Sync","FS","SplashScreen"],
-function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
+define(["assert","DeferredUtil","wget", "dolittle/minimal","IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator"],
+function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG) {
     DtlBuilder=function (prj, dst) {
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
@@ -22,7 +22,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen) {
     "tnu.ico", "tonbo.gif", "tonyu.png", "trumpet.png",
     "tulip.png", "ui-icons_888888_256x240.png", "undo.png", "usa.gif"].map(
         function (n) {return "images/"+n;});*/
-    var libs=["jquery-1.12.1","require"].map(function (n) {
+    var libs=["jquery-1.12.1","require","AsyncByGenerator"].map(function (n) {
         return "lib/"+n+".js";
     });
     var dtlibs=["mt","lib","polyk","calibration","devicemotion",

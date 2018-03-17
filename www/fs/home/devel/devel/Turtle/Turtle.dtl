@@ -1,3 +1,4 @@
+//NOGENERATOR
 // system ! "Actor" use.
 //test3
 turtle=Actor ! create.

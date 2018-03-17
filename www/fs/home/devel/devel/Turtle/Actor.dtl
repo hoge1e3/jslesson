@@ -1,3 +1,4 @@
+//NOGENERATOR
 $=!create.
 $:create=[|tag| (window:$) ! (root) (tag) call. ].
 Actor=!create.

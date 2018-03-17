@@ -7,8 +7,8 @@
           "util": R+"lib/c/util",
           "ctype": R+"lib/c/ctype",
           "x": R+"lib/c/x",
-          "AsyncByGenerator": R+"lib/c/AsyncByGenerator",
-          "AsyncByGeneratorRaw": R+"lib/c/AsyncByGeneratorRaw",
+          "AsyncByGenerator": R+"lib/AsyncByGenerator",
+         // "AsyncByGeneratorRaw": R+"lib/c/AsyncByGeneratorRaw",
           "assert": R+"lib/assert",
           "Klass": R+"lib/Klass",
           "FS": R+"lib/FS",
@@ -31,7 +31,7 @@
 })();
 requirejs(["assert","Klass","FS","_Util"],function (assert,Klass,FS,_Util) {
   requirejs(["scanf","lib","util","ctype","x","AsyncByGenerator"],function (_s,lib,u,c,x,ABG) {
-      ABG.ready(function(){
+    //  ABG.ready(function(){
     requirejs([window.sourceName],function () {
         try{
             if ($("#console").length==0) {
@@ -63,6 +63,6 @@ requirejs(["assert","Klass","FS","_Util"],function (assert,Klass,FS,_Util) {
             }
         }
     });
-    });
+    //});
   });
 });

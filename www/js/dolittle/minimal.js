@@ -2,7 +2,9 @@ MinimalParser= function () {
 	var parser={};
 	var sp=Parser.StringParser; // 文字列を解析するパーサ
 	var ctx;
-	var USE_DTL_PROMISE=true;
+	function useGenerator(){
+		return ctx.usegen;//AsyncByGenerator.supportsGenerator;
+	}
 	function ent(entf, parser) {
         if (typeof parser == "function") {
 	       var res;
@@ -198,10 +200,20 @@ MinimalParser= function () {
 	var elec = simple.rep0().and(token_name).
 	ret(function(_params,_meth){
 	    return extend(["['"+_meth+"']","(",joinary(_params,","),")"],
-	    {type:"elec",subnodes:arguments});
+	    {type:"elec",subnodes:arguments,meth:_meth,params:_params});
 	}).sep1(semicolon.opt(),true);
 	//送信
 	var meth_call = term_lazy.opt().and(excr).and(elec).ret(function (obj,_,elec) {
+		if (useGenerator()) {
+			var sur=function (ex) {
+				return ["(yield* AsyncByGenerator.toGen(",ex,"))"];
+			}
+			var head=obj||"this";
+			elec.forEach(function (e) {
+				head=sur([head,e]);
+			});
+			return extend(head,{type:"meth_call",subnodes:arguments});
+		}
 	    return extend([(obj||"this"),elec], {type:"meth_call",subnodes:arguments});
 	});//.or(func_exe);
 	//式
@@ -332,16 +344,13 @@ MinimalParser= function () {
     //プログラム := 文 . * (最後の.は省略可能)
 	statement_list = statement.sep0(period,true).and(period.opt()).
 	ret(function(_stmts){
-		if (USE_DTL_PROMISE) {
-			return extend(["return DtlPromise.run(this,[",
-				_stmts.map(function (n,i) {
-					return ["function () { return ",n,";}",
-					i<_stmts.length-1?",":""];
-				}),"]);"],
+		var stmts=_stmts.slice();
+	    var last=stmts.pop();
+		if (useGenerator()) {
+			return extend(["return AsyncByGenerator.toVal((function*() {",
+				stmts,"return ",last,"}).apply(this));"],
 			{type:"statement_list",subnodes:arguments,stmts:_stmts});
 		}
-	    var stmts=_stmts.slice();
-	    var last=stmts.pop();
 	    return extend([stmts,"return ",last], {type:"statement_list",subnodes:arguments});
 	});
     program = newScope(statement_list).and(space.opt());
@@ -377,6 +386,8 @@ MinimalParser= function () {
 		var output="";
 		var line=1;
 		ctx=context();
+		ctx.usegen=AsyncByGenerator.supportsGenerator && input.indexOf("NOGENERATOR")<0;
+
 	    //console.log("INP",input,input.length);
 		var result = program.parseStr(input);
 		if(result.success){
@@ -411,7 +422,7 @@ MinimalParser= function () {
 	        },
 	        addMapping:function (){}
 	    };
-	    buf.print("(function(){");
+		buf.print("root.system.run(function(){");
     	var gen=function(e){
 		    if (e && typeof e.pos=="number") {
 		        //console.log(e.pos);
@@ -429,7 +440,7 @@ MinimalParser= function () {
     		}
     	};
     	gen(p);
-    	buf.print("}).checkerror().apply(root,[]);");
+    	buf.print("});");
 		return buf.buf;
     };
 	return parser;

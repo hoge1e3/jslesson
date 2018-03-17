@@ -1,3 +1,4 @@
+//NOGENERATOR
 // Dolittle
 [(window:localStorage:noLocalize)!="1"] ! then [|;aa|
     ! makeCaseInsensitiveAll.

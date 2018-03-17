@@ -597,20 +597,34 @@ Function.prototype.while=function(){
 };
 Function.prototype.then=function(){return (this.execute(this,arguments))?root._true:root._false;};
 Function.prototype.else=function(){return (this.execute(this,arguments))?root._false:root._true;};
+root.system.handleError=function (e){
+    console.error(e);
+    if (typeof onerror==="function") onerror(e.message,"unknown",1,1,e);
+    else throw e;
+};
+root.system.run=function (func) {
+    try {
+        var res=func.apply(root,[]);
+        if (AsyncByGenerator.isGenerator(res)) {
+            res=AsyncByGenerator.run(res);
+            if (typeof res.catch!=="function") console.log("ERR",res);
+            return res.catch(root.system.handleError);
+        }
+    } catch (e) {
+        root.system.handleError(e);
+    }
+};
 Function.prototype.checkerror=function () {
     var f=this;
     return dtlbind(f.bound, function () {
         try {
            var res=f.apply(this,arguments);
            if (res && typeof res.catch==="function") {
-                return res.catch(function (e) {
-                    if (typeof onerror==="function") onerror(e.message,"unknown",1,1,e);
-                });
+                return res.catch(root.system.handleError);
            }
            return res;
         } catch(e) {
-            if (typeof onerror==="function") onerror(e.message,"unknown",1,1,e);
-            else throw e;
+            root.system.handleError(e);
         }
     });
 };
@@ -732,7 +746,14 @@ root.module=root.create().extend({
 });
 root.Block=root.Function;
 DtlPromise=root.DtlPromise={
-    IS: "IS_DTL_PROMISE",
+    new: function (f) {
+        if (typeof Promise==="function") {
+            return new Promise(function (succ,fail) {
+                f.execute(succ,fail);
+            });
+        }
+    }
+    /*IS: "IS_DTL_PROMISE",
     // promisify
     wait: function (obj,f) {// f:promise or func
         var pro;
@@ -777,6 +798,6 @@ DtlPromise=root.DtlPromise={
             return res;
         }
         return loop();
-    }
+    }*/
 };
 })();

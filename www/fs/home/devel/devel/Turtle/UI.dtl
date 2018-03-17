@@ -1,3 +1,4 @@
+//NOGENERATOR
 // Dolittle
 Screen=! create.
 Screen:width?=[
@@ -311,12 +312,12 @@ Button:keyCodeDict=Dict!create.
     "CTRL" 17 write.
 ]!execute.
 // Button:keyCodeDict![|k|
-//     k=(k+"") ! toUpperCase.
-//     [k=="LEFT"]!then[37]
-//     else[k=="UP"]then[38]
-//     else[k=="RIGHT"]then[39]
-//     else[k=="DOWN"]then[40]
-//     else[k=="SPACE"]then[32]execute.
+    //     k=(k+"") ! toUpperCase.
+    //     [k=="LEFT"]!then[37]
+    //     else[k=="UP"]then[38]
+    //     else[k=="RIGHT"]then[39]
+    //     else[k=="DOWN"]then[40]
+    //     else[k=="SPACE"]then[32]execute.
 // ].
 Button:inc=[|;label|
     label=(self:element!0 get):innerHTML.
@@ -326,11 +327,11 @@ Button:inc=[|;label|
     self
 ].
 // Button:write=[|m|
-//     [element] ! then [element ! (m) val] execute.
-//     self
+    //     [element] ! then [element ! (m) val] execute.
+    //     self
 // ].
 // Button:read=[
-//     [element] ! then [element ! val] else [""] execute.
+    //     [element] ! then [element ! val] else [""] execute.
 // ].
 
 Field=UI! create.
@@ -432,9 +433,9 @@ TextArea:write=[
         // [cont==null]!then [cont=""] execute.
         // [cont==undef]!then [cont=""] execute.
         // [cont:each] ! then [
-        //     cont ! [|e| ! (e) writeLn ] each.
+            //     cont ! [|e| ! (e) writeLn ] each.
         // ] else [
-        //     ! ((!readString)+(!(cont) num2str)) rawOverwrite
+            //     ! ((!readString)+(!(cont) num2str)) rawOverwrite
         // ] execute.
         ! (cont) (isAutoBR) _write1
     ] each.
@@ -452,9 +453,9 @@ TextArea:writeLn=[
         // [cont==null]!then [cont=""] execute.
         // [cont==undef]!then [cont=""] execute.
         // [cont:each] ! then [
-        //     cont ! [|e| ! (e) writeLn ] each.
+            //     cont ! [|e| ! (e) writeLn ] each.
         // ] else [
-        //     ! (cont) write newLine.
+            //     ! (cont) write newLine.
         // ] execute.
         ! (cont) (true) _write1
     ] each.
@@ -531,7 +532,7 @@ SelectMenu:add=[|;opt|
 // SelectMenu!"add" "書く"addAlias.
 
 // Field:inc=[|by|
-//     by=[by] ! [1] or.
-//     element ! ((element ! val)-0+by)  val.
-
+    //     by=[by] ! [1] or.
+    //     element ! ((element ! val)-0+by)  val.
+    
 // ].

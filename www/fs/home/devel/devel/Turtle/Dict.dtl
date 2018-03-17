@@ -1,3 +1,4 @@
+//NOGENERATOR
 // Dolittle
 Dict=!create.
 Dict:initialize=[|;args k v|

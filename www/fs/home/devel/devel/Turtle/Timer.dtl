@@ -1,3 +1,4 @@
+//NOGENERATOR
 // Dolittle
 alltimer=!create.
 alltimer:list=Array!create.
@@ -51,11 +52,11 @@ Timer:after_execute=[|f|
     self.
 ].
 Timer:wait=[
-    DtlPromise ! (self) [|succ|
+    DtlPromise ! [|succ|
         ! [
             succ! execute
         ] after_execute 
-    ] wait.
+    ] new.
 ].
 Timer ! "after_execute" "execute_once" addAlias. 
 ! "Timer" "timer" addAlias.

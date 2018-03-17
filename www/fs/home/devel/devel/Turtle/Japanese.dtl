@@ -1,3 +1,4 @@
+//NOGENERATOR
 // Dolittle
 //window ! (window:localStorage:noLocalize) alert.
 [(window:localStorage:noLocalize)!="1"] ! then [|;aa fp ap bp np sp|
