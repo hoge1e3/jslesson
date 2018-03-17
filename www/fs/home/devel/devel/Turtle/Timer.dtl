@@ -54,7 +54,7 @@ Timer:after_execute=[|f|
 Timer:wait=[
     DtlPromise ! [|succ|
         ! [
-            succ! execute
+            succ! (self) execute
         ] after_execute 
     ] new.
 ].

@@ -103,7 +103,7 @@ return this['DtlPromise']['new'](dtlbind(this,function(succ){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
 return this['after_execute'](dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
-return succ['execute']();
+return succ['execute']((this));
 }));
 }));
 });
