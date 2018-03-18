@@ -76,6 +76,7 @@ this['HTML']['位置']=dtlbind(this,function(x,y){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,2);
 return this['move']((x),(y));
 });
+this['addAliasFromTable']("root","待つ,wait");
 this['addAliasFromTable']("root","オブジェクト","Object");
 this['addAliasFromTable']("root","ブロック","Block");
 this['addAliasFromTable']("root","論理値","Boolean");

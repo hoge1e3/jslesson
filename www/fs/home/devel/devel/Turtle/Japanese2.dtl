@@ -157,6 +157,7 @@
     HTML：位置＝[|x y| !(x)(y)move].
     
     //----autogen from DolittleMessage
+    ! "root" "待つ,wait" addAliasFromTable.
     ! "root" "オブジェクト" "Object" addAliasFromTable.
     ! "root" "ブロック" "Block" addAliasFromTable.
     ! "root" "論理値" "Boolean" addAliasFromTable.

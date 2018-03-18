@@ -586,11 +586,22 @@ Random.random=function(m){
 };
 
 //Function
-Function.prototype.execute	=	function(){return this.apply(this.bound||this,arguments);};
+Function.prototype.execute=function(){
+    return root.system.run2(this.apply(this.bound||this,arguments));
+};
 Function.prototype.repeat=function(param){
 	var res;
-	for(var i=1;i<=param;++i)res=this.execute(i);
-	return res;
+	for(var i=1;i<=param;++i) {
+        res=this.execute(i);
+        if (DtlPromise.isPromise(res)) {
+            var f=this;
+            return res.then(function (r) {
+                if (param<=1) return r;
+                return f.repeat(param-1);
+            });
+        }
+	}
+    return res;
 };
 Function.prototype.while=function(){
 	return root._while.create(this);
@@ -741,7 +752,7 @@ root.module=root.create().extend({
             }
         }
         return window.requirejs(reqs,function() {
-            if (func) return root.system.run2(func.checkerror().execute(arguments));
+            if (func) return func.checkerror().execute(arguments);
         });
     }
 });
@@ -750,6 +761,27 @@ root.module=root.create().extend({
     root[f].prototype.__name__=f+":prototype";
 });
 root.Block=root.Function;
+root.wait=function (f) {
+    if (!DtlPromise.available()) return this;
+    if (typeof f==="number") {
+        return this.wait(function (s) {
+            setTimeout(s,f*1000);
+        });
+    }
+    if (typeof f!=="function") {
+        return this.wait(0.1);
+    }
+    var self=this;
+    return DtlPromise.new(function (_succ,fail) {
+        var succ=function (r) {
+            if (arguments.length===0) {
+                r=self;
+            }
+            _succ(r);
+        };
+        f.execute(succ,fail);
+    });
+};
 DtlPromise=root.DtlPromise={
     new: function (f) {
         if (typeof Promise==="function") {
@@ -757,6 +789,12 @@ DtlPromise=root.DtlPromise={
                 f.execute(succ,fail);
             });
         }
+    },
+    isPromise: function (p) {
+        return AsyncByGenerator.isPromise(p);
+    },
+    available: function () {
+        return AsyncByGenerator.supportsGenerator;
     }
     /*IS: "IS_DTL_PROMISE",
     // promisify
