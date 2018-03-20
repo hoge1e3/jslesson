@@ -1,5 +1,5 @@
 <?php
-req("auth","SFile");
+req("auth","SFile","pdo");
 function fix($source) {
     $source = preg_replace_callback(
         '/(^|(?<=&))[^=[&]+/',
@@ -12,13 +12,22 @@ function fix($source) {
 }
 
 class MarkController {
+    static function submit2() {
+        $class=Auth::curUser2();
+        Auth::assertTeacher();
+        // POST
+        // submission(ID)=>{result , comment}
+        foreach($_POST as $key=>$value) {
+            $r=pdo_insertOrUpdate("mark",array("submission"=>$key),json_decode($value));
+        }
+    }
     static function submit() {
         // POST
         //   class/user/prj/file   - value
         //  dest:  class/user/prj/file.cmt.txt
         $home=new SFile(Auth::getFS(),"/home/");
         $_POST = fix(file_get_contents('php://input'));
-        
+
         foreach($_POST as $key=>$value) {
             //print " KEY $key<BR>";
             if (substr($key,0,4)==="CMT/") {
@@ -52,7 +61,7 @@ class MarkController {
         $class=Auth::curClass();
         $fp=fopen("log/$class-$user-data.log","a");
         $time=date(DATE_ATOM);
-        $data=json_encode(array("date"=>$time, "result"=>"mark", 
+        $data=json_encode(array("date"=>$time, "result"=>"mark",
         "filename"=>$dst, "detail"=>$cont,"targetTime"=>$timeStamp));
         fwrite($fp, "$data\n");
         fclose($fp);

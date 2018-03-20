@@ -96,14 +96,57 @@ class AssignmentController {
         req("Submission");
         //$class=Auth::curClass2();
         $user=Auth::curUser2();
-        //$user->name
-        $sub=new Submission();
-        $sub->user=$user;
-        $sub->assignment=new Assignment(
-            $user->_class,param("name"));
-        $sub->files=json_decode(param("files"));
+        $r=self::submit_common($user,param("name"),param("files"));
+        if ($r["status"]=="NG") http_response_code(500);
+        print json_encode($r);
+    }
+    static function submit2() {
+        req("Submission");
+        //$class=Auth::curClass2();
+        $token=param("token");
+        $token=explode("@-@",$token);
+        $class=$token[0];
+        $user=$token[1];
+        $class=new BAClass($class);
+        $user=new BAUser($class,$user);
+        $r=self::submit_common($user,param("name"),param("files"));
+        print json_encode($r);
+    }
+    static function submit_common($user,$name,$files) {
+        $sub=Submission::getLast($user,$name);
+        if (!$sub || $sub->getMark()) {
+            $sub=new Submission();
+            $sub->user=$user;
+            $sub->assignment=new Assignment(
+                $user->_class,$name);
+            if (!$sub->assignment->exists()) {
+                return array("status"=>"NG",
+                "mesg"=>"Practice ".$sub->assignment->name." not found!");
+            }
+        } else {
+            $sub->load();
+            $sub->time=DateUtil::now();
+        }
+        $sub->files=json_decode($files);
+        if (!$sub->files) {
+            return array("status"=>"NG",
+            "mesg"=>"Invalid Format: $files");
+        }
         $sub->save();
-
+        return array("status"=>"OK",
+        "mesg"=>"Pracitce ".$sub->assignment->name." submission complete!");
+    }
+    static function check() {
+        $user=Auth::curUser2();
+        $r=pdo_select("select a.name , m.result , m.comment from ".
+        "submission s ".
+        "inner join assignment a on s.assignment=a.id ".
+        "left join mark m on m.submission=s.id ".
+        "where s.user=? and a.class=?",
+        $user->name,$user->_class->id);
+        foreach ($r as $e) {
+            print_r(json_encode($e)."<hR/>");
+        }
     }
 }
 

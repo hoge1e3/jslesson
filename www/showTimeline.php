@@ -3,11 +3,12 @@
     <tr><td>ユーザID</td><td>
         <canvas id="scale" width="800px" height="30px"></canvas>
     </td></tr>
-</table>    
+</table>
 </body>
 <script src="js/lib/jquery-1.12.1.js"></script>
 <script src="js/ide/showTimeline.js"></script>
 <?php
+require_once __DIR__."/php/Modules.php";
 require_once __DIR__."/php/json.php";
 require_once __DIR__."/php/auth.php";
 require_once __DIR__."/php/fs/NativeFS.php";
@@ -65,7 +66,7 @@ function readLog($time, $error) {
         }
     }
     echo ("});</script>\n");
-    
+
 }
 function readJSONLog($file) {
     global $fs,$min,$max;
@@ -103,7 +104,7 @@ function readJSONLog($file) {
             $status=$e["status"];
             echo("showLine('$tltime','$fname','$status');\n");
         //}
-    }    
+    }
     /*foreach($es as $e) {
         if ($e["isError"]) {
             $tltime=$e["tltime"];
@@ -118,7 +119,7 @@ function readJSONLog($file) {
             }
             echo("showLine('$tltime','$fname');\n");
         }
-    } */   
+    } */
     echo ("});</script>\n");
 }
 ?>

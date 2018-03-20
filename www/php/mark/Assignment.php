@@ -14,6 +14,10 @@ class Assignment {
             "deadline"=>"integer"
         );
     }
+    function getClass() {
+        $this->load();
+        return $this->_class;
+    }
     static function table() {
         return "assignment";
     }

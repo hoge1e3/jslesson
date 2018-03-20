@@ -327,6 +327,7 @@ class ClassController {
     static function showStatus(){
         date_default_timezone_set('Asia/Tokyo');
         $class=Auth::curClass2();
+        $teacher=Auth::curTeacher()->id;
         $now=time();
         if(!isset($_POST["Y"])){
             if(!isset($_POST['min'])){
@@ -368,11 +369,11 @@ class ClassController {
                 }else{
                     $errcount[$log['user']]=1;
                 }
-                $runhistory[$log['user']].='<span data-id='.$log['id'].' data-user='.$log['user'].' onClick="openFrame(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));"><font color="red">E</font></span>';
+                $runhistory[$log['user']].='<span data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));"><font color="red">E</font></span>';
             }else if(strpos($log['result'],'Run')!==false){
-                $runhistory[$log['user']].='<span data-id='.$log['id'].' data-user='.$log['user'].' onClick="openFrame(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">R</span>';
+                $runhistory[$log['user']].='<span data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">R</span>';
             }else if(strpos($log['result'],'Save')!==false){
-                $runhistory[$log['user']].='<span data-id='.$log['id'].' data-user='.$log['user'].' onClick="openFrame(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">S</span>';
+                $runhistory[$log['user']].='<span data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">S</span>';
             }
             if(!isset($errcount[$log['user']])){
                 $errcount[$log['user']]=0;
@@ -381,7 +382,7 @@ class ClassController {
             $latestfile[$log['user']]=$log['filename'];
         }
         foreach($runhistory as $runhistkey => $runhistval){
-            $runhistory[$runhistkey].='<br id="'.$runhistkey.'ui" style="display:none"><button id="'.$runhistkey.'ui" style="display:none">Prev</button>  <button id="'.$runhistkey.'ui" style="display:none">Next</button><span id="'.$runhistkey.'res" style="display:none"></span><br><textarea id="'.$runhistkey.'" style="display:none" onclick="this.select(0,this.value.length)">test</textarea>';
+            $runhistory[$runhistkey].='<br id="'.$runhistkey.'ui" style="display:none"><button id="'.$runhistkey.'ui" style="display:none" data-user='.$runhistkey.' onclick="getOneUsersLogId(this.getAttribute('."'".'data-user'."'".'),'."'".'prev'."'".')">Prev</button>  <button id="'.$runhistkey.'ui" style="display:none" data-user='.$runhistkey.' onclick="getOneUsersLogId(this.getAttribute('."'".'data-user'."'".'),'."'".'next'."'".')">Next</button><span id="'.$runhistkey.'res" style="display:none"></span><br><textarea id="'.$runhistkey.'" style="display:none" onclick="this.select(0,this.value.length)">test</textarea>';
         }
         ?>
         <script type="text/javascript" src="js/lib/jquery-1.12.1.js"></script>
@@ -406,43 +407,88 @@ class ClassController {
                     }
                 });
             });
-            function openFrame(logid,userid){
-                $.ajax({
-                    type: "POST",
-                    url: "a.php?Class/getLog",
-                    data: "logid="+logid,
-                    dataType: "json",
-                    success: function(data,dataType){
-                        console.log(data);
+            function getLog(logid,userid){
+              $.ajax({
+                  type: "POST",
+                  url: "a.php?Class/getLog",
+                  data: "logid="+logid,
+                  dataType: "json",
+                  success: function(data,dataType){
+                      console.log(data);
+                      openFrame(data);
+                  },
+                  error: function(xhr, textStatus, errorThrown){
+                      console.log("ログデータの取得に失敗しました。",xhr,textStatus,errorThrown);
+                      alert("ログデータの取得に失敗しました。"+textStatus);
 
-                        if(displayingId!==""){
-                            $("[id="+displayingId+"ui]").css("display","none");
-                            $("[id="+displayingId+"res]").css("display","none");
-                            $("#"+displayingId).css("display","none");
-                        }
-                        displayingId=userid;
-						code=data.code.C || data.code.JavaScript ||data.code.Dolittle;
-                        //res=data.filename+"\n"+data.result+"\n-------------\n"+data.code.C;
-                        res=code;
-                        res=res.replace(/</g,"&lt;");
-                        res=res.replace(/>/g,"&gt;");
-                        $("[id="+displayingId+"ui]").css("display","inline");
-						$("[id="+displayingId+"res]").css("display","inline");
+                  }
+              });
 
-						
-                        $("#"+userid+"res").html("<br>"+data.filename+"<br>"+data.result);
-                        $("#"+userid).height(30);
-                        $("#"+userid).html(res);
-                        $("#"+userid).css("display","inline");
-                        //$("#"+userid).width($("#"+userid).parent().width());
-                        $("#"+userid).height($("#"+userid).get(0).scrollHeight);
-                    },
-                    error: function(xhr, textStatus, errorThrown){
-                        console.log("ログデータの取得に失敗しました。",xhr,textStatus,errorThrown);
-                        alert("ログデータの取得に失敗しました。"+textStatus);
-                    }
-                });
+            }
+            function getOneUsersLogId(userid,pon){
+              $.ajax({
+                  type: "POST",
+                  url: "a.php?Class/getOneUsersLogId",
+                  data: "userid="+userid,
+                  dataType: "json",
+                  success: function(data,dataType){
+                      console.log(data);
+                      showFrame(data,userid,pon);
+                  },
+                  error: function(xhr, textStatus, errorThrown){
+                      console.log("ログデータの取得に失敗しました。",xhr,textStatus,errorThrown);
+                      alert("ログデータの取得に失敗しました。"+textStatus);
+                  }
+              });
+            }
+            function openFrame(data){
+              console.log(data);
+              if(displayingId!==""){
+                  $("[id='"+displayingId+"ui']").css("display","none");
+                  $("[id='"+displayingId+"res']").css("display","none");
+                  $("#"+displayingId).css("display","none");
+              }
+              currentLogId=data.id;
+              displayingId=data.user;
+              var raw=JSON.parse(data.raw);
+              code=raw.code.C || raw.code.JavaScript || raw.code.Dolittle;
+              //res=data.filename+"\n"+data.result+"\n-------------\n"+data.code.C;
+              res=code;
+              res=res.replace(/</g,"&lt;");
+              res=res.replace(/>/g,"&gt;");
+              $("[id="+displayingId+"ui]").css("display","inline");
+              $("[id="+displayingId+"res]").css("display","inline");
+              //http://bitarrow.eplang.jp/bitarrowbeta/
+              var runLink=".?r=jsl_edit&dir=/home/<?=$class->id?>/<?=$teacher?>/Test/&autologexec="+data.id;
+              var userid=data.user;
+              $("#"+userid+"res").html("<br><a target='runCheck' href='"+runLink+"'>実行してみる</a><br>"+data.filename+"<br>"+data.result);
+              $("#"+userid).height(30);
+              $("#"+userid).html(res);
+              $("#"+userid).css("display","inline");
+              //$("#"+userid).width($("#"+userid).parent().width());
+              $("#"+userid).height($("#"+userid).get(0).scrollHeight);
                 //alert(logid);
+            }
+            function showFrame(data,userid,pon){
+              console.log(data);
+              data=data.map(function(a){return a.id});
+              var currentIndex=data.indexOf(currentLogId);
+              if(pon=="prev"){
+                if(currentIndex==0){
+                  alert("このデータはこのユーザの一番最初のログデータです。");
+                }else{
+                  console.log("dci",currentLogId,currentIndex,data[currentIndex-1]);
+                  getLog(data[currentIndex-1],userid);
+                }
+              }
+              else if(pon=="next"){
+                if(currentIndex==data.length-1){
+                  alert("このデータはこのユーザの最新のログデータです。");
+                }else{
+                  console.log("dci",currentLogId,currentIndex,data[currentIndex+1]);
+                  getLog(data[currentIndex+1],userid);
+                }
+              }
             }
         </script>
         <div id="detail" style="display:none;"></div>
@@ -538,13 +584,13 @@ class ClassController {
         $class=Auth::curClass2();
         $logid=$_POST["logid"];
         $lg=$class->getLogById($logid);
-        print_r($lg[0]["raw"]);
+        print(json_encode($lg[0]));
     }
     static function getOneUsersLogId(){
         $class=Auth::curClass2();
         $logid=$_POST["userid"];
         $lg=$class->getLogByUser($logid);
-        print_r($lg[0]);
+        print(json_encode($lg));
     }
 }
 

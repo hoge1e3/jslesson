@@ -1,4 +1,5 @@
 <?php
+req("BAClass");
 class BAUser {
     var $_class;
     var $name;
@@ -28,7 +29,7 @@ class BAUser {
     }
     function requireReset() {
         //TODO
-        //再発行リクエストを行なう   
+        //再発行リクエストを行なう
         //PINを生成して，reset_request と セッションに書き込む
         //PINが他とかぶらないように！
         //PINを返す
@@ -43,7 +44,7 @@ class BAUser {
         //TODO
         //再発行を許可されているか？booleanを返す
         //該当$pin がallowed:trueとなっているか？
-        
+
     }
     function make(){
         if ($this->exists()) {
@@ -52,7 +53,7 @@ class BAUser {
         $pdo = pdo();
 	    $sth=$pdo->prepare("insert into user(class,name,pass,options) values( ? , ? , ? , ? )");
 	    $sth->execute(array($this->_class->id,$this->name,$this->password,$this->options));
-	    
+
     }
     function setOptions($key,$value){
         if(self::exists()){
@@ -80,7 +81,7 @@ class BAUser {
     	}
     }
     function isTeacher() {
-        return $this->_class->id==Auth::TEACHER;       
+        return $this->_class->id==Auth::TEACHER;
     }
     function exists(){
         $pdo = pdo();

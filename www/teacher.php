@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__."/php/Modules.php";
 require_once("php/auth.php");
 $showForm=true;
 $mesg="";
@@ -27,11 +28,11 @@ if (isset($_POST["class"])) {
     	    $sortedKeys=array_keys($files);
     	    for($i=0;$i<count($files);$i++){
             ?>
-	            <a href="a.php?login&class=<?=$class?>&user=<?=$files[$sortedKeys[$i]]?>" 
+	            <a href="a.php?login&class=<?=$class?>&user=<?=$files[$sortedKeys[$i]]?>"
 	            target="stutab">
 	                <?php print $files[$sortedKeys[$i]]; ?>
 	            </a><br/>
-            <?php 
+            <?php
     	    }
 	    }
 	}

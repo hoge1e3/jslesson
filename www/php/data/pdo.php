@@ -91,13 +91,25 @@ function pdo_update($tbl,$key,$vals) {
     $sth=$pdo->prepare($q);
     $sth->execute($vary);
 }
+function obj2ary($a){
+    if (is_array($a)) return $a;
+    if (!is_object($a)) {
+        throw new Exception("obj2ary: $a is neither object nor array ");
+    }
+    $r=array();
+    foreach ($a as $k=>$v) {
+        $r[$k]=$v;
+    }
+    return $r;
+}
 function pdo_insertOrUpdate($tbl,$keys,$vals) {
     //echo $q;var_dump($vary);
     $r=pdo_find1($tbl,$keys);
     if ($r) {
         return pdo_update2($tbl,$keys,$vals);
     } else {
-        return pdo_insert($tbl,array_merge($keys,$vals));
+        return pdo_insert($tbl,array_merge(
+            obj2ary($keys),obj2ary($vals)));
     }
 }
 function pdo_update2($tbl,$keys,$vals) {

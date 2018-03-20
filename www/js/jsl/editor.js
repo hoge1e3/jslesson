@@ -268,6 +268,7 @@ function ready() {
     function submit() {
         if (!submitDialog) submitDialog=new SubmitDialog(curPrj);
         var inf=getCurrentEditorInfo();
+        if (!inf || !inf.file) return alert("提出するファイルを開いてください");
         submitDialog.show(inf.file);
     }
     function showFileList() {

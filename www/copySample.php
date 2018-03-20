@@ -1,8 +1,9 @@
 <?php
+require_once "php/Modules.php";
 require_once "php/json.php";
 require_once "php/fs/NativeFS.php";
 require_once "php/auth.php";
-$fs=Auth::getFS(); 
+$fs=Auth::getFS();
 //$srcfs=new NativeFS("fs/home/lesson_samples/lesson_samples");
 header("Content-type: text/json");
 if (!$fs) {
@@ -25,15 +26,15 @@ if (!isset($_GET["src"]) || !isset($_GET["dst"])) {
 }
 $dstdir=Auth::homeDir().$_GET["dst"]."/";
 $srcdir=$lessonDir.$_GET["src"]."/";
-copyFiles($srcdir, $dstdir); 
+copyFiles($srcdir, $dstdir);
 function copyFiles($sd,$dd) {
     global $fs;
     foreach ($fs->ls($sd) as $fn) {
         $sfp=PathUtil::rel($sd, $fn);
         $dfp=PathUtil::rel($dd, $fn);
         //print "copy $sfp $dfp<BR>\n";
-        if ($fs->isDir($sfp)) {    
-            copyFiles($sfp, $dfp);   
+        if ($fs->isDir($sfp)) {
+            copyFiles($sfp, $dfp);
         } else {
             $fs->setContent($dfp, $fs->getContent($sfp));
         }

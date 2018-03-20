@@ -11,7 +11,9 @@ function (UI,Klass,DU){
             var path=t.prj.getDir().name()+file.name();
             return $.get(WebSite.controller+"?Assignment/list").
             then(function (r) {
+                console.log("Assignment/list",r);
                 r.forEach(function (e) {
+                    if (typeof e.files==="string") e.files=JSON.parse(e.files);
                     if (e.files[path]) e.ord=0;
                     else e.ord=1;
                 });
@@ -28,7 +30,7 @@ function (UI,Klass,DU){
                     );
                 });
                 t.form.file.value=path;
-            });
+            }).catch(DU.E);
         },
         createDOM:function (t) {
             t.dom=UI("div",{title:"課題の提出"},
@@ -63,9 +65,12 @@ function (UI,Klass,DU){
             param.files=JSON.stringify(param.files);
             console.log("submit",param);
             $.get(WebSite.controller+"?Assignment/submit",param).then(function (r) {
+                if (typeof r=="string") {
+                    r=JSON.parse(r);
+                }
                 console.log(r);
                 alert("提出しました");
-            },DU.E);
+            }).catch(DU.E);
         }
     });
     return SubmitDialog;

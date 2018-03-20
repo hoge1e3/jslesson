@@ -1,9 +1,9 @@
 <?php
+require_once "php/Modules.php";
 require_once "php/json.php";
 require_once "php/fs/NativeFS.php"; #TOFS
 require_once "php/auth.php";
 require_once "php/ErrorHandler.php";
-
 $fs=Auth::getFS(); //new NativeFS("../fs");
 header("Content-type: text/json");
 if (!$fs) {
@@ -23,7 +23,7 @@ require_once "php/getDirInfoLib.php";
     $inf["user"]=Auth::curUser();
     $inf["class"]=Auth::curClass();
     print $json->encode( $inf );
-/*}catch(Exception $e) { 
+/*}catch(Exception $e) {
     die($e);
 }*/
 ?>

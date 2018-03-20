@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__."/php/Modules.php";
 require_once __DIR__."/php/dtl/Dtl.php";
 require_once __DIR__."/php/json.php";
 require_once __DIR__."/php/dtlfs/DtlFS.php";
@@ -23,13 +24,13 @@ if (isset($_POST["script"]) || isset($_GET["file"])) {
     $vmc=$j->decode($scr);
 
     header("Content-type: text/json; charset=utf8");
-    echo $j->encode( DtlUtil::unwrap( Dtl::run($root,$vmc) ) ); 
+    echo $j->encode( DtlUtil::unwrap( Dtl::run($root,$vmc) ) );
 } else { ?>
     <form action="runDtl.php" method="POST">
     <textarea name="script" rows=10 cols=40>
     </textarea>
     <input type="submit">
     </form>
-<?php 
-} 
+<?php
+}
 ?>

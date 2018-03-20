@@ -43,11 +43,13 @@ class Submission {
         $this->id=$s->id;
         foreach(self::schema() as $k=>$t) {
             $val=$s->{$k};
-            if ($t==="extkey") $val=new Assignment($val);
+            if ($t==="extkey") {
+                $val=new Assignment($val);
+            }
             if ($t==="object") $val=json_decode($val);
             $this->{$k}=$val;
         }
-        $this->user=new BAUser($this->assignment->_class, $s->user);
+        $this->user=new BAUser($this->assignment->getClass(), $s->user);
     }
     function toRecord() {
         $rec=array(
@@ -79,6 +81,20 @@ class Submission {
     function del() {
         pdo_exec("delete from ".self::table().
         " where id=?",$this->id);
+    }
+    function getMark() {
+        return pdo_select1("select * from mark where submission=?",$this->id);
+    }
+    static function getLast($user, $name) {
+        $a=new Assignment($user->_class,$name);
+        $a->load();
+        $r=pdo_select1("select * from submission ".
+        "where assignment=? and user=? ".
+        "order by time desc limit 1",$a->id,$user->name);
+        if (!$r) return $r;
+        $s=new Submission();
+        $s->fromRecord($r);
+        return $s;
     }
 }
 ?>
