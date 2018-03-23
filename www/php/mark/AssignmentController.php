@@ -136,16 +136,46 @@ class AssignmentController {
         return array("status"=>"OK",
         "mesg"=>"Pracitce ".$sub->assignment->name." submission complete!");
     }
-    static function check() {
+    static function view() {
         $user=Auth::curUser2();
-        $r=pdo_select("select a.name , m.result , m.comment from ".
-        "submission s ".
+        if (!$user) {
+            $login=param("login","http://bitarrow.eplang.jp/bitarrowbeta");
+            header("Location: $login");
+            exit;
+        }
+        $r=pdo_select("select ".
+        "a.name , m.result , m.comment, s.id, s.time ".
+        "from submission s ".
         "inner join assignment a on s.assignment=a.id ".
         "left join mark m on m.submission=s.id ".
-        "where s.user=? and a.class=?",
+        "where s.user=? and a.class=? ".
+        "order by a.name, s.time desc ",
         $user->name,$user->_class->id);
+        $stats=array();
         foreach ($r as $e) {
-            print_r(json_encode($e)."<hR/>");
+            if (isset($stats[$e->name])) continue;
+            $stats[$e->name]=$e;
+            //print_r(json_encode($e)."<hR/>");
+        }
+        $assigns=pdo_select(
+            "select id,name from assignment where class=? order by name",
+            $user->_class->id);
+        foreach ($assigns as $a) {
+            print $a->name." - ";
+            if (isset($stats[$a->name])) {
+                $stat=$stats[$a->name];
+                print "(id=".$stat->id.")";
+                if (isset($stat->result)) {
+                    print "[".$stat->result."]";
+                    print $stat->comment;
+                } else {
+                    print "未採点";
+                }
+                //print (json_encode($stat));
+            } else {
+                print "未提出";
+            }
+            print"<hr/>";
         }
     }
 }
