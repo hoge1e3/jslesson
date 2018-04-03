@@ -1,11 +1,10 @@
-ace.define("ace/mode/vala_highlight_rules",["require","exports","module","ace/lib/oop","ace/mode/text_highlight_rules"], function(require, exports, module) {
+ace.define("ace/mode/vala_highlight_rules",[], function(require, exports, module) {
 "use strict";
 
 var oop = require("../lib/oop");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var ValaHighlightRules = function() {
-
     this.$rules = { start: 
        [ { token: 
             [ 'meta.using.vala',
@@ -399,7 +398,7 @@ var ValaHighlightRules = function() {
       '#values': 
        [ { include: '#strings' },
          { include: '#object-types' },
-         { include: '#constants-and-special-vars' } ] }
+         { include: '#constants-and-special-vars' } ] };
     
     this.normalizeRules();
 };
@@ -410,7 +409,7 @@ ValaHighlightRules.metaData = {
       foldingStartMarker: '(\\{\\s*(//.*)?$|^\\s*// \\{\\{\\{)',
       foldingStopMarker: '^\\s*(\\}|// \\}\\}\\}$)',
       name: 'Vala',
-      scopeName: 'source.vala' }
+      scopeName: 'source.vala' };
 
 
 oop.inherits(ValaHighlightRules, TextHighlightRules);
@@ -418,7 +417,7 @@ oop.inherits(ValaHighlightRules, TextHighlightRules);
 exports.ValaHighlightRules = ValaHighlightRules;
 });
 
-ace.define("ace/mode/folding/cstyle",["require","exports","module","ace/lib/oop","ace/range","ace/mode/folding/fold_mode"], function(require, exports, module) {
+ace.define("ace/mode/folding/cstyle",[], function(require, exports, module) {
 "use strict";
 
 var oop = require("../../lib/oop");
@@ -439,8 +438,8 @@ oop.inherits(FoldMode, BaseFoldMode);
 
 (function() {
     
-    this.foldingStartMarker = /(\{|\[)[^\}\]]*$|^\s*(\/\*)/;
-    this.foldingStopMarker = /^[^\[\{]*(\}|\])|^[\s\*]*(\*\/)/;
+    this.foldingStartMarker = /([\{\[\(])[^\}\]\)]*$|^\s*(\/\*)/;
+    this.foldingStopMarker = /^[^\[\{\(]*([\}\]\)])|^[\s\*]*(\*\/)/;
     this.singleLineBlockCommentRe= /^\s*(\/\*).*\*\/\s*$/;
     this.tripleStarBlockCommentRe = /^\s*(\/\*\*\*).*\*\/\s*$/;
     this.startRegionRe = /^\s*(\/\*|\/\/)#?region\b/;
@@ -558,7 +557,7 @@ oop.inherits(FoldMode, BaseFoldMode);
 
 });
 
-ace.define("ace/mode/matching_brace_outdent",["require","exports","module","ace/range"], function(require, exports, module) {
+ace.define("ace/mode/matching_brace_outdent",[], function(require, exports, module) {
 "use strict";
 
 var Range = require("../range").Range;
@@ -598,7 +597,7 @@ var MatchingBraceOutdent = function() {};
 exports.MatchingBraceOutdent = MatchingBraceOutdent;
 });
 
-ace.define("ace/mode/vala",["require","exports","module","ace/lib/oop","ace/mode/text","ace/tokenizer","ace/mode/vala_highlight_rules","ace/mode/folding/cstyle","ace/mode/behaviour/cstyle","ace/mode/folding/cstyle","ace/mode/matching_brace_outdent"], function(require, exports, module) {
+ace.define("ace/mode/vala",[], function(require, exports, module) {
 "use strict";
 
 var oop = require("../lib/oop");
@@ -662,8 +661,16 @@ oop.inherits(Mode, TextMode);
     this.autoOutdent = function(state, doc, row) {
         this.$outdent.autoOutdent(doc, row);
     };
-    this.$id = "ace/mode/vala"
+    this.$id = "ace/mode/vala";
 }).call(Mode.prototype);
 
 exports.Mode = Mode;
 });
+                (function() {
+                    ace.require(["ace/mode/vala"], function(m) {
+                        if (typeof module == "object" && typeof exports == "object" && module) {
+                            module.exports = m;
+                        }
+                    });
+                })();
+            

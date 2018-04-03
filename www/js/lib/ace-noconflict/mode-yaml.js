@@ -1,4 +1,4 @@
-ace.define("ace/mode/yaml_highlight_rules",["require","exports","module","ace/lib/oop","ace/mode/text_highlight_rules"], function(require, exports, module) {
+ace.define("ace/mode/yaml_highlight_rules",[], function(require, exports, module) {
 "use strict";
 
 var oop = require("../lib/oop");
@@ -24,10 +24,10 @@ var YamlHighlightRules = function() {
                 regex: "[&\\*][a-zA-Z0-9-_]+"
             }, {
                 token: ["meta.tag", "keyword"],
-                regex: /^(\s*\w.*?)(:(?:\s+|$))/
+                regex: /^(\s*\w.*?)(:(?=\s|$))/
             },{
                 token: ["meta.tag", "keyword"],
-                regex: /(\w+?)(\s*:(?:\s+|$))/
+                regex: /(\w+?)(\s*:(?=\s|$))/
             }, {
                 token : "keyword.operator",
                 regex : "<<\\w*:\\w*"
@@ -62,7 +62,7 @@ var YamlHighlightRules = function() {
                 regex : "['](?:(?:\\\\.)|(?:[^'\\\\]))*?[']"
             }, {
                 token : "constant.numeric", // float
-                regex : /(\b|[+\-\.])[\d_]+(?:(?:\.[\d_]*)?(?:[eE][+\-]?[\d_]+)?)/
+                regex : /(\b|[+\-\.])[\d_]+(?:(?:\.[\d_]*)?(?:[eE][+\-]?[\d_]+)?)(?=[^\d-\w]|$)/
             }, {
                 token : "constant.numeric", // other number
                 regex : /[+\-]?\.inf\b|NaN\b|0x[\dA-Fa-f_]+|0b[10_]+/
@@ -75,6 +75,9 @@ var YamlHighlightRules = function() {
             }, {
                 token : "paren.rparen",
                 regex : "[\\])}]"
+            }, {
+                token : "text",
+                regex : /[^\s,:\[\]\{\}]+/
             }
         ],
         "mlString" : [
@@ -111,7 +114,7 @@ oop.inherits(YamlHighlightRules, TextHighlightRules);
 exports.YamlHighlightRules = YamlHighlightRules;
 });
 
-ace.define("ace/mode/matching_brace_outdent",["require","exports","module","ace/range"], function(require, exports, module) {
+ace.define("ace/mode/matching_brace_outdent",[], function(require, exports, module) {
 "use strict";
 
 var Range = require("../range").Range;
@@ -151,7 +154,7 @@ var MatchingBraceOutdent = function() {};
 exports.MatchingBraceOutdent = MatchingBraceOutdent;
 });
 
-ace.define("ace/mode/folding/coffee",["require","exports","module","ace/lib/oop","ace/mode/folding/fold_mode","ace/range"], function(require, exports, module) {
+ace.define("ace/mode/folding/coffee",[], function(require, exports, module) {
 "use strict";
 
 var oop = require("../../lib/oop");
@@ -238,7 +241,7 @@ oop.inherits(FoldMode, BaseFoldMode);
 
 });
 
-ace.define("ace/mode/yaml",["require","exports","module","ace/lib/oop","ace/mode/text","ace/mode/yaml_highlight_rules","ace/mode/matching_brace_outdent","ace/mode/folding/coffee"], function(require, exports, module) {
+ace.define("ace/mode/yaml",[], function(require, exports, module) {
 "use strict";
 
 var oop = require("../lib/oop");
@@ -257,7 +260,7 @@ oop.inherits(Mode, TextMode);
 
 (function() {
 
-    this.lineCommentStart = "#";
+    this.lineCommentStart = ["#", "//"];
     
     this.getNextLineIndent = function(state, line, tab) {
         var indent = this.$getIndent(line);
@@ -287,3 +290,11 @@ oop.inherits(Mode, TextMode);
 exports.Mode = Mode;
 
 });
+                (function() {
+                    ace.require(["ace/mode/yaml"], function(m) {
+                        if (typeof module == "object" && typeof exports == "object" && module) {
+                            module.exports = m;
+                        }
+                    });
+                })();
+            

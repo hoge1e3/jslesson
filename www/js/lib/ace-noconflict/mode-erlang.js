@@ -1,11 +1,10 @@
-ace.define("ace/mode/erlang_highlight_rules",["require","exports","module","ace/lib/oop","ace/mode/text_highlight_rules"], function(require, exports, module) {
+ace.define("ace/mode/erlang_highlight_rules",[], function(require, exports, module) {
 "use strict";
 
 var oop = require("../lib/oop");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var ErlangHighlightRules = function() {
-
     this.$rules = { start: 
        [ { include: '#module-directive' },
          { include: '#import-export-directive' },
@@ -820,7 +819,7 @@ var ErlangHighlightRules = function() {
               { defaultToken: 'meta.structure.tuple.erlang' } ] } ],
       '#variable': 
        [ { token: [ 'variable.other.erlang', 'variable.language.omitted.erlang' ],
-           regex: '(_[a-zA-Z\\d@_]+|[A-Z][a-zA-Z\\d@_]*)|(_)' } ] }
+           regex: '(_[a-zA-Z\\d@_]+|[A-Z][a-zA-Z\\d@_]*)|(_)' } ] };
     
     this.normalizeRules();
 };
@@ -829,7 +828,7 @@ ErlangHighlightRules.metaData = { comment: 'The recognition of function definiti
       fileTypes: [ 'erl', 'hrl' ],
       keyEquivalent: '^~E',
       name: 'Erlang',
-      scopeName: 'source.erlang' }
+      scopeName: 'source.erlang' };
 
 
 oop.inherits(ErlangHighlightRules, TextHighlightRules);
@@ -837,7 +836,7 @@ oop.inherits(ErlangHighlightRules, TextHighlightRules);
 exports.ErlangHighlightRules = ErlangHighlightRules;
 });
 
-ace.define("ace/mode/folding/cstyle",["require","exports","module","ace/lib/oop","ace/range","ace/mode/folding/fold_mode"], function(require, exports, module) {
+ace.define("ace/mode/folding/cstyle",[], function(require, exports, module) {
 "use strict";
 
 var oop = require("../../lib/oop");
@@ -858,8 +857,8 @@ oop.inherits(FoldMode, BaseFoldMode);
 
 (function() {
     
-    this.foldingStartMarker = /(\{|\[)[^\}\]]*$|^\s*(\/\*)/;
-    this.foldingStopMarker = /^[^\[\{]*(\}|\])|^[\s\*]*(\*\/)/;
+    this.foldingStartMarker = /([\{\[\(])[^\}\]\)]*$|^\s*(\/\*)/;
+    this.foldingStopMarker = /^[^\[\{\(]*([\}\]\)])|^[\s\*]*(\*\/)/;
     this.singleLineBlockCommentRe= /^\s*(\/\*).*\*\/\s*$/;
     this.tripleStarBlockCommentRe = /^\s*(\/\*\*\*).*\*\/\s*$/;
     this.startRegionRe = /^\s*(\/\*|\/\/)#?region\b/;
@@ -977,7 +976,7 @@ oop.inherits(FoldMode, BaseFoldMode);
 
 });
 
-ace.define("ace/mode/erlang",["require","exports","module","ace/lib/oop","ace/mode/text","ace/mode/erlang_highlight_rules","ace/mode/folding/cstyle"], function(require, exports, module) {
+ace.define("ace/mode/erlang",[], function(require, exports, module) {
 "use strict";
 
 var oop = require("../lib/oop");
@@ -1000,3 +999,11 @@ oop.inherits(Mode, TextMode);
 
 exports.Mode = Mode;
 });
+                (function() {
+                    ace.require(["ace/mode/erlang"], function(m) {
+                        if (typeof module == "object" && typeof exports == "object" && module) {
+                            module.exports = m;
+                        }
+                    });
+                })();
+            

@@ -1,4 +1,4 @@
-ace.define("ace/mode/latex_highlight_rules",["require","exports","module","ace/lib/oop","ace/mode/text_highlight_rules"], function(require, exports, module) {
+ace.define("ace/mode/latex_highlight_rules",[], function(require, exports, module) {
 "use strict";
 
 var oop = require("../lib/oop");
@@ -18,7 +18,23 @@ var LatexHighlightRules = function() {
             regex : "(\\\\(?:label|v?ref|cite(?:[^{]*)))(?:({)([^}]*)(}))?"
         }, {
             token : ["storage.type", "lparen", "variable.parameter", "rparen"],
-            regex : "(\\\\(?:begin|end))({)(\\w*)(})"
+            regex : "(\\\\begin)({)(verbatim)(})",
+            next : "verbatim"
+        },  {
+            token : ["storage.type", "lparen", "variable.parameter", "rparen"],
+            regex : "(\\\\begin)({)(lstlisting)(})",
+            next : "lstlisting"
+        },  {
+            token : ["storage.type", "lparen", "variable.parameter", "rparen"],
+            regex : "(\\\\(?:begin|end))({)([\\w*]*)(})"
+        }, {
+            token : "storage.type",
+            regex : /\\verb\b\*?/,
+            next : [{
+                token : ["keyword.operator", "string", "keyword.operator"],
+                regex : "(.)(.*?)(\\1|$)|",
+                next : "start"
+            }]
         }, {
             token : "storage.type",
             regex : "\\\\[a-zA-Z]+"
@@ -52,9 +68,24 @@ var LatexHighlightRules = function() {
             next : "start" 
         }, {
             defaultToken : "string"
+        }],
+        "verbatim": [{
+            token : ["storage.type", "lparen", "variable.parameter", "rparen"],
+            regex : "(\\\\end)({)(verbatim)(})",
+            next : "start"
+        }, {
+            defaultToken : "text"
+        }],
+        "lstlisting": [{
+            token : ["storage.type", "lparen", "variable.parameter", "rparen"],
+            regex : "(\\\\end)({)(lstlisting)(})",
+            next : "start"
+        }, {
+            defaultToken : "text"
         }]
-
     };
+    
+    this.normalizeRules();
 };
 oop.inherits(LatexHighlightRules, TextHighlightRules);
 
@@ -62,7 +93,7 @@ exports.LatexHighlightRules = LatexHighlightRules;
 
 });
 
-ace.define("ace/mode/rdoc_highlight_rules",["require","exports","module","ace/lib/oop","ace/lib/lang","ace/mode/text_highlight_rules","ace/mode/latex_highlight_rules"], function(require, exports, module) {
+ace.define("ace/mode/rdoc_highlight_rules",[], function(require, exports, module) {
 "use strict";
 
 var oop = require("../lib/oop");
@@ -71,7 +102,6 @@ var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 var LaTeXHighlightRules = require("./latex_highlight_rules");
 
 var RDocHighlightRules = function() {
-
     this.$rules = {
         "start" : [
             {
@@ -139,7 +169,7 @@ oop.inherits(RDocHighlightRules, TextHighlightRules);
 exports.RDocHighlightRules = RDocHighlightRules;
 });
 
-ace.define("ace/mode/matching_brace_outdent",["require","exports","module","ace/range"], function(require, exports, module) {
+ace.define("ace/mode/matching_brace_outdent",[], function(require, exports, module) {
 "use strict";
 
 var Range = require("../range").Range;
@@ -179,7 +209,7 @@ var MatchingBraceOutdent = function() {};
 exports.MatchingBraceOutdent = MatchingBraceOutdent;
 });
 
-ace.define("ace/mode/rdoc",["require","exports","module","ace/lib/oop","ace/mode/text","ace/mode/rdoc_highlight_rules","ace/mode/matching_brace_outdent"], function(require, exports, module) {
+ace.define("ace/mode/rdoc",[], function(require, exports, module) {
 "use strict";
 
 var oop = require("../lib/oop");
@@ -203,3 +233,11 @@ oop.inherits(Mode, TextMode);
 
 exports.Mode = Mode;
 });
+                (function() {
+                    ace.require(["ace/mode/rdoc"], function(m) {
+                        if (typeof module == "object" && typeof exports == "object" && module) {
+                            module.exports = m;
+                        }
+                    });
+                })();
+            

@@ -1,11 +1,10 @@
-ace.define("ace/mode/sparql_highlight_rules",["require","exports","module","ace/lib/oop","ace/mode/text_highlight_rules"], function(require, exports, module) {
+ace.define("ace/mode/sparql_highlight_rules",[], function(require, exports, module) {
 "use strict";
 
 var oop = require("../lib/oop");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var SPARQLHighlightRules = function() {
-
     this.$rules = {
         start: [{
             include: "#comments"
@@ -134,7 +133,7 @@ var SPARQLHighlightRules = function() {
             token: "support.type.datatype.schema.sparql",
             regex: /xsd?:[a-z][a-zA-Z]+/
         }]
-    }
+    };
     
     this.normalizeRules();
 };
@@ -143,7 +142,7 @@ SPARQLHighlightRules.metaData = {
     fileTypes: ["rq", "sparql"],
     name: "SPARQL",
     scopeName: "source.sparql"
-}
+};
 
 
 oop.inherits(SPARQLHighlightRules, TextHighlightRules);
@@ -151,7 +150,7 @@ oop.inherits(SPARQLHighlightRules, TextHighlightRules);
 exports.SPARQLHighlightRules = SPARQLHighlightRules;
 });
 
-ace.define("ace/mode/folding/cstyle",["require","exports","module","ace/lib/oop","ace/range","ace/mode/folding/fold_mode"], function(require, exports, module) {
+ace.define("ace/mode/folding/cstyle",[], function(require, exports, module) {
 "use strict";
 
 var oop = require("../../lib/oop");
@@ -172,8 +171,8 @@ oop.inherits(FoldMode, BaseFoldMode);
 
 (function() {
     
-    this.foldingStartMarker = /(\{|\[)[^\}\]]*$|^\s*(\/\*)/;
-    this.foldingStopMarker = /^[^\[\{]*(\}|\])|^[\s\*]*(\*\/)/;
+    this.foldingStartMarker = /([\{\[\(])[^\}\]\)]*$|^\s*(\/\*)/;
+    this.foldingStopMarker = /^[^\[\{\(]*([\}\]\)])|^[\s\*]*(\*\/)/;
     this.singleLineBlockCommentRe= /^\s*(\/\*).*\*\/\s*$/;
     this.tripleStarBlockCommentRe = /^\s*(\/\*\*\*).*\*\/\s*$/;
     this.startRegionRe = /^\s*(\/\*|\/\/)#?region\b/;
@@ -291,7 +290,7 @@ oop.inherits(FoldMode, BaseFoldMode);
 
 });
 
-ace.define("ace/mode/sparql",["require","exports","module","ace/lib/oop","ace/mode/text","ace/mode/sparql_highlight_rules","ace/mode/folding/cstyle"], function(require, exports, module) {
+ace.define("ace/mode/sparql",[], function(require, exports, module) {
 "use strict";
 
 var oop = require("../lib/oop");
@@ -306,8 +305,16 @@ var Mode = function() {
 oop.inherits(Mode, TextMode);
 
 (function() {
-    this.$id = "ace/mode/sparql"
+    this.$id = "ace/mode/sparql";
 }).call(Mode.prototype);
 
 exports.Mode = Mode;
 });
+                (function() {
+                    ace.require(["ace/mode/sparql"], function(m) {
+                        if (typeof module == "object" && typeof exports == "object" && module) {
+                            module.exports = m;
+                        }
+                    });
+                })();
+            

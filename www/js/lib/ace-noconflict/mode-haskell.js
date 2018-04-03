@@ -1,11 +1,10 @@
-ace.define("ace/mode/haskell_highlight_rules",["require","exports","module","ace/lib/oop","ace/mode/text_highlight_rules"], function(require, exports, module) {
+ace.define("ace/mode/haskell_highlight_rules",[], function(require, exports, module) {
 "use strict";
 
 var oop = require("../lib/oop");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var HaskellHighlightRules = function() {
-
     this.$rules = { start:
        [ { token:
             [ 'punctuation.definition.entity.haskell',
@@ -17,7 +16,7 @@ var HaskellHighlightRules = function() {
          { token: 'constant.language.empty-list.haskell',
            regex: '\\[\\]' },
          { token: 'keyword.other.haskell',
-           regex: '\\bmodule\\b',
+           regex: '\\b(module|signature)\\b',
            push:
             [ { token: 'keyword.other.haskell', regex: '\\bwhere\\b', next: 'pop' },
               { include: '#module_name' },
@@ -191,7 +190,7 @@ var HaskellHighlightRules = function() {
          { token: 'storage.type.haskell',
            regex: '\\b[A-Z][a-zA-Z0-9_\']*\\b' },
          { token: 'support.constant.unit.haskell', regex: '\\(\\)' },
-         { include: '#comments' } ] }
+         { include: '#comments' } ] };
 
     this.normalizeRules();
 };
@@ -199,7 +198,7 @@ var HaskellHighlightRules = function() {
 HaskellHighlightRules.metaData = { fileTypes: [ 'hs' ],
       keyEquivalent: '^~H',
       name: 'Haskell',
-      scopeName: 'source.haskell' }
+      scopeName: 'source.haskell' };
 
 
 oop.inherits(HaskellHighlightRules, TextHighlightRules);
@@ -207,7 +206,7 @@ oop.inherits(HaskellHighlightRules, TextHighlightRules);
 exports.HaskellHighlightRules = HaskellHighlightRules;
 });
 
-ace.define("ace/mode/folding/cstyle",["require","exports","module","ace/lib/oop","ace/range","ace/mode/folding/fold_mode"], function(require, exports, module) {
+ace.define("ace/mode/folding/cstyle",[], function(require, exports, module) {
 "use strict";
 
 var oop = require("../../lib/oop");
@@ -228,8 +227,8 @@ oop.inherits(FoldMode, BaseFoldMode);
 
 (function() {
     
-    this.foldingStartMarker = /(\{|\[)[^\}\]]*$|^\s*(\/\*)/;
-    this.foldingStopMarker = /^[^\[\{]*(\}|\])|^[\s\*]*(\*\/)/;
+    this.foldingStartMarker = /([\{\[\(])[^\}\]\)]*$|^\s*(\/\*)/;
+    this.foldingStopMarker = /^[^\[\{\(]*([\}\]\)])|^[\s\*]*(\*\/)/;
     this.singleLineBlockCommentRe= /^\s*(\/\*).*\*\/\s*$/;
     this.tripleStarBlockCommentRe = /^\s*(\/\*\*\*).*\*\/\s*$/;
     this.startRegionRe = /^\s*(\/\*|\/\/)#?region\b/;
@@ -347,7 +346,7 @@ oop.inherits(FoldMode, BaseFoldMode);
 
 });
 
-ace.define("ace/mode/haskell",["require","exports","module","ace/lib/oop","ace/mode/text","ace/mode/haskell_highlight_rules","ace/mode/folding/cstyle"], function(require, exports, module) {
+ace.define("ace/mode/haskell",[], function(require, exports, module) {
 "use strict";
 
 var oop = require("../lib/oop");
@@ -370,3 +369,11 @@ oop.inherits(Mode, TextMode);
 
 exports.Mode = Mode;
 });
+                (function() {
+                    ace.require(["ace/mode/haskell"], function(m) {
+                        if (typeof module == "object" && typeof exports == "object" && module) {
+                            module.exports = m;
+                        }
+                    });
+                })();
+            

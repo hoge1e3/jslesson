@@ -51,6 +51,7 @@ www/log/
 www/scoreSheet
 www/log/new
 *.swp
+www/js/lib/ace-noconflict-old
 www/js/ctrans/a.out
 www/js/ctrans/runtimeerrors.txt
 test/debug.log
