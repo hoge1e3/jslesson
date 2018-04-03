@@ -104,12 +104,18 @@ class AssignmentController {
         req("Submission");
         //$class=Auth::curClass2();
         $token=param("token");
-        $token=explode("@-@",$token);
+        $user=BAUser::fromAccessToken($token);
+        if (!$user) {
+            $r= array("status"=>"NG",
+            "mesg"=>"Token $token not found!");
+        } else {
+            $r=self::submit_common($user,param("name"),param("files"));
+        }
+        /*$token=explode("@-@",$token);
         $class=$token[0];
         $user=$token[1];
         $class=new BAClass($class);
-        $user=new BAUser($class,$user);
-        $r=self::submit_common($user,param("name"),param("files"));
+        $user=new BAUser($class,$user);*/
         print json_encode($r);
     }
     static function submit_common($user,$name,$files) {
@@ -135,6 +141,15 @@ class AssignmentController {
         $sub->save();
         return array("status"=>"OK",
         "mesg"=>"Pracitce ".$sub->assignment->name." submission complete!");
+    }
+    static function accessToken() {
+        $user=Auth::curUser2();
+        if (!$user) {
+            $login=param("login","http://bitarrow.eplang.jp/bitarrowbeta");
+            header("Location: $login");
+            exit;
+        }
+        echo $user->getAccessToken();
     }
     static function view() {
         $user=Auth::curUser2();

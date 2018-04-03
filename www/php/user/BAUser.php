@@ -1,5 +1,5 @@
 <?php
-req("BAClass");
+req("BAClass","pdo");
 class BAUser {
     var $_class;
     var $name;
@@ -99,6 +99,29 @@ class BAUser {
             return file($fn);
         }else{
             return array((object) array('date'=>'未実行','time'=>'未実行','filename'=>'','result'=>'','detail'=>'','code'=>(object) array('C'=>'','HTML'=>'')));
+        }
+    }
+    function publishAccessToken() {
+        $res=rand(1000000,
+                  9999999);
+        pdo_insertOrUpdate("accessToken",
+            array("class"=>$this->_class->id, "user"=>$this->name),
+            array("token"=>$res)
+        );
+        return $res;
+    }
+    function getAccessToken() {
+        $r=pdo_select1(
+            "select * from accessToken where class=? and user=?",
+            $this->_class->id, $this->name);
+        if ($r) return $r->token;
+        return $this->publishAccessToken();
+    }
+    static function fromAccessToken($t) {
+        $r=pdo_select1(
+            "select * from accessToken where token=?",$t);
+        if ($r) {
+            return new BAUser(new BAClass($r->{"class"}),$r->user);
         }
     }
 }
