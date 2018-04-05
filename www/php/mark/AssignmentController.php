@@ -119,16 +119,17 @@ class AssignmentController {
         print json_encode($r);
     }
     static function submit_common($user,$name,$files) {
+        $assignment=new Assignment(
+            $user->_class,$name);
+        if (!$assignment->exists()) {
+            return array("status"=>"NG",
+            "mesg"=>"Practice ".$assignment->name." not found!");
+        }
         $sub=Submission::getLast($user,$name);
         if (!$sub || $sub->getMark()) {
             $sub=new Submission();
             $sub->user=$user;
-            $sub->assignment=new Assignment(
-                $user->_class,$name);
-            if (!$sub->assignment->exists()) {
-                return array("status"=>"NG",
-                "mesg"=>"Practice ".$sub->assignment->name." not found!");
-            }
+            $sub->assignment=$assignment;
         } else {
             $sub->load();
             $sub->time=DateUtil::now();
