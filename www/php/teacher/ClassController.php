@@ -98,7 +98,8 @@ class ClassController {
         }
         ?>
         <h1><?=$class->id?> - ユーザ一覧</h1>
-        <a href="a.php?Class/show">クラス管理に戻る</a><hr>
+        <a href="a.php?Class/show">クラス管理に戻る</a><br>
+        <a href="a.php?Class/registerUserForm">履修者を登録する</a><hr>
         <a href="a.php?Class/showUsers&card=1">カードに印刷</a><hr>
         <table border=1>
             <tr><th>ユーザID</th><th>パスワード</th><th>名前</th></tr>
@@ -322,7 +323,7 @@ class ClassController {
                 }
             }
         }
-
+        header("Location: a.php?Class/showUsers");
     }
     static function showStatus(){
         date_default_timezone_set('Asia/Tokyo');

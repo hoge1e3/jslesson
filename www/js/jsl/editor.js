@@ -6,7 +6,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
            "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog",
-           "IframeDialog","AssignmentDialog","SubmitDialog"
+           "IframeDialog","AssignmentDialog","SubmitDialog","CommentDialog2"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -16,7 +16,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
           CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog,
-          IframeDialog,AssignmentDialog,SubmitDialog
+          IframeDialog,AssignmentDialog,SubmitDialog,CommentDialog2
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -264,6 +264,7 @@ function ready() {
             }
         });
     }
+    var commentDialog=new CommentDialog2(curPrj);
     var submitDialog;
     function submit() {
         if (!submitDialog) submitDialog=new SubmitDialog(curPrj);
@@ -1268,14 +1269,24 @@ function ready() {
             //if(desktopEnv.editorMode=="emacs") inf.editor.setKeyboardHandler("ace/keyboard/emacs");
             //else inf.editor.setKeyboardHandler(defaultKeyboard);
         }
-        var cmfile=f.sibling(f.truncExt()+".cmt.txt");
+        commentDialog.getComment(f).then(function (c) {
+            $("#commentLink").empty();
+            console.log(c);
+            if (c) {
+                $("#commentLink").append("&nbsp;").append(
+                    $("<a>").text("採点結果!").click(function () {
+                        commentDialog.show(c);
+                    }));
+            }
+        }).catch(DU.E);
+        /*var cmfile=f.sibling(f.truncExt()+".cmt.txt");
         $("#commentLink").empty();
         if (cmfile.exists()) {
             $("#commentLink").append("&nbsp;").append(
                 $("<a>").text("採点結果").click(function () {
                     CommentDialog.show(cmfile);
                 }));
-        }
+        }*/
         $("#curFileLabel").text(f.truncExt());
     }
     d=function () {

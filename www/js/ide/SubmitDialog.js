@@ -23,6 +23,7 @@ function (UI,Klass,DU){
                     return (a.name>b.name ? 1:-1);
                 });
                 console.log(r);
+                $(t.form.name).empty();
                 r.forEach(function (n) {
 
                     $(t.form.name).append(

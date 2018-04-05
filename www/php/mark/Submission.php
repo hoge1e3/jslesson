@@ -85,8 +85,21 @@ class Submission {
     function getMark() {
         return pdo_select1("select * from mark where submission=?",$this->id);
     }
+    static function getLastByFile($user, $fileName) {
+        $r=pdo_select("select * from submission ".
+        "where user=? order by time desc ",$user->name);
+        foreach ($r as $re) {
+            $fs=json_decode($re->files);
+            if ($fs && isset($fs->{$fileName})) {
+                $s=new Submission();
+                $s->fromRecord($re);
+                return $s;
+            }
+        }
+    }
     static function getLast($user, $name) {
         $a=new Assignment($user->_class,$name);
+        if (!$a->exists()) throw new Exception("Assignment $name not found");
         $a->load();
         $r=pdo_select1("select * from submission ".
         "where assignment=? and user=? ".

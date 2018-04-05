@@ -16243,7 +16243,9 @@ function (UI,Klass,DU){
             var path=t.prj.getDir().name()+file.name();
             return $.get(WebSite.controller+"?Assignment/list").
             then(function (r) {
+                console.log("Assignment/list",r);
                 r.forEach(function (e) {
+                    if (typeof e.files==="string") e.files=JSON.parse(e.files);
                     if (e.files[path]) e.ord=0;
                     else e.ord=1;
                 });
@@ -16253,6 +16255,7 @@ function (UI,Klass,DU){
                     return (a.name>b.name ? 1:-1);
                 });
                 console.log(r);
+                $(t.form.name).empty();
                 r.forEach(function (n) {
 
                     $(t.form.name).append(
@@ -16260,7 +16263,7 @@ function (UI,Klass,DU){
                     );
                 });
                 t.form.file.value=path;
-            });
+            }).catch(DU.E);
         },
         createDOM:function (t) {
             t.dom=UI("div",{title:"課題の提出"},
@@ -16295,12 +16298,49 @@ function (UI,Klass,DU){
             param.files=JSON.stringify(param.files);
             console.log("submit",param);
             $.get(WebSite.controller+"?Assignment/submit",param).then(function (r) {
+                if (typeof r=="string") {
+                    r=JSON.parse(r);
+                }
                 console.log(r);
                 alert("提出しました");
-            },DU.E);
+            }).catch(DU.E);
         }
     });
     return SubmitDialog;
+});
+
+define('CommentDialog2',["UI","Klass"],function (UI,Klass) {
+    var res={};
+    CommentDialog2=Klass.define({
+        $this: "t",
+        $: ["prj"],
+        getComment: function (t,file) {
+            var path=t.prj.getDir().name()+file.name();
+            return $.get("a.php?Mark/getLast&file="+path).then(function (r) {
+                if (typeof r==="string") r=JSON.parse(r);
+                if (!r.result) return null;
+                return r;
+            });
+        },
+        show: function (t,r) {
+            t.createDOM();
+            if (!r) return;
+            t.result.text(r.result);
+            t.comment.val(r.comment);
+            t.dom.dialog({width:600});
+        },
+        createDOM: function (t) {
+            if (t.dom) return t.dom;
+            t.dom=UI("div",{title:"採点結果"},
+                ["div",{$var:"result"}],
+                ["textarea",{$var:"comment",rows:20,cols:60,readonly:true}]
+            );
+            t.result=t.dom.$vars.result;
+            t.comment=t.dom.$vars.comment;
+            return t.dom;
+        }
+    });
+    return CommentDialog2;
 });
 
 requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
@@ -16311,7 +16351,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
            "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog",
-           "IframeDialog","AssignmentDialog","SubmitDialog"
+           "IframeDialog","AssignmentDialog","SubmitDialog","CommentDialog2"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -16321,7 +16361,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
           CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog,
-          IframeDialog,AssignmentDialog,SubmitDialog
+          IframeDialog,AssignmentDialog,SubmitDialog,CommentDialog2
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -16569,10 +16609,12 @@ function ready() {
             }
         });
     }
+    var commentDialog=new CommentDialog2(curPrj);
     var submitDialog;
     function submit() {
         if (!submitDialog) submitDialog=new SubmitDialog(curPrj);
         var inf=getCurrentEditorInfo();
+        if (!inf || !inf.file) return alert("提出するファイルを開いてください");
         submitDialog.show(inf.file);
     }
     function showFileList() {
@@ -17572,14 +17614,24 @@ function ready() {
             //if(desktopEnv.editorMode=="emacs") inf.editor.setKeyboardHandler("ace/keyboard/emacs");
             //else inf.editor.setKeyboardHandler(defaultKeyboard);
         }
-        var cmfile=f.sibling(f.truncExt()+".cmt.txt");
+        commentDialog.getComment(f).then(function (c) {
+            $("#commentLink").empty();
+            console.log(c);
+            if (c) {
+                $("#commentLink").append("&nbsp;").append(
+                    $("<a>").text("採点結果!").click(function () {
+                        commentDialog.show(c);
+                    }));
+            }
+        }).catch(DU.E);
+        /*var cmfile=f.sibling(f.truncExt()+".cmt.txt");
         $("#commentLink").empty();
         if (cmfile.exists()) {
             $("#commentLink").append("&nbsp;").append(
                 $("<a>").text("採点結果").click(function () {
                     CommentDialog.show(cmfile);
                 }));
-        }
+        }*/
         $("#curFileLabel").text(f.truncExt());
     }
     d=function () {
