@@ -287,9 +287,13 @@ class ClassController {
             $u->make();
             echo "登録しました<br>";
         }else{
-            echo "すでに登録されているユーザIDです<br>";
+            $u->password=$pass;
+            $u->setOptions("name",$name);
+            $u->edit();
+            echo "登録済ユーザの情報を更新しました<br>";
         }
-        echo '<a href="a.php?Class/registerUserForm">ユーザ登録に戻る</a>';
+        echo '<a href="a.php?Class/registerUserForm">ユーザ登録に戻る</a><br>';
+        echo '<a href="a.php?Class/showUsers">ユーザ一覧を見る</a>';
     }
     static function registerUser() {
         if (!isset($_FILES["stuList"]["name"]) || substr($_FILES["stuList"]["name"],strrpos($_FILES["stuList"]["name"],'.')+1)!='csv') {
@@ -319,6 +323,8 @@ class ClassController {
                     }
                     if(!$u->exists()){
                         $u->make();
+                    }else {
+                        $u->edit();
                     }
                 }
             }

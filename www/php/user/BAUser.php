@@ -55,6 +55,17 @@ class BAUser {
 	    $sth->execute(array($this->_class->id,$this->name,$this->password,$this->options));
 
     }
+    // update
+    function edit(){
+        if (!$this->exists()) {
+            throw new Exception($this->name."は登録されていません");
+        }
+        $pdo = pdo();
+	    $sth=$pdo->prepare("update user set pass = ? , options = ? where class = ? and name = ?");
+	    $sth->execute(array($this->password,$this->options,$this->_class->id,$this->name));
+
+    }
+
     function setOptions($key,$value){
         if(self::exists()){
             $this->options=self::getOptions();
