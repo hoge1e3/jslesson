@@ -17619,9 +17619,9 @@ function ready() {
             console.log(c);
             if (c) {
                 $("#commentLink").append("&nbsp;").append(
-                    $("<a>").text("採点結果!").click(function () {
+                    $("<a>").text("採点結果").click(function () {
                         commentDialog.show(c);
-                    }));
+                    })).append("&nbsp;");
             }
         }).catch(DU.E);
         /*var cmfile=f.sibling(f.truncExt()+".cmt.txt");
