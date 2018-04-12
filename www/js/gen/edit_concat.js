@@ -16085,7 +16085,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
         },
         showList:function (t) {
             t.list.empty();
-            return $.get("a.php?Assignment/list").then(function (r) {
+            return $.get("a.php?Assignment/listNames").then(function (r) {
                 t.list.empty();
                 t.list.append(UI("div",
                     ["a",{href:"javascript:;",on:{
@@ -16241,9 +16241,9 @@ function (UI,Klass,DU){
             t.dom=t.dom||t.createDOM();
             t.dom.dialog();
             var path=t.prj.getDir().name()+file.name();
-            return $.get(WebSite.controller+"?Assignment/list").
+            return $.get(WebSite.controller+"?Assignment/listNames").
             then(function (r) {
-                console.log("Assignment/list",r);
+                console.log("Assignment/listNames",r);
                 r.forEach(function (e) {
                     if (typeof e.files==="string") e.files=JSON.parse(e.files);
                     if (e.files[path]) e.ord=0;

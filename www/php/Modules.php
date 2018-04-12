@@ -43,6 +43,7 @@ $mod_aliases=array(
     'ErrorHandler' => 'php/ErrorHandler.php',
     'AuthInfo' => 'php/fs/AuthInfo.php',
     'NativeFS' => 'php/fs/NativeFS.php',
+    'MountableFS' => 'php/fs',
     'PathUtil' => 'php/fs/PathUtil.php',
     'Permission' => 'php/fs/Permission.php',
     'SFile' => 'php/fs/SFile.php',
@@ -86,6 +87,7 @@ $mod_aliases=array(
     "Submission"=>"php/mark",
     "TestcaseController"=>"php/mark",
     "Testcase"=>"php/mark",
+    "TestController"=>"php/test",
     //----/AUTOGEN
     "config"=>"config/config.php",
     "dbconf"=>"db/config.php",

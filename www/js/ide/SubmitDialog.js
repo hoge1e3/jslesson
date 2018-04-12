@@ -9,9 +9,9 @@ function (UI,Klass,DU){
             t.dom=t.dom||t.createDOM();
             t.dom.dialog();
             var path=t.prj.getDir().name()+file.name();
-            return $.get(WebSite.controller+"?Assignment/list").
+            return $.get(WebSite.controller+"?Assignment/listNames").
             then(function (r) {
-                console.log("Assignment/list",r);
+                console.log("Assignment/listNames",r);
                 r.forEach(function (e) {
                     if (typeof e.files==="string") e.files=JSON.parse(e.files);
                     if (e.files[path]) e.ord=0;

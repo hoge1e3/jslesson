@@ -1,7 +1,5 @@
 <?php
-require_once __DIR__."/PathUtil.php";
-require_once __DIR__."/Permission.php";
-require_once __DIR__."/NativeFS.php";
+req("PathUtil","Permission","NativeFS");
 
 class MountableFS {
     private $permission, $mountPoints;
@@ -10,6 +8,10 @@ class MountableFS {
         $this->mountPoints=array();
     }
     function mount($logicalPath,$physicalPath) {
+        if (PathUtil::startsWith($logicalPath, PathUtil::SEP)) {
+            $logicalPath=substr($logicalPath,1);
+        }
+        $logicalPath=PathUtil::SEP.$logicalPath;
         if (is_string($physicalPath)) {
             $this->mountPoints[$logicalPath]=new NativeFS($physicalPath);
         } else if ($physicalPath instanceof NativeFS) {
@@ -23,14 +25,15 @@ class MountableFS {
             $this->permission->check($path,$opr);
         }
         $r=$this->resolve($path);
-        $r[0]->check($r[1]);
+        $r[0]->check($r[1],$opr);
         return $this;
     }
     public function resolve($path) {
         if (is_null($path)) throw new Exception("path is null!");
         if (PathUtil::startsWith($path, PathUtil::SEP)) {
-           $path=substr($path,1);
+            $path=substr($path,1);
         }
+        $path=PathUtil::SEP.$path;
         //array_sort_callback();
         foreach ($this->mountPoints as $mpath=>$fs) {
             if (PathUtil::startsWith($path,$mpath)) {
@@ -40,10 +43,10 @@ class MountableFS {
         }
         throw new Exception("Cannot access to $path");
     }
-    public function getContent($path) {
+    function getContent($path) {
         $this->check($path,Permission::READ);
         $resolved = $this->resolve($path);
-        return $resolved[0]->getContent(resolved[1]);
+        return $resolved[0]->getContent($resolved[1]);
     }
     function mv($path, $to) {
         $this->check($path,Permission::WRITE);
@@ -55,79 +58,58 @@ class MountableFS {
     function rm($path) {
          $this->check($path,Permission::WRITE);
          $rp=$this->resolve($path);
-         unlink($rp);
+         $rp[0]->rm($rp[1]);
     }
     function rmdir($path) {
          $this->check($path,Permission::WRITE);
          $rp=$this->resolve($path);
-         rmdir($rp);
+         $rp[0]->rmdir($rp[1]);
     }
     function mkdir($path) {
         $this->check($path,Permission::WRITE);
-         if ($this->exists($path)) return;
-         if (!mkdir($this->resolve($path), 0777, true)) {
-             throw new Exception("Failed to create $path");
-         }
+        if ($this->exists($path)) return;
+        $rp=$this->resolve($path);
+        return $rp[0]->mkdir($rp[1]);
     }
     function setContent($path, $cont) {
         $this->check($path,Permission::WRITE);
-        $filename = $this->resolve($path);
-        $this->mkdir(PathUtil::up($path));
-        $handle = fopen($filename, "w");
-        $contents = fwrite($handle, $cont);
-        fclose($handle);
+        $rp=$this->resolve($path);
+        return $rp[0]->setContent($rp[1],$cont);
     }
     function appendContent($path, $cont) {
         $this->check($path,Permission::WRITE);
-        $filename = $this->resolve($path);
-        $this->mkdir(PathUtil::up($path));
-        $handle = fopen($filename, "a");
-        $contents = fwrite($handle, $cont);
-        fclose($handle);
+        $rp=$this->resolve($path);
+        return $rp[0]->appendContent($rp[1],$cont);
     }
-    public function notFound($path) {
+    function notFound($path) {
         throw new Exception("$path not found");
     }
     function exists($path) {
         $this->check($path,Permission::READMETA);
-        return file_exists($this->resolve($path));
+        $rp=$this->resolve($path);
+        return $rp[0]->exists($rp[1]);
     }
     function isDir($path) {
-         return is_dir($this->resolve($path));
+        $this->check($path,Permission::READMETA);
+        $rp=$this->resolve($path);
+        return $rp[0]->isDir($rp[1]);
     }
     function getMetaInfo($path) {
         $this->check($path,Permission::READMETA);
-         //if (preg_match("/Ireizu/",$path)) return array(lastUpdate=>FALSE);
-         return array( "lastUpdate"=>filemtime($this->resolve($path))*1000 );
+        $rp=$this->resolve($path);
+        return $rp[0]->getMetaInfo($rp[1]);
     }
     function setMetaInfo($path, $info) {
         global $errStatus;
         $this->check($path,Permission::WRITEMETA);
-         if (isset($info["lastUpdate"])) {
-             $errStatus=$this->resolve($path).", ".round($info["lastUpdate"]/1000);
-             touch($this->resolve($path), round($info["lastUpdate"]/1000) );
-         }
+        $rp=$this->resolve($path);
+        return $rp[0]->setMetaInfo($rp[1]);
     }
-    public function ls($path) {
+    function ls($path) {
         $this->check($path,Permission::LS);
-         $res=array();
-         if ($handle = opendir($this->resolve($path))) {
- 		    while (false !== ($entry = readdir($handle))) {
- 		        if ($entry!="." && $entry!="..") {
- 		           if ($this->isDir(PathUtil::rel($path, $entry))) {
- 		              $entry=$entry.PathUtil::SEP;
- 		           }
-   		           array_push($res, $entry);
-   		        }
- 		    }
- 		    closedir($handle);
- 	    } else {
-             $this->notFound($path);
- 	    }
- 	    return $res;
+        $rp=$this->resolve($path);
+        return $rp[0]->ls($rp[1]);
     }
-
-
 }
 
 ?>

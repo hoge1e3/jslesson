@@ -46,7 +46,7 @@ class AssignmentController {
         $a->save();
         echo "OK";
     }
-    static function list() {
+    static function listNames() {
         //Auth::assertTeacher();
         $class=Auth::curClass2();
         $res=pdo_select("select * from assignment where class=?",

@@ -66,7 +66,10 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
         },
         showList:function (t) {
             t.list.empty();
-            return $.get("a.php?Assignment/list").then(function (r) {
+            return $.get("a.php?Assignment/listNames").then(function (r) {
+                if (typeof r==="string") {
+                    r=JSON.parse(r);
+                }
                 t.list.empty();
                 t.list.append(UI("div",
                     ["a",{href:"javascript:;",on:{
