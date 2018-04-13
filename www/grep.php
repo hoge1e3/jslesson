@@ -20,7 +20,7 @@ if (strpos($file,$class)===FALSE) {
     echo ("Research more! $file $class");
     exit(0);
 }
-$fs=new NativeFS("./log/");
+$fs=new NativeFS(BA_LOG."/");
 if ($fs->exists("$file-data.txt")) {
     plain($file);
 } else if ($fs->exists("$file-data.log")) {
@@ -102,7 +102,7 @@ function toHTML($e) {
         $com=$s["com"];
         $score="<font color=blue>$diy $com</font><BR>";
     }else $score="";
-    return "<pre>". 
+    return "<pre>".
         mkTimeLink($time)."<BR>".
         "<font color=red>".$e["detail"]."</font><BR>".
         "<font color=green>".$e["filename"]."</font><BR>".
@@ -111,7 +111,7 @@ function toHTML($e) {
         preg_replace("/ /","&nbsp;",htmlspecialchars ($c) )."<br>HTML:<BR>".
         preg_replace("/ /","&nbsp;",htmlspecialchars ($h) )."<BR>".
     "\n</pre><BR>";
-            
+
 }
 function mkTimeLink($s) {
     global $file;

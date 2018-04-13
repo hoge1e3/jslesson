@@ -105,7 +105,7 @@ class BAUser {
     	}
     }
     function getLog(){
-        $fn="./log/".$this->_class->id."-".$this->name."-data.log";
+        $fn=BA_LOG."/".$this->_class->id."-".$this->name."-data.log";
         if(file_exists($fn)){
             return file($fn);
         }else{

@@ -22,7 +22,7 @@ class BAClass{
         $sth->execute(array($teacher->name,AUTH::TEACHER));
         $res=array();
         foreach ($sth->fetchAll() as $rec) {
-            $res[]=new BAClass($rec["class"]);    
+            $res[]=new BAClass($rec["class"]);
         }
         return $res;
     }
@@ -42,7 +42,7 @@ class BAClass{
     function getRequests() {
         //TODO
         //このクラスの再発行リクエスト一覧を取得(arrayで)
-        
+
     }
     function passwordRequired() {
         //TODO
@@ -104,7 +104,7 @@ class BAClass{
         if (!Auth::isTeacherOf($this)) {
             throw new Exception(" You are not the teacher of ".$this->id);
         }
-        $fs=new NativeFS("fs/");
+        $fs=new NativeFS(BA_FS."/");
         $f=new SFile($fs,"/home/".$this->id."/");
         if (!$f->exists()) {
             $f->mkdir();

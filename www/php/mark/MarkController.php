@@ -84,7 +84,7 @@ class MarkController {
         date_default_timezone_set('Asia/Tokyo');
         $user=Auth::curUser();
         $class=Auth::curClass();
-        $fp=fopen("log/$class-$user-data.log","a");
+        $fp=fopen(BA_LOG."/$class-$user-data.log","a");
         $time=date(DATE_ATOM);
         $data=json_encode(array("date"=>$time, "result"=>"mark",
         "filename"=>$dst, "detail"=>$cont,"targetTime"=>$timeStamp));

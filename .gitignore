@@ -66,6 +66,7 @@ www/runtime/lib/tjs/kernel_old.js.map
 www/db/*
 www/mei_*
 private
+/data/
 www/php/test/phpinfo.php
 /www/perl
 www/php/horiPra.php

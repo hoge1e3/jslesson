@@ -4,7 +4,7 @@
 req("NativeFS","SFile","pdo");
 class ClassMigrationController {
     static function migrate() {
-        $fs=new NativeFS(BA_TOP);
+        $fs=new NativeFS(BA_DATA);
         $list=new SFile($fs,"user/list.txt");
         foreach ($list->lines() as $line) {
             $class=json_decode($line);

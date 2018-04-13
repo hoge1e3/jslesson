@@ -30,7 +30,7 @@ if (isset($_GET["max"])) {
 }
 $class=Auth::curClass();
 echo "<script>setRange('$min','$max');\n</script>";
-$fs=new NativeFS("./log/");
+$fs=new NativeFS(BA_LOG."/");
 foreach ($fs->ls("/") as $n) {
     $n="/$n";
     if (strpos($n,$class)!=FALSE) {

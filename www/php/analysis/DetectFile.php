@@ -9,7 +9,7 @@ require_once __DIR__."/VecUtil.php";
 require_once __DIR__."/LogUtil.php";
 
 
-$fs=new NativeFS("log/");
+$fs=new NativeFS(BA_LOG."/");
 $logD=new SFile($fs,"/");
 $files=$logD->listFiles();
 $j=new Services_JSON();

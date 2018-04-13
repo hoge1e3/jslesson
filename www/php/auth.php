@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__."/../config/config.php";
 require_once __DIR__."/fs/NativeFS.php";
 require_once __DIR__."/json.php";
 require_once __DIR__."/MySession.php";
@@ -17,7 +18,7 @@ req("BATeacher");
 //ini_set('session.gc_divisor',1);
 //ini_set('session.gc_probability',1);
 
-$fs=new NativeFS();
+$fs=new NativeFS(BA_DATA."/");
 $userDir=new SFile($fs,"user/");
 class Auth {
     const TEACHER="teacher";
@@ -66,7 +67,7 @@ class Auth {
 	    $json = new Services_JSON();
         if (!$class)return "クラス名を入力してください。";
 	    if (!$pass)return "パスワードを入力してください。";
-    	if (!file_exists("fs/home/$class") && !$ignoreNonexistent){
+    	if (!file_exists(BA_FS."/home/$class") && !$ignoreNonexistent){
                return "存在しないクラスIDが入力されています。";
     	}
         $classObj=self::classList()->find1("classid",$class);
@@ -216,7 +217,7 @@ class Auth {
    	    $teacher=self::curTeacher();
    	    if ($user) {
    	        $ap=new Permission(new AuthInfo($user,$teacher));
-            return new NativeFS("fs/",$ap);
+            return new NativeFS(BA_FS."/",$ap);
 	   	} else {
 	   	    return null;
 	   	}

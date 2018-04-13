@@ -138,33 +138,7 @@ class ClassController {
             /*<th><?=$l->date?>, <?=$l->time?></th><th><?=$l->filename?></th><th><?=$l->result?></th><th res="<?=$l->detail?>" onclick="alert(this.getAttribute('res'));">詳細</th>
             <th prog='<?=$l->code->C."\n---------------\n".$l->code->HTML?>' onclick="alert(this.getAttribute('prog'));">コード</th>*/
         }
-        /*
-
-
-        $class->mkdir();
-        $mesg="";
-        $handle=opendir("fs/home/".$class->id."/");
-        $files=array();
-        $sortedKeys=array();
-        $i=0;
-        while(($tmp=readdir($handle)) !== false){
-	    	if($tmp!="." && $tmp!=".."){
-	    	    $files[$i]=$tmp;
-	    	    $i++;
-		    }
-        }
-        natcasesort($files);
-        $sortedKeys=array_keys($files);
-        for($i=0;$i<count($files);$i++){
-            ?>
-            <!--
-            <a href="a.php?Login/su&class=<?=$class->id?>&user=<?=$files[$sortedKeys[$i]]?>"
-                target="stutab">
-            -->
-            <?= $files[$sortedKeys[$i]] ?>
-            <!--</a>--><br/>
-            <?php
-        }*/
+        
         ?>
         </table>
         <?php

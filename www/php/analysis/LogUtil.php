@@ -26,7 +26,7 @@ class LogUtil {
         if (isset($e["nearest"])) {
             if (is_array($e["nearest"])) {
                 foreach ($e["nearest"] as $s) {
-                    $fname.="$s,";  
+                    $fname.="$s,";
                 }
             } else {
                 $fname=$e["nearest"];
@@ -35,19 +35,19 @@ class LogUtil {
             $fname=$e["filename"];
             $fname=PathUtil::name($fname);
         }
-        return $fname;    
+        return $fname;
     }
     static function getLogDir() {
         require_once __DIR__."/../ErrorHandler.php";
         require_once __DIR__."/../auth.php";
         require_once __DIR__."/../fs/SFile.php";
         require_once __DIR__."/../fs/NativeFS.php";
-        $fs=new NativeFS("log/");
+        $fs=new NativeFS(BA_LOG."/");
         return new SFile($fs,"/");
     }
     static function getLogFiles() {
         $class=Auth::curClass();
-        return self::getLogFileOf($class);    
+        return self::getLogFileOf($class);
     }
     static function getLogFilesOf($class) {
         $logD=self::getLogDir();

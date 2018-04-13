@@ -14,7 +14,7 @@ if (isset($_POST["class"])) {
 	    <?php
 	    if (!$ignoreNonexistent) {
     	    $mesg="";
-    	    $handle=opendir("fs/home/$class/");
+    	    $handle=opendir(BA_FS."/home/$class/");
     	    $files=array();
     	    $sortedKeys=array();
     	    $i=0;
