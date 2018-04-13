@@ -1,7 +1,8 @@
 <?php
 
 //   You must set BA_DATA to data directory, it is recommended that BA_DATA cannot access via http
-define("BA_DATA", dirname(__DIR__)."/../../data");
+//define("BA_DATA", dirname(__DIR__)."/../../data");
+define("BA_DATA", dirname(__DIR__));
 
 //define("BA_TOP", dirname(__DIR__));
 define("BA_LOG", BA_DATA."/log");
