@@ -1,1 +1,1 @@
-sqlite3 www\db\db2.sqlite3
+sqlite3 data\db\db2.sqlite3
