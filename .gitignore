@@ -43,10 +43,12 @@ Network Trash Folder
 Temporary Items
 .apdisk
 www/user/list.txt
+/data/user/
 www/fs/pub
 www/fs/home/devel/test
 www/fs/home/lesson_samples/hk2016
 www/fs/home/tuat17jikken
+/data/log/
 www/log/
 www/scoreSheet
 www/log/new
@@ -66,7 +68,15 @@ www/runtime/lib/tjs/kernel_old.js.map
 www/db/*
 www/mei_*
 private
-/data/
+/data/db/*
+/data/fs/Tonyu/Projects/JSLKer/js/concat_old.js
+/data/fs/pub
+/data/fs/home/Nodepad
+/data/fs/home/pro1
+/data/fs/home/regist_test
+/data/fs/home/devel/test
+/data/fs/home/lesson_samples/hk2016
+/data/fs/home/tuat*
 www/php/test/phpinfo.php
 /www/perl
 www/php/horiPra.php

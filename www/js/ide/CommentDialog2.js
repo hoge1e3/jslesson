@@ -5,7 +5,7 @@ define(["UI","Klass"],function (UI,Klass) {
         $: ["prj"],
         getComment: function (t,file) {
             var path=t.prj.getDir().name()+file.name();
-            return $.get("a.php?Mark/getLast&file="+path).then(function (r) {
+            return $.get("a.php?Mark/getLast&file="+path+"&p="+Math.random()).then(function (r) {
                 if (typeof r==="string") r=JSON.parse(r);
                 if (!r.result) return null;
                 return r;

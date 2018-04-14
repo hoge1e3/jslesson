@@ -4,7 +4,7 @@ require_once "php/json.php";
 require_once "php/fs/NativeFS.php"; #TOFS
 require_once "php/auth.php";
 require_once "php/ErrorHandler.php";
-$fs=Auth::getFS(); //new NativeFS("../fs");
+$fs=Auth::getFS();
 header("Content-type: text/json");
 if (!$fs) {
    print '{"NOT_LOGGED_IN":1}';

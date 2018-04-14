@@ -1,2 +1,0 @@
-{"userid":"0x0001","pin":1234}
-{"userid":"0x0001","pin":4567,"allowed":true}

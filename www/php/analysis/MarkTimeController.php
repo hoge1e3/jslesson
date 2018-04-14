@@ -1,9 +1,9 @@
 <?php
-req("NativeFS","SFile");
+req("NativeFS","SFile","config");
 class MarkTimeController {
     static function get() {
         date_default_timezone_set("Asia/Tokyo");
-        $d=new SFile(new NativeFS(),"log");
+        $d=new SFile(new NativeFS(BA_DATA."/"),"log");
         foreach ($d->listFiles() as $n) {
             if (preg_match("/h.\@.s/",$n->name())) {
                 break;
@@ -25,13 +25,13 @@ class MarkTimeController {
                             self::td($d->filename)
                         );
                     }
-                }            
+                }
             } catch(Exception $e) {
                 echo $e;
             }
         }
           echo "</table>";
-      
+
     }
     static function td($s) {
         return "<td>$s</td>";
@@ -41,7 +41,7 @@ class MarkTimeController {
     }
     static function kadAvg() {
         date_default_timezone_set("Asia/Tokyo");
-        $d=new SFile(new NativeFS(),"log");
+        $d=new SFile(new NativeFS(BA_DATA."/"),"log");
         echo "<table>";
         foreach ($d->listFiles() as $n) {
             if (preg_match("/m.i.*pro1.*1[0-9]j5/",$n->name())) {
@@ -49,7 +49,7 @@ class MarkTimeController {
             }
         }
         echo "</table>";
-    }  
+    }
     static function pickFileTime($n) {
         foreach ($n->lines() as $s) {
             try {

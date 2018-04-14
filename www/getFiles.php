@@ -5,7 +5,7 @@ require_once "php/fs/NativeFS.php";
 require_once "php/auth.php";
 require_once "php/ErrorHandler.php";
 
-$fs=Auth::getFS(); //new NativeFS("../fs");
+$fs=Auth::getFS();
 $json=new Services_JSON;
 
 if (!isset($_POST["base"])) {
