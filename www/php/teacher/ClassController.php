@@ -332,7 +332,7 @@ class ClassController {
             $runcount[$s->name]=0;
             $errcount[$s->name]=0;
             $latestrun[$s->name]='実行していません';
-            $runhistory[$s->name]="";
+            $runhistory[$s->name]='<span id="'.$s->name.'hist">';
             $latestfile[$s->name]="";
         }
         foreach($logs as $log){
@@ -342,7 +342,7 @@ class ClassController {
                 $runcount[$log['user']]=1;
             }
             if(!isset($runhistory[$log['user']])){
-                $runhistory[$log['user']]='';
+                $runhistory[$log['user']]='<span id="'.$log['user'].'hist">';
             }
             if(strpos($log['result'],'Error')!==false){
                 if(isset($errcount[$log['user']])){
@@ -363,7 +363,7 @@ class ClassController {
             $latestfile[$log['user']]=$log['filename'];
         }
         foreach($runhistory as $runhistkey => $runhistval){
-            $runhistory[$runhistkey].='<br id="'.$runhistkey.'ui" style="display:none"><button id="'.$runhistkey.'ui" style="display:none" data-user='.$runhistkey.' onclick="getOneUsersLogId(this.getAttribute('."'".'data-user'."'".'),'."'".'prev'."'".')">Prev</button>  <button id="'.$runhistkey.'ui" style="display:none" data-user='.$runhistkey.' onclick="getOneUsersLogId(this.getAttribute('."'".'data-user'."'".'),'."'".'next'."'".')">Next</button><span id="'.$runhistkey.'res" style="display:none"></span><br><textarea rows=10 cols=60 id="'.$runhistkey.'" style="display:none" onclick="this.select(0,this.value.length)">test</textarea>';
+            $runhistory[$runhistkey].='</span><br id="'.$runhistkey.'ui" style="display:none"><button id="'.$runhistkey.'ui" style="display:none" data-user='.$runhistkey.' onclick="getOneUsersLogId(this.getAttribute('."'".'data-user'."'".'),'."'".'prev'."'".')">Prev</button>  <button id="'.$runhistkey.'ui" style="display:none" data-user='.$runhistkey.' onclick="getOneUsersLogId(this.getAttribute('."'".'data-user'."'".'),'."'".'next'."'".')">Next</button><span id="'.$runhistkey.'res" style="display:none"></span><br><textarea rows=10 cols=60 id="'.$runhistkey.'" style="display:none" onclick="this.select(0,this.value.length)">test</textarea>';
         }
         ?>
         <script type="text/javascript" src="js/lib/jquery-1.12.1.js"></script>
@@ -440,9 +440,19 @@ class ClassController {
               $("[id="+displayingId+"ui]").css("display","inline");
               $("[id="+displayingId+"res]").css("display","inline");
               //http://bitarrow.eplang.jp/bitarrowbeta/
+              var d = new Date( parseInt(data.time) * 1000 );
+              var year  = d.getFullYear();
+              var month = d.getMonth() + 1;
+              var day  = d.getDate();
+              var hour = ( '0' + d.getHours() ).slice(-2);
+              var min  = ( '0' + d.getMinutes() ).slice(-2);
+              var sec   = ( '0' + d.getSeconds() ).slice(-2);
+              var logtime=year+"/"+month+"/"+day+" "+hour+":"+min+":"+sec;
+              var filehist='<span filename="'+data.filename+'" onClick="showFileHistory(this.getAttribute('+"'"+'filename'+"'"+'))">'+data.filename+'</span>';
+              //var filehist=data.filename;
               var runLink=".?r=jsl_edit&dir=/home/<?=$class->id?>/<?=$teacher?>/Test/&autologexec="+data.id;
               var userid=data.user;
-              $("#"+userid+"res").html("<br><a target='runCheck' href='"+runLink+"'>実行してみる</a><br>"+data.filename+"<br>"+data.result);
+              $("#"+userid+"res").html("<br>"+logtime+"<br><a target='runCheck' href='"+runLink+"'>実行してみる</a><br>"+filehist+"<br>"+data.result);
               $("#"+userid).height(30);
               $("#"+userid).html(res);
               $("#"+userid).css("display","inline");
@@ -471,16 +481,26 @@ class ClassController {
                 }
               }
             }
+            function showFileHistory(filename){
+              
+              // todo
+              console.log("testfilehist");
+            }
         </script>
         <div id="detail" style="display:none;"></div>
         <h1><?=$class->id?> - ユーザ一覧</h1>
         <a href="a.php?Class/show">クラス管理に戻る</a><hr>
         対象の時刻を変える<br>
         <form action="a.php?Class/showStatus" method="POST" style="display: inline">
-            <input name="min" value="<?=time()-1800?>" type="hidden">
+            <input name="min" value="<?=time()-600?>" type="hidden">
             <input name="max" value="<?=time()?>" type="hidden">
-    	    <input type="submit" value="最近30分間"/>
+    	    <input type="submit" value="最近10分間"/>
     	</form>
+      <form action="a.php?Class/showStatus" method="POST" style="display: inline">
+          <input name="min" value="<?=time()-1800?>" type="hidden">
+          <input name="max" value="<?=time()?>" type="hidden">
+        <input type="submit" value="最近30分間"/>
+    </form>
         <form action="a.php?Class/showStatus" method="POST" style="display: inline">
             <input name="min" value="<?=time()-3600?>" type="hidden">
             <input name="max" value="<?=time()?>" type="hidden">

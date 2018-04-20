@@ -1,5 +1,5 @@
 <?php
-req("auth","SFile","pdo","Submission");
+req("auth","SFile","pdo","Submission","DateUtil");
 function fix($source) {
     $source = preg_replace_callback(
         '/(^|(?<=&))[^=[&]+/',
@@ -18,7 +18,9 @@ class MarkController {
         // POST
         // submission(ID)=>{result , comment}
         foreach($_POST as $key=>$value) {
-            $r=pdo_insertOrUpdate("mark",array("submission"=>$key),json_decode($value));
+            $data=json_decode($value);
+            $data->time=DateUtil::now();
+            $r=pdo_insertOrUpdate("mark",array("submission"=>$key),$data);
         }
     }
     static function submit() {
@@ -41,7 +43,8 @@ class MarkController {
                 array("submission"=>$key),
                 array("result"=>$result,
                     "comment"=>$value,
-                    "manual"=>$man));
+                    "manual"=>$man,
+                    "time"=>DateUtil::now()));
                 echo "$key にコメントを書きました?<BR>";
             }
         }
