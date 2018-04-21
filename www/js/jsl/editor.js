@@ -1172,10 +1172,10 @@ function ready() {
             var nw=prog.getValue();
             if (old!=nw) {
                 curFile.text(nw);
+                logToServer2(curFile.path(),curFile.text(),/*curHTMLFile.text()*/"HTML","Save","保存しました",langList[lang]);
             }
         }
         fl.setModified(false);
-		logToServer2(curFile.path(),curFile.text(),/*curHTMLFile.text()*/"HTML","Save","保存しました",langList[lang]);
     }
     function watchModified() {
         try {

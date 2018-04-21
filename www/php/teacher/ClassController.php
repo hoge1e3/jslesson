@@ -311,16 +311,12 @@ class ClassController {
         $teacher=Auth::curTeacher()->id;
         $now=time();
         if(!isset($_POST["Y"])){
-            if(!isset($_POST['min'])){
+            if(!isset($_POST['interval'])){
                 $min=$now-600;
             }else{
-                $min=$_POST['min'];
+                $min=$now-$_POST['interval'];
             }
-            if(!isset($_POST['max'])){
-                $max=$now;
-            }else{
-                $max=$_POST['max'];
-            }
+            $max=$now;
         }else{
             $min=strtotime($_POST['Y']."/".$_POST['m']."/".$_POST['d']." ".$_POST['H'].":".$_POST['i'].":".$_POST['s']);
             $max=strtotime($_POST['aY']."/".$_POST['am']."/".$_POST['ad']." ".$_POST['aH'].":".$_POST['ai'].":".$_POST['as']);
@@ -344,17 +340,19 @@ class ClassController {
             if(!isset($runhistory[$log['user']])){
                 $runhistory[$log['user']]='<span id="'.$log['user'].'hist">';
             }
+            $fnid=str_replace("/","__",$log['filename']);
+            $fnid=str_replace(".","__",$fnid);
             if(strpos($log['result'],'Error')!==false){
                 if(isset($errcount[$log['user']])){
                     $errcount[$log['user']]++;
                 }else{
                     $errcount[$log['user']]=1;
                 }
-                $runhistory[$log['user']].='<span data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));"><font color="red">E</font></span>';
+                $runhistory[$log['user']].='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));"><font color="red">E</font></span>';
             }else if(strpos($log['result'],'Run')!==false){
-                $runhistory[$log['user']].='<span data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">R</span>';
+                $runhistory[$log['user']].='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">R</span>';
             }else if(strpos($log['result'],'Save')!==false){
-                $runhistory[$log['user']].='<span data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">S</span>';
+                $runhistory[$log['user']].='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">S</span>';
             }
             if(!isset($errcount[$log['user']])){
                 $errcount[$log['user']]=0;
@@ -374,6 +372,7 @@ class ClassController {
             $(document).ready(function() {
                 dx=0,dy=0;
                 displayingId="";
+                selectedFile="";
 
             // call the tablesorter plugin
                 $("table").tablesorter({
@@ -428,6 +427,7 @@ class ClassController {
                   $("[id='"+displayingId+"ui']").css("display","none");
                   $("[id='"+displayingId+"res']").css("display","none");
                   $("#"+displayingId).css("display","none");
+                  $("[data-id='"+currentLogId+"']").css("background-color","white");
               }
               currentLogId=data.id;
               displayingId=data.user;
@@ -448,7 +448,9 @@ class ClassController {
               var min  = ( '0' + d.getMinutes() ).slice(-2);
               var sec   = ( '0' + d.getSeconds() ).slice(-2);
               var logtime=year+"/"+month+"/"+day+" "+hour+":"+min+":"+sec;
-              var filehist='<span filename="'+data.filename+'" onClick="showFileHistory(this.getAttribute('+"'"+'filename'+"'"+'))">'+data.filename+'</span>';
+              var fn=data.filename.replace("/","__");
+              fn=fn.replace(".","__");
+              var filehist='<span filename="'+fn+'" onClick="showFileHistory(this.getAttribute('+"'"+'filename'+"'"+'))">'+data.filename+'</span>';
               //var filehist=data.filename;
               var runLink=".?r=jsl_edit&dir=/home/<?=$class->id?>/<?=$teacher?>/Test/&autologexec="+data.id;
               var userid=data.user;
@@ -458,6 +460,7 @@ class ClassController {
               $("#"+userid).css("display","inline");
               //$("#"+userid).width($("#"+userid).parent().width());
               $("#"+userid).height($("#"+userid).get(0).scrollHeight);
+              $("[data-id='"+data.id+"']").css("background-color","orange");
                 //alert(logid);
             }
             function showFrame(data,userid,pon){
@@ -482,9 +485,17 @@ class ClassController {
               }
             }
             function showFileHistory(filename){
-              
+              if(selectedFile!==""){
+                $("[filename='fn"+selectedFile+"']").css("font-size","-=10");
+              }
+              if(selectedFile!=filename){
+                $("[filename='fn"+filename+"']").css("font-size","+=10");
+                selectedFile=filename;
+              }else{
+                selectedFile="";
+              }
               // todo
-              console.log("testfilehist");
+              console.log("testfilehist","#fn"+filename);
             }
         </script>
         <div id="detail" style="display:none;"></div>
@@ -492,22 +503,26 @@ class ClassController {
         <a href="a.php?Class/show">クラス管理に戻る</a><hr>
         対象の時刻を変える<br>
         <form action="a.php?Class/showStatus" method="POST" style="display: inline">
-            <input name="min" value="<?=time()-600?>" type="hidden">
+          <input name="interval" value="600" type="hidden">
+          <input name="min" value="<?=time()-600?>" type="hidden">
             <input name="max" value="<?=time()?>" type="hidden">
     	    <input type="submit" value="最近10分間"/>
     	</form>
       <form action="a.php?Class/showStatus" method="POST" style="display: inline">
-          <input name="min" value="<?=time()-1800?>" type="hidden">
+        <input name="interval" value="1800" type="hidden">
+        <input name="min" value="<?=time()-1800?>" type="hidden">
           <input name="max" value="<?=time()?>" type="hidden">
         <input type="submit" value="最近30分間"/>
     </form>
         <form action="a.php?Class/showStatus" method="POST" style="display: inline">
-            <input name="min" value="<?=time()-3600?>" type="hidden">
+          <input name="interval" value="3600" type="hidden">
+          <input name="min" value="<?=time()-3600?>" type="hidden">
             <input name="max" value="<?=time()?>" type="hidden">
     	    <input type="submit" value="最近60分間"/>
     	</form>
         <form action="a.php?Class/showStatus" method="POST" style="display: inline">
-            <input name="min" value="<?=time()-5400?>" type="hidden">
+          <input name="interval" value="5400" type="hidden">
+          <input name="min" value="<?=time()-5400?>" type="hidden">
             <input name="max" value="<?=time()?>" type="hidden">
     	    <input type="submit" value="最近90分間"/>
     	</form>
