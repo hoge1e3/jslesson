@@ -49,10 +49,11 @@ class LoginController {
     	$class=$_POST["class"];
     	$user=$_POST["user"];
     	$pass=$_POST["pass"];
+      $afterLogin=param("afterLogin","index.html");
     	self::$mesg=Auth::login($class,$user);
     	if (self::$mesg===true) {
     	    $showForm=false;
-    	    header("Location: index.html");
+    	    header("Location: $afterLogin");
     	    //print "$mesg";
     	} else if (self::$mesg==="register") {
     	    self::register();
@@ -61,7 +62,7 @@ class LoginController {
     	    //self::passForm();
     	    if (self::$mesg===true) {
         	    $showForm=false;
-    	        header("Location: index.html");
+    	        header("Location: $afterLogin");
     	        //print "$mesg";
     	    } else {
     	        self::passForm();

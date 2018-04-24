@@ -183,7 +183,7 @@ class AssignmentController {
                 print "(id=".$stat->id.")";
                 if (isset($stat->result)) {
                     print "[".$stat->result."]";
-                    print $stat->comment;
+                    print "<pre>".htmlspecialchars($stat->comment)."</pre>";
                 } else {
                     print "未採点";
                 }
