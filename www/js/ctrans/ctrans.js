@@ -215,6 +215,12 @@ window.MinimalParser= function () {
                     n+"は定義されていません．\n"+
                     "#include<"+builtin_func_to_include[name]+">を追加し忘れていませんか？",n);*/
             }
+            if (findFuncFromIncludes(name)) {
+                throw newError2(n,
+                    "'{1}'は定義されていません．\n"+
+                    "#include<{2}>を追加し忘れていませんか？",n,findFuncFromIncludes(name));
+
+            }
 
             for (var k in ctx.scope) {
                 if (k.toLowerCase()===name.toLowerCase()) {
@@ -1472,6 +1478,7 @@ extern char* strstr(char *h,char *n);
   extern void setTextSize(double sz);
   extern int getkey(char *n);
   extern void setLineWidth(double w);
+  extern void wait(void);
   */}
   };
   for (var k in include_files) {

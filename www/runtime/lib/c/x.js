@@ -185,3 +185,4 @@ function getkey(code) {
     if (!stats[code]) stats[code]=0;
     return stats[code];
 }
+function wait() {}
