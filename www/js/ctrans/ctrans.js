@@ -215,12 +215,12 @@ window.MinimalParser= function () {
                     n+"は定義されていません．\n"+
                     "#include<"+builtin_func_to_include[name]+">を追加し忘れていませんか？",n);*/
             }
-            if (findFuncFromIncludes(name)) {
+            /*if (findFuncFromIncludes(name)) {
                 throw newError2(n,
                     "'{1}'は定義されていません．\n"+
                     "#include<{2}>を追加し忘れていませんか？",n,findFuncFromIncludes(name));
 
-            }
+            }*/
 
             for (var k in ctx.scope) {
                 if (k.toLowerCase()===name.toLowerCase()) {
@@ -1496,7 +1496,7 @@ extern char* strstr(char *h,char *n);
 	    "stdio.h":
 	        ["printf","scanf","sleep","usleep","fopen","fclose","fputs","fgets","fprintf","fscanf","FILE"],
 	    "stdlib.h":
-	        ["rand","exit"],
+	        ["rand","srand","exit"],
 	    "string.h":
 	        ["strlen","strcpy","strncpy","strcmp","strncmp",
 	            "strcat","strncat","memset","index","rindex",
@@ -1504,9 +1504,11 @@ extern char* strstr(char *h,char *n);
 	    "math.h":
             ["abs","acos","asin","atan","atan2","ceil","cos","exp","floor",
                 "log","max","min","pow","random","round","sin","sqrt","tan"],
+        "time.h":
+            ["time"],
         "x.h":
             ["fillRect","clear","update","setColor","drawGrid","drawNumber","drawLine",
-                "setPen","movePen","fillOval","drawText","drawString","setTextSize","getkey","setLineWidth"]
+                "setPen","movePen","fillOval","drawText","drawString","setTextSize","getkey","setLineWidth","wait"]
 	};
 	var builtin_func_to_include={};
 	for (var k in builtin_funcs) {
