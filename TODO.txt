@@ -1,3 +1,5 @@
+a=[];for(i=100;i<=199;i++) a.push((i+"").substring(1)); for(i=0;i<200;i++) { p=Math.floor(Math.random()*100); e=a.splice(p,1);a.push(e[0]) } a.map((s)=>s[0]+" "+s[1]).join(" ")
+
 *環境へ対する要望等
 
 -日本語プロジェクト作成可能に

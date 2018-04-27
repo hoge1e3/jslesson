@@ -491,6 +491,12 @@ RAND_MAX=0x7fffffff;
 function rand() {
     return Math.floor(Math.random()*RAND_MAX);
 }
+function srand(s) {
+
+}
+function time() {
+	return (new Date).getTime();
+}
 function exit(status) {
 	var e=new Error("exit()によりプログラムが終了しました");
 	e.suppressHandleError=!status;

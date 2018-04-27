@@ -1415,7 +1415,11 @@ extern char* fgets(char *s,int l,FILE *fp);
   */},
   "stdlib.h":function () {/*
 extern int rand();
+extern int srand(int seed);
 extern int exit(int status);
+  */},
+  "time.h":function () {/*
+extern int time(void* time_t);
   */},
   "string.h":function () {/*
 extern int strlen(char *s);
