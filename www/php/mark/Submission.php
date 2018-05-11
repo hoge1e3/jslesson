@@ -11,6 +11,7 @@ class Submission {
             "assignment"=>"extkey",
             //"user"=>"string",
             "files"=>"object",
+            "source"=>"string",
             "time"=>"integer"
         );
     }

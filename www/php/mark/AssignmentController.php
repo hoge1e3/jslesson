@@ -109,7 +109,7 @@ class AssignmentController {
             $r= array("status"=>"NG",
             "mesg"=>"Token $token not found!");
         } else {
-            $r=self::submit_common($user,param("name"),param("files"));
+            $r=self::submit_common($user,param("name"),param("files"),"api");
         }
         /*$token=explode("@-@",$token);
         $class=$token[0];
@@ -118,7 +118,7 @@ class AssignmentController {
         $user=new BAUser($class,$user);*/
         print json_encode($r);
     }
-    static function submit_common($user,$name,$files) {
+    static function submit_common($user,$name,$files,$source="web") {
         $assignment=new Assignment(
             $user->_class,$name);
         if (!$assignment->exists()) {
@@ -134,6 +134,7 @@ class AssignmentController {
             $sub->load();
             $sub->time=DateUtil::now();
         }
+        $sub->source=$source;
         $sub->files=json_decode($files);
         if (!$sub->files) {
             return array("status"=>"NG",
