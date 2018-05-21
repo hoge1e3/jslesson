@@ -1,4 +1,11 @@
 //6.1.0
+// @hoge1e3 changed: For Dolittle-specific reason;
+//  Dolittle add method "then" method to Function.prototype. In this situation,
+//  Original version of promise.js regards function 'thenable'.
+//  So, new criteria of thenable is added that
+//       the typeof value is "object" (not a function)
+//  It should be added even if Promise is pre-defined (Non-IE browsers)
+//  Thus, this polyfill is applied all browsers.
 (function e(t, n, r) {
   function s(o, u) {
     if (!n[o]) {
