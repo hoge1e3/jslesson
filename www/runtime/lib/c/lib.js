@@ -255,7 +255,10 @@ function sprintfJS() {
 	// from http://d.hatena.ne.jp/uupaa/20080301/1204380616
     var rv = [], i = 0, v, width, precision, sign, idx, argv = arguments, next = 0;
     var unsign = function(val) { return (val >= 0) ? val : val % 0x100000000 + 0x100000000; };
-    var getArg = function() { return argv[idx ? idx - 1 : next++]; };
+    var getArg = function() {
+		if (!idx && next>=argv.length) throw new Error("printfの引数が足りません");
+		return argv[idx ? idx - 1 : next++];
+	};
 	var parseInt2=function (arg) {
 		var res=0;
 		switch(typeof arg){
@@ -297,6 +300,8 @@ function sprintfJS() {
       (v.length < width) ? rv.push(" ".repeat(width - v.length), v) : rv.push(v);
     }
     var line=rv.join("");
+	//console.log("ARGV",next,argv.length);
+	if (!idx && next<argv.length) doNotification("printfの引数が多すぎます．");
 	return line;
 }
 function printf() {

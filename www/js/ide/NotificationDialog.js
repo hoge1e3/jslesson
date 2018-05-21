@@ -3,16 +3,22 @@ define(["UI"], function (UI) {
 	res.show=function (mesg,options) {
     	var d=res.embed(mesg,options);
     	if (!res.opened) {
-        	d.dialog({width:500,height:100,
-        	    position: { my: "left bottom", at: "left bottom"},
-        	    close: function () {
-        	        res.opened=false;
-        	    }
-        	});
-    	}
-    	res.opened=true;
-    	var dcon=d.closest(".ui-dialog-content");
-    	dcon[0].scrollTop=dcon[0].scrollHeight;
+            //-- Firefox scanf->enter-> open it -> focus to x(close)->release enter->close??
+            setTimeout(function () {
+                d.dialog({width:500,height:100,
+            	    position: { my: "left bottom", at: "left bottom"},
+            	    close: function () {
+            	        res.opened=false;
+            	    }
+            	});
+                afterOpen();
+            },100);
+    	} else afterOpen();
+        function afterOpen() {
+            res.opened=true;
+        	var dcon=d.closest(".ui-dialog-content");
+        	dcon[0].scrollTop=dcon[0].scrollHeight;
+        }
 	};
 	res.embed=function (mesg, options) {
 	    if (!options) options={};
