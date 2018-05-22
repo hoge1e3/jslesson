@@ -714,6 +714,9 @@ window.MinimalParser= function () {
 		            "})()"
 		        ],{vtype:left.vtype});
 		    }
+            if (left.isMacro || left.isConst) {
+		        newError2(left,"++ や -- の直前に定数は書けません．");
+		    }
 		 } else if (op.type==="func_call") {
 	        //vtype TODO
 	        if (supportsAsync) {
