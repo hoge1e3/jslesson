@@ -15583,16 +15583,22 @@ define('NotificationDialog',["UI"], function (UI) {
 	res.show=function (mesg,options) {
     	var d=res.embed(mesg,options);
     	if (!res.opened) {
-        	d.dialog({width:500,height:100,
-        	    position: { my: "left bottom", at: "left bottom"},
-        	    close: function () {
-        	        res.opened=false;
-        	    }
-        	});
-    	}
-    	res.opened=true;
-    	var dcon=d.closest(".ui-dialog-content");
-    	dcon[0].scrollTop=dcon[0].scrollHeight;
+            //-- Firefox scanf->enter-> open it -> focus to x(close)->release enter->close??
+            setTimeout(function () {
+                d.dialog({width:500,height:100,
+            	    position: { my: "left bottom", at: "left bottom"},
+            	    close: function () {
+            	        res.opened=false;
+            	    }
+            	});
+                afterOpen();
+            },100);
+    	} else afterOpen();
+        function afterOpen() {
+            res.opened=true;
+        	var dcon=d.closest(".ui-dialog-content");
+        	dcon[0].scrollTop=dcon[0].scrollHeight;
+        }
 	};
 	res.embed=function (mesg, options) {
 	    if (!options) options={};
@@ -16386,7 +16392,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
     var ALWAYS_UPLOAD=(localStorage.ALWAYS_UPLOAD==="true");
     console.log("ALWAYS_UPLOAD",ALWAYS_UPLOAD);
-    var useOLDC=false;
+    //var useOLDC=false;
     if (typeof BitArrow==="object") BitArrow.curProjectDir=curProjectDir.path();
     var langList={
         "js":"JavaScript",
@@ -16474,25 +16480,18 @@ function ready() {
     var lang=opt.language || "js";
     switch (lang){
     case "c":
-        if(useOLDC) {
-        	requirejs(["cCompiler"],function(){
-        	    console.log("cCom requirejsed");
-        	    builderReady();
-        	});
-        } else {
-            requirejs(["CBuilder"],function(_){
-                Builder=_;
-                console.log("cb requirejsed");
-                $("#fullScr").attr("href","javascript:;").text("別ページで表示");
-                ram=FS.get("/ram/build/");
-                FS.mount(ram.path(),"ram");
-                builder=new Builder(curPrj, ram);
-                window.BABuilder=builder;
-                console.log("c builderready");
-                builderReady();
-            });
-        }
-    	helpURL="http://bitarrow.eplang.jp/index.php?c_use";
+        requirejs(["CBuilder"],function(_){
+            Builder=_;
+            console.log("cb requirejsed");
+            $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+            ram=FS.get("/ram/build/");
+            FS.mount(ram.path(),"ram");
+            builder=new Builder(curPrj, ram);
+            window.BABuilder=builder;
+            console.log("c builderready");
+            builderReady();
+        });
+        helpURL="http://bitarrow.eplang.jp/index.php?c_use";
     	break;
     case "js":
     	requirejs(["TJSBuilder"],function(_){
@@ -17029,7 +17028,7 @@ function ready() {
     }
     var curName,runURL;
     $("#fullScr").click(function () {
-        if (lang=="dtl" || lang=="js" ||(!useOLDC && lang=="c") ||  lang=="tonyu") {
+        if (lang=="dtl" || lang=="js" || lang=="c" ||  lang=="tonyu") {
             var inf=getCurrentEditorInfo();
             if (!inf) {
                 alert("実行したファイルを選んでください");
@@ -17066,17 +17065,6 @@ function ready() {
                 }).fail(function (e) {
                     Tonyu.onRuntimeError(e);
                     SplashScreen.hide();
-                });
-            }
-        } else {
-            if (runURL) {
-                var cv=$("<div>");
-                cv.dialog();
-                sync().then(function () {
-                    cv.append($("<div>").append(
-                            $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
-                    ));
-                    cv.append($("<div>").qrcode(runURL));
                 });
             }
         }
@@ -17158,36 +17146,6 @@ function ready() {
             QR code
             sync
             */
-
-    	/*}else if(lang=="c"&&useOLDC){
-    	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text());
-    		var compiledFile=curPrj.getOutputFile();
-    		var log={};
-    		try{
-    			compile(curJSFile,compiledFile,log);
-    	        	runURL=location.href.replace(/\/[^\/]*\?.*$/,
-    	        	        "/js/ctrans/runc.html?file="+compiledFile.path()
-    	        	);
-    			//$("#ifrm").attr("src",runURL);
-    			    RunDialog.show("src",runURL,
-    			    {height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
-    		        //RunDialog2.show(runURL,
-    			    //{height:screenH-50,toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
-    		        $("#fullScr").attr("href","javascript:;").text("別ページで表示");
-    		        $("#qr").text("QR");
-    		}catch(e){
-    			//logToServer("COMPILE ERROR!\n"+e+"\nCOMPILE ERROR END!");
-    			logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Compile Error",e+"","C");
-    			console.log(e.stack);
-    			if (e.pos) {
-        			var te=TError(e+"",curJSFile, e.pos);
-	                showErrorPos($("#errorPos"),te);
-                    displayMode("compile_error");
-    			} else {
-        			alert(e);
-    			}
-    		}
-            return sync();*/
       } else if (lang=="c") {
           try {
             SplashScreen.show();
