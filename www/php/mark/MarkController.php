@@ -49,6 +49,18 @@ class MarkController {
             }
         }
     }
+    static function getSubmission() {
+        $id=param("id");
+        $sub=new Submission($id);
+        $a=$sub->getAssignment();
+        $class=$a->getClass();
+        if (! Auth::isTeacherOf($class) ) {
+            die("You are not the teacher");
+        } else {
+            $sub->assignment=null;
+            echo json_encode($sub);
+        }
+    }
     static function submitOLD() {
         // POST
         //   class/user/prj/file   - value

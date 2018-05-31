@@ -35,6 +35,10 @@ class Submission {
     function exists() {
         return $this->record();
     }
+    function getAssignment() {
+        $this->load();
+        return $this->assignment;
+    }
     function load() {
         $s=$this->record();
         $this->fromRecord($s);
