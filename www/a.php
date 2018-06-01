@@ -63,6 +63,9 @@ $actions=array(
     "runit"=>"php/runit.php",
     "test"=>"php/test/test.php",
     "resetRequests"=>"php/teacher/resetRequests.php",
+    "getDirInfo"=>"getDirInfo.php",
+    "putFiles"=>"putFiles.php",
+    "getFiles"=>"getFiles.php",
     ""=>"index.html",
     "dummy"=>"hoge"
 );

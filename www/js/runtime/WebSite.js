@@ -31,9 +31,12 @@ define([], function () {
 	WS.serverTop=location.href.replace(/\?.*$/,"").replace(/[^/]*$/,"");//"."; // includes /
 	WS.phpTop=WS.serverTop+"";//php/";
 	WS.url={
-			getDirInfo:WS.phpTop+"getDirInfo.php",
+		getDirInfo:WS.serverTop+"?getDirInfo",
+		getFiles:WS.serverTop+"?getFiles",
+		putFiles:WS.serverTop+"?putFiles"
+/*			getDirInfo:WS.phpTop+"getDirInfo.php",
 			getFiles:WS.phpTop+"getFiles.php",
-			putFiles:WS.phpTop+"putFiles.php"
+			putFiles:WS.phpTop+"putFiles.php"*/
 	};
 	WS.controller=WS.serverTop+"a.php";
 	WS.runtime=WS.serverTop+"runtime/";
