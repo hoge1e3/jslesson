@@ -16920,6 +16920,7 @@ function ready() {
         window.curPrj=curPrj;
         autoexec();
         autologexec();
+        autosubexec();
     }
     function autoexec() {
         var autoexec=Util.getQueryString("autoexec",null);
@@ -16938,6 +16939,22 @@ function ready() {
                getCurrentEditorInfo().editor.getSession().getDocument().setValue(raw.code.C);
                run();//$("#runMenu").click();
             });
+        }
+    }
+    function autosubexec() {
+        var id=Util.getQueryString("autosubexec",null);
+        if (id) {
+            $.ajax("a.php?Mark/getSubmission&id="+id).then(function (r) {
+               r=typeof r==="object" ? r: JSON.parse(r);
+               var files=r.files;
+               var file;
+               for (var k in files) {file=files[k];}
+               fl.select(curProjectDir.rel("Test.c"));
+               getCurrentEditorInfo().editor.getSession().getDocument().setValue(file);
+               run();//$("#runMenu").click();
+           }).catch(function (e) {
+               console.error(e);
+           });
         }
     }
     function ls(){
