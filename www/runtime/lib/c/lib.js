@@ -261,6 +261,9 @@ function sprintfJS() {
 	};
 	var parseInt2=function (arg) {
 		var res=0;
+		if (arg && arg.IS_POINTER) {
+			return arg.addr||0;
+		}
 		switch(typeof arg){
 		case "number": case "boolean":
 			res=cast(CType.Int(),arg);

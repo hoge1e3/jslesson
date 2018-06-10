@@ -673,7 +673,7 @@ window.MinimalParser= function () {
 	        } else {
                 newError2(left,"配列やポインタでないものに対して添字を使おうとしています");
             }
-	        expr=["pointer(",left,",",op.index,").read()"];
+	        expr=["pointer(",left,",",op.index,",",typeLit(t),").read()"];
         } if (op+""==="++" || op+""==="--") {
 	        //var op2=(op+"")[0]+"=";
             if (left.type==="post") {
@@ -1031,7 +1031,7 @@ window.MinimalParser= function () {
 	var compound_statement=t("{").and(compound_statement_part).and(t("}"))
 		.ret(function(lcb,states,rcb){
 		    return ["{",
-		        "var ",curScopesName(),"={};",
+		        "var ",curScopesName(),"=LocalVariables();",
 				states,
 			"}"];
 		});
@@ -1158,7 +1158,7 @@ window.MinimalParser= function () {
     	        }*/
     	        //console.log("OP",right,right.vname);
     	        if (right.type==="post" && right.op.type==="index") {
-	                return extend( ["pointer(",right.left,",",right.op.index,")"] ,
+	                return extend( ["pointer(",right.left,",",right.op.index,",",typeLit(right.vtype),")"] ,
 	                {vtype: T.Pointer(right.vtype),pos:op.pos} );
     	        } else if (right.type==="post" && right.op.type==="arrow") {
 	                return extend( ["pointer(",right.left,",",lit(right.op.vname),")"] ,
@@ -1346,7 +1346,7 @@ window.MinimalParser= function () {
             rst=compound_statement_part.and(t("}")).ret(function (states) {
                 return extend(["scopes_"+depth,".",name,"=",
                     func,name,"(){",
-    				"var ",curScopesName(),"={};",
+    				"var ",curScopesName(),"=LocalVariables();",
                     "var ARGS=Array.prototype.slice.call(arguments);\n",
                     getParams,
 			        states,

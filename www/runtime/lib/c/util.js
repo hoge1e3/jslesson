@@ -5,24 +5,37 @@ try {
     window.supportsAsync=true;
 }catch(e){
 }
-var STRUCT_TYPE="#struct_type";
-function StructObj(type) {
-    if (!(this instanceof StructObj)) return new StructObj(type);
-    this[STRUCT_TYPE]=type;
-    if (type instanceof CType.Struct) {//TODO: CTYPE_NAME
+function LocalVariables() {
+    if (!(this instanceof LocalVariables)) return new LocalVariables();
+    this.__addresses={};
+}
+LocalVariables.prototype={
+    __getAddress: function (name,vtype) {
+        var a=this.__addresses;
+        if (!a[name]) a[name]=pointer.inc(vtype.sizeOf());
+        return a[name];
+    }
+};
+var STRUCT_TYPE="#struct_type",SYM_ADDR="#ADDR";
+function StructObj(vtype) {
+    var hasDust=true; // TODO
+    if (!(this instanceof StructObj)) return new StructObj(vtype);
+    this[STRUCT_TYPE]=vtype;
+    this[SYM_ADDR]=pointer.inc(0);
+    if (vtype instanceof CType.Struct) {//TODO: CTYPE_NAME
         var t=this;
-        type.members.forEach(function (m) {
-            var v;
-            if ((m.vtype) instanceof CType.Struct) {//TODO: CTYPE_NAME
+        vtype.members.forEach(function (m) {
+            var v=initialValue(m.vtype, hasDust);
+            /*if ((m.vtype) instanceof CType.Struct) {//TODO: CTYPE_NAME
                 v=StructObj(m.vtype);
             } else if ((m.vtype) instanceof CType.Array) {//TODO: CTYPE_NAME
                 v=arrInit2(m.vtype.e, m.vtype.length);
             } else {
                 v=dustValue();
-            }
+            }*/
             t[m.name+""]=v;
         });
-        //console.log("StructObjCreat",type.name,this);
+        //console.log("StructObjCreat",vtype.name,this);
     } else {
         throw new Error("Type should be set");
     }
@@ -39,9 +52,9 @@ function copyStruct(src) {
         return o instanceof StructObj;
     }
 }
-function copyArray(dst,src,type) {
-    var e=type.e;
-    for (var i=0;i<type.length;i++) {
+function copyArray(dst,src,vtype) {
+    var e=vtype.e;
+    for (var i=0;i<vtype.length;i++) {
         var v=src.offset(i).read();
         if (e instanceof CType.Struct) copyStruct2(dst.offset(i).read(),v,e);
         else if (e instanceof CType.Array) copyArray(dst.offset(i).read(),v,e);
@@ -49,9 +62,9 @@ function copyArray(dst,src,type) {
     }
     return dst;
 }
-function copyStruct2(dst,src,type) {
+function copyStruct2(dst,src,vtype) {
     //console.log("CopyStruct",dst,src);
-    type.members.forEach(function (m,i) {
+    vtype.members.forEach(function (m,i) {
         var k=m.name+"";
         var val=src.IS_POINTER ? src.offset(i).read() : src[k];
         if ((m.vtype) instanceof CType.Struct) copyStruct2(dst[k],val,m.vtype);
@@ -60,12 +73,21 @@ function copyStruct2(dst,src,type) {
     });
     return dst;
 }
-function pointer(obj,key,type,ofs) {
+function pointer(obj,key,vtype,ofs) {
     if (obj.IS_POINTER) {
         return obj.offset(key);
     }
+    var addr=0;
+    if (obj instanceof LocalVariables) {
+        if (vtype) {
+            addr=obj.__getAddress(key,vtype);
+        }
+    } else if (obj[SYM_ADDR]) {
+        addr=obj[SYM_ADDR];
+    }
     if (typeof key==="number") {
         key=Math.floor(key);
+        if (vtype) addr+=key*vtype.sizeOf();
     }
     return {
         obj:obj,
@@ -106,14 +128,22 @@ function pointer(obj,key,type,ofs) {
 		    case "--p":return --obj[key];
 		    }
 		},
-    	type: type,
+    	type: vtype,
+        vtype: vtype,
     	offset: function (o) {
     	    if (typeof key!="number") throw new Error(key+": この操作はできません");
-    	    return pointer(obj,key+o,type);
+    	    return pointer(obj,key+o,vtype);
     	},
+        addr: addr,
 		IS_POINTER:true
     };
 }
+pointer.cnt=0xfd9f33;
+pointer.inc=function (by) {
+    var s=pointer.cnt;
+    pointer.cnt+=by;
+    return s;
+};
 
 function promisize(p) {
     if (typeof AsyncByGenerator=="object") {
@@ -237,16 +267,20 @@ function expandArray(aryptr,vtype,hasDust) {
     while(a.length<vtype.length) a.push(initialValue(vtype.e,hasDust));
 }
 function initialValue(vtype,hasDust) {
-    var e=hasDust?dustValue():0;
+    var e;
     if (vtype instanceof CType.Array) {
         e=arrInit2(vtype.e,vtype.length,hasDust);
     } else if (vtype instanceof CType.Struct) {
         e=StructObj(vtype);
+    } else {
+        e=hasDust?dustValue():0;
     }
+    pointer.inc(vtype.sizeOf());
     return e;
 }
 function arrInit2(vtype,length,hasDust){
     var res=[];
+    res[SYM_ADDR]=pointer.inc(0);
     for (var i=0;i<length;i++) {
         var e=initialValue(vtype,hasDust);/*hasDust?dustValue():0;
         if (vtype instanceof CType.Array) {
@@ -256,7 +290,7 @@ function arrInit2(vtype,length,hasDust){
         }*/
         res.push(e);
     }
-    return pointer(res,0);
+    return pointer(res,0,vtype);
 }
 function arrInit(){
     var a=Array.prototype.slice.call(arguments);
@@ -277,8 +311,8 @@ function arrInit(){
 	return res;*/
 }
 
-function constructByArrInit(type,data) {
-    //console.log("cbai",type, data.obj);
+function constructByArrInit(vtype,data) {
+    //console.log("cbai",vtype, data.obj);
     var ary,str;
     function get(i) {
         if (!data.IS_POINTER) {
@@ -301,17 +335,17 @@ function constructByArrInit(type,data) {
         }
         return i;
     }
-    if (type instanceof CType.Array) {
+    if (vtype instanceof CType.Array) {
         ary=[];
-        var l=type.length;
+        var l=vtype.length;
         if (l==null) l=len();
         for (var i=0; i<l ;i++ ) {
-            ary.push(constructByArrInit(type.e, get(i)));
+            ary.push(constructByArrInit(vtype.e, get(i)));
         }
         return pointer(ary,0);
-    } else if (type instanceof CType.Struct) {
-        str=StructObj(type);
-        type.members.forEach(function (m,i) {
+    } else if (vtype instanceof CType.Struct) {
+        str=StructObj(vtype);
+        vtype.members.forEach(function (m,i) {
             var v=get(i);
             str[m.name+""]=constructByArrInit(m.vtype, v);
         });
@@ -319,25 +353,14 @@ function constructByArrInit(type,data) {
     } else {
         return data;
     }
-    return cast(type,data);
+    return cast(vtype,data);
 }
-function cast(type,data){
-    if (!(type instanceof CType.Base)) {
-        console.log("ERR",type,": not a type");
-        throw new Error(type+": not a type");
+function cast(vtype,data){
+    if (!(vtype instanceof CType.Base)) {
+        console.log("ERR",vtype,": not a type");
+        throw new Error(vtype+": not a type");
     }
-    return type.cast(data);
-
-	/*type=type.replace(/ /g,"_");
-	type=type.charAt(0).toUpperCase()+type.slice(1);
-
-	if(typeof data == "string")data=data.charCodeAt(0);
-
-    var castf=casts["to"+type];
-    if (!castf) return data;
-	var res=castf(data);
-
-	return res;*/
+    return vtype.cast(data);
 }
 
 var casts={

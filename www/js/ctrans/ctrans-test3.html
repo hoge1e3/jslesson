@@ -26,14 +26,18 @@ file:///C:/bin/Dropbox/workspace/jslesson/www/js/ctrans2/ctrans-test3.html
             "Klass":"../lib/Klass",
             "Parser":"parser",
             "ExpressionParser":"ExpressionParser2",
+            "scanf": "../../runtime/lib/c/scanf",
+            "lib": "../../runtime/lib/c/lib",
+            "util": "../../runtime/lib/c/util",
             "hoge":"fuga"
         }
     })
 </script>
+<!--
 <script src="scanf.js"></script>
 <script src="lib.js"></script>
 <script src="util.js"></script>
-
+-->
 <script>
 var util=require("util");
 var print=util.print;
@@ -47,7 +51,8 @@ try {
 } catch (ex) {
     //console.log(ex.message);
 }
-requirejs(["FS","ctrans/ctrans","beautify","jsgen","AsyncByGenerator"],
+requirejs(["FS","ctrans/ctrans","beautify","jsgen","AsyncByGenerator",
+"scanf","lib","util"],
 function (FS,MinimalParser,beautify,js_gen,ABG) {
     ABG.ready(loop);
 async function loop() {

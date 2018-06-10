@@ -26,6 +26,9 @@ define(["Klass","assert"],function (Klass,assert) {
             console.log(this);
             throw new Error("toLiteral is not defined");
         },
+        sizeOf:function () {
+            return 4;
+        },
         cast:function(param){return param;},
         modifiers: {
             get: function(){
@@ -66,6 +69,9 @@ define(["Klass","assert"],function (Klass,assert) {
             return t.Number.super(this,"binOpable",op,right);
         },
         cast:function(v){
+            if (v.IS_POINTER) {
+                v=v.addr;
+            }
             v=v||0;
     		v-=0;
     		if (this.max) {
@@ -75,7 +81,10 @@ define(["Klass","assert"],function (Klass,assert) {
         		}
     		}
     		return v;
-    	}
+    	},
+        sizeOf: function () {
+            return this._sizeOf || 4;
+        }
     });
     // t.void , t.int could not abolish... used in concat.js like CType['int']
     t.Void=t.Primitive.inherit({name:"void"});
@@ -88,15 +97,15 @@ define(["Klass","assert"],function (Klass,assert) {
             return t.Number.super(this,"binOpable",op,right);
         }
     })
-    t.Char=t.IntNum.inherit({name:"char",numOrd:1,max:0xff});
+    t.Char=t.IntNum.inherit({name:"char",numOrd:1,max:0xff,_sizeOf:1});
     t.char=t.Char();
-    t.Byte=t.IntNum.inherit({name:"byte",numOrd:1,max:0xff});
+    t.Byte=t.IntNum.inherit({name:"byte",numOrd:1,max:0xff,_sizeOf:1});
     t.byte=t.Byte();
     t.Int=t.IntNum.inherit({name:"int",numOrd:2,max:0xffffffff});
     t.int=t.Int();//t.Number({name:"int",numOrd:2,max:0xffffffff});
     t.Float=t.Number.inherit({name:"float",numOrd:9});
     t.float=t.Float();
-    t.Double=t.Number.inherit({name:"double",numOrd:10});
+    t.Double=t.Number.inherit({name:"double",numOrd:10,_sizeOf:8});
     t.double=t.Double();
     t.Unsigned=t.Number.inherit({
         $:["e"],
@@ -117,6 +126,9 @@ define(["Klass","assert"],function (Klass,assert) {
                 v+=this.e.max+1;
             }
             return v;
+        },
+        sizeOf: function () {
+            return this.e.sizeOf();
         }
     });
     t.Long=t.Number.inherit({
@@ -131,6 +143,9 @@ define(["Klass","assert"],function (Klass,assert) {
         },
         toLiteral: function () {
             return CTYPE_NAME+".Long("+this.e.toLiteral()+")";
+        },
+        sizeOf: function () {
+            return this.e.sizeOf()*2;// really??
         }
     });
     t.Short=t.Number.inherit({
@@ -145,6 +160,9 @@ define(["Klass","assert"],function (Klass,assert) {
         },
         toLiteral: function () {
             return CTYPE_NAME+".Short("+this.e.toLiteral()+")";
+        },
+        sizeOf: function () {
+            return Math.max(1,this.e.sizeOf()/2);// really??
         }
     });
     //  int a[3][5];    a: Array(Array(int,5) ,3)
@@ -195,6 +213,10 @@ define(["Klass","assert"],function (Klass,assert) {
         equals: function (o) {
             return (o instanceof t.Array) &&
             this.e.equals(o.e);
+        },
+        sizeOf: function () {
+            if (this.length==null) return 4;
+            return this.e.sizeOf()*this.length;
         }
         /*binOpable: function (op,right) {
             if (right instanceof t.Number && (op+""==="+" || op+""==="-" || op+""==="===" || op+""==="!==")) return true;
@@ -284,6 +306,13 @@ define(["Klass","assert"],function (Klass,assert) {
                 if (m.name+""===name+"") {
                     res=m;
                 }
+            });
+            return res;
+        },
+        sizeOf: function () {
+            var res=0;
+            this.members.forEach(function (m) {
+                res+=m.vtype.sizeOf();
             });
             return res;
         }
