@@ -122,5 +122,18 @@ class MarkController {
         if ($r) print json_encode($r);
         else print "{}";
     }
+    static function notMarked() {
+        Auth::assertTeacher();
+        $class=Auth::curClass2();
+        $r=pdo_select("select a.name as name,sum(1) as count ".
+        "from submission s ".
+        "inner join assignment a on s.assignment=a.id ".
+        "left join mark m on m.submission=s.id ".
+        "where m.result is null and a.class=? ".
+        "group by a.name;",$class->id);
+        foreach ($r as $e) {
+            print $e->{"name"}.":  ".$e->{"count"}."<BR>\n";
+        }
+    }
 }
 ?>

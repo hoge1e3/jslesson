@@ -26,7 +26,8 @@ class ClassController {
         <a href="a.php?Class/registerUserForm">履修者を登録する</a><br>
         <a href="a.php?Class/showUsers">ユーザ一覧</a><br>
         <a href="a.php?Class/showStatus">ユーザの状況一覧</a><BR>
-        <a href="a.php?Zip/download">ユーザの全ファイルダウンロード</a>
+        <a href="a.php?Zip/download">ユーザの全ファイルダウンロード</a><BR>
+        <a href="a.php?Mark/notMarked">未採点の課題</a><BR>
         <hr>
         <a href="." target="student">演習画面へ</a><hr>
         <?php

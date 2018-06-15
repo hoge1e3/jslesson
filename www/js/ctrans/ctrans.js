@@ -1050,7 +1050,7 @@ window.MinimalParser= function () {
 	labeled_statement=labeled_statement.or(t("case").and(constant_expression)
 		.and(t(":")).and(statement_lazy).ret(function(_case,constant_expr,colon,state){
             if (!ctx.switchLabels) {
-                newError2("case はswitch文の中で使います");
+                newError2(_case,"case はswitch文の中で使います");
             }
             if (ctx.switchLabels[constant_expr+""]) {
                 newError2(constant_expr, "{1} はすでにcase文にあります",constant_expr+"");
