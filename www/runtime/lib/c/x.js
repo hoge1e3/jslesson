@@ -51,6 +51,9 @@ function initX() {
         if (!s) {
             stats[e.keyCode]=1;
         }
+        if (e.keyCode===32) {
+            e.preventDefault();
+        }
         //console.log("key2",JSON.stringify(stats));
 
     });

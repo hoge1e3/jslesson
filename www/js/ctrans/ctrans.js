@@ -327,7 +327,7 @@ window.MinimalParser= function () {
 	var func_type=_int.or(float).or(char).or(double).or(_void);
 	var reg_str = RegExp("^[^\"^\”]*");
 	//文字列の正規表現
-	var string = t(/^\"[^\"\n]*\"/).ret(function(str){
+	var string = t(/^\"((\\(.|\n))*[^\\\"\n]*)*\"/).ret(function(str){
 		return extend(["str_to_ch_ptr(",str,")"],{type:"string",vtype:T.Array(T.Char()),isConst:true});
 	});
 	var integer_constant=t(/^0[xX][0-9a-fA-F]+/).or(t(/^0[bB][01]+/)).or(t(/^[0-9]+/)).
@@ -1016,10 +1016,19 @@ window.MinimalParser= function () {
 	var else_part=t("else").and(statement_lazy).ret(function(_else,state){return ["else",state];});
 	var selection_statement=t("if").and(t("(")).and(expression).and(t(")")).and(statement_lazy)
 		.and(else_part.opt()).ret(function(_if,lp,expr,rp,state,_else_part){
+            var t=expr.vtype;
+            if (t && !(t instanceof T.Number)) {
+                newError2(expr,"if文の条件は数値でなくてはなりません．");
+            }
 			return ["if","(",expr,")",state,_else_part];
 		});
 	var swst=t("switch").and(t("(")).and(expression).and(t(")"))
 		.and(switch_compound_statement_lazy).ret(function(_switch,lp,expr,rp,state){
+            console.log("SW", expr, expr.vtype);
+            var vtype=expr.vtype;
+            if (vtype && !(vtype instanceof T.Number)) {
+                throw newError2(expr, "switch文の式は数値でなくてはなりません");
+            }
 			return ["switch","(",expr,")",state];
 		});
 	swst=ent(function () {
@@ -1044,7 +1053,13 @@ window.MinimalParser= function () {
         ).and(t("}"))
 		.ret(function(lcb,states,rcb){return ["{",states,"}"];});
 	var expression_statement=expression.opt().and(t(";"))
-		.ret(function(state,semicolon){return [state,";"];});
+		.ret(function(expr,semicolon){
+            var t=expr.vtype;
+            if (t && t instanceof T.Function) {
+                newError2(expr,"関数は()をつけて呼び出してください．");
+            }
+            return [expr,";"];
+        });
 	var labeled_statement=identifier.and(t(":")).and(statement_lazy)
 		.ret(function(identifier,colon,state){return [identifier,":",state];});
 	labeled_statement=labeled_statement.or(t("case").and(constant_expression)
@@ -1423,7 +1438,7 @@ extern void fprintf();
 extern char* fgets(char *s,int l,FILE *fp);
   */},
   "stdlib.h":function () {/*
-extern int rand();
+extern int rand(void);
 extern int srand(int seed);
 extern int exit(int status);
   */},
@@ -1455,11 +1470,11 @@ extern char* strstr(char *h,char *n);
   extern double cos(double n);
   extern double exp(double n);
   extern double floor(double n);
-  extern double log();
+  extern double log(double n);
   extern double max(double a,double b);
   extern double min(double a,double b);
   extern double pow(double a,double b);
-  extern double random();
+  extern double random(void);
   extern double round(double n);
   extern double sin(double n);
   extern double sqrt(double n);
@@ -1467,10 +1482,10 @@ extern char* strstr(char *h,char *n);
   */},
   "x.h":function () {/*
   extern void fillRect(double x,double y,double w,double h);
-  extern void clear();
-  extern void update();
+  extern void clear(void);
+  extern void update(void);
   extern void setColor(double r,double g,double b);
-  extern void drawGrid();
+  extern void drawGrid(void);
   extern void drawNumber(double v,double x,double y);
   extern void drawLine(double sx,double sy,double dx,double dy);
   extern void setPen(double x,double y);

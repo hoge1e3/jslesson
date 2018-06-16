@@ -1,7 +1,7 @@
 define(["Klass","assert"],function (Klass,assert) {
     var t={};
     var bitWiseOp={
-        "|":1, "&":1 , "<<":1, ">>":1, "^":1,"~":1
+        "|":1, "&":1 , "<<":1, ">>":1, "^":1,"~":1,"%":1
     };
     var CTYPE_NAME="CType";
     window[CTYPE_NAME]=t;
