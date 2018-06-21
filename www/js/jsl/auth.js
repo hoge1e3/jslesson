@@ -3,6 +3,13 @@ define(["FS","md5","WebSite","DeferredUtil"], function (FS,md5,WebSite,DU) {
         check:function () {
             var self=this;
             //console.log("CHK");
+            return $.get(WebSite.controller+"?Login/curStatus&"+Math.random()).then(function (r) {
+                if (typeof r==="string") r=JSON.parse(r);
+                console.log(r,r.class,r.user, r.teacher);
+                self.login(r.class,r.user, r.teacher);
+                return self;
+            });
+
             return $.when(
                 $.get(WebSite.controller+"?Login/curclass&"+Math.random()),
                 $.get(WebSite.controller+"?Login/curuser&"+Math.random()),

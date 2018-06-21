@@ -29,6 +29,20 @@ class LoginController {
     	<a href="?Teacher/login">教員の方はこちら</a>
     <?php
     }
+    static function curStatus() {
+        $u=Auth::curUser2();
+        if ($u) {
+            $res=array(
+                "user"=>$u->name,
+                "class"=>$u->_class->id
+            );
+        } else {
+            $res=array();
+        }
+        $t=Auth::curTeacher();
+        if ($t) $res["teacher"]=$t->name;
+        print json_encode($res);
+    }
     static function curClass() {
         $u=Auth::curUser2();
         if ($u)	print $u->_class->id;
