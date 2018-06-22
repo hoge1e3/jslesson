@@ -2944,9 +2944,12 @@ define('WebSite',[], function () {
 	WS.serverTop=location.href.replace(/\?.*$/,"").replace(/[^/]*$/,"");//"."; // includes /
 	WS.phpTop=WS.serverTop+"";//php/";
 	WS.url={
-			getDirInfo:WS.phpTop+"getDirInfo.php",
+		getDirInfo:WS.serverTop+"?getDirInfo",
+		getFiles:WS.serverTop+"?getFiles",
+		putFiles:WS.serverTop+"?putFiles"
+/*			getDirInfo:WS.phpTop+"getDirInfo.php",
 			getFiles:WS.phpTop+"getFiles.php",
-			putFiles:WS.phpTop+"putFiles.php"
+			putFiles:WS.phpTop+"putFiles.php"*/
 	};
 	WS.controller=WS.serverTop+"a.php";
 	WS.runtime=WS.serverTop+"runtime/";
@@ -13669,6 +13672,13 @@ define('Auth',["FS","md5","WebSite","DeferredUtil"], function (FS,md5,WebSite,DU
         check:function () {
             var self=this;
             //console.log("CHK");
+            return $.get(WebSite.controller+"?Login/curStatus&"+Math.random()).then(function (r) {
+                if (typeof r==="string") r=JSON.parse(r);
+                console.log(r,r.class,r.user, r.teacher);
+                self.login(r.class,r.user, r.teacher);
+                return self;
+            });
+
             return $.when(
                 $.get(WebSite.controller+"?Login/curclass&"+Math.random()),
                 $.get(WebSite.controller+"?Login/curuser&"+Math.random()),
