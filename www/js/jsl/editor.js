@@ -93,7 +93,8 @@ function (Util, Tonyu, FS, FileList, FileMenu,
             showToast("保存しました。"+scoremsg);
         }).fail(function (e) {
             if (!e) e="Unknown error";
-            logToServer2("SYNC ERROR!\n"+(e.stack || e.responseText || e)+"\nSYNC ERROR END!\n");
+            logToServer2("","","","SYNC ERROR!",
+            (e.stack || e.responseText || e));
             console.log(e);
             alert("保存に失敗しました。");
         });

@@ -980,7 +980,17 @@ window.MinimalParser= function () {
 	    newError2(t,"breakは繰り返しの中で使います．");
 	}));
 	jump_statement=jump_statement.or(t("return").and(expression.opt()).and(t(";"))
-		.ret(function(_return,expr,semicolon){return ["return",expr,";"];}));
+		.ret(function(_return,expr,semicolon){
+            if (!expr) {
+                if (ctx.ftype && !(ctx.ftype.ret instanceof T.Void)) {
+                    newError2(semicolon,"戻り値の型がvoid以外の関数では，戻り値を設定してください．");
+                }
+            } else if (expr.vtype && ctx.ftype &&
+                !ctx.ftype.ret.assignableFrom(expr.vtype)) {
+                newError2(expr,"戻り値の型が一致しません");
+            }
+            return ["return",expr,";"];
+        }));
 
 	var iteration_statement=t("while").and(t("(")).and(expression).and(t(")")).and(statement_lazy)
 		.ret(function(_while,rp,expr,rp,state){
@@ -1230,20 +1240,6 @@ window.MinimalParser= function () {
 	    });
 	}
 
-	//var init_param=declarator/*.and(t("=").and(initializer).opt()).ret(MKARY)*/;
-	/*var func_param=declaration_specifiers.and(init_param).ret(
-	    function (decl_spec, declarator) {
-	        var $=["scopes_"+(ctx.depth+1)+".", //TODO
-				declarator,"=","ARGS.shift();","/*", typeLit(declarator.vtype),"*"+"/"];
-			$.pname=declarator.vname;
-			$.ptype=declarator.vtype;//ctx.depth+1;
-		    return $;
-	    });*/
-	/*var func_param_list=_void.or(func_param.sep0(t(","),true))
-		.ret(function(params){
-		    if (!(params instanceof Array)) return [];//void
-		    return params;
-		});*/
     // \newDecl  \funcDef
     // spec ;
     // spec init-decl ;
@@ -1334,7 +1330,12 @@ window.MinimalParser= function () {
             if (type.ret instanceof T.Void) return "";
             return 'doNotification("関数'+name+'の戻り値が設定されていません");';
         }
-        newScope(function () {
+        function entFunc(ftype, action) {
+            return ctx.enter({ftype:ftype}, function () {
+                return newScope(action);
+            });
+        }
+        entFunc(type,function () {
             var getParams=[];
             if (params) params.forEach(function (param) {
                 addScope(param.vname,{vtype:param.vtype,by:"param"});
