@@ -90,7 +90,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
         createDOM: function (t) {
             t.dom=UI(
                 "div",{title:"課題の管理"},
-                ["div",{css:{float:"left"},$var:"list"}],
+                ["div",{css:{float:"left",height:"530",overflowY:"scroll"},$var:"list"}],
                 ["div",{css:{float:"right"}},
                 ["form",{action:"javascript:;",name:"as_edit"},
                     ["div",
