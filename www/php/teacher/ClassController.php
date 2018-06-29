@@ -311,17 +311,15 @@ class ClassController {
         $class=Auth::curClass2();
         $teacher=Auth::curTeacher()->id;
         $now=time();
-        if(!isset($_POST["Y"])){
-            if(!isset($_POST['interval'])){
-                $min=$now-600;
-            }else{
-                $min=$now-$_POST['interval'];
-            }
+        $interval=param('interval',600);
+        if(!param("Y",false)){
+            $min=$now-$interval;
             $max=$now;
         }else{
-            $min=strtotime($_POST['Y']."/".$_POST['m']."/".$_POST['d']." ".$_POST['H'].":".$_POST['i'].":".$_POST['s']);
-            $max=strtotime($_POST['aY']."/".$_POST['am']."/".$_POST['ad']." ".$_POST['aH'].":".$_POST['ai'].":".$_POST['as']);
+            $min=strtotime(param('Y')."/".param('m')."/".param('d')." ".param('H').":".param('i').":".param('s'));
+            $max=strtotime(param('aY')."/".param('am')."/".param('ad')." ".param('aH').":".param('ai').":".param('as'));
         }
+        $reloadMode=param('reloadMode',0);
         $logs=$class->getAllLogs($min,$max);
         $runcount=Array();
         $students=$class->getAllStu();
@@ -370,6 +368,8 @@ class ClassController {
         <script type="text/javascript" src="js/lib/jquery.tablesorter.min.js"></script>
         <link rel="stylesheet" href="css/jquery-ui.css"></link>
         <script>
+            reloadMode=<?=$reloadMode?>;
+            interval=<?=$interval?>;
             $(document).ready(function() {
                 dx=0,dy=0;
                 displayingId="";
@@ -498,10 +498,29 @@ class ClassController {
               // todo
               console.log("testfilehist","#fn"+filename);
             }
+            function toggleReload(){
+              if(reloadMode) unsetReload();
+              else setReload();
+            }
+            function setReload(){
+              reloadMode=1;
+              location.href="a.php?Class/showStatus&interval="+interval+"&reloadMode="+1;
+            }
+            function unsetReload(){
+              reloadMode=0;
+              clearTimeout(autoReload);
+              document.getElementById("reloadButton").innerHTML="自動再読み込みをする";
+            }
+            if(reloadMode){
+              autoReload=setTimeout(function(){
+                location.href="a.php?Class/showStatus&interval="+interval+"&reloadMode="+1;
+              },180*1000);
+            }
         </script>
         <div id="detail" style="display:none;"></div>
         <h1><?=$class->id?> - ユーザ一覧</h1>
         <a href="a.php?Class/show">クラス管理に戻る</a><hr>
+        <button id="reloadButton" onclick="toggleReload()"><?=$reloadMode ? "自動再読み込みを停止" : "自動再読み込みをする"?></button><br>
         対象の時刻を変える<br>
         <form action="a.php?Class/showStatus" method="POST" style="display: inline">
           <input name="interval" value="600" type="hidden">
