@@ -36,6 +36,7 @@ define(["Shell","FS","DeferredUtil","UI"],function (sh,FS,DU,UI) {
                     this[k]=this.d.$vars[k];
                 }
             }
+            this.editor.prop("disabled",true);
             delete this.curFile;
             delete this.curDir;
             this.fileNameBar.text("-");
@@ -53,6 +54,7 @@ define(["Shell","FS","DeferredUtil","UI"],function (sh,FS,DU,UI) {
             if (f.isDir()) return this.ls(f);
             return DU.resolve(this.save()).then(function () {
                 t.curFile=f;
+                t.editor.prop("disabled",false);
                 t.editor.val(f.text());
             });
         },

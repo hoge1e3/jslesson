@@ -34,7 +34,7 @@ create table log(
 //   oneof tagD,tagE,tagF
 req("LogUtil","auth","pdo","DateUtil","PathUtil");
 class LogFileToDBController {
-    static function moveToTmp($cn) {
+    static function moveToTmp($cn,$uid=null) {
         $files=LogUtil::getLogFilesOf($cn);
         $tmp=LogUtil::getLogDir()->rel("tmp/");
         $tmp->mkdir();
@@ -42,7 +42,9 @@ class LogFileToDBController {
             $d=$tmp->rel($file->name());
             //echo $d->path()."  ";
             if (!$d->exists()) {
+              if(is_null($uid) || LogUtil::isLogFileOfUser($file,$cn,$uid)){
                 $file->moveTo($d);
+              }
             }
         }
         $res=array();
@@ -57,8 +59,13 @@ class LogFileToDBController {
     }*/
     static function run() {
         $class=Auth::curClass2();
+        if(Auth::isTeacherOf($class)){
+          $uid=null;
+        }else{
+          $uid=Auth::curUser2()->name;
+        }
         $c=$class->id;
-        $files=self::moveToTmp($c);
+        $files=self::moveToTmp($c,$uid);
         $arc=LogUtil::getLogDir()->rel("arc/");
         $arc->mkdir();
         //return ;

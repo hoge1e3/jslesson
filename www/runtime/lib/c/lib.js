@@ -115,7 +115,7 @@ function fscanf() {
 	var fp=args.shift();
 	if (!fp||!fp.isFP) throw new Error("fscanf: 第1引数がファイルではありません");
 	if (fp.closed) throw new Error("fscanf: このファイルはすでに閉じられています");
-	if (fp.mode!=="r") throw new Error("書き込み中のファイルにfscanfはできません");
+	if (fp.mode.indexOf("w")>=0) throw new Error("書き込み中のファイルにfscanfはできません");
 	var input;
 	do {
 		var heading=fp.text.substring(fp.pos);

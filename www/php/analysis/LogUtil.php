@@ -62,8 +62,11 @@ class LogUtil {
         }
         return $res;
     }
-    static function isLogFileOf($file,$class) {
-        return ($file->startsWith($class) && $file->endsWith("-data.log"));
+    static function isLogFileOf($file,$cid) {
+        return ($file->startsWith($cid) && $file->endsWith("-data.log"));
+    }
+    static function isLogFileOfUser($file,$cid,$uid){
+      return ($file->startsWith($cid."-".$uid) && $file->endsWith("-data.log"));
     }
     static function readLog($file) {
         return self::readJSONLines($file);

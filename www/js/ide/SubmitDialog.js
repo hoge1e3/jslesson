@@ -65,7 +65,7 @@ function (UI,Klass,DU){
             delete param.file;
             param.files=JSON.stringify(param.files);
             console.log("submit",param);
-            $.get(WebSite.controller+"?Assignment/submit",param).then(function (r) {
+            $.post(WebSite.controller+"?Assignment/submit",param).then(function (r) {
                 if (typeof r=="string") {
                     r=JSON.parse(r);
                 }
