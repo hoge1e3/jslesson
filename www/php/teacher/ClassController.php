@@ -360,13 +360,16 @@ class ClassController {
             $latestfile[$log['user']]=$log['filename'];
         }
         foreach($runhistory as $runhistkey => $runhistval){
-            $runhistory[$runhistkey].='</span><br id="'.$runhistkey.'ui" style="display:none"><button id="'.$runhistkey.'ui" style="display:none" data-user='.$runhistkey.' onclick="getOneUsersLogId(this.getAttribute('."'".'data-user'."'".'),'."'".'prev'."'".')">Prev</button>  <button id="'.$runhistkey.'ui" style="display:none" data-user='.$runhistkey.' onclick="getOneUsersLogId(this.getAttribute('."'".'data-user'."'".'),'."'".'next'."'".')">Next</button><span id="'.$runhistkey.'res" style="display:none"></span><br><textarea rows=10 cols=60 id="'.$runhistkey.'" style="display:none" onclick="this.select(0,this.value.length)">test</textarea>';
+            $runhistory[$runhistkey].='</span><br id="'.$runhistkey.'ui" style="display:none"><button id="'.$runhistkey.'ui" style="display:none" data-user='.$runhistkey.' onclick="getOneUsersLogId(this.getAttribute('."'".'data-user'."'".'),'."'".'prev'."'".')">Prev</button>  <button id="'.$runhistkey.'ui" style="display:none" data-user='.$runhistkey.' onclick="getOneUsersLogId(this.getAttribute('."'".'data-user'."'".'),'."'".'next'."'".')">Next</button><span id="'.$runhistkey.'res" style="display:none"></span><br><span id="'.$runhistkey.'diff" style="display:none" ></span><textarea rows=10 cols=60 id="'.$runhistkey.'" style="display:none" onclick="this.select(0,this.value.length)">test</textarea>';
         }
         ?>
         <script type="text/javascript" src="js/lib/jquery-1.12.1.js"></script>
         <script type="text/javascript" src="js/lib/jquery-ui.js"></script>
         <script type="text/javascript" src="js/lib/jquery.tablesorter.min.js"></script>
+        <script type="text/javascript" src="js/lib/difflib.js"></script>
+        <script type="text/javascript" src="js/lib/diffview.js"></script>
         <link rel="stylesheet" href="css/jquery-ui.css"></link>
+        <link rel="stylesheet" href="css/diffview.css"></link>
         <script>
             reloadMode=<?=$reloadMode?>;
             interval=<?=$interval?>;
@@ -427,13 +430,15 @@ class ClassController {
               if(displayingId!==""){
                   $("[id='"+displayingId+"ui']").css("display","none");
                   $("[id='"+displayingId+"res']").css("display","none");
+                  $("[id='"+displayingId+"diff']").css("display","none");
                   $("#"+displayingId).css("display","none");
                   $("[data-id='"+currentLogId+"']").css("background-color","white");
               }
+              displayingId==data.user ? showDiffFlag=true : showDiffFlag=false;
               currentLogId=data.id;
               displayingId=data.user;
               var raw=JSON.parse(data.raw);
-              code=raw.code.C || raw.code.JavaScript || raw.code.Dolittle;
+              var code=raw.code.C || raw.code.JavaScript || raw.code.Dolittle;
               //res=data.filename+"\n"+data.result+"\n-------------\n"+data.code.C;
               res=code;
               res=res.replace(/</g,"&lt;");
@@ -462,7 +467,14 @@ class ClassController {
               //$("#"+userid).width($("#"+userid).parent().width());
               $("#"+userid).height($("#"+userid).get(0).scrollHeight);
               $("[data-id='"+data.id+"']").css("background-color","orange");
-                //alert(logid);
+              //alert(logid);
+              if(showDiffFlag && prevProgram!=code){
+                calcDiff(prevProgram,code,userid);
+                $("#"+userid+"diff").css("display","inline");
+              }
+              prevProgram=code;
+              console.log("code",code);
+              console.log("res",res);
             }
             function showFrame(data,userid,pon){
               console.log(data);
@@ -515,6 +527,40 @@ class ClassController {
               autoReload=setTimeout(function(){
                 location.href="a.php?Class/showStatus&interval="+interval+"&reloadMode="+1;
               },180*1000);
+            }
+            function calcDiff(prev,now,id){
+              // get the baseText and newText values from the two textboxes, and split them into lines
+              var base = difflib.stringAsLines(prev);
+              //var newtxt = difflib.stringAsLines($("newText").value);
+              var newtxt = difflib.stringAsLines(now);
+
+              // create  a SequenceMatcher instance that diffs the two sets of lines
+              var sm = new difflib.SequenceMatcher(base, newtxt);
+
+              // get the opcodes from the SequenceMatcher instance
+              // opcodes is a list of 3-tuples describing what changes should be made to the base text
+              // in order to yield the new text
+              var opcodes = sm.get_opcodes();
+              var diffoutputdiv = $("#"+id+"diff")[0];
+              console.log(diffoutputdiv);
+              while (diffoutputdiv.firstChild) diffoutputdiv.removeChild(diffoutputdiv.firstChild);
+              //var contextSize = $("contextSize").value;
+              //contextSize = contextSize ? contextSize : null;
+
+              // build the diff view and add it to the current DOM
+              diffoutputdiv.appendChild(diffview.buildView({
+                baseTextLines: base,
+                newTextLines: newtxt,
+                opcodes: opcodes,
+                // set the display titles for each resource
+                baseTextName: "Base Text",
+                newTextName: "New Text",
+                contextSize: 5,
+                viewType: $("inline").checked ? 1 : 0
+              }));
+
+              // scroll down to the diff view window.
+              //location = url + "#diff";
             }
         </script>
         <div id="detail" style="display:none;"></div>

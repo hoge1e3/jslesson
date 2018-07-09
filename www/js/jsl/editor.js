@@ -355,7 +355,7 @@ function ready() {
                     alert(d);
                 },
                 function(d){
-                    alert("ダメだったみたいです...");
+                    alert("配布に失敗しました");
                     console.log(d);
                 }
             );

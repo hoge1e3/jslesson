@@ -38,7 +38,18 @@ define(["UI"], function (UI) {
         }
         var d=res.d;
         var c=d.$vars.cont;
-        c.append($("<div>").text(mesg));
+        if (res.lastLine) {
+            if (res.lastLine.$vars.mesg.text()===mesg) {
+                var ti=res.lastLine.$vars.times;
+                var c=ti.text();
+                if (!c) c="(2)";
+                else c="("+(c.replace(/\D/g,"")-(-1))+")";
+                ti.text(c);
+            }
+        } else {
+            res.lastLine=UI("div", ["span",{$var:"times"}],["span",{$var:"mesg"},mesg]);
+            c.append(res.lastLine);
+        }
     	d.done=function () {
     	    /*if (d.$edits.validator.isValid()) {
                 onOK(model);

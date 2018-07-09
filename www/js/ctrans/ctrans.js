@@ -1062,7 +1062,10 @@ window.MinimalParser= function () {
             )
         ).and(t("}"))
 		.ret(function(lcb,states,rcb){return ["{",states,"}"];});
-	var expression_statement=expression.opt().and(t(";"))
+    var empty_statement=t(";").ret(function () {
+        return ["doNotification('空文が使用されています．余分なセミコロンがありませんか？');"];
+    });
+	var expression_statement=expression.and(t(";"))
 		.ret(function(expr,semicolon){
             var t=expr.vtype;
             if (t && t instanceof T.Function) {
@@ -1094,6 +1097,7 @@ window.MinimalParser= function () {
         return b;
     });
 	statement=expression_statement;
+    statement=statement.or(empty_statement);
 	statement=statement.or(labeled_statement);
 	statement=statement.or(compound_statement);
 	statement=statement.or(selection_statement);
