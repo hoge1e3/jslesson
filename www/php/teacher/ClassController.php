@@ -323,12 +323,23 @@ class ClassController {
         $logs=$class->getAllLogs($min,$max);
         $runcount=Array();
         $students=$class->getAllStu();
+        ?>
+        <script>
+          logs=[];
+        </script>
+        <?php
         foreach($students as $s){
-            $runcount[$s->name]=0;
-            $errcount[$s->name]=0;
-            $latestrun[$s->name]='実行していません';
-            $runhistory[$s->name]='<span id="'.$s->name.'hist">';
-            $latestfile[$s->name]="";
+          $runcount[$s->name]=0;
+          $errcount[$s->name]=0;
+          $latestrun[$s->name]='実行していません';
+          $runhistory[$s->name]='<span id="'.$s->name.'hist">';
+          $latestfile[$s->name]="";
+
+          ?>
+          <script>
+          logs["<?=$s->name?>"]=[];
+          </script>
+          <?php
         }
         foreach($logs as $log){
             if(isset($runcount[$log['user']])){
@@ -358,6 +369,12 @@ class ClassController {
             }
             $latestrun[$log['user']]=$max-$log['time'];
             $latestfile[$log['user']]=$log['filename'];
+            ?>
+            <script>
+            logs["<?=$log['user']?>"].push(<?=$log['id']?>);
+            </script>
+            <?php
+
         }
         foreach($runhistory as $runhistkey => $runhistval){
             $runhistory[$runhistkey].='</span><br id="'.$runhistkey.'ui" style="display:none"><button id="'.$runhistkey.'ui" style="display:none" data-user='.$runhistkey.' onclick="getOneUsersLogId(this.getAttribute('."'".'data-user'."'".'),'."'".'prev'."'".')">Prev</button>  <button id="'.$runhistkey.'ui" style="display:none" data-user='.$runhistkey.' onclick="getOneUsersLogId(this.getAttribute('."'".'data-user'."'".'),'."'".'next'."'".')">Next</button><span id="'.$runhistkey.'res" style="display:none"></span><br><span id="'.$runhistkey.'diff" style="display:none" ></span><textarea rows=10 cols=60 id="'.$runhistkey.'" style="display:none" onclick="this.select(0,this.value.length)">test</textarea>';
@@ -377,7 +394,6 @@ class ClassController {
                 dx=0,dy=0;
                 displayingId="";
                 selectedFile="";
-
             // call the tablesorter plugin
                 $("table").tablesorter({
                 // define a custom text extraction function
@@ -410,7 +426,8 @@ class ClassController {
 
             }
             function getOneUsersLogId(userid,pon){
-              $.ajax({
+              showFrame(logs[userid],userid,pon);
+              /*$.ajax({
                   type: "POST",
                   url: "a.php?Class/getOneUsersLogId",
                   data: "userid="+userid,
@@ -423,7 +440,7 @@ class ClassController {
                       console.log("ログデータの取得に失敗しました。",xhr,textStatus,errorThrown);
                       alert("ログデータの取得に失敗しました。"+textStatus);
                   }
-              });
+              });*/
             }
             function openFrame(data){
               console.log(data);
@@ -477,9 +494,9 @@ class ClassController {
               console.log("res",res);
             }
             function showFrame(data,userid,pon){
-              console.log(data);
-              data=data.map(function(a){return a.id});
-              var currentIndex=data.indexOf(currentLogId);
+              console.log("data",data,currentLogId,data.indexOf(currentLogId));
+              //data=data.map(function(a){return a.id});
+              var currentIndex=data.indexOf(parseInt(currentLogId));
               if(pon=="prev"){
                 if(currentIndex==0){
                   alert("このデータはこのユーザの一番最初のログデータです。");
