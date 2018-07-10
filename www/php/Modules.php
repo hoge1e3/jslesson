@@ -88,6 +88,7 @@ $mod_aliases=array(
     "TestcaseController"=>"php/mark",
     "Testcase"=>"php/mark",
     "TestController"=>"php/test",
+    "TeacherLogController"=>"php/log",
     //----/AUTOGEN
     "config"=>"config/config.php",
     "dbconf"=>"db/config.php",

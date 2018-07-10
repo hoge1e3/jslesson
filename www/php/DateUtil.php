@@ -9,9 +9,16 @@ class DateUtil {
         }
         return $d;
     }
+    static function looksLikeInt($s) {
+        return preg_match('/^[0-9]+$/',$s);
+    }
     static function toInt($d) {
         if (is_string($d)) {
+            if(self::looksLikeInt($d)) return $d-0;
             $d=preg_replace("/\\//","-",$d);
+            if (preg_match("/^[0-9]+-[0-9]+-[0-9]+$/",$d)) {
+                $d="$d 00:00:00";
+            }
             $da=DateTime::createFromFormat("Y-m-d H:i:s",$d);
             //echo var_dump( DateTime::getLastErrors () );
             return $da->getTimeStamp();
