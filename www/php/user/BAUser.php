@@ -135,5 +135,18 @@ class BAUser {
             return new BAUser(new BAClass($r->{"class"}),$r->user);
         }
     }
+
+    function getAllLogs($minTime,$maxTime){
+        req("LogFileToDBController");
+        LogFileToDBController::run();
+        $pdo = pdo();
+        $sth=$pdo->prepare("select * from log where class = ? and user= ? and time > ? and time < ?");
+        $sth->execute(array($this->_class->id,$this->name,$minTime,$maxTime));
+        $res=array();
+        foreach ($sth->fetchAll() as $rec) {
+            $res[]=$rec;
+        }
+        return $res;
+    }
 }
 ?>

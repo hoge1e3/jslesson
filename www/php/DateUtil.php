@@ -2,9 +2,9 @@
 date_default_timezone_set("Asia/Tokyo");
 class DateUtil {
     static function toString($d,$format="Y-m-d H:i:s") {
-        if (is_int($d)) {
+        if (is_int($d) && self::looksLikeInt($d)) {
             $da=new DateTime();
-            $da->setTimeStamp($d);
+            $da->setTimeStamp($d-0);
             return $da->format($format);
         }
         return $d;

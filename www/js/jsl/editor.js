@@ -292,7 +292,7 @@ function ready() {
         });
     }
     function showDistMenu(){
-        if(Auth.teacher!=""){
+        if(Auth.teacher){
             Menu.appendMain(
                 {label:"教員",id:"distribute",sub:[
                     {label:"ファイルを配布",id:"distributeFile",action:distributeFile},

@@ -98,8 +98,8 @@ function openFrame(data){
     $("#"+userid+"diff").css("display","inline");
   }
   prevProgram=code;
-  console.log("code",code);
-  console.log("res",res);
+  //console.log("code",code);
+  //console.log("res",res);
 }
 function showFrame(data,userid,pon){
   console.log("data",data,currentLogId,data.indexOf(currentLogId));
@@ -153,6 +153,34 @@ if(reloadMode){
     location.href=thisURL+"&interval="+interval+"&reloadMode="+1;
   },180*1000);
 }
+function getPreviousLog(logid){
+  return $.ajax({
+      type: "POST",
+      url: "a.php?Class/getLog",
+      data: "logid="+logid,
+      dataType: "json"
+  });
+}
+function showLogOneUser(logid,userid,fn){
+  getLog(logid,userid);
+  var ind=logsOfOneUser[fn].indexOf(logid-0);
+  var currentProgram;
+  if(ind>0){
+    getPreviousLog(logsOfOneUser[fn][ind]).done(function(r){
+      var curRaw=JSON.parse(r.raw);
+      currentProgram=curRaw.code.C || curRawraw.code.JavaScript || curRawraw.code.Dolittle;
+      getPreviousLog(logsOfOneUser[fn][ind-1]).done(function(result) {
+        var raw=JSON.parse(result.raw);
+        var code=raw.code.C || raw.code.JavaScript || raw.code.Dolittle;
+        calcDiff(code,currentProgram,userid);
+      }).fail(function(result) {
+        console.log("failed get previous log",result);
+      });
+    }).fail(function(r){
+      console.log("failed get current log",result);
+    });
+  }
+}
 function calcDiff(prev,now,id){
   // get the baseText and newText values from the two textboxes, and split them into lines
   var base = difflib.stringAsLines(prev);
@@ -167,7 +195,7 @@ function calcDiff(prev,now,id){
   // in order to yield the new text
   var opcodes = sm.get_opcodes();
   var diffoutputdiv = $("#"+id+"diff")[0];
-  console.log(diffoutputdiv);
+  console.log(sm,opcodes);
   while (diffoutputdiv.firstChild) diffoutputdiv.removeChild(diffoutputdiv.firstChild);
   //var contextSize = $("contextSize").value;
   //contextSize = contextSize ? contextSize : null;

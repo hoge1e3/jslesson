@@ -25,7 +25,61 @@ class TeacherLogController {
     static function view1() {
         // focus to one student
         $user=param("user");
+        $day=param("day",DateUtil::now())-0;
         // If i can do , i do it.
+        $class=Auth::curClass2();
+        $targetUser=$class->getUser($user);
+        $teacher=Auth::curTeacher()->id;
+        ?>
+        <script type="text/javascript" src="js/lib/jquery-1.12.1.js"></script>
+        <script type="text/javascript" src="js/lib/jquery-ui.js"></script>
+        <script type="text/javascript" src="js/lib/difflib.js"></script>
+        <script type="text/javascript" src="js/lib/diffview.js"></script>
+        <script type="text/javascript" src="js/lib/jquery.tablesorter.min.js"></script>
+        <link rel="stylesheet" href="css/jquery-ui.css"></link>
+        <link rel="stylesheet" href="css/diffview.css"></link>
+        <script>
+            classID='<?=$class->id?>';
+            teacherID='<?=$teacher?>';
+            userId='<?=$targetUser->name?>';
+            reloadMode=0;
+            logsOfOneUser=[];
+        </script>
+        <script src="js/log/logViewer.js"></script>
+        <?php
+        //$now=DateUtil::now();
+        //"Y-m-d H:i:s"
+        $base=DateUtil::getYear($day)."-".DateUtil::getMonth($day)."-".DateUtil::getDay($day)." 00:00:00";
+        $baseInt=DateUtil::toInt($base);
+        //echo $day." ".$base." ".$baseInt;
+        $logs=$targetUser->getAllLogs($baseInt,$baseInt+86400);
+        ?>
+        <div style="float:left; overflow-y:auto; height:100%; width:20%;">
+          <?php
+          $prevTime=0;
+          $prevResult="";
+          foreach($logs as $l){
+            if(strpos($l['result'],'Save')===false && ($prevTime-$l['time']>=2 || $prevResult!=$l['result'])){
+              ?>
+              <!--<div><?=$l['filename']?></div>-->
+              <div onClick="showLogOneUser('<?=$l['id']?>','<?=$l['user']?>','<?=$l['filename']?>');"><font color="<?=strpos($l['result'],'Error')!==false ? 'red' : 'black'?>"><?=$l['filename']?></font></div>
+              <script>
+              if(!logsOfOneUser["<?=$l['filename']?>"]) logsOfOneUser["<?=$l['filename']?>"]=[];
+              logsOfOneUser["<?=$l['filename']?>"].push(<?=$l['id']?>);
+              </script>
+              <?php
+            }
+            $prevTime=$l['time'];
+            $prevResult=$l['result'];
+          }
+          ?>
+        </div>
+        <div style="float:left; width:30%;">
+        <div id="<?=$user?>res"></div><br>
+        <textarea id="<?=$user?>" style="width:100%;" onclick="this.select(0,this.value.length)" readonly></textarea>
+        </div>
+        <span id="<?=$user?>diff"></span>
+        <?php
     }
     static function view() {
         date_default_timezone_set('Asia/Tokyo');
@@ -162,6 +216,8 @@ class TeacherLogController {
     	    <input type="submit" value="状況を見る"/>
     	</form>
     	<hr>
+      <iframe src="https://bitarrow.eplang.jp/bitarrowbeta/js/log/timeline/index.html?day=<?=date("Y",$max)?>-<?=date("m",$max)?>-<?=date("d",$max)?>"></iframe>
+      <hr>
     	<?php
     	    echo date("Y/m/d H:i:s",$min)." から ".date("Y/m/d H:i:s",$max)."までの実行状況";
     	?>
@@ -194,7 +250,7 @@ class TeacherLogController {
                 $timecaution="white";
             }
             ?>
-            <tr><td><?=$k?></td><td data-rate="<?=$rate?>" bgcolor=<?=$errcaution?>><?=$errcount[$k]?>/<?=$v?>(<?=$rate?>%)</td>
+            <tr><td><a href="a.php?TeacherLog/view1&user=<?=$k?>&day=<?=$max?>" target="view1"><?=$k?></a></td><td data-rate="<?=$rate?>" bgcolor=<?=$errcaution?>><?=$errcount[$k]?>/<?=$v?>(<?=$rate?>%)</td>
             <td bgcolor=<?=$timecaution?>><?=str_pad($time['h'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['m'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['s'],2,0,STR_PAD_LEFT)?></td>
             <td><?=$latestfile[$k]?></td><td><?=$runhistory[$k]?></td>
             </tr>
