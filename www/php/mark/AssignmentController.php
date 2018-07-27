@@ -195,6 +195,38 @@ class AssignmentController {
             print"<hr/>";
         }
     }
+    static function matrix() {
+        Auth::assertTeacher();
+        $class=Auth::curClass2();
+        $filter=param("assignment","");
+        $filter="%$filter%";
+        $r=pdo_select("select ".
+        "s.user , a.name , m.result, s.id, s.time ".
+        "from submission s ".
+        "inner join assignment a on s.assignment=a.id ".
+        "left join mark m on m.submission=s.id ".
+        "where a.class=? and a.name like ? ".
+        "order by s.user, a.name, s.time desc ",
+        $class->id,$filter);
+        $stats=array();
+        foreach ($r as $e) {
+            if (!isset($stats[$e->user])) {
+                $stats[$e->user]=array();
+            }
+            if (isset($stats[$e->user][$e->name])) continue;
+            $stats[$e->user][$e->name]=$e;
+            //print_r(json_encode($e)."<hR/>");
+        }
+        //header("Content-type: text/plain");
+        echo "<textarea rows=30 cols=50>";
+        foreach ($stats as $user=>$statsu) {
+            foreach($statsu as $name=>$e) {
+                print "$user\t$name\t".$e->result."\n";
+            }
+        }
+        echo "</textarea>";
+
+    }
 }
 
 function err($err){

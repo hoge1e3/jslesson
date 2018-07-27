@@ -77,6 +77,10 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
                             t.add();
                         }
                     }},"新規"]));
+                r.sort(function (a,b) {
+                    return b.id-a.id;
+                });
+                //console.log("alist",r);
                 r.forEach(function (e) {
                     t.list.append(UI("div",
                     ["a",{href:"javascript:;",on:{

@@ -1,0 +1,116 @@
+"field strict";
+var src:FNlog;
+var colors={};
+$h=5;
+
+var hslc=0;
+var btime,etime,duration;
+setRange();
+/*=src.btime;
+var etime=src.etime;
+var duration=etime-btime;*/
+var linesYMax;
+new Indicator{graph:this, timelines:src.timelines,layer:$frontLayer};
+drawLines();
+drawLegends();
+while(true) {
+    if (getkey("I")==1) {
+        zoomIn($mouseX);
+        drawLines();
+    }
+    if (getkey("O")==1) {
+        zoomOut($mouseX);
+        drawLines();
+    }
+    if (getkey("mouseleft")==1) {
+        var t=y2timeline($mouseY);
+        if (t) { 
+            var url="https://bitarrow.eplang.jp/bitarrowbeta/a.php?TeacherLog/view1&user="+t.user+"&day="+floor(btime);
+            //print(url);    
+            $WebPage.openNewWindow(url);
+        }
+    }
+    update();
+}
+p=-1;
+\y2timeline(yy) {
+    var i=floor(yy/$h);
+    var t=src.timelines[i];
+    return t;
+}
+\drawLines() {
+    if (linesYMax) {
+        $panel.fillStyle="white";
+        $panel.fillRect(0,0,$screenWidth,linesYMax);
+    }
+    var cnt=0;
+    var px;
+    y=0;
+    for (var timeline of src.timelines) {
+        for (var e of timeline) {
+            var filename=e.filename, time=e.time;
+            x=time2x(time);
+            if (px) {
+                $panel.fillRect(px,y,clamp( (x-px),1, 10),$h);
+            }
+            px=x;
+            $panel.fillStyle=getColor(filename);
+            cnt++;
+            if (cnt%1000==0) update();
+        }
+        y+=$h;
+    }
+    linesYMax=y;
+}
+\zoomIn(x) {
+    var t=x2time(x);
+    var nd=duration/2;
+    setRange(t-nd/2,t+nd/2);
+}
+\zoomOut(x) {
+    var t=x2time(x);
+    var nd=duration*2;
+    setRange(t-nd/2,t+nd/2);
+}
+\setRange(b,e) {
+    btime=clamp(b||src.btime,src.btime,src.etime);
+    etime=clamp(e||src.etime,src.btime,src.etime);
+    duration=etime-btime;
+}
+\x2time(x) {
+    return btime+(x/$screenWidth*duration);
+}
+\time2x(time) {
+    return (time-btime)/duration*$screenWidth;   
+}
+\drawLegends() {
+    var sz=12;
+    x=10;y+=30;
+    var by=y;
+    for (var i,r in src.fileranka) {
+        if (i>=src.cols.length) break;
+        $panel.fillStyle=getColor(r.filename);
+        //$panel.fillRect(0,y,5,5);
+        $panel.fillText(r.filename+"("+r.count+")",x,y,sz,"left");
+        y+=sz;
+        if (y>$screenHeight-sz) {
+            y=by;
+            x+=100;
+        }
+    }
+    y+=sz;
+    $panel.fillStyle="black";
+    $panel.fillText("I: Zoomin / O: Zoomout",x,y,sz,"left");
+    
+}
+\getColor(file) {
+    return src.topfile[file]||"#888";
+    if (!src.topfile[file]) return "#888";
+    //if (!file) return "#fff";
+    if (colors[file]) return colors[file];
+    colors[file]=new Color{h:hslc, s:1 , l:hslc>360?0.3:0.8};// (rnd(200),rnd(200),rnd(255));
+    hslc+=42;
+    return colors[file];
+}
+
+

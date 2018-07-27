@@ -1,0 +1,128 @@
+native location;
+native $;
+//  C:/bin/Dropbox/workspace/jslesson/www/js/log/timeline/
+//  Tonyu.globals.$params={day:"2018-07-09", classid:"XXXX"}
+//print("HREF",location.href);
+var paramstr=location.href.replace(/^.*\?/,"").replace(/#.*$/,"");
+var params=$params||{};
+for (var k of paramstr.split("&")) {
+    var vals=k.split("=");
+    if (vals.length==2) params[vals[0]]=vals[1];
+}
+//print("PARAMTEST",params,params.dir);
+
+$Screen.setBGColor("white");
+//colors={};
+cnt=0;
+day=params.day||"2018-06-08";
+ymd=day.split("-");
+day=new Date();
+day.setYear(ymd[0]-0);
+day.setMonth(ymd[1]-1);
+day.setDate(ymd[2]-0);
+classid=params.classid;
+timezone=(params.timezone||9)-0;
+//if (!classid) throw new Error("Class id not set");
+
+day=day.getTime();
+day=floor(day/1000);
+day=floor(day/86400)*86400-timezone*3600;
+var btime=day;//1528436818;
+var duration=86400;
+var etime=btime+duration;
+var timelines=[],filerank={},topfile={};
+url=location.host=="bitarrow.eplang.jp"?
+"https://bitarrow.eplang.jp/bitarrowbeta/":"http://localhost/";
+files=waitFor($.get(url+"a.php?TeacherLog/getFileNames") {day:btime,classid});
+//files=file("fnlog.txt").text();
+//print(files);
+for (cnt,line in files.split("\n")/*file("fnlog.txt").lines()*/) {
+    if (cnt==0) continue;
+    var d=line.split("\t");
+    var user=d[0], filename=d[1], time=d[2];//-btime;
+    if (puser!=user) {
+        timeline=[];
+        timeline.user=user;
+        timelines.push(timeline);
+        fileappeared={};
+        puser=user;
+    }
+    if (time<etime) {
+        timeline.end=time;
+        if (!fileappeared[filename]) {
+            fileappeared[filename]=1;
+            filerank[filename]=(filerank[filename]||0)+1;
+        }
+        timeline.push{filename, time};   
+    }
+}
+fileranka=[];
+for (var filename,count in filerank) {
+    fileranka.push{filename,count};
+}
+fileranka=fileranka.sort \(a,b) {
+    return b.count-a.count;
+};
+cols=["#f00","#0f0","#00f","#f0f","#0ff","#ff0","#000","#800","#080","#008","#808","#088","#880"];
+for (i=0;i<min(cols.length,fileranka.length);i++) topfile[fileranka[i].filename]=cols[i];
+timelines=timelines.sort \(a,b) {
+    return a.end-b.end;
+};
+new Graph{src:this};
+/*
+drawLines();
+drawLegends();
+p=-1;
+\drawLines() {
+    if (linesYMax) {
+        $panel.fillStyle="white";
+        $panel.fillRect(0,0,$screenWidth,linesYMax);
+    }
+    hslc=0;
+    cnt=0;
+    y=0;
+    for (timeline of timelines) {
+        for (e of timeline) {
+            var filename=e.filename, time=e.time;
+            x=time/duration*$screenWidth;
+            if (px) {
+                $panel.fillRect(px,y,clamp( (x-px),1, 10),$h);
+            }
+            px=x;
+            $panel.fillStyle=getColor(filename);
+            cnt++;
+            if (cnt%20==0) update();
+        }
+        y+=$h;
+    }
+    linesYMax=y;
+}
+\x2time() {
+    
+}
+\time2x() {
+    
+}
+\drawLegends() {
+    x=10;sz=12;y+=30;by=y;
+    for (fn,col in colors) {
+        $panel.fillStyle=col;
+        //$panel.fillRect(0,y,5,5);
+        $panel.fillText(fn,x,y,sz,"left");
+        y+=sz;
+        if (y>$screenHeight-sz) {
+            y=by;
+            x+=100;
+        }
+    }
+}
+
+\getColor(file) {
+    if (!topfile[file]) return "#888";
+    //if (!file) return "#fff";
+    if (colors[file]) return colors[file];
+    colors[file]=new Color{h:hslc, s:1, l:hslc>360?0.4:0.7};// (rnd(200),rnd(200),rnd(255));
+    hslc+=42;
+    return colors[file];
+}
+*/

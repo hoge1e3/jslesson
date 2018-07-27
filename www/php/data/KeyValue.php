@@ -61,10 +61,13 @@ class KeyValue {
     static function put($key,$value,$group="default") {
         $class=self::getCurClass();
         $r=self::getRecord($key,$group);
+        $u=Auth::curUser2();
+        if ($u) $u=$u->name;
+        else $u="nobody";
         $pdo=pdo();
         if ($r==null) {
             pdo_insert("keyvalue",
-            array("time"=>DateUtil::now(), "class"=>$class->id,"key"=>$key,"value"=>$value,"group"=>$group));
+            array("time"=>DateUtil::now(), "user"=>$u, "class"=>$class->id,"key"=>$key,"value"=>$value,"group"=>$group));
             //$sth=$pdo->prepare("insert into keyvalue(`class`,`key`,`value`) values(?,?,?)");
             //$sth->execute(array($class->id,$key,$value));
         } else {

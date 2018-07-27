@@ -1,0 +1,18 @@
+fillStyle="black";
+text="?";
+zOrder=-10;
+while(true) {
+    x=$mouseX;
+    yy=$mouseY;
+    i=floor(yy/$h);
+    t=timelines[i];
+    y=yy+50;
+    if (t && t.user) {
+        text=t.user;
+    } else text="";
+    ti=graph.x2time(x);
+    var d=new Date();
+    d.setTime(ti*1000);
+    text+="\n"+[d.getHours(),d.getMinutes()].join(":");
+    update();
+}
