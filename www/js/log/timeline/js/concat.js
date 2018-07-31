@@ -8,9 +8,9 @@ Tonyu.klass.define({
     main :function _trc_FNlog_main() {
       "use strict";
       var _this=this;
-      var _it_1;
-      var _it_2;
-      var _it_3;
+      var _it_33;
+      var _it_34;
+      var _it_35;
       
       //$LASTPOS=1000178;//user.FNlog:178
       _this.paramstr = location.href.replace(/^.*\?/,"").replace(/#.*$/,"");
@@ -19,9 +19,9 @@ Tonyu.klass.define({
       _this.params = Tonyu.globals.$params||{};
       
       //$LASTPOS=1000269;//user.FNlog:269
-      _it_1=Tonyu.iterator(_this.paramstr.split("&"),1);
-      while(_it_1.next()) {
-        _this.k=_it_1[0];
+      _it_33=Tonyu.iterator(_this.paramstr.split("&"),1);
+      while(_it_33.next()) {
+        _this.k=_it_33[0];
         
         //$LASTPOS=1000310;//user.FNlog:310
         _this.vals = _this.k.split("=");
@@ -44,11 +44,11 @@ Tonyu.klass.define({
       //$LASTPOS=1000524;//user.FNlog:524
       _this.day=new Date();
       //$LASTPOS=1000540;//user.FNlog:540
-      _this.day.setMonth(_this.ymd[1]-1);
-      //$LASTPOS=1000564;//user.FNlog:564
-      _this.day.setYear(_this.ymd[0]-0);
-      //$LASTPOS=1000587;//user.FNlog:587
       _this.day.setDate(_this.ymd[2]-0);
+      //$LASTPOS=1000563;//user.FNlog:563
+      _this.day.setYear(_this.ymd[0]-0);
+      //$LASTPOS=1000586;//user.FNlog:586
+      _this.day.setMonth(_this.ymd[1]-1);
       //$LASTPOS=1000610;//user.FNlog:610
       _this.classid=_this.params.classid;
       //$LASTPOS=1000634;//user.FNlog:634
@@ -78,10 +78,10 @@ Tonyu.klass.define({
       //$LASTPOS=1001023;//user.FNlog:1023
       _this.files=_this.waitFor($.get(_this.url+"a.php?TeacherLog/getFileNames",{day: _this.btime,classid: _this.classid}));
       //$LASTPOS=1001152;//user.FNlog:1152
-      _it_2=Tonyu.iterator(_this.files.split("\n"),2);
-      while(_it_2.next()) {
-        _this.cnt=_it_2[0];
-        _this.line=_it_2[1];
+      _it_34=Tonyu.iterator(_this.files.split("\n"),2);
+      while(_it_34.next()) {
+        _this.cnt=_it_34[0];
+        _this.line=_it_34[1];
         
         //$LASTPOS=1001223;//user.FNlog:1223
         if (_this.cnt==0) {
@@ -131,10 +131,10 @@ Tonyu.klass.define({
       //$LASTPOS=1001728;//user.FNlog:1728
       _this.fileranka=[];
       //$LASTPOS=1001742;//user.FNlog:1742
-      _it_3=Tonyu.iterator(_this.filerank,2);
-      while(_it_3.next()) {
-        _this.filename=_it_3[0];
-        _this.count=_it_3[1];
+      _it_35=Tonyu.iterator(_this.filerank,2);
+      while(_it_35.next()) {
+        _this.filename=_it_35[0];
+        _this.count=_it_35[1];
         
         //$LASTPOS=1001785;//user.FNlog:1785
         _this.fileranka.push({filename: _this.filename,count: _this.count});
@@ -167,9 +167,9 @@ Tonyu.klass.define({
       var _this=this;
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
-      var _it_1;
-      var _it_2;
-      var _it_3;
+      var _it_33;
+      var _it_34;
+      var _it_35;
       
       //$LASTPOS=1000178;//user.FNlog:178
       _this.paramstr = location.href.replace(/^.*\?/,"").replace(/#.*$/,"");
@@ -178,9 +178,9 @@ Tonyu.klass.define({
       _this.params = Tonyu.globals.$params||{};
       
       //$LASTPOS=1000269;//user.FNlog:269
-      _it_1=Tonyu.iterator(_this.paramstr.split("&"),1);
-      while(_it_1.next()) {
-        _this.k=_it_1[0];
+      _it_33=Tonyu.iterator(_this.paramstr.split("&"),1);
+      while(_it_33.next()) {
+        _this.k=_it_33[0];
         
         //$LASTPOS=1000310;//user.FNlog:310
         _this.vals = _this.k.split("=");
@@ -203,11 +203,11 @@ Tonyu.klass.define({
       //$LASTPOS=1000524;//user.FNlog:524
       _this.day=new Date();
       //$LASTPOS=1000540;//user.FNlog:540
-      _this.day.setMonth(_this.ymd[1]-1);
-      //$LASTPOS=1000564;//user.FNlog:564
-      _this.day.setYear(_this.ymd[0]-0);
-      //$LASTPOS=1000587;//user.FNlog:587
       _this.day.setDate(_this.ymd[2]-0);
+      //$LASTPOS=1000563;//user.FNlog:563
+      _this.day.setYear(_this.ymd[0]-0);
+      //$LASTPOS=1000586;//user.FNlog:586
+      _this.day.setMonth(_this.ymd[1]-1);
       //$LASTPOS=1000610;//user.FNlog:610
       _this.classid=_this.params.classid;
       //$LASTPOS=1000634;//user.FNlog:634
@@ -247,10 +247,10 @@ Tonyu.klass.define({
             _this.files=_thread.retVal;
             
             //$LASTPOS=1001152;//user.FNlog:1152
-            _it_2=Tonyu.iterator(_this.files.split("\n"),2);
-            while(_it_2.next()) {
-              _this.cnt=_it_2[0];
-              _this.line=_it_2[1];
+            _it_34=Tonyu.iterator(_this.files.split("\n"),2);
+            while(_it_34.next()) {
+              _this.cnt=_it_34[0];
+              _this.line=_it_34[1];
               
               //$LASTPOS=1001223;//user.FNlog:1223
               if (_this.cnt==0) {
@@ -300,10 +300,10 @@ Tonyu.klass.define({
             //$LASTPOS=1001728;//user.FNlog:1728
             _this.fileranka=[];
             //$LASTPOS=1001742;//user.FNlog:1742
-            _it_3=Tonyu.iterator(_this.filerank,2);
-            while(_it_3.next()) {
-              _this.filename=_it_3[0];
-              _this.count=_it_3[1];
+            _it_35=Tonyu.iterator(_this.filerank,2);
+            while(_it_35.next()) {
+              _this.filename=_it_35[0];
+              _this.count=_it_35[1];
               
               //$LASTPOS=1001785;//user.FNlog:1785
               _this.fileranka.push({filename: _this.filename,count: _this.count});
