@@ -1,5 +1,5 @@
 <?php
-req("auth","pdo","Assignment");
+req("auth","pdo","Assignment","DateUtil");
 class AssignmentController {
     static function add() {
         Auth::assertTeacher();
@@ -200,32 +200,53 @@ class AssignmentController {
         $class=Auth::curClass2();
         $filter=param("assignment","");
         $filter="%$filter%";
+        $start=param("start",0);
+        $end=param("end",DateUtil::now());
         $r=pdo_select("select ".
         "s.user , a.name , m.result, s.id, s.time ".
         "from submission s ".
         "inner join assignment a on s.assignment=a.id ".
         "left join mark m on m.submission=s.id ".
         "where a.class=? and a.name like ? ".
+        "and s.time>=? and s.time<=? ".
         "order by s.user, a.name, s.time desc ",
-        $class->id,$filter);
+        $class->id,$filter,
+        $start,$end);
         $stats=array();
         foreach ($r as $e) {
             if (!isset($stats[$e->user])) {
                 $stats[$e->user]=array();
             }
-            if (isset($stats[$e->user][$e->name])) continue;
+            if (isset($stats[$e->user][$e->name])) {
+                $preve=$stats[$e->user][$e->name];
+                if ($preve->result=="OK") continue;
+            }//continue;
             $stats[$e->user][$e->name]=$e;
             //print_r(json_encode($e)."<hR/>");
         }
         //header("Content-type: text/plain");
-        echo "<textarea rows=30 cols=50>";
-        foreach ($stats as $user=>$statsu) {
-            foreach($statsu as $name=>$e) {
-                print "$user\t$name\t".$e->result."\n";
+        if (param("output","text")=="json") {
+            $res=array();
+            foreach ($stats as $user=>$statsu) {
+                $res[$user]=array();
+                foreach($statsu as $name=>$e) {
+                    $res[$user][$name]=array(
+                        "result"=>$e->result,
+                        "time"=>$e->time
+                    );
+                }
             }
+            header("Content-type: text/json; charset=UTF-8");
+            echo json_encode($res);
+        } else {
+            echo "<textarea rows=30 cols=50>";
+            foreach ($stats as $user=>$statsu) {
+                foreach($statsu as $name=>$e) {
+                    print "$user\t$name\t".$e->result."\t".$e->time."\n";
+                }
+            }
+            echo "</textarea>";
         }
-        echo "</textarea>";
-
     }
 }
 

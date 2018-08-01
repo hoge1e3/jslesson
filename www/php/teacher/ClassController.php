@@ -28,6 +28,7 @@ class ClassController {
         <a href="a.php?TeacherLog/view">ユーザの状況一覧</a><BR>
         <a href="a.php?Zip/download">ユーザの全ファイルダウンロード</a><BR>
         <a href="a.php?Mark/notMarked">未採点の課題</a><BR>
+        <a href="a.php?Assignment/matrix">採点状況</a><BR>
         <hr>
         <a href="." target="student">演習画面へ</a><hr>
         <?php
