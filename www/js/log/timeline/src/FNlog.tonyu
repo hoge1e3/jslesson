@@ -30,11 +30,20 @@ day=floor(day/86400)*86400-timezone*3600;
 var btime=day;//1528436818;
 var duration=86400;
 var etime=btime+duration;
+print(btime);
 var timelines=[],filerank={},topfile={};
 url=location.host=="bitarrow.eplang.jp"?
 "https://bitarrow.eplang.jp/bitarrowbeta/":"http://localhost/";
-files=waitFor($.get(url+"a.php?TeacherLog/getFileNames") {day:btime,classid});
-//files=file("fnlog.txt").text();
+$testmode=(location.protocol==="chrome-extension:");
+if ($testmode) {
+    files=file("fnlog.txt").text();
+    marks=file("mark.json").obj();
+} else {
+    files=waitFor($.get(url+"a.php?TeacherLog/getFileNames") {day:btime,classid});
+    marks=waitFor($.get(url+"a.php?Assignment/matrix") {start=btime,end=etime,output="json"});
+}
+//https://bitarrow.eplang.jp/bitarrowbeta/a.php?Assignment/matrix&start=1528386626&end=1528473026&output=json
+
 //print(files);
 for (cnt,line in files.split("\n")/*file("fnlog.txt").lines()*/) {
     if (cnt==0) continue;
@@ -43,6 +52,8 @@ for (cnt,line in files.split("\n")/*file("fnlog.txt").lines()*/) {
     if (puser!=user) {
         timeline=[];
         timeline.user=user;
+        timeline.mark=marks[user];
+        timeline.avg={};
         timelines.push(timeline);
         fileappeared={};
         puser=user;
@@ -54,6 +65,8 @@ for (cnt,line in files.split("\n")/*file("fnlog.txt").lines()*/) {
             filerank[filename]=(filerank[filename]||0)+1;
         }
         timeline.push{filename, time};   
+        timeline.avg[filename]=timeline.avg[filename]||new Summarizer;
+        timeline.avg[filename].add(time-btime);
     }
 }
 fileranka=[];
@@ -69,6 +82,15 @@ timelines=timelines.sort \(a,b) {
     return a.end-b.end;
 };
 new Graph{src:this};
+\sortByFile(filename) {
+    timelines=timelines.sort \(a,b) {
+        var ava=a.avg[filename];
+        var avb=b.avg[filename];
+        ava=(ava? ava.average: 0);
+        avb=(avb? avb.average: 0);
+        return ava-avb;
+    };
+}
 /*
 drawLines();
 drawLegends();

@@ -18,7 +18,7 @@ class TeacherLogController {
         $classid,$day,$day+86400);
         header("Content-type: text/plain");
         foreach ($sel as $r) {
-            echo $r->user."\t".$r->filename."\t".$r->time."\n";
+            echo $r->user."\t".preg_replace("/\n/","",$r->filename)."\t".$r->time."\n";
         }
         //echo $day;
     }

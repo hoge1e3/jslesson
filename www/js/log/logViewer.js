@@ -168,10 +168,10 @@ function showLogOneUser(logid,userid,fn){
   if(ind>0){
     getPreviousLog(logsOfOneUser[fn][ind]).done(function(r){
       var curRaw=JSON.parse(r.raw);
-      currentProgram=curRaw.code.C || curRawraw.code.JavaScript || curRawraw.code.Dolittle;
+      currentProgram=curRaw.code.C || curRaw.code.JavaScript || curRaw.code.Dolittle;
       getPreviousLog(logsOfOneUser[fn][ind-1]).done(function(result) {
         var raw=JSON.parse(result.raw);
-        var code=raw.code.C || raw.code.JavaScript || raw.code.Dolittle;
+        var code=raw.code.C || raw.code.JavaScript || raw.code.Dolittle || "";
         calcDiff(code,currentProgram,userid);
       }).fail(function(result) {
         console.log("failed get previous log",result);

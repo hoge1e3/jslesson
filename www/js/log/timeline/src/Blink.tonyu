@@ -1,0 +1,23 @@
+extends Panel;
+
+\add(param) {
+    fillRect(param.x,param.y,2,$h);
+}
+\clear() {
+    clearRect();
+}
+
+/*p=10;
+width=2;
+height=$h;
+//print(x,y,width,height);*/
+zOrder=-10;
+while(true) {
+    //    fillStyle=$frameCount%20<10?"black":"white";
+    alpha=sin($frameCount*6)*127+128;
+    update();
+}
+
+\defaultLayer {
+    return $frontLayer;
+}

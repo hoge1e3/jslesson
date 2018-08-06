@@ -1,0 +1,15 @@
+extends TObject;
+\new() {
+    sum=0;
+    count=0;
+}
+\add(val) {
+    if (min==null || val<min) min=val;
+    if (max==null || val>max) max=val;
+    sum+=val;
+    count++;
+}
+\average{return sum/count;}
+\toString() {
+    return average+"("+count+")";
+}

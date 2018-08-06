@@ -1,0 +1,18 @@
+
+/*$panel.fillStyle=fillStyle;
+rect=drawTextRect($panel.context,text,x,y,size,"left");*/
+align="left";
+update();
+shape=new RectShape{x:x+width/2,y:y+height/2,width,height};
+ofi=fillStyle;
+while(true) {
+    if (shape.contains{x:$mouseX,y:$mouseY}) {
+        fillStyle="#ddd";
+        if ($touches[0].touched) {
+            if (onClick) onClick(this);
+        }
+    } else {
+        fillStyle=ofi;
+    }
+    update();
+}

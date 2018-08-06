@@ -14,5 +14,6 @@ while(true) {
     var d=new Date();
     d.setTime(ti*1000);
     text+="\n"+[d.getHours(),d.getMinutes()].join(":");
+    if (t && t.avg && graph.curFile) text+="\n"+t.avg[graph.curFile];
     update();
 }
