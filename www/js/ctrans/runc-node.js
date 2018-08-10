@@ -1,0 +1,27 @@
+require(["scanf","ctrans","jsgen","beautify","lib","util","x"],function () {
+	runc=function (src,stdin,options) {
+		try {
+			options=options||{};
+			var tree=MinimalParser.parse(src);
+			var program=js_beautify(js_gen(tree,options));
+			console.log("PRG",program);
+			var func=new Function(program);
+			if (stdin instanceof Array) scanf.STDIN=stdin;
+			else if (typeof stdin==="string") scanf.STDIN=stdin.split("\n");
+			else delete scanf.STDIN;
+	       	var buf="";
+	       	printf.STDOUT={
+	       		append:function (s) {buf+=s;},
+	       		text:function(){return buf;}
+	       	};
+			return promisize(func()).then(function () {
+				//console.log("DONE",buf);
+				return buf;
+			});
+		} catch (e) {
+			return new Promise(function (succ,fail) {
+				fail(e+(e.pos?" at "+e.pos:""));
+			});
+		}
+	};
+});

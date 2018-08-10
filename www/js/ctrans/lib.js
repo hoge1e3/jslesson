@@ -115,7 +115,7 @@ function fscanf() {
 	var fp=args.shift();
 	if (!fp||!fp.isFP) throw new Error("fscanf: 第1引数がファイルではありません");
 	if (fp.closed) throw new Error("fscanf: このファイルはすでに閉じられています");
-	if (fp.mode!=="r") throw new Error("書き込み中のファイルにfscanfはできません");
+	if (fp.mode.indexOf("w")>=0) throw new Error("書き込み中のファイルにfscanfはできません");
 	var input;
 	do {
 		var heading=fp.text.substring(fp.pos);
@@ -255,9 +255,15 @@ function sprintfJS() {
 	// from http://d.hatena.ne.jp/uupaa/20080301/1204380616
     var rv = [], i = 0, v, width, precision, sign, idx, argv = arguments, next = 0;
     var unsign = function(val) { return (val >= 0) ? val : val % 0x100000000 + 0x100000000; };
-    var getArg = function() { return argv[idx ? idx - 1 : next++]; };
+    var getArg = function() {
+		if (!idx && next>=argv.length) throw new Error("printfの引数が足りません");
+		return argv[idx ? idx - 1 : next++];
+	};
 	var parseInt2=function (arg) {
 		var res=0;
+		if (arg && arg.IS_POINTER) {
+			return arg.addr||0;
+		}
 		switch(typeof arg){
 		case "number": case "boolean":
 			res=cast(CType.Int(),arg);
@@ -297,6 +303,8 @@ function sprintfJS() {
       (v.length < width) ? rv.push(" ".repeat(width - v.length), v) : rv.push(v);
     }
     var line=rv.join("");
+	//console.log("ARGV",next,argv.length);
+	if (!idx && next<argv.length) doNotification("printfの引数が多すぎます．");
 	return line;
 }
 function printf() {
@@ -490,6 +498,12 @@ function sleep(msec) {
 RAND_MAX=0x7fffffff;
 function rand() {
     return Math.floor(Math.random()*RAND_MAX);
+}
+function srand(s) {
+
+}
+function time() {
+	return (new Date).getTime();
 }
 function exit(status) {
 	var e=new Error("exit()によりプログラムが終了しました");

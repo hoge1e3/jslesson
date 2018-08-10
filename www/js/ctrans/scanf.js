@@ -138,7 +138,7 @@ var scanf = (function() {
 
     function sscanfJS(str, format) {
     	input = str;
-        var re = new RegExp('[^%]*%[A-Za-z][^%]*', 'g');
+        var re = new RegExp('[^%]*%[0-9]*[A-Za-z][^%]*', 'g');
         var selector = format.match(re);
         var result=[];
         selector.forEach(function(val) {
@@ -184,6 +184,13 @@ var scanf = (function() {
         return result;
     };
 
+    var getChar = function(pre, next) {
+        var text = getInput(pre, next, '.');
+        if (!text) {
+            return null;
+        }
+        return text.charCodeAt(0);
+    };
     var getInteger = function(pre, next) {
         var text = getInput(pre, next, '[-]?[A-Za-z0-9]+');
         if (!text) {
@@ -231,16 +238,17 @@ var scanf = (function() {
 
     var dealType = function(format) {
         var ret;
-        var res = format.match(/%[A-Za-z]+/);
+        var res = format.match(/%([0-9]*)([A-Za-z]+)/);
         var res2 = format.match(/[^%]*/);
         if (!res) {
             return null;
         }
 
-        var type = res[0];
+        var type = "%"+res[2];//res[0];
+        var opt= res[1];
         var pre = !!res2 ? res2[0] : null;
         var next = format.substr(format.indexOf(type) + type.length);
-
+        //console.log("dealType",type,opt);
         switch (type) {
             case '%d':
             case '%ld':
@@ -250,8 +258,11 @@ var scanf = (function() {
                 ret = getInteger(pre, next);
                 break;
             case '%c': // TODO getChar
+                ret = getChar(pre, next);
+                break;
             case '%s':
                 ret = getString(pre, next);
+                if (opt.length>0) ret=ret.substring(0,opt-0);
                 break;
             case '%S':
                 ret = getLine(pre, next);
