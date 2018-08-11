@@ -1,10 +1,11 @@
 define(["Klass","assert"],function (Klass,assert) {
+    var _global=(typeof window!=="undefined" ? window : global);
     var t={};
     var bitWiseOp={
         "|":1, "&":1 , "<<":1, ">>":1, "^":1,"~":1,"%":1
     };
     var CTYPE_NAME="CType";
-    window[CTYPE_NAME]=t;
+    _global[CTYPE_NAME]=t;
     t.Base=Klass.define({
         $name:"ctype::Base",
         // Check var_of_this = var_of_t; is OK?

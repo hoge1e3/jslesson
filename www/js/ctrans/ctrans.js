@@ -1,7 +1,8 @@
 define(["ctrans/ctype","AsyncByGenerator","Parser","context","ExpressionParser","assert","Message"],
 function (T,ABG,Parser,context,ExpressionParser,assert,Message) {
 //\b(t|T|CType)\.(char|byte|int|double|float|void)\b
-window.MinimalParser= function () {
+var _global=(typeof window!=="undefined" ? window : global);
+_global.MinimalParser= function () {
     var supportsAsync=false;
     /*try {
         f=new Function ("var a=async function (){};");
@@ -1653,7 +1654,7 @@ extern char* strstr(char *h,char *n);
 		    //ne.original=e;
 		    throw ne;
 		}
-        window.lastOutput=output;
+        _global.lastOutput=output;
     	return output;
     	function rowcol(p) {
 			var max=processed.substring(0,p);
@@ -1679,5 +1680,5 @@ extern char* strstr(char *h,char *n);
 	}
 	return parser;
 }();
-return window.MinimalParser;
+return _global.MinimalParser;
 });

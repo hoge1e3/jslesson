@@ -38,8 +38,8 @@ function log(){
 }*/
 function cjsFileHome() {
 	var d;
-	if (window.BitArrow && typeof window.BitArrow.publishedURL==="string") {
-		var a=window.BitArrow.publishedURL.replace(/\/$/,"").split("/");
+	if (typeof BitArrow!=="undefined" && typeof BitArrow.publishedURL==="string") {
+		var a=BitArrow.publishedURL.replace(/\/$/,"").split("/");
 		d=a.pop();
 	}
 	if (!d) d="unknown";
@@ -137,8 +137,8 @@ function scanfOLD(line, dest) {
 	line=ch_ptr_to_str(line);
 	if (scanf.STDIN) {
 	    afterScan(scanf.STDIN.shift());
-	} else if (window.AsyncByGenerator &&
-	    window.AsyncByGenerator.supportsGenerator &&
+	} else if (typeof AsyncByGenerator!=="undefined" &&
+	    AsyncByGenerator.supportsGenerator &&
 	    $("#console")[0]) {
 	    return new Promise(function (p) {
 	        var box=$("<input>").on("keydown",function (e) {
@@ -194,8 +194,28 @@ function scanf() {
 	var args=Array.prototype.slice.call(arguments);
     if (scanf.STDIN) {
 		return afterScan(scanf.STDIN.shift());
-	} else if (window.AsyncByGenerator &&
-	    window.AsyncByGenerator.supportsGenerator &&
+	} else if (typeof window==="undefined") {
+		if (!scanf.nodeInterface) {
+			var readline = require('readline');
+			scanf.nodeInterface = readline.createInterface({
+			  input: process.stdin,
+			  output: process.stdout
+			});
+			scanf.nodeBuf=[];
+			scanf.nodeInterface.on("line",function (l) {
+				scnaf.nodeBuf.push(l);
+				if (scanf.nodeOnLine) {
+					scanf.nodeOnLine(afterScan(scanf.nodeBuf.shift()));
+					delete scanf.nodeOnLine;
+				}
+			});
+		}
+		if (scanf.nodeBuf.length>0) return afterScan(scanf.nodeBuf.shift());
+		return new Promise(function (p) {
+			scanf.nodeOnLine=p;
+		});
+	} else if (typeof AsyncByGenerator!=="undefined" &&
+	    AsyncByGenerator.supportsGenerator &&
 	    $("#console")[0]) {
 	    return new Promise(function (p) {
 	        var box=$("<input>").on("keydown",function (e) {
@@ -326,8 +346,9 @@ function printScanfLine(line) {
 ["abs","acos","asin","atan","atan2","ceil","cos","exp","floor",
 "log","max","min","pow","random","round","sin","sqrt","tan"].forEach(function (k) {
     var f=Math[k];
+	var _global=(typeof window!=="undefined" ? window : global);
     if (typeof f=="function") {
-        window[k]=f.bind(Math);
+        _global[k]=f.bind(Math);
     }
 });
 // -------- 文字列関数はchr_arrayを想定していたが、本当はpointerが通じるようにしないといかん
@@ -511,4 +532,4 @@ function exit(status) {
 	e.status=status;
 	throw e;
 }
-window.print=function() {throw new Error("print関数はありません。printfの間違いではないですか？");};
+function print() {throw new Error("print関数はありません。printfの間違いではないですか？");};

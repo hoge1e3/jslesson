@@ -1,4 +1,5 @@
 (function () {
+    var _global=(typeof window!=="undefined" ? window : global);
 var utils = (function() {
     var exports = {};
 
@@ -287,5 +288,5 @@ var scanf = (function() {
     return exports;
 })();
 
-window.sscanfJS=scanf.sscanfJS;
+_global.sscanfJS=scanf.sscanfJS;
 })();

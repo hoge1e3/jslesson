@@ -15,7 +15,8 @@
    });
  */
 (function () {
-var define=window.define||function (r,f) {window.context=f();};
+    var _global=(typeof window!=="undefined" ? window : global);
+//var define=_global.define||function (r,f) {_global.context=f();};
 define([],function () {
 return context=function () {
     var c={};

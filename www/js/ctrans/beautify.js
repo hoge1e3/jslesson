@@ -2091,8 +2091,8 @@
 
     }
 
-        window.js_beautify = js_beautify;
-
+    var _global=(typeof window!=="undefined" ? window : global);
+    _global.js_beautify=js_beautify;
     if (typeof define === "function" && define.amd) {
         // Add support for AMD ( https://github.com/amdjs/amdjs-api/wiki/AMD#defineamd-property- )
         define([], function() {

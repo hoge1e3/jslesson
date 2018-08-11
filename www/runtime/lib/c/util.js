@@ -1,8 +1,9 @@
-window.supportsAsync=false;
+var _global=(typeof window!=="undefined" ? window : global);
+_global.supportsAsync=false;
 try {
     f=new Function ("var a=async function (){};");
     f();
-    window.supportsAsync=true;
+    _global.supportsAsync=true;
 }catch(e){
 }
 function LocalVariables() {
@@ -169,18 +170,18 @@ function search_scope_level(key,chk){
 	else throw("変数"+key+"は定義されていません。");
 }
 function loop_start2(){
-    //if (window.parent) window.parent.dialogClosed=false;
-    window.startTime=new Date().getTime();
+    //if (_global.parent) _global.parent.dialogClosed=false;
+    _global.startTime=new Date().getTime();
 }
 function loop_chk2() {
-    if (window.parent && window.parent.dialogClosed) {
+    if (_global.parent && _global.parent.dialogClosed) {
         var e=new Error("ダイアログが閉じられたので実行を停止しました");
         e.type="dialogClosed";
         throw e;
     }
     var now=new Date().getTime();
-    if (now-window.startTime>5000) {
-        //console.log(window.parent, window.opener);
+    if (now-_global.startTime>5000) {
+        //console.log(_global.parent, _global.opener);
         var b=confirm("ループが５秒以上続いています。\n実行を停止するにはOKを押してください。");
 	    if(b){throw new Error("実行を停止しました。");}
 		else loop_start2();

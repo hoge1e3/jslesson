@@ -3,5 +3,8 @@
   "main": "ctrans-test.html",
   "scripts": {
     "start": "nw"
+  },
+  "dependencies": {
+    "requirejs": "^2.3.5"
   }
 }

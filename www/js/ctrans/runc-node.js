@@ -1,4 +1,32 @@
-require(["scanf","ctrans","jsgen","beautify","lib","util","x"],function () {
+requirejs=require("requirejs");
+requirejs.config({
+    shim: {
+        "tester": {
+            exports:"tester"
+        },
+        Parser:{exports:"Parser"},
+        ExpressionParser:{exports:"ExpressionParser"},
+        jsgen:{exports:"js_gen"},
+        "AsyncByGenerator":{
+            exports:"AsyncByGenerator"
+        },
+        hoge:{exports:"fuga"}
+    },
+    paths: {
+        "Message": "../lib/Message",
+        "assert": "../lib/assert",
+        "ctrans/ctrans":"ctrans",
+		"ctrans/ctype":"../../runtime/lib/c/ctype",
+        "Klass":"../lib/Klass",
+        "Parser":"parser",
+        "ExpressionParser":"ExpressionParser2",
+        "scanf": "../../runtime/lib/c/scanf",
+        "lib": "../../runtime/lib/c/lib",
+        "util": "../../runtime/lib/c/util",
+        "hoge":"fuga"
+    }
+})
+requirejs(["scanf","ctrans","jsgen","beautify","lib","util","x"],function () {
 	runc=function (src,stdin,options) {
 		try {
 			options=options||{};
@@ -24,4 +52,13 @@ require(["scanf","ctrans","jsgen","beautify","lib","util","x"],function () {
 			});
 		}
 	};
+	runc(`
+	#include<stdio.h>
+	int main(void) {
+		printf("Hello world");
+	}
+		`).then(function (buf) {
+			console.log(buf);
+		});
+
 });
