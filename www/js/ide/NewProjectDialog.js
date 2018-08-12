@@ -1,4 +1,4 @@
-define(["UI"], function (UI) {
+define(["UI","ProjectCompiler"], function (UI,TPRC) {
     var res={};
 	res.show=function (prjInfo, onOK,options) {
     	var d=res.embed(prjInfo,onOK,options);
@@ -74,6 +74,23 @@ define(["UI"], function (UI) {
     	    }
     	};
     	return d;
+    };
+    res.create=function (projectsDir,model) {
+	    console.log(model);
+	    var prjDir=projectsDir.rel(model.name+"/");
+        prjDir.mkdir();
+        TPRC(prjDir).setOptions({
+            compiler:{
+                namespace:"user",
+                outputFile:"js/concat.js",
+                defaultSuperClass:"jslker.Parent",
+                dependingProjects:[
+                     {"namespace":"jslker", "compiledURL":"${JSLKer}"}
+                    // {"namespace":"jslker", "compiledURL":"${JSLKer}/js/concat.js"}
+                ]
+            },
+    		language:model.lang
+        });
     };
     return res;
 });

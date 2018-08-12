@@ -23,10 +23,10 @@ a=[];for(i=100;i<=199;i++) a.push((i+"").substring(1)); for(i=0;i<200;i++) { p=M
 -音楽
 -DNCL
 
--register?
+-register?(メッセージを親切に！)
 --disableRegistrationByUser->クラスごと設定
--autologexecの他言語対応
---Test.* がなければ作る？AutoLogRun.* みたいなファイル名にする？
+-OK? autologexecの他言語対応
+--OK Auto_{js,c,dtl}/AutoExec.{tonyu,c,dtl} を自動作成
 
 *環境へ対する要望等
 

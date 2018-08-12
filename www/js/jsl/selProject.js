@@ -153,9 +153,10 @@ function ready() {//-------------------------
     }
     $("#newPrj").click(function (){
     	NPD.show(projectsInfo, function (model) {
+            NPD.create(projects,model);
     	    console.log(model);
-    	    prjDir=projects.rel(model.name+"/");
-            prjDir.mkdir();
+    	    var prjDir=projects.rel(model.name+"/");
+            /*prjDir.mkdir();
             TPRC(prjDir).setOptions({
                 compiler:{
                     namespace:"user",
@@ -167,7 +168,7 @@ function ready() {//-------------------------
                     ]
                 },
         		language:model.lang
-            });
+            });*/
             document.location.href="?r=jsl_edit&dir="+prjDir.path();
     	});
     });

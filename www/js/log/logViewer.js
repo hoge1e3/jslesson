@@ -83,7 +83,9 @@ function openFrame(data){
   fn=fn.replace(".","__");
   var filehist='<span filename="'+fn+'" onClick="showFileHistory(this.getAttribute('+"'"+'filename'+"'"+'))">'+data.filename+'</span>';
   //var filehist=data.filename;
-  var runLink=".?r=jsl_edit&dir=/home/"+classID+"/"+teacherID+"/Test/&autologexec="+data.id;
+  var lang=raw.code.C ?"c" : raw.code.JavaScript ? "js" : raw.code.Dolittle ? "dtl" :"unknown";
+  var prjName="Auto_"+lang;
+  var runLink=".?r=jsl_edit&dir=/home/"+classID+"/"+teacherID+"/"+prjName+"/&autologexec="+data.id+"&lang="+lang;
   var userid=data.user;
   $("#"+userid+"res").html("<br>"+logtime+"<br><a target='runCheck' href='"+runLink+"'>実行してみる</a><br>"+filehist+"<br>"+data.result);
   $("#"+userid).height(30);

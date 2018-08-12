@@ -6,7 +6,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
            "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog",
-           "IframeDialog","AssignmentDialog","SubmitDialog","CommentDialog2"
+           "IframeDialog","AssignmentDialog","SubmitDialog","CommentDialog2","NewProjectDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -16,7 +16,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
           CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog,
-          IframeDialog,AssignmentDialog,SubmitDialog,CommentDialog2
+          IframeDialog,AssignmentDialog,SubmitDialog,CommentDialog2,NPD
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -29,6 +29,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     var dir=Util.getQueryString("dir");
     if (!dir) {
         alert("dir is not specified");
+        location.href="index.html";
         return;
     }
     var curProjectDir=FS.get(dir);
@@ -100,7 +101,17 @@ function (Util, Tonyu, FS, FileList, FileMenu,
         });
     }
     function firstSync() {
-        return Auth.check().then(sync);
+        return Auth.check().then(sync).then(function () {
+            if (!curProjectDir.exists() || !curProjectDir.rel("options.json").exists()) {
+                var lang=Util.getQueryString("lang");
+                if (!lang) {
+                    alert("フォルダ"+dir+" は存在しません．");
+                    location.href="index.html";
+                    return;
+                }
+                NPD.create(curProjectDir.up(),{name:curProjectDir.name(),lang:lang});
+            }
+        });
     }
     DU.setE(function(e) {
         e=e.responseText||e;
@@ -574,11 +585,26 @@ function ready() {
         var id=Util.getQueryString("autologexec",null);
         if (id) {
             $.ajax("a.php?AddErrorInfo/getLog&logid="+id).then(function (r) {
-               var raw=JSON.parse(r.raw);
-               fl.select(curProjectDir.rel("Test.c"));
-               getCurrentEditorInfo().editor.getSession().getDocument().setValue(raw.code.C);
-               run();//$("#runMenu").click();
-            });
+                var raw=JSON.parse(r.raw);
+                var name="AutoExec";
+                var f=curProjectDir.rel(name+EXT);
+                console.log("ale",r,f.path());
+                if (!f.exists()) {
+                   FM.on.createContent(f);
+                }
+                var extmap={
+                    c:".c",javascript:".tonyu",dolittle:".dtl",dtl:".dtl",html:".html",
+                };
+                for (var k in raw.code) {
+                    f=curProjectDir.rel(name+extmap[k.toLowerCase()]);
+                    console.log("ale-edt",k,f.path(),f.exists());
+                    if (f.exists()) {
+                        fl.select(f);//curProjectDir.rel("Test.c"));
+                        getCurrentEditorInfo().editor.getSession().getDocument().setValue(raw.code[k]);
+                    }
+                }
+                run();//$("#runMenu").click();
+           }).catch (function (e) {console.error(e);});
         }
     }
     function autosubexec() {
