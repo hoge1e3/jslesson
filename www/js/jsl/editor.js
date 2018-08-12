@@ -230,18 +230,11 @@ function ready() {
                       {label:"停止(F2)",id:"stopMenu",action:stop},
                   ]*/},
                   {label:"保存",id:"save"},
-                  {label:"提出",id:"submit"},
+                  //{label:"提出",id:"submit"},
                   {label:"設定",sub:[
                       {label:"エディタの文字の大きさ",id:"textsize",action:textSize}/*,
                       {label:"エディタモード切替",id:"editorType",action:editorType}*/
                   ]}
-                  /*{label:"ツール",id:"tool",sub:[
-                      {label:"画像リスト",id:"imageList",action:showImageList},
-                  ]},
-                  {label:"配布",id:"distribute",sub:[
-                      {label:"ファイルを配布",id:"distributeFile",action:distributeFile},
-                      {label:"プロジェクトを配布",id:"distributePrj",action:distributePrj}
-                  ]},*/
               ]}
         );
         showToolMenu();
@@ -295,9 +288,9 @@ function ready() {
         if(Auth.teacher){
             Menu.appendMain(
                 {label:"教員",id:"distribute",sub:[
-                    {label:"ファイルを配布",id:"distributeFile",action:distributeFile},
-                    {label:"プロジェクトを配布",id:"distributePrj",action:distributePrj},
-                    {label:"課題作成",id:"assignment",action:assignment}
+                    {label:"ファイルを配布",id:"distributeFile",action:distributeFile}//,
+                    //{label:"プロジェクトを配布",id:"distributePrj",action:distributePrj},
+                    //{label:"課題作成",id:"assignment",action:assignment}
                 ]}
             );
             //dist="block";

@@ -1,5 +1,33 @@
 a=[];for(i=100;i<=199;i++) a.push((i+"").substring(1)); for(i=0;i<200;i++) { p=Math.floor(Math.random()*100); e=a.splice(p,1);a.push(e[0]) } a.map((s)=>s[0]+" "+s[1]).join(" ")
 
+*OK 隠し from teacher(コマンドで出現)
+-未採点の課題
+-採点状況
+*OK 隠し from editor
+-提出
+-プロジェクトを配布
+-課題作成
+
+
+*
+-beta->stable
+-- OK 先生アカウント（アカウントとメールアドレス名寄せ）とユーザ（homeの下なめる）移行
+-- nearly ok 使い方（クラス・ユーザ登録）
+-- Chk 古いバージョン(2017-0328)へのリンク
+--- Chk お知らせメッセージ
+-- branch  file   urlNOW   urlNEW
+--- 1808   /var/www/html/bitarrowbeta/   /bitarrowbeta  ->  /bitarrow
+--- stable-phpless /var/www/html/ba-phpless/  /bitarrow  -> /2017_0328
+--- master (new beta) ->                                    /beta1808
+-統計・グラフの組み込み
+-音楽
+-DNCL
+
+-register?
+--disableRegistrationByUser->クラスごと設定
+-autologexecの他言語対応
+--Test.* がなければ作る？AutoLogRun.* みたいなファイル名にする？
+
 *環境へ対する要望等
 
 -日本語プロジェクト作成可能に

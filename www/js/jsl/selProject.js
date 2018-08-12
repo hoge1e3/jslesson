@@ -24,9 +24,12 @@ function ready() {//-------------------------
     $("body").append(UI("div",
             ["div",{class:"hero-unit"},
             ["div",{id:"userInfo",css:{float:"right"},margin:"50px"},"ようこそ",["br"],["div","同期中です..."]],
-            ["h1", ["img",{src:"images/bitarrow-3.png",css:{"display":"inline"},width:"100px"}],"Bit Arrow(Beta)"]],
+            ["h1", ["img",{src:"images/bitarrow-2.png",css:{"display":"inline"},width:"100px"}],"Bit Arrow"]],
+            ["div",["span",{class:"notice"},"【お知らせ】"],"新しいバージョン(2018_0815)になりました．",
+            ["a",{href:"https://bitarrow.eplang.jp/?change1808",target:"wikiTab"},"主な変更点..."]/*," | ",
+            ["a",{href:"https://bitarrow.eplang.jp/2017_0328/",target:"wikiTab"},"以前のバージョン(2017_0328)を使う"]*/],
             ["div",
-	            ["a",{href:"http://bitarrow.eplang.jp/",target:"wikiTab"},"Bit Arrow解説ページ"]," | ",
+	            ["a",{href:"https://bitarrow.eplang.jp/",target:"wikiTab"},"Bit Arrow解説ページ"]," | ",
     	    	["a",{href:".?Teacher/login",target:"teaTab"},"教員用ログイン"]
 	        ],
             ["hr",{color:"#000000",size:"4"}],
@@ -63,7 +66,7 @@ function ready() {//-------------------------
     projects.mkdir();
     sh.cd(projects);
     var curDir=projects;
-    var projectsInfo=[];// name not ends with / (truncated at function item() ) 
+    var projectsInfo=[];// name not ends with / (truncated at function item() )
     function ls() {
         $("#prjItemList").empty();
         return RemoteProject.list().then(function (d) {
@@ -71,7 +74,7 @@ function ready() {//-------------------------
             d.findProject=function (name) {
                 var res;
                 d.forEach(function(i) {
-                    if (i.name===name) res=i; 
+                    if (i.name===name) res=i;
                 });
                 return res;
             };
@@ -130,7 +133,7 @@ function ready() {//-------------------------
                     if (fromD.exists()) toD.moveFrom(fromD);
                     return ls();
                 }).fail(function (e){
-                    console.log(e,e.stack); alert("名前変更に失敗しました。"); 
+                    console.log(e,e.stack); alert("名前変更に失敗しました。");
                 });
             },{ren:true, defName:fromName});
         };
@@ -143,7 +146,7 @@ function ready() {//-------------------------
                     if (d.exists()) d.rm({r:true});
                     ls();
                 }).fail(function (e){
-                    console.log(e,e.stack); alert("削除に失敗しました。"); 
+                    console.log(e,e.stack); alert("削除に失敗しました。");
                 });
             }
         };
@@ -175,7 +178,7 @@ function ready() {//-------------------------
                 if (inf) {
                     document.location.href="?r=jsl_edit&dir="+inf.dir.path();
                     return DU.brk();
-                } 
+                }
                 if (i==1) return DU.brk();
                 return ls().then(function () {
                     return i+1;

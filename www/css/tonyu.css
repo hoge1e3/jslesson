@@ -15,6 +15,9 @@ body {
     letter-spacing: 1px;
     font-family: ime_jp_rp, Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
 }
+.notice {
+    color: red;
+}
 
 .starter-template {
   padding: 40px 15px;

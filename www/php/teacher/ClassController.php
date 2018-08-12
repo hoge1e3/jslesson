@@ -20,6 +20,26 @@ class ClassController {
             return redirect("Teacher/login");
         }
         ?>
+        <style>
+        .assignment { display:none;}
+        </style>
+        <script src="runtime/lib/jquery-1.12.1.js"></script>
+        <script type="text/javascript">
+        $(function () {
+            var input = [];
+            var cmd = [38,38,40,40,37,39,37,39,66,65];
+            $(window).keyup(function(e){
+                input.push(e.keyCode);
+                if (input.toString().indexOf(cmd) >= 0) {
+                    $(".assignment").css("display","block");
+                    input = [];
+                } else if (cmd.toString().indexOf(input)<0) {
+                    input=[];
+                }
+                console.log("cmd",input);
+            });
+        });
+        </script>
         <h1><?=$class->id?> - クラス管理</h1>
         <a href="a.php?Teacher/home">クラス一覧に戻る</a><br>
         <a href="a.php?Class/config">クラスの設定をする</a><br>
@@ -27,8 +47,8 @@ class ClassController {
         <a href="a.php?Class/showUsers">ユーザ一覧</a><br>
         <a href="a.php?TeacherLog/view">ユーザの状況一覧</a><BR>
         <a href="a.php?Zip/download">ユーザの全ファイルダウンロード</a><BR>
-        <a href="a.php?Mark/notMarked">未採点の課題</a><BR>
-        <a href="a.php?Assignment/matrix">採点状況</a><BR>
+        <div class="assignment"><a href="a.php?Mark/notMarked">未採点の課題</a></div>
+        <div class="assignment"><a href="a.php?Assignment/matrix">採点状況</a></div>
         <hr>
         <a href="." target="student">演習画面へ</a><hr>
         <?php

@@ -99,8 +99,8 @@ async function loop() {
 			    sumbuf.push(f.relPath(d)+"\tPass");
 			} else {
     			console.log("Fail:", f.path());
-    			console.log("Output:",buf,str_to_ch_arr(buf));
-    			console.log("Expected:",expectxt,str_to_ch_arr(expectxt));
+    			console.log("Output:",buf,str_to_ch_ptr(buf));
+    			console.log("Expected:",expectxt,str_to_ch_ptr(expectxt));
 			    sumbuf.push(f.relPath(d)+"\tFail");
 			}
 		}catch(e){
