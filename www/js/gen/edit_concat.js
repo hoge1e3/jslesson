@@ -16123,6 +16123,10 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
                             t.add();
                         }
                     }},"新規"]));
+                r.sort(function (a,b) {
+                    return b.id-a.id;
+                });
+                //console.log("alist",r);
                 r.forEach(function (e) {
                     t.list.append(UI("div",
                     ["a",{href:"javascript:;",on:{
@@ -16373,6 +16377,103 @@ define('CommentDialog2',["UI","Klass"],function (UI,Klass) {
     return CommentDialog2;
 });
 
+define('NewProjectDialog',["UI","ProjectCompiler"], function (UI,TPRC) {
+    var res={};
+	res.show=function (prjInfo, onOK,options) {
+    	var d=res.embed(prjInfo,onOK,options);
+    	d.dialog({width:600});
+	};
+	res.embed=function (prjInfo, onOK, options) {
+	    if (!options) options={};
+        if (!res.d) {
+            var FType={
+                fromVal: function (val){
+                    return val=="" ? null : FS.get(val);
+                },
+                toVal: function (v){ return v ? v.path() : "";}
+            };
+        	res.d=UI("div",{title:(options.ren?"プロジェクト名の変更":"新規プロジェクト")},
+        			["div",
+        			 ["span","プロジェクト名"],
+        			 ["input",{$edit:"name",id:"prjName",value:options.defName||"",
+        			     on:{enterkey:function () {
+                		     res.d.done();
+				 }}}]],
+				["div",
+        			 ["span","プログラミング言語"],
+        			 ["select",{$var:"lang",$edit:"lang",id:"prjLang"},
+        			 ["option",{selected:"selected",value:"select"},"言語を選択してください"],
+        			 ["option",{value:"js"},"JavaScript"],
+        			 ["option",{value:"dtl"},"ドリトル"],
+        			 ["option",{value:"c"},"C"]]
+				],
+         		/*	["div",{css:{"display":"none"}},
+        			 ["span","親フォルダ"],
+        			 ["input",{$edit:{name:"parentDir",type:FType}}]],
+        			 ["div",{css:{"display":"none"}},
+        			   ["span","作成先フォルダ："],
+        			   ["span",{$var:"dstDir"}]
+        			  ],*/
+                 ["div", {$var:"validationMessage", css:{color:"red"}}],
+                 ["button", {$var:"OKButton", on:{click: function () {
+                	 res.d.done();
+                 }}}, "OK"]
+            );
+            if (localStorage.noconcat) {
+                res.d.$vars.lang.append(UI("option",{value:"tonyu"},"Tonyu"));
+            }
+        }
+        var d=res.d;
+        var model={name:options.defName||"",lang:"select"};
+        d.$edits.load(model);
+    	d.$edits.validator.on.validate=function (model) {
+    		if (model.name=="") {
+    			this.addError("name","名前を入力してください");
+    			return;
+    		}
+    		if (model.name.match(/[^a-zA-Z0-9_]+/)) {
+    			this.addError("name","プロジェクト名は英数字とアンダーバー(_)を組み合わせたものにしてください");
+    			return;
+    		}
+            if (prjInfo.findProject(model.name) ) {
+                this.addError("name","このプロジェクトはすでに存在します");
+                return;
+            }
+            if(model.lang=="select"){
+                this.addError("lang","言語を選択してください");
+                return;
+            }
+    		this.allOK();
+    		//d.$vars.dstDir.text(model.dstDir+"");
+    	};
+    	d.done=function () {
+    	    if (d.$edits.validator.isValid()) {
+                onOK(model);
+                d.dialog("close");
+    	    }
+    	};
+    	return d;
+    };
+    res.create=function (projectsDir,model) {
+	    console.log(model);
+	    var prjDir=projectsDir.rel(model.name+"/");
+        prjDir.mkdir();
+        TPRC(prjDir).setOptions({
+            compiler:{
+                namespace:"user",
+                outputFile:"js/concat.js",
+                defaultSuperClass:"jslker.Parent",
+                dependingProjects:[
+                     {"namespace":"jslker", "compiledURL":"${JSLKer}"}
+                    // {"namespace":"jslker", "compiledURL":"${JSLKer}/js/concat.js"}
+                ]
+            },
+    		language:model.lang
+        });
+    };
+    return res;
+});
+
 requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "showErrorPos", "fixIndent",  "ProjectCompiler",
            "Shell","ShellUI","KeyEventChecker",
@@ -16381,7 +16482,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
            "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog",
-           "IframeDialog","AssignmentDialog","SubmitDialog","CommentDialog2"
+           "IframeDialog","AssignmentDialog","SubmitDialog","CommentDialog2","NewProjectDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -16391,7 +16492,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
           CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog,
-          IframeDialog,AssignmentDialog,SubmitDialog,CommentDialog2
+          IframeDialog,AssignmentDialog,SubmitDialog,CommentDialog2,NPD
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -16404,6 +16505,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     var dir=Util.getQueryString("dir");
     if (!dir) {
         alert("dir is not specified");
+        location.href="index.html";
         return;
     }
     var curProjectDir=FS.get(dir);
@@ -16475,7 +16577,17 @@ function (Util, Tonyu, FS, FileList, FileMenu,
         });
     }
     function firstSync() {
-        return Auth.check().then(sync);
+        return Auth.check().then(sync).then(function () {
+            if (!curProjectDir.exists() || !curProjectDir.rel("options.json").exists()) {
+                var lang=Util.getQueryString("lang");
+                if (!lang) {
+                    alert("フォルダ"+dir+" は存在しません．");
+                    location.href="index.html";
+                    return;
+                }
+                NPD.create(curProjectDir.up(),{name:curProjectDir.name(),lang:lang});
+            }
+        });
     }
     DU.setE(function(e) {
         e=e.responseText||e;
@@ -16605,18 +16717,11 @@ function ready() {
                       {label:"停止(F2)",id:"stopMenu",action:stop},
                   ]*/},
                   {label:"保存",id:"save"},
-                  {label:"提出",id:"submit"},
+                  //{label:"提出",id:"submit"},
                   {label:"設定",sub:[
                       {label:"エディタの文字の大きさ",id:"textsize",action:textSize}/*,
                       {label:"エディタモード切替",id:"editorType",action:editorType}*/
                   ]}
-                  /*{label:"ツール",id:"tool",sub:[
-                      {label:"画像リスト",id:"imageList",action:showImageList},
-                  ]},
-                  {label:"配布",id:"distribute",sub:[
-                      {label:"ファイルを配布",id:"distributeFile",action:distributeFile},
-                      {label:"プロジェクトを配布",id:"distributePrj",action:distributePrj}
-                  ]},*/
               ]}
         );
         showToolMenu();
@@ -16670,9 +16775,9 @@ function ready() {
         if(Auth.teacher){
             Menu.appendMain(
                 {label:"教員",id:"distribute",sub:[
-                    {label:"ファイルを配布",id:"distributeFile",action:distributeFile},
-                    {label:"プロジェクトを配布",id:"distributePrj",action:distributePrj},
-                    {label:"課題作成",id:"assignment",action:assignment}
+                    {label:"ファイルを配布",id:"distributeFile",action:distributeFile}//,
+                    //{label:"プロジェクトを配布",id:"distributePrj",action:distributePrj},
+                    //{label:"課題作成",id:"assignment",action:assignment}
                 ]}
             );
             //dist="block";
@@ -16956,11 +17061,26 @@ function ready() {
         var id=Util.getQueryString("autologexec",null);
         if (id) {
             $.ajax("a.php?AddErrorInfo/getLog&logid="+id).then(function (r) {
-               var raw=JSON.parse(r.raw);
-               fl.select(curProjectDir.rel("Test.c"));
-               getCurrentEditorInfo().editor.getSession().getDocument().setValue(raw.code.C);
-               run();//$("#runMenu").click();
-            });
+                var raw=JSON.parse(r.raw);
+                var name="AutoExec";
+                var f=curProjectDir.rel(name+EXT);
+                console.log("ale",r,f.path());
+                if (!f.exists()) {
+                   FM.on.createContent(f);
+                }
+                var extmap={
+                    c:".c",javascript:".tonyu",dolittle:".dtl",dtl:".dtl",html:".html",
+                };
+                for (var k in raw.code) {
+                    f=curProjectDir.rel(name+extmap[k.toLowerCase()]);
+                    console.log("ale-edt",k,f.path(),f.exists());
+                    if (f.exists()) {
+                        fl.select(f);//curProjectDir.rel("Test.c"));
+                        getCurrentEditorInfo().editor.getSession().getDocument().setValue(raw.code[k]);
+                    }
+                }
+                run();//$("#runMenu").click();
+           }).catch (function (e) {console.error(e);});
         }
     }
     function autosubexec() {
