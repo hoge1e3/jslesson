@@ -614,16 +614,18 @@ root.system.handleError=function (e){
     else throw e;
 };
 root.system.run2=function (res) {
-    if (AsyncByGenerator.isGenerator(res)) {
-        return AsyncByGenerator.run(res);
+    var a=DtlPromise.hasABG();
+    if (a && a.isGenerator(res)) {
+        return a.run(res);
     }
     return res;
 };
 root.system.run=function (func) {
     try {
         var res=func.apply(root,[]);
-        if (AsyncByGenerator.isGenerator(res)) {
-            res=AsyncByGenerator.run(res);
+        var a=DtlPromise.hasABG();
+        if (a && a.isGenerator(res)) {
+            res=a.run(res);
             return res.catch(root.system.handleError);
         }
     } catch (e) {
@@ -790,11 +792,20 @@ DtlPromise=root.DtlPromise={
             });
         }
     },
+    hasABG: function () {
+        return typeof AsyncByGenerator!=="undefined" && AsyncByGenerator;
+    },
+    isGenerator: function (g) {
+        var a=this.hasABG();
+        return a && a.isGenerator(g);
+    },
     isPromise: function (p) {
-        return AsyncByGenerator.isPromise(p);
+        var a=this.hasABG();
+        return a && a.isPromise(p);
     },
     available: function () {
-        return AsyncByGenerator.supportsGenerator;
+        var a=this.hasABG();
+        return a && a.supportsGenerator;
     }
     /*IS: "IS_DTL_PROMISE",
     // promisify

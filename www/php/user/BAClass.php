@@ -72,6 +72,19 @@ class BAClass{
         $opts->passwordPolicy=$p;
         $this->setOptions($opts);
     }
+    function allowRegistrationByUser($t=true) {
+        $opts=$this->getOptions();
+        $opts->disableRegistrationByUser=($t?"no":"yes");
+        $this->setOptions($opts);
+    }
+    function registrationByUserAllowed() {
+        $opts=$this->getOptions();
+        if(isset($this->getOptions()->disableRegistrationByUser) &&
+        $this->getOptions()->disableRegistrationByUser=="yes"){
+            return false;
+        }
+        return true;
+    }
     static function isValidClassName($classname) {
         //TODO
         return true;

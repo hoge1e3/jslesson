@@ -172,8 +172,8 @@ class TeacherLogController {
         </script>
         <script src="js/log/logViewer.js"></script>
         <div id="detail" style="display:none;"></div>
-        <h1><?=$class->id?> - ユーザ一覧</h1>
         <a href="a.php?Class/show">クラス管理に戻る</a><hr>
+        <h1><?=$class->id?> - ユーザ一覧</h1>
         <button id="reloadButton" onclick="toggleReload()"><?=$reloadMode ? "自動再読み込みを停止" : "自動再読み込みをする"?></button><br>
         対象の時刻を変える<br>
         <form action="<?= $thisURL ?>" method="POST" style="display: inline">

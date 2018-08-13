@@ -8,6 +8,7 @@ class TeacherController {
     static function login() {
     ?>
 		<meta charset="UTF-8">
+      <h1>Bit Arrow教員ログイン</h1>
     	<form action="a.php?Teacher/check" method="POST">
     	  メールアドレス<input name="name" value="<?= self::$name ?>"></br>
     	  パスワード<input name="pass" type="password">
@@ -86,7 +87,7 @@ class TeacherController {
 	        クラス名<input name="classname">
     	    <input type="submit" value="新規クラス作成"/>
 	    </form>
-	    
+
     	<a href="a.php?Teacher/changePass">教員パスワード変更</a>
 	    <hr>
 	    <!--a href="a.php?resetRequests">再発行リクエスト一覧</a><hr/-->
@@ -97,7 +98,7 @@ class TeacherController {
             <a href="a.php?Class/select&class=<?= $c->id ?>">
                 <?= $c->id ?>
             </a><br>
-        <?php  
+        <?php
 	    }
     }
 }

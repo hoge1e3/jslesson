@@ -40,8 +40,8 @@ class ClassController {
             });
         });
         </script>
+        <a href="a.php?Teacher/home">クラス一覧に戻る</a><hr>
         <h1><?=$class->id?> - クラス管理</h1>
-        <a href="a.php?Teacher/home">クラス一覧に戻る</a><br>
         <a href="a.php?Class/config">クラスの設定をする</a><br>
         <a href="a.php?Class/registerUserForm">履修者を登録する</a><br>
         <a href="a.php?Class/showUsers">ユーザ一覧</a><br>
@@ -74,19 +74,33 @@ class ClassController {
         // パスワードポリシーの設定とか
         $class=Auth::curClass2();
         ?>
+        <a href="a.php?Class/show">クラス管理に戻る</a><hr>
         <h1><?=$class->id?> - クラス設定</h1>
+        <p>
         <?php
         if($class->passwordRequired()){
             echo 'パスワード設定:使用する<br>';
-            echo '<a href="a.php?Class/setPasswordNouse">使用しないに変更</a>';
+            echo '<a href="a.php?Class/setPasswordNouse">「使用しない」に変更</a>';
         }else{
             echo 'パスワード設定:使用しない<br>';
-            echo '<a href="a.php?Class/setPasswordUse">使用するに変更</a>';
-        }
-        ?>
-        <hr>
-        <a href="a.php?Class/show">クラス管理に戻る</a><br>
+            echo '<a href="a.php?Class/setPasswordUse">「使用する」に変更</a>';
+        }?></p>
+        <p>
         <?php
+        $regu=$class->registrationByUserAllowed();
+        echo "ユーザ登録方法：".($regu?"ユーザ自身または教員による登録":"教員による登録のみ")."<Br>";
+        echo '<a href="a.php?Class/setUserRegistrationPolicy&allow='.!$regu.'">';
+        echo '「'. (!$regu?"ユーザ自身または教員による登録":"教員による登録のみ")  .'」に変更</a>';
+        ?>
+        </p>
+        <hr>
+        <?php
+    }
+    static function setUserRegistrationPolicy() {
+        $allow=param("allow");
+        $class=Auth::curClass2();
+        $class->allowRegistrationByUser($allow==="true"||$allow==="1");
+        redirect("Class/config");
     }
     static function setPasswordNouse(){
         $class=Auth::curClass2();
@@ -119,8 +133,8 @@ class ClassController {
             return;
         }
         ?>
+        <a href="a.php?Class/show">クラス管理に戻る</a><hr>
         <h1><?=$class->id?> - ユーザ一覧</h1>
-        <a href="a.php?Class/show">クラス管理に戻る</a><br>
         <a href="a.php?Class/registerUserForm">履修者を登録する</a><hr>
         <a href="a.php?Class/showUsers&card=1">カードに印刷</a><hr>
         <table border=1>
@@ -250,6 +264,7 @@ class ClassController {
         //   id,name,pass   (id以外はオプション)
         $class=Auth::curClass2();
         ?>
+        <a href="a.php?Class/show">クラス管理に戻る</a><hr>
         <h1><?=$class->id?> - 履修者登録</h1><hr>
         <form action="a.php?Class/registerUser" method="POST" enctype="multipart/form-data">
             <input type="file" name="stuList" accept="text/comma-separated-values"><br>
@@ -265,7 +280,6 @@ class ClassController {
     	    <br/>
     	    <input type="submit" value="OK"/>
     	</form><hr>
-        <a href="a.php?Class/show">クラス管理に戻る</a>
         <?php
     }
     static function registerOneUser(){

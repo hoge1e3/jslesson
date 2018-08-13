@@ -75,7 +75,7 @@ class LogFileToDBController {
 	    "values( ?  , ?   , ?  , ?  ,?       ,?     ,?     ,?  ,?        ,?);");
         foreach ($files as $file) {
             $user=self::getUserName($c,$file->name());
-            print "$c $user<BR>\n";//ob_flush ();
+            #print "$c $user<BR>\n";//ob_flush ();
             $lines=$file->lines();
             $home=PathUtil::rel("/home/","$c/$user/");
             foreach ($lines as $raw) {

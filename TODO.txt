@@ -1,4 +1,3 @@
-a=[];for(i=100;i<=199;i++) a.push((i+"").substring(1)); for(i=0;i<200;i++) { p=Math.floor(Math.random()*100); e=a.splice(p,1);a.push(e[0]) } a.map((s)=>s[0]+" "+s[1]).join(" ")
 
 *OK 隠し from teacher(コマンドで出現)
 -未採点の課題
@@ -19,12 +18,14 @@ a=[];for(i=100;i<=199;i++) a.push((i+"").substring(1)); for(i=0;i<200;i++) { p=M
 --- 1808   /var/www/html/bitarrowbeta/   /bitarrowbeta  ->  /bitarrow
 --- stable-phpless /var/www/html/ba-phpless/  /bitarrow  -> /2017_0328
 --- master (new beta) ->                                    /beta1808
+--- チェック ： fs/pub はOK?
+----- 2017_0328はOK
 -統計・グラフの組み込み
 -音楽
 -DNCL
 
--register?(メッセージを親切に！)
---disableRegistrationByUser->クラスごと設定
+-OK register?(メッセージを親切に！) -> ユーザIDを書き換えて登録できないように変更、メッセージ追加
+--OK? disableRegistrationByUser->クラスごと設定
 -OK? autologexecの他言語対応
 --OK Auto_{js,c,dtl}/AutoExec.{tonyu,c,dtl} を自動作成
 

@@ -3,19 +3,23 @@ req("auth");
 class LoginController {
     static $mesg;
     static function form() {
-        if (!isset($_GET["class"])) {
+        $class=param("class","");
+        /*if (!isset($_GET["class"])) {
             $class="";
         } else {
         	$class=$_GET["class"];
-        }
+        }*/
     ?>
     	<meta charset="UTF-8">
     	<h1>Bit Arrow ログイン</h1>
+      <div><span class="notice">【お知らせ】</span>新しいバージョン(2018_0815)になりました．
+      <a href="https://bitarrow.eplang.jp/?change1808" target="wikiTab">主な変更点...</a></div>
+      <hr>
+        <div><font color=red><?= self::$mesg ?></font></div>
     	<form action="a.php?Login/check" method="POST">
     	  クラスID <input name="class" value="<?= $class ?>"></br>
     	  ユーザ名 <input name="user"></br>
     	  パスワード <input name="pass" type="password">
-    	  <font color=red><?= self::$mesg ?></font>
     	  <br/>
     	  <input type="submit" value="OK"/>
     	</form>
@@ -28,6 +32,9 @@ class LoginController {
     	<a href="index.html">戻る</a><br>
     	<a href="?Teacher/login">教員の方はこちら</a>
     <?php
+    }
+    static function isValidUserName($u) {
+        return preg_match("/^[a-zA-Z_0-9\-\.]+$/",$u);
     }
     static function curStatus() {
         $u=Auth::curUser2();
@@ -62,6 +69,10 @@ class LoginController {
         }
     	$class=$_POST["class"];
     	$user=$_POST["user"];
+        if (!self::isValidUserName($user)) {
+            self::$mesg="ユーザ名には半角英数字を使ってください．余分がスペースがないかどうか確認してください．";
+            return self::form();
+        }
     	$pass=$_POST["pass"];
       $afterLogin=param("afterLogin","index.html");
     	self::$mesg=Auth::login($class,$user);
@@ -69,6 +80,9 @@ class LoginController {
     	    $showForm=false;
     	    header("Location: $afterLogin");
     	    //print "$mesg";
+        } else if (self::$mesg==="usernotexist") {
+            self::$mesg="ユーザ'$user'は登録されていません．";
+            self::form();
     	} else if (self::$mesg==="register") {
     	    self::register();
     	} else if (self::$mesg==="requirepass") {
@@ -79,6 +93,7 @@ class LoginController {
     	        header("Location: $afterLogin");
     	        //print "$mesg";
     	    } else {
+                self::$mesg="パスワードを入力してください";
     	        self::passForm();
     	    }
     	} else {
@@ -94,20 +109,21 @@ class LoginController {
         header("Location: index.html");
     }
     static function checkPass() {
-        if (!isset($_POST["password"])) {
+        $password=param("password");
+        if (!$password) {
             self::$mesg="パスワードが入力されていません";
             return self::passForm();
         }
     	$class=$_POST["class"];
     	$user=$_POST["user"];
-    	$password=$_POST["password"];
     	self::$mesg=Auth::loginUser($class,$user,$password);
     	if (self::$mesg===true) {
     	    $showForm=false;
     	    header("Location: index.html");
     	    //print "$mesg";
     	} else {
-    	    self::passForm();
+            if (!self::$mesg) self::$mesg="ユーザ名かパスワードが違います";
+            self::passForm();
     	}
     }
     static function passForm() {
@@ -117,6 +133,7 @@ class LoginController {
     	?>
     	<meta charset="UTF-8">
     	<h1>Bit Arrow ログイン</h1>
+        <font color="red"><?= self::$mesg?></font>
     	<form action="a.php?Login/checkPass" method="POST">
     	  クラスID: <?= $class ?></br>
     	  <input type="hidden" name="class" value="<?= $class ?>"/>
@@ -133,21 +150,27 @@ class LoginController {
         $user=$_POST["user"];
         $c=new BAClass($class);
     	//TODO:ユーザ登録(パスワードの登録)
+        self::$mesg="クラス $class にユーザ  $user が登録されていません。";
     	?>
     	<meta charset="UTF-8">
     	<h1><?= $class?> クラス新規ユーザ登録</h1>
+        <font color="red"><?= self::$mesg?></font>
+        <p>
+        新しく登録する場合は次のフォームを確認して登録してください。<br>
+        ユーザ名を間違えた場合は<a href="a.php?Login/form&class=<?=$class?>">ログイン画面</a>に
+        戻ってログインをやり直してください。
+    </p>
     	<form action="a.php?Login/registerConfirm" method="POST">
     	  クラスID: <input type="hidden" name="class" value="<?= $class ?>"><?= $class ?></br>
-    	  ユーザ名<input name="user" value="<?= $user?>"></br>
+    	  ユーザ名: <input type="hidden" name="user" value="<?= $user?>"><?= $user?></br>
     	  <?php
     	  if($c->passwordRequired()){
-    	      echo 'パスワード <input name="password" type="password"/>';
-    	      echo 'パスワード(確認用) <input name="passwordconf" type="password"/>';
+    	      echo 'パスワード <input name="password" type="password"/><Br/>';
+    	      echo 'パスワード(確認用) <input name="passwordconf" type="password"/><Br/>';
     	  }
     	  ?>
     	  <br/>
-    	  <input type="submit" value="OK"/>
-    	  <br><font color="red"><?= self::$mesg?></font>
+    	  <input type="submit" value="登録"/>
     	</form>
     	<?php
     }

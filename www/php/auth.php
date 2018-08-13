@@ -34,7 +34,10 @@ class Auth {
 	    }
 	    $u=new BAUser($c,$user);
 	    if(!$u->exists()){
-	        return "register";
+            if (!$c->registrationByUserAllowed()) {
+                return "usernotexist";
+            }
+            return "register";
 	    }else{
 	        if(!$c->passwordRequired()){
 	            MySession::set("class",$class);
