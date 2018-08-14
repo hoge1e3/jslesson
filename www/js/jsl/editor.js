@@ -139,40 +139,40 @@ function ready() {
     switch (lang){
     case "c":
         requirejs(["CBuilder"],function(_){
-            Builder=_;
+            /*Builder=_;
             console.log("cb requirejsed");
             $("#fullScr").attr("href","javascript:;").text("別ページで表示");
             ram=FS.get("/ram/build/");
             FS.mount(ram.path(),"ram");
             builder=new Builder(curPrj, ram);
             window.BABuilder=builder;
-            console.log("c builderready");
-            builderReady();
+            console.log("c builderready");*/
+            setupBuilder(_);
         });
         helpURL="http://bitarrow.eplang.jp/index.php?c_use";
     	break;
     case "js":
     	requirejs(["TJSBuilder"],function(_){
-    	    Builder=_;
+    	    /*Builder=_;
     	    console.log("tjsb requirejsed");
     	    $("#fullScr").attr("href","javascript:;").text("別ページで表示");
             ram=FS.get("/ram/build/");
             FS.mount(ram.path(),"ram");
             builder=new Builder(curPrj, ram);
-    	    console.log("builderready");
-    	    builderReady();
+    	    console.log("builderready");*/
+            setupBuilder(_);
     	});
     	helpURL="http://bitarrow.eplang.jp/index.php?javascript";
     	break;
     case "dtl":
     	requirejs(["DtlBuilder"],function(_){
-    	    Builder=_;
+    	    /*Builder=_;
     	    console.log("dtlb requirejsed");
     	    $("#fullScr").attr("href","javascript:;").text("別ページで表示");
             ram=FS.get("/ram/build/");
             FS.mount(ram.path(),"ram");
-            builder=new Builder(curPrj, ram);
-    	    builderReady();
+            builder=new Builder(curPrj, ram);*/
+            setupBuilder(_);
     	});
     	helpURL="http://bitarrow.eplang.jp/index.php?dolittle_use"
     	break;
@@ -193,6 +193,70 @@ function ready() {
             curPrj.getPublishedURL().then(builderReady);
         });
         break;
+    }
+    function setupBuilder(BuilderClass) {
+        $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+        ram=FS.get("/ram/build/");
+        FS.mount(ram.path(),"ram");
+        builder=new BuilderClass(curPrj, ram);
+        window.BABuilder=builder;
+        builderReady();
+    }
+    function builderReady() {
+        window.curPrj=curPrj;
+        autoexec();
+        autologexec();
+        autosubexec();
+    }
+    function autoexec() {
+        var autoexec=Util.getQueryString("autoexec",null);
+        console.log("AE",autoexec);
+        if (autoexec) {
+            fl.select(curProjectDir.rel(autoexec));
+            run();
+        }
+    }
+    function autologexec() {
+        var id=Util.getQueryString("autologexec",null);
+        if (id) {
+            $.ajax("a.php?AddErrorInfo/getLog&logid="+id).then(function (r) {
+                var raw=JSON.parse(r.raw);
+                var name="AutoExec";
+                var f=curProjectDir.rel(name+EXT);
+                console.log("ale",r,f.path());
+                if (!f.exists()) {
+                   FM.on.createContent(f);
+                }
+                var extmap={
+                    c:".c",javascript:".tonyu",dolittle:".dtl",dtl:".dtl",html:".html",
+                };
+                for (var k in raw.code) {
+                    f=curProjectDir.rel(name+extmap[k.toLowerCase()]);
+                    console.log("ale-edt",k,f.path(),f.exists());
+                    if (f.exists()) {
+                        fl.select(f);//curProjectDir.rel("Test.c"));
+                        getCurrentEditorInfo().editor.getSession().getDocument().setValue(raw.code[k]);
+                    }
+                }
+                run();//$("#runMenu").click();
+           }).catch (function (e) {console.error(e);});
+        }
+    }
+    function autosubexec() {
+        var id=Util.getQueryString("autosubexec",null);
+        if (id) {
+            $.ajax("a.php?Mark/getSubmission&id="+id).then(function (r) {
+               r=typeof r==="object" ? r: JSON.parse(r);
+               var files=r.files;
+               var file;
+               for (var k in files) {file=files[k];}
+               fl.select(curProjectDir.rel("Test.c"));
+               getCurrentEditorInfo().editor.getSession().getDocument().setValue(file);
+               run();//$("#runMenu").click();
+           }).catch(function (e) {
+               console.error(e);
+           });
+        }
     }
     function makeUI(){
         Columns.make(
@@ -567,62 +631,6 @@ function ready() {
     console.log("listing", curProjectDir.path());
     fl.ls(curProjectDir);
     console.log("listing", curProjectDir.path(),"done");
-    function builderReady() {
-        window.curPrj=curPrj;
-        autoexec();
-        autologexec();
-        autosubexec();
-    }
-    function autoexec() {
-        var autoexec=Util.getQueryString("autoexec",null);
-        console.log("AE",autoexec);
-        if (autoexec) {
-            fl.select(curProjectDir.rel(autoexec));
-            run();
-        }
-    }
-    function autologexec() {
-        var id=Util.getQueryString("autologexec",null);
-        if (id) {
-            $.ajax("a.php?AddErrorInfo/getLog&logid="+id).then(function (r) {
-                var raw=JSON.parse(r.raw);
-                var name="AutoExec";
-                var f=curProjectDir.rel(name+EXT);
-                console.log("ale",r,f.path());
-                if (!f.exists()) {
-                   FM.on.createContent(f);
-                }
-                var extmap={
-                    c:".c",javascript:".tonyu",dolittle:".dtl",dtl:".dtl",html:".html",
-                };
-                for (var k in raw.code) {
-                    f=curProjectDir.rel(name+extmap[k.toLowerCase()]);
-                    console.log("ale-edt",k,f.path(),f.exists());
-                    if (f.exists()) {
-                        fl.select(f);//curProjectDir.rel("Test.c"));
-                        getCurrentEditorInfo().editor.getSession().getDocument().setValue(raw.code[k]);
-                    }
-                }
-                run();//$("#runMenu").click();
-           }).catch (function (e) {console.error(e);});
-        }
-    }
-    function autosubexec() {
-        var id=Util.getQueryString("autosubexec",null);
-        if (id) {
-            $.ajax("a.php?Mark/getSubmission&id="+id).then(function (r) {
-               r=typeof r==="object" ? r: JSON.parse(r);
-               var files=r.files;
-               var file;
-               for (var k in files) {file=files[k];}
-               fl.select(curProjectDir.rel("Test.c"));
-               getCurrentEditorInfo().editor.getSession().getDocument().setValue(file);
-               run();//$("#runMenu").click();
-           }).catch(function (e) {
-               console.error(e);
-           });
-        }
-    }
     function ls(){
         fl.ls(curProjectDir);
     }

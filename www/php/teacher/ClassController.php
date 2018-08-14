@@ -145,7 +145,7 @@ class ClassController {
         <h1><?=$class->id?> - ユーザ一覧</h1>
         <div><a href="a.php?Class/registerUserForm">ユーザ登録</a></div>
         <div><a href="a.php?Class/showUsers&card=1">詳細一覧表示(アカウント配布用印刷)</a></div><hr>
-        <div>※ユーザIDをクリックするとそのユーザとしてプログラムを閲覧できます。プログラムの編集も可能ですのでご注意ください。</div>
+        <!--div>※ユーザIDをクリックするとそのユーザとしてプログラムを閲覧できます。プログラムの編集も可能ですのでご注意ください。</div-->
         <table border=1>
             <tr><th>ユーザID</th><th>パスワード</th><th>名前</th></tr>
         <?php
@@ -173,8 +173,7 @@ class ClassController {
                 $l->filename=$tmpf[4]."/".$tmpf[5];
             }
             ?>
-            <tr><th><a href="a.php?Login/su&class=<?=$class->id?>&user=<?=$s->name?>"
-	            target="stutab"><?=$s->name?></a></th>
+            <tr><th><?=$s->name?></th>
 	            <th pass="<?=$pass?>" onclick="if(this.innerHTML=='表示')this.innerHTML=this.getAttribute('pass');else this.innerHTML='表示';">表示</th>
             <th><?=$n?></th>
             </tr>
@@ -276,22 +275,22 @@ class ClassController {
         $class=Auth::curClass2();
         ?>
         <a href="a.php?Class/show">クラス管理に戻る</a><hr>
-        <h1><?=$class->id?> - ユーザ登録</h1><hr>
+        <h1><?=$class->id?> - ユーザ登録</h1>
+        <h2>CSVファイルによる一括登録</h2>
         <form action="a.php?Class/registerUser" method="POST" enctype="multipart/form-data">
             <ul>
-                <li>CSVファイルを読み込んで一括登録します。</li>
                 <li>CSVファイルの各行は「ID,名前,パスワード」にしてください．ID以外は省略可能です．</li>
                 <li><a href="images/register-sample.csv">サンプルCSVファイル</a>を参考にしてください．</li>
 
     	    </ul>
             <input type="file" name="stuList" accept="text/comma-separated-values"><br>
     	    <input type="submit" value="OK"/>
-    	</form><hr>
+    	</form>
+        <h2>一人ずつ登録</h2>
         <form action="a.php?Class/registerOneUser" method="POST">
             ID<input name="id"><br>
             名前<input name="name"><br>
             パスワード<input name="pass"><br>
-            一人ずつ登録します。
     	    <br/>
     	    <input type="submit" value="OK"/>
     	</form><hr>
