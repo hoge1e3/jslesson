@@ -63,7 +63,7 @@ function openFrame(data){
   currentLogId=data.id;
   displayingId=data.user;
   var raw=JSON.parse(data.raw);
-  var code=raw.code.C || raw.code.JavaScript || raw.code.Dolittle;
+  var code=raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.DNCL;
   //res=data.filename+"\n"+data.result+"\n-------------\n"+data.code.C;
   res=code;
   res=res.replace(/</g,"&lt;");
@@ -83,7 +83,7 @@ function openFrame(data){
   fn=fn.replace(".","__");
   var filehist='<span filename="'+fn+'" onClick="showFileHistory(this.getAttribute('+"'"+'filename'+"'"+'))">'+data.filename+'</span>';
   //var filehist=data.filename;
-  var lang=raw.code.C ?"c" : raw.code.JavaScript ? "js" : raw.code.Dolittle ? "dtl" :"unknown";
+  var lang=raw.code.C ?"c" : raw.code.JavaScript ? "js" : raw.code.Dolittle ? "dtl" : raw.code.DNCL ? "dncl" :"unknown";
   var prjName="Auto_"+lang;
   var runLink=".?r=jsl_edit&dir=/home/"+classID+"/"+teacherID+"/"+prjName+"/&autologexec="+data.id+"&lang="+lang;
   var userid=data.user;

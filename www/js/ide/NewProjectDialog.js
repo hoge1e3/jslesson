@@ -26,7 +26,8 @@ define(["UI","ProjectCompiler"], function (UI,TPRC) {
         			 ["option",{selected:"selected",value:"select"},"言語を選択してください"],
         			 ["option",{value:"js"},"JavaScript"],
         			 ["option",{value:"dtl"},"ドリトル"],
-        			 ["option",{value:"c"},"C"]]
+        			 ["option",{value:"c"},"C"],
+                     ["option",{value:"dncl"},"DNCL(どんくり)"]]
 				],
          		/*	["div",{css:{"display":"none"}},
         			 ["span","親フォルダ"],

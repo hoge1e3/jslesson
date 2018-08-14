@@ -233,7 +233,9 @@ function ready() {
                    FM.on.createContent(f);
                 }
                 var extmap={
-                    c:".c",javascript:".tonyu",dolittle:".dtl",dtl:".dtl",html:".html",
+                    c:".c",javascript:".tonyu",dolittle:".dtl",dtl:".dtl",
+                    dncl:".dncl",
+                    html:".html",
                 };
                 for (var k in raw.code) {
                     f=curProjectDir.rel(name+extmap[k.toLowerCase()]);
@@ -910,7 +912,7 @@ function ready() {
                     }
                     return b;
                 }).then(function () {
-                    logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"Dolittle Run","実行しました","Dolittle");
+                    logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Run","実行しました",langList[lang]);
                     if (ALWAYS_UPLOAD) {
                         return Auth.publishedURL(curProjectDir.name()).then(function (pub) {
                             var runURL=pub+curHTMLFile.name();
