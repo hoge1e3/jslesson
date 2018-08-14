@@ -174,7 +174,11 @@ function ready() {
             builder=new Builder(curPrj, ram);*/
             setupBuilder(_);
     	});
-    	helpURL="http://bitarrow.eplang.jp/index.php?dolittle_use"
+    	helpURL="http://bitarrow.eplang.jp/index.php?dolittle_use";
+    	break;
+    case "dncl":
+    	requirejs(["DnclBuilder"],setupBuilder);
+    	helpURL="http://bitarrow.eplang.jp/index.php?dncl_use";
     	break;
     case "tonyu":
         requirejs(["TonyuBuilder","TonyuProject"],function(_,TPRC){

@@ -250,6 +250,7 @@ var reqConf={
             cCompiler:"ctrans/compiler",
             TJSBuilder:"build/tjs/TJSBuilder",
             DtlBuilder:"build/dolittle/DtlBuilder",
+            DnclBuilder:"build/dncl/DnclBuilder",
             CBuilder:"build/c/CBuilder",
             TonyuBuilder:"build/tonyu/TonyuBuilder",
             wget:"fs2/wget",
