@@ -108,7 +108,10 @@ class LogFileToDBController {
                 } catch(Exception $e) {}
                 //echo DateUtil::toString($time);
                 $a=array(
-        	        $time,$c,$user,$lang,substr($filename,0,250),$result,$detail,$raw,$errorType,$errorPos
+        	        $time,$c,$user,$lang,substr($filename,0,250),
+                    $result,
+                    substr($detail,0,65000),
+                    substr($raw,0,65000),$errorType,$errorPos
     	        );
                 //var_dump($a);
         	    $sth->execute($a);

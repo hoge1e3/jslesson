@@ -12,7 +12,7 @@ class MySession {
     public static function start() {
         if (isset(self::$id)) {
             return self::$id;
-        } 
+        }
         self::$fs=new NativeFS("/tmp/");
         self::$j=new Services_JSON();
         $idname="mysessionID";
@@ -26,7 +26,7 @@ class MySession {
     }
     public static function fileName() {
         return "myses".self::$id.".json";
-    } 
+    }
     public static function get($key) {
         self::start();
         return self::$data[$key];
@@ -51,6 +51,12 @@ class MySession {
         $c=self::$j->encode(self::$data);
         //print "Save to ".self::fileName();
         self::$fs->setContent(self::fileName(),$c);
+    }
+    public static function clear() {
+        self::start();
+        if (self::$fs->exists(self::fileName())) {
+            self::$fs->rm(self::fileName());
+        }
     }
 }
 

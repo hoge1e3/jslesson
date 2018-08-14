@@ -82,14 +82,10 @@ class TeacherController {
     	?>
     	<title><?= $teacher->id ?> - 教員ページトップ</title>
     	<h1><?= $teacher->id ?> - 教員ページトップ</h1>
-    	<font color="red"><?= self::$mesg ?></font><br/>
-	    <form action="a.php?Class/make" method="POST">
-	        クラス名<input name="classname">
-    	    <input type="submit" value="新規クラス作成"/>
-	    </form>
+        <a href="a.php?Teacher/changePass">教員パスワード変更</a>
 
-    	<a href="a.php?Teacher/changePass">教員パスワード変更</a>
 	    <hr>
+        <h2>クラス一覧</h2>
 	    <!--a href="a.php?resetRequests">再発行リクエスト一覧</a><hr/-->
 	    <!-- ここで受け持ったクラス一覧を出す-->
 	    <?php
@@ -100,6 +96,13 @@ class TeacherController {
             </a><br>
         <?php
 	    }
+        ?>
+        <form action="a.php?Class/make" method="POST">
+            <font color="red"><?= self::$mesg ?></font><br/>
+            クラス名<input name="classname">
+            <input type="submit" value="新規クラス作成"/>
+        </form>
+        <?php
     }
 }
 

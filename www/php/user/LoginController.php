@@ -217,5 +217,9 @@ class LoginController {
         $dir=preg_replace("/[^\\/]*$/","",$dir);
         echo $dir;
     }
+    static function logout() {
+        Auth::logout();
+        header("Location: .?Login/form");
+    }
 }
 ?>

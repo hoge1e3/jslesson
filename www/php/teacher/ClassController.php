@@ -42,8 +42,8 @@ class ClassController {
         </script>
         <a href="a.php?Teacher/home">クラス一覧に戻る</a><hr>
         <h1><?=$class->id?> - クラス管理</h1>
-        <a href="a.php?Class/config">クラスの設定をする</a><br>
-        <a href="a.php?Class/registerUserForm">履修者を登録する</a><br>
+        <a href="a.php?Class/config">クラス設定</a><br>
+        <a href="a.php?Class/registerUserForm">ユーザ登録</a><br>
         <a href="a.php?Class/showUsers">ユーザ一覧</a><br>
         <a href="a.php?TeacherLog/view">ユーザの状況一覧</a><BR>
         <a href="a.php?Zip/download">ユーザの全ファイルダウンロード</a><BR>
@@ -54,6 +54,7 @@ class ClassController {
         <?php
     }
     static function make() {
+        Auth::assertTeacher();
         if (isset($_POST["classname"])) {
             $classN=$_POST["classname"];
             try {
@@ -72,6 +73,7 @@ class ClassController {
     static function config() {
         // TODO
         // パスワードポリシーの設定とか
+        Auth::assertTeacher();
         $class=Auth::curClass2();
         ?>
         <a href="a.php?Class/show">クラス管理に戻る</a><hr>
@@ -97,34 +99,40 @@ class ClassController {
         <?php
     }
     static function setUserRegistrationPolicy() {
+        Auth::assertTeacher();
         $allow=param("allow");
         $class=Auth::curClass2();
         $class->allowRegistrationByUser($allow==="true"||$allow==="1");
         redirect("Class/config");
     }
     static function setPasswordNouse(){
+        Auth::assertTeacher();
         $class=Auth::curClass2();
         $class->setPasswordPolicy("nouse");
         redirect("Class/config");
     }
     static function setPasswordUse(){
+        Auth::assertTeacher();
         $class=Auth::curClass2();
         $class->setPasswordPolicy("yes");
         redirect("Class/config");
     }
     static function showUsers(){
+        Auth::assertTeacher();
         $class=Auth::curClass2();
         $students=$class->getAllStu();
         if (isset($_GET["card"])) {
+            //echo"<h1>詳細一覧</h1>";
+            //echo"このページを印刷し，ユーザごとに切り取って配布することができます．<hr>";
             $i=0;
             foreach($students as $s){
                 $pass=$s->getPass();
                 echo "<div style='padding:30px;'>";
-                echo "BitArrow アクセス情報<BR>";
-                echo "http://bitarrow.eplang.jp/bitarrowbeta/<BR>";
+                echo "BitArrow アカウント情報<BR>";
+                echo "https://bitarrow.eplang.jp/bitarrow/<BR>";
                 echo "クラス名: ".$class->id."<BR>";
                 echo "ユーザ名: ".$s->name."<BR>";
-                echo "パスワード: ".$pass."<BR>";
+                echo "パスワード: ".($pass?$pass:"（空欄）")."<BR>";
                 echo "</div>";
                 echo "<HR>";
                 $i++;
@@ -135,8 +143,9 @@ class ClassController {
         ?>
         <a href="a.php?Class/show">クラス管理に戻る</a><hr>
         <h1><?=$class->id?> - ユーザ一覧</h1>
-        <a href="a.php?Class/registerUserForm">履修者を登録する</a><hr>
-        <a href="a.php?Class/showUsers&card=1">カードに印刷</a><hr>
+        <div><a href="a.php?Class/registerUserForm">ユーザ登録</a></div>
+        <div><a href="a.php?Class/showUsers&card=1">詳細一覧表示(アカウント配布用印刷)</a></div><hr>
+        <div>※ユーザIDをクリックするとそのユーザとしてプログラムを閲覧できます。プログラムの編集も可能ですのでご注意ください。</div>
         <table border=1>
             <tr><th>ユーザID</th><th>パスワード</th><th>名前</th></tr>
         <?php
@@ -164,7 +173,7 @@ class ClassController {
                 $l->filename=$tmpf[4]."/".$tmpf[5];
             }
             ?>
-            <tr><th><a href="a.php?Login/check&class=<?=$class->id?>&user=<?=$s->name?>"
+            <tr><th><a href="a.php?Login/su&class=<?=$class->id?>&user=<?=$s->name?>"
 	            target="stutab"><?=$s->name?></a></th>
 	            <th pass="<?=$pass?>" onclick="if(this.innerHTML=='表示')this.innerHTML=this.getAttribute('pass');else this.innerHTML='表示';">表示</th>
             <th><?=$n?></th>
@@ -197,6 +206,7 @@ class ClassController {
         ファイルの場合，options.json もコピーする
         もし同一ファイルがあったらコピーしない
         */
+        Auth::assertTeacher();
         $class=Auth::curClass2();
         $teacher=Auth::curTeacher()->id;
         $prj=$_POST["prj"];
@@ -262,14 +272,19 @@ class ClassController {
         // ファイルアップロードフォーム
         // フォーマット(csv):
         //   id,name,pass   (id以外はオプション)
+        Auth::assertTeacher();
         $class=Auth::curClass2();
         ?>
         <a href="a.php?Class/show">クラス管理に戻る</a><hr>
-        <h1><?=$class->id?> - 履修者登録</h1><hr>
+        <h1><?=$class->id?> - ユーザ登録</h1><hr>
         <form action="a.php?Class/registerUser" method="POST" enctype="multipart/form-data">
+            <ul>
+                <li>CSVファイルを読み込んで一括登録します。</li>
+                <li>CSVファイルの各行は「ID,名前,パスワード」にしてください．ID以外は省略可能です．</li>
+                <li><a href="images/register-sample.csv">サンプルCSVファイル</a>を参考にしてください．</li>
+
+    	    </ul>
             <input type="file" name="stuList" accept="text/comma-separated-values"><br>
-            CSVファイルを読み込んで一括登録します。
-    	    <br/>
     	    <input type="submit" value="OK"/>
     	</form><hr>
         <form action="a.php?Class/registerOneUser" method="POST">
@@ -283,6 +298,7 @@ class ClassController {
         <?php
     }
     static function registerOneUser(){
+        Auth::assertTeacher();
         if($_POST["id"]==""){
             return self::registerUserForm();
         }
@@ -306,6 +322,7 @@ class ClassController {
         echo '<a href="a.php?Class/showUsers">ユーザ一覧を見る</a>';
     }
     static function registerUser() {
+        Auth::assertTeacher();
         if (!isset($_FILES["stuList"]["name"]) || substr($_FILES["stuList"]["name"],strrpos($_FILES["stuList"]["name"],'.')+1)!='csv') {
             return self::registerUserForm();
         }
@@ -319,11 +336,12 @@ class ClassController {
         $f=new SplFileObject($meta['uri']);
         $f->setFlags(SplFileObject::READ_CSV);
         $list=array();
+        $created=0;$updated=0;
         foreach($f as $line){
             if(!is_null($line[0])){
-                echo "<pre>";
+                /*echo "<pre>";
                 print_r($line);
-                echo "</pre>";
+                echo "</pre>";*/
                 $list[]=$line;
                 if(array_key_exists("0",$line) && isset($line[0])){
                     $u=new BAUser(Auth::curClass2(),$line[0]);
@@ -333,13 +351,19 @@ class ClassController {
                     }
                     if(!$u->exists()){
                         $u->make();
+                        $created++;
                     }else {
                         $u->edit();
+                        $updated++;
                     }
                 }
             }
         }
-        header("Location: a.php?Class/showUsers");
+        echo "$created 件のユーザを登録しました<br>";
+        echo "登録済ユーザの情報を$updated 件更新しました<br>";
+        echo '<a href="a.php?Class/registerUserForm">ユーザ登録に戻る</a><br>';
+        echo '<a href="a.php?Class/showUsers">ユーザ一覧を見る</a>';
+        //header("Location: a.php?Class/showUsers");
     }
     static function showStatus(){
       header("Location: a.php?TeacherLog/view");
@@ -360,12 +384,18 @@ class ClassController {
         $class=Auth::curClass2();
         $logid=$_POST["logid"];
         $lg=$class->getLogById($logid);
-        print(json_encode($lg[0]));
+        $user=Auth::curUser2();
+        if (Auth::isTeacherOf($class) || $user->name==$lg[0]->user) {
+            print(json_encode($lg[0]));
+        }
     }
     static function getOneUsersLogId(){
         $class=Auth::curClass2();
-        $logid=$_POST["userid"];
-        $lg=$class->getLogByUser($logid);
+        $user=Auth::curUser2();
+        if (Auth::isTeacherOf($class)) {
+            $userid=param("userid",$user->name);
+        }
+        $lg=$class->getLogByUser($userid);
         print(json_encode($lg));
     }
 }

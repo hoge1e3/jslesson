@@ -131,7 +131,8 @@ class Auth {
       }
       $c=self::curClass2();
       if (!$c) {
-        throw new Exception("You are not logged on any class");
+          return $t;
+          throw new Exception("You are not logged on any class");
       }
       if ($t->isTeacherOf($c)) {
         return $t;
@@ -204,6 +205,9 @@ class Auth {
 	    $class=self::curClass();
    	    $user=self::curUser();
    	    return ($user && $class);
+    }
+    static function logout() {
+        MySession::clear();
     }
     static function homeDir(){
         if (!self::loggedIn()) throw new Exception("Not logged in");
