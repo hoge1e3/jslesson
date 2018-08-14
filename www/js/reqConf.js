@@ -88,6 +88,10 @@ var reqConf={
                 deps:["Parser"],
                 exports:"MinimalParser"
             },
+            "dncl/minimal": {
+                deps:["Parser"],
+                exports:"MinimalParser"
+            },
             AsyncByGenerator: {
                 exports: "AsyncByGenerator"
             },

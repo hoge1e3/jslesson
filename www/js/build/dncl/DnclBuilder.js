@@ -1,6 +1,6 @@
 define(["assert","DeferredUtil","wget", "dncl/minimal","IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator"],
-function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG) {
-    DtlBuilder=function (prj, dst) {
+function (A,DU,wget,dnclParser,IndentBuffer,Sync,FS,SplashScreen,ABG) {//<-dtl
+    DnclBuilder=function (prj, dst) {//<-Dtl
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
     };
@@ -14,12 +14,12 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG) {
             return "lib/dtl/"+n+".js";
         }
     );
-    var dncllibs=["dump","easier_arr","lib","math","performance_test"].map(
+    var dnclibs=["lib","performance_test","math","easier_arr","dump"].map(
         function (n) {
             return "lib/dncl/"+n+".js";
         }
     );
-    var p=DtlBuilder.prototype;
+    var p=DnclBuilder.prototype;//<-dtl
     p.progress=function (m) {
         if (window.SplashScreen) window.SplashScreen.progress(m);
     };
@@ -30,6 +30,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG) {
         //"lib/require.js","lib/dtl/lib.js","lib/dtl/polyk.js"];
         urls=urls.concat(libs);
         urls=urls.concat(dtlibs);
+        urls=urls.concat(dnclibs);
         //urls=urls.concat(images);
         var base="runtime/";
         var args=urls.map(function (url) {
@@ -60,7 +61,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG) {
         function (e) {alert(e);}+";"));
         $(head).append($("<link>").attr({"rel":"stylesheet","href":WebSite.runtime+"css/run_style.css"}));
 
-        libs.concat(dnclibs).map(function (r) {
+        libs.concat(dtlibs).concat(dnclibs).map(function (r) {
             return WebSite.runtime+r;
         }).concat([f.name+".js"]).forEach(function (src) {
             var nn=document.createElement("script");
@@ -93,10 +94,10 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG) {
             var f=curPrj.dir.rel(n);
             var name=f.truncExt();
             var html=f;
-            var dtl=f.up().rel(name+".dtl");
-            if (!dtl.exists()) return;
+            var dncl=f.up().rel(name+".dncl");// <-dtl
+            if (!dncl.exists()) return;
             files.push({name:name,
-                src:{html:html,dtl:dtl},
+                src:{html:html,dncl:dncl}, //<-dtl
                 dst:{
                     html:dst.rel(name+".html"),
                     //dtlvm:isVM(dtl.text())?dst.rel(name+".dtlvm"):null,
@@ -107,29 +108,23 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG) {
             return SplashScreen.waitIfBusy();
         }).then(DU.tr(function () {
             return DU.each(files,function (f) {
-                t.progress("Transpile "+f.src.dtl.name());
-                //console.log("File new?",f.src.html.name(), isNewer(f.dst.html, f.src.html), isNewer(f.dst.js, f.src.dtl));
-                var isMainFile=(f.src.dtl.path()==mainFilePath);
-                if (!isMainFile && isNewer(f.dst.js, f.src.dtl) && isNewer(f.dst.html, f.src.html)) return SplashScreen.waitIfBusy();
+                t.progress("Transpile "+f.src.dncl.name());//<-dtl
+                var isMainFile=(f.src.dncl.path()==mainFilePath);//<-dtl
+                if (!isMainFile && isNewer(f.dst.js, f.src.dncl) && isNewer(f.dst.html, f.src.html)) return SplashScreen.waitIfBusy();//<-dtl
                 //if (f.dst.dtlvm) return compileVM(f);
                 var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
-                buf.setSrcFile(f.src.dtl);
-                var js=dtlParser.parse(f.src.dtl.text(),{indentBuffer:buf,src:f.src.dtl.name(),
+                buf.setSrcFile(f.src.dncl);//<-dtl
+                var js=dnclParser.parse(f.src.dncl.text(),{indentBuffer:buf,src:f.src.dncl.name(),//<-dtl
                 throwCompileErrorOnRuntime:!isMainFile});
+                buf.buf=dnclParser.postprocess(buf.buf);
                 buf.close();
                 t.genHTML(f);
                 return SplashScreen.waitIfBusy();
             });
-        }))/*.then(DU.tr(function() {
-            return DU.each(files,function (f) {
-                if (isNewer(f.dst.html, f.src.html) && isNewer(f.dst.js, f.src.dtl)) return SplashScreen.waitIfBusy();
-                t.genHTML(f);
-                return SplashScreen.waitIfBusy();
-            });
-        }))*/;
+        }));
     };
     p.upload=function (pub) {
         return Sync.sync(this.dst,pub);
     };
-    return DtlBuilder;
+    return DnclBuilder;//<-Dtl
 });

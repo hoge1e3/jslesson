@@ -45,7 +45,8 @@ function (Util, Tonyu, FS, FileList, FileMenu,
         "js":"JavaScript",
         "c":"C",
         "dtl":"Dolittle",
-        "tonyu":"Tonyu"
+        "tonyu":"Tonyu",
+        "dncl":"DNCL"
     };
     var helpURL;
     var unsaved=false;
@@ -723,7 +724,7 @@ function ready() {
     }
     var curName,runURL;
     $("#fullScr").click(function () {
-        if (lang=="dtl" || lang=="js" || lang=="c" ||  lang=="tonyu") {
+        //if (lang=="dncl"||lang=="dtl" || lang=="js" || lang=="c" ||  lang=="tonyu") {
             var inf=getCurrentEditorInfo();
             if (!inf) {
                 alert("実行したファイルを選んでください");
@@ -762,7 +763,7 @@ function ready() {
                     SplashScreen.hide();
                 });
             }
-        }
+        //}
     });
     //\run
     function run() {//run!!
@@ -892,7 +893,7 @@ function ready() {
               SplashScreen.hide();
           }
 
-    	}else if(lang=="dtl"){
+      }else if(lang=="dtl" || lang=="dncl"){//dncl ok?
     	    try {
                 SplashScreen.show();
         	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
@@ -1140,6 +1141,7 @@ function ready() {
         }
     }
     function fixEditorIndent(prog) {
+        if (lang==="dncl") return;// bad know-how!
         A.is(prog,"AceEditor");
         var prev=prog.getValue();
         var fixed=fixIndent( prev ).replace(/　/g,"  ");
