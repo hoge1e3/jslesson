@@ -22,7 +22,7 @@
 ----- 2017_0328はOK
 -統計・グラフの組み込み
 -音楽
--DNCL
+-OK DNCL
 
 -OK register?(メッセージを親切に！) -> ユーザIDを書き換えて登録できないように変更、メッセージ追加
 --OK? disableRegistrationByUser->クラスごと設定
