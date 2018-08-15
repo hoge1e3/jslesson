@@ -110,10 +110,10 @@ class LoginController {
     }
     static function checkPass() {
         $password=param("password");
-        if (!$password) {
+        /*if (!$password) {
             self::$mesg="パスワードが入力されていません";
             return self::passForm();
-        }
+        }*/
     	$class=$_POST["class"];
     	$user=$_POST["user"];
     	self::$mesg=Auth::loginUser($class,$user,$password);

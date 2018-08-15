@@ -336,6 +336,10 @@ class ClassController {
         $f->setFlags(SplFileObject::READ_CSV);
         $list=array();
         $created=0;$updated=0;
+        ?>
+        <table border=1>
+            <tr><th>種別</th><th>ユーザID</th><th>名前</th><th>パスワード</th></tr>
+        <?php
         foreach($f as $line){
             if(!is_null($line[0])){
                 /*echo "<pre>";
@@ -351,15 +355,25 @@ class ClassController {
                     if(!$u->exists()){
                         $u->make();
                         $created++;
+                        ?>
+                        <th>新規</th><th><?=$line[0]?></th><th><?=$line[1]?></th><th><?=$line[2]?></th></tr>
+                        <?php
                     }else {
                         $u->edit();
                         $updated++;
+                        ?>
+                        <th>変更</th><th><?=$line[0]?></th><th><?=$line[1]?></th><th><?=$line[2]?></th></tr>
+                        <?php
                     }
                 }
             }
         }
+        ?>
+        </table>
+        <?php
         echo "$created 件のユーザを登録しました<br>";
         echo "登録済ユーザの情報を$updated 件更新しました<br>";
+        echo "登録情報に誤りがあった場合、同一ユーザIDでもう一度登録を行うとパスワードと名前を上書きできます。<br>";
         echo '<a href="a.php?Class/registerUserForm">ユーザ登録に戻る</a><br>';
         echo '<a href="a.php?Class/showUsers">ユーザ一覧を見る</a>';
         //header("Location: a.php?Class/showUsers");
