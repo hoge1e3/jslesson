@@ -32,8 +32,9 @@ var duration=86400;
 var etime=btime+duration;
 print(btime);
 var timelines=[],filerank={},topfile={};
-url=location.host=="bitarrow.eplang.jp"?
-"https://bitarrow.eplang.jp/bitarrowbeta/":"http://localhost/";
+url=location.href.replace(/\/js\/.*/,"/");
+//host=="bitarrow.eplang.jp"?
+//"https://bitarrow.eplang.jp/bitarrow":"http://localhost/";
 $testmode=(location.protocol==="chrome-extension:");
 if ($testmode) {
     files=file("fnlog.txt").text();

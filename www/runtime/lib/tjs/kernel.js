@@ -2120,5 +2120,1611 @@ Tonyu.klass.define({
   },
   decls: {"methods":{"main":{"nowait":false},"__getter__Math":{"nowait":true},"__getter__document":{"nowait":true},"setInterval":{"nowait":false},"setTimeout":{"nowait":false},"catchException":{"nowait":false},"findElement":{"nowait":false},"isFormElement":{"nowait":false},"clearContent":{"nowait":false},"addText":{"nowait":false},"setText":{"nowait":false},"getNumber":{"nowait":false},"getText":{"nowait":false},"setNumber":{"nowait":false},"onClick":{"nowait":false},"onTouch":{"nowait":false},"setCanvas":{"nowait":false},"searchCanvas":{"nowait":false},"setColor":{"nowait":false},"fillRect":{"nowait":false},"changeImage":{"nowait":false},"move":{"nowait":false},"transform":{"nowait":false},"rotate":{"nowait":false},"resize":{"nowait":false},"wait":{"nowait":false},"rnd":{"nowait":false},"setBGColor":{"nowait":false},"newElement":{"nowait":false},"fillOval":{"nowait":false},"drawLine":{"nowait":false},"clearRect":{"nowait":false},"fillText":{"nowait":false},"new":{"nowait":false},"getkey":{"nowait":false},"dist":{"nowait":false},"angle":{"nowait":false},"rad":{"nowait":true},"deg":{"nowait":true},"sqrt":{"nowait":false},"sin":{"nowait":false},"cos":{"nowait":false},"tan":{"nowait":false},"parallel":{"nowait":false},"waitClick":{"nowait":false},"_waitFor":{"nowait":false},"waitFor":{"nowait":false},"putToServer":{"nowait":false},"setGroup":{"nowait":false},"getFromServer":{"nowait":false},"addLog":{"nowait":false},"findLog":{"nowait":false},"curProject":{"nowait":false}},"fields":{"document":{},"down":{},"_canvas":{},"ctx":{},"Math":{},"activityGroup":{},"keyData":{},"_err":{},"_res":{},"group":{}}}
 });
+Tonyu.klass.define({
+  fullName: 'jslker.Graph',
+  shortName: 'Graph',
+  namespace: 'jslker',
+  includes: [],
+  methods: {
+    main :function _trc_Graph_main() {
+      "use strict";
+      var _this=this;
+      
+    },
+    fiber$main :function _trc_Graph_f_main(_thread) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      
+      _thread.retVal=_this;return;
+    },
+    initialize :function _trc_Graph_initialize(div) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=2000091;//jslker.Graph:91
+      _this._place=div;
+      $LASTPOS=2000113;//jslker.Graph:113
+      _this._xaxname="";
+      $LASTPOS=2000136;//jslker.Graph:136
+      _this._yaxname="";
+      $LASTPOS=2000159;//jslker.Graph:159
+      _this._xrange;
+      $LASTPOS=2000178;//jslker.Graph:178
+      _this._yrange;
+      $LASTPOS=2000197;//jslker.Graph:197
+      _this._isDrawCor=false;
+      $LASTPOS=2000225;//jslker.Graph:225
+      _this.plotlyURL="runtime/lib/plotly-latest.min.js";
+      $LASTPOS=2000276;//jslker.Graph:276
+      window.$.getScript(_this.plotlyURL);
+      $LASTPOS=2000312;//jslker.Graph:312
+      window.setTimeout(Tonyu.bindFunc(_this,_this.waitLoadLib),100);
+      $LASTPOS=2000354;//jslker.Graph:354
+      _this.loadLibHandlers=[];
+      $LASTPOS=2000379;//jslker.Graph:379
+      _this._corObj={};
+    },
+    onLoadLib :function _trc_Graph_onLoadLib(f) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=2000421;//jslker.Graph:421
+      if (_this.Plotly) {
+        $LASTPOS=2000433;//jslker.Graph:433
+        f(_this.Plotly);
+      } else {
+        $LASTPOS=2000454;//jslker.Graph:454
+        _this.loadLibHandlers.push(f);
+      }
+    },
+    fiber$onLoadLib :function _trc_Graph_f_onLoadLib(_thread,f) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=2000421;//jslker.Graph:421
+      if (_this.Plotly) {
+        $LASTPOS=2000433;//jslker.Graph:433
+        f(_this.Plotly);
+      } else {
+        $LASTPOS=2000454;//jslker.Graph:454
+        _this.loadLibHandlers.push(f);
+      }
+      
+      _thread.retVal=_this;return;
+    },
+    waitLoadLib :function _trc_Graph_waitLoadLib() {
+      "use strict";
+      var _this=this;
+      var f;
+      var _it_48;
+      
+      $LASTPOS=2000505;//jslker.Graph:505
+      if (! window.Plotly) {
+        $LASTPOS=2000536;//jslker.Graph:536
+        window.setTimeout(Tonyu.bindFunc(_this,_this.waitLoadLib),100);
+        
+      } else {
+        $LASTPOS=2000596;//jslker.Graph:596
+        _this.Plotly=window.Plotly;
+        $LASTPOS=2000627;//jslker.Graph:627
+        _it_48=Tonyu.iterator(_this.loadLibHandlers,1);
+        while(_it_48.next()) {
+          f=_it_48[0];
+          
+          $LASTPOS=2000658;//jslker.Graph:658
+          f(_this.Plotly);
+        }
+        
+      }
+    },
+    fiber$waitLoadLib :function _trc_Graph_f_waitLoadLib(_thread) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var f;
+      var _it_48;
+      
+      $LASTPOS=2000505;//jslker.Graph:505
+      if (! window.Plotly) {
+        $LASTPOS=2000536;//jslker.Graph:536
+        window.setTimeout(Tonyu.bindFunc(_this,_this.waitLoadLib),100);
+        
+      } else {
+        $LASTPOS=2000596;//jslker.Graph:596
+        _this.Plotly=window.Plotly;
+        $LASTPOS=2000627;//jslker.Graph:627
+        _it_48=Tonyu.iterator(_this.loadLibHandlers,1);
+        while(_it_48.next()) {
+          f=_it_48[0];
+          
+          $LASTPOS=2000658;//jslker.Graph:658
+          f(_this.Plotly);
+        }
+        
+      }
+      
+      _thread.retVal=_this;return;
+    },
+    _setCorrelation :function _trc_Graph__setCorrelation(x,y,min,max,interval) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=2000733;//jslker.Graph:733
+      if ((min>max&&interval>0)||(min<=max&&interval<0)||interval==0) {
+        return _this;
+        
+      }
+      $LASTPOS=2000834;//jslker.Graph:834
+      console.log(min,max,interval);
+      $LASTPOS=2000870;//jslker.Graph:870
+      _this._corObj=_this._correlation(x,y,min,max,interval);
+      $LASTPOS=2000924;//jslker.Graph:924
+      _this._isDrawCor=true;
+    },
+    fiber$_setCorrelation :function _trc_Graph_f__setCorrelation(_thread,x,y,min,max,interval) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=2000733;//jslker.Graph:733
+      if ((min>max&&interval>0)||(min<=max&&interval<0)||interval==0) {
+        _thread.retVal=_this;return;
+        
+        
+      }
+      $LASTPOS=2000834;//jslker.Graph:834
+      console.log(min,max,interval);
+      
+      _thread.enter(function _trc_Graph_ent__setCorrelation(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=2000870;//jslker.Graph:870
+            _this.fiber$_correlation(_thread, x, y, min, max, interval);
+            __pc=1;return;
+          case 1:
+            _this._corObj=_thread.retVal;
+            
+            $LASTPOS=2000924;//jslker.Graph:924
+            _this._isDrawCor=true;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    setAxisText :function _trc_Graph_setAxisText(x,y) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=2000982;//jslker.Graph:982
+      _this._xaxname=x;
+      $LASTPOS=2001004;//jslker.Graph:1004
+      _this._yaxname=y;
+    },
+    fiber$setAxisText :function _trc_Graph_f_setAxisText(_thread,x,y) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=2000982;//jslker.Graph:982
+      _this._xaxname=x;
+      $LASTPOS=2001004;//jslker.Graph:1004
+      _this._yaxname=y;
+      
+      _thread.retVal=_this;return;
+    },
+    setXAxisText :function _trc_Graph_setXAxisText(x) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=2001056;//jslker.Graph:1056
+      _this._xaxname=x;
+    },
+    fiber$setXAxisText :function _trc_Graph_f_setXAxisText(_thread,x) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=2001056;//jslker.Graph:1056
+      _this._xaxname=x;
+      
+      _thread.retVal=_this;return;
+    },
+    setYAxisText :function _trc_Graph_setYAxisText(y) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=2001108;//jslker.Graph:1108
+      _this._yaxname=y;
+    },
+    fiber$setYAxisText :function _trc_Graph_f_setYAxisText(_thread,y) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=2001108;//jslker.Graph:1108
+      _this._yaxname=y;
+      
+      _thread.retVal=_this;return;
+    },
+    setXRange :function _trc_Graph_setXRange(min,max) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=2001163;//jslker.Graph:1163
+      _this._xrange=[min,max];
+    },
+    fiber$setXRange :function _trc_Graph_f_setXRange(_thread,min,max) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=2001163;//jslker.Graph:1163
+      _this._xrange=[min,max];
+      
+      _thread.retVal=_this;return;
+    },
+    setYRange :function _trc_Graph_setYRange(min,max) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=2001225;//jslker.Graph:1225
+      _this._yrange=[min,max];
+    },
+    fiber$setYRange :function _trc_Graph_f_setYRange(_thread,min,max) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=2001225;//jslker.Graph:1225
+      _this._yrange=[min,max];
+      
+      _thread.retVal=_this;return;
+    },
+    line :function _trc_Graph_line(xaxis,yaxis) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=2001286;//jslker.Graph:1286
+      _this._drawGraph("line",xaxis,yaxis);
+    },
+    fiber$line :function _trc_Graph_f_line(_thread,xaxis,yaxis) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      
+      _thread.enter(function _trc_Graph_ent_line(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=2001286;//jslker.Graph:1286
+            _this.fiber$_drawGraph(_thread, "line", xaxis, yaxis);
+            __pc=1;return;
+          case 1:
+            
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    bar :function _trc_Graph_bar(xaxis,yaxis) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=2001354;//jslker.Graph:1354
+      _this._drawGraph("bar",xaxis,yaxis);
+    },
+    fiber$bar :function _trc_Graph_f_bar(_thread,xaxis,yaxis) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      
+      _thread.enter(function _trc_Graph_ent_bar(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=2001354;//jslker.Graph:1354
+            _this.fiber$_drawGraph(_thread, "bar", xaxis, yaxis);
+            __pc=1;return;
+          case 1:
+            
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    min :function _trc_Graph_min(k) {
+      "use strict";
+      var _this=this;
+      var ary;
+      var i;
+      
+      $LASTPOS=2001411;//jslker.Graph:1411
+      ary = new Array();
+      
+      $LASTPOS=2001437;//jslker.Graph:1437
+      $LASTPOS=2001441;//jslker.Graph:1441
+      i = 0;
+      for (; i<_this.src.length ; i++) {
+        Tonyu.checkLoop();
+        {
+          $LASTPOS=2001477;//jslker.Graph:1477
+          ary.push(_this.src[i][k]);
+        }
+      }
+      $LASTPOS=2001510;//jslker.Graph:1510
+      ary.sort((function anonymous_1519(a,b) {
+        
+        return a-b;
+      }));
+      return ary[0];
+    },
+    fiber$min :function _trc_Graph_f_min(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var ary;
+      var i;
+      
+      $LASTPOS=2001411;//jslker.Graph:1411
+      ary = new Array();
+      
+      $LASTPOS=2001437;//jslker.Graph:1437
+      $LASTPOS=2001441;//jslker.Graph:1441
+      i = 0;
+      for (; i<_this.src.length ; i++) {
+        Tonyu.checkLoop();
+        {
+          $LASTPOS=2001477;//jslker.Graph:1477
+          ary.push(_this.src[i][k]);
+        }
+      }
+      $LASTPOS=2001510;//jslker.Graph:1510
+      ary.sort((function anonymous_1519(a,b) {
+        
+        return a-b;
+      }));
+      _thread.retVal=ary[0];return;
+      
+      
+      _thread.retVal=_this;return;
+    },
+    max :function _trc_Graph_max(k) {
+      "use strict";
+      var _this=this;
+      var ary;
+      var i;
+      
+      $LASTPOS=2001594;//jslker.Graph:1594
+      ary = new Array();
+      
+      $LASTPOS=2001620;//jslker.Graph:1620
+      $LASTPOS=2001624;//jslker.Graph:1624
+      i = 0;
+      for (; i<_this.src.length ; i++) {
+        Tonyu.checkLoop();
+        {
+          $LASTPOS=2001660;//jslker.Graph:1660
+          ary.push(_this.src[i][k]);
+        }
+      }
+      $LASTPOS=2001693;//jslker.Graph:1693
+      ary.sort((function anonymous_1702(a,b) {
+        
+        return b-a;
+      }));
+      return ary[0];
+    },
+    fiber$max :function _trc_Graph_f_max(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var ary;
+      var i;
+      
+      $LASTPOS=2001594;//jslker.Graph:1594
+      ary = new Array();
+      
+      $LASTPOS=2001620;//jslker.Graph:1620
+      $LASTPOS=2001624;//jslker.Graph:1624
+      i = 0;
+      for (; i<_this.src.length ; i++) {
+        Tonyu.checkLoop();
+        {
+          $LASTPOS=2001660;//jslker.Graph:1660
+          ary.push(_this.src[i][k]);
+        }
+      }
+      $LASTPOS=2001693;//jslker.Graph:1693
+      ary.sort((function anonymous_1702(a,b) {
+        
+        return b-a;
+      }));
+      _thread.retVal=ary[0];return;
+      
+      
+      _thread.retVal=_this;return;
+    },
+    med :function _trc_Graph_med(k) {
+      "use strict";
+      var _this=this;
+      var half;
+      var temp;
+      
+      $LASTPOS=2001778;//jslker.Graph:1778
+      half = Math.ceil(_this.src.length/2);
+      
+      $LASTPOS=2001819;//jslker.Graph:1819
+      temp = _this.src.sort((function anonymous_1839(a,b) {
+        
+        $LASTPOS=2001863;//jslker.Graph:1863
+        console.log(a[k],b[k]);
+        $LASTPOS=2001896;//jslker.Graph:1896
+        if ((a[k]-0)>(b[k]-0)) {
+          return - 1;
+        }
+        $LASTPOS=2001938;//jslker.Graph:1938
+        if ((a[k]-0)<(b[k]-0)) {
+          return 1;
+        }
+        return 0;
+      }));
+      
+      $LASTPOS=2002003;//jslker.Graph:2003
+      if (temp.length%2) {
+        return temp[half][k];
+        
+      }
+      return ((temp[half-1][k]-0)+(temp[half][k]-0))/2;
+    },
+    fiber$med :function _trc_Graph_f_med(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var half;
+      var temp;
+      
+      $LASTPOS=2001778;//jslker.Graph:1778
+      half = Math.ceil(_this.src.length/2);
+      
+      $LASTPOS=2001819;//jslker.Graph:1819
+      temp = _this.src.sort((function anonymous_1839(a,b) {
+        
+        $LASTPOS=2001863;//jslker.Graph:1863
+        console.log(a[k],b[k]);
+        $LASTPOS=2001896;//jslker.Graph:1896
+        if ((a[k]-0)>(b[k]-0)) {
+          return - 1;
+        }
+        $LASTPOS=2001938;//jslker.Graph:1938
+        if ((a[k]-0)<(b[k]-0)) {
+          return 1;
+        }
+        return 0;
+      }));
+      
+      $LASTPOS=2002003;//jslker.Graph:2003
+      if (temp.length%2) {
+        _thread.retVal=temp[half][k];return;
+        
+        
+      }
+      _thread.retVal=((temp[half-1][k]-0)+(temp[half][k]-0))/2;return;
+      
+      
+      _thread.retVal=_this;return;
+    },
+    mode :function _trc_Graph_mode(k) {
+      "use strict";
+      var _this=this;
+      var counter;
+      var nativeValues;
+      var maxCounter;
+      var maxValue;
+      var i;
+      var j;
+      var ret;
+      
+      $LASTPOS=2002146;//jslker.Graph:2146
+      counter = {};
+      
+      $LASTPOS=2002169;//jslker.Graph:2169
+      nativeValues = {};
+      
+      $LASTPOS=2002197;//jslker.Graph:2197
+      maxCounter = 0;
+      
+      $LASTPOS=2002222;//jslker.Graph:2222
+      maxValue = null;
+      
+      $LASTPOS=2002248;//jslker.Graph:2248
+      $LASTPOS=2002253;//jslker.Graph:2253
+      i = 0;
+      for (; i<_this.src.length ; i++) {
+        Tonyu.checkLoop();
+        {
+          $LASTPOS=2002296;//jslker.Graph:2296
+          if (! counter[_this.src[i][k]]) {
+            $LASTPOS=2002336;//jslker.Graph:2336
+            counter[_this.src[i][k]]=0;
+            
+          }
+          $LASTPOS=2002380;//jslker.Graph:2380
+          counter[_this.src[i][k]]++;
+          $LASTPOS=2002411;//jslker.Graph:2411
+          nativeValues[_this.src[i][k]]=_this.src[i][k];
+        }
+      }
+      $LASTPOS=2002460;//jslker.Graph:2460
+      $LASTPOS=2002465;//jslker.Graph:2465
+      j = 0;
+      for (; j<Object.keys(counter).length ; j++) {
+        Tonyu.checkLoop();
+        {
+          $LASTPOS=2002525;//jslker.Graph:2525
+          _this.key=Object.keys(counter)[j];
+          $LASTPOS=2002565;//jslker.Graph:2565
+          if (counter[_this.key]>maxCounter) {
+            $LASTPOS=2002611;//jslker.Graph:2611
+            maxCounter=counter[_this.key];
+            $LASTPOS=2002651;//jslker.Graph:2651
+            maxValue=nativeValues[_this.key];
+            
+          }
+        }
+      }
+      $LASTPOS=2002704;//jslker.Graph:2704
+      ret = [];
+      
+      $LASTPOS=2002721;//jslker.Graph:2721
+      $LASTPOS=2002726;//jslker.Graph:2726
+      j = 0;
+      for (; j<Object.keys(counter).length ; j++) {
+        Tonyu.checkLoop();
+        {
+          $LASTPOS=2002786;//jslker.Graph:2786
+          _this.key=Object.keys(counter)[j];
+          $LASTPOS=2002826;//jslker.Graph:2826
+          if (counter[_this.key]==maxCounter) {
+            $LASTPOS=2002873;//jslker.Graph:2873
+            ret.push(nativeValues[_this.key]);
+            
+          }
+        }
+      }
+      return {"mode": maxCounter,"nums": ret};
+    },
+    fiber$mode :function _trc_Graph_f_mode(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var counter;
+      var nativeValues;
+      var maxCounter;
+      var maxValue;
+      var i;
+      var j;
+      var ret;
+      
+      $LASTPOS=2002146;//jslker.Graph:2146
+      counter = {};
+      
+      $LASTPOS=2002169;//jslker.Graph:2169
+      nativeValues = {};
+      
+      $LASTPOS=2002197;//jslker.Graph:2197
+      maxCounter = 0;
+      
+      $LASTPOS=2002222;//jslker.Graph:2222
+      maxValue = null;
+      
+      $LASTPOS=2002248;//jslker.Graph:2248
+      $LASTPOS=2002253;//jslker.Graph:2253
+      i = 0;
+      for (; i<_this.src.length ; i++) {
+        Tonyu.checkLoop();
+        {
+          $LASTPOS=2002296;//jslker.Graph:2296
+          if (! counter[_this.src[i][k]]) {
+            $LASTPOS=2002336;//jslker.Graph:2336
+            counter[_this.src[i][k]]=0;
+            
+          }
+          $LASTPOS=2002380;//jslker.Graph:2380
+          counter[_this.src[i][k]]++;
+          $LASTPOS=2002411;//jslker.Graph:2411
+          nativeValues[_this.src[i][k]]=_this.src[i][k];
+        }
+      }
+      $LASTPOS=2002460;//jslker.Graph:2460
+      $LASTPOS=2002465;//jslker.Graph:2465
+      j = 0;
+      for (; j<Object.keys(counter).length ; j++) {
+        Tonyu.checkLoop();
+        {
+          $LASTPOS=2002525;//jslker.Graph:2525
+          _this.key=Object.keys(counter)[j];
+          $LASTPOS=2002565;//jslker.Graph:2565
+          if (counter[_this.key]>maxCounter) {
+            $LASTPOS=2002611;//jslker.Graph:2611
+            maxCounter=counter[_this.key];
+            $LASTPOS=2002651;//jslker.Graph:2651
+            maxValue=nativeValues[_this.key];
+            
+          }
+        }
+      }
+      $LASTPOS=2002704;//jslker.Graph:2704
+      ret = [];
+      
+      $LASTPOS=2002721;//jslker.Graph:2721
+      $LASTPOS=2002726;//jslker.Graph:2726
+      j = 0;
+      for (; j<Object.keys(counter).length ; j++) {
+        Tonyu.checkLoop();
+        {
+          $LASTPOS=2002786;//jslker.Graph:2786
+          _this.key=Object.keys(counter)[j];
+          $LASTPOS=2002826;//jslker.Graph:2826
+          if (counter[_this.key]==maxCounter) {
+            $LASTPOS=2002873;//jslker.Graph:2873
+            ret.push(nativeValues[_this.key]);
+            
+          }
+        }
+      }
+      _thread.retVal={"mode": maxCounter,"nums": ret};return;
+      
+      
+      _thread.retVal=_this;return;
+    },
+    freq :function _trc_Graph_freq(k) {
+      "use strict";
+      var _this=this;
+      var ret;
+      var o;
+      var _it_70;
+      
+      $LASTPOS=2002991;//jslker.Graph:2991
+      ret = [];
+      
+      $LASTPOS=2003008;//jslker.Graph:3008
+      _it_70=Tonyu.iterator(_this.src,1);
+      while(_it_70.next()) {
+        o=_it_70[0];
+        
+        $LASTPOS=2003036;//jslker.Graph:3036
+        if (ret[o[k]]) {
+          $LASTPOS=2003064;//jslker.Graph:3064
+          ret[o[k]]++;
+          
+        } else {
+          $LASTPOS=2003106;//jslker.Graph:3106
+          ret[o[k]]=1;
+          
+        }
+        
+      }
+      return ret;
+    },
+    fiber$freq :function _trc_Graph_f_freq(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var ret;
+      var o;
+      var _it_70;
+      
+      $LASTPOS=2002991;//jslker.Graph:2991
+      ret = [];
+      
+      $LASTPOS=2003008;//jslker.Graph:3008
+      _it_70=Tonyu.iterator(_this.src,1);
+      while(_it_70.next()) {
+        o=_it_70[0];
+        
+        $LASTPOS=2003036;//jslker.Graph:3036
+        if (ret[o[k]]) {
+          $LASTPOS=2003064;//jslker.Graph:3064
+          ret[o[k]]++;
+          
+        } else {
+          $LASTPOS=2003106;//jslker.Graph:3106
+          ret[o[k]]=1;
+          
+        }
+        
+      }
+      _thread.retVal=ret;return;
+      
+      
+      _thread.retVal=_this;return;
+    },
+    scatter :function _trc_Graph_scatter(xaxis,yaxis,isCor) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=2003202;//jslker.Graph:3202
+      if (isCor==true) {
+        $LASTPOS=2003218;//jslker.Graph:3218
+        _this._setCorrelation(xaxis,yaxis,parseFloat(_this.min(xaxis)),parseFloat(_this.max(xaxis)),parseFloat((_this.max(xaxis)-_this.min(xaxis))/10));
+      }
+      $LASTPOS=2003338;//jslker.Graph:3338
+      _this._drawGraph("scatter",xaxis,yaxis);
+    },
+    fiber$scatter :function _trc_Graph_f_scatter(_thread,xaxis,yaxis,isCor) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      
+      _thread.enter(function _trc_Graph_ent_scatter(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=2003202;//jslker.Graph:3202
+            if (!(isCor==true)) { __pc=2     ; break; }
+            $LASTPOS=2003218;//jslker.Graph:3218
+            _this.fiber$_setCorrelation(_thread, xaxis, yaxis, parseFloat(_this.min(xaxis)), parseFloat(_this.max(xaxis)), parseFloat((_this.max(xaxis)-_this.min(xaxis))/10));
+            __pc=1;return;
+          case 1:
+            
+          case 2     :
+            
+            $LASTPOS=2003338;//jslker.Graph:3338
+            _this.fiber$_drawGraph(_thread, "scatter", xaxis, yaxis);
+            __pc=3;return;
+          case 3:
+            
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    pie :function _trc_Graph_pie(xaxis,yaxis) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=2003409;//jslker.Graph:3409
+      _this._drawGraph("pie",xaxis,yaxis);
+    },
+    fiber$pie :function _trc_Graph_f_pie(_thread,xaxis,yaxis) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      
+      _thread.enter(function _trc_Graph_ent_pie(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=2003409;//jslker.Graph:3409
+            _this.fiber$_drawGraph(_thread, "pie", xaxis, yaxis);
+            __pc=1;return;
+          case 1:
+            
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    _drawGraph :function _trc_Graph__drawGraph(type,xaxis,yaxis) {
+      "use strict";
+      var _this=this;
+      var x;
+      var y;
+      var xaxopt;
+      var yaxopt;
+      var i;
+      var xv;
+      var mode;
+      var data;
+      var options;
+      
+      $LASTPOS=2003488;//jslker.Graph:3488
+      x = [];
+      
+      $LASTPOS=2003503;//jslker.Graph:3503
+      y = [];
+      
+      $LASTPOS=2003518;//jslker.Graph:3518
+      xaxopt = {autotick: true,ticks: 'outside',tick0: 0,dtick: 0.25,ticklen: 8,tickwidth: 4,tickcolor: '#000',range: _this._xrange};
+      
+      $LASTPOS=2003732;//jslker.Graph:3732
+      yaxopt = {autotick: true,ticks: 'outside',tick0: 0,dtick: 0.25,ticklen: 8,tickwidth: 4,tickcolor: '#000',range: _this._yrange};
+      
+      $LASTPOS=2003978;//jslker.Graph:3978
+      $LASTPOS=2003982;//jslker.Graph:3982
+      i = 0;
+      for (; i<_this.src.length ; i++) {
+        Tonyu.checkLoop();
+        {
+          $LASTPOS=2004018;//jslker.Graph:4018
+          if (xaxis=="time") {
+            $LASTPOS=2004050;//jslker.Graph:4050
+            xv = _this.src[i][xaxis]*1000;
+            
+            $LASTPOS=2004090;//jslker.Graph:4090
+            xaxopt["type"]='date';
+            
+          } else {
+            $LASTPOS=2004142;//jslker.Graph:4142
+            xv = _this.src[i][xaxis];
+            
+            
+          }
+          $LASTPOS=2004184;//jslker.Graph:4184
+          x.push(xv);
+          $LASTPOS=2004205;//jslker.Graph:4205
+          y.push(_this.src[i][yaxis]);
+        }
+      }
+      $LASTPOS=2004250;//jslker.Graph:4250
+      if (type=="scatter") {
+        $LASTPOS=2004280;//jslker.Graph:4280
+        mode = "markers";
+        
+        
+      } else {
+        $LASTPOS=2004321;//jslker.Graph:4321
+        mode = "lines";
+        
+        
+      }
+      $LASTPOS=2004351;//jslker.Graph:4351
+      data = [{x: x,y: y,type: type,mode: mode}];
+      
+      $LASTPOS=2004460;//jslker.Graph:4460
+      if (_this._isDrawCor===true) {
+        $LASTPOS=2004492;//jslker.Graph:4492
+        _this._corObj.mode='lines';
+        $LASTPOS=2004523;//jslker.Graph:4523
+        _this._corObj.line={dash: 'dot',width: 4};
+        $LASTPOS=2004567;//jslker.Graph:4567
+        data.push(_this._corObj);
+        
+      }
+      $LASTPOS=2004599;//jslker.Graph:4599
+      options = {xaxis: xaxopt,yaxis: yaxopt,annotations: [{xref: 'paper',yref: 'paper',x: 0,xanchor: 'right',y: 1,yanchor: 'bottom',text: _this._yaxname,showarrow: false},{xref: 'paper',yref: 'paper',x: 1,xanchor: 'left',y: 0,yanchor: 'top',text: _this._xaxname,showarrow: false}]};
+      
+      $LASTPOS=2005230;//jslker.Graph:5230
+      _this.onLoadLib((function anonymous_5240(Plotly) {
+        
+        $LASTPOS=2005261;//jslker.Graph:5261
+        Plotly.newPlot(_this._place,data,options);
+      }));
+    },
+    fiber$_drawGraph :function _trc_Graph_f__drawGraph(_thread,type,xaxis,yaxis) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var x;
+      var y;
+      var xaxopt;
+      var yaxopt;
+      var i;
+      var xv;
+      var mode;
+      var data;
+      var options;
+      
+      $LASTPOS=2003488;//jslker.Graph:3488
+      x = [];
+      
+      $LASTPOS=2003503;//jslker.Graph:3503
+      y = [];
+      
+      $LASTPOS=2003518;//jslker.Graph:3518
+      xaxopt = {autotick: true,ticks: 'outside',tick0: 0,dtick: 0.25,ticklen: 8,tickwidth: 4,tickcolor: '#000',range: _this._xrange};
+      
+      $LASTPOS=2003732;//jslker.Graph:3732
+      yaxopt = {autotick: true,ticks: 'outside',tick0: 0,dtick: 0.25,ticklen: 8,tickwidth: 4,tickcolor: '#000',range: _this._yrange};
+      
+      $LASTPOS=2003978;//jslker.Graph:3978
+      $LASTPOS=2003982;//jslker.Graph:3982
+      i = 0;
+      for (; i<_this.src.length ; i++) {
+        Tonyu.checkLoop();
+        {
+          $LASTPOS=2004018;//jslker.Graph:4018
+          if (xaxis=="time") {
+            $LASTPOS=2004050;//jslker.Graph:4050
+            xv = _this.src[i][xaxis]*1000;
+            
+            $LASTPOS=2004090;//jslker.Graph:4090
+            xaxopt["type"]='date';
+            
+          } else {
+            $LASTPOS=2004142;//jslker.Graph:4142
+            xv = _this.src[i][xaxis];
+            
+            
+          }
+          $LASTPOS=2004184;//jslker.Graph:4184
+          x.push(xv);
+          $LASTPOS=2004205;//jslker.Graph:4205
+          y.push(_this.src[i][yaxis]);
+        }
+      }
+      $LASTPOS=2004250;//jslker.Graph:4250
+      if (type=="scatter") {
+        $LASTPOS=2004280;//jslker.Graph:4280
+        mode = "markers";
+        
+        
+      } else {
+        $LASTPOS=2004321;//jslker.Graph:4321
+        mode = "lines";
+        
+        
+      }
+      $LASTPOS=2004351;//jslker.Graph:4351
+      data = [{x: x,y: y,type: type,mode: mode}];
+      
+      $LASTPOS=2004460;//jslker.Graph:4460
+      if (_this._isDrawCor===true) {
+        $LASTPOS=2004492;//jslker.Graph:4492
+        _this._corObj.mode='lines';
+        $LASTPOS=2004523;//jslker.Graph:4523
+        _this._corObj.line={dash: 'dot',width: 4};
+        $LASTPOS=2004567;//jslker.Graph:4567
+        data.push(_this._corObj);
+        
+      }
+      $LASTPOS=2004599;//jslker.Graph:4599
+      options = {xaxis: xaxopt,yaxis: yaxopt,annotations: [{xref: 'paper',yref: 'paper',x: 0,xanchor: 'right',y: 1,yanchor: 'bottom',text: _this._yaxname,showarrow: false},{xref: 'paper',yref: 'paper',x: 1,xanchor: 'left',y: 0,yanchor: 'top',text: _this._xaxname,showarrow: false}]};
+      
+      
+      _thread.enter(function _trc_Graph_ent__drawGraph(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=2005230;//jslker.Graph:5230
+            _this.fiber$onLoadLib(_thread, (function anonymous_5240(Plotly) {
+              
+              $LASTPOS=2005261;//jslker.Graph:5261
+              Plotly.newPlot(_this._place,data,options);
+            }));
+            __pc=1;return;
+          case 1:
+            
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    sum :function _trc_Graph_sum(k) {
+      "use strict";
+      var _this=this;
+      var s;
+      var o;
+      var _it_84;
+      
+      $LASTPOS=2005332;//jslker.Graph:5332
+      s = 0;
+      
+      $LASTPOS=2005346;//jslker.Graph:5346
+      if (typeof  (k)==="object") {
+        $LASTPOS=2005381;//jslker.Graph:5381
+        $LASTPOS=2005385;//jslker.Graph:5385
+        _this.i=0;for (; _this.i<k.length ; _this.i++) {
+          Tonyu.checkLoop();
+          {
+            $LASTPOS=2005419;//jslker.Graph:5419
+            s+=k[_this.i]-0;
+          }
+        }
+        
+      } else {
+        $LASTPOS=2005462;//jslker.Graph:5462
+        _it_84=Tonyu.iterator(_this.src,1);
+        while(_it_84.next()) {
+          o=_it_84[0];
+          
+          $LASTPOS=2005494;//jslker.Graph:5494
+          s+=o[k]-0;
+          
+        }
+        
+      }
+      return s;
+    },
+    fiber$sum :function _trc_Graph_f_sum(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var s;
+      var o;
+      var _it_84;
+      
+      $LASTPOS=2005332;//jslker.Graph:5332
+      s = 0;
+      
+      $LASTPOS=2005346;//jslker.Graph:5346
+      if (typeof  (k)==="object") {
+        $LASTPOS=2005381;//jslker.Graph:5381
+        $LASTPOS=2005385;//jslker.Graph:5385
+        _this.i=0;for (; _this.i<k.length ; _this.i++) {
+          Tonyu.checkLoop();
+          {
+            $LASTPOS=2005419;//jslker.Graph:5419
+            s+=k[_this.i]-0;
+          }
+        }
+        
+      } else {
+        $LASTPOS=2005462;//jslker.Graph:5462
+        _it_84=Tonyu.iterator(_this.src,1);
+        while(_it_84.next()) {
+          o=_it_84[0];
+          
+          $LASTPOS=2005494;//jslker.Graph:5494
+          s+=o[k]-0;
+          
+        }
+        
+      }
+      _thread.retVal=s;return;
+      
+      
+      _thread.retVal=_this;return;
+    },
+    mean :function _trc_Graph_mean(k) {
+      "use strict";
+      var _this=this;
+      var a;
+      
+      $LASTPOS=2005565;//jslker.Graph:5565
+      a = 0;
+      
+      $LASTPOS=2005579;//jslker.Graph:5579
+      if (typeof  (k)==="object") {
+        $LASTPOS=2005614;//jslker.Graph:5614
+        a=_this.sum(k)/k.length;
+        
+      } else {
+        $LASTPOS=2005654;//jslker.Graph:5654
+        a=_this.sum(k)/_this.src.length;
+        
+      }
+      return a;
+    },
+    fiber$mean :function _trc_Graph_f_mean(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var a;
+      
+      $LASTPOS=2005565;//jslker.Graph:5565
+      a = 0;
+      
+      $LASTPOS=2005579;//jslker.Graph:5579
+      if (typeof  (k)==="object") {
+        $LASTPOS=2005614;//jslker.Graph:5614
+        a=_this.sum(k)/k.length;
+        
+      } else {
+        $LASTPOS=2005654;//jslker.Graph:5654
+        a=_this.sum(k)/_this.src.length;
+        
+      }
+      _thread.retVal=a;return;
+      
+      
+      _thread.retVal=_this;return;
+    },
+    dev :function _trc_Graph_dev(k) {
+      "use strict";
+      var _this=this;
+      var d;
+      var a;
+      var i;
+      var o;
+      var _it_89;
+      
+      $LASTPOS=2005723;//jslker.Graph:5723
+      d = [];
+      a = 0;
+      
+      $LASTPOS=2005742;//jslker.Graph:5742
+      if (k===undefined) {
+        $LASTPOS=2005770;//jslker.Graph:5770
+        a=_this.mean(_this.src);
+        $LASTPOS=2005792;//jslker.Graph:5792
+        $LASTPOS=2005796;//jslker.Graph:5796
+        i = 0;
+        for (; i<_this.src.length ; i++) {
+          Tonyu.checkLoop();
+          {
+            $LASTPOS=2005836;//jslker.Graph:5836
+            d.push(_this.src[i]-a);
+          }
+        }
+        
+      } else {
+        $LASTPOS=2005886;//jslker.Graph:5886
+        a=_this.mean(k);
+        $LASTPOS=2005906;//jslker.Graph:5906
+        _it_89=Tonyu.iterator(_this.src,1);
+        while(_it_89.next()) {
+          o=_it_89[0];
+          
+          $LASTPOS=2005938;//jslker.Graph:5938
+          d.push(o[k]-a);
+          
+        }
+        
+      }
+      return d;
+    },
+    fiber$dev :function _trc_Graph_f_dev(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var d;
+      var a;
+      var i;
+      var o;
+      var _it_89;
+      
+      $LASTPOS=2005723;//jslker.Graph:5723
+      d = [];
+      a = 0;
+      
+      
+      _thread.enter(function _trc_Graph_ent_dev(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=2005742;//jslker.Graph:5742
+            if (!(k===undefined)) { __pc=2     ; break; }
+            $LASTPOS=2005770;//jslker.Graph:5770
+            _this.fiber$mean(_thread, _this.src);
+            __pc=1;return;
+          case 1:
+            a=_thread.retVal;
+            
+            $LASTPOS=2005792;//jslker.Graph:5792
+            $LASTPOS=2005796;//jslker.Graph:5796
+            i = 0;
+            for (; i<_this.src.length ; i++) {
+              Tonyu.checkLoop();
+              {
+                $LASTPOS=2005836;//jslker.Graph:5836
+                d.push(_this.src[i]-a);
+              }
+            }
+            __pc=4     ;break;
+          case 2     :
+            $LASTPOS=2005886;//jslker.Graph:5886
+            _this.fiber$mean(_thread, k);
+            __pc=3;return;
+          case 3:
+            a=_thread.retVal;
+            
+            $LASTPOS=2005906;//jslker.Graph:5906
+            _it_89=Tonyu.iterator(_this.src,1);
+            while(_it_89.next()) {
+              o=_it_89[0];
+              
+              $LASTPOS=2005938;//jslker.Graph:5938
+              d.push(o[k]-a);
+              
+            }
+          case 4     :
+            
+            _thread.exit(d);return;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    vari :function _trc_Graph_vari(k) {
+      "use strict";
+      var _this=this;
+      var ary;
+      var deved;
+      var i;
+      
+      $LASTPOS=2006014;//jslker.Graph:6014
+      ary = [];
+      
+      $LASTPOS=2006031;//jslker.Graph:6031
+      if (k===undefined) {
+        $LASTPOS=2006059;//jslker.Graph:6059
+        deved = _this.dev(_this.src);
+        
+        $LASTPOS=2006088;//jslker.Graph:6088
+        $LASTPOS=2006092;//jslker.Graph:6092
+        i = 0;
+        for (; i<deved.length ; i++) {
+          Tonyu.checkLoop();
+          {
+            $LASTPOS=2006134;//jslker.Graph:6134
+            ary.push(Math.pow(deved[i],2));
+          }
+        }
+        
+      } else {
+        $LASTPOS=2006198;//jslker.Graph:6198
+        deved = _this.dev(k);
+        
+        $LASTPOS=2006225;//jslker.Graph:6225
+        console.log(deved);
+        $LASTPOS=2006254;//jslker.Graph:6254
+        $LASTPOS=2006258;//jslker.Graph:6258
+        i = 0;
+        for (; i<deved.length ; i++) {
+          Tonyu.checkLoop();
+          {
+            $LASTPOS=2006300;//jslker.Graph:6300
+            ary.push(Math.pow(deved[i],2));
+          }
+        }
+        
+      }
+      $LASTPOS=2006355;//jslker.Graph:6355
+      console.log("arrry",ary);
+      return _this.mean(ary);
+    },
+    fiber$vari :function _trc_Graph_f_vari(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var ary;
+      var deved;
+      var i;
+      
+      $LASTPOS=2006014;//jslker.Graph:6014
+      ary = [];
+      
+      
+      _thread.enter(function _trc_Graph_ent_vari(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=2006031;//jslker.Graph:6031
+            if (!(k===undefined)) { __pc=2     ; break; }
+            $LASTPOS=2006059;//jslker.Graph:6059
+            _this.fiber$dev(_thread, _this.src);
+            __pc=1;return;
+          case 1:
+            deved=_thread.retVal;
+            
+            $LASTPOS=2006088;//jslker.Graph:6088
+            $LASTPOS=2006092;//jslker.Graph:6092
+            i = 0;
+            for (; i<deved.length ; i++) {
+              Tonyu.checkLoop();
+              {
+                $LASTPOS=2006134;//jslker.Graph:6134
+                ary.push(Math.pow(deved[i],2));
+              }
+            }
+            __pc=4     ;break;
+          case 2     :
+            $LASTPOS=2006198;//jslker.Graph:6198
+            _this.fiber$dev(_thread, k);
+            __pc=3;return;
+          case 3:
+            deved=_thread.retVal;
+            
+            $LASTPOS=2006225;//jslker.Graph:6225
+            console.log(deved);
+            $LASTPOS=2006254;//jslker.Graph:6254
+            $LASTPOS=2006258;//jslker.Graph:6258
+            i = 0;
+            for (; i<deved.length ; i++) {
+              Tonyu.checkLoop();
+              {
+                $LASTPOS=2006300;//jslker.Graph:6300
+                ary.push(Math.pow(deved[i],2));
+              }
+            }
+          case 4     :
+            
+            $LASTPOS=2006355;//jslker.Graph:6355
+            console.log("arrry",ary);
+            _thread.exit(_this.mean(ary));return;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    std :function _trc_Graph_std(k) {
+      "use strict";
+      var _this=this;
+      var disp;
+      
+      $LASTPOS=2006430;//jslker.Graph:6430
+      disp = _this.vari(k);
+      
+      return Math.sqrt(disp);
+    },
+    fiber$std :function _trc_Graph_f_std(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var disp;
+      
+      
+      _thread.enter(function _trc_Graph_ent_std(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=2006430;//jslker.Graph:6430
+            _this.fiber$vari(_thread, k);
+            __pc=1;return;
+          case 1:
+            disp=_thread.retVal;
+            
+            _thread.exit(Math.sqrt(disp));return;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    cov :function _trc_Graph_cov(k1,k2) {
+      "use strict";
+      var _this=this;
+      var dev1;
+      var dev2;
+      var dataCov;
+      var k;
+      var v;
+      var _it_99;
+      
+      $LASTPOS=2006507;//jslker.Graph:6507
+      dev1 = _this.dev(k1);
+      
+      $LASTPOS=2006530;//jslker.Graph:6530
+      dev2 = _this.dev(k2);
+      
+      $LASTPOS=2006553;//jslker.Graph:6553
+      dataCov = 0;
+      
+      $LASTPOS=2006573;//jslker.Graph:6573
+      _it_99=Tonyu.iterator(dev1,2);
+      while(_it_99.next()) {
+        k=_it_99[0];
+        v=_it_99[1];
+        
+        $LASTPOS=2006604;//jslker.Graph:6604
+        dataCov+=dev1[k]*dev2[k];
+        
+      }
+      $LASTPOS=2006642;//jslker.Graph:6642
+      dataCov=dataCov/dev1.length;
+      return dataCov;
+    },
+    fiber$cov :function _trc_Graph_f_cov(_thread,k1,k2) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var dev1;
+      var dev2;
+      var dataCov;
+      var k;
+      var v;
+      var _it_99;
+      
+      
+      _thread.enter(function _trc_Graph_ent_cov(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=2006507;//jslker.Graph:6507
+            _this.fiber$dev(_thread, k1);
+            __pc=1;return;
+          case 1:
+            dev1=_thread.retVal;
+            
+            $LASTPOS=2006530;//jslker.Graph:6530
+            _this.fiber$dev(_thread, k2);
+            __pc=2;return;
+          case 2:
+            dev2=_thread.retVal;
+            
+            $LASTPOS=2006553;//jslker.Graph:6553
+            dataCov = 0;
+            
+            $LASTPOS=2006573;//jslker.Graph:6573
+            _it_99=Tonyu.iterator(dev1,2);
+            while(_it_99.next()) {
+              k=_it_99[0];
+              v=_it_99[1];
+              
+              $LASTPOS=2006604;//jslker.Graph:6604
+              dataCov+=dev1[k]*dev2[k];
+              
+            }
+            $LASTPOS=2006642;//jslker.Graph:6642
+            dataCov=dataCov/dev1.length;
+            _thread.exit(dataCov);return;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    corrcoef :function _trc_Graph_corrcoef(k1,k2) {
+      "use strict";
+      var _this=this;
+      var cov1;
+      var std1;
+      var std2;
+      
+      $LASTPOS=2006727;//jslker.Graph:6727
+      cov1 = _this.cov(k1,k2);
+      
+      $LASTPOS=2006753;//jslker.Graph:6753
+      std1 = _this.std(k1);
+      
+      $LASTPOS=2006776;//jslker.Graph:6776
+      std2 = _this.std(k2);
+      
+      return cov1/(std1*std2);
+    },
+    fiber$corrcoef :function _trc_Graph_f_corrcoef(_thread,k1,k2) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var cov1;
+      var std1;
+      var std2;
+      
+      
+      _thread.enter(function _trc_Graph_ent_corrcoef(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=2006727;//jslker.Graph:6727
+            _this.fiber$cov(_thread, k1, k2);
+            __pc=1;return;
+          case 1:
+            cov1=_thread.retVal;
+            
+            $LASTPOS=2006753;//jslker.Graph:6753
+            _this.fiber$std(_thread, k1);
+            __pc=2;return;
+          case 2:
+            std1=_thread.retVal;
+            
+            $LASTPOS=2006776;//jslker.Graph:6776
+            _this.fiber$std(_thread, k2);
+            __pc=3;return;
+          case 3:
+            std2=_thread.retVal;
+            
+            _thread.exit(cov1/(std1*std2));return;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    _correlation :function _trc_Graph__correlation(d1,d2,min,max,interval) {
+      "use strict";
+      var _this=this;
+      var a;
+      var b;
+      var x;
+      var y;
+      var i;
+      
+      $LASTPOS=2006882;//jslker.Graph:6882
+      a = _this.corrcoef(d1,d2)*(_this.std(d2)/_this.std(d1));
+      
+      $LASTPOS=2006928;//jslker.Graph:6928
+      b = _this.mean(d2)-(a*_this.mean(d1));
+      
+      $LASTPOS=2006962;//jslker.Graph:6962
+      x = [];
+      
+      $LASTPOS=2006977;//jslker.Graph:6977
+      y = [];
+      
+      $LASTPOS=2006992;//jslker.Graph:6992
+      $LASTPOS=2006996;//jslker.Graph:6996
+      i = min;
+      for (; i<=max+1 ; i=i+interval) {
+        Tonyu.checkLoop();
+        {
+          $LASTPOS=2007039;//jslker.Graph:7039
+          console.log(i);
+          $LASTPOS=2007064;//jslker.Graph:7064
+          x.push(i);
+          $LASTPOS=2007084;//jslker.Graph:7084
+          y.push(a*i+b);
+        }
+      }
+      return {x: x,y: y};
+    },
+    fiber$_correlation :function _trc_Graph_f__correlation(_thread,d1,d2,min,max,interval) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var a;
+      var b;
+      var x;
+      var y;
+      var i;
+      
+      $LASTPOS=2006882;//jslker.Graph:6882
+      a = _this.corrcoef(d1,d2)*(_this.std(d2)/_this.std(d1));
+      
+      $LASTPOS=2006928;//jslker.Graph:6928
+      b = _this.mean(d2)-(a*_this.mean(d1));
+      
+      $LASTPOS=2006962;//jslker.Graph:6962
+      x = [];
+      
+      $LASTPOS=2006977;//jslker.Graph:6977
+      y = [];
+      
+      $LASTPOS=2006992;//jslker.Graph:6992
+      $LASTPOS=2006996;//jslker.Graph:6996
+      i = min;
+      for (; i<=max+1 ; i=i+interval) {
+        Tonyu.checkLoop();
+        {
+          $LASTPOS=2007039;//jslker.Graph:7039
+          console.log(i);
+          $LASTPOS=2007064;//jslker.Graph:7064
+          x.push(i);
+          $LASTPOS=2007084;//jslker.Graph:7084
+          y.push(a*i+b);
+        }
+      }
+      _thread.retVal={x: x,y: y};return;
+      
+      
+      _thread.retVal=_this;return;
+    },
+    __dummy: false
+  },
+  decls: {"methods":{"main":{"nowait":false},"new":{"nowait":false},"onLoadLib":{"nowait":false},"waitLoadLib":{"nowait":false},"_setCorrelation":{"nowait":false},"setAxisText":{"nowait":false},"setXAxisText":{"nowait":false},"setYAxisText":{"nowait":false},"setXRange":{"nowait":false},"setYRange":{"nowait":false},"line":{"nowait":false},"bar":{"nowait":false},"min":{"nowait":false},"max":{"nowait":false},"med":{"nowait":false},"mode":{"nowait":false},"freq":{"nowait":false},"scatter":{"nowait":false},"pie":{"nowait":false},"_drawGraph":{"nowait":false},"sum":{"nowait":false},"mean":{"nowait":false},"dev":{"nowait":false},"vari":{"nowait":false},"std":{"nowait":false},"cov":{"nowait":false},"corrcoef":{"nowait":false},"_correlation":{"nowait":false}},"fields":{"plotlyURL":{},"loadLibHandlers":{},"Plotly":{},"src":{},"key":{},"_xrange":{},"_yrange":{},"_isDrawCor":{},"_corObj":{},"_yaxname":{},"_xaxname":{},"_place":{},"i":{}}}
+});
 
 //# sourceMappingURL=concat.js.map

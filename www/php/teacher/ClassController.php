@@ -144,10 +144,10 @@ class ClassController {
         <a href="a.php?Class/show">クラス管理に戻る</a><hr>
         <h1><?=$class->id?> - ユーザ一覧</h1>
         <div><a href="a.php?Class/registerUserForm">ユーザ登録</a></div>
-        <div><a href="a.php?Class/showUsers&card=1">詳細一覧表示(アカウント配布用印刷)</a></div><hr>
+        <div><a href="a.php?Class/showUsers&card=1" target="_userCard">詳細一覧表示(アカウント配布用印刷)</a></div><hr>
         <!--div>※ユーザIDをクリックするとそのユーザとしてプログラムを閲覧できます。プログラムの編集も可能ですのでご注意ください。</div-->
         <table border=1>
-            <tr><th>ユーザID</th><th>パスワード</th><th>名前</th></tr>
+            <tr><th>ユーザID</th><th>名前</th><th>パスワード</th></tr>
         <?php
         //<th>実行時刻</th><th>実行ファイル</th><th>実行結果</th><th>実行詳細</th><th>プログラム</th>
         foreach($students as $s){
@@ -173,9 +173,9 @@ class ClassController {
                 $l->filename=$tmpf[4]."/".$tmpf[5];
             }
             ?>
-            <tr><th><?=$s->name?></th>
+            <tr><th><?=$s->name?></th><th><?=$n?></th>
 	            <th pass="<?=$pass?>" onclick="if(this.innerHTML=='表示')this.innerHTML=this.getAttribute('pass');else this.innerHTML='表示';">表示</th>
-            <th><?=$n?></th>
+
             </tr>
 
             <?php
