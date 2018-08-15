@@ -14,6 +14,10 @@ function new(div){
     window.setTimeout (waitLoadLib,100);
     loadLibHandlers=[];
     this._corObj={};
+    src=src||[];
+}
+\addData(d) {
+    src.push(d);
 }
 \onLoadLib(f) {
     if (Plotly) f(Plotly);
@@ -297,4 +301,7 @@ function _correlation(d1,d2,min,max,interval){
         y.push(a*i+b);
     }
     return {x:x,y:y};
+}
+function setData(data) {
+    src=data;
 }
