@@ -291,14 +291,23 @@ function convertValue(val,type) {
 // 単位がミリ秒でも秒でもいけるよう，1970年1月に犠牲になってもらった
 function convertTime(t,to) {
     to=to||"msec";
-    if (typeof t=="number") {
-        if (t<3000000000) {// 1970/02/05以前なら単位：秒とみなす
-            t*=1000;
+    var n=looksLikeNumber(t);
+    if (n) {
+        if (n<3000000000) {// 1970/02/05以前なら単位：秒とみなす
+            n*=1000;
         }
-        if (to==="sec") to/=1000;
-        return t;
+        if (to==="sec") n/=1000;
+        return n;
     }
     return t;
+}
+function looksLikeNumber(n) {
+    if (typeof n=="number") return n;
+    if (typeof n=="string") {
+        n-=0;
+        if (n===n) return n;
+    }
+    return false;
 }
 //-------ここまで
 function sum(k){
