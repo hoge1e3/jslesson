@@ -725,7 +725,8 @@ function ready() {
         displayMode("edit");
     }
     var curName,runURL;
-    $("#fullScr").click(function () {
+    $("#fullScr").click(runFullScr);
+    function runFullScr() {
         //if (lang=="dncl"||lang=="dtl" || lang=="js" || lang=="c" ||  lang=="tonyu") {
             var inf=getCurrentEditorInfo();
             if (!inf) {
@@ -759,6 +760,11 @@ function ready() {
                         $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
                     ));
                     cv.append($("<div>").qrcode({width:200,height:200,text:runURL}));
+                    if (builder.qrDialog) builder.qrDialog({
+                        dialogJQ:cv,
+                        editorInfo:getCurrentEditorInfo(),
+                        rerun:runFullScr
+                    });
                     return sync();
                 }).fail(function (e) {
                     Tonyu.onRuntimeError(e);
@@ -766,7 +772,7 @@ function ready() {
                 });
             }
         //}
-    });
+    }
     //\run
     function run() {//run!!
         var inf=getCurrentEditorInfo();
