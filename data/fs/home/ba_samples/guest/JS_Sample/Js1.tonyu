@@ -1,0 +1,16 @@
+move("neko",100,100);
+wait(100);
+move("neko",110,100);
+wait(100);
+move("neko",120,100);
+wait(100);
+move("neko",130,100);
+wait(100);
+move("neko",140,100);
+wait(100);
+move("neko",150,100);
+wait(100);
+move("neko",160,100);
+wait(100);
+move("neko",170,100);
+wait(100);

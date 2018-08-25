@@ -1,0 +1,11 @@
+// Javascript
+// 変数を使って文字を動かす例
+x=100;
+move("moji",x,100);
+wait(1000);
+x+=10;
+move("moji",x,100);
+wait(1000);
+x+=10;
+move("moji",x,100);
+wait(1000);

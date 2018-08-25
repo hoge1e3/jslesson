@@ -1,0 +1,24 @@
+setGroup("sample");
+latestUpdate=0;
+onClick("send",send);
+function send(){
+    var m=getText("message");
+    var n=getText("name");
+    addLog("chat",m,n);
+    setText("message","");
+    read();
+}
+function read(){
+    msg=findLog("chat");
+    for(var i=0;i<msg.length;i++){
+        if(msg[i].time>latestUpdate){
+            addText("talk",msg[i].data2+":"+msg[i].data1+"<br>");
+            latestUpdate=msg[i].time;
+        }
+    }
+    wait(10);
+}
+while(true){
+    read();
+    wait(10000);
+}

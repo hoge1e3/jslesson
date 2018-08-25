@@ -1,0 +1,6 @@
+x=100;
+while(true){
+    move("neko",x,100);
+    x+=10;
+    wait(100);
+}

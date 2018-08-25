@@ -1,0 +1,24 @@
+while (true) {
+    x=10;
+    y=200;
+    tx=rnd(200)+10;
+    ty=rnd(200);
+    move("ball",x,y);
+    move("target",tx,ty);
+    waitClick("start");
+    vx=getNumber("vx");
+    vy=-getNumber("vy");
+    atari=false;
+    while(y<300) {
+        move("ball",x,y);
+        x+=vx;y+=vy;
+        vy++;
+        if (dist(x-tx,y-ty)<30) {
+            move("target",-100,-100);
+            atari=true;
+            setText("result","あたり");
+        }
+        wait(100);
+    }
+    if (!atari) setText("result","はずれ");
+}
