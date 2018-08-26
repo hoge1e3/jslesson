@@ -375,7 +375,7 @@ function ready() {
                     //{label:"課題作成",id:"assignment",action:assignment}
                 ]}
             );
-            if (localStorage.noconcat==="true") {
+            if (localStorage.useassignment==="true") {
                 Menu.appendSub("distribute",
                     {label:"課題作成",id:"assignment",action:assignment}
                 );

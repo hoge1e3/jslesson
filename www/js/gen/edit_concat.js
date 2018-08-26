@@ -16852,6 +16852,11 @@ function ready() {
                     //{label:"課題作成",id:"assignment",action:assignment}
                 ]}
             );
+            if (localStorage.useassignment==="true") {
+                Menu.appendSub("distribute",
+                    {label:"課題作成",id:"assignment",action:assignment}
+                );
+            }
             //dist="block";
         }else{
             //dist="none";
