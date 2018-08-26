@@ -102,6 +102,15 @@ class Auth {
 	        return true;
 	    }
     }
+    static function loginByToken($token) {
+        $u=BAUser::fromAccessToken($token);
+        if (!$u) return false;
+        $uname=$u->name;
+        $cid=$u->_class->id;
+        MySession::set("class",$cid);
+        MySession::set("user",$uname);
+        return $u;
+    }
     static function loginUser($class,$user,$pass){
         //TODO
 	    $pdo = pdo();

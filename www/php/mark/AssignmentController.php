@@ -57,6 +57,8 @@ class AssignmentController {
         echo json_encode($res);
     }
     static function get() {
+        $token=param("token",NULL);
+        if ($token) Auth::loginByToken($token);
         //Auth::assertTeacher();
         $class=Auth::curClass2();
         $name=param("name");
@@ -94,14 +96,21 @@ class AssignmentController {
     }
     static function submit() {
         req("Submission");
+        $token=param("token",NULL);
+        $via="web";
+        if ($token) {
+            Auth::loginByToken($token);
+            $via="api";
+        }
         //$class=Auth::curClass2();
         $user=Auth::curUser2();
-        $r=self::submit_common($user,param("name"),param("files"));
+        $r=self::submit_common($user,$via);
         if ($r["status"]=="NG") http_response_code(500);
         print json_encode($r);
     }
     static function submit2() {
-        req("Submission");
+        self::submit();
+        /*req("Submission");
         //$class=Auth::curClass2();
         $token=param("token");
         $user=BAUser::fromAccessToken($token);
@@ -109,16 +118,14 @@ class AssignmentController {
             $r= array("status"=>"NG",
             "mesg"=>"Token $token not found!");
         } else {
-            $r=self::submit_common($user,param("name"),param("files"),"api");
+            $r=self::submit_common($user,"api");
         }
-        /*$token=explode("@-@",$token);
-        $class=$token[0];
-        $user=$token[1];
-        $class=new BAClass($class);
-        $user=new BAUser($class,$user);*/
-        print json_encode($r);
+        print json_encode($r);*/
     }
-    static function submit_common($user,$name,$files,$source="web") {
+    static function submit_common($user,$source="web") {
+        $name=param("name");
+        $files=param("files");
+        $output=param("output","");
         $assignment=new Assignment(
             $user->_class,$name);
         if (!$assignment->exists()) {
@@ -134,6 +141,7 @@ class AssignmentController {
             $sub->load();
             $sub->time=DateUtil::now();
         }
+        $sub->output=$output;
         $sub->source=$source;
         $sub->files=json_decode($files);
         if (!$sub->files) {
