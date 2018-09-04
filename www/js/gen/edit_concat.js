@@ -14054,7 +14054,14 @@ define('Menu',["UI"], function (UI) {
                     "data-toggle":(mainMenuItem.sub?"dropdown":null)
                 }, mainMenuItem.label]
         );
-        ul1.append(li);
+        if (mainMenuItem.action) {
+            li.find("a").click(mainMenuItem.action);
+        }
+        if (mainMenuItem.after) {
+            $(mainMenuItem.after).closest("li").after(li);
+        } else {
+            ul1.append(li);
+        }
         if (mainMenuItem.sub) {
             var ul2=UI("ul",{
                 id:"submenu_"+mainMenuItem.id,
@@ -16784,7 +16791,7 @@ function ready() {
                       //{label:"閉じる",id:"closeFile"},
                       {label:"削除", id:"rmFile"}
                   ]},
-                  {label:"実行",id:"runMenu",action:run/*sub:[
+                  {label:"実行",id:"runMenu",action:run/* sub:[
                       {label:"実行(F9)",id:"runMenu",action:run},
                       {label:"停止(F2)",id:"stopMenu",action:stop},
                   ]*/},
@@ -16796,6 +16803,12 @@ function ready() {
                   ]}
               ]}
         );
+        $.ajax(".?Class/getOptions").then(function (r) {
+            if (r.useAssignment==="yes") {
+                Menu.appendMain({after:"#save",label:"提出",id:"submit",action:submit});
+                //$("#submit").click(submit);
+            }
+        });
         showToolMenu();
         showDistMenu();
         Menu.appendMain({label:"使用方法",id:"openHelp"});
@@ -16852,11 +16865,13 @@ function ready() {
                     //{label:"課題作成",id:"assignment",action:assignment}
                 ]}
             );
-            if (localStorage.useassignment==="true") {
-                Menu.appendSub("distribute",
-                    {label:"課題作成",id:"assignment",action:assignment}
-                );
-            }
+            $.ajax(".?Class/getOptions").then(function (r) {
+                if (r.useAssignment==="yes") {
+                    Menu.appendSub("distribute",
+                        {label:"課題作成",id:"assignment",action:assignment}
+                    );
+                }
+            });
             //dist="block";
         }else{
             //dist="none";
@@ -17212,7 +17227,7 @@ function ready() {
         //if (lang=="dncl"||lang=="dtl" || lang=="js" || lang=="c" ||  lang=="tonyu") {
             var inf=getCurrentEditorInfo();
             if (!inf) {
-                alert("実行したファイルを選んでください");
+                alert("実行したいファイルを選んでください");
             }
             save();
             sync();
@@ -17854,7 +17869,7 @@ function ready() {
         save();
         goHome();
     }));
-    $("#runMenu").click(F(run));
+    //$("#runMenu").click(F(run));
     function goHome(){
         console.log("goHome");
         unsynced=false;
@@ -17871,7 +17886,6 @@ function ready() {
             return "保存されていないデータがあります。\nこれまでの作業を保存するためには一度実行してください。";
         }
     });
-    $("#submit").click(submit);
     $("#save").click(F(function () {
         save();
         sync();
