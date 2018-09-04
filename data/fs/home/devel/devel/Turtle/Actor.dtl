@@ -58,53 +58,35 @@ Actor:group:add=[|m;i|
     ] execute.
 ].
 
-Actor:initSVG=[|;t wndj wndw wndh htmlj htmlw htmlh |
+Actor:initSVG=[|;t wndj svgw svgh|
     svg=$ ! "svg" create.
     console ! "SVG" (svg) log.
     wndj=$ ! (window) create.
-    htmlj=:window!("html")$ 0 get.
-    htmlw=(:window!(htmlj:scrollWidth)parseFloat)-10.
-    htmlh=(:window!(htmlj:scrollHeight)parseFloat)-10.
-    wndw=(wndj ! width)-10.
-    wndh=(wndj ! height)-10.
-    [wndh<=0] ! then [wndh=wndw/16*9] execute.
-    [htmlh<=0] ! then [htmlh=htmlw/16*9] execute.
+    svgw=(wndj ! width)-10.
+    svgh=(wndj ! height)-10.
+    [svgh<=0] ! then [svgh=svgw/16*9] execute.
     [svg:length==0] ! then [
         //window ! (svgw+","+svgh) alert.
-        svg= !"svg" createSVGElem
+        svg= !"svg" createSVGElem 
         "id" "turtle_svg" attr
-        "width" (htmlw) attr
-        "height" (htmlh) attr
+        "width" (svgw) attr
+        "height" (svgh) attr
         "position" "absolute" css
         "body" appendTo.
     ] execute.
     svg_g = svg ! "g" find.
     [svg_g:length==0] ! then [
-        svg_g= ! "g" createSVGElem
-        "transform" ("translate("+(wndw/2)+","+(wndh/2)+") scale(1,-1)") attr
+        svg_g= ! "g" createSVGElem 
+        "transform" ("translate("+(svgw/2)+","+(svgh/2)+") scale(1,-1)") attr 
         (svg) appendTo.
     ] execute.
     t=self.
-    t:htmlResize=[|htmlw htmlh|
-        [htmlh<=0] ! then [htmlh=htmlw/16*9] execute.
-        (t:svg) ! "width" (htmlw) attr "height" (htmlh) attr.
-    ].
-    :window ! ([|;htmlw htmlh wndw wndh|
-        htmlw=(:window!(htmlj:scrollWidth)parseFloat)-10.
-        htmlh=(:window!(htmlj:scrollHeight)parseFloat)-10.
-        htmlw_old=:window!((t:svg)!"width"attr)parseFloat.
-        htmlh_old=:window!((t:svg)!"height"attr)parseFloat.
-        [
-            or!(htmlw!=htmlw_old)(htmlh!=htmlh_old)true
-        ]!then[
-            t:htmlResize!(htmlw)(htmlh)execute.
-        ]execute.
-    ] !(this)bind) 100 setInterval.
     wndj ! [
-        wndw=(wndj ! width)-10.
-        wndh=(wndj ! height)-10.
-        [wndh<=0] ! then [wndh=wndw/16*9] execute.
-        (t:svg_g) !"transform" ("translate("+(wndw/2)+","+(wndh/2)+") scale(1,-1)") attr.
+        svgw=(wndj ! width)-10.
+        svgh=(wndj ! height)-10.
+        [svgh<=0] ! then [svgh=svgw/16*9] execute.
+        (t:svg) ! "width" (svgw) attr "height" (svgh) attr.
+        (t:svg_g) !"transform" ("translate("+(svgw/2)+","+(svgh/2)+") scale(1,-1)") attr. 
     ] resize.
     group:element=svg_g.
 ].

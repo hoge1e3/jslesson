@@ -114,7 +114,7 @@ class ClassController {
         $options=array("教員による登録のみ","ユーザ自身または教員による登録");
         break;
         case "useAssignment":
-        $label="課題提出機能";
+        $label="課題提出機能（試験運用中）";
         $cur=$class->useAssignment()?1:0;
         $options=array("使用しない","使用する");
         break;

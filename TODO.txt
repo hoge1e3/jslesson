@@ -2,11 +2,14 @@
 *OK 隠し from teacher(コマンドで出現)
 -未採点の課題
 -採点状況
-*OK 隠し from editor
+*OK 隠し from editor（オプションで再出現）
 -提出
--プロジェクトを配布
+-プロジェクトを配布（出現しない）
 -課題作成
 
+* 作品一覧
+
+* personalクラス
 
 *
 -beta->stable
