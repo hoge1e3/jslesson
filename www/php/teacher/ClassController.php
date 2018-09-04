@@ -70,6 +70,63 @@ class ClassController {
             TeacherController::home($mesg);
         }
     }
+    static function getOptions() {
+        // TODO
+        // パスワードポリシーの設定とか
+        //Auth::assertTeacher();
+        $class=Auth::curClass2();
+        header("Content-type: text/json");
+        print json_encode($class->getOptions());
+    }
+    static function setOption() {
+        Auth::assertTeacher();
+        $class=Auth::curClass2();
+        $name=param("name");
+        $value=param("value");
+        $value=($value==="true" ||$value==="1");
+        switch ($name) {
+            case "usePassword":
+            $class->setPasswordPolicy($value?"yes":"nouse");
+            break;
+            case "registByUser":
+            $class->allowRegistrationByUser($value);
+            break;
+            case "useAssignment":
+            $class->useAssignment($value);
+            break;
+            default:
+            die ("$name is not a option name");
+        }
+        redirect("Class/config");
+    }
+    static function optionItems($name) {
+        Auth::assertTeacher();
+        $class=Auth::curClass2();
+        switch ($name) {
+        case "usePassword":
+        $label="パスワード設定";
+        $cur=$class->passwordRequired()?1:0;
+        $options=array("使用しない","使用する");
+        break;
+        case "registByUser":
+        $label="ユーザ登録方法";
+        $cur=$class->registrationByUserAllowed()?1:0;
+        $options=array("教員による登録のみ","ユーザ自身または教員による登録");
+        break;
+        case "useAssignment":
+        $label="課題提出機能";
+        $cur=$class->useAssignment()?1:0;
+        $options=array("使用しない","使用する");
+        break;
+        default:
+        die ("$name is not a option name");
+        }
+        echo"<p>";
+        echo "$label:".$options[$cur].'<br>';
+        $inv=$cur?0:1;
+        echo '<a href="a.php?Class/setOption&name='.$name.'&value='.$inv.'">「'.$options[$inv].'」に変更</a>';
+        echo"</p>";
+    }
     static function config() {
         // TODO
         // パスワードポリシーの設定とか
@@ -78,8 +135,12 @@ class ClassController {
         ?>
         <a href="a.php?Class/show">クラス管理に戻る</a><hr>
         <h1><?=$class->id?> - クラス設定</h1>
-        <p>
         <?php
+        self::optionItems("usePassword");
+        self::optionItems("registByUser");
+        self::optionItems("useAssignment");
+
+        /*
         if($class->passwordRequired()){
             echo 'パスワード設定:使用する<br>';
             echo '<a href="a.php?Class/setPasswordNouse">「使用しない」に変更</a>';
@@ -93,8 +154,8 @@ class ClassController {
         echo "ユーザ登録方法：".($regu?"ユーザ自身または教員による登録":"教員による登録のみ")."<Br>";
         echo '<a href="a.php?Class/setUserRegistrationPolicy&allow='.!$regu.'">';
         echo '「'. (!$regu?"ユーザ自身または教員による登録":"教員による登録のみ")  .'」に変更</a>';
+        */
         ?>
-        </p>
         <hr>
         <?php
     }

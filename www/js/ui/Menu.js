@@ -93,7 +93,14 @@ define(["UI"], function (UI) {
                     "data-toggle":(mainMenuItem.sub?"dropdown":null)
                 }, mainMenuItem.label]
         );
-        ul1.append(li);
+        if (mainMenuItem.action) {
+            li.find("a").click(mainMenuItem.action);
+        }
+        if (mainMenuItem.after) {
+            $(mainMenuItem.after).closest("li").after(li);
+        } else {
+            ul1.append(li);
+        }
         if (mainMenuItem.sub) {
             var ul2=UI("ul",{
                 id:"submenu_"+mainMenuItem.id,

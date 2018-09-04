@@ -85,6 +85,18 @@ class BAClass{
         }
         return true;
     }
+    function useAssignment($flag=null) {
+        $opts=$this->getOptions();
+        if ($flag===null) {
+            if(isset($this->getOptions()->useAssignment) &&
+            $this->getOptions()->useAssignment=="yes"){
+                return true;
+            }
+            return false;
+        }
+        $opts->useAssignment=($flag?"yes":"no");
+        $this->setOptions($opts);
+    }
     static function isValidClassName($classname) {
         //TODO
         return true;
