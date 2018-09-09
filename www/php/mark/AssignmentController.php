@@ -152,6 +152,10 @@ class AssignmentController {
         return array("status"=>"OK",
         "mesg"=>"Pracitce ".$sub->assignment->name." submission complete!");
     }
+    static function home() {
+        echo "<a href=\".?Assignment/accessToken\">アクセス番号の表示</a><BR>";
+        echo "<a href=\".?Assignment/view\">提出状況確認</a><BR>";
+    }
     static function accessToken() {
         $user=Auth::curUser2();
         if (!$user) {

@@ -133,15 +133,16 @@ class Auth {
             throw new Exception("You are not the sudoer");
         }
     }
-    static function assertTeacher() {
+    static function assertTeacher($ignoreClass=false) {
       $t=self::curTeacher();
       if (!$t) {
         throw new Exception("You are not the teacher");
       }
+      // when creating class...
+      if ($ignoreClass) return $t;
       $c=self::curClass2();
       if (!$c) {
           return $t;
-          throw new Exception("You are not logged on any class");
       }
       if ($t->isTeacherOf($c)) {
         return $t;

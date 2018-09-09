@@ -54,7 +54,7 @@ class ClassController {
         <?php
     }
     static function make() {
-        Auth::assertTeacher();
+        Auth::assertTeacher(true);
         if (isset($_POST["classname"])) {
             $classN=$_POST["classname"];
             try {
