@@ -153,6 +153,10 @@ class AssignmentController {
         "mesg"=>"Pracitce ".$sub->assignment->name." submission complete!");
     }
     static function home() {
+        $user=Auth::curUser2();
+        $class=$user->_class;
+        echo "<title>".$class->id." - ".$user->name."</title>";
+        echo "<h1>".$class->id." - ".$user->name."</h1>";
         echo "<a href=\".?Assignment/accessToken\">アクセス番号の表示</a><BR>";
         echo "<a href=\".?Assignment/view\">提出状況確認</a><BR>";
     }
