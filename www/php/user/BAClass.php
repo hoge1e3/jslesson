@@ -141,9 +141,13 @@ class BAClass{
         $pdo = pdo();
         $sth=$pdo->prepare("select * from log where class = ? and time > ? and time < ?");
         $sth->execute(array($this->id,$minTime,$maxTime));
+        return new RecordIterator($sth,PDO::FETCH_ASSOC);
         $res=array();
-        foreach ($sth->fetchAll() as $rec) {
-            $res[]=$rec;
+        //foreach ($sth->fetchAll() as $rec) {
+        //    $res[]=$rec;
+        //}
+        while($rec = $sth->fetch_assoc()){
+          $res[]=$rec;
         }
         return $res;
     }

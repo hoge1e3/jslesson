@@ -113,8 +113,10 @@ class BAUser {
         }
     }
     function publishAccessToken() {
-        $res=rand(1000000,
+        do {
+            $res=rand(1000000,
                   9999999);
+        } while ($this->fromAccessToken($res));
         pdo_insertOrUpdate("accessToken",
             array("class"=>$this->_class->id, "user"=>$this->name),
             array("token"=>$res)

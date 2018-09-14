@@ -41,6 +41,10 @@ function pdo_select() {
     $sth=call_user_func_array("pdo_exec",func_get_args());
     return $sth->fetchAll(PDO::FETCH_OBJ);
 }
+function pdo_select_iter() {
+    $sth=call_user_func_array("pdo_exec",func_get_args());
+    return new RecordIterator($sth);
+}
 function pdo_insert($tbl, $vals) {
     $pdo=pdo();
     $q="insert into `$tbl`(";
@@ -130,6 +134,49 @@ function pdo_update2($tbl,$keys,$vals) {
     //echo $q;var_dump($vary);
     $sth=$pdo->prepare($q);
     $sth->execute($vary);
+}
+class RecordIterator implements Iterator
+{
+    private $current;
+    private $sth;
+    private $type;
+    public function __construct($sth,$type=PDO::FETCH_OBJ)
+    {
+        $this->sth = $sth;
+        $this->count=-1;
+        $this->type=$type;
+        $this->fetch();
+    }
+    function fetch() {
+        $this->current=$this->sth->fetch($this->type);
+        $this->count++;
+    }
+
+    public function rewind()
+    {
+    }
+
+    public function next()
+    //繰り返し処理を次に進める。各繰り返しの最後に呼び出される。
+    {
+        $this->fetch();
+    }
+
+    public function key()
+    {
+        return $this->count;
+    }
+
+    public function current()
+    {
+        return $this->current;
+    }
+
+    public function valid()
+    //次の要素が存在すれば true、存在しなければ false を返す。各繰り返しの前に呼び出される。
+    {
+        return !!$this->current;
+    }
 }
 
 ?>

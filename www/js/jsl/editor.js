@@ -228,6 +228,7 @@ function ready() {
                 var raw=JSON.parse(r.raw);
                 var name="AutoExec";
                 var f=curProjectDir.rel(name+EXT);
+                var pf;
                 console.log("ale",r,f.path());
                 if (!f.exists()) {
                    FM.on.createContent(f);
@@ -239,12 +240,14 @@ function ready() {
                 };
                 for (var k in raw.code) {
                     f=curProjectDir.rel(name+extmap[k.toLowerCase()]);
+                    if(k.toLowerCase()!="html") pf=f;
                     console.log("ale-edt",k,f.path(),f.exists());
                     if (f.exists()) {
                         fl.select(f);//curProjectDir.rel("Test.c"));
                         getCurrentEditorInfo().editor.getSession().getDocument().setValue(raw.code[k]);
                     }
                 }
+                fl.select(pf);
                 run();//$("#runMenu").click();
            }).catch (function (e) {console.error(e);});
         }
