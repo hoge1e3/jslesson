@@ -19,9 +19,10 @@ class ClassController {
         if(!Auth::isTeacherOf($class)){
             return redirect("Teacher/login");
         }
+
         ?>
         <style>
-        .assignment { display:none;}
+        .assignment { display:block;}
         </style>
         <script src="runtime/lib/jquery-1.12.1.js"></script>
         <script type="text/javascript">
@@ -47,8 +48,10 @@ class ClassController {
         <a href="a.php?Class/showUsers">ユーザ一覧</a><br>
         <a href="a.php?TeacherLog/view">ユーザの状況一覧</a><BR>
         <a href="a.php?Zip/download">ユーザの全ファイルダウンロード</a><BR>
-        <div class="assignment"><a href="a.php?Mark/notMarked">未採点の課題</a></div>
-        <div class="assignment"><a href="a.php?Assignment/matrix">採点状況</a></div>
+        <?php if ($class->useAssignment()) {  ?>
+            <div class="assignment"><a href="a.php?Mark/notMarked">未採点の課題</a></div>
+            <div class="assignment"><a href="a.php?Assignment/matrix">採点状況</a></div>
+        <?php } ?>
         <hr>
         <a href="." target="student">演習画面へ</a><hr>
         <?php
