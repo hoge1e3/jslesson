@@ -261,7 +261,7 @@ var reqConf={
             zgenerator:"ctrans/zgenerator",
             logToServer: "jsl/logToServer",
             logToServer2: "jsl/logToServer2",
-
+            ctrl: "jsl/ctrl",
             compiledTonyuProject: "build/tonyu/compiledTonyuProject",
             TonyuProject: "build/tonyu/TonyuProject",
             PatternParser:"build/tonyu/graphics/PatternParser",

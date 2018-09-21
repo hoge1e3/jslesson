@@ -14351,12 +14351,34 @@ define("SplashScreen", (function (global) {
     };
 }(this)));
 
+define('ctrl',[], function () {
+    var ctrl={};
+    ctrl.run=function (method,path,params) {
+        params=params||{};
+        return $.ajax({
+            url: ".?"+path,
+            data:params,
+            cache: false,
+            type:method
+        });
+    };
+    ctrl.get=function (path,params) {
+        return ctrl.run("get",path,params);
+    };
+    ctrl.post=function (path,params) {
+        return ctrl.run("post",path,params);
+    };
+    return ctrl;
+});
+
 requirejs(["FS","Shell","Shell2","ProjectCompiler",
            "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog","RenameProjectDialog",
-           "assert","DeferredUtil","RemoteProject","SplashScreen"],
+           "assert","DeferredUtil","RemoteProject","SplashScreen",
+       "ctrl"],
     function(FS, sh,sh2,TPRC,
            NPD, UI, Auth,zip,Sync,NSD,RPD,
-           A,DU,RemoteProject) {
+           A,DU,RemoteProject,Spla,
+       ctrl) {
     if (location.href.match(/localhost/)) {
         A.setMode(A.MODE_STRICT);
     } else {
@@ -14382,8 +14404,10 @@ function ready() {//-------------------------
             ["a",{href:"https://bitarrow.eplang.jp/?change1808",target:"wikiTab"},"主な変更点..."]/*," | ",
             ["a",{href:"https://bitarrow.eplang.jp/2017_0328/",target:"wikiTab"},"以前のバージョン(2017_0328)を使う"]*/],
             ["div",
-	            ["a",{href:"https://bitarrow.eplang.jp/",target:"wikiTab"},"Bit Arrow解説ページ"]," | ",
-    	    	["a",{href:".?Teacher/login",target:"teaTab"},"教員用ログイン"]
+	            ["a",{href:"https://bitarrow.eplang.jp/",target:"wikiTab"},"Bit Arrow解説ページ"],
+                ["span",{class:"assignment"}," | ",
+                ["a",{href:".?Assignment/view",target:"asTab"},"採点結果を見る"]],
+                " | ",["a",{href:".?Teacher/login",target:"teaTab"},"教員用ログイン"]
 	        ],
             ["hr",{color:"#000000",size:"4"}],
             //["h2","プロジェクト一覧"],
@@ -14408,6 +14432,12 @@ function ready() {//-------------------------
             ["span",{id:"syncMesg"}],
             ["div",{id:"prjItemList"}]
     ));
+    $(".assignment").hide();
+    ctrl.get("Class/getOptions").then(function (r) {
+        if (r.useAssignment==="yes") {
+            $(".assignment").show();
+        }
+    });
     setTimeout(function () {
         $("#syncMesg").empty();
         $("#userInfo").text(Auth.class+" クラスの"+Auth.user+"さん、こんにちは");
