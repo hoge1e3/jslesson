@@ -109,16 +109,17 @@ function req() {
         require_once $top."/".$fn;
     }
 }
-if (isset($_GET["foefosjvoisdjove9"])) {
-    require_once "php/fs/NativeFS.php";
-    require_once "php/fs/SFile.php";
+if (isset($argv) && isset($argv[1])) {
+    require_once "fs/NativeFS.php";
+    require_once "fs/SFile.php";
     $fs=new NativeFS(".");
-    $phpf=new SFile($fs,"php/");
+    $phpf=new SFile($fs,"");
     header("Content-type: text/plain");
     foreach ($phpf->recursive() as $f) {
         if ($f->endsWith(".php")) {
             $n=$f->truncExt();
-            echo "    '$n' => '".$f->path()."',\n";
+            $r=$f->path();
+            echo "    '$n' => 'php/$r',\n";
         }
     }
 }

@@ -1,5 +1,5 @@
 <?php
-req("MySession","pdo");
+req("MySession","pdo","Mail");
 class PersonalController {
     static function regReqForm() {
         ?>
@@ -51,7 +51,7 @@ class MailToken {
         do {
             $token=rand(10000000,
                         99999999);
-        } while(MailToken::has($token));
+        } while(self::has($token));
         return $token;
     }
     static function publish($mail,$purpose) {
@@ -61,6 +61,9 @@ class MailToken {
     }
     static function get($token) {
         return pdo_select1("select * from mailToken where token=?",$token);
+    }
+    static function has($token) {
+        return self::get($token);
     }
     static function clean($token) {
         return pdo_exec("delete from mailToken where token=?",$token);
