@@ -1,13 +1,12 @@
-<?
+<?php
 class Mail {
     static function available() {
         return false;
     }
-    static function send($to, $sub , $body, $options) {
+    static function send($to, $sub , $body, $options=array()) {
         if (self::available()) {
             mb_send_mail($to,$sub,$body,$options);
         } else {
-            if (!$options) $options=array();
             $options["To"]=$to;
             $options["Subject"]=$sub;
             $name=time();
@@ -22,3 +21,4 @@ class Mail {
     }
 
 }
+?>

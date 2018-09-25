@@ -34,7 +34,7 @@ class LoginController {
     <?php
     }
     static function isValidUserName($u) {
-        return preg_match("/^[a-zA-Z_0-9\-\.]+$/",$u);
+        return preg_match("/^[@a-zA-Z_0-9\-\.]+$/",$u);
     }
     static function curStatus() {
         $u=Auth::curUser2();

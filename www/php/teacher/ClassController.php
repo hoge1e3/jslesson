@@ -216,15 +216,13 @@ class ClassController {
         //<th>実行時刻</th><th>実行ファイル</th><th>実行結果</th><th>実行詳細</th><th>プログラム</th>
         foreach($students as $s){
             $pass=$s->getPass();
-            $s->getOptions();
-            if(!$s->options){
+            $opt=$s->getOptions();
+            if(!isset($opt->name)){
                 $n="未登録";
             }else{
-                $n=$s->options["options"];
+                $n=$opt->name;
                 if($n==""){
                     $n="未登録";
-                }else{
-                    $n=json_decode($n)->name;
                 }
             }
             $lf=$s->getLog();
