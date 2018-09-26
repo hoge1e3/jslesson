@@ -65,6 +65,9 @@ class BAUser {
 	    $sth->execute(array($this->password,$this->options,$this->_class->id,$this->name));
 
     }
+    function update() {
+        $this->edit();
+    }
 
     function setOptions($key,$value){
         if(self::exists()){

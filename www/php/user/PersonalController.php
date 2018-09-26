@@ -32,12 +32,13 @@ class PersonalController {
 https://bitarrow.eplang.jp/?Personal/regForm&token=$token
 EOF
 );
-        header("Location: ?Personal/regMailSent");
+        header("Location: ?Personal/regMailSent&mail=$mail");
     }
     static function regMailSent() {
+        $mail=param("mail");
         ?>
         <h1>個人ユーザ発行</h1>
-        メールを送りました
+        <?= $mail ?> にメールを送りました
         <?php
 
     }
@@ -78,25 +79,85 @@ EOF
         $u->make();
         $uid=$u->name;
         MailToken::clean($token);
+        $cid=$u->_class->id;
         ?>
         完了<BR>
-            <a href=".?Login/form&user=$uid">ログイン</a>
+            <a href=".?Login/form&class=<?= $cid ?>&user=<?= $uid ?>">ログイン</a>
         <?php
     }
 
-    static function resetReqForm() {
+    static function resetReqForm($mesg="") {
+        ?>
+        <h1>個人ユーザパスワード再発行フォーム</h1>
+        メールアドレスを入れてください
+        <form action="?Personal/sendResetMail" method="POST">
+            <?= $mesg ?>
+            <input name="mail">
+            <input type="submit" value="OK"/>
+        </form>
+        <?php
 
     }
     static function sendResetMail() {
+        $mail=param("mail");
+        $user=self::theUser($mail);
+        if ($user->exists()) {
+            $token=MailToken::publish($mail,"personal",$mail,"reset");
+            Mail::send($mail, "BitArrowパスワード再発行", <<<EOF
+次のページからパスワード再発行を完了してください．
 
+https://bitarrow.eplang.jp/?Personal/resetForm&token=$token
+EOF
+);
+        }
+        header("Location: ?Personal/resetMailSent&mail=$mail");
     }
     static function resetMailSent() {
-
+        $mail=param("mail");
+        ?>
+        <h1>個人ユーザパスワード再発行</h1>
+         <?= $mail ?> にメールを送りました<br/>
+        （※入力されたメールアドレスが登録済でない場合，送られません）
+        <?php
     }
-    static function resetForm() {
-
+    static function resetForm($mesg="") {
+        $token=param("token");
+        $r=MailToken::get($token);
+        if (!$r) die("Token $token is invalid");
+        ?>
+        <form action=".?Personal/resetDone" method="POST">
+            <input type="hidden" name="token" value="<?= $token ?>"/ >
+            <?= $mesg ?><br/>
+            ユーザID <?= $r->mail ?><br/>
+            パスワード<input type="password" name="pass1"/><br/>
+            パスワード(確認)<input type="password" name="pass2"/><br/>
+            <input type="submit" value="登録"/>
+        </form>
+        <?php
     }
     static function resetDone() {
+        $token=param("token");
+        $pass=param("pass1");
+        if (strlen($pass)<4) {
+            self::resetForm("パスワードが短すぎます");
+            return;
+        }
+        if ($pass!=param("pass2")) {
+            self::resetForm("パスワードが一致しません");
+            return;
+        }
+        $r=MailToken::get($token);
+        if (!$r) die("Token $token is invalid");
+        $u=self::theUser($r->mail);
+        $u->password=$pass;
+        $u->update();
+        $uid=$u->name;
+        MailToken::clean($token);
+        $cid=$u->_class->id;
+        ?>
+        完了<BR>
+            <a href=".?Login/form&class=<?= $cid ?>&user=<?= $uid ?>">ログイン</a>
+        <?php
 
     }
 }
