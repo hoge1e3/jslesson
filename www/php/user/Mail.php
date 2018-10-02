@@ -1,7 +1,10 @@
 <?php
 class Mail {
     static function available() {
-        return false;
+        $p=ini_get('sendmail_path');
+        if (!$p) return false;
+        $p=preg_replace("/ .*/","",$p);
+        return file_exists($p);
     }
     static function send($to, $sub , $body, $options=array()) {
         if (self::available()) {
