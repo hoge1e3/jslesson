@@ -29,7 +29,7 @@ class PersonalController {
         Mail::send($mail, "BitArrowユーザ登録", <<<EOF
 次のページからユーザ登録を完了してください．
 
-https://bitarrow.eplang.jp/?Personal/regForm&token=$token
+https://bitarrow.eplang.jp/bitarrow/?Personal/regForm&token=$token
 EOF
 );
         header("Location: ?Personal/regMailSent&mail=$mail");
@@ -106,7 +106,7 @@ EOF
             Mail::send($mail, "BitArrowパスワード再発行", <<<EOF
 次のページからパスワード再発行を完了してください．
 
-https://bitarrow.eplang.jp/?Personal/resetForm&token=$token
+https://bitarrow.eplang.jp/bitarrow/?Personal/resetForm&token=$token
 EOF
 );
         }

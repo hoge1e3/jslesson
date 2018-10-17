@@ -8,7 +8,11 @@ class Mail {
     }
     static function send($to, $sub , $body, $options=array()) {
         if (self::available()) {
-            mb_send_mail($to,$sub,$body,$options);
+            $h="";
+            foreach ($options as $k=>$v) {
+                $h.="$k: $v\r\n";
+            }
+            mb_send_mail($to,$sub,$body,$h);
         } else {
             $options["To"]=$to;
             $options["Subject"]=$sub;
