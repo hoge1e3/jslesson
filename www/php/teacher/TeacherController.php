@@ -103,6 +103,14 @@ class TeacherController {
             <input type="submit" value="新規クラス作成"/>
         </form>
         <?php
+        if ($teacher->isSysAd()) {
+            ?>
+            <hr>
+            <h1>システム管理メニュー</h1>
+
+            <a href="a.php?Teacher/add">教員追加</a>
+            <?php
+        }
     }
 }
 

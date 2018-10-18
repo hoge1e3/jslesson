@@ -22,6 +22,7 @@ $fs=new NativeFS(BA_DATA."/");
 $userDir=new SFile($fs,"user/");
 class Auth {
     const TEACHER="teacher";
+    const SYSAD="sysad";
     static function login($class,$user,$pass=null) {
         // TODO 戻り値：
         // ユーザ登録が必要 "register"

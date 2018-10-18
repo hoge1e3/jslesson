@@ -51,7 +51,8 @@ p=-1;
     var px;
     y=0;
     for (var timeline of src.timelines) {
-        for (var e of timeline) {
+        draw1Line(timeline);
+        /*for (var e of timeline) {
             var filename=e.filename, time=e.time;
             x=time2x(time);
             if (px) {
@@ -61,7 +62,7 @@ p=-1;
             $panel.fillStyle=getColor(filename);
             cnt++;
             if (cnt%1000==0) update();
-        }
+        }*/
         var mark=timeline.mark;
         if (mark) {
             for (var k,m in mark) {
@@ -72,11 +73,27 @@ p=-1;
                 }
             }
         }
+        update();
         y+=$h;
     }
     reqRedraw=0;
     //print("Blink.len",all(Blink).length);
     linesYMax=y;
+}
+nowait \draw1Line(timeline) {
+    var px;
+    for (var e of timeline) {
+        var filename=e.filename, time=e.time;
+        x=time2x(time);
+        if (px) {
+            $panel.fillRect(px,y,clamp( (x-px),1, 10),$h);
+        }
+        px=x;
+        $panel.fillStyle=getColor(filename);
+        //cnt++;
+        //if (cnt%1000==0) update();
+    }
+    
 }
 \zoomIn(x) {
     var t=x2time(x);
