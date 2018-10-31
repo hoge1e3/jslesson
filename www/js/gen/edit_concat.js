@@ -4481,7 +4481,7 @@ define('WebSite',[], function () {
 			getFiles:WS.phpTop+"getFiles.php",
 			putFiles:WS.phpTop+"putFiles.php"*/
 	};
-	WS.controller=WS.serverTop+"a.php";
+	WS.controller=WS.serverTop+"";
 	WS.runtime=WS.serverTop+"runtime/";
 	//WS.published=WS.serverTop+"fs/home/";
 	WS.published=WS.serverTop+"fs/pub/";
@@ -16078,7 +16078,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
             t.dom=t.dom||t.createDOM();
             //t.dom.dialog(t.dialogParam);
             t.mode=null;
-            $.post("a.php?Assignment/get",{
+            $.post(WebSite.controller+"?Assignment/get",{
                 name: name
             }).then(function (a) {
                 console.log("got",a);
@@ -16119,7 +16119,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
         },
         showList:function (t) {
             t.list.empty();
-            return $.get("a.php?Assignment/listNames").then(function (r) {
+            return $.get(WebSite.controller+"?Assignment/listNames").then(function (r) {
                 if (typeof r==="string") {
                     r=JSON.parse(r);
                 }
@@ -16230,7 +16230,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
             console.log("post param",param);
             switch (t.mode) {
             case "add":
-            return $.post("a.php?Assignment/add",param).then(function (r){
+            return $.post(WebSite.controller+"?Assignment/add",param).then(function (r){
                 t.cur=param;
                 t.cur.id=r-0;
                 t.showMesg("追加しました");
@@ -16240,18 +16240,20 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
                 console.log("Result",r,param);
             },DU.E);
             case "edit":
+            var pre=DU.directPromise();
             if (t.origname.val()!==t.name.val()) {
-                return $.post("a.php?Assignment/rename",param).then(function (r){
+                pre=$.post(WebSite.controller+"?Assignment/rename",param).then(function (r){
                     t.showList();
-                    t.showMesg("更新しました");
-                    console.log("Result",r);
-                },DU.E);
-            } else {
-                return $.post("a.php?Assignment/edit",param).then(function (r){
-                    t.showMesg("更新しました");
-                    console.log("Result",r);
-                },DU.E);
+                    t.showMesg("名前変更しました");
+                    console.log("ren Result",r);
+                });
             }
+            return pre.then(function () {
+                return $.post(WebSite.controller+"?Assignment/edit",param);
+            }).then(function (r){
+                t.showMesg("更新しました");
+                console.log("upd Result",r);
+            },DU.E);
             default:
                 alert("No mode "+t.mode);
             }
@@ -16259,7 +16261,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
         del: function (t) {
             if (t.mode!=="edit") return;
             if (!confirm(t.cur.name+"を削除しますか？")) return;
-            $.get("a.php?Assignment/del&id="+t.cur.id).then(function (r){
+            $.get(WebSite.controller+"?Assignment/del&id="+t.cur.id).then(function (r){
                 t.showMesg("削除しました");
                 t.add();
                 t.showList();
@@ -16357,7 +16359,7 @@ define('CommentDialog2',["UI","Klass"],function (UI,Klass) {
         $: ["prj"],
         getComment: function (t,file) {
             var path=t.prj.getDir().name()+file.name();
-            return $.get("a.php?Mark/getLast&file="+path+"&p="+Math.random()).then(function (r) {
+            return $.get(WebSite.controller+"?Mark/getLast&file="+path+"&p="+Math.random()).then(function (r) {
                 if (typeof r==="string") r=JSON.parse(r);
                 if (!r.result) return null;
                 return r;
@@ -16708,7 +16710,7 @@ function ready() {
     function autologexec() {
         var id=Util.getQueryString("autologexec",null);
         if (id) {
-            $.ajax("a.php?AddErrorInfo/getLog&logid="+id).then(function (r) {
+            $.ajax(WebSite.controller+"?AddErrorInfo/getLog&logid="+id).then(function (r) {
                 var raw=JSON.parse(r.raw);
                 var name="AutoExec";
                 var f=curProjectDir.rel(name+EXT);
@@ -16739,7 +16741,7 @@ function ready() {
     function autosubexec() {
         var id=Util.getQueryString("autosubexec",null);
         if (id) {
-            $.ajax("a.php?Mark/getSubmission&id="+id).then(function (r) {
+            $.ajax(WebSite.controller+"?Mark/getSubmission&id="+id).then(function (r) {
                r=typeof r==="object" ? r: JSON.parse(r);
                var files=r.files;
                var file;
@@ -16916,7 +16918,7 @@ function ready() {
             console.log(text,overwrite);
             $.ajax({
                 type:"POST",
-                url:"a.php?Class/distribute",
+                url:WebSite.controller+"?Class/distribute",
                 data:{
                     "prj":curPrjDir,
                     "file":curFile.name(),
