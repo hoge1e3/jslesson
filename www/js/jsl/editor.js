@@ -224,7 +224,7 @@ function ready() {
     function autologexec() {
         var id=Util.getQueryString("autologexec",null);
         if (id) {
-            $.ajax("a.php?AddErrorInfo/getLog&logid="+id).then(function (r) {
+            $.ajax(WebSite.controller+"?AddErrorInfo/getLog&logid="+id).then(function (r) {
                 var raw=JSON.parse(r.raw);
                 var name="AutoExec";
                 var f=curProjectDir.rel(name+EXT);
@@ -255,7 +255,7 @@ function ready() {
     function autosubexec() {
         var id=Util.getQueryString("autosubexec",null);
         if (id) {
-            $.ajax("a.php?Mark/getSubmission&id="+id).then(function (r) {
+            $.ajax(WebSite.controller+"?Mark/getSubmission&id="+id).then(function (r) {
                r=typeof r==="object" ? r: JSON.parse(r);
                var files=r.files;
                var file;
@@ -432,7 +432,7 @@ function ready() {
             console.log(text,overwrite);
             $.ajax({
                 type:"POST",
-                url:"a.php?Class/distribute",
+                url:WebSite.controller+"?Class/distribute",
                 data:{
                     "prj":curPrjDir,
                     "file":curFile.name(),

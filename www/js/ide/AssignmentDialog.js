@@ -25,7 +25,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
             t.dom=t.dom||t.createDOM();
             //t.dom.dialog(t.dialogParam);
             t.mode=null;
-            $.post("a.php?Assignment/get",{
+            $.post(WebSite.controller+"?Assignment/get",{
                 name: name
             }).then(function (a) {
                 console.log("got",a);
@@ -66,7 +66,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
         },
         showList:function (t) {
             t.list.empty();
-            return $.get("a.php?Assignment/listNames").then(function (r) {
+            return $.get(WebSite.controller+"?Assignment/listNames").then(function (r) {
                 if (typeof r==="string") {
                     r=JSON.parse(r);
                 }
@@ -177,7 +177,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
             console.log("post param",param);
             switch (t.mode) {
             case "add":
-            return $.post("a.php?Assignment/add",param).then(function (r){
+            return $.post(WebSite.controller+"?Assignment/add",param).then(function (r){
                 t.cur=param;
                 t.cur.id=r-0;
                 t.showMesg("追加しました");
@@ -187,18 +187,20 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
                 console.log("Result",r,param);
             },DU.E);
             case "edit":
+            var pre=DU.directPromise();
             if (t.origname.val()!==t.name.val()) {
-                return $.post("a.php?Assignment/rename",param).then(function (r){
+                pre=$.post(WebSite.controller+"?Assignment/rename",param).then(function (r){
                     t.showList();
-                    t.showMesg("更新しました");
-                    console.log("Result",r);
-                },DU.E);
-            } else {
-                return $.post("a.php?Assignment/edit",param).then(function (r){
-                    t.showMesg("更新しました");
-                    console.log("Result",r);
-                },DU.E);
+                    t.showMesg("名前変更しました");
+                    console.log("ren Result",r);
+                });
             }
+            return pre.then(function () {
+                return $.post(WebSite.controller+"?Assignment/edit",param);
+            }).then(function (r){
+                t.showMesg("更新しました");
+                console.log("upd Result",r);
+            },DU.E);
             default:
                 alert("No mode "+t.mode);
             }
@@ -206,7 +208,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
         del: function (t) {
             if (t.mode!=="edit") return;
             if (!confirm(t.cur.name+"を削除しますか？")) return;
-            $.get("a.php?Assignment/del&id="+t.cur.id).then(function (r){
+            $.get(WebSite.controller+"?Assignment/del&id="+t.cur.id).then(function (r){
                 t.showMesg("削除しました");
                 t.add();
                 t.showList();
