@@ -1,4 +1,5 @@
 (function (){
+$(window).on('touchmove.noScroll',function(e){e.preventDefault();});
 var root={window:window,document:document, console:console};
 window.root=root;
 root.root=root;

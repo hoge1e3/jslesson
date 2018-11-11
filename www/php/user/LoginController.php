@@ -9,11 +9,12 @@ class LoginController {
         } else {
         	$class=$_GET["class"];
         }*/
+        $isPersonal=($class==="personal");
     ?>
     	<meta charset="UTF-8">
-    	<h1>Bit Arrow ログイン</h1>
-      <div><span class="notice">【お知らせ】</span>新しいバージョン(2018_0815)になりました．
-      <a href="https://bitarrow.eplang.jp/?change1808" target="wikiTab">主な変更点...</a></div>
+    	<h1>Bit Arrow ログイン<?= $isPersonal?"（個人利用）":"" ?></h1>
+      <div><!--span class="notice">【お知らせ】</span>新しいバージョン(2018_0815)になりました．
+      <a href="https://bitarrow.eplang.jp/?change1808" target="wikiTab">主な変更点...</a></div-->
       <hr>
         <div><font color=red><?= self::$mesg ?></font></div>
     	<form action="a.php?Login/check" method="POST">
@@ -24,17 +25,24 @@ class LoginController {
     	  <input type="submit" value="OK"/>
     	</form>
     	<ul>
-    	<li>授業で使用する場合、クラスIDとユーザ名は授業で指定されたものを入力してください。</li>
-    	<li>授業以外で利用する場合は、クラスIDを guest とし、任意のユーザ名を入力してください。</li>
-    	<li>ユーザ名には半角英数字を使ってください。</li>
-    	<li>パスワード欄は、授業で指示があった場合のみ記入してください。</li>
+        <?php if(!$isPersonal) { ?>
+        	<li>授業で使用する場合、クラスIDとユーザ名は授業で指定されたものを入力してください。</li>
+        	<li>授業以外で利用する場合は、クラスIDを guest とし、任意のユーザ名を入力してください。</li>
+        	<li>ユーザ名には半角英数字を使ってください。</li>
+        	<li>パスワード欄は、授業で指示があった場合のみ記入してください。</li>
+            <li><a href="?Login/form&class=personal">個人利用の方はこちら</a></li>
+        <?php } else { ?>
+            <li><a href="?Personal/regReqForm">ユーザ登録</a></li>
+            <li><a href="?Personal/resetReqForm">パスワード再発行</a></li>
+            <li><a href="?Login/form">クラス単位での利用の方はこちら</a></li>
+        <?php } ?>
     	</ul>
     	<a href="index.html">戻る</a><br>
     	<a href="?Teacher/login">教員の方はこちら</a>
     <?php
     }
     static function isValidUserName($u) {
-        return preg_match("/^[a-zA-Z_0-9\-\.]+$/",$u);
+        return preg_match("/^[@a-zA-Z_0-9\-\.]+$/",$u);
     }
     static function curStatus() {
         $u=Auth::curUser2();
@@ -110,10 +118,10 @@ class LoginController {
     }
     static function checkPass() {
         $password=param("password");
-        if (!$password) {
+        /*if (!$password) {
             self::$mesg="パスワードが入力されていません";
             return self::passForm();
-        }
+        }*/
     	$class=$_POST["class"];
     	$user=$_POST["user"];
     	self::$mesg=Auth::loginUser($class,$user,$password);

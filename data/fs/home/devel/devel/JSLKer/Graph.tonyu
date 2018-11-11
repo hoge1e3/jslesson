@@ -1,0 +1,398 @@
+native window;
+native console;
+native parseFloat;
+native Math;
+function new(div){
+    this._place=div;
+    this._xaxname="";
+    this._yaxname="";
+    this._xrange;
+    this._yrange;
+    this._isDrawCor=false;
+    plotlyURL=window.runtimePath+"lib/plotly-latest.min.js";
+    window.$.getScript(plotlyURL);
+    window.setTimeout (waitLoadLib,100);
+    loadLibHandlers=[];
+    this._corObj={};
+    src=src||[];
+    _typemap={};// fieldName->type
+}
+//データのセット．外部からsrcへの書き込み禁止
+function setData(data) {
+    src=data;
+}
+//あとからデータ追加．オブジェクトでも(x,y)でも可
+\addData(d) {
+    if (typeof d==="object") {
+        src.push(d);
+    } else {
+        src.push{x:arguments[0],y:arguments[1]};
+    }
+}
+//plotlyのロード
+\onLoadLib(f) {
+    if (Plotly) f(Plotly);
+    else loadLibHandlers.push(f);
+}
+\waitLoadLib() {
+    if (!window.Plotly) {
+        window.setTimeout (waitLoadLib,100);
+    } else {
+        Plotly=window.Plotly;
+        for (var f in loadLibHandlers) f(Plotly);
+    }
+}
+//---------
+function _setCorrelation(x,y,min,max,interval){
+    if((min>max && interval>0) || (min<=max && interval<0) || interval==0){
+        return;
+    }
+    console.log(min,max,interval);
+    this._corObj=_correlation(x,y,min,max,interval);
+    this._isDrawCor=true;
+}
+function setAxisText(x,y){
+    setXAxisText(x);
+    setYAxisText(y);
+}
+function setXAxisText(x){
+    this._xaxname=x;
+}
+function setYAxisText(y){
+    this._yaxname=y;
+}
+function setAxisType(xtype,ytype) {
+    setXAxisType(xtype);
+    setXAxisType(ytype);
+}
+//軸タイプの設定．time以外の軸でも日付型にできる
+function setXAxisType(xtype) {
+    if (xtype=="time") xtype="date";
+    _xaxtype=xtype;
+}
+function setYAxisType(ytype) {
+    if (ytype=="time") ytype="date";
+    _yaxtype=ytype;
+}
+function bindType(name,type) {
+    if (type) _typemap[name]=type;
+}
+
+function setXRange(min,max,logScale){
+    _xrange=[min,max];
+    _xrange.logScale=logScale;//TODO
+}
+function setYRange(min,max,logScale){
+    _yrange=[min,max];
+    _yrange.logScale=logScale;//TODO
+}
+function line(xaxis,yaxis){
+    _drawGraph("line",xaxis,yaxis);
+}
+function bar(xaxis,yaxis){
+    _drawGraph("bar",xaxis,yaxis);
+}
+//全データのフィールドkを配列にして返す．型が考慮される
+//他メソッドからsrcへの直接アクセス禁止．代わりにvec(k)を使用
+function vec(k) {
+    return src.map \(rec) {
+        return getValue(rec,k);
+    };
+}
+function min(k){
+    var ary=vec(k);
+    ary.sort(function(a,b){return a-b;});
+    return ary[0];
+}
+function max(k){
+    var ary=vec(k);
+    ary.sort(function(a,b){return b-a;});
+    return ary[0];
+}
+function med(k) {
+    var half = Math.ceil(src.length/2);
+    var temp = vec(k).sort(function(a,b){
+        //console.log(a[k],b[k]);
+        if((a[k]-0)>(b[k]-0)) return -1;
+        if((a[k]-0)<(b[k]-0)) return 1;
+        return 0;
+    });
+    if (temp.length%2) {
+        return temp[half][k];
+    }
+    return ((temp[half-1][k]-0) + (temp[half][k]-0))/2;
+}
+function mode(k){
+    var counter = {};
+    var nativeValues = {};
+    var maxCounter = 0;
+    var maxValue = null;
+    for (var i = 0; i < src.length; i++) {
+        var value=getValue(src[i],k);
+        if (!counter[value]) {
+            counter[value] = 0;
+        }
+        counter[value]++;
+        nativeValues[value] = value;
+    }
+    for (var j = 0; j < Object.keys(counter).length; j++) {
+        key = Object.keys(counter)[j];
+        if (counter[key] > maxCounter) {
+            maxCounter = counter[key];
+            maxValue = nativeValues[key];
+        }
+    }
+    var ret=[];
+    for (var j = 0; j < Object.keys(counter).length; j++) {
+        key = Object.keys(counter)[j];
+        if (counter[key] == maxCounter) {
+            ret.push(nativeValues[key]);
+        }
+    }
+    return {"mode":maxCounter,"nums":ret};
+}
+function freq(k){
+    var ret=[];
+    for(var o in vec(k)){
+        if(ret[o[k]]){
+            ret[o[k]]++;
+        }else{
+            ret[o[k]]=1;
+        }
+    }
+    return ret;
+}
+
+// 軸名省略で"x","y"になる．
+function scatter(xaxis,yaxis,isCor){
+    if (typeof xaxis==="boolean") {
+        isCor=xaxis;
+        xaxis="x";yaxis="y";
+    }
+    xaxis=xaxis||"x";
+    yaxis=yaxis||"y";
+    bindType(xaxis,_xaxtype);
+    bindType(yaxis,_yaxtype);
+    
+    if(isCor==true) _setCorrelation(xaxis,yaxis,parseFloat(min(xaxis)),parseFloat(max(xaxis)),parseFloat((max(xaxis)-min(xaxis))/10));
+    _drawGraph("scatter",xaxis,yaxis);
+}
+function pie(xaxis,yaxis){
+    _drawGraph("pie",xaxis,yaxis);
+}
+function _drawGraph(type,xaxis,yaxis){
+    xaxis=xaxis||"x";
+    yaxis=yaxis||"y";
+    bindType(xaxis,_xaxtype);
+    bindType(yaxis,_yaxtype);
+    var x=[];
+    var y=[];
+    var xaxopt={
+        autotick: true,
+        ticks: 'outside',
+        tick0: 0,
+        dtick: 0.25,
+        ticklen: 8,
+        tickwidth: 4,
+        tickcolor: '#000',
+        range:_xrange
+    };
+    var yaxopt= {
+        autotick: true,
+        ticks: 'outside',
+        tick0: 0,
+        dtick: 0.25,
+        ticklen: 8,
+        tickwidth: 4,
+        tickcolor: '#000',
+        range:_yrange//,
+        //scaleanchor: "x"
+    };
+    console.log("range",_xrange,_yrange);
+    var xt=detectType(xaxis);
+    var yt=detectType(yaxis);
+    if(xt=="date"||xt=="time"||xt=="msec"){
+        xaxopt["type"]='date';
+    }
+    if(yt=="date"||yt=="time"||yt=="msec"){
+        yaxopt["type"]='date';
+    }
+    x=vec(xaxis);
+    y=vec(yaxis);
+    /*for(var i=0;i<src.length;i++){
+        var xv,yv;
+        xv=convertValue(src[i][xaxis],xt);
+        yv=convertValue(src[i][yaxis],yt);
+        //console.log("add",xv,yv);
+        x.push(xv);
+        y.push(yv);
+    }*/
+    if(type=="scatter"){
+        var mode="markers";
+    }else{
+        var mode="lines";
+    }
+    var data=[{
+            x:x,
+            y:y,
+            type:type,
+            mode:mode
+    }];
+    if(_isDrawCor===true){
+        _corObj.mode='lines';
+        _corObj.line={dash:'dot',width:4};
+        data.push(_corObj);
+    }
+    var options={
+        xaxis:xaxopt,
+        yaxis:yaxopt,
+        annotations:[{
+                xref: 'paper',
+                yref: 'paper',
+                x: 0,
+                xanchor: 'right',
+                y: 1,
+                yanchor: 'bottom',
+                text: _yaxname,
+                showarrow: false
+            },{
+                xref: 'paper',
+                yref: 'paper',
+                x: 1,
+                xanchor: 'left',
+                y: 0,
+                yanchor: 'top',
+                text:_xaxname,
+                showarrow: false
+            }
+        ]
+    };
+    onLoadLib \(Plotly) {
+        Plotly.newPlot(_place,data,options);
+    };
+}
+//----型を考慮した値の変換
+function getValue(record,name) {
+    var type=detectType(name);
+    return convertValue(record[name],type);
+}
+function detectType(name) {
+    if (_typemap[name]) return _typemap[name];  
+    return (name=="time"||name=="date"?"date":"number");
+}
+function convertValue(val,type) {
+    if (type=="msec" || type=="sec" || 
+    type=="date" || type=="time") {
+        return convertTime(val,type);
+    }
+    if (type=="number") return val-0;
+    return val;
+}
+// 単位がミリ秒でも秒でもいけるよう，1970年1月に犠牲になってもらった
+function convertTime(t,to) {
+    to=to||"msec";
+    var n=looksLikeNumber(t);
+    if (n) {
+        if (n<3000000000) {// 1970/02/05以前なら単位：秒とみなす
+            n*=1000;
+        }
+        if (to==="sec") n/=1000;
+        return n;
+    }
+    return t;
+}
+function looksLikeNumber(n) {
+    if (typeof n=="number") return n;
+    if (typeof n=="string") {
+        n-=0;
+        if (n===n) return n;
+    }
+    return false;
+}
+//-------ここまで
+function sum(k){
+    var s=0;
+    if(typeof(k)==="object"){
+        for(i=0;i<k.length;i++){
+            s+=k[i]-0;
+        }
+    }else{
+        for(var v in vec(k)){
+            s+=v-0;
+        }
+    }
+    return s;
+}
+function mean(k){
+    var a=0;
+    if(typeof(k)==="object"){
+        a=sum(k)/k.length;
+    }else{
+        a=sum(k)/src.length;
+    }
+    return a;
+}
+function dev(k){
+    var d=[],a=0;
+    if(k===undefined){
+        a=mean(src);
+        for(var i=0;i<src.length;i++){
+            d.push(src[i]-a);
+        }
+    }else{
+        a=mean(k);
+        for(var v in vec(k)){
+            d.push(v-a);
+        }
+    }
+    return d;
+}
+function vari(k){
+    var ary=[];
+    if(k===undefined){
+        var deved=dev(src);
+        for(var i=0;i<deved.length;i++){
+            ary.push(Math.pow(deved[i],2));
+        }
+    }else{
+        var deved=dev(k);
+        console.log(deved);
+        for(var i=0;i<deved.length;i++){
+            ary.push(Math.pow(deved[i],2));
+        }
+    }
+    console.log("arrry",ary);
+    return mean(ary);
+}
+function std(k){
+    var disp=vari(k);
+    return Math.sqrt(disp);
+}
+function cov(k1,k2){
+    var dev1=dev(k1);
+    var dev2=dev(k2);
+    var dataCov=0;
+    for(var k,v in dev1){
+        dataCov+=dev1[k]*dev2[k];
+    }
+    dataCov=dataCov/dev1.length;
+    return dataCov;
+}
+function corrcoef(k1,k2){
+    var cov1=cov(k1,k2);
+    var std1=std(k1);
+    var std2=std(k2);
+    return cov1 / (std1*std2);
+}
+function _correlation(d1,d2,min,max,interval){
+    var a=corrcoef(d1,d2)*(std(d2)/std(d1));
+    var b=mean(d2)-(a*mean(d1));
+    var x=[];
+    var y=[];
+    //console.log("COR",d1,d2,a,b);
+    for(var i=min;i<=max+1;i=i+interval){
+        x.push(i);
+        y.push(a*i+b);
+    }
+    return {x:x,y:y};
+}

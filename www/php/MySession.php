@@ -1,62 +1,58 @@
 <?php
-require_once __DIR__."/json.php";
-require_once __DIR__."/fs/NativeFS.php";
+require_once __DIR__."/data/pdo.php";
 class MySession {
-    static $fs,$j,$id,$data;
+    static $id,$data;
     public static function startWith($i) {
         self::$id=$i;
-        self::$fs=new NativeFS("/tmp/");
-        self::$j=new Services_JSON();
         self::load();
     }
     public static function start() {
         if (isset(self::$id)) {
             return self::$id;
         }
-        self::$fs=new NativeFS("/tmp/");
-        self::$j=new Services_JSON();
         $idname="mysessionID";
         if (isset($_COOKIE[$idname])) {
             self::$id=$_COOKIE[$idname];
         } else {
-            self::$id=rand(1,99999999);
-            setcookie($idname,self::$id,time()+60*60*24*30*6);
+            self::$id=self::publish();
+            setcookie($idname,self::$id,time()+60*60*24*30*1);
         }
         self::load();
     }
-    public static function fileName() {
-        return "myses".self::$id.".json";
+    public static function publish() {
+        do {
+            $id=rand(100000000 ,999999999);
+        } while (pdo_select1("select id from mysession where id=?",$id));
+        return $id;
     }
     public static function get($key) {
         self::start();
-        return self::$data[$key];
+        return self::$data->{$key};
     }
     public static function has($key) {
         self::start();
-        return isset(self::$data[$key]);
+        return isset(self::$data->{$key});
     }
     public static function set($key,$value) {
         self::start();
-        self::$data[$key]=$value;
+        self::$data->{$key}=$value;
         self::save();
     }
     public static function load() {
-        if (!self::$fs->exists(self::fileName())) {
-            return self::$data=array();
+        $rec=pdo_select1("select data from mysession where id=?",self::$id);
+        if (!$rec) {
+            return self::$data=new stdClass();
         }
-        $c=self::$fs->getContent(self::fileName());
-        self::$data=self::$j->decode($c);
+        $data_json=$rec->data;
+        self::$data=json_decode($data_json);
     }
     public static function save() {
-        $c=self::$j->encode(self::$data);
-        //print "Save to ".self::fileName();
-        self::$fs->setContent(self::fileName(),$c);
+        $data_json=json_encode(self::$data);
+        pdo_insertOrUpdate("mysession",array("id"=>self::$id),array("time"=>time(), "data"=>$data_json));
     }
     public static function clear() {
         self::start();
-        if (self::$fs->exists(self::fileName())) {
-            self::$fs->rm(self::fileName());
-        }
+        pdo_exec("delete from mysession where id=?",self::$id);
     }
 }
 

@@ -19,9 +19,10 @@ class ClassController {
         if(!Auth::isTeacherOf($class)){
             return redirect("Teacher/login");
         }
+
         ?>
         <style>
-        .assignment { display:none;}
+        .assignment { display:block;}
         </style>
         <script src="runtime/lib/jquery-1.12.1.js"></script>
         <script type="text/javascript">
@@ -47,14 +48,16 @@ class ClassController {
         <a href="a.php?Class/showUsers">ユーザ一覧</a><br>
         <a href="a.php?TeacherLog/view">ユーザの状況一覧</a><BR>
         <a href="a.php?Zip/download">ユーザの全ファイルダウンロード</a><BR>
-        <div class="assignment"><a href="a.php?Mark/notMarked">未採点の課題</a></div>
-        <div class="assignment"><a href="a.php?Assignment/matrix">採点状況</a></div>
+        <?php if ($class->useAssignment()) {  ?>
+            <div class="assignment"><a href="a.php?Mark/notMarked">未採点の課題</a></div>
+            <div class="assignment"><a href="a.php?Assignment/matrix">採点状況</a></div>
+        <?php } ?>
         <hr>
         <a href="." target="student">演習画面へ</a><hr>
         <?php
     }
     static function make() {
-        Auth::assertTeacher();
+        Auth::assertTeacher(true);
         if (isset($_POST["classname"])) {
             $classN=$_POST["classname"];
             try {
@@ -70,6 +73,63 @@ class ClassController {
             TeacherController::home($mesg);
         }
     }
+    static function getOptions() {
+        // TODO
+        // パスワードポリシーの設定とか
+        //Auth::assertTeacher();
+        $class=Auth::curClass2();
+        header("Content-type: text/json");
+        print json_encode($class->getOptions());
+    }
+    static function setOption() {
+        Auth::assertTeacher();
+        $class=Auth::curClass2();
+        $name=param("name");
+        $value=param("value");
+        $value=($value==="true" ||$value==="1");
+        switch ($name) {
+            case "usePassword":
+            $class->setPasswordPolicy($value?"yes":"nouse");
+            break;
+            case "registByUser":
+            $class->allowRegistrationByUser($value);
+            break;
+            case "useAssignment":
+            $class->useAssignment($value);
+            break;
+            default:
+            die ("$name is not a option name");
+        }
+        redirect("Class/config");
+    }
+    static function optionItems($name) {
+        Auth::assertTeacher();
+        $class=Auth::curClass2();
+        switch ($name) {
+        case "usePassword":
+        $label="パスワード設定";
+        $cur=$class->passwordRequired()?1:0;
+        $options=array("使用しない","使用する");
+        break;
+        case "registByUser":
+        $label="ユーザ登録方法";
+        $cur=$class->registrationByUserAllowed()?1:0;
+        $options=array("教員による登録のみ","ユーザ自身または教員による登録");
+        break;
+        case "useAssignment":
+        $label="課題提出機能（試験運用中）";
+        $cur=$class->useAssignment()?1:0;
+        $options=array("使用しない","使用する");
+        break;
+        default:
+        die ("$name is not a option name");
+        }
+        echo"<p>";
+        echo "$label:".$options[$cur].'<br>';
+        $inv=$cur?0:1;
+        echo '<a href="a.php?Class/setOption&name='.$name.'&value='.$inv.'">「'.$options[$inv].'」に変更</a>';
+        echo"</p>";
+    }
     static function config() {
         // TODO
         // パスワードポリシーの設定とか
@@ -78,8 +138,12 @@ class ClassController {
         ?>
         <a href="a.php?Class/show">クラス管理に戻る</a><hr>
         <h1><?=$class->id?> - クラス設定</h1>
-        <p>
         <?php
+        self::optionItems("usePassword");
+        self::optionItems("registByUser");
+        self::optionItems("useAssignment");
+
+        /*
         if($class->passwordRequired()){
             echo 'パスワード設定:使用する<br>';
             echo '<a href="a.php?Class/setPasswordNouse">「使用しない」に変更</a>';
@@ -93,8 +157,8 @@ class ClassController {
         echo "ユーザ登録方法：".($regu?"ユーザ自身または教員による登録":"教員による登録のみ")."<Br>";
         echo '<a href="a.php?Class/setUserRegistrationPolicy&allow='.!$regu.'">';
         echo '「'. (!$regu?"ユーザ自身または教員による登録":"教員による登録のみ")  .'」に変更</a>';
+        */
         ?>
-        </p>
         <hr>
         <?php
     }
@@ -144,23 +208,21 @@ class ClassController {
         <a href="a.php?Class/show">クラス管理に戻る</a><hr>
         <h1><?=$class->id?> - ユーザ一覧</h1>
         <div><a href="a.php?Class/registerUserForm">ユーザ登録</a></div>
-        <div><a href="a.php?Class/showUsers&card=1">詳細一覧表示(アカウント配布用印刷)</a></div><hr>
+        <div><a href="a.php?Class/showUsers&card=1" target="_userCard">詳細一覧表示(アカウント配布用印刷)</a></div><hr>
         <!--div>※ユーザIDをクリックするとそのユーザとしてプログラムを閲覧できます。プログラムの編集も可能ですのでご注意ください。</div-->
         <table border=1>
-            <tr><th>ユーザID</th><th>パスワード</th><th>名前</th></tr>
+            <tr><th>ユーザID</th><th>名前</th><th>パスワード</th></tr>
         <?php
         //<th>実行時刻</th><th>実行ファイル</th><th>実行結果</th><th>実行詳細</th><th>プログラム</th>
         foreach($students as $s){
             $pass=$s->getPass();
-            $s->getOptions();
-            if(!$s->options){
+            $opt=$s->getOptions();
+            if(!isset($opt->name)){
                 $n="未登録";
             }else{
-                $n=$s->options["options"];
+                $n=$opt->name;
                 if($n==""){
                     $n="未登録";
-                }else{
-                    $n=json_decode($n)->name;
                 }
             }
             $lf=$s->getLog();
@@ -173,9 +235,9 @@ class ClassController {
                 $l->filename=$tmpf[4]."/".$tmpf[5];
             }
             ?>
-            <tr><th><?=$s->name?></th>
+            <tr><th><?=$s->name?></th><th><?=$n?></th>
 	            <th pass="<?=$pass?>" onclick="if(this.innerHTML=='表示')this.innerHTML=this.getAttribute('pass');else this.innerHTML='表示';">表示</th>
-            <th><?=$n?></th>
+
             </tr>
 
             <?php
@@ -336,6 +398,10 @@ class ClassController {
         $f->setFlags(SplFileObject::READ_CSV);
         $list=array();
         $created=0;$updated=0;
+        ?>
+        <table border=1>
+            <tr><th>種別</th><th>ユーザID</th><th>名前</th><th>パスワード</th></tr>
+        <?php
         foreach($f as $line){
             if(!is_null($line[0])){
                 /*echo "<pre>";
@@ -351,15 +417,25 @@ class ClassController {
                     if(!$u->exists()){
                         $u->make();
                         $created++;
+                        ?>
+                        <th>新規</th><th><?=$line[0]?></th><th><?=$line[1]?></th><th><?=$line[2]?></th></tr>
+                        <?php
                     }else {
                         $u->edit();
                         $updated++;
+                        ?>
+                        <th>変更</th><th><?=$line[0]?></th><th><?=$line[1]?></th><th><?=$line[2]?></th></tr>
+                        <?php
                     }
                 }
             }
         }
+        ?>
+        </table>
+        <?php
         echo "$created 件のユーザを登録しました<br>";
         echo "登録済ユーザの情報を$updated 件更新しました<br>";
+        echo "登録情報に誤りがあった場合、同一ユーザIDでもう一度登録を行うとパスワードと名前を上書きできます。<br>";
         echo '<a href="a.php?Class/registerUserForm">ユーザ登録に戻る</a><br>';
         echo '<a href="a.php?Class/showUsers">ユーザ一覧を見る</a>';
         //header("Location: a.php?Class/showUsers");

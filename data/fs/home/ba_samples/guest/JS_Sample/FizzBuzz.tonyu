@@ -1,0 +1,13 @@
+for(i=1;i<=50;i++){
+    if(i%15==0){
+        addText("t","FizzBuzz");
+    }else if(i%3==0){
+        addText("t","Fizz");
+    }else if(i%5==0){
+        addText("t","Buzz");
+    }else{
+        addText("t",i);
+    }
+    addText("t","<br>");
+    wait(300);
+}

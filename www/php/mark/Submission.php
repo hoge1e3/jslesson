@@ -12,6 +12,7 @@ class Submission {
             //"user"=>"string",
             "files"=>"object",
             "source"=>"string",
+            "output"=>"string",
             "time"=>"integer"
         );
     }

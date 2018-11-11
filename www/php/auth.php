@@ -22,6 +22,7 @@ $fs=new NativeFS(BA_DATA."/");
 $userDir=new SFile($fs,"user/");
 class Auth {
     const TEACHER="teacher";
+    const SYSAD="sysad";
     static function login($class,$user,$pass=null) {
         // TODO 戻り値：
         // ユーザ登録が必要 "register"
@@ -102,6 +103,15 @@ class Auth {
 	        return true;
 	    }
     }
+    static function loginByToken($token) {
+        $u=BAUser::fromAccessToken($token);
+        if (!$u) return false;
+        $uname=$u->name;
+        $cid=$u->_class->id;
+        MySession::set("class",$cid);
+        MySession::set("user",$uname);
+        return $u;
+    }
     static function loginUser($class,$user,$pass){
         //TODO
 	    $pdo = pdo();
@@ -124,15 +134,16 @@ class Auth {
             throw new Exception("You are not the sudoer");
         }
     }
-    static function assertTeacher() {
+    static function assertTeacher($ignoreClass=false) {
       $t=self::curTeacher();
       if (!$t) {
         throw new Exception("You are not the teacher");
       }
+      // when creating class...
+      if ($ignoreClass) return $t;
       $c=self::curClass2();
       if (!$c) {
           return $t;
-          throw new Exception("You are not logged on any class");
       }
       if ($t->isTeacherOf($c)) {
         return $t;

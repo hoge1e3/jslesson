@@ -38,7 +38,7 @@ define([], function () {
 			getFiles:WS.phpTop+"getFiles.php",
 			putFiles:WS.phpTop+"putFiles.php"*/
 	};
-	WS.controller=WS.serverTop+"a.php";
+	WS.controller=WS.serverTop+"";
 	WS.runtime=WS.serverTop+"runtime/";
 	//WS.published=WS.serverTop+"fs/home/";
 	WS.published=WS.serverTop+"fs/pub/";

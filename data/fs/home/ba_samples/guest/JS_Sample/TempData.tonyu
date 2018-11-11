@@ -1,0 +1,13 @@
+native Date;
+native parseInt;
+function convertTime(r){
+    var d=new Date(parseInt(r.time*1000));
+    return d.toLocaleString();
+}
+setGroup("sample");
+res=findLog("thermo");
+for(var i=0;i<res.length;i++){
+    t=convertTime(res[i]);
+    addText("temp",t+" "+res[i].data1+"度<br>");
+    wait(10);
+}

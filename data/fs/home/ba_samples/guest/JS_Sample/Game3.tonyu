@@ -1,0 +1,32 @@
+// 完成
+x=100;
+y=300;
+bx=[50,320,250,20];
+by=[0,10,50,30];
+onClick("right",right);
+onClick("left",left);
+while(true) {
+    move("neko",x,y);
+    for (i=0;i<4;i++){
+        moveBall(i);
+    }
+    wait(50);
+}
+function moveBall(i) {
+    move("ball"+i,bx[i],by[i]);
+    by[i]+=10;
+    if (by[i]>400) {
+        by[i]=0;
+        bx[i]=rnd(300);
+    }
+    if (bx[i]>x-30 && bx[i]<x+30 && 
+    by[i]>y-30 && by[i]<y+30) {
+        y=-1000;
+    }
+}
+function left() {
+    x-=10;
+}
+function right() {
+    x+=10;
+}

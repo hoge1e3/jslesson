@@ -1,5 +1,5 @@
-define(["assert","DeferredUtil","wget", "dolittle/minimal","IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator"],
-function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG) {
+define(["assert","DeferredUtil","wget", "dolittle/minimal","IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator","UI"],
+function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG,UI) {
     DtlBuilder=function (prj, dst) {
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
@@ -166,6 +166,20 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG) {
     }
     p.upload=function (pub) {
         return Sync.sync(this.dst,pub);
+    };
+    p.qrDialog=function (ctx) {
+        var e=ctx.editorInfo.editor;
+        var src=e.getValue();
+        if (src.indexOf("NOGENERATOR")>=0) return;
+        ctx.dialogJQ.append(UI("div",
+            ["button",{on:{click:addNongen}},"古い端末で表示する"]
+        ));
+        function addNongen() {
+            src="//NOGENERATOR\n"+src;
+            e.setValue(src);
+            setTimeout(ctx.rerun,500);
+            ctx.dialogJQ.dialog("close");
+        }
     };
     return DtlBuilder;
 });

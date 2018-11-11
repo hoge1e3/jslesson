@@ -65,12 +65,17 @@ class BAUser {
 	    $sth->execute(array($this->password,$this->options,$this->_class->id,$this->name));
 
     }
+    function update() {
+        $this->edit();
+    }
 
     function setOptions($key,$value){
         if(self::exists()){
             $this->options=self::getOptions();
+        } else {
+            $this->options=new stdClass;
         }
-        $this->options[$key]=$value;
+        $this->options->{$key}=$value;
         $this->options=json_encode($this->options);
     }
     function getOptions(){
@@ -78,7 +83,10 @@ class BAUser {
         $sth=$pdo->prepare("select options from user where class = ? and name = ?");
     	$sth->execute(array($this->_class->id,$this->name));
     	$u=$sth->fetchAll();
-    	$this->options=$u[0];
+        $j=$u[0]["options"];
+        if (!$j) $this->options=new stdClass;
+    	else $this->options=json_decode($j);
+        return $this->options;
     }
     function isTeacherOf($class) {
         //このユーザは$class の教員roleを持つか？
@@ -113,8 +121,10 @@ class BAUser {
         }
     }
     function publishAccessToken() {
-        $res=rand(1000000,
+        do {
+            $res=rand(1000000,
                   9999999);
+        } while ($this->fromAccessToken($res));
         pdo_insertOrUpdate("accessToken",
             array("class"=>$this->_class->id, "user"=>$this->name),
             array("token"=>$res)

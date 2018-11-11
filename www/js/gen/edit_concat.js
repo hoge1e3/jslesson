@@ -4481,7 +4481,7 @@ define('WebSite',[], function () {
 			getFiles:WS.phpTop+"getFiles.php",
 			putFiles:WS.phpTop+"putFiles.php"*/
 	};
-	WS.controller=WS.serverTop+"a.php";
+	WS.controller=WS.serverTop+"";
 	WS.runtime=WS.serverTop+"runtime/";
 	//WS.published=WS.serverTop+"fs/home/";
 	WS.published=WS.serverTop+"fs/pub/";
@@ -14054,7 +14054,14 @@ define('Menu',["UI"], function (UI) {
                     "data-toggle":(mainMenuItem.sub?"dropdown":null)
                 }, mainMenuItem.label]
         );
-        ul1.append(li);
+        if (mainMenuItem.action) {
+            li.find("a").click(mainMenuItem.action);
+        }
+        if (mainMenuItem.after) {
+            $(mainMenuItem.after).closest("li").after(li);
+        } else {
+            ul1.append(li);
+        }
         if (mainMenuItem.sub) {
             var ul2=UI("ul",{
                 id:"submenu_"+mainMenuItem.id,
@@ -16071,7 +16078,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
             t.dom=t.dom||t.createDOM();
             //t.dom.dialog(t.dialogParam);
             t.mode=null;
-            $.post("a.php?Assignment/get",{
+            $.post(WebSite.controller+"?Assignment/get",{
                 name: name
             }).then(function (a) {
                 console.log("got",a);
@@ -16112,7 +16119,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
         },
         showList:function (t) {
             t.list.empty();
-            return $.get("a.php?Assignment/listNames").then(function (r) {
+            return $.get(WebSite.controller+"?Assignment/listNames").then(function (r) {
                 if (typeof r==="string") {
                     r=JSON.parse(r);
                 }
@@ -16223,7 +16230,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
             console.log("post param",param);
             switch (t.mode) {
             case "add":
-            return $.post("a.php?Assignment/add",param).then(function (r){
+            return $.post(WebSite.controller+"?Assignment/add",param).then(function (r){
                 t.cur=param;
                 t.cur.id=r-0;
                 t.showMesg("追加しました");
@@ -16233,18 +16240,20 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
                 console.log("Result",r,param);
             },DU.E);
             case "edit":
+            var pre=DU.directPromise();
             if (t.origname.val()!==t.name.val()) {
-                return $.post("a.php?Assignment/rename",param).then(function (r){
+                pre=$.post(WebSite.controller+"?Assignment/rename",param).then(function (r){
                     t.showList();
-                    t.showMesg("更新しました");
-                    console.log("Result",r);
-                },DU.E);
-            } else {
-                return $.post("a.php?Assignment/edit",param).then(function (r){
-                    t.showMesg("更新しました");
-                    console.log("Result",r);
-                },DU.E);
+                    t.showMesg("名前変更しました");
+                    console.log("ren Result",r);
+                });
             }
+            return pre.then(function () {
+                return $.post(WebSite.controller+"?Assignment/edit",param);
+            }).then(function (r){
+                t.showMesg("更新しました");
+                console.log("upd Result",r);
+            },DU.E);
             default:
                 alert("No mode "+t.mode);
             }
@@ -16252,7 +16261,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
         del: function (t) {
             if (t.mode!=="edit") return;
             if (!confirm(t.cur.name+"を削除しますか？")) return;
-            $.get("a.php?Assignment/del&id="+t.cur.id).then(function (r){
+            $.get(WebSite.controller+"?Assignment/del&id="+t.cur.id).then(function (r){
                 t.showMesg("削除しました");
                 t.add();
                 t.showList();
@@ -16350,7 +16359,7 @@ define('CommentDialog2',["UI","Klass"],function (UI,Klass) {
         $: ["prj"],
         getComment: function (t,file) {
             var path=t.prj.getDir().name()+file.name();
-            return $.get("a.php?Mark/getLast&file="+path+"&p="+Math.random()).then(function (r) {
+            return $.get(WebSite.controller+"?Mark/getLast&file="+path+"&p="+Math.random()).then(function (r) {
                 if (typeof r==="string") r=JSON.parse(r);
                 if (!r.result) return null;
                 return r;
@@ -16701,10 +16710,11 @@ function ready() {
     function autologexec() {
         var id=Util.getQueryString("autologexec",null);
         if (id) {
-            $.ajax("a.php?AddErrorInfo/getLog&logid="+id).then(function (r) {
+            $.ajax(WebSite.controller+"?AddErrorInfo/getLog&logid="+id).then(function (r) {
                 var raw=JSON.parse(r.raw);
                 var name="AutoExec";
                 var f=curProjectDir.rel(name+EXT);
+                var pf;
                 console.log("ale",r,f.path());
                 if (!f.exists()) {
                    FM.on.createContent(f);
@@ -16716,12 +16726,14 @@ function ready() {
                 };
                 for (var k in raw.code) {
                     f=curProjectDir.rel(name+extmap[k.toLowerCase()]);
+                    if(k.toLowerCase()!="html") pf=f;
                     console.log("ale-edt",k,f.path(),f.exists());
                     if (f.exists()) {
                         fl.select(f);//curProjectDir.rel("Test.c"));
                         getCurrentEditorInfo().editor.getSession().getDocument().setValue(raw.code[k]);
                     }
                 }
+                fl.select(pf);
                 run();//$("#runMenu").click();
            }).catch (function (e) {console.error(e);});
         }
@@ -16729,7 +16741,7 @@ function ready() {
     function autosubexec() {
         var id=Util.getQueryString("autosubexec",null);
         if (id) {
-            $.ajax("a.php?Mark/getSubmission&id="+id).then(function (r) {
+            $.ajax(WebSite.controller+"?Mark/getSubmission&id="+id).then(function (r) {
                r=typeof r==="object" ? r: JSON.parse(r);
                var files=r.files;
                var file;
@@ -16784,7 +16796,7 @@ function ready() {
                       //{label:"閉じる",id:"closeFile"},
                       {label:"削除", id:"rmFile"}
                   ]},
-                  {label:"実行",id:"runMenu",action:run/*sub:[
+                  {label:"実行",id:"runMenu",action:run/* sub:[
                       {label:"実行(F9)",id:"runMenu",action:run},
                       {label:"停止(F2)",id:"stopMenu",action:stop},
                   ]*/},
@@ -16796,6 +16808,12 @@ function ready() {
                   ]}
               ]}
         );
+        $.ajax(".?Class/getOptions").then(function (r) {
+            if (r.useAssignment==="yes") {
+                Menu.appendMain({after:"#save",label:"提出",id:"submit",action:submit});
+                //$("#submit").click(submit);
+            }
+        });
         showToolMenu();
         showDistMenu();
         Menu.appendMain({label:"使用方法",id:"openHelp"});
@@ -16852,6 +16870,13 @@ function ready() {
                     //{label:"課題作成",id:"assignment",action:assignment}
                 ]}
             );
+            $.ajax(".?Class/getOptions").then(function (r) {
+                if (r.useAssignment==="yes") {
+                    Menu.appendSub("distribute",
+                        {label:"課題作成",id:"assignment",action:assignment}
+                    );
+                }
+            });
             //dist="block";
         }else{
             //dist="none";
@@ -16893,7 +16918,7 @@ function ready() {
             console.log(text,overwrite);
             $.ajax({
                 type:"POST",
-                url:"a.php?Class/distribute",
+                url:WebSite.controller+"?Class/distribute",
                 data:{
                     "prj":curPrjDir,
                     "file":curFile.name(),
@@ -17202,11 +17227,12 @@ function ready() {
         displayMode("edit");
     }
     var curName,runURL;
-    $("#fullScr").click(function () {
+    $("#fullScr").click(runFullScr);
+    function runFullScr() {
         //if (lang=="dncl"||lang=="dtl" || lang=="js" || lang=="c" ||  lang=="tonyu") {
             var inf=getCurrentEditorInfo();
             if (!inf) {
-                alert("実行したファイルを選んでください");
+                alert("実行したいファイルを選んでください");
             }
             save();
             sync();
@@ -17236,6 +17262,11 @@ function ready() {
                         $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
                     ));
                     cv.append($("<div>").qrcode({width:200,height:200,text:runURL}));
+                    if (builder.qrDialog) builder.qrDialog({
+                        dialogJQ:cv,
+                        editorInfo:getCurrentEditorInfo(),
+                        rerun:runFullScr
+                    });
                     return sync();
                 }).fail(function (e) {
                     Tonyu.onRuntimeError(e);
@@ -17243,7 +17274,7 @@ function ready() {
                 });
             }
         //}
-    });
+    }
     //\run
     function run() {//run!!
         var inf=getCurrentEditorInfo();
@@ -17843,7 +17874,7 @@ function ready() {
         save();
         goHome();
     }));
-    $("#runMenu").click(F(run));
+    //$("#runMenu").click(F(run));
     function goHome(){
         console.log("goHome");
         unsynced=false;
@@ -17860,7 +17891,6 @@ function ready() {
             return "保存されていないデータがあります。\nこれまでの作業を保存するためには一度実行してください。";
         }
     });
-    $("#submit").click(submit);
     $("#save").click(F(function () {
         save();
         sync();

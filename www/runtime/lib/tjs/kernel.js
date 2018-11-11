@@ -1,4 +1,2106 @@
 Tonyu.klass.define({
+  fullName: 'jslker.Graph',
+  shortName: 'Graph',
+  namespace: 'jslker',
+  includes: [],
+  methods: {
+    main :function _trc_Graph_main() {
+      "use strict";
+      var _this=this;
+      
+    },
+    fiber$main :function _trc_Graph_f_main(_thread) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      
+      _thread.retVal=_this;return;
+    },
+    initialize :function _trc_Graph_initialize(div) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1000086;//jslker.Graph:86
+      _this._place=div;
+      $LASTPOS=1000107;//jslker.Graph:107
+      _this._xaxname="";
+      $LASTPOS=1000129;//jslker.Graph:129
+      _this._yaxname="";
+      $LASTPOS=1000151;//jslker.Graph:151
+      _this._xrange;
+      $LASTPOS=1000169;//jslker.Graph:169
+      _this._yrange;
+      $LASTPOS=1000187;//jslker.Graph:187
+      _this._isDrawCor=false;
+      $LASTPOS=1000214;//jslker.Graph:214
+      _this.plotlyURL=window.runtimePath+"lib/plotly-latest.min.js";
+      $LASTPOS=1000275;//jslker.Graph:275
+      window.$.getScript(_this.plotlyURL);
+      $LASTPOS=1000310;//jslker.Graph:310
+      window.setTimeout(Tonyu.bindFunc(_this,_this.waitLoadLib),100);
+      $LASTPOS=1000351;//jslker.Graph:351
+      _this.loadLibHandlers=[];
+      $LASTPOS=1000375;//jslker.Graph:375
+      _this._corObj={};
+      $LASTPOS=1000396;//jslker.Graph:396
+      _this.src=_this.src||[];
+      $LASTPOS=1000413;//jslker.Graph:413
+      _this._typemap={};
+    },
+    setData :function _trc_Graph_setData(data) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1000501;//jslker.Graph:501
+      _this.src=data;
+    },
+    fiber$setData :function _trc_Graph_f_setData(_thread,data) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=1000501;//jslker.Graph:501
+      _this.src=data;
+      
+      _thread.retVal=_this;return;
+    },
+    addData :function _trc_Graph_addData(d) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1000560;//jslker.Graph:560
+      if (typeof  d==="object") {
+        $LASTPOS=1000595;//jslker.Graph:595
+        _this.src.push(d);
+        
+      } else {
+        $LASTPOS=1000629;//jslker.Graph:629
+        _this.src.push({x: arguments[0],y: arguments[1]});
+        
+      }
+    },
+    fiber$addData :function _trc_Graph_f_addData(_thread,d) {
+      "use strict";
+      var _this=this;
+      var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=1000560;//jslker.Graph:560
+      if (typeof  d==="object") {
+        $LASTPOS=1000595;//jslker.Graph:595
+        _this.src.push(d);
+        
+      } else {
+        $LASTPOS=1000629;//jslker.Graph:629
+        _this.src.push({x: _arguments[0],y: _arguments[1]});
+        
+      }
+      
+      _thread.retVal=_this;return;
+    },
+    onLoadLib :function _trc_Graph_onLoadLib(f) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1000711;//jslker.Graph:711
+      if (_this.Plotly) {
+        $LASTPOS=1000723;//jslker.Graph:723
+        f(_this.Plotly);
+      } else {
+        $LASTPOS=1000743;//jslker.Graph:743
+        _this.loadLibHandlers.push(f);
+      }
+    },
+    fiber$onLoadLib :function _trc_Graph_f_onLoadLib(_thread,f) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=1000711;//jslker.Graph:711
+      if (_this.Plotly) {
+        $LASTPOS=1000723;//jslker.Graph:723
+        f(_this.Plotly);
+      } else {
+        $LASTPOS=1000743;//jslker.Graph:743
+        _this.loadLibHandlers.push(f);
+      }
+      
+      _thread.retVal=_this;return;
+    },
+    waitLoadLib :function _trc_Graph_waitLoadLib() {
+      "use strict";
+      var _this=this;
+      var f;
+      var _it_117;
+      
+      $LASTPOS=1000791;//jslker.Graph:791
+      if (! window.Plotly) {
+        $LASTPOS=1000821;//jslker.Graph:821
+        window.setTimeout(Tonyu.bindFunc(_this,_this.waitLoadLib),100);
+        
+      } else {
+        $LASTPOS=1000879;//jslker.Graph:879
+        _this.Plotly=window.Plotly;
+        $LASTPOS=1000909;//jslker.Graph:909
+        _it_117=Tonyu.iterator(_this.loadLibHandlers,1);
+        while(_it_117.next()) {
+          f=_it_117[0];
+          
+          $LASTPOS=1000940;//jslker.Graph:940
+          f(_this.Plotly);
+        }
+        
+      }
+    },
+    fiber$waitLoadLib :function _trc_Graph_f_waitLoadLib(_thread) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var f;
+      var _it_117;
+      
+      $LASTPOS=1000791;//jslker.Graph:791
+      if (! window.Plotly) {
+        $LASTPOS=1000821;//jslker.Graph:821
+        window.setTimeout(Tonyu.bindFunc(_this,_this.waitLoadLib),100);
+        
+      } else {
+        $LASTPOS=1000879;//jslker.Graph:879
+        _this.Plotly=window.Plotly;
+        $LASTPOS=1000909;//jslker.Graph:909
+        _it_117=Tonyu.iterator(_this.loadLibHandlers,1);
+        while(_it_117.next()) {
+          f=_it_117[0];
+          
+          $LASTPOS=1000940;//jslker.Graph:940
+          f(_this.Plotly);
+        }
+        
+      }
+      
+      _thread.retVal=_this;return;
+    },
+    _setCorrelation :function _trc_Graph__setCorrelation(x,y,min,max,interval) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1001023;//jslker.Graph:1023
+      if ((min>max&&interval>0)||(min<=max&&interval<0)||interval==0) {
+        return _this;
+        
+      }
+      $LASTPOS=1001121;//jslker.Graph:1121
+      console.log(min,max,interval);
+      $LASTPOS=1001156;//jslker.Graph:1156
+      _this._corObj=_this._correlation(x,y,min,max,interval);
+      $LASTPOS=1001209;//jslker.Graph:1209
+      _this._isDrawCor=true;
+    },
+    fiber$_setCorrelation :function _trc_Graph_f__setCorrelation(_thread,x,y,min,max,interval) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=1001023;//jslker.Graph:1023
+      if ((min>max&&interval>0)||(min<=max&&interval<0)||interval==0) {
+        _thread.retVal=_this;return;
+        
+        
+      }
+      $LASTPOS=1001121;//jslker.Graph:1121
+      console.log(min,max,interval);
+      
+      _thread.enter(function _trc_Graph_ent__setCorrelation(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1001156;//jslker.Graph:1156
+            _this.fiber$_correlation(_thread, x, y, min, max, interval);
+            __pc=1;return;
+          case 1:
+            _this._corObj=_thread.retVal;
+            
+            $LASTPOS=1001209;//jslker.Graph:1209
+            _this._isDrawCor=true;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    setAxisText :function _trc_Graph_setAxisText(x,y) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1001264;//jslker.Graph:1264
+      _this.setXAxisText(x);
+      $LASTPOS=1001285;//jslker.Graph:1285
+      _this.setYAxisText(y);
+    },
+    fiber$setAxisText :function _trc_Graph_f_setAxisText(_thread,x,y) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      
+      _thread.enter(function _trc_Graph_ent_setAxisText(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1001264;//jslker.Graph:1264
+            _this.fiber$setXAxisText(_thread, x);
+            __pc=1;return;
+          case 1:
+            
+            $LASTPOS=1001285;//jslker.Graph:1285
+            _this.fiber$setYAxisText(_thread, y);
+            __pc=2;return;
+          case 2:
+            
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    setXAxisText :function _trc_Graph_setXAxisText(x) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1001334;//jslker.Graph:1334
+      _this._xaxname=x;
+    },
+    fiber$setXAxisText :function _trc_Graph_f_setXAxisText(_thread,x) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=1001334;//jslker.Graph:1334
+      _this._xaxname=x;
+      
+      _thread.retVal=_this;return;
+    },
+    setYAxisText :function _trc_Graph_setYAxisText(y) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1001383;//jslker.Graph:1383
+      _this._yaxname=y;
+    },
+    fiber$setYAxisText :function _trc_Graph_f_setYAxisText(_thread,y) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=1001383;//jslker.Graph:1383
+      _this._yaxname=y;
+      
+      _thread.retVal=_this;return;
+    },
+    setAxisType :function _trc_Graph_setAxisType(xtype,ytype) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1001442;//jslker.Graph:1442
+      _this.setXAxisType(xtype);
+      $LASTPOS=1001467;//jslker.Graph:1467
+      _this.setXAxisType(ytype);
+    },
+    fiber$setAxisType :function _trc_Graph_f_setAxisType(_thread,xtype,ytype) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      
+      _thread.enter(function _trc_Graph_ent_setAxisType(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1001442;//jslker.Graph:1442
+            _this.fiber$setXAxisType(_thread, xtype);
+            __pc=1;return;
+          case 1:
+            
+            $LASTPOS=1001467;//jslker.Graph:1467
+            _this.fiber$setXAxisType(_thread, ytype);
+            __pc=2;return;
+          case 2:
+            
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    setXAxisType :function _trc_Graph_setXAxisType(xtype) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1001553;//jslker.Graph:1553
+      if (xtype=="time") {
+        $LASTPOS=1001572;//jslker.Graph:1572
+        xtype="date";
+      }
+      $LASTPOS=1001590;//jslker.Graph:1590
+      _this._xaxtype=xtype;
+    },
+    fiber$setXAxisType :function _trc_Graph_f_setXAxisType(_thread,xtype) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=1001553;//jslker.Graph:1553
+      if (xtype=="time") {
+        $LASTPOS=1001572;//jslker.Graph:1572
+        xtype="date";
+      }
+      $LASTPOS=1001590;//jslker.Graph:1590
+      _this._xaxtype=xtype;
+      
+      _thread.retVal=_this;return;
+    },
+    setYAxisType :function _trc_Graph_setYAxisType(ytype) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1001643;//jslker.Graph:1643
+      if (ytype=="time") {
+        $LASTPOS=1001662;//jslker.Graph:1662
+        ytype="date";
+      }
+      $LASTPOS=1001680;//jslker.Graph:1680
+      _this._yaxtype=ytype;
+    },
+    fiber$setYAxisType :function _trc_Graph_f_setYAxisType(_thread,ytype) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=1001643;//jslker.Graph:1643
+      if (ytype=="time") {
+        $LASTPOS=1001662;//jslker.Graph:1662
+        ytype="date";
+      }
+      $LASTPOS=1001680;//jslker.Graph:1680
+      _this._yaxtype=ytype;
+      
+      _thread.retVal=_this;return;
+    },
+    bindType :function _trc_Graph_bindType(name,type) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1001733;//jslker.Graph:1733
+      if (type) {
+        $LASTPOS=1001743;//jslker.Graph:1743
+        _this._typemap[name]=type;
+      }
+    },
+    fiber$bindType :function _trc_Graph_f_bindType(_thread,name,type) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=1001733;//jslker.Graph:1733
+      if (type) {
+        $LASTPOS=1001743;//jslker.Graph:1743
+        _this._typemap[name]=type;
+      }
+      
+      _thread.retVal=_this;return;
+    },
+    setXRange :function _trc_Graph_setXRange(min,max,logScale) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1001809;//jslker.Graph:1809
+      _this._xrange=[min,max];
+      $LASTPOS=1001832;//jslker.Graph:1832
+      _this._xrange.logScale=logScale;
+    },
+    fiber$setXRange :function _trc_Graph_f_setXRange(_thread,min,max,logScale) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=1001809;//jslker.Graph:1809
+      _this._xrange=[min,max];
+      $LASTPOS=1001832;//jslker.Graph:1832
+      _this._xrange.logScale=logScale;
+      
+      _thread.retVal=_this;return;
+    },
+    setYRange :function _trc_Graph_setYRange(min,max,logScale) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1001909;//jslker.Graph:1909
+      _this._yrange=[min,max];
+      $LASTPOS=1001932;//jslker.Graph:1932
+      _this._yrange.logScale=logScale;
+    },
+    fiber$setYRange :function _trc_Graph_f_setYRange(_thread,min,max,logScale) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=1001909;//jslker.Graph:1909
+      _this._yrange=[min,max];
+      $LASTPOS=1001932;//jslker.Graph:1932
+      _this._yrange.logScale=logScale;
+      
+      _thread.retVal=_this;return;
+    },
+    line :function _trc_Graph_line(xaxis,yaxis) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1001999;//jslker.Graph:1999
+      _this._drawGraph("line",xaxis,yaxis);
+    },
+    fiber$line :function _trc_Graph_f_line(_thread,xaxis,yaxis) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      
+      _thread.enter(function _trc_Graph_ent_line(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1001999;//jslker.Graph:1999
+            _this.fiber$_drawGraph(_thread, "line", xaxis, yaxis);
+            __pc=1;return;
+          case 1:
+            
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    bar :function _trc_Graph_bar(xaxis,yaxis) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1002064;//jslker.Graph:2064
+      _this._drawGraph("bar",xaxis,yaxis);
+    },
+    fiber$bar :function _trc_Graph_f_bar(_thread,xaxis,yaxis) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      
+      _thread.enter(function _trc_Graph_ent_bar(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1002064;//jslker.Graph:2064
+            _this.fiber$_drawGraph(_thread, "bar", xaxis, yaxis);
+            __pc=1;return;
+          case 1:
+            
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    vec :function _trc_Graph_vec(k) {
+      "use strict";
+      var _this=this;
+      
+      return _this.src.map((function anonymous_2201(rec) {
+        
+        return _this.getValue(rec,k);
+      }));
+    },
+    fiber$vec :function _trc_Graph_f_vec(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      _thread.retVal=_this.src.map((function anonymous_2201(rec) {
+        
+        return _this.getValue(rec,k);
+      }));return;
+      
+      
+      _thread.retVal=_this;return;
+    },
+    min :function _trc_Graph_min(k) {
+      "use strict";
+      var _this=this;
+      var ary;
+      
+      $LASTPOS=1002272;//jslker.Graph:2272
+      ary = _this.vec(k);
+      
+      $LASTPOS=1002292;//jslker.Graph:2292
+      ary.sort((function anonymous_2301(a,b) {
+        
+        return a-b;
+      }));
+      return ary[0];
+    },
+    fiber$min :function _trc_Graph_f_min(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var ary;
+      
+      
+      _thread.enter(function _trc_Graph_ent_min(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1002272;//jslker.Graph:2272
+            _this.fiber$vec(_thread, k);
+            __pc=1;return;
+          case 1:
+            ary=_thread.retVal;
+            
+            $LASTPOS=1002292;//jslker.Graph:2292
+            ary.sort((function anonymous_2301(a,b) {
+              
+              return a-b;
+            }));
+            _thread.exit(ary[0]);return;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    max :function _trc_Graph_max(k) {
+      "use strict";
+      var _this=this;
+      var ary;
+      
+      $LASTPOS=1002372;//jslker.Graph:2372
+      ary = _this.vec(k);
+      
+      $LASTPOS=1002392;//jslker.Graph:2392
+      ary.sort((function anonymous_2401(a,b) {
+        
+        return b-a;
+      }));
+      return ary[0];
+    },
+    fiber$max :function _trc_Graph_f_max(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var ary;
+      
+      
+      _thread.enter(function _trc_Graph_ent_max(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1002372;//jslker.Graph:2372
+            _this.fiber$vec(_thread, k);
+            __pc=1;return;
+          case 1:
+            ary=_thread.retVal;
+            
+            $LASTPOS=1002392;//jslker.Graph:2392
+            ary.sort((function anonymous_2401(a,b) {
+              
+              return b-a;
+            }));
+            _thread.exit(ary[0]);return;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    med :function _trc_Graph_med(k) {
+      "use strict";
+      var _this=this;
+      var half;
+      var temp;
+      
+      $LASTPOS=1002473;//jslker.Graph:2473
+      half = Math.ceil(_this.src.length/2);
+      
+      $LASTPOS=1002513;//jslker.Graph:2513
+      temp = _this.vec(k).sort((function anonymous_2536(a,b) {
+        
+        $LASTPOS=1002593;//jslker.Graph:2593
+        if ((a[k]-0)>(b[k]-0)) {
+          return - 1;
+        }
+        $LASTPOS=1002634;//jslker.Graph:2634
+        if ((a[k]-0)<(b[k]-0)) {
+          return 1;
+        }
+        return 0;
+      }));
+      
+      $LASTPOS=1002696;//jslker.Graph:2696
+      if (temp.length%2) {
+        return temp[half][k];
+        
+      }
+      return ((temp[half-1][k]-0)+(temp[half][k]-0))/2;
+    },
+    fiber$med :function _trc_Graph_f_med(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var half;
+      var temp;
+      
+      $LASTPOS=1002473;//jslker.Graph:2473
+      half = Math.ceil(_this.src.length/2);
+      
+      $LASTPOS=1002513;//jslker.Graph:2513
+      temp = _this.vec(k).sort((function anonymous_2536(a,b) {
+        
+        $LASTPOS=1002593;//jslker.Graph:2593
+        if ((a[k]-0)>(b[k]-0)) {
+          return - 1;
+        }
+        $LASTPOS=1002634;//jslker.Graph:2634
+        if ((a[k]-0)<(b[k]-0)) {
+          return 1;
+        }
+        return 0;
+      }));
+      
+      $LASTPOS=1002696;//jslker.Graph:2696
+      if (temp.length%2) {
+        _thread.retVal=temp[half][k];return;
+        
+        
+      }
+      _thread.retVal=((temp[half-1][k]-0)+(temp[half][k]-0))/2;return;
+      
+      
+      _thread.retVal=_this;return;
+    },
+    mode :function _trc_Graph_mode(k) {
+      "use strict";
+      var _this=this;
+      var counter;
+      var nativeValues;
+      var maxCounter;
+      var maxValue;
+      var i;
+      var value;
+      var j;
+      var ret;
+      
+      $LASTPOS=1002833;//jslker.Graph:2833
+      counter = {};
+      
+      $LASTPOS=1002855;//jslker.Graph:2855
+      nativeValues = {};
+      
+      $LASTPOS=1002882;//jslker.Graph:2882
+      maxCounter = 0;
+      
+      $LASTPOS=1002906;//jslker.Graph:2906
+      maxValue = null;
+      
+      $LASTPOS=1002931;//jslker.Graph:2931
+      $LASTPOS=1002936;//jslker.Graph:2936
+      i = 0;
+      for (; i<_this.src.length ; i++) {
+        Tonyu.checkLoop();
+        {
+          $LASTPOS=1002978;//jslker.Graph:2978
+          value = _this.getValue(_this.src[i],k);
+          
+          $LASTPOS=1003016;//jslker.Graph:3016
+          if (! counter[value]) {
+            $LASTPOS=1003051;//jslker.Graph:3051
+            counter[value]=0;
+            
+          }
+          $LASTPOS=1003089;//jslker.Graph:3089
+          counter[value]++;
+          $LASTPOS=1003115;//jslker.Graph:3115
+          nativeValues[value]=value;
+        }
+      }
+      $LASTPOS=1003154;//jslker.Graph:3154
+      $LASTPOS=1003159;//jslker.Graph:3159
+      j = 0;
+      for (; j<Object.keys(counter).length ; j++) {
+        Tonyu.checkLoop();
+        {
+          $LASTPOS=1003218;//jslker.Graph:3218
+          _this.key=Object.keys(counter)[j];
+          $LASTPOS=1003257;//jslker.Graph:3257
+          if (counter[_this.key]>maxCounter) {
+            $LASTPOS=1003302;//jslker.Graph:3302
+            maxCounter=counter[_this.key];
+            $LASTPOS=1003341;//jslker.Graph:3341
+            maxValue=nativeValues[_this.key];
+            
+          }
+        }
+      }
+      $LASTPOS=1003391;//jslker.Graph:3391
+      ret = [];
+      
+      $LASTPOS=1003407;//jslker.Graph:3407
+      $LASTPOS=1003412;//jslker.Graph:3412
+      j = 0;
+      for (; j<Object.keys(counter).length ; j++) {
+        Tonyu.checkLoop();
+        {
+          $LASTPOS=1003471;//jslker.Graph:3471
+          _this.key=Object.keys(counter)[j];
+          $LASTPOS=1003510;//jslker.Graph:3510
+          if (counter[_this.key]==maxCounter) {
+            $LASTPOS=1003556;//jslker.Graph:3556
+            ret.push(nativeValues[_this.key]);
+            
+          }
+        }
+      }
+      return {"mode": maxCounter,"nums": ret};
+    },
+    fiber$mode :function _trc_Graph_f_mode(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var counter;
+      var nativeValues;
+      var maxCounter;
+      var maxValue;
+      var i;
+      var value;
+      var j;
+      var ret;
+      
+      $LASTPOS=1002833;//jslker.Graph:2833
+      counter = {};
+      
+      $LASTPOS=1002855;//jslker.Graph:2855
+      nativeValues = {};
+      
+      $LASTPOS=1002882;//jslker.Graph:2882
+      maxCounter = 0;
+      
+      $LASTPOS=1002906;//jslker.Graph:2906
+      maxValue = null;
+      
+      
+      _thread.enter(function _trc_Graph_ent_mode(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1002931;//jslker.Graph:2931
+            $LASTPOS=1002936;//jslker.Graph:2936
+            i = 0;
+            
+          case 1:
+            if (!(i<_this.src.length)) { __pc=4     ; break; }
+            $LASTPOS=1002978;//jslker.Graph:2978
+            _this.fiber$getValue(_thread, _this.src[i], k);
+            __pc=2;return;
+          case 2:
+            value=_thread.retVal;
+            
+            $LASTPOS=1003016;//jslker.Graph:3016
+            if (! counter[value]) {
+              $LASTPOS=1003051;//jslker.Graph:3051
+              counter[value]=0;
+              
+            }
+            $LASTPOS=1003089;//jslker.Graph:3089
+            counter[value]++;
+            $LASTPOS=1003115;//jslker.Graph:3115
+            nativeValues[value]=value;
+          case 3     :
+            i++;
+            __pc=1;break;
+          case 4     :
+            
+            $LASTPOS=1003154;//jslker.Graph:3154
+            $LASTPOS=1003159;//jslker.Graph:3159
+            j = 0;
+            for (; j<Object.keys(counter).length ; j++) {
+              Tonyu.checkLoop();
+              {
+                $LASTPOS=1003218;//jslker.Graph:3218
+                _this.key=Object.keys(counter)[j];
+                $LASTPOS=1003257;//jslker.Graph:3257
+                if (counter[_this.key]>maxCounter) {
+                  $LASTPOS=1003302;//jslker.Graph:3302
+                  maxCounter=counter[_this.key];
+                  $LASTPOS=1003341;//jslker.Graph:3341
+                  maxValue=nativeValues[_this.key];
+                  
+                }
+              }
+            }
+            $LASTPOS=1003391;//jslker.Graph:3391
+            ret = [];
+            
+            $LASTPOS=1003407;//jslker.Graph:3407
+            $LASTPOS=1003412;//jslker.Graph:3412
+            j = 0;
+            for (; j<Object.keys(counter).length ; j++) {
+              Tonyu.checkLoop();
+              {
+                $LASTPOS=1003471;//jslker.Graph:3471
+                _this.key=Object.keys(counter)[j];
+                $LASTPOS=1003510;//jslker.Graph:3510
+                if (counter[_this.key]==maxCounter) {
+                  $LASTPOS=1003556;//jslker.Graph:3556
+                  ret.push(nativeValues[_this.key]);
+                  
+                }
+              }
+            }
+            _thread.exit({"mode": maxCounter,"nums": ret});return;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    freq :function _trc_Graph_freq(k) {
+      "use strict";
+      var _this=this;
+      var ret;
+      var o;
+      var _it_139;
+      
+      $LASTPOS=1003668;//jslker.Graph:3668
+      ret = [];
+      
+      $LASTPOS=1003684;//jslker.Graph:3684
+      _it_139=Tonyu.iterator(_this.vec(k),1);
+      while(_it_139.next()) {
+        o=_it_139[0];
+        
+        $LASTPOS=1003714;//jslker.Graph:3714
+        if (ret[o[k]]) {
+          $LASTPOS=1003741;//jslker.Graph:3741
+          ret[o[k]]++;
+          
+        } else {
+          $LASTPOS=1003781;//jslker.Graph:3781
+          ret[o[k]]=1;
+          
+        }
+        
+      }
+      return ret;
+    },
+    fiber$freq :function _trc_Graph_f_freq(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var ret;
+      var o;
+      var _it_139;
+      
+      $LASTPOS=1003668;//jslker.Graph:3668
+      ret = [];
+      
+      $LASTPOS=1003684;//jslker.Graph:3684
+      _it_139=Tonyu.iterator(_this.vec(k),1);
+      while(_it_139.next()) {
+        o=_it_139[0];
+        
+        $LASTPOS=1003714;//jslker.Graph:3714
+        if (ret[o[k]]) {
+          $LASTPOS=1003741;//jslker.Graph:3741
+          ret[o[k]]++;
+          
+        } else {
+          $LASTPOS=1003781;//jslker.Graph:3781
+          ret[o[k]]=1;
+          
+        }
+        
+      }
+      _thread.retVal=ret;return;
+      
+      
+      _thread.retVal=_this;return;
+    },
+    scatter :function _trc_Graph_scatter(xaxis,yaxis,isCor) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1003890;//jslker.Graph:3890
+      if (typeof  xaxis==="boolean") {
+        $LASTPOS=1003930;//jslker.Graph:3930
+        isCor=xaxis;
+        $LASTPOS=1003951;//jslker.Graph:3951
+        xaxis="x";
+        $LASTPOS=1003961;//jslker.Graph:3961
+        yaxis="y";
+        
+      }
+      $LASTPOS=1003982;//jslker.Graph:3982
+      xaxis=xaxis||"x";
+      $LASTPOS=1004004;//jslker.Graph:4004
+      yaxis=yaxis||"y";
+      $LASTPOS=1004026;//jslker.Graph:4026
+      _this.bindType(xaxis,_this._xaxtype);
+      $LASTPOS=1004056;//jslker.Graph:4056
+      _this.bindType(yaxis,_this._yaxtype);
+      $LASTPOS=1004091;//jslker.Graph:4091
+      if (isCor==true) {
+        $LASTPOS=1004107;//jslker.Graph:4107
+        _this._setCorrelation(xaxis,yaxis,parseFloat(_this.min(xaxis)),parseFloat(_this.max(xaxis)),parseFloat((_this.max(xaxis)-_this.min(xaxis))/10));
+      }
+      $LASTPOS=1004226;//jslker.Graph:4226
+      _this._drawGraph("scatter",xaxis,yaxis);
+    },
+    fiber$scatter :function _trc_Graph_f_scatter(_thread,xaxis,yaxis,isCor) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=1003890;//jslker.Graph:3890
+      if (typeof  xaxis==="boolean") {
+        $LASTPOS=1003930;//jslker.Graph:3930
+        isCor=xaxis;
+        $LASTPOS=1003951;//jslker.Graph:3951
+        xaxis="x";
+        $LASTPOS=1003961;//jslker.Graph:3961
+        yaxis="y";
+        
+      }
+      $LASTPOS=1003982;//jslker.Graph:3982
+      xaxis=xaxis||"x";
+      $LASTPOS=1004004;//jslker.Graph:4004
+      yaxis=yaxis||"y";
+      
+      _thread.enter(function _trc_Graph_ent_scatter(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1004026;//jslker.Graph:4026
+            _this.fiber$bindType(_thread, xaxis, _this._xaxtype);
+            __pc=1;return;
+          case 1:
+            
+            $LASTPOS=1004056;//jslker.Graph:4056
+            _this.fiber$bindType(_thread, yaxis, _this._yaxtype);
+            __pc=2;return;
+          case 2:
+            
+            $LASTPOS=1004091;//jslker.Graph:4091
+            if (!(isCor==true)) { __pc=4     ; break; }
+            $LASTPOS=1004107;//jslker.Graph:4107
+            _this.fiber$_setCorrelation(_thread, xaxis, yaxis, parseFloat(_this.min(xaxis)), parseFloat(_this.max(xaxis)), parseFloat((_this.max(xaxis)-_this.min(xaxis))/10));
+            __pc=3;return;
+          case 3:
+            
+          case 4     :
+            
+            $LASTPOS=1004226;//jslker.Graph:4226
+            _this.fiber$_drawGraph(_thread, "scatter", xaxis, yaxis);
+            __pc=5;return;
+          case 5:
+            
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    pie :function _trc_Graph_pie(xaxis,yaxis) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1004294;//jslker.Graph:4294
+      _this._drawGraph("pie",xaxis,yaxis);
+    },
+    fiber$pie :function _trc_Graph_f_pie(_thread,xaxis,yaxis) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      
+      _thread.enter(function _trc_Graph_ent_pie(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1004294;//jslker.Graph:4294
+            _this.fiber$_drawGraph(_thread, "pie", xaxis, yaxis);
+            __pc=1;return;
+          case 1:
+            
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    _drawGraph :function _trc_Graph__drawGraph(type,xaxis,yaxis) {
+      "use strict";
+      var _this=this;
+      var x;
+      var y;
+      var xaxopt;
+      var yaxopt;
+      var xt;
+      var yt;
+      var mode;
+      var data;
+      var options;
+      
+      $LASTPOS=1004370;//jslker.Graph:4370
+      xaxis=xaxis||"x";
+      $LASTPOS=1004392;//jslker.Graph:4392
+      yaxis=yaxis||"y";
+      $LASTPOS=1004414;//jslker.Graph:4414
+      _this.bindType(xaxis,_this._xaxtype);
+      $LASTPOS=1004444;//jslker.Graph:4444
+      _this.bindType(yaxis,_this._yaxtype);
+      $LASTPOS=1004474;//jslker.Graph:4474
+      x = [];
+      
+      $LASTPOS=1004488;//jslker.Graph:4488
+      y = [];
+      
+      $LASTPOS=1004502;//jslker.Graph:4502
+      xaxopt = {autotick: true,ticks: 'outside',tick0: 0,dtick: 0.25,ticklen: 8,tickwidth: 4,tickcolor: '#000',range: _this._xrange};
+      
+      $LASTPOS=1004706;//jslker.Graph:4706
+      yaxopt = {autotick: true,ticks: 'outside',tick0: 0,dtick: 0.25,ticklen: 8,tickwidth: 4,tickcolor: '#000',range: _this._yrange};
+      
+      $LASTPOS=1004941;//jslker.Graph:4941
+      console.log("range",_this._xrange,_this._yrange);
+      $LASTPOS=1004983;//jslker.Graph:4983
+      xt = _this.detectType(xaxis);
+      
+      $LASTPOS=1005013;//jslker.Graph:5013
+      yt = _this.detectType(yaxis);
+      
+      $LASTPOS=1005043;//jslker.Graph:5043
+      if (xt=="date"||xt=="time"||xt=="msec") {
+        $LASTPOS=1005091;//jslker.Graph:5091
+        xaxopt["type"]='date';
+        
+      }
+      $LASTPOS=1005124;//jslker.Graph:5124
+      if (yt=="date"||yt=="time"||yt=="msec") {
+        $LASTPOS=1005172;//jslker.Graph:5172
+        yaxopt["type"]='date';
+        
+      }
+      $LASTPOS=1005205;//jslker.Graph:5205
+      x=_this.vec(xaxis);
+      $LASTPOS=1005223;//jslker.Graph:5223
+      y=_this.vec(yaxis);
+      $LASTPOS=1005467;//jslker.Graph:5467
+      if (type=="scatter") {
+        $LASTPOS=1005496;//jslker.Graph:5496
+        mode = "markers";
+        
+        
+      } else {
+        $LASTPOS=1005535;//jslker.Graph:5535
+        mode = "lines";
+        
+        
+      }
+      $LASTPOS=1005563;//jslker.Graph:5563
+      data = [{x: x,y: y,type: type,mode: mode}];
+      
+      $LASTPOS=1005666;//jslker.Graph:5666
+      if (_this._isDrawCor===true) {
+        $LASTPOS=1005697;//jslker.Graph:5697
+        _this._corObj.mode='lines';
+        $LASTPOS=1005727;//jslker.Graph:5727
+        _this._corObj.line={dash: 'dot',width: 4};
+        $LASTPOS=1005770;//jslker.Graph:5770
+        data.push(_this._corObj);
+        
+      }
+      $LASTPOS=1005800;//jslker.Graph:5800
+      options = {xaxis: xaxopt,yaxis: yaxopt,annotations: [{xref: 'paper',yref: 'paper',x: 0,xanchor: 'right',y: 1,yanchor: 'bottom',text: _this._yaxname,showarrow: false},{xref: 'paper',yref: 'paper',x: 1,xanchor: 'left',y: 0,yanchor: 'top',text: _this._xaxname,showarrow: false}]};
+      
+      $LASTPOS=1006407;//jslker.Graph:6407
+      _this.onLoadLib((function anonymous_6417(Plotly) {
+        
+        $LASTPOS=1006437;//jslker.Graph:6437
+        Plotly.newPlot(_this._place,data,options);
+      }));
+    },
+    fiber$_drawGraph :function _trc_Graph_f__drawGraph(_thread,type,xaxis,yaxis) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var x;
+      var y;
+      var xaxopt;
+      var yaxopt;
+      var xt;
+      var yt;
+      var mode;
+      var data;
+      var options;
+      
+      $LASTPOS=1004370;//jslker.Graph:4370
+      xaxis=xaxis||"x";
+      $LASTPOS=1004392;//jslker.Graph:4392
+      yaxis=yaxis||"y";
+      
+      _thread.enter(function _trc_Graph_ent__drawGraph(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1004414;//jslker.Graph:4414
+            _this.fiber$bindType(_thread, xaxis, _this._xaxtype);
+            __pc=1;return;
+          case 1:
+            
+            $LASTPOS=1004444;//jslker.Graph:4444
+            _this.fiber$bindType(_thread, yaxis, _this._yaxtype);
+            __pc=2;return;
+          case 2:
+            
+            $LASTPOS=1004474;//jslker.Graph:4474
+            x = [];
+            
+            $LASTPOS=1004488;//jslker.Graph:4488
+            y = [];
+            
+            $LASTPOS=1004502;//jslker.Graph:4502
+            xaxopt = {autotick: true,ticks: 'outside',tick0: 0,dtick: 0.25,ticklen: 8,tickwidth: 4,tickcolor: '#000',range: _this._xrange};
+            
+            $LASTPOS=1004706;//jslker.Graph:4706
+            yaxopt = {autotick: true,ticks: 'outside',tick0: 0,dtick: 0.25,ticklen: 8,tickwidth: 4,tickcolor: '#000',range: _this._yrange};
+            
+            $LASTPOS=1004941;//jslker.Graph:4941
+            console.log("range",_this._xrange,_this._yrange);
+            $LASTPOS=1004983;//jslker.Graph:4983
+            _this.fiber$detectType(_thread, xaxis);
+            __pc=3;return;
+          case 3:
+            xt=_thread.retVal;
+            
+            $LASTPOS=1005013;//jslker.Graph:5013
+            _this.fiber$detectType(_thread, yaxis);
+            __pc=4;return;
+          case 4:
+            yt=_thread.retVal;
+            
+            $LASTPOS=1005043;//jslker.Graph:5043
+            if (xt=="date"||xt=="time"||xt=="msec") {
+              $LASTPOS=1005091;//jslker.Graph:5091
+              xaxopt["type"]='date';
+              
+            }
+            $LASTPOS=1005124;//jslker.Graph:5124
+            if (yt=="date"||yt=="time"||yt=="msec") {
+              $LASTPOS=1005172;//jslker.Graph:5172
+              yaxopt["type"]='date';
+              
+            }
+            $LASTPOS=1005205;//jslker.Graph:5205
+            _this.fiber$vec(_thread, xaxis);
+            __pc=5;return;
+          case 5:
+            x=_thread.retVal;
+            
+            $LASTPOS=1005223;//jslker.Graph:5223
+            _this.fiber$vec(_thread, yaxis);
+            __pc=6;return;
+          case 6:
+            y=_thread.retVal;
+            
+            $LASTPOS=1005467;//jslker.Graph:5467
+            if (type=="scatter") {
+              $LASTPOS=1005496;//jslker.Graph:5496
+              mode = "markers";
+              
+              
+            } else {
+              $LASTPOS=1005535;//jslker.Graph:5535
+              mode = "lines";
+              
+              
+            }
+            $LASTPOS=1005563;//jslker.Graph:5563
+            data = [{x: x,y: y,type: type,mode: mode}];
+            
+            $LASTPOS=1005666;//jslker.Graph:5666
+            if (_this._isDrawCor===true) {
+              $LASTPOS=1005697;//jslker.Graph:5697
+              _this._corObj.mode='lines';
+              $LASTPOS=1005727;//jslker.Graph:5727
+              _this._corObj.line={dash: 'dot',width: 4};
+              $LASTPOS=1005770;//jslker.Graph:5770
+              data.push(_this._corObj);
+              
+            }
+            $LASTPOS=1005800;//jslker.Graph:5800
+            options = {xaxis: xaxopt,yaxis: yaxopt,annotations: [{xref: 'paper',yref: 'paper',x: 0,xanchor: 'right',y: 1,yanchor: 'bottom',text: _this._yaxname,showarrow: false},{xref: 'paper',yref: 'paper',x: 1,xanchor: 'left',y: 0,yanchor: 'top',text: _this._xaxname,showarrow: false}]};
+            
+            $LASTPOS=1006407;//jslker.Graph:6407
+            _this.fiber$onLoadLib(_thread, (function anonymous_6417(Plotly) {
+              
+              $LASTPOS=1006437;//jslker.Graph:6437
+              Plotly.newPlot(_this._place,data,options);
+            }));
+            __pc=7;return;
+          case 7:
+            
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    getValue :function _trc_Graph_getValue(record,name) {
+      "use strict";
+      var _this=this;
+      var type;
+      
+      $LASTPOS=1006537;//jslker.Graph:6537
+      type = _this.detectType(name);
+      
+      return _this.convertValue(record[name],type);
+    },
+    fiber$getValue :function _trc_Graph_f_getValue(_thread,record,name) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var type;
+      
+      
+      _thread.enter(function _trc_Graph_ent_getValue(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1006537;//jslker.Graph:6537
+            _this.fiber$detectType(_thread, name);
+            __pc=1;return;
+          case 1:
+            type=_thread.retVal;
+            
+            _thread.exit(_this.convertValue(record[name],type));return;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    detectType :function _trc_Graph_detectType(name) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1006642;//jslker.Graph:6642
+      if (_this._typemap[name]) {
+        return _this._typemap[name];
+      }
+      return (name=="time"||name=="date"?"date":"number");
+    },
+    fiber$detectType :function _trc_Graph_f_detectType(_thread,name) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=1006642;//jslker.Graph:6642
+      if (_this._typemap[name]) {
+        _thread.retVal=_this._typemap[name];return;
+        
+      }
+      _thread.retVal=(name=="time"||name=="date"?"date":"number");return;
+      
+      
+      _thread.retVal=_this;return;
+    },
+    convertValue :function _trc_Graph_convertValue(val,type) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1006784;//jslker.Graph:6784
+      if (type=="msec"||type=="sec"||type=="date"||type=="time") {
+        return _this.convertTime(val,type);
+        
+      }
+      $LASTPOS=1006904;//jslker.Graph:6904
+      if (type=="number") {
+        return val-0;
+      }
+      return val;
+    },
+    fiber$convertValue :function _trc_Graph_f_convertValue(_thread,val,type) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=1006784;//jslker.Graph:6784
+      if (type=="msec"||type=="sec"||type=="date"||type=="time") {
+        _thread.retVal=_this.convertTime(val,type);return;
+        
+        
+      }
+      $LASTPOS=1006904;//jslker.Graph:6904
+      if (type=="number") {
+        _thread.retVal=val-0;return;
+        
+      }
+      _thread.retVal=val;return;
+      
+      
+      _thread.retVal=_this;return;
+    },
+    convertTime :function _trc_Graph_convertTime(t,to) {
+      "use strict";
+      var _this=this;
+      var n;
+      
+      $LASTPOS=1007028;//jslker.Graph:7028
+      to=to||"msec";
+      $LASTPOS=1007047;//jslker.Graph:7047
+      n = _this.looksLikeNumber(t);
+      
+      $LASTPOS=1007077;//jslker.Graph:7077
+      if (n) {
+        $LASTPOS=1007094;//jslker.Graph:7094
+        if (n<3000000000) {
+          $LASTPOS=1007151;//jslker.Graph:7151
+          n*=1000;
+          
+        }
+        $LASTPOS=1007178;//jslker.Graph:7178
+        if (to==="sec") {
+          $LASTPOS=1007194;//jslker.Graph:7194
+          n/=1000;
+        }
+        return n;
+        
+      }
+      return t;
+    },
+    fiber$convertTime :function _trc_Graph_f_convertTime(_thread,t,to) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var n;
+      
+      $LASTPOS=1007028;//jslker.Graph:7028
+      to=to||"msec";
+      
+      _thread.enter(function _trc_Graph_ent_convertTime(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1007047;//jslker.Graph:7047
+            _this.fiber$looksLikeNumber(_thread, t);
+            __pc=1;return;
+          case 1:
+            n=_thread.retVal;
+            
+            $LASTPOS=1007077;//jslker.Graph:7077
+            if (!(n)) { __pc=2     ; break; }
+            $LASTPOS=1007094;//jslker.Graph:7094
+            if (n<3000000000) {
+              $LASTPOS=1007151;//jslker.Graph:7151
+              n*=1000;
+              
+            }
+            $LASTPOS=1007178;//jslker.Graph:7178
+            if (to==="sec") {
+              $LASTPOS=1007194;//jslker.Graph:7194
+              n/=1000;
+            }
+            _thread.exit(n);return;
+          case 2     :
+            
+            _thread.exit(t);return;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    looksLikeNumber :function _trc_Graph_looksLikeNumber(n) {
+      "use strict";
+      var _this=this;
+      
+      $LASTPOS=1007277;//jslker.Graph:7277
+      if (typeof  n=="number") {
+        return n;
+      }
+      $LASTPOS=1007315;//jslker.Graph:7315
+      if (typeof  n=="string") {
+        $LASTPOS=1007349;//jslker.Graph:7349
+        n-=0;
+        $LASTPOS=1007363;//jslker.Graph:7363
+        if (n===n) {
+          return n;
+        }
+        
+      }
+      return false;
+    },
+    fiber$looksLikeNumber :function _trc_Graph_f_looksLikeNumber(_thread,n) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      
+      $LASTPOS=1007277;//jslker.Graph:7277
+      if (typeof  n=="number") {
+        _thread.retVal=n;return;
+        
+      }
+      $LASTPOS=1007315;//jslker.Graph:7315
+      if (typeof  n=="string") {
+        $LASTPOS=1007349;//jslker.Graph:7349
+        n-=0;
+        $LASTPOS=1007363;//jslker.Graph:7363
+        if (n===n) {
+          _thread.retVal=n;return;
+          
+        }
+        
+      }
+      _thread.retVal=false;return;
+      
+      
+      _thread.retVal=_this;return;
+    },
+    sum :function _trc_Graph_sum(k) {
+      "use strict";
+      var _this=this;
+      var s;
+      var v;
+      var _it_155;
+      
+      $LASTPOS=1007445;//jslker.Graph:7445
+      s = 0;
+      
+      $LASTPOS=1007458;//jslker.Graph:7458
+      if (typeof  (k)==="object") {
+        $LASTPOS=1007492;//jslker.Graph:7492
+        $LASTPOS=1007496;//jslker.Graph:7496
+        _this.i=0;for (; _this.i<k.length ; _this.i++) {
+          Tonyu.checkLoop();
+          {
+            $LASTPOS=1007529;//jslker.Graph:7529
+            s+=k[_this.i]-0;
+          }
+        }
+        
+      } else {
+        $LASTPOS=1007569;//jslker.Graph:7569
+        _it_155=Tonyu.iterator(_this.vec(k),1);
+        while(_it_155.next()) {
+          v=_it_155[0];
+          
+          $LASTPOS=1007603;//jslker.Graph:7603
+          s+=v-0;
+          
+        }
+        
+      }
+      return s;
+    },
+    fiber$sum :function _trc_Graph_f_sum(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var s;
+      var v;
+      var _it_155;
+      
+      $LASTPOS=1007445;//jslker.Graph:7445
+      s = 0;
+      
+      $LASTPOS=1007458;//jslker.Graph:7458
+      if (typeof  (k)==="object") {
+        $LASTPOS=1007492;//jslker.Graph:7492
+        $LASTPOS=1007496;//jslker.Graph:7496
+        _this.i=0;for (; _this.i<k.length ; _this.i++) {
+          Tonyu.checkLoop();
+          {
+            $LASTPOS=1007529;//jslker.Graph:7529
+            s+=k[_this.i]-0;
+          }
+        }
+        
+      } else {
+        $LASTPOS=1007569;//jslker.Graph:7569
+        _it_155=Tonyu.iterator(_this.vec(k),1);
+        while(_it_155.next()) {
+          v=_it_155[0];
+          
+          $LASTPOS=1007603;//jslker.Graph:7603
+          s+=v-0;
+          
+        }
+        
+      }
+      _thread.retVal=s;return;
+      
+      
+      _thread.retVal=_this;return;
+    },
+    mean :function _trc_Graph_mean(k) {
+      "use strict";
+      var _this=this;
+      var a;
+      
+      $LASTPOS=1007665;//jslker.Graph:7665
+      a = 0;
+      
+      $LASTPOS=1007678;//jslker.Graph:7678
+      if (typeof  (k)==="object") {
+        $LASTPOS=1007712;//jslker.Graph:7712
+        a=_this.sum(k)/k.length;
+        
+      } else {
+        $LASTPOS=1007750;//jslker.Graph:7750
+        a=_this.sum(k)/_this.src.length;
+        
+      }
+      return a;
+    },
+    fiber$mean :function _trc_Graph_f_mean(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var a;
+      
+      $LASTPOS=1007665;//jslker.Graph:7665
+      a = 0;
+      
+      $LASTPOS=1007678;//jslker.Graph:7678
+      if (typeof  (k)==="object") {
+        $LASTPOS=1007712;//jslker.Graph:7712
+        a=_this.sum(k)/k.length;
+        
+      } else {
+        $LASTPOS=1007750;//jslker.Graph:7750
+        a=_this.sum(k)/_this.src.length;
+        
+      }
+      _thread.retVal=a;return;
+      
+      
+      _thread.retVal=_this;return;
+    },
+    dev :function _trc_Graph_dev(k) {
+      "use strict";
+      var _this=this;
+      var d;
+      var a;
+      var i;
+      var v;
+      var _it_160;
+      
+      $LASTPOS=1007814;//jslker.Graph:7814
+      d = [];
+      a = 0;
+      
+      $LASTPOS=1007832;//jslker.Graph:7832
+      if (k===undefined) {
+        $LASTPOS=1007859;//jslker.Graph:7859
+        a=_this.mean(_this.src);
+        $LASTPOS=1007880;//jslker.Graph:7880
+        $LASTPOS=1007884;//jslker.Graph:7884
+        i = 0;
+        for (; i<_this.src.length ; i++) {
+          Tonyu.checkLoop();
+          {
+            $LASTPOS=1007923;//jslker.Graph:7923
+            d.push(_this.src[i]-a);
+          }
+        }
+        
+      } else {
+        $LASTPOS=1007970;//jslker.Graph:7970
+        a=_this.mean(k);
+        $LASTPOS=1007989;//jslker.Graph:7989
+        _it_160=Tonyu.iterator(_this.vec(k),1);
+        while(_it_160.next()) {
+          v=_it_160[0];
+          
+          $LASTPOS=1008023;//jslker.Graph:8023
+          d.push(v-a);
+          
+        }
+        
+      }
+      return d;
+    },
+    fiber$dev :function _trc_Graph_f_dev(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var d;
+      var a;
+      var i;
+      var v;
+      var _it_160;
+      
+      $LASTPOS=1007814;//jslker.Graph:7814
+      d = [];
+      a = 0;
+      
+      
+      _thread.enter(function _trc_Graph_ent_dev(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1007832;//jslker.Graph:7832
+            if (!(k===undefined)) { __pc=2     ; break; }
+            $LASTPOS=1007859;//jslker.Graph:7859
+            _this.fiber$mean(_thread, _this.src);
+            __pc=1;return;
+          case 1:
+            a=_thread.retVal;
+            
+            $LASTPOS=1007880;//jslker.Graph:7880
+            $LASTPOS=1007884;//jslker.Graph:7884
+            i = 0;
+            for (; i<_this.src.length ; i++) {
+              Tonyu.checkLoop();
+              {
+                $LASTPOS=1007923;//jslker.Graph:7923
+                d.push(_this.src[i]-a);
+              }
+            }
+            __pc=4     ;break;
+          case 2     :
+            $LASTPOS=1007970;//jslker.Graph:7970
+            _this.fiber$mean(_thread, k);
+            __pc=3;return;
+          case 3:
+            a=_thread.retVal;
+            
+            $LASTPOS=1007989;//jslker.Graph:7989
+            _it_160=Tonyu.iterator(_this.vec(k),1);
+            while(_it_160.next()) {
+              v=_it_160[0];
+              
+              $LASTPOS=1008023;//jslker.Graph:8023
+              d.push(v-a);
+              
+            }
+          case 4     :
+            
+            _thread.exit(d);return;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    vari :function _trc_Graph_vari(k) {
+      "use strict";
+      var _this=this;
+      var ary;
+      var deved;
+      var i;
+      
+      $LASTPOS=1008090;//jslker.Graph:8090
+      ary = [];
+      
+      $LASTPOS=1008106;//jslker.Graph:8106
+      if (k===undefined) {
+        $LASTPOS=1008133;//jslker.Graph:8133
+        deved = _this.dev(_this.src);
+        
+        $LASTPOS=1008161;//jslker.Graph:8161
+        $LASTPOS=1008165;//jslker.Graph:8165
+        i = 0;
+        for (; i<deved.length ; i++) {
+          Tonyu.checkLoop();
+          {
+            $LASTPOS=1008206;//jslker.Graph:8206
+            ary.push(Math.pow(deved[i],2));
+          }
+        }
+        
+      } else {
+        $LASTPOS=1008267;//jslker.Graph:8267
+        deved = _this.dev(k);
+        
+        $LASTPOS=1008293;//jslker.Graph:8293
+        console.log(deved);
+        $LASTPOS=1008321;//jslker.Graph:8321
+        $LASTPOS=1008325;//jslker.Graph:8325
+        i = 0;
+        for (; i<deved.length ; i++) {
+          Tonyu.checkLoop();
+          {
+            $LASTPOS=1008366;//jslker.Graph:8366
+            ary.push(Math.pow(deved[i],2));
+          }
+        }
+        
+      }
+      $LASTPOS=1008418;//jslker.Graph:8418
+      console.log("arrry",ary);
+      return _this.mean(ary);
+    },
+    fiber$vari :function _trc_Graph_f_vari(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var ary;
+      var deved;
+      var i;
+      
+      $LASTPOS=1008090;//jslker.Graph:8090
+      ary = [];
+      
+      
+      _thread.enter(function _trc_Graph_ent_vari(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1008106;//jslker.Graph:8106
+            if (!(k===undefined)) { __pc=2     ; break; }
+            $LASTPOS=1008133;//jslker.Graph:8133
+            _this.fiber$dev(_thread, _this.src);
+            __pc=1;return;
+          case 1:
+            deved=_thread.retVal;
+            
+            $LASTPOS=1008161;//jslker.Graph:8161
+            $LASTPOS=1008165;//jslker.Graph:8165
+            i = 0;
+            for (; i<deved.length ; i++) {
+              Tonyu.checkLoop();
+              {
+                $LASTPOS=1008206;//jslker.Graph:8206
+                ary.push(Math.pow(deved[i],2));
+              }
+            }
+            __pc=4     ;break;
+          case 2     :
+            $LASTPOS=1008267;//jslker.Graph:8267
+            _this.fiber$dev(_thread, k);
+            __pc=3;return;
+          case 3:
+            deved=_thread.retVal;
+            
+            $LASTPOS=1008293;//jslker.Graph:8293
+            console.log(deved);
+            $LASTPOS=1008321;//jslker.Graph:8321
+            $LASTPOS=1008325;//jslker.Graph:8325
+            i = 0;
+            for (; i<deved.length ; i++) {
+              Tonyu.checkLoop();
+              {
+                $LASTPOS=1008366;//jslker.Graph:8366
+                ary.push(Math.pow(deved[i],2));
+              }
+            }
+          case 4     :
+            
+            $LASTPOS=1008418;//jslker.Graph:8418
+            console.log("arrry",ary);
+            _thread.exit(_this.mean(ary));return;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    std :function _trc_Graph_std(k) {
+      "use strict";
+      var _this=this;
+      var disp;
+      
+      $LASTPOS=1008489;//jslker.Graph:8489
+      disp = _this.vari(k);
+      
+      return Math.sqrt(disp);
+    },
+    fiber$std :function _trc_Graph_f_std(_thread,k) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var disp;
+      
+      
+      _thread.enter(function _trc_Graph_ent_std(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1008489;//jslker.Graph:8489
+            _this.fiber$vari(_thread, k);
+            __pc=1;return;
+          case 1:
+            disp=_thread.retVal;
+            
+            _thread.exit(Math.sqrt(disp));return;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    cov :function _trc_Graph_cov(k1,k2) {
+      "use strict";
+      var _this=this;
+      var dev1;
+      var dev2;
+      var dataCov;
+      var k;
+      var v;
+      var _it_170;
+      
+      $LASTPOS=1008562;//jslker.Graph:8562
+      dev1 = _this.dev(k1);
+      
+      $LASTPOS=1008584;//jslker.Graph:8584
+      dev2 = _this.dev(k2);
+      
+      $LASTPOS=1008606;//jslker.Graph:8606
+      dataCov = 0;
+      
+      $LASTPOS=1008625;//jslker.Graph:8625
+      _it_170=Tonyu.iterator(dev1,2);
+      while(_it_170.next()) {
+        k=_it_170[0];
+        v=_it_170[1];
+        
+        $LASTPOS=1008655;//jslker.Graph:8655
+        dataCov+=dev1[k]*dev2[k];
+        
+      }
+      $LASTPOS=1008691;//jslker.Graph:8691
+      dataCov=dataCov/dev1.length;
+      return dataCov;
+    },
+    fiber$cov :function _trc_Graph_f_cov(_thread,k1,k2) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var dev1;
+      var dev2;
+      var dataCov;
+      var k;
+      var v;
+      var _it_170;
+      
+      
+      _thread.enter(function _trc_Graph_ent_cov(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1008562;//jslker.Graph:8562
+            _this.fiber$dev(_thread, k1);
+            __pc=1;return;
+          case 1:
+            dev1=_thread.retVal;
+            
+            $LASTPOS=1008584;//jslker.Graph:8584
+            _this.fiber$dev(_thread, k2);
+            __pc=2;return;
+          case 2:
+            dev2=_thread.retVal;
+            
+            $LASTPOS=1008606;//jslker.Graph:8606
+            dataCov = 0;
+            
+            $LASTPOS=1008625;//jslker.Graph:8625
+            _it_170=Tonyu.iterator(dev1,2);
+            while(_it_170.next()) {
+              k=_it_170[0];
+              v=_it_170[1];
+              
+              $LASTPOS=1008655;//jslker.Graph:8655
+              dataCov+=dev1[k]*dev2[k];
+              
+            }
+            $LASTPOS=1008691;//jslker.Graph:8691
+            dataCov=dataCov/dev1.length;
+            _thread.exit(dataCov);return;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    corrcoef :function _trc_Graph_corrcoef(k1,k2) {
+      "use strict";
+      var _this=this;
+      var cov1;
+      var std1;
+      var std2;
+      
+      $LASTPOS=1008772;//jslker.Graph:8772
+      cov1 = _this.cov(k1,k2);
+      
+      $LASTPOS=1008797;//jslker.Graph:8797
+      std1 = _this.std(k1);
+      
+      $LASTPOS=1008819;//jslker.Graph:8819
+      std2 = _this.std(k2);
+      
+      return cov1/(std1*std2);
+    },
+    fiber$corrcoef :function _trc_Graph_f_corrcoef(_thread,k1,k2) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var cov1;
+      var std1;
+      var std2;
+      
+      
+      _thread.enter(function _trc_Graph_ent_corrcoef(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=1008772;//jslker.Graph:8772
+            _this.fiber$cov(_thread, k1, k2);
+            __pc=1;return;
+          case 1:
+            cov1=_thread.retVal;
+            
+            $LASTPOS=1008797;//jslker.Graph:8797
+            _this.fiber$std(_thread, k1);
+            __pc=2;return;
+          case 2:
+            std1=_thread.retVal;
+            
+            $LASTPOS=1008819;//jslker.Graph:8819
+            _this.fiber$std(_thread, k2);
+            __pc=3;return;
+          case 3:
+            std2=_thread.retVal;
+            
+            _thread.exit(cov1/(std1*std2));return;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
+    _correlation :function _trc_Graph__correlation(d1,d2,min,max,interval) {
+      "use strict";
+      var _this=this;
+      var a;
+      var b;
+      var x;
+      var y;
+      var i;
+      
+      $LASTPOS=1008921;//jslker.Graph:8921
+      a = _this.corrcoef(d1,d2)*(_this.std(d2)/_this.std(d1));
+      
+      $LASTPOS=1008966;//jslker.Graph:8966
+      b = _this.mean(d2)-(a*_this.mean(d1));
+      
+      $LASTPOS=1008999;//jslker.Graph:8999
+      x = [];
+      
+      $LASTPOS=1009013;//jslker.Graph:9013
+      y = [];
+      
+      $LASTPOS=1009063;//jslker.Graph:9063
+      $LASTPOS=1009067;//jslker.Graph:9067
+      i = min;
+      for (; i<=max+1 ; i=i+interval) {
+        Tonyu.checkLoop();
+        {
+          $LASTPOS=1009109;//jslker.Graph:9109
+          x.push(i);
+          $LASTPOS=1009128;//jslker.Graph:9128
+          y.push(a*i+b);
+        }
+      }
+      return {x: x,y: y};
+    },
+    fiber$_correlation :function _trc_Graph_f__correlation(_thread,d1,d2,min,max,interval) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var a;
+      var b;
+      var x;
+      var y;
+      var i;
+      
+      $LASTPOS=1008921;//jslker.Graph:8921
+      a = _this.corrcoef(d1,d2)*(_this.std(d2)/_this.std(d1));
+      
+      $LASTPOS=1008966;//jslker.Graph:8966
+      b = _this.mean(d2)-(a*_this.mean(d1));
+      
+      $LASTPOS=1008999;//jslker.Graph:8999
+      x = [];
+      
+      $LASTPOS=1009013;//jslker.Graph:9013
+      y = [];
+      
+      $LASTPOS=1009063;//jslker.Graph:9063
+      $LASTPOS=1009067;//jslker.Graph:9067
+      i = min;
+      for (; i<=max+1 ; i=i+interval) {
+        Tonyu.checkLoop();
+        {
+          $LASTPOS=1009109;//jslker.Graph:9109
+          x.push(i);
+          $LASTPOS=1009128;//jslker.Graph:9128
+          y.push(a*i+b);
+        }
+      }
+      _thread.retVal={x: x,y: y};return;
+      
+      
+      _thread.retVal=_this;return;
+    },
+    __dummy: false
+  },
+  decls: {"methods":{"main":{"nowait":false},"new":{"nowait":false},"setData":{"nowait":false},"addData":{"nowait":false},"onLoadLib":{"nowait":false},"waitLoadLib":{"nowait":false},"_setCorrelation":{"nowait":false},"setAxisText":{"nowait":false},"setXAxisText":{"nowait":false},"setYAxisText":{"nowait":false},"setAxisType":{"nowait":false},"setXAxisType":{"nowait":false},"setYAxisType":{"nowait":false},"bindType":{"nowait":false},"setXRange":{"nowait":false},"setYRange":{"nowait":false},"line":{"nowait":false},"bar":{"nowait":false},"vec":{"nowait":false},"min":{"nowait":false},"max":{"nowait":false},"med":{"nowait":false},"mode":{"nowait":false},"freq":{"nowait":false},"scatter":{"nowait":false},"pie":{"nowait":false},"_drawGraph":{"nowait":false},"getValue":{"nowait":false},"detectType":{"nowait":false},"convertValue":{"nowait":false},"convertTime":{"nowait":false},"looksLikeNumber":{"nowait":false},"sum":{"nowait":false},"mean":{"nowait":false},"dev":{"nowait":false},"vari":{"nowait":false},"std":{"nowait":false},"cov":{"nowait":false},"corrcoef":{"nowait":false},"_correlation":{"nowait":false}},"fields":{"plotlyURL":{},"loadLibHandlers":{},"src":{},"_typemap":{},"Plotly":{},"_xaxtype":{},"_yaxtype":{},"_xrange":{},"_yrange":{},"key":{},"_isDrawCor":{},"_corObj":{},"_yaxname":{},"_xaxname":{},"_place":{},"i":{}}}
+});
+Tonyu.klass.define({
   fullName: 'jslker.Parent',
   shortName: 'Parent',
   namespace: 'jslker',
@@ -68,14 +2170,14 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      return (function anonymous_432() {
+      return (function anonymous_453() {
         var e;
         
         try {
           return f.apply(_this,arguments);
           
         } catch (e) {
-          $LASTPOS=1000582;//jslker.Parent:582
+          $LASTPOS=2000603;//jslker.Parent:603
           window.onerror("","","","",e);
           
         }
@@ -87,14 +2189,14 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      _thread.retVal=(function anonymous_432() {
+      _thread.retVal=(function anonymous_453() {
         var e;
         
         try {
           return f.apply(_this,arguments);
           
         } catch (e) {
-          $LASTPOS=1000582;//jslker.Parent:582
+          $LASTPOS=2000603;//jslker.Parent:603
           window.onerror("","","","",e);
           
         }
@@ -108,14 +2210,14 @@ Tonyu.klass.define({
       var _this=this;
       var res;
       
-      $LASTPOS=1000662;//jslker.Parent:662
+      $LASTPOS=2000683;//jslker.Parent:683
       if (elem instanceof $) {
         return elem;
       }
-      $LASTPOS=1000703;//jslker.Parent:703
+      $LASTPOS=2000724;//jslker.Parent:724
       res = $("[name="+elem+"]");
       
-      $LASTPOS=1000738;//jslker.Parent:738
+      $LASTPOS=2000759;//jslker.Parent:759
       if (res[0]) {
         return res;
       }
@@ -128,15 +2230,15 @@ Tonyu.klass.define({
       var __pc=0;
       var res;
       
-      $LASTPOS=1000662;//jslker.Parent:662
+      $LASTPOS=2000683;//jslker.Parent:683
       if (elem instanceof $) {
         _thread.retVal=elem;return;
         
       }
-      $LASTPOS=1000703;//jslker.Parent:703
+      $LASTPOS=2000724;//jslker.Parent:724
       res = $("[name="+elem+"]");
       
-      $LASTPOS=1000738;//jslker.Parent:738
+      $LASTPOS=2000759;//jslker.Parent:759
       if (res[0]) {
         _thread.retVal=res;return;
         
@@ -151,13 +2253,13 @@ Tonyu.klass.define({
       var _this=this;
       var t;
       
-      $LASTPOS=1000819;//jslker.Parent:819
+      $LASTPOS=2000840;//jslker.Parent:840
       elem=_this.findElement(elem);
-      $LASTPOS=1000848;//jslker.Parent:848
+      $LASTPOS=2000869;//jslker.Parent:869
       if (! elem[0]) {
         return false;
       }
-      $LASTPOS=1000881;//jslker.Parent:881
+      $LASTPOS=2000902;//jslker.Parent:902
       t = (""+elem[0].tagName).toLowerCase();
       
       return t==="input"||t==="textarea";
@@ -175,18 +2277,18 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1000819;//jslker.Parent:819
+            $LASTPOS=2000840;//jslker.Parent:840
             _this.fiber$findElement(_thread, elem);
             __pc=1;return;
           case 1:
             elem=_thread.retVal;
             
-            $LASTPOS=1000848;//jslker.Parent:848
+            $LASTPOS=2000869;//jslker.Parent:869
             if (!(! elem[0])) { __pc=2     ; break; }
             _thread.exit(false);return;
           case 2     :
             
-            $LASTPOS=1000881;//jslker.Parent:881
+            $LASTPOS=2000902;//jslker.Parent:902
             t = (""+elem[0].tagName).toLowerCase();
             
             _thread.exit(t==="input"||t==="textarea");return;
@@ -199,15 +2301,15 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1000997;//jslker.Parent:997
+      $LASTPOS=2001018;//jslker.Parent:1018
       elem=_this.findElement(elem);
-      $LASTPOS=1001026;//jslker.Parent:1026
+      $LASTPOS=2001047;//jslker.Parent:1047
       if (_this.isFormElement(elem)) {
-        $LASTPOS=1001062;//jslker.Parent:1062
+        $LASTPOS=2001083;//jslker.Parent:1083
         elem.val("");
         
       } else {
-        $LASTPOS=1001099;//jslker.Parent:1099
+        $LASTPOS=2001120;//jslker.Parent:1120
         elem.empty();
         
       }
@@ -224,19 +2326,19 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1000997;//jslker.Parent:997
+            $LASTPOS=2001018;//jslker.Parent:1018
             _this.fiber$findElement(_thread, elem);
             __pc=1;return;
           case 1:
             elem=_thread.retVal;
             
-            $LASTPOS=1001026;//jslker.Parent:1026
+            $LASTPOS=2001047;//jslker.Parent:1047
             if (_this.isFormElement(elem)) {
-              $LASTPOS=1001062;//jslker.Parent:1062
+              $LASTPOS=2001083;//jslker.Parent:1083
               elem.val("");
               
             } else {
-              $LASTPOS=1001099;//jslker.Parent:1099
+              $LASTPOS=2001120;//jslker.Parent:1120
               elem.empty();
               
             }
@@ -250,27 +2352,27 @@ Tonyu.klass.define({
       var _this=this;
       var dst;
       
-      $LASTPOS=1001149;//jslker.Parent:1149
+      $LASTPOS=2001170;//jslker.Parent:1170
       elem=_this.findElement(elem);
-      $LASTPOS=1001178;//jslker.Parent:1178
+      $LASTPOS=2001199;//jslker.Parent:1199
       if (_this.isFormElement(elem)) {
-        $LASTPOS=1001214;//jslker.Parent:1214
+        $LASTPOS=2001235;//jslker.Parent:1235
         elem.val(elem.val()+val);
         
       } else {
-        $LASTPOS=1001266;//jslker.Parent:1266
+        $LASTPOS=2001287;//jslker.Parent:1287
         if (_this.document.baWriteTo) {
-          $LASTPOS=1001305;//jslker.Parent:1305
+          $LASTPOS=2001326;//jslker.Parent:1326
           dst = elem[0];
           
-          $LASTPOS=1001335;//jslker.Parent:1335
+          $LASTPOS=2001356;//jslker.Parent:1356
           if (dst) {
-            $LASTPOS=1001344;//jslker.Parent:1344
+            $LASTPOS=2001365;//jslker.Parent:1365
             _this.document.baWriteTo(dst,val);
           }
           
         } else {
-          $LASTPOS=1001405;//jslker.Parent:1405
+          $LASTPOS=2001426;//jslker.Parent:1426
           elem.append(val);
           
         }
@@ -290,31 +2392,31 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1001149;//jslker.Parent:1149
+            $LASTPOS=2001170;//jslker.Parent:1170
             _this.fiber$findElement(_thread, elem);
             __pc=1;return;
           case 1:
             elem=_thread.retVal;
             
-            $LASTPOS=1001178;//jslker.Parent:1178
+            $LASTPOS=2001199;//jslker.Parent:1199
             if (_this.isFormElement(elem)) {
-              $LASTPOS=1001214;//jslker.Parent:1214
+              $LASTPOS=2001235;//jslker.Parent:1235
               elem.val(elem.val()+val);
               
             } else {
-              $LASTPOS=1001266;//jslker.Parent:1266
+              $LASTPOS=2001287;//jslker.Parent:1287
               if (_this.document.baWriteTo) {
-                $LASTPOS=1001305;//jslker.Parent:1305
+                $LASTPOS=2001326;//jslker.Parent:1326
                 dst = elem[0];
                 
-                $LASTPOS=1001335;//jslker.Parent:1335
+                $LASTPOS=2001356;//jslker.Parent:1356
                 if (dst) {
-                  $LASTPOS=1001344;//jslker.Parent:1344
+                  $LASTPOS=2001365;//jslker.Parent:1365
                   _this.document.baWriteTo(dst,val);
                 }
                 
               } else {
-                $LASTPOS=1001405;//jslker.Parent:1405
+                $LASTPOS=2001426;//jslker.Parent:1426
                 elem.append(val);
                 
               }
@@ -329,9 +2431,9 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1001470;//jslker.Parent:1470
+      $LASTPOS=2001491;//jslker.Parent:1491
       _this.clearContent(elem);
-      $LASTPOS=1001495;//jslker.Parent:1495
+      $LASTPOS=2001516;//jslker.Parent:1516
       _this.addText(elem,val);
     },
     fiber$setText :function _trc_Parent_f_setText(_thread,elem,val) {
@@ -346,12 +2448,12 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1001470;//jslker.Parent:1470
+            $LASTPOS=2001491;//jslker.Parent:1491
             _this.fiber$clearContent(_thread, elem);
             __pc=1;return;
           case 1:
             
-            $LASTPOS=1001495;//jslker.Parent:1495
+            $LASTPOS=2001516;//jslker.Parent:1516
             _this.fiber$addText(_thread, elem, val);
             __pc=2;return;
           case 2:
@@ -382,9 +2484,9 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1001590;//jslker.Parent:1590
+      $LASTPOS=2001611;//jslker.Parent:1611
       elem=_this.findElement(elem);
-      $LASTPOS=1001619;//jslker.Parent:1619
+      $LASTPOS=2001640;//jslker.Parent:1640
       if (_this.isFormElement(elem)) {
         return elem.val();
         
@@ -405,13 +2507,13 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1001590;//jslker.Parent:1590
+            $LASTPOS=2001611;//jslker.Parent:1611
             _this.fiber$findElement(_thread, elem);
             __pc=1;return;
           case 1:
             elem=_thread.retVal;
             
-            $LASTPOS=1001619;//jslker.Parent:1619
+            $LASTPOS=2001640;//jslker.Parent:1640
             if (!(_this.isFormElement(elem))) { __pc=2     ; break; }
             _thread.exit(elem.val());return;
             __pc=3     ;break;
@@ -428,7 +2530,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1001772;//jslker.Parent:1772
+      $LASTPOS=2001793;//jslker.Parent:1793
       _this.setText(elem,num);
     },
     fiber$setNumber :function _trc_Parent_f_setNumber(_thread,elem,num) {
@@ -443,7 +2545,7 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1001772;//jslker.Parent:1772
+            $LASTPOS=2001793;//jslker.Parent:1793
             _this.fiber$setText(_thread, elem, num);
             __pc=1;return;
           case 1:
@@ -460,46 +2562,46 @@ Tonyu.klass.define({
       var fname;
       
       
-      $LASTPOS=1001847;//jslker.Parent:1847
+      $LASTPOS=2001868;//jslker.Parent:1868
       if (typeof  func=='function') {
-        $LASTPOS=1001887;//jslker.Parent:1887
+        $LASTPOS=2001908;//jslker.Parent:1908
         if (func.methodInfo) {
-          $LASTPOS=1001923;//jslker.Parent:1923
+          $LASTPOS=2001944;//jslker.Parent:1944
           fname=func.methodInfo.name;
           
         }
         
       } else {
-        $LASTPOS=1001997;//jslker.Parent:1997
+        $LASTPOS=2002018;//jslker.Parent:2018
         fname=func+"";
         
       }
-      $LASTPOS=1002024;//jslker.Parent:2024
+      $LASTPOS=2002045;//jslker.Parent:2045
       if (typeof  fname=="string") {
-        $LASTPOS=1002063;//jslker.Parent:2063
+        $LASTPOS=2002084;//jslker.Parent:2084
         if (! _this[fname]) {
           throw new Error("メソッド"+func+"が存在しません");
           
         }
-        $LASTPOS=1002130;//jslker.Parent:2130
+        $LASTPOS=2002151;//jslker.Parent:2151
         if (_this["fiber$"+fname]) {
-          $LASTPOS=1002171;//jslker.Parent:2171
+          $LASTPOS=2002192;//jslker.Parent:2192
           usepara=true;
           
         }
         
       }
-      $LASTPOS=1002208;//jslker.Parent:2208
+      $LASTPOS=2002229;//jslker.Parent:2229
       if (usepara) {
-        $LASTPOS=1002232;//jslker.Parent:2232
-        _this.findElement(elem).click(_this.catchException((function anonymous_2271() {
+        $LASTPOS=2002253;//jslker.Parent:2253
+        _this.findElement(elem).click(_this.catchException((function anonymous_2292() {
           
-          $LASTPOS=1002288;//jslker.Parent:2288
+          $LASTPOS=2002309;//jslker.Parent:2309
           _this.parallel(fname);
         })));
         
       } else {
-        $LASTPOS=1002402;//jslker.Parent:2402
+        $LASTPOS=2002423;//jslker.Parent:2423
         _this.findElement(elem).click(_this.catchException(func));
         
       }
@@ -513,30 +2615,30 @@ Tonyu.klass.define({
       var fname;
       
       
-      $LASTPOS=1001847;//jslker.Parent:1847
+      $LASTPOS=2001868;//jslker.Parent:1868
       if (typeof  func=='function') {
-        $LASTPOS=1001887;//jslker.Parent:1887
+        $LASTPOS=2001908;//jslker.Parent:1908
         if (func.methodInfo) {
-          $LASTPOS=1001923;//jslker.Parent:1923
+          $LASTPOS=2001944;//jslker.Parent:1944
           fname=func.methodInfo.name;
           
         }
         
       } else {
-        $LASTPOS=1001997;//jslker.Parent:1997
+        $LASTPOS=2002018;//jslker.Parent:2018
         fname=func+"";
         
       }
-      $LASTPOS=1002024;//jslker.Parent:2024
+      $LASTPOS=2002045;//jslker.Parent:2045
       if (typeof  fname=="string") {
-        $LASTPOS=1002063;//jslker.Parent:2063
+        $LASTPOS=2002084;//jslker.Parent:2084
         if (! _this[fname]) {
           throw new Error("メソッド"+func+"が存在しません");
           
         }
-        $LASTPOS=1002130;//jslker.Parent:2130
+        $LASTPOS=2002151;//jslker.Parent:2151
         if (_this["fiber$"+fname]) {
-          $LASTPOS=1002171;//jslker.Parent:2171
+          $LASTPOS=2002192;//jslker.Parent:2192
           usepara=true;
           
         }
@@ -548,18 +2650,18 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1002208;//jslker.Parent:2208
+            $LASTPOS=2002229;//jslker.Parent:2229
             if (!(usepara)) { __pc=1     ; break; }
-            $LASTPOS=1002232;//jslker.Parent:2232
-            _this.findElement(elem).click(_this.catchException((function anonymous_2271() {
+            $LASTPOS=2002253;//jslker.Parent:2253
+            _this.findElement(elem).click(_this.catchException((function anonymous_2292() {
               
-              $LASTPOS=1002288;//jslker.Parent:2288
+              $LASTPOS=2002309;//jslker.Parent:2309
               _this.parallel(fname);
             })));
             __pc=2     ;break;
           case 1     :
             {
-              $LASTPOS=1002402;//jslker.Parent:2402
+              $LASTPOS=2002423;//jslker.Parent:2423
               _this.findElement(elem).click(_this.catchException(func));
             }
           case 2     :
@@ -573,49 +2675,49 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1002481;//jslker.Parent:2481
+      $LASTPOS=2002502;//jslker.Parent:2502
       if (typeof  func=="function") {
-        $LASTPOS=1002519;//jslker.Parent:2519
-        $("body").on("touchstart",(function anonymous_2545(e) {
+        $LASTPOS=2002540;//jslker.Parent:2540
+        $("body").on("touchstart",(function anonymous_2566(e) {
           
-          $LASTPOS=1002571;//jslker.Parent:2571
+          $LASTPOS=2002592;//jslker.Parent:2592
           func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"start");
         }));
-        $LASTPOS=1002702;//jslker.Parent:2702
-        $("body").on("touchmove",(function anonymous_2727(e) {
+        $LASTPOS=2002723;//jslker.Parent:2723
+        $("body").on("touchmove",(function anonymous_2748(e) {
           
-          $LASTPOS=1002753;//jslker.Parent:2753
+          $LASTPOS=2002774;//jslker.Parent:2774
           func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"move");
         }));
-        $LASTPOS=1002883;//jslker.Parent:2883
-        $("body").on("touchend",(function anonymous_2907(e) {
+        $LASTPOS=2002904;//jslker.Parent:2904
+        $("body").on("touchend",(function anonymous_2928(e) {
           
-          $LASTPOS=1002933;//jslker.Parent:2933
+          $LASTPOS=2002954;//jslker.Parent:2954
           func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"end");
         }));
-        $LASTPOS=1003062;//jslker.Parent:3062
-        $("body").on("mousedown",(function anonymous_3087(e) {
+        $LASTPOS=2003083;//jslker.Parent:3083
+        $("body").on("mousedown",(function anonymous_3108(e) {
           
-          $LASTPOS=1003113;//jslker.Parent:3113
+          $LASTPOS=2003134;//jslker.Parent:3134
           _this.down=true;
-          $LASTPOS=1003137;//jslker.Parent:3137
+          $LASTPOS=2003158;//jslker.Parent:3158
           func(e.pageX,e.pageY,"start");
         }));
-        $LASTPOS=1003190;//jslker.Parent:3190
-        $("body").on("mousemove",(function anonymous_3215(e) {
+        $LASTPOS=2003211;//jslker.Parent:3211
+        $("body").on("mousemove",(function anonymous_3236(e) {
           
-          $LASTPOS=1003241;//jslker.Parent:3241
+          $LASTPOS=2003262;//jslker.Parent:3262
           if (_this.down) {
-            $LASTPOS=1003250;//jslker.Parent:3250
+            $LASTPOS=2003271;//jslker.Parent:3271
             func(e.pageX,e.pageY,"move");
           }
         }));
-        $LASTPOS=1003302;//jslker.Parent:3302
-        $("body").on("mouseup",(function anonymous_3325(e) {
+        $LASTPOS=2003323;//jslker.Parent:3323
+        $("body").on("mouseup",(function anonymous_3346(e) {
           
-          $LASTPOS=1003351;//jslker.Parent:3351
+          $LASTPOS=2003372;//jslker.Parent:3372
           _this.down=false;
-          $LASTPOS=1003376;//jslker.Parent:3376
+          $LASTPOS=2003397;//jslker.Parent:3397
           func(e.pageX,e.pageY,"end");
         }));
         
@@ -627,49 +2729,49 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1002481;//jslker.Parent:2481
+      $LASTPOS=2002502;//jslker.Parent:2502
       if (typeof  func=="function") {
-        $LASTPOS=1002519;//jslker.Parent:2519
-        $("body").on("touchstart",(function anonymous_2545(e) {
+        $LASTPOS=2002540;//jslker.Parent:2540
+        $("body").on("touchstart",(function anonymous_2566(e) {
           
-          $LASTPOS=1002571;//jslker.Parent:2571
+          $LASTPOS=2002592;//jslker.Parent:2592
           func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"start");
         }));
-        $LASTPOS=1002702;//jslker.Parent:2702
-        $("body").on("touchmove",(function anonymous_2727(e) {
+        $LASTPOS=2002723;//jslker.Parent:2723
+        $("body").on("touchmove",(function anonymous_2748(e) {
           
-          $LASTPOS=1002753;//jslker.Parent:2753
+          $LASTPOS=2002774;//jslker.Parent:2774
           func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"move");
         }));
-        $LASTPOS=1002883;//jslker.Parent:2883
-        $("body").on("touchend",(function anonymous_2907(e) {
+        $LASTPOS=2002904;//jslker.Parent:2904
+        $("body").on("touchend",(function anonymous_2928(e) {
           
-          $LASTPOS=1002933;//jslker.Parent:2933
+          $LASTPOS=2002954;//jslker.Parent:2954
           func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"end");
         }));
-        $LASTPOS=1003062;//jslker.Parent:3062
-        $("body").on("mousedown",(function anonymous_3087(e) {
+        $LASTPOS=2003083;//jslker.Parent:3083
+        $("body").on("mousedown",(function anonymous_3108(e) {
           
-          $LASTPOS=1003113;//jslker.Parent:3113
+          $LASTPOS=2003134;//jslker.Parent:3134
           _this.down=true;
-          $LASTPOS=1003137;//jslker.Parent:3137
+          $LASTPOS=2003158;//jslker.Parent:3158
           func(e.pageX,e.pageY,"start");
         }));
-        $LASTPOS=1003190;//jslker.Parent:3190
-        $("body").on("mousemove",(function anonymous_3215(e) {
+        $LASTPOS=2003211;//jslker.Parent:3211
+        $("body").on("mousemove",(function anonymous_3236(e) {
           
-          $LASTPOS=1003241;//jslker.Parent:3241
+          $LASTPOS=2003262;//jslker.Parent:3262
           if (_this.down) {
-            $LASTPOS=1003250;//jslker.Parent:3250
+            $LASTPOS=2003271;//jslker.Parent:3271
             func(e.pageX,e.pageY,"move");
           }
         }));
-        $LASTPOS=1003302;//jslker.Parent:3302
-        $("body").on("mouseup",(function anonymous_3325(e) {
+        $LASTPOS=2003323;//jslker.Parent:3323
+        $("body").on("mouseup",(function anonymous_3346(e) {
           
-          $LASTPOS=1003351;//jslker.Parent:3351
+          $LASTPOS=2003372;//jslker.Parent:3372
           _this.down=false;
-          $LASTPOS=1003376;//jslker.Parent:3376
+          $LASTPOS=2003397;//jslker.Parent:3397
           func(e.pageX,e.pageY,"end");
         }));
         
@@ -681,7 +2783,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1003503;//jslker.Parent:3503
+      $LASTPOS=2003524;//jslker.Parent:3524
       _this._canvas=_this.findElement(canv)[0];
     },
     fiber$setCanvas :function _trc_Parent_f_setCanvas(_thread,canv) {
@@ -690,7 +2792,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1003503;//jslker.Parent:3503
+      $LASTPOS=2003524;//jslker.Parent:3524
       _this._canvas=_this.findElement(canv)[0];
       
       _thread.retVal=_this;return;
@@ -699,7 +2801,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1003559;//jslker.Parent:3559
+      $LASTPOS=2003580;//jslker.Parent:3580
       if (! _this._canvas) {
         return _this._canvas=$("canvas")[0];
         
@@ -714,7 +2816,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1003559;//jslker.Parent:3559
+      $LASTPOS=2003580;//jslker.Parent:3580
       if (! _this._canvas) {
         _thread.retVal=_this._canvas=$("canvas")[0];return;
         
@@ -731,13 +2833,13 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1003684;//jslker.Parent:3684
+      $LASTPOS=2003705;//jslker.Parent:3705
       if (_this.searchCanvas()) {
-        $LASTPOS=1003713;//jslker.Parent:3713
+        $LASTPOS=2003734;//jslker.Parent:3734
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1003752;//jslker.Parent:3752
+        $LASTPOS=2003773;//jslker.Parent:3773
         _this.ctx.fillStyle="rgb("+r+","+g+","+b+")";
-        $LASTPOS=1003801;//jslker.Parent:3801
+        $LASTPOS=2003822;//jslker.Parent:3822
         _this.ctx.strokeStyle="rgb("+r+","+g+","+b+")";
         
       }
@@ -748,13 +2850,13 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1003684;//jslker.Parent:3684
+      $LASTPOS=2003705;//jslker.Parent:3705
       if (_this.searchCanvas()) {
-        $LASTPOS=1003713;//jslker.Parent:3713
+        $LASTPOS=2003734;//jslker.Parent:3734
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1003752;//jslker.Parent:3752
+        $LASTPOS=2003773;//jslker.Parent:3773
         _this.ctx.fillStyle="rgb("+r+","+g+","+b+")";
-        $LASTPOS=1003801;//jslker.Parent:3801
+        $LASTPOS=2003822;//jslker.Parent:3822
         _this.ctx.strokeStyle="rgb("+r+","+g+","+b+")";
         
       }
@@ -765,11 +2867,11 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1003879;//jslker.Parent:3879
+      $LASTPOS=2003900;//jslker.Parent:3900
       if (_this.searchCanvas()) {
-        $LASTPOS=1003908;//jslker.Parent:3908
+        $LASTPOS=2003929;//jslker.Parent:3929
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1003947;//jslker.Parent:3947
+        $LASTPOS=2003968;//jslker.Parent:3968
         _this.ctx.fillRect(x,y,w,h);
         
       }
@@ -780,11 +2882,11 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1003879;//jslker.Parent:3879
+      $LASTPOS=2003900;//jslker.Parent:3900
       if (_this.searchCanvas()) {
-        $LASTPOS=1003908;//jslker.Parent:3908
+        $LASTPOS=2003929;//jslker.Parent:3929
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1003947;//jslker.Parent:3947
+        $LASTPOS=2003968;//jslker.Parent:3968
         _this.ctx.fillRect(x,y,w,h);
         
       }
@@ -795,13 +2897,13 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1004015;//jslker.Parent:4015
+      $LASTPOS=2004036;//jslker.Parent:4036
       if (! (newsrc+"").match(/^http/)) {
-        $LASTPOS=1004059;//jslker.Parent:4059
+        $LASTPOS=2004080;//jslker.Parent:4080
         newsrc=window.runtimePath+newsrc;
         
       }
-      $LASTPOS=1004105;//jslker.Parent:4105
+      $LASTPOS=2004126;//jslker.Parent:4126
       _this.findElement(elem).attr("src",newsrc);
     },
     fiber$changeImage :function _trc_Parent_f_changeImage(_thread,elem,newsrc) {
@@ -810,13 +2912,13 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1004015;//jslker.Parent:4015
+      $LASTPOS=2004036;//jslker.Parent:4036
       if (! (newsrc+"").match(/^http/)) {
-        $LASTPOS=1004059;//jslker.Parent:4059
+        $LASTPOS=2004080;//jslker.Parent:4080
         newsrc=window.runtimePath+newsrc;
         
       }
-      $LASTPOS=1004105;//jslker.Parent:4105
+      $LASTPOS=2004126;//jslker.Parent:4126
       _this.findElement(elem).attr("src",newsrc);
       
       _thread.retVal=_this;return;
@@ -825,7 +2927,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1004171;//jslker.Parent:4171
+      $LASTPOS=2004192;//jslker.Parent:4192
       _this.findElement(elem).css({position: "absolute",left: x,top: y});
     },
     fiber$move :function _trc_Parent_f_move(_thread,elem,x,y) {
@@ -834,7 +2936,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1004171;//jslker.Parent:4171
+      $LASTPOS=2004192;//jslker.Parent:4192
       _this.findElement(elem).css({position: "absolute",left: x,top: y});
       
       _thread.retVal=_this;return;
@@ -843,26 +2945,26 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1004293;//jslker.Parent:4293
+      $LASTPOS=2004314;//jslker.Parent:4314
       console.log(scaleX,scaleY);
-      $LASTPOS=1004326;//jslker.Parent:4326
+      $LASTPOS=2004347;//jslker.Parent:4347
       if (! scaleX) {
-        $LASTPOS=1004348;//jslker.Parent:4348
+        $LASTPOS=2004369;//jslker.Parent:4369
         scaleX=1;
-        $LASTPOS=1004367;//jslker.Parent:4367
+        $LASTPOS=2004388;//jslker.Parent:4388
         scaleY=1;
         
       } else {
-        $LASTPOS=1004388;//jslker.Parent:4388
+        $LASTPOS=2004409;//jslker.Parent:4409
         if (! scaleY) {
-          $LASTPOS=1004410;//jslker.Parent:4410
+          $LASTPOS=2004431;//jslker.Parent:4431
           scaleY=scaleX;
           
         }
       }
-      $LASTPOS=1004437;//jslker.Parent:4437
+      $LASTPOS=2004458;//jslker.Parent:4458
       console.log(scaleX,scaleY);
-      $LASTPOS=1004470;//jslker.Parent:4470
+      $LASTPOS=2004491;//jslker.Parent:4491
       _this.findElement(elem).css({position: "absolute",transform: "rotate("+angle+"deg) scale("+scaleX+","+scaleY+")"});
     },
     fiber$transform :function _trc_Parent_f_transform(_thread,elem,angle,scaleX,scaleY) {
@@ -871,26 +2973,26 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1004293;//jslker.Parent:4293
+      $LASTPOS=2004314;//jslker.Parent:4314
       console.log(scaleX,scaleY);
-      $LASTPOS=1004326;//jslker.Parent:4326
+      $LASTPOS=2004347;//jslker.Parent:4347
       if (! scaleX) {
-        $LASTPOS=1004348;//jslker.Parent:4348
+        $LASTPOS=2004369;//jslker.Parent:4369
         scaleX=1;
-        $LASTPOS=1004367;//jslker.Parent:4367
+        $LASTPOS=2004388;//jslker.Parent:4388
         scaleY=1;
         
       } else {
-        $LASTPOS=1004388;//jslker.Parent:4388
+        $LASTPOS=2004409;//jslker.Parent:4409
         if (! scaleY) {
-          $LASTPOS=1004410;//jslker.Parent:4410
+          $LASTPOS=2004431;//jslker.Parent:4431
           scaleY=scaleX;
           
         }
       }
-      $LASTPOS=1004437;//jslker.Parent:4437
+      $LASTPOS=2004458;//jslker.Parent:4458
       console.log(scaleX,scaleY);
-      $LASTPOS=1004470;//jslker.Parent:4470
+      $LASTPOS=2004491;//jslker.Parent:4491
       _this.findElement(elem).css({position: "absolute",transform: "rotate("+angle+"deg) scale("+scaleX+","+scaleY+")"});
       
       _thread.retVal=_this;return;
@@ -899,7 +3001,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1004634;//jslker.Parent:4634
+      $LASTPOS=2004655;//jslker.Parent:4655
       _this.findElement(elem).css({position: "absolute",transform: "rotate("+angle+"deg)"});
     },
     fiber$rotate :function _trc_Parent_f_rotate(_thread,elem,angle) {
@@ -908,7 +3010,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1004634;//jslker.Parent:4634
+      $LASTPOS=2004655;//jslker.Parent:4655
       _this.findElement(elem).css({position: "absolute",transform: "rotate("+angle+"deg)"});
       
       _thread.retVal=_this;return;
@@ -917,7 +3019,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1004767;//jslker.Parent:4767
+      $LASTPOS=2004788;//jslker.Parent:4788
       _this.findElement(elem).css({position: "absolute",transform: "scale("+w+","+h+")"});
     },
     fiber$resize :function _trc_Parent_f_resize(_thread,elem,w,h) {
@@ -926,7 +3028,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1004767;//jslker.Parent:4767
+      $LASTPOS=2004788;//jslker.Parent:4788
       _this.findElement(elem).css({position: "absolute",transform: "scale("+w+","+h+")"});
       
       _thread.retVal=_this;return;
@@ -937,27 +3039,27 @@ Tonyu.klass.define({
       var t;
       var runThread;
       
-      $LASTPOS=1004895;//jslker.Parent:4895
+      $LASTPOS=2004916;//jslker.Parent:4916
       time=time||100;
-      $LASTPOS=1004916;//jslker.Parent:4916
+      $LASTPOS=2004937;//jslker.Parent:4937
       t = null;
       
-      $LASTPOS=1004936;//jslker.Parent:4936
-      runThread = _this.catchException((function anonymous_4965() {
+      $LASTPOS=2004957;//jslker.Parent:4957
+      runThread = _this.catchException((function anonymous_4986() {
         
-        $LASTPOS=1004977;//jslker.Parent:4977
+        $LASTPOS=2004998;//jslker.Parent:4998
         t.steps();
-        $LASTPOS=1004997;//jslker.Parent:4997
+        $LASTPOS=2005018;//jslker.Parent:5018
         if (t.preempted) {
-          $LASTPOS=1005029;//jslker.Parent:5029
+          $LASTPOS=2005050;//jslker.Parent:5050
           setTimeout(runThread,0);
           
         }
       }));
       
-      $LASTPOS=1005078;//jslker.Parent:5078
+      $LASTPOS=2005099;//jslker.Parent:5099
       t.suspend();
-      $LASTPOS=1005096;//jslker.Parent:5096
+      $LASTPOS=2005117;//jslker.Parent:5117
       setTimeout(runThread,time);
     },
     fiber$wait :function _trc_Parent_f_wait(_thread,time) {
@@ -968,9 +3070,9 @@ Tonyu.klass.define({
       var t;
       var runThread;
       
-      $LASTPOS=1004895;//jslker.Parent:4895
+      $LASTPOS=2004916;//jslker.Parent:4916
       time=time||100;
-      $LASTPOS=1004916;//jslker.Parent:4916
+      $LASTPOS=2004937;//jslker.Parent:4937
       t = _thread;
       
       
@@ -979,14 +3081,14 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1004936;//jslker.Parent:4936
-            _this.fiber$catchException(_thread, (function anonymous_4965() {
+            $LASTPOS=2004957;//jslker.Parent:4957
+            _this.fiber$catchException(_thread, (function anonymous_4986() {
               
-              $LASTPOS=1004977;//jslker.Parent:4977
+              $LASTPOS=2004998;//jslker.Parent:4998
               t.steps();
-              $LASTPOS=1004997;//jslker.Parent:4997
+              $LASTPOS=2005018;//jslker.Parent:5018
               if (t.preempted) {
-                $LASTPOS=1005029;//jslker.Parent:5029
+                $LASTPOS=2005050;//jslker.Parent:5050
                 setTimeout(runThread,0);
                 
               }
@@ -995,9 +3097,9 @@ Tonyu.klass.define({
           case 1:
             runThread=_thread.retVal;
             
-            $LASTPOS=1005078;//jslker.Parent:5078
+            $LASTPOS=2005099;//jslker.Parent:5099
             t.suspend();
-            $LASTPOS=1005096;//jslker.Parent:5096
+            $LASTPOS=2005117;//jslker.Parent:5117
             setTimeout(runThread,time);
             _thread.exit(_this);return;
           }
@@ -1025,7 +3127,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1005209;//jslker.Parent:5209
+      $LASTPOS=2005230;//jslker.Parent:5230
       $("body").attr("bgcolor",c);
     },
     fiber$setBGColor :function _trc_Parent_f_setBGColor(_thread,c) {
@@ -1034,7 +3136,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1005209;//jslker.Parent:5209
+      $LASTPOS=2005230;//jslker.Parent:5230
       $("body").attr("bgcolor",c);
       
       _thread.retVal=_this;return;
@@ -1044,12 +3146,12 @@ Tonyu.klass.define({
       var _this=this;
       var e;
       
-      $LASTPOS=1005282;//jslker.Parent:5282
+      $LASTPOS=2005303;//jslker.Parent:5303
       e = _this.document.createElement(elem);
       
-      $LASTPOS=1005324;//jslker.Parent:5324
+      $LASTPOS=2005345;//jslker.Parent:5345
       e.setAttribute("name",n);
-      $LASTPOS=1005356;//jslker.Parent:5356
+      $LASTPOS=2005377;//jslker.Parent:5377
       _this.document.body.appendChild(e);
     },
     fiber$newElement :function _trc_Parent_f_newElement(_thread,elem,n) {
@@ -1059,12 +3161,12 @@ Tonyu.klass.define({
       var __pc=0;
       var e;
       
-      $LASTPOS=1005282;//jslker.Parent:5282
+      $LASTPOS=2005303;//jslker.Parent:5303
       e = _this.document.createElement(elem);
       
-      $LASTPOS=1005324;//jslker.Parent:5324
+      $LASTPOS=2005345;//jslker.Parent:5345
       e.setAttribute("name",n);
-      $LASTPOS=1005356;//jslker.Parent:5356
+      $LASTPOS=2005377;//jslker.Parent:5377
       _this.document.body.appendChild(e);
       
       _thread.retVal=_this;return;
@@ -1073,23 +3175,23 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1005415;//jslker.Parent:5415
+      $LASTPOS=2005436;//jslker.Parent:5436
       if (_this.searchCanvas()) {
-        $LASTPOS=1005444;//jslker.Parent:5444
+        $LASTPOS=2005465;//jslker.Parent:5465
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1005483;//jslker.Parent:5483
+        $LASTPOS=2005504;//jslker.Parent:5504
         _this.ctx.save();
-        $LASTPOS=1005504;//jslker.Parent:5504
+        $LASTPOS=2005525;//jslker.Parent:5525
         _this.ctx.beginPath();
-        $LASTPOS=1005530;//jslker.Parent:5530
+        $LASTPOS=2005551;//jslker.Parent:5551
         _this.ctx.translate(x+w/2,y+h/2);
-        $LASTPOS=1005567;//jslker.Parent:5567
+        $LASTPOS=2005588;//jslker.Parent:5588
         _this.ctx.scale(w/w,h/w);
-        $LASTPOS=1005597;//jslker.Parent:5597
+        $LASTPOS=2005618;//jslker.Parent:5618
         _this.ctx.arc(0,0,w/2,0,2*_this.Math.PI,false);
-        $LASTPOS=1005649;//jslker.Parent:5649
+        $LASTPOS=2005670;//jslker.Parent:5670
         _this.ctx.fill();
-        $LASTPOS=1005670;//jslker.Parent:5670
+        $LASTPOS=2005691;//jslker.Parent:5691
         _this.ctx.restore();
         
       }
@@ -1100,23 +3202,23 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1005415;//jslker.Parent:5415
+      $LASTPOS=2005436;//jslker.Parent:5436
       if (_this.searchCanvas()) {
-        $LASTPOS=1005444;//jslker.Parent:5444
+        $LASTPOS=2005465;//jslker.Parent:5465
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1005483;//jslker.Parent:5483
+        $LASTPOS=2005504;//jslker.Parent:5504
         _this.ctx.save();
-        $LASTPOS=1005504;//jslker.Parent:5504
+        $LASTPOS=2005525;//jslker.Parent:5525
         _this.ctx.beginPath();
-        $LASTPOS=1005530;//jslker.Parent:5530
+        $LASTPOS=2005551;//jslker.Parent:5551
         _this.ctx.translate(x+w/2,y+h/2);
-        $LASTPOS=1005567;//jslker.Parent:5567
+        $LASTPOS=2005588;//jslker.Parent:5588
         _this.ctx.scale(w/w,h/w);
-        $LASTPOS=1005597;//jslker.Parent:5597
+        $LASTPOS=2005618;//jslker.Parent:5618
         _this.ctx.arc(0,0,w/2,0,2*_this.Math.PI,false);
-        $LASTPOS=1005649;//jslker.Parent:5649
+        $LASTPOS=2005670;//jslker.Parent:5670
         _this.ctx.fill();
-        $LASTPOS=1005670;//jslker.Parent:5670
+        $LASTPOS=2005691;//jslker.Parent:5691
         _this.ctx.restore();
         
       }
@@ -1127,17 +3229,17 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1005725;//jslker.Parent:5725
+      $LASTPOS=2005746;//jslker.Parent:5746
       if (_this.searchCanvas()) {
-        $LASTPOS=1005754;//jslker.Parent:5754
+        $LASTPOS=2005775;//jslker.Parent:5775
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1005793;//jslker.Parent:5793
+        $LASTPOS=2005814;//jslker.Parent:5814
         _this.ctx.beginPath();
-        $LASTPOS=1005819;//jslker.Parent:5819
+        $LASTPOS=2005840;//jslker.Parent:5840
         _this.ctx.moveTo(x1,y1);
-        $LASTPOS=1005847;//jslker.Parent:5847
+        $LASTPOS=2005868;//jslker.Parent:5868
         _this.ctx.lineTo(x2,y2);
-        $LASTPOS=1005875;//jslker.Parent:5875
+        $LASTPOS=2005896;//jslker.Parent:5896
         _this.ctx.stroke();
         
       }
@@ -1148,17 +3250,17 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1005725;//jslker.Parent:5725
+      $LASTPOS=2005746;//jslker.Parent:5746
       if (_this.searchCanvas()) {
-        $LASTPOS=1005754;//jslker.Parent:5754
+        $LASTPOS=2005775;//jslker.Parent:5775
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1005793;//jslker.Parent:5793
+        $LASTPOS=2005814;//jslker.Parent:5814
         _this.ctx.beginPath();
-        $LASTPOS=1005819;//jslker.Parent:5819
+        $LASTPOS=2005840;//jslker.Parent:5840
         _this.ctx.moveTo(x1,y1);
-        $LASTPOS=1005847;//jslker.Parent:5847
+        $LASTPOS=2005868;//jslker.Parent:5868
         _this.ctx.lineTo(x2,y2);
-        $LASTPOS=1005875;//jslker.Parent:5875
+        $LASTPOS=2005896;//jslker.Parent:5896
         _this.ctx.stroke();
         
       }
@@ -1169,11 +3271,11 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1005926;//jslker.Parent:5926
+      $LASTPOS=2005947;//jslker.Parent:5947
       if (_this.searchCanvas()) {
-        $LASTPOS=1005955;//jslker.Parent:5955
+        $LASTPOS=2005976;//jslker.Parent:5976
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1005994;//jslker.Parent:5994
+        $LASTPOS=2006015;//jslker.Parent:6015
         _this.ctx.clearRect(x,y,w,h);
         
       }
@@ -1184,11 +3286,11 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1005926;//jslker.Parent:5926
+      $LASTPOS=2005947;//jslker.Parent:5947
       if (_this.searchCanvas()) {
-        $LASTPOS=1005955;//jslker.Parent:5955
+        $LASTPOS=2005976;//jslker.Parent:5976
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1005994;//jslker.Parent:5994
+        $LASTPOS=2006015;//jslker.Parent:6015
         _this.ctx.clearRect(x,y,w,h);
         
       }
@@ -1199,11 +3301,11 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1006052;//jslker.Parent:6052
+      $LASTPOS=2006073;//jslker.Parent:6073
       if (_this.searchCanvas()) {
-        $LASTPOS=1006081;//jslker.Parent:6081
+        $LASTPOS=2006102;//jslker.Parent:6102
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1006120;//jslker.Parent:6120
+        $LASTPOS=2006141;//jslker.Parent:6141
         _this.ctx.fillText(t,x,y);
         
       }
@@ -1214,11 +3316,11 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1006052;//jslker.Parent:6052
+      $LASTPOS=2006073;//jslker.Parent:6073
       if (_this.searchCanvas()) {
-        $LASTPOS=1006081;//jslker.Parent:6081
+        $LASTPOS=2006102;//jslker.Parent:6102
         _this.ctx=_this._canvas.getContext("2d");
-        $LASTPOS=1006120;//jslker.Parent:6120
+        $LASTPOS=2006141;//jslker.Parent:6141
         _this.ctx.fillText(t,x,y);
         
       }
@@ -1229,64 +3331,64 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1006183;//jslker.Parent:6183
+      $LASTPOS=2006204;//jslker.Parent:6204
       _this.activityGroup=_this.activityGroup||"default";
-      $LASTPOS=1006228;//jslker.Parent:6228
+      $LASTPOS=2006249;//jslker.Parent:6249
       _this.keyData=[];
-      $LASTPOS=1006245;//jslker.Parent:6245
-      _this.document.onkeydown=(function anonymous_6266(e) {
+      $LASTPOS=2006266;//jslker.Parent:6266
+      _this.document.onkeydown=(function anonymous_6287(e) {
         var key_code;
         var key_char;
         
-        $LASTPOS=1006289;//jslker.Parent:6289
+        $LASTPOS=2006310;//jslker.Parent:6310
         if (! e) {
-          $LASTPOS=1006296;//jslker.Parent:6296
+          $LASTPOS=2006317;//jslker.Parent:6317
           e=window.event;
         }
-        $LASTPOS=1006323;//jslker.Parent:6323
+        $LASTPOS=2006344;//jslker.Parent:6344
         key_code = e.keyCode;
         
-        $LASTPOS=1006358;//jslker.Parent:6358
+        $LASTPOS=2006379;//jslker.Parent:6379
         key_char = String.fromCharCode(key_code).toLowerCase();
         
-        $LASTPOS=1006427;//jslker.Parent:6427
+        $LASTPOS=2006448;//jslker.Parent:6448
         if (e.shiftKey&&(! _this.keyData["shift_key"]||_this.keyData["shift_key"]==0)) {
-          $LASTPOS=1006496;//jslker.Parent:6496
+          $LASTPOS=2006517;//jslker.Parent:6517
           _this.keyData["shift_key"]=1;
         } else {
-          $LASTPOS=1006534;//jslker.Parent:6534
+          $LASTPOS=2006555;//jslker.Parent:6555
           if (e.ctrlKey&&(! _this.keyData["ctrl_key"]||_this.keyData["ctrl_key"]==0)) {
-            $LASTPOS=1006600;//jslker.Parent:6600
+            $LASTPOS=2006621;//jslker.Parent:6621
             _this.keyData["ctrl_key"]=1;
           } else {
-            $LASTPOS=1006637;//jslker.Parent:6637
+            $LASTPOS=2006658;//jslker.Parent:6658
             if (e.altKey&&(! _this.keyData["alt_key"]||_this.keyData["alt_key"]==0)) {
-              $LASTPOS=1006700;//jslker.Parent:6700
+              $LASTPOS=2006721;//jslker.Parent:6721
               _this.keyData["alt_key"]=1;
             } else {
-              $LASTPOS=1006736;//jslker.Parent:6736
+              $LASTPOS=2006757;//jslker.Parent:6757
               if (e.keyCode==37&&(! _this.keyData["left"]||_this.keyData["left"]==0)) {
-                $LASTPOS=1006798;//jslker.Parent:6798
+                $LASTPOS=2006819;//jslker.Parent:6819
                 _this.keyData["left"]=1;
               } else {
-                $LASTPOS=1006831;//jslker.Parent:6831
+                $LASTPOS=2006852;//jslker.Parent:6852
                 if (e.keyCode==38&&(! _this.keyData["up"]||_this.keyData["up"]==0)) {
-                  $LASTPOS=1006889;//jslker.Parent:6889
+                  $LASTPOS=2006910;//jslker.Parent:6910
                   _this.keyData["up"]=1;
                 } else {
-                  $LASTPOS=1006920;//jslker.Parent:6920
+                  $LASTPOS=2006941;//jslker.Parent:6941
                   if (e.keyCode==39&&(! _this.keyData["right"]||_this.keyData["right"]==0)) {
-                    $LASTPOS=1006984;//jslker.Parent:6984
+                    $LASTPOS=2007005;//jslker.Parent:7005
                     _this.keyData["right"]=1;
                   } else {
-                    $LASTPOS=1007018;//jslker.Parent:7018
+                    $LASTPOS=2007039;//jslker.Parent:7039
                     if (e.keyCode==40&&(! _this.keyData["down"]||_this.keyData["down"]==0)) {
-                      $LASTPOS=1007080;//jslker.Parent:7080
+                      $LASTPOS=2007101;//jslker.Parent:7101
                       _this.keyData["down"]=1;
                     } else {
-                      $LASTPOS=1007113;//jslker.Parent:7113
+                      $LASTPOS=2007134;//jslker.Parent:7134
                       if (! _this.keyData[key_char]||_this.keyData[key_char]==0) {
-                        $LASTPOS=1007159;//jslker.Parent:7159
+                        $LASTPOS=2007180;//jslker.Parent:7180
                         _this.keyData[key_char]=1;
                       }
                     }
@@ -1297,58 +3399,58 @@ Tonyu.klass.define({
           }
         }
       });
-      $LASTPOS=1007324;//jslker.Parent:7324
-      _this.document.onkeyup=(function anonymous_7343(e) {
+      $LASTPOS=2007345;//jslker.Parent:7345
+      _this.document.onkeyup=(function anonymous_7364(e) {
         var key_code;
         var key_char;
         
-        $LASTPOS=1007366;//jslker.Parent:7366
+        $LASTPOS=2007387;//jslker.Parent:7387
         if (! e) {
-          $LASTPOS=1007373;//jslker.Parent:7373
+          $LASTPOS=2007394;//jslker.Parent:7394
           e=window.event;
         }
-        $LASTPOS=1007400;//jslker.Parent:7400
+        $LASTPOS=2007421;//jslker.Parent:7421
         key_code = e.keyCode;
         
-        $LASTPOS=1007435;//jslker.Parent:7435
+        $LASTPOS=2007456;//jslker.Parent:7456
         key_char = String.fromCharCode(key_code).toLowerCase();
         
-        $LASTPOS=1007504;//jslker.Parent:7504
+        $LASTPOS=2007525;//jslker.Parent:7525
         if (e.keyCode==16) {
-          $LASTPOS=1007522;//jslker.Parent:7522
+          $LASTPOS=2007543;//jslker.Parent:7543
           _this.keyData["shift_key"]=0;
         } else {
-          $LASTPOS=1007560;//jslker.Parent:7560
+          $LASTPOS=2007581;//jslker.Parent:7581
           if (e.keyCode==17) {
-            $LASTPOS=1007578;//jslker.Parent:7578
+            $LASTPOS=2007599;//jslker.Parent:7599
             _this.keyData["ctrl_key"]=0;
           } else {
-            $LASTPOS=1007615;//jslker.Parent:7615
+            $LASTPOS=2007636;//jslker.Parent:7636
             if (e.keyCode==18) {
-              $LASTPOS=1007633;//jslker.Parent:7633
+              $LASTPOS=2007654;//jslker.Parent:7654
               _this.keyData["alt_key"]=0;
             } else {
-              $LASTPOS=1007669;//jslker.Parent:7669
+              $LASTPOS=2007690;//jslker.Parent:7690
               if (e.keyCode==37) {
-                $LASTPOS=1007687;//jslker.Parent:7687
+                $LASTPOS=2007708;//jslker.Parent:7708
                 _this.keyData["left"]=0;
               } else {
-                $LASTPOS=1007720;//jslker.Parent:7720
+                $LASTPOS=2007741;//jslker.Parent:7741
                 if (e.keyCode==38) {
-                  $LASTPOS=1007738;//jslker.Parent:7738
+                  $LASTPOS=2007759;//jslker.Parent:7759
                   _this.keyData["up"]=0;
                 } else {
-                  $LASTPOS=1007769;//jslker.Parent:7769
+                  $LASTPOS=2007790;//jslker.Parent:7790
                   if (e.keyCode==39) {
-                    $LASTPOS=1007787;//jslker.Parent:7787
+                    $LASTPOS=2007808;//jslker.Parent:7808
                     _this.keyData["right"]=0;
                   } else {
-                    $LASTPOS=1007821;//jslker.Parent:7821
+                    $LASTPOS=2007842;//jslker.Parent:7842
                     if (e.keyCode==40) {
-                      $LASTPOS=1007839;//jslker.Parent:7839
+                      $LASTPOS=2007860;//jslker.Parent:7860
                       _this.keyData["down"]=0;
                     } else {
-                      $LASTPOS=1007872;//jslker.Parent:7872
+                      $LASTPOS=2007893;//jslker.Parent:7893
                       _this.keyData[key_char]=0;
                     }
                   }
@@ -1497,18 +3599,18 @@ Tonyu.klass.define({
       var methodName;
       var t;
       
-      $LASTPOS=1008396;//jslker.Parent:8396
+      $LASTPOS=2008417;//jslker.Parent:8417
       a = Array.prototype.slice.call(arguments);
       
-      $LASTPOS=1008446;//jslker.Parent:8446
+      $LASTPOS=2008467;//jslker.Parent:8467
       methodName = a.shift();
       
-      $LASTPOS=1008477;//jslker.Parent:8477
+      $LASTPOS=2008498;//jslker.Parent:8498
       t = Tonyu.thread();
       
-      $LASTPOS=1008504;//jslker.Parent:8504
+      $LASTPOS=2008525;//jslker.Parent:8525
       t.apply(_this,methodName,a);
-      $LASTPOS=1008537;//jslker.Parent:8537
+      $LASTPOS=2008558;//jslker.Parent:8558
       t.steps();
     },
     fiber$parallel :function _trc_Parent_f_parallel(_thread) {
@@ -1520,18 +3622,18 @@ Tonyu.klass.define({
       var methodName;
       var t;
       
-      $LASTPOS=1008396;//jslker.Parent:8396
+      $LASTPOS=2008417;//jslker.Parent:8417
       a = Array.prototype.slice.call(_arguments);
       
-      $LASTPOS=1008446;//jslker.Parent:8446
+      $LASTPOS=2008467;//jslker.Parent:8467
       methodName = a.shift();
       
-      $LASTPOS=1008477;//jslker.Parent:8477
+      $LASTPOS=2008498;//jslker.Parent:8498
       t = Tonyu.thread();
       
-      $LASTPOS=1008504;//jslker.Parent:8504
+      $LASTPOS=2008525;//jslker.Parent:8525
       t.apply(_this,methodName,a);
-      $LASTPOS=1008537;//jslker.Parent:8537
+      $LASTPOS=2008558;//jslker.Parent:8558
       t.steps();
       
       _thread.retVal=_this;return;
@@ -1542,26 +3644,26 @@ Tonyu.klass.define({
       var clicked;
       var _func;
       
-      $LASTPOS=1008575;//jslker.Parent:8575
+      $LASTPOS=2008596;//jslker.Parent:8596
       clicked = 0;
       
-      $LASTPOS=1008595;//jslker.Parent:8595
-      _func = (function anonymous_8605() {
+      $LASTPOS=2008616;//jslker.Parent:8616
+      _func = (function anonymous_8626() {
         
-        $LASTPOS=1008626;//jslker.Parent:8626
+        $LASTPOS=2008647;//jslker.Parent:8647
         clicked=1;
       });
       
-      $LASTPOS=1008650;//jslker.Parent:8650
+      $LASTPOS=2008671;//jslker.Parent:8671
       _this.onClick(elem,_func);
-      $LASTPOS=1008676;//jslker.Parent:8676
+      $LASTPOS=2008697;//jslker.Parent:8697
       while (clicked==0) {
         Tonyu.checkLoop();
-        $LASTPOS=1008704;//jslker.Parent:8704
+        $LASTPOS=2008725;//jslker.Parent:8725
         _this.wait(10);
         
       }
-      $LASTPOS=1008726;//jslker.Parent:8726
+      $LASTPOS=2008747;//jslker.Parent:8747
       _this.findElement(elem).off("click","",_func);
     },
     fiber$waitClick :function _trc_Parent_f_waitClick(_thread,elem) {
@@ -1572,13 +3674,13 @@ Tonyu.klass.define({
       var clicked;
       var _func;
       
-      $LASTPOS=1008575;//jslker.Parent:8575
+      $LASTPOS=2008596;//jslker.Parent:8596
       clicked = 0;
       
-      $LASTPOS=1008595;//jslker.Parent:8595
-      _func = (function anonymous_8605() {
+      $LASTPOS=2008616;//jslker.Parent:8616
+      _func = (function anonymous_8626() {
         
-        $LASTPOS=1008626;//jslker.Parent:8626
+        $LASTPOS=2008647;//jslker.Parent:8647
         clicked=1;
       });
       
@@ -1588,15 +3690,15 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1008650;//jslker.Parent:8650
+            $LASTPOS=2008671;//jslker.Parent:8671
             _this.fiber$onClick(_thread, elem, _func);
             __pc=1;return;
           case 1:
             
-            $LASTPOS=1008676;//jslker.Parent:8676
+            $LASTPOS=2008697;//jslker.Parent:8697
           case 2:
             if (!(clicked==0)) { __pc=4     ; break; }
-            $LASTPOS=1008704;//jslker.Parent:8704
+            $LASTPOS=2008725;//jslker.Parent:8725
             _this.fiber$wait(_thread, 10);
             __pc=3;return;
           case 3:
@@ -1604,7 +3706,7 @@ Tonyu.klass.define({
             __pc=2;break;
           case 4     :
             
-            $LASTPOS=1008726;//jslker.Parent:8726
+            $LASTPOS=2008747;//jslker.Parent:8747
             _this.findElement(elem).off("click","",_func);
             _thread.exit(_this);return;
           }
@@ -1616,25 +3718,25 @@ Tonyu.klass.define({
       var _this=this;
       var t;
       
-      $LASTPOS=1008797;//jslker.Parent:8797
+      $LASTPOS=2008818;//jslker.Parent:8818
       t = null;
       
-      $LASTPOS=1008817;//jslker.Parent:8817
+      $LASTPOS=2008838;//jslker.Parent:8838
       t.suspend();
-      $LASTPOS=1008835;//jslker.Parent:8835
+      $LASTPOS=2008856;//jslker.Parent:8856
       _this._err=null;
-      $LASTPOS=1008851;//jslker.Parent:8851
-      promise.then((function anonymous_8864(r) {
+      $LASTPOS=2008872;//jslker.Parent:8872
+      promise.then((function anonymous_8885(r) {
         
-        $LASTPOS=1008880;//jslker.Parent:8880
+        $LASTPOS=2008901;//jslker.Parent:8901
         _this._res=r;
-        $LASTPOS=1008897;//jslker.Parent:8897
+        $LASTPOS=2008918;//jslker.Parent:8918
         t.steps();
-      }),(function anonymous_8915(e) {
+      }),(function anonymous_8936(e) {
         
-        $LASTPOS=1008931;//jslker.Parent:8931
+        $LASTPOS=2008952;//jslker.Parent:8952
         _this._err=(e instanceof window.Error?e:new Error(e.responseText||e+""));
-        $LASTPOS=1009014;//jslker.Parent:9014
+        $LASTPOS=2009035;//jslker.Parent:9035
         t.steps();
       }));
     },
@@ -1645,25 +3747,25 @@ Tonyu.klass.define({
       var __pc=0;
       var t;
       
-      $LASTPOS=1008797;//jslker.Parent:8797
+      $LASTPOS=2008818;//jslker.Parent:8818
       t = _thread;
       
-      $LASTPOS=1008817;//jslker.Parent:8817
+      $LASTPOS=2008838;//jslker.Parent:8838
       t.suspend();
-      $LASTPOS=1008835;//jslker.Parent:8835
+      $LASTPOS=2008856;//jslker.Parent:8856
       _this._err=null;
-      $LASTPOS=1008851;//jslker.Parent:8851
-      promise.then((function anonymous_8864(r) {
+      $LASTPOS=2008872;//jslker.Parent:8872
+      promise.then((function anonymous_8885(r) {
         
-        $LASTPOS=1008880;//jslker.Parent:8880
+        $LASTPOS=2008901;//jslker.Parent:8901
         _this._res=r;
-        $LASTPOS=1008897;//jslker.Parent:8897
+        $LASTPOS=2008918;//jslker.Parent:8918
         t.steps();
-      }),(function anonymous_8915(e) {
+      }),(function anonymous_8936(e) {
         
-        $LASTPOS=1008931;//jslker.Parent:8931
+        $LASTPOS=2008952;//jslker.Parent:8952
         _this._err=(e instanceof window.Error?e:new Error(e.responseText||e+""));
-        $LASTPOS=1009014;//jslker.Parent:9014
+        $LASTPOS=2009035;//jslker.Parent:9035
         t.steps();
       }));
       
@@ -1673,9 +3775,9 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1009063;//jslker.Parent:9063
+      $LASTPOS=2009084;//jslker.Parent:9084
       _this._waitFor(promise);
-      $LASTPOS=1009087;//jslker.Parent:9087
+      $LASTPOS=2009108;//jslker.Parent:9108
       if (_this._err) {
         throw _this._err;
         
@@ -1694,12 +3796,12 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1009063;//jslker.Parent:9063
+            $LASTPOS=2009084;//jslker.Parent:9084
             _this.fiber$_waitFor(_thread, promise);
             __pc=1;return;
           case 1:
             
-            $LASTPOS=1009087;//jslker.Parent:9087
+            $LASTPOS=2009108;//jslker.Parent:9108
             if (_this._err) {
               throw _this._err;
               
@@ -1717,14 +3819,14 @@ Tonyu.klass.define({
       var p;
       var r;
       
-      $LASTPOS=1009438;//jslker.Parent:9438
+      $LASTPOS=2009459;//jslker.Parent:9459
       url = window.location.href;
       
-      $LASTPOS=1009473;//jslker.Parent:9473
+      $LASTPOS=2009494;//jslker.Parent:9494
       p = window.$.ajax({url: window.runtimePath+"a.php?KeyValue/put",type: 'POST',data: {key: key,value: value,url: url,group: _this.activityGroup}});
       
       
-      $LASTPOS=1009675;//jslker.Parent:9675
+      $LASTPOS=2009696;//jslker.Parent:9696
       r=_this.waitFor(p);
       return r;
     },
@@ -1737,10 +3839,10 @@ Tonyu.klass.define({
       var p;
       var r;
       
-      $LASTPOS=1009438;//jslker.Parent:9438
+      $LASTPOS=2009459;//jslker.Parent:9459
       url = window.location.href;
       
-      $LASTPOS=1009473;//jslker.Parent:9473
+      $LASTPOS=2009494;//jslker.Parent:9494
       p = window.$.ajax({url: window.runtimePath+"a.php?KeyValue/put",type: 'POST',data: {key: key,value: value,url: url,group: _this.activityGroup}});
       
       
@@ -1750,7 +3852,7 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1009675;//jslker.Parent:9675
+            $LASTPOS=2009696;//jslker.Parent:9696
             _this.fiber$waitFor(_thread, p);
             __pc=1;return;
           case 1:
@@ -1766,7 +3868,7 @@ Tonyu.klass.define({
       "use strict";
       var _this=this;
       
-      $LASTPOS=1009728;//jslker.Parent:9728
+      $LASTPOS=2009749;//jslker.Parent:9749
       _this.activityGroup=g||"default";
     },
     fiber$setGroup :function _trc_Parent_f_setGroup(_thread,g) {
@@ -1775,7 +3877,7 @@ Tonyu.klass.define({
       //var _arguments=Tonyu.A(arguments);
       var __pc=0;
       
-      $LASTPOS=1009728;//jslker.Parent:9728
+      $LASTPOS=2009749;//jslker.Parent:9749
       _this.activityGroup=g||"default";
       
       _thread.retVal=_this;return;
@@ -1787,14 +3889,14 @@ Tonyu.klass.define({
       var p;
       var r;
       
-      $LASTPOS=1009787;//jslker.Parent:9787
+      $LASTPOS=2009808;//jslker.Parent:9808
       url = window.location.href;
       
-      $LASTPOS=1009822;//jslker.Parent:9822
+      $LASTPOS=2009843;//jslker.Parent:9843
       p = window.$.ajax(window.runtimePath+"a.php?KeyValue/get"+"&key="+key+"&url="+url+"&group="+_this.activityGroup);
       
       
-      $LASTPOS=1009973;//jslker.Parent:9973
+      $LASTPOS=2009994;//jslker.Parent:9994
       r=_this.waitFor(p);
       return r;
     },
@@ -1807,10 +3909,10 @@ Tonyu.klass.define({
       var p;
       var r;
       
-      $LASTPOS=1009787;//jslker.Parent:9787
+      $LASTPOS=2009808;//jslker.Parent:9808
       url = window.location.href;
       
-      $LASTPOS=1009822;//jslker.Parent:9822
+      $LASTPOS=2009843;//jslker.Parent:9843
       p = window.$.ajax(window.runtimePath+"a.php?KeyValue/get"+"&key="+key+"&url="+url+"&group="+_this.activityGroup);
       
       
@@ -1820,7 +3922,7 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1009973;//jslker.Parent:9973
+            $LASTPOS=2009994;//jslker.Parent:9994
             _this.fiber$waitFor(_thread, p);
             __pc=1;return;
           case 1:
@@ -1840,39 +3942,39 @@ Tonyu.klass.define({
       var p;
       var r;
       
-      $LASTPOS=1010043;//jslker.Parent:10043
+      $LASTPOS=2010064;//jslker.Parent:10064
       _this.group=_this.activityGroup;
-      $LASTPOS=1010069;//jslker.Parent:10069
+      $LASTPOS=2010090;//jslker.Parent:10090
       url = window.location.href;
       
-      $LASTPOS=1010104;//jslker.Parent:10104
+      $LASTPOS=2010125;//jslker.Parent:10125
       params = "&group="+_this.group+"&practice="+practice+"&url="+url;
       
-      $LASTPOS=1010171;//jslker.Parent:10171
+      $LASTPOS=2010192;//jslker.Parent:10192
       if (d1!=null) {
-        $LASTPOS=1010185;//jslker.Parent:10185
+        $LASTPOS=2010206;//jslker.Parent:10206
         params+="&data1="+d1;
       }
-      $LASTPOS=1010212;//jslker.Parent:10212
+      $LASTPOS=2010233;//jslker.Parent:10233
       if (d2!=null) {
-        $LASTPOS=1010226;//jslker.Parent:10226
+        $LASTPOS=2010247;//jslker.Parent:10247
         params+="&data2="+d2;
       }
-      $LASTPOS=1010253;//jslker.Parent:10253
+      $LASTPOS=2010274;//jslker.Parent:10274
       if (d3!=null) {
-        $LASTPOS=1010267;//jslker.Parent:10267
+        $LASTPOS=2010288;//jslker.Parent:10288
         params+="&data3="+d3;
       }
-      $LASTPOS=1010294;//jslker.Parent:10294
+      $LASTPOS=2010315;//jslker.Parent:10315
       if (d4!=null) {
-        $LASTPOS=1010308;//jslker.Parent:10308
+        $LASTPOS=2010329;//jslker.Parent:10329
         params+="&data4="+d4;
       }
-      $LASTPOS=1010335;//jslker.Parent:10335
+      $LASTPOS=2010356;//jslker.Parent:10356
       p = window.$.ajax(window.runtimePath+"a.php?BigData/add"+params);
       
       
-      $LASTPOS=1010420;//jslker.Parent:10420
+      $LASTPOS=2010441;//jslker.Parent:10441
       r=_this.waitFor(p);
       return r;
     },
@@ -1886,35 +3988,35 @@ Tonyu.klass.define({
       var p;
       var r;
       
-      $LASTPOS=1010043;//jslker.Parent:10043
+      $LASTPOS=2010064;//jslker.Parent:10064
       _this.group=_this.activityGroup;
-      $LASTPOS=1010069;//jslker.Parent:10069
+      $LASTPOS=2010090;//jslker.Parent:10090
       url = window.location.href;
       
-      $LASTPOS=1010104;//jslker.Parent:10104
+      $LASTPOS=2010125;//jslker.Parent:10125
       params = "&group="+_this.group+"&practice="+practice+"&url="+url;
       
-      $LASTPOS=1010171;//jslker.Parent:10171
+      $LASTPOS=2010192;//jslker.Parent:10192
       if (d1!=null) {
-        $LASTPOS=1010185;//jslker.Parent:10185
+        $LASTPOS=2010206;//jslker.Parent:10206
         params+="&data1="+d1;
       }
-      $LASTPOS=1010212;//jslker.Parent:10212
+      $LASTPOS=2010233;//jslker.Parent:10233
       if (d2!=null) {
-        $LASTPOS=1010226;//jslker.Parent:10226
+        $LASTPOS=2010247;//jslker.Parent:10247
         params+="&data2="+d2;
       }
-      $LASTPOS=1010253;//jslker.Parent:10253
+      $LASTPOS=2010274;//jslker.Parent:10274
       if (d3!=null) {
-        $LASTPOS=1010267;//jslker.Parent:10267
+        $LASTPOS=2010288;//jslker.Parent:10288
         params+="&data3="+d3;
       }
-      $LASTPOS=1010294;//jslker.Parent:10294
+      $LASTPOS=2010315;//jslker.Parent:10315
       if (d4!=null) {
-        $LASTPOS=1010308;//jslker.Parent:10308
+        $LASTPOS=2010329;//jslker.Parent:10329
         params+="&data4="+d4;
       }
-      $LASTPOS=1010335;//jslker.Parent:10335
+      $LASTPOS=2010356;//jslker.Parent:10356
       p = window.$.ajax(window.runtimePath+"a.php?BigData/add"+params);
       
       
@@ -1924,7 +4026,7 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1010420;//jslker.Parent:10420
+            $LASTPOS=2010441;//jslker.Parent:10441
             _this.fiber$waitFor(_thread, p);
             __pc=1;return;
           case 1:
@@ -1944,39 +4046,39 @@ Tonyu.klass.define({
       var p;
       var r;
       
-      $LASTPOS=1010491;//jslker.Parent:10491
+      $LASTPOS=2010512;//jslker.Parent:10512
       _this.group=_this.activityGroup;
-      $LASTPOS=1010517;//jslker.Parent:10517
+      $LASTPOS=2010538;//jslker.Parent:10538
       url = window.location.href;
       
-      $LASTPOS=1010552;//jslker.Parent:10552
+      $LASTPOS=2010573;//jslker.Parent:10573
       params = "&group="+_this.group+"&practice="+practice+"&url="+url;
       
-      $LASTPOS=1010619;//jslker.Parent:10619
+      $LASTPOS=2010640;//jslker.Parent:10640
       if (d1!=null) {
-        $LASTPOS=1010633;//jslker.Parent:10633
+        $LASTPOS=2010654;//jslker.Parent:10654
         params+="&data1="+d1;
       }
-      $LASTPOS=1010660;//jslker.Parent:10660
+      $LASTPOS=2010681;//jslker.Parent:10681
       if (d2!=null) {
-        $LASTPOS=1010674;//jslker.Parent:10674
+        $LASTPOS=2010695;//jslker.Parent:10695
         params+="&data2="+d2;
       }
-      $LASTPOS=1010701;//jslker.Parent:10701
+      $LASTPOS=2010722;//jslker.Parent:10722
       if (d3!=null) {
-        $LASTPOS=1010715;//jslker.Parent:10715
+        $LASTPOS=2010736;//jslker.Parent:10736
         params+="&data3="+d3;
       }
-      $LASTPOS=1010742;//jslker.Parent:10742
+      $LASTPOS=2010763;//jslker.Parent:10763
       if (d4!=null) {
-        $LASTPOS=1010756;//jslker.Parent:10756
+        $LASTPOS=2010777;//jslker.Parent:10777
         params+="&data4="+d4;
       }
-      $LASTPOS=1010783;//jslker.Parent:10783
+      $LASTPOS=2010804;//jslker.Parent:10804
       p = window.$.ajax(window.runtimePath+"a.php?BigData/find"+params);
       
       
-      $LASTPOS=1010869;//jslker.Parent:10869
+      $LASTPOS=2010890;//jslker.Parent:10890
       r=_this.waitFor(p);
       return r;
     },
@@ -1990,35 +4092,35 @@ Tonyu.klass.define({
       var p;
       var r;
       
-      $LASTPOS=1010491;//jslker.Parent:10491
+      $LASTPOS=2010512;//jslker.Parent:10512
       _this.group=_this.activityGroup;
-      $LASTPOS=1010517;//jslker.Parent:10517
+      $LASTPOS=2010538;//jslker.Parent:10538
       url = window.location.href;
       
-      $LASTPOS=1010552;//jslker.Parent:10552
+      $LASTPOS=2010573;//jslker.Parent:10573
       params = "&group="+_this.group+"&practice="+practice+"&url="+url;
       
-      $LASTPOS=1010619;//jslker.Parent:10619
+      $LASTPOS=2010640;//jslker.Parent:10640
       if (d1!=null) {
-        $LASTPOS=1010633;//jslker.Parent:10633
+        $LASTPOS=2010654;//jslker.Parent:10654
         params+="&data1="+d1;
       }
-      $LASTPOS=1010660;//jslker.Parent:10660
+      $LASTPOS=2010681;//jslker.Parent:10681
       if (d2!=null) {
-        $LASTPOS=1010674;//jslker.Parent:10674
+        $LASTPOS=2010695;//jslker.Parent:10695
         params+="&data2="+d2;
       }
-      $LASTPOS=1010701;//jslker.Parent:10701
+      $LASTPOS=2010722;//jslker.Parent:10722
       if (d3!=null) {
-        $LASTPOS=1010715;//jslker.Parent:10715
+        $LASTPOS=2010736;//jslker.Parent:10736
         params+="&data3="+d3;
       }
-      $LASTPOS=1010742;//jslker.Parent:10742
+      $LASTPOS=2010763;//jslker.Parent:10763
       if (d4!=null) {
-        $LASTPOS=1010756;//jslker.Parent:10756
+        $LASTPOS=2010777;//jslker.Parent:10777
         params+="&data4="+d4;
       }
-      $LASTPOS=1010783;//jslker.Parent:10783
+      $LASTPOS=2010804;//jslker.Parent:10804
       p = window.$.ajax(window.runtimePath+"a.php?BigData/find"+params);
       
       
@@ -2028,7 +4130,7 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1010869;//jslker.Parent:10869
+            $LASTPOS=2010890;//jslker.Parent:10890
             _this.fiber$waitFor(_thread, p);
             __pc=1;return;
           case 1:
@@ -2049,24 +4151,24 @@ Tonyu.klass.define({
       var r;
       
       
-      $LASTPOS=1010937;//jslker.Parent:10937
+      $LASTPOS=2010958;//jslker.Parent:10958
       if (typeof  BitArrow==="object"&&BitArrow.publishedURL) {
-        $LASTPOS=1011005;//jslker.Parent:11005
+        $LASTPOS=2011026;//jslker.Parent:11026
         url=BitArrow.publishedURL;
         
       } else {
-        $LASTPOS=1011055;//jslker.Parent:11055
+        $LASTPOS=2011076;//jslker.Parent:11076
         url=window.location.href;
         
       }
-      $LASTPOS=1011093;//jslker.Parent:11093
+      $LASTPOS=2011114;//jslker.Parent:11114
       params = "&url="+url;
       
-      $LASTPOS=1011122;//jslker.Parent:11122
+      $LASTPOS=2011143;//jslker.Parent:11143
       p = window.$.ajax(window.runtimePath+"a.php?KeyValue/info"+params);
       
       
-      $LASTPOS=1011209;//jslker.Parent:11209
+      $LASTPOS=2011230;//jslker.Parent:11230
       r=_this.waitFor(p);
       return r;
     },
@@ -2081,20 +4183,20 @@ Tonyu.klass.define({
       var r;
       
       
-      $LASTPOS=1010937;//jslker.Parent:10937
+      $LASTPOS=2010958;//jslker.Parent:10958
       if (typeof  BitArrow==="object"&&BitArrow.publishedURL) {
-        $LASTPOS=1011005;//jslker.Parent:11005
+        $LASTPOS=2011026;//jslker.Parent:11026
         url=BitArrow.publishedURL;
         
       } else {
-        $LASTPOS=1011055;//jslker.Parent:11055
+        $LASTPOS=2011076;//jslker.Parent:11076
         url=window.location.href;
         
       }
-      $LASTPOS=1011093;//jslker.Parent:11093
+      $LASTPOS=2011114;//jslker.Parent:11114
       params = "&url="+url;
       
-      $LASTPOS=1011122;//jslker.Parent:11122
+      $LASTPOS=2011143;//jslker.Parent:11143
       p = window.$.ajax(window.runtimePath+"a.php?KeyValue/info"+params);
       
       
@@ -2104,7 +4206,7 @@ Tonyu.klass.define({
         for(var __cnt=100 ; __cnt--;) {
           switch (__pc) {
           case 0:
-            $LASTPOS=1011209;//jslker.Parent:11209
+            $LASTPOS=2011230;//jslker.Parent:11230
             _this.fiber$waitFor(_thread, p);
             __pc=1;return;
           case 1:
@@ -2116,9 +4218,68 @@ Tonyu.klass.define({
         }
       });
     },
+    createGraph :function _trc_Parent_createGraph(target,src) {
+      "use strict";
+      var _this=this;
+      var e;
+      var g;
+      
+      $LASTPOS=2011301;//jslker.Parent:11301
+      e = _this.findElement(target);
+      
+      $LASTPOS=2011333;//jslker.Parent:11333
+      if (! e[0]) {
+        $LASTPOS=2011355;//jslker.Parent:11355
+        e=$("<div>").appendTo("body");
+        
+      }
+      $LASTPOS=2011398;//jslker.Parent:11398
+      g = new Tonyu.classes.jslker.Graph(e[0]);
+      
+      $LASTPOS=2011426;//jslker.Parent:11426
+      g.src=src||[];
+      return g;
+    },
+    fiber$createGraph :function _trc_Parent_f_createGraph(_thread,target,src) {
+      "use strict";
+      var _this=this;
+      //var _arguments=Tonyu.A(arguments);
+      var __pc=0;
+      var e;
+      var g;
+      
+      
+      _thread.enter(function _trc_Parent_ent_createGraph(_thread) {
+        if (_thread.lastEx) __pc=_thread.catchPC;
+        for(var __cnt=100 ; __cnt--;) {
+          switch (__pc) {
+          case 0:
+            $LASTPOS=2011301;//jslker.Parent:11301
+            _this.fiber$findElement(_thread, target);
+            __pc=1;return;
+          case 1:
+            e=_thread.retVal;
+            
+            $LASTPOS=2011333;//jslker.Parent:11333
+            if (! e[0]) {
+              $LASTPOS=2011355;//jslker.Parent:11355
+              e=$("<div>").appendTo("body");
+              
+            }
+            $LASTPOS=2011398;//jslker.Parent:11398
+            g = new Tonyu.classes.jslker.Graph(e[0]);
+            
+            $LASTPOS=2011426;//jslker.Parent:11426
+            g.src=src||[];
+            _thread.exit(g);return;
+            _thread.exit(_this);return;
+          }
+        }
+      });
+    },
     __dummy: false
   },
-  decls: {"methods":{"main":{"nowait":false},"__getter__Math":{"nowait":true},"__getter__document":{"nowait":true},"setInterval":{"nowait":false},"setTimeout":{"nowait":false},"catchException":{"nowait":false},"findElement":{"nowait":false},"isFormElement":{"nowait":false},"clearContent":{"nowait":false},"addText":{"nowait":false},"setText":{"nowait":false},"getNumber":{"nowait":false},"getText":{"nowait":false},"setNumber":{"nowait":false},"onClick":{"nowait":false},"onTouch":{"nowait":false},"setCanvas":{"nowait":false},"searchCanvas":{"nowait":false},"setColor":{"nowait":false},"fillRect":{"nowait":false},"changeImage":{"nowait":false},"move":{"nowait":false},"transform":{"nowait":false},"rotate":{"nowait":false},"resize":{"nowait":false},"wait":{"nowait":false},"rnd":{"nowait":false},"setBGColor":{"nowait":false},"newElement":{"nowait":false},"fillOval":{"nowait":false},"drawLine":{"nowait":false},"clearRect":{"nowait":false},"fillText":{"nowait":false},"new":{"nowait":false},"getkey":{"nowait":false},"dist":{"nowait":false},"angle":{"nowait":false},"rad":{"nowait":true},"deg":{"nowait":true},"sqrt":{"nowait":false},"sin":{"nowait":false},"cos":{"nowait":false},"tan":{"nowait":false},"parallel":{"nowait":false},"waitClick":{"nowait":false},"_waitFor":{"nowait":false},"waitFor":{"nowait":false},"putToServer":{"nowait":false},"setGroup":{"nowait":false},"getFromServer":{"nowait":false},"addLog":{"nowait":false},"findLog":{"nowait":false},"curProject":{"nowait":false}},"fields":{"document":{},"down":{},"_canvas":{},"ctx":{},"Math":{},"activityGroup":{},"keyData":{},"_err":{},"_res":{},"group":{}}}
+  decls: {"methods":{"main":{"nowait":false},"__getter__Math":{"nowait":true},"__getter__document":{"nowait":true},"setInterval":{"nowait":false},"setTimeout":{"nowait":false},"catchException":{"nowait":false},"findElement":{"nowait":false},"isFormElement":{"nowait":false},"clearContent":{"nowait":false},"addText":{"nowait":false},"setText":{"nowait":false},"getNumber":{"nowait":false},"getText":{"nowait":false},"setNumber":{"nowait":false},"onClick":{"nowait":false},"onTouch":{"nowait":false},"setCanvas":{"nowait":false},"searchCanvas":{"nowait":false},"setColor":{"nowait":false},"fillRect":{"nowait":false},"changeImage":{"nowait":false},"move":{"nowait":false},"transform":{"nowait":false},"rotate":{"nowait":false},"resize":{"nowait":false},"wait":{"nowait":false},"rnd":{"nowait":false},"setBGColor":{"nowait":false},"newElement":{"nowait":false},"fillOval":{"nowait":false},"drawLine":{"nowait":false},"clearRect":{"nowait":false},"fillText":{"nowait":false},"new":{"nowait":false},"getkey":{"nowait":false},"dist":{"nowait":false},"angle":{"nowait":false},"rad":{"nowait":true},"deg":{"nowait":true},"sqrt":{"nowait":false},"sin":{"nowait":false},"cos":{"nowait":false},"tan":{"nowait":false},"parallel":{"nowait":false},"waitClick":{"nowait":false},"_waitFor":{"nowait":false},"waitFor":{"nowait":false},"putToServer":{"nowait":false},"setGroup":{"nowait":false},"getFromServer":{"nowait":false},"addLog":{"nowait":false},"findLog":{"nowait":false},"curProject":{"nowait":false},"createGraph":{"nowait":false}},"fields":{"document":{},"down":{},"_canvas":{},"ctx":{},"Math":{},"activityGroup":{},"keyData":{},"_err":{},"_res":{},"group":{}}}
 });
 
 //# sourceMappingURL=concat.js.map

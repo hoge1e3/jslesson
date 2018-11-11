@@ -38,12 +38,12 @@ setInterval(function () {
 Date.prototype.add=function (o) {
     if (typeof o=="number") {
         return new Date(this.getTime()+o);
-    } 
+    }
 };
 Date.prototype.sub=function (o) {
     if (typeof o=="number") {
         return new Date(this.getTime()-o);
-    } 
+    }
     return this.getTime()-o.getTime();
 };
 function pad(str,p) {
@@ -53,17 +53,17 @@ function pad(str,p) {
 Date.prototype.format=function (fmt) {
     var d=this;
     return fmt.replace(/y/ig,function () {
-        return pad(d.getYear()+1900,"0000");    
+        return pad(d.getYear()+1900,"0000");
     }).replace(/M/g,function () {
-        return pad(d.getMonth()+1,"00");    
+        return pad(d.getMonth()+1,"00");
     }).replace(/d/ig,function () {
-        return pad(d.getDate(),"00");    
+        return pad(d.getDate(),"00");
     }).replace(/h/ig,function () {
-        return pad(d.getHours(),"00");    
+        return pad(d.getHours(),"00");
     }).replace(/m/g,function () {
-        return pad(d.getMinutes(),"00");    
+        return pad(d.getMinutes(),"00");
     }).replace(/s/ig,function () {
-        return pad(d.getSeconds(),"00");    
+        return pad(d.getSeconds(),"00");
     });
 };
 function duration() {
@@ -102,7 +102,7 @@ function addZoomListener(cv) {
         var nmin=center.sub(duration()*zoom/2);
         var nmax=center.add(duration()*zoom/2);
         //var pnow=new Date().sub(1000*60*5);
-        //if (nmax.sub(pnow)>0) nmax=pnow; 
+        //if (nmax.sub(pnow)>0) nmax=pnow;
         if (nmin.sub(omin)>=0 && nmax.sub(omax)<=0) {
             min=nmin;max=nmax;
             setScale($("#scale"));
@@ -110,7 +110,7 @@ function addZoomListener(cv) {
             queue=oldQ;oldQ=[];
             userInfo={};
         } else {
-            location.href="a.php?showTimeline&min="+date2str(nmin)+"&max="+date2str(nmax);
+            location.href="?showTimeline&min="+date2str(nmin)+"&max="+date2str(nmax);
         }
         //alert(date2str(nmin)+" - "+date2str(nmax));
     });
@@ -133,7 +133,7 @@ function str2date(s) {
 }
 var stcolor={"NG":"yellow","OK":"lime","Error":"red"};
 function showLine(time,file,status) {
-//2016-05-08T20:51:17+09:00  
+//2016-05-08T20:51:17+09:00
     time=time.replace(/\+.*/,"");
     var ctx=curcv[0].getContext("2d");
     var d=str2date(time);
@@ -162,7 +162,7 @@ function setUser(file) {
         var x=(e.clientX-curcv.offset().left);
            for (var i=1;i<10; i++) {
             if (inf.pos2str[x]) {
-                window.open("a.php?grep&file="+user+"&word="+inf.pos2str[x]+"#center");
+                window.open("?grep&file="+user+"&word="+inf.pos2str[x]+"#center");
                 break;
             }
             x+=i*(i%2*2-1);

@@ -18,7 +18,7 @@ $(document).ready(function() {
 function getLog(logid,userid){
   $.ajax({
       type: "POST",
-      url: "a.php?Class/getLog",
+      url: "?Class/getLog",
       data: "logid="+logid,
       dataType: "json",
       success: function(data,dataType){
@@ -35,20 +35,6 @@ function getLog(logid,userid){
 }
 function getOneUsersLogId(userid,pon){
   showFrame(logs[userid],userid,pon);
-  /*$.ajax({
-      type: "POST",
-      url: "a.php?Class/getOneUsersLogId",
-      data: "userid="+userid,
-      dataType: "json",
-      success: function(data,dataType){
-          console.log(data);
-          showFrame(data,userid,pon);
-      },
-      error: function(xhr, textStatus, errorThrown){
-          console.log("ログデータの取得に失敗しました。",xhr,textStatus,errorThrown);
-          alert("ログデータの取得に失敗しました。"+textStatus);
-      }
-  });*/
 }
 function openFrame(data){
   console.log(data);
@@ -158,7 +144,7 @@ if(reloadMode){
 function getPreviousLog(logid){
   return $.ajax({
       type: "POST",
-      url: "a.php?Class/getLog",
+      url: "?Class/getLog",
       data: "logid="+logid,
       dataType: "json"
   });

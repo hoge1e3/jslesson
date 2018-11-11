@@ -128,7 +128,7 @@ function ExpressionParser() {
         opt=st.opType;
 	    if (opt.type("prefix") ) {
 	        // st = -^elem
-	        pre=st.result[0];
+	        var pre=st.result[0];
 	        st=parse(opt.prio(), st);
 	        if (!st.isSuccess()) {
 	            return st;

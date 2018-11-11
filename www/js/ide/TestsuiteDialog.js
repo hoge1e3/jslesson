@@ -29,7 +29,7 @@ function (Klass,UI,A,DateUtil,DU) {
             t.dom=t.dom||t.createDOM();
             //t.dom.dialog(t.dialogParam);
             t.mode=null;
-            $.post("a.php?"+t.controller+"/get",{
+            $.post(WebSite.controller+"?"+t.controller+"/get",{
                 assignment: t.assignment.id,
                 name: name
             }).then(function (a) {
@@ -56,7 +56,7 @@ function (Klass,UI,A,DateUtil,DU) {
         },
         showList:function (t) {
             t.list.empty();
-            return $.get("a.php?"+t.controller+"/list"+t.assignmentParam).then(function (r) {
+            return $.get(WebSite.controller+"?"+t.controller+"/list"+t.assignmentParam).then(function (r) {
                 console.log("list ",r);
                 t.list.empty();
                 t.list.append(UI("div",
@@ -129,7 +129,7 @@ function (Klass,UI,A,DateUtil,DU) {
             console.log("post param",param);
             switch (t.mode) {
             case "add":
-            return $.post("a.php?"+t.controller+"/add",param).then(function (r){
+            return $.post(WebSite.controller+"?"+t.controller+"/add",param).then(function (r){
                 t.cur=param;
                 t.cur.id=r-0;
                 t.showMesg("追加しました");
@@ -140,13 +140,13 @@ function (Klass,UI,A,DateUtil,DU) {
             },DU.E);
             case "edit":
             if (t.origname.val()!==t.name.val()) {
-                return $.post("a.php?"+t.controller+"/rename",param).then(function (r){
+                return $.post(WebSite.controller+"?"+t.controller+"/rename",param).then(function (r){
                     t.showList();
                     t.showMesg("更新しました");
                     console.log("Result",r);
                 },DU.E);
             } else {
-                return $.post("a.php?"+t.controller+"/edit",param).then(function (r){
+                return $.post(WebSite.controller+"?"+t.controller+"/edit",param).then(function (r){
                     t.showMesg("更新しました");
                     console.log("Result",r);
                 },DU.E);
@@ -158,7 +158,7 @@ function (Klass,UI,A,DateUtil,DU) {
         del: function (t) {
             if (t.mode!=="edit") return;
             if (!confirm(t.cur.name+"を削除しますか？")) return;
-            $.get("a.php?"+t.controller+"/del&id="+t.cur.id).then(function (r){
+            $.get(WebSite.controller+"?"+t.controller+"/del&id="+t.cur.id).then(function (r){
                 t.showMesg("削除しました");
                 t.add();
                 t.showList();
