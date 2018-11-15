@@ -46,7 +46,8 @@ function (Util, Tonyu, FS, FileList, FileMenu,
         "c":"C",
         "dtl":"Dolittle",
         "tonyu":"Tonyu",
-        "dncl":"DNCL"
+        "dncl":"DNCL",
+        "py":"Python",
     };
     var helpURL;
     var unsaved=false;
@@ -180,6 +181,10 @@ function ready() {
     case "dncl":
     	requirejs(["DnclBuilder"],setupBuilder);
     	helpURL="http://bitarrow.eplang.jp/index.php?dncl_use";
+    	break;
+    case "py":
+    	requirejs(["PythonBuilder"],setupBuilder);
+    	//helpURL="http://bitarrow.eplang.jp/index.php?dncl_use";
     	break;
     case "tonyu":
         requirejs(["TonyuBuilder","TonyuProject"],function(_,TPRC){
@@ -596,7 +601,7 @@ function ready() {
         if (f.ext()==EXT || f.ext()==HEXT) {
             fileSet(f).forEach(function (e) {
                 if (e.ext()==EXT && !e.exists()) {
-                    e.text("// "+langList[lang]+"\n");
+                    e.text((lang=="py"?"# ":"// ")+langList[lang]+"\n");
                     if(lang=="js") e.text("// "+langList[lang]+"\n// ここで扱われるJavaScriptは通常のJavaScriptとは異なります。詳しくは使用方法をご覧ください。\n");
                 } else if (e.ext()==HEXT  && !e.exists()) {
                     e.text("<html>\n\n</html>");
@@ -917,7 +922,7 @@ function ready() {
               SplashScreen.hide();
           }
 
-      }else if(lang=="dtl" || lang=="dncl"){//dncl ok?
+      }else if(lang=="dtl" || lang=="dncl" || lang=="py"){//dncl ok?
     	    try {
                 SplashScreen.show();
         	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
@@ -1165,7 +1170,7 @@ function ready() {
         }
     }
     function fixEditorIndent(prog) {
-        if (lang==="dncl") return;// bad know-how!
+        if (lang==="dncl" || lang==="py") return;// bad know-how!
         A.is(prog,"AceEditor");
         var prev=prog.getValue();
         var fixed=fixIndent( prev ).replace(/　/g,"  ");

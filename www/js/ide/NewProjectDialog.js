@@ -42,6 +42,7 @@ define(["UI","ProjectCompiler"], function (UI,TPRC) {
                  }}}, "OK"]
             );
             if (localStorage.noconcat) {
+                res.d.$vars.lang.append(UI("option",{value:"py"},"Python"));
                 res.d.$vars.lang.append(UI("option",{value:"tonyu"},"Tonyu"));
             }
         }

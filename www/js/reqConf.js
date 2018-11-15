@@ -255,6 +255,7 @@ var reqConf={
             TJSBuilder:"build/tjs/TJSBuilder",
             DtlBuilder:"build/dolittle/DtlBuilder",
             DnclBuilder:"build/dncl/DnclBuilder",
+            PythonBuilder:"build/python/PythonBuilder",
             CBuilder:"build/c/CBuilder",
             TonyuBuilder:"build/tonyu/TonyuBuilder",
             wget:"fs2/wget",
