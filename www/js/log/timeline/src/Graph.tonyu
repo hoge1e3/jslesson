@@ -1,5 +1,6 @@
 native console;
 native $;
+$.getScript("https://bitarrow.eplang.jp/bitarrow/js/lib/jquery-ui.js");
 "field strict";
 var src:FNlog;
 var colors={};
