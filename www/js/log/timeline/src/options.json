@@ -1,1 +1,1 @@
-{"compiler":{"defaultSuperClass":"Actor","commentLastPos":true,"diagnose":false},"run":{"mainClass":"FNlog","bootClass":"Boot","globals":{"$defaultFPS":60,"$imageSmoothingDisabled":true}},"kernelEditable":false,"version":1527468833941,"plugins":{}}
+{"compiler":{"defaultSuperClass":"Actor","commentLastPos":true,"diagnose":false,"noLoopCheck":true,"field_strict":false},"run":{"mainClass":"FNlog","bootClass":"Boot","globals":{"$defaultFPS":60,"$imageSmoothingDisabled":true}},"kernelEditable":false,"version":1527468833941,"plugins":{}}

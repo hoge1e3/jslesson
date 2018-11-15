@@ -1,1 +1,1 @@
-{"runMenuOrd":["FNlog","Main","Indicator","Graph","Blink"],"runDialog":{"width":482.84000000000003,"height":503.84000000000003,"left":343,"top":133}}
+{"runMenuOrd":["FNlog","Main","Indicator","Graph","Blink","ClickableText","Summarizer"],"runDialog":{"width":482.84000000000003,"height":503.84000000000003,"left":136,"top":132},"runtimeConfig":{"dest":"C:\\bin\\Dropbox\\workspace\\jslesson\\www\\js\\log\\timeline","src":true,"zip":true}}
