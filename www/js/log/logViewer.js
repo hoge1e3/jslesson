@@ -149,7 +149,12 @@ function getPreviousLog(logid){
       dataType: "json"
   });
 }
+var prevLog;
 function showLogOneUser(logid,userid,fn){
+    console.log("SLO",this);
+    if (prevLog) $(prevLog).css({background:"#fff"});
+    $(this).css({background:"#ff0"});
+    prevLog=this;
   getLog(logid,userid);
   var ind=logsOfOneUser[fn].indexOf(logid-0);
   var currentProgram;
