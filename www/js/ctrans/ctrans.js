@@ -1551,7 +1551,7 @@ extern char* strstr(char *h,char *n);
 	    "getkey":"int"
 	};
     var control_line=t("#").and(t("define")).and(identifier).and(t(/^.+/)).ret(function(s,def,befor,after){
-	    defines[befor+""]=after;
+	    defines[befor+""]=(after+"").replace(/\/\/.*/,"");
 	});
 	control_line=t("#").and(t("include")).and(t("<").or(t("\""))).and(incl_filename).and(t(">").or(t("\""))).ret(function(){
 	    var filename=arguments[3];

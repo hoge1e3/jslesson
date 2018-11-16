@@ -1,3 +1,6 @@
+native console;
+native $;
+$.getScript("https://bitarrow.eplang.jp/bitarrow/js/lib/jquery-ui.js");
 "field strict";
 var src:FNlog;
 var colors={};
@@ -23,6 +26,10 @@ while(true) {
         zoomOut($mouseX);
         drawLines();
     }
+    
+    if (getkey("S")==1) {
+        summary();   
+    }
     if (getkey("mouseleft")==1) {
         var t=y2timeline($mouseY);
         if (t) { 
@@ -39,6 +46,27 @@ p=-1;
     var i=floor(yy/$h);
     var t=src.timelines[i];
     return t;
+}
+\summary() {
+    var d=$("<div>").dialog({width:800,height:600});
+    d.append("ユーザ，ファイル毎の編集回数，編集時刻の平均・最小・最大（単位：この日の0時からの経過秒）");
+    var t=$("<textarea>").attr{rows:30,cols:120}.appendTo(d);
+    var tx=["user","file","count","t.average","t.min","t.max"].join("\t")+"\n";
+    
+    for (var timeline of src.timelines) {
+        for (var fn,av in timeline.avg) {
+            /*r=$("<tr>").appendTo(t);
+            $("<td>").text(timeline.user).appendTo(r);
+            $("<td>").text(fn).appendTo(r);
+            $("<td>").text(av.average).appendTo(r);
+            $("<td>").text(av.count).appendTo(r);
+            $("<td>").text(av.min).appendTo(r);
+            $("<td>").text(av.max).appendTo(r);*/
+            tx+=[timeline.user, fn, av.count,av.average,av.min,av.max].join("\t")+"\n";
+            //console.log(timeline.user, fn, av.average,av.count,av.min,av.max);
+        }
+    }
+    t.val(tx);
 }
 \drawLines() {
     $blink.clear();
@@ -147,7 +175,7 @@ nowait \draw1Line(timeline) {
     }
     y+=sz;
     $panel.fillStyle="black";
-    $panel.fillText("I: Zoomin / O: Zoomout",x,y,sz,"left");
+    $panel.fillText("I: Zoomin / O: Zoomout / S:summary",x,y,sz,"left");
 }
 \getColor(file) {
     return src.topfile[file]||"#888";
