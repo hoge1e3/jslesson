@@ -953,8 +953,12 @@ function ready() {
                       toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
                 }).fail(function (e) {
                     //console.log("FAIL", arguments);
-                    Tonyu.onRuntimeError(e);
-                    console.log("DTLFAIL",e.stack);
+                    console.log("DTLFAIL",e,e.stack);
+                    if (e.isTError) {
+                        showErrorPos($("#errorPos"),e);
+                    } else {
+                        Tonyu.onRuntimeError(e);
+                    }
                 }).always(function () {
                     SplashScreen.hide();
                     return sync();

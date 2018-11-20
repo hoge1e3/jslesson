@@ -1,5 +1,6 @@
 define(["Log","FS"],function (Log,FS) {//MODJSL
 return function showErrorPos(elem, err) {
+    console.log("ERRPOS",err);
     var mesg, src, pos;
     if (!err) {
         close();

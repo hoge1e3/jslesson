@@ -1,5 +1,5 @@
-define(["assert","DeferredUtil","wget", "IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator"],
-function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG) {//<-dtl
+define(["assert","DeferredUtil","wget", "IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator","PythonParser","PythonSemantics"],
+function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S) {//<-dtl
     PythonBuilder=function (prj, dst) {//<-Dtl
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
@@ -92,17 +92,29 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG) {//<-dtl
                 t.progress("Transpile "+f.src.py.name());//<-dtl
                 var isMainFile=(f.src.py.path()==mainFilePath);//<-dtl
                 if (!isMainFile && isNewer(f.dst.js, f.src.py) && isNewer(f.dst.html, f.src.html)) return SplashScreen.waitIfBusy();//<-dtl
-                var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
-                buf.setSrcFile(f.src.py);//<-dtl
-                buf.printf("$.ajax(window.controllerPath+'?RunPython/run', {data:{srcPath:%s}}).then("+
-                "function (r) { $(document.body).text(r);},function (e){alert(e.responseText);});",
-                    JSON.stringify(f.src.py.path())
-                );//PythonParser.parse(f.src.py.text(),{indentBuffer:buf,src:f.src.py.name(),//<-dtl
-                buf.close();
+                t.compile(f);
                 t.genHTML(f);
                 return SplashScreen.waitIfBusy();
             });
         }));
+    };
+    p.compile=function (f) {
+        var pysrcF=f.src.py;
+        var node=PP.parse(pysrcF);
+        try {
+            S.check(node);
+        } catch(e) {
+            throw TError(e.message,pysrcF,e.node.pos);
+        }
+        //console.log("PPToken",PP.Tokenizer(pysrc).tokenize());
+        var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
+        buf.setSrcFile(pysrcF);//<-dtl
+        buf.printf("$.ajax(window.controllerPath+'?RunPython/run', {data:{srcPath:%s}}).then("+
+        "function (r) { $(document.body).text(r.replace(/.*echo off/,''));},function (e){alert(e.responseText);});",
+            JSON.stringify(f.src.py.path())
+        );//PythonParser.parse(f.src.py.text(),{indentBuffer:buf,src:f.src.py.name(),//<-dtl
+        buf.close();
+
     };
     p.upload=function (pub) {
         return Sync.sync(this.dst,pub);
