@@ -151,13 +151,15 @@ function getPreviousLog(logid){
 }
 var prevLog;
 function showLogOneUser(logid,userid,fn){
-    console.log("SLO",this);
+    console.log("SLO",this,arguments);
     if (prevLog) $(prevLog).css({background:"#fff"});
     $(this).css({background:"#ff0"});
     prevLog=this;
   getLog(logid,userid);
   var ind=logsOfOneUser[fn].indexOf(logid-0);
   var currentProgram;
+  var cururl=location.href.replace(/&logid=[0-9]+/,"")+"&logid="+logid;
+  history.replaceState(null,null,cururl);
   if(ind>0){
     getPreviousLog(logsOfOneUser[fn][ind]).done(function(r){
       var curRaw=JSON.parse(r.raw);

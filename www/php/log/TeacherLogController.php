@@ -62,7 +62,9 @@ class TeacherLogController {
             if(strpos($l['result'],'Save')===false && ($l['time']-$prevTime>=2 || $prevResult!=$l['result'])){
               ?>
               <!--<div><?=$l['filename']?></div>-->
-              <div onClick="showLogOneUser.call(this,'<?=$l['id']?>','<?=$l['user']?>','<?=$l['filename']?>');"><font color="<?=strpos($l['result'],'Error')!==false ? 'red' : 'black'?>"><?=$l['filename']?></font></div>
+              <div onClick="showLogOneUser.call(this,'<?=$l['id']?>','<?=$l['user']?>','<?=$l['filename']?>');"
+                    id='<?=$l['id']?>'
+                  ><font color="<?=strpos($l['result'],'Error')!==false ? 'red' : 'black'?>"><?=$l['filename']?></font></div>
               <script>
               if(!logsOfOneUser["<?=$l['filename']?>"]) logsOfOneUser["<?=$l['filename']?>"]=[];
               logsOfOneUser["<?=$l['filename']?>"].push(<?=$l['id']?>);
@@ -74,6 +76,9 @@ class TeacherLogController {
            }
             $prevTime=$l['time'];
             $prevResult=$l['result'];
+          }
+          if (param("logid",false)) {
+              echo "<script>document.getElementById('".param("logid")."').click();</script>";
           }
           ?>
         </div>
