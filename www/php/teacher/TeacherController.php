@@ -112,6 +112,36 @@ class TeacherController {
             <?php
         }
     }
+    static function add() {
+        $teacher=Auth::isTeacher2();
+        if (!$teacher || !$teacher->isSysAd()) {
+            header("Location: a.php?Teacher/login");
+            return;
+        }
+        ?>
+        <h1>教員追加</h1>
+        <form action="?Teacher/addDone" method="POST">
+            メールアドレス <input name="mail"><BR>
+            パスワード <input name="pass"><BR>
+            <input type="submit">
+        </form>
+        <?php
+    }
+    static function addDone() {
+        $teacher=Auth::isTeacher2();
+        if (!$teacher || !$teacher->isSysAd()) {
+            header("Location: a.php?Teacher/login");
+            return;
+        }
+        $name=param("mail");
+        $pass=param("pass");
+        $r=pdo_select1("select * from teacher where name=?",$name);
+        if ($r) echo "$name はすでに登録されています．";
+        else {
+            pdo_insert("teacher",array("name"=>$name, "pass"=>$pass));
+            echo "$name を登録しました．";
+        }
+    }
 }
 
 ?>
