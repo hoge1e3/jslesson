@@ -141,6 +141,13 @@ class AssignmentController {
             $sub->load();
             $sub->time=DateUtil::now();
         }
+        if (strlen($output)>65000) {
+            $oj=json_decode($output);
+            foreach ($oj as $oje) {
+                $oje->{"glog.txt"}=substr($oje->{"glog.txt"},0,30000);
+            }
+            $output=json_encode($oj);
+        }
         $sub->output=$output;
         $sub->source=$source;
         $sub->files=json_decode($files);
