@@ -23,7 +23,7 @@ define(["FS","UI"],function (FS,UI) {
                 contentType:/text\/.*/,
             }
 	    };
-	    var mediaInfo=mediaInfos.c; 
+	    var mediaInfo=mediaInfos.c;
         if (!res.d) {
             var FType={
                 fromVal: function (val){
@@ -31,10 +31,11 @@ define(["FS","UI"],function (FS,UI) {
                 },
                 toVal: function (v){ return v ? v.path() : "";}
             };
-            var dragMsg="ここに"+mediaInfo.name+"ファイル("+mediaInfo.exts.join("/")+")をドラッグ＆ドロップして追加";
-            res.dragPoint=UI("div", 
+            var dragMsg="ここに"+mediaInfo.name+"ファイル("+mediaInfo.exts.join("/")+")をドラッグ＆ドロップして追加．";
+            res.dragPoint=UI("div",
                 {style:"margin:10px; padding-left:10px; padding-right:10px; padding-top:50px; padding-bottom:50px; border:solid blue 2px;",
-                on:{dragover: s, dragenter: s, drop:dropAdd}},dragMsg
+                on:{dragover: s, dragenter: s, drop:dropAdd}},dragMsg,
+                ["br"],        "※ファイルの文字コードはUTF-8Nにしてください．"
             );
         	res.d=UI("div",{title:"ファイルアップロード"},
         	    res.dragPoint,
@@ -48,7 +49,7 @@ define(["FS","UI"],function (FS,UI) {
             eo=e.originalEvent;
             var files = Array.prototype.slice.call(eo.dataTransfer.files);
             var added=[],cnt=files.length;
-            
+
             files.forEach(function (file) {
                 var itemName=file.name;//.replace(mediaInfo.extPattern,"").replace(/\W/g,"_");
                 if (!P.ext(file.name).match(mediaInfo.extPattern)) {
@@ -97,13 +98,13 @@ define(["FS","UI"],function (FS,UI) {
             e.stopPropagation();
             e.preventDefault();
         }
-            
+
         var d=res.d;
         d.$vars.result.empty();
         //var c=d.$vars.cont;
         //c.append($("<div>").text(mesg));
     	d.done=function () {
-    	    
+
     	    /*if (d.$edits.validator.isValid()) {
                 onOK(model);
                 d.dialog("close");
@@ -111,5 +112,5 @@ define(["FS","UI"],function (FS,UI) {
     	};
     	return d;
     };
-    return res; 
+    return res;
 });
