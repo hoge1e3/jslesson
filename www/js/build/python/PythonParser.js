@@ -1,6 +1,7 @@
 define(["Grammar2","Pos2RC","PythonSemantics","TError"],
 function (Grammar,Pos2RC,S,TError) {
-    const spc=/^([ \t]*(#.*$)*)*/;// (A|B)* <=> (A*B*)*
+    //const spc=/^([ \t]*(#.*$)*)*/;// (A|B)* <=> (A*B*)*
+    const spc=/^([ \t]*(#(.|\r)*$)*)*/;// (A|B)* <=> (A*B*)*
     const tokens=new Grammar({space:spc});
     const P=Grammar.P;
     const reserved=[
@@ -81,7 +82,7 @@ function (Grammar,Pos2RC,S,TError) {
             return this.tokens;
         }
         tokenizeLine(line,lineNo) {
-            //console.log("parse token",line);
+            console.log("parse token",line);
             const r=tokens.get("tokens").parseStr(line);
             if (!r.success) throw new Error("Error at "+(lineNo+1)+":"+(r.src.maxPos+1));
             console.log("r",r.result[0]);
