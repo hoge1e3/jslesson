@@ -1,5 +1,5 @@
-define(["Grammar2","Pos2RC","PythonSemantics","TError"],
-function (Grammar,Pos2RC,S,TError) {
+define(["Grammar2","Pos2RC","PythonSemantics"/*,"TError"*/],
+function (Grammar,Pos2RC,S/*,TError*/) {
     //const spc=/^([ \t]*(#.*$)*)*/;// (A|B)* <=> (A*B*)*
     const spc=/^([ \t]*(#(.|\r)*$)*)*/;// (A|B)* <=> (A*B*)*
     const tokens=new Grammar({space:spc});
@@ -20,11 +20,11 @@ function (Grammar,Pos2RC,S,TError) {
             return r;
         }),
         number: /^-?[0-9\.]+/,
-        literal: /^\"[^\"]+\"/,
+        literal: /^\"[^\"]*\"/,
     };
     for (let p of puncts) tdef[p]="'"+p;
     //for (const r of reserved) tdef[r]="'"+r;
-    console.log("tdef",tdef);
+    //console.log("tdef",tdef);
     tokens.def(tdef);
     class Tokenizer {
         constructor(src) {
@@ -41,7 +41,7 @@ function (Grammar,Pos2RC,S,TError) {
             for (const line of src.split("\n")) {
                 let r=ind.exec(line);
                 const d=r[0].length;
-                console.log("depth",d,depths);
+                //console.log("depth",d,depths);
                 if (depths.length===0) {
                     depths.push(d);
                 } else {
@@ -56,7 +56,7 @@ function (Grammar,Pos2RC,S,TError) {
                         // dedent
                         this.tokens.push({type:"nodent",pos:this.pos,len:0,row:rc.row, col: rc.col});
                         for (let i=depths.length-1;i>=0;i--) {
-                            console.log("dede",d,depths,i,depths[i]);
+                            //console.log("dede",d,depths,i,depths[i]);
                             if (depths[i]<d) {
                                 throw new Error("Invalid indent depth "+d);
                             }
@@ -82,10 +82,10 @@ function (Grammar,Pos2RC,S,TError) {
             return this.tokens;
         }
         tokenizeLine(line,lineNo) {
-            console.log("parse token",line);
+            //console.log("parse token",line);
             const r=tokens.get("tokens").parseStr(line);
             if (!r.success) throw new Error("Error at "+(lineNo+1)+":"+(r.src.maxPos+1));
-            console.log("r",r.result[0]);
+            //console.log("r",r.result[0]);
             return r.result[0]
         }
     }
@@ -111,7 +111,7 @@ function (Grammar,Pos2RC,S,TError) {
         const nlr=/^([ \t]*)/.exec(nl);
         const aindent=nlr[1].length;
         pos+=aindent;
-        console.log(aindent,bindent);
+        //console.log(aindent,bindent);
         return {after:aindent,before:bindent,pos:pos,len:pos-opos};
     }
     const indent=P.StringParser.strLike((str,pos)=>{
@@ -145,9 +145,9 @@ function (Grammar,Pos2RC,S,TError) {
         //defList: rep0("define"),
         stmtList: rep1("stmt"),
         stmt: or("define","ifStmt","letStmt","exprStmt","forStmt","returnStmt","nodent"),
-        exprStmt: [{expr:"expr"}],
+        exprStmt: [{expr:"expr"},"nodent"],
         returnStmt: ["return",{expr:"expr"}],
-        exprTail: or("block","nodent"),
+        //exprTail: or("block","nodent"),
         ifStmt: ["if",{cond:"expr"},{then:"block"}],
         forStmt: ["for",{var:"symbol"},"in",{set:"expr"},{do:"block"}],
         letStmt: [{left:"lval"},"=",{right:"expr"}],
@@ -169,7 +169,8 @@ function (Grammar,Pos2RC,S,TError) {
             ]
         }),
         memberRef: [".","symbolOrResv"],
-        args: ["(",{body:sep0("expr",",")},")"],
+        args: ["(",{body:sep0("arg",",")},")"],
+        arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: [":indent",{body:"stmtList"},"dedent"],
         elem: or("symbol","number","literal","paren"),
         paren: ["(",{body:"expr"},")"],
@@ -185,20 +186,22 @@ function (Grammar,Pos2RC,S,TError) {
         if (!gdef[k]) gdef[k]=tk(k);
     }
 
-    console.log("gdef",gdef);
+    //console.log("gdef",gdef);
     g.def(gdef);
     g.Tokenizer=Tokenizer;
     g.parse=function (srcFile) {
         const src=srcFile.text();
         const t=new g.Tokenizer(src);
         const tks=t.tokenize();
-        console.log("G.parse.T",tks);
+        //console.log("G.parse.T",tks);
         const s=P.TokensParser.parse(g.get("program"),tks);
-        console.log("G.Parse.res",s);
+        //console.log("G.Parse.res",s);
         if (!s.success) {
             var ert=tks[s.src.maxPos];
-            console.log("Err",s.src.maxPos);
-            throw TError("文法エラー：",srcFile,ert.pos);//+ert.row+":"+ert.col);
+            //console.error("Err",s.src.maxPos,ert.row,ert.col);
+            const e=new Error("文法エラー："+srcFile.name()+":"+ert.row+":"+ert.col);//,ert.pos);//+ert.row+":"+ert.col);
+            e.noTrace=true;
+            throw e;
         }
         return s.result[0];
     };

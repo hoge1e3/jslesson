@@ -13,13 +13,13 @@ const vdef={
         }
     },
     classdef: function (node) {
-        console.log("classDef",node);
+        //console.log("classDef",node);
         for (const b of node.body) {
             this.visit(b);
         }
     },
     define: function (node) {
-        console.log("define",node);
+        //console.log("define",node);
         for (p of node.params.body) {
             this.addScope(p+"",{type:"local"});
         }
@@ -39,7 +39,7 @@ const vdef={
         this.visit(node.right);
     },
     ifStmt: function (node) {
-        console.log("ifStmt", node);
+        //console.log("ifStmt", node);
     },
     block: function (node) {
         for (const b of node.body) {
@@ -47,7 +47,7 @@ const vdef={
         }
     },
     forStmt: function (node) {
-        console.log("forStmt", node);
+        //console.log("forStmt", node);
         var loopVar=node.var;
         this.visit(node.set);
         this.newScope(()=>{
@@ -73,6 +73,9 @@ const vdef={
 
         }*/
     },
+    nodent: function (){},
+    "+": function (){},
+    "*": function (){},
     prefix: function (node) {
         this.visit(node.op);
         this.visit(node.right);
@@ -86,7 +89,7 @@ const vdef={
     },
     memberRef: function (node) {
         // node.name
-        console.log("memberRef", args);
+        //console.log("memberRef", args);
     },
     "number": function (node) {
         // node.text
@@ -96,10 +99,16 @@ const vdef={
         var i=this.getScope(node+"");
         if (!i) this.error("変数または関数"+node+"は未定義です",node);
     },
+    "arg": function (node) {
+        //if (node.name) console.log(node.name);
+        this.visit(node.value);
+    },
+    "literal": function (node) {
 
+    }
 };
 const Semantics= {
-    check: function (node) {
+    check: function (node,srcF) {
         const v=Visitor(vdef);
         v.ctx=context();
         v.def=function (node) {
@@ -123,8 +132,11 @@ const Semantics= {
         };
         v.curScope=function () {return this.ctx.scope;};
         v.error=function (mesg,node) {
+            if (srcF) mesg+=":"+srcF.name();
+            if (node.row && node.col) mesg+=":"+node.row+":"+node.col;
             var e=new Error(mesg);
             e.node=node;
+            e.noTrace=true;
             throw e;
         };
         v.newScope(()=>v.visit(node));
