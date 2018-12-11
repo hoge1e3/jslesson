@@ -1,4 +1,4 @@
-const JS="../www/js/";
+const JS="../js/";
 const exec = require('child_process').exec;
 const requirejs=require("./r.js");//../node_modules/requirejs/bin/r.js");
 const reqConf=require(JS+"reqConf.js").conf;
