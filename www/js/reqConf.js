@@ -92,6 +92,10 @@ var reqConf={
                 deps:["Parser"],
                 exports:"MinimalParser"
             },
+            "dncl/dncl2js": {
+                deps:["Parser"],
+                exports:"dncl2js"
+            },
             AsyncByGenerator: {
                 exports: "AsyncByGenerator"
             },

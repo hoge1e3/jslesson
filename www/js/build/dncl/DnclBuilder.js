@@ -1,4 +1,4 @@
-define(["assert","DeferredUtil","wget", "dncl/minimal","IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator"],
+define(["assert","DeferredUtil","wget", "dncl/dncl2js","IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator"],
 function (A,DU,wget,dnclParser,IndentBuffer,Sync,FS,SplashScreen,ABG) {//<-dtl
     DnclBuilder=function (prj, dst) {//<-Dtl
         this.prj=prj;// TPRC

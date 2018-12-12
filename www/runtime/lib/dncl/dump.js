@@ -20,7 +20,7 @@
 	}
 	this["確認"]=function(){
 		this["dncl_disp"](["確認-------------------"],true);
-		var strarr=vars2strarr(this);
+		var strarr=vars2strarr($.extend({},this));
 		for(var i=0;i<strarr.length;i++){
 			this["dncl_disp"]([strarr[i]],true);
 		}
