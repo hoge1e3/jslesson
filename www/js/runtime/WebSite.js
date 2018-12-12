@@ -1,4 +1,8 @@
 define([], function () {
+	if (typeof document==="undefined") {
+		// node?;
+		return {};
+	}
 	var loc=document.location.href;
 	var WS=window.WebSite={};
 	// from https://w3g.jp/blog/js_browser_sniffing2015

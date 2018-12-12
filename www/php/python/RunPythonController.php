@@ -6,7 +6,7 @@ class RunPythonController {
         $fs=Auth::getFS();
         $s=new SFile($fs,$srcPath);
         $npath=$s->nativePath();
-        if (strpos($npath,"\\")>=0){
+        if (strpos($npath,"\\")!==FALSE){
             $npath=preg_replace("/\\//","\\",$npath);
         }
         //echo $npath;

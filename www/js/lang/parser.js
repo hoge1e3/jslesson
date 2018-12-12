@@ -1,7 +1,7 @@
 if (typeof define!=="function") {
 	define=require("requirejs").define;
 }
-define(["disp"],function(disp) {
+define([],function() {
 return Parser=function () {
 	function extend(dst, src) {
 		var i;
