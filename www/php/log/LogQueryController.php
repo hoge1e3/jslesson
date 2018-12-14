@@ -51,7 +51,7 @@ class LogQueryController {
                 if ($key=="time") $val=DateUtil::toString($val);
                 if ($key=="id") {
                     $u=$rec->user;
-                    $val="<a href='.?TeacherLog/view1&user=$u&date=$date&logid=$val&' target=view1>$val</a>";
+                    $val="<a href='.?TeacherLog/view1&user=$u&day=$date&logid=$val&' target=view1>$val</a>";
                 }
                 print "<td>$val</td>";
             }
