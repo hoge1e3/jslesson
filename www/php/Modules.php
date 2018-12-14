@@ -61,6 +61,7 @@ $mod_aliases=array(
     'horiPra' => 'php/horiPra.php',
     'json' => 'php/json.php',
     'TeacherLogController' => 'php/log/TeacherLogController.php',
+    'LogQueryController' => 'php/log/LogQueryController.php',
     'logout' => 'php/logout.php',
     'Assignment' => 'php/mark/Assignment.php',
     'AssignmentController' => 'php/mark/AssignmentController.php',

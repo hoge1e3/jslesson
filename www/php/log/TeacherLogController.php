@@ -25,7 +25,7 @@ class TeacherLogController {
     static function view1() {
         // focus to one student
         $user=param("user");
-        $day=param("day",DateUtil::now())-0;
+        $day=DateUtil::toInt(param("day",DateUtil::now()));
         // If i can do , i do it.
         $class=Auth::curClass2();
         $targetUser=$class->getUser($user);
