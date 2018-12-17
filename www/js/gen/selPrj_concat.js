@@ -13766,7 +13766,9 @@ define('NewProjectDialog',["UI","ProjectCompiler"], function (UI,TPRC) {
         			 ["option",{value:"js"},"JavaScript"],
         			 ["option",{value:"dtl"},"ドリトル"],
         			 ["option",{value:"c"},"C"],
-                     ["option",{value:"dncl"},"DNCL(どんくり)"]]
+                     ["option",{value:"py"},"Python"],
+                     ["option",{value:"dncl"},"DNCL(どんくり)"]
+                    ]
 				],
          		/*	["div",{css:{"display":"none"}},
         			 ["span","親フォルダ"],
@@ -13781,7 +13783,7 @@ define('NewProjectDialog',["UI","ProjectCompiler"], function (UI,TPRC) {
                  }}}, "OK"]
             );
             if (localStorage.noconcat) {
-                res.d.$vars.lang.append(UI("option",{value:"py"},"Python"));
+                //res.d.$vars.lang.append(UI("option",{value:"py"},"Python"));
                 res.d.$vars.lang.append(UI("option",{value:"tonyu"},"Tonyu"));
             }
         }
