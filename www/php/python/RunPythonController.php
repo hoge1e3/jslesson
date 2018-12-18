@@ -5,16 +5,32 @@ class RunPythonController {
         $srcPath=param("srcPath");
         $fs=Auth::getFS();
         $s=new SFile($fs,$srcPath);
+        if (!$s->exists()) {
+            http_response_code(500);
+            print ("File $srcPath not found");
+            return;
+        }
         $npath=$s->nativePath();
         if (strpos($npath,"\\")!==FALSE){
             $npath=preg_replace("/\\//","\\",$npath);
         }
         //echo $npath;
-        $res=system_ex(PYTHON_PATH." $npath");
+        $sp="";if (self::isSuper(1)) $sp="-super";
+        $res=system_ex(PYTHON_PATH." \"$npath\" $sp");
         if ($res["return"]==0) print($res["stdout"]);
         else {
             http_response_code(500);
             print($res["stderr"]);
+        }
+    }
+    static function isSuper($called=0) {
+        $class=Auth::curClass2();
+        if (defined("SUPER_PYTHON") && $class->id === SUPER_PYTHON) {
+            if (!$called) echo 1;
+            return 1;
+        } else {
+            if (!$called) echo 0;
+            return 0;
         }
     }
 }

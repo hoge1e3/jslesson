@@ -1,5 +1,5 @@
-define(["assert","DeferredUtil","wget", "IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator","PythonParser","PythonSemantics"],
-function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S) {//<-dtl
+define(["assert","DeferredUtil","wget", "IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator","PythonParser","PythonSemantics","ctrl"],
+function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,ctrl) {//<-dtl
     PythonBuilder=function (prj, dst) {//<-Dtl
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
@@ -98,13 +98,20 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S) {//<-dtl
             });
         }));
     };
+    var superMode=false;
+    ctrl.post("RunPython/isSuper").then(function (r) {
+        superMode=r-0;
+        console.log("superMode",superMode);
+    });
     p.compile=function (f) {
         var pysrcF=f.src.py;
-        var node=PP.parse(pysrcF);
-        try {
-            S.check(node);
-        } catch(e) {
-            throw TError(e.message,pysrcF,e.node.pos);
+        if (!superMode) {
+            var node=PP.parse(pysrcF);
+            try {
+                S.check(node);
+            } catch(e) {
+                throw TError(e.message,pysrcF,e.node.pos);
+            }
         }
         //console.log("PPToken",PP.Tokenizer(pysrc).tokenize());
         var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});

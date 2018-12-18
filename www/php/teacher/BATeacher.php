@@ -31,7 +31,7 @@ class BATeacher {
         $pdo = pdo();
         $sth=$pdo->prepare("update teacher set pass = ? where name = ?");
     	$sth->execute(array($pass,$this->id));
-    	if (count($sth->fetchAll())==0){
+    	if ($sth->rowCount()==0){
 	        return false;
     	}else{
     	    return true;

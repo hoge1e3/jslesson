@@ -15,6 +15,8 @@ requirejs(["FS","PythonParser","PythonSemantics"],function (FS,PP,S) {
     var f=c.rel("test.py");
     console.log(f.path(),f.text());*/
     var pySrcPath=process.argv[2];
+    var isSuper=process.argv[3];
+    //console.log(isSuper);
     var pySrcF;
     if (FS.PathUtil.isAbsolute(pySrcPath)) {
         pySrcF=FS.get(pySrcPath);
@@ -22,18 +24,23 @@ requirejs(["FS","PythonParser","PythonSemantics"],function (FS,PP,S) {
         pySrcF=FS.get(process.cwd()).rel(pySrcPath);
     }
     try {
-        var node=PP.parse(pySrcF);
-        S.check(node,pySrcF);
+        var node;
+        if (!isSuper) {
+            node=PP.parse(pySrcF);
+            S.check(node,pySrcF);
+        }
         //console.log("Passed",'python '+pySrcF.path());
         exec('python '+pySrcF.path(), (err, stdout, stderr) => {
-            if (err) { console.error(err); }
-            console.error(stderr);
+            if (err) { console.log(err); }
+            console.log(stderr);
             console.log(stdout);
         });
     } catch(e) {
         if (e.noTrace) {
+            //console.log(e);
             console.error(e.message);
         } else {
+            console.log(e);
             throw e;
         }
     }
