@@ -104,7 +104,6 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     }
     function firstSync() {
         return Auth.check().then(sync).then(function () {
-            console.log("firstSync::curP",curProjectDir.path());
             if (!curProjectDir.exists() || !curProjectDir.rel("options.json").exists()) {
                 var lang=Util.getQueryString("lang");
                 if (!lang) {
