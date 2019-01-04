@@ -29,6 +29,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,ctrl) {//<-dtl
         var html=dom.getElementsByTagName("html")[0];
         var head=dom.getElementsByTagName("head")[0];
         var body=dom.getElementsByTagName("body")[0];
+        $(body).append($("<pre>").attr("id",'output'));
         $(head).append($("<meta>").attr("charset","UTF-8"));
         if (window.BitArrow) {
             var ba={
@@ -41,7 +42,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,ctrl) {//<-dtl
         $(head).append($("<script>").text("window.runtimePath='"+WebSite.runtime+"';"));
         $(head).append($("<script>").text("window.controllerPath='"+WebSite.controller+"';"));
         $(head).append($("<script>").text("window.onerror=window.onerror||"+
-        function (e) {alert(e);}+";"));
+        function (e) {console.log(arguments);alert(e);}+";"));
         $(head).append($("<link>").attr({"rel":"stylesheet","href":WebSite.runtime+"css/run_style.css"}));
 
         libs.map(function (r) {
@@ -110,14 +111,20 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,ctrl) {//<-dtl
             try {
                 S.check(node);
             } catch(e) {
-                throw TError(e.message,pysrcF,e.node.pos);
+                if (e.node) {
+                    throw TError(e.message,pysrcF,e.node.pos);
+
+                } else {
+                    console.log(e.stack);
+                    throw e;
+                }
             }
         }
         //console.log("PPToken",PP.Tokenizer(pysrc).tokenize());
         var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
         buf.setSrcFile(pysrcF);//<-dtl
         buf.printf("$.ajax(window.controllerPath+'?RunPython/run', {data:{srcPath:%s}}).then("+
-        "function (r) { $(document.body).text(r.replace(/.*echo off/,''));},function (e){alert(e.responseText);});",
+        "function (r) { $('#output').text(r.replace(/.*echo off\\s*/,''));},function (e){alert(e.responseText);});",
             JSON.stringify(f.src.py.path())
         );//PythonParser.parse(f.src.py.text(),{indentBuffer:buf,src:f.src.py.name(),//<-dtl
         buf.close();

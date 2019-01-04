@@ -29,9 +29,10 @@ requirejs(["FS","PythonParser","PythonSemantics"],function (FS,PP,S) {
             node=PP.parse(pySrcF);
             S.check(node,pySrcF);
         }
+        process.env.PYTHONPATH=process.cwd()+(process.cwd().indexOf("\\")>=0?";":":")+process.env.PYTHONPATH;
         //console.log("Passed",'python '+pySrcF.path());
         exec('python '+pySrcF.path(), (err, stdout, stderr) => {
-            if (err) { console.log(err); }
+            //if (err) { console.log(err+""); }
             console.log(stderr);
             console.log(stdout);
         });

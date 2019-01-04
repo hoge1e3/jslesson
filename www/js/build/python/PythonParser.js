@@ -5,11 +5,12 @@ function (Grammar,Pos2RC,S/*,TError*/) {
     const tokens=new Grammar({space:spc});
     const P=Grammar.P;
     const reserved=[
-        "class","def","if","else",
-        "for","while","in","return"
+        "class","def","if","else","elif","break",
+        "for","while","in","return","print","import","as"
     ];
     const resvh={};for(const r of reserved) resvh[r]=r;
-    const puncts=[">=","<=","==","!=",">","<","=",".",":","+","-","*","/","(",")",",","!"];
+    const puncts=[">=","<=","==","!=","+=","-=","*=","/=","%=",
+      ">","<","=",".",":","+","-","*","/","%","(",")",",","!"];
     const tdef={
         tokens: [{"this":tokens.rep0("token")}, /^\s*/ ,P.StringParser.eof],
         //token: tokens.or(...reserved.concat(["quote","symbol","number","qsymbol",":"])),
@@ -19,8 +20,8 @@ function (Grammar,Pos2RC,S/*,TError*/) {
             if (resvh[r]) r.type=resvh[r];
             return r;
         }),
-        number: /^-?[0-9\.]+/,
-        literal: /^\"[^\"]*\"/,
+        number: /^[0-9]+[0-9\.]*/,
+        literal: /^(\"[^\"]*\"|\'[^\']*\')/,
     };
     for (let p of puncts) tdef[p]="'"+p;
     //for (const r of reserved) tdef[r]="'"+r;
@@ -58,7 +59,7 @@ function (Grammar,Pos2RC,S/*,TError*/) {
                         for (let i=depths.length-1;i>=0;i--) {
                             //console.log("dede",d,depths,i,depths[i]);
                             if (depths[i]<d) {
-                                throw new Error("Invalid indent depth "+d);
+                                throw new Error("インデント幅"+d+"の行が"+(lineNo+1)+"行目より前に存在しません。");
                             }
                             if (depths[i]==d) {
                                 break;
@@ -144,13 +145,19 @@ function (Grammar,Pos2RC,S/*,TError*/) {
         //nodedent: [rep0("nodent"),"dedent"],
         //defList: rep0("define"),
         stmtList: rep1("stmt"),
-        stmt: or("define","ifStmt","letStmt","exprStmt","forStmt","returnStmt","nodent"),
+        stmt: or("define","printStmt","ifStmt","breakStmt","letStmt","exprStmt","forStmt","returnStmt","importStmt","nodent"),
+        importStmt: ["import",{name:"symbol"},{$extend:opt(["as",{alias:"symbol"}])}],
         exprStmt: [{expr:"expr"},"nodent"],
         returnStmt: ["return",{expr:"expr"}],
         //exprTail: or("block","nodent"),
-        ifStmt: ["if",{cond:"expr"},{then:"block"}],
+        ifStmt: ["if",{cond:"expr"},{then:"block"},
+        {elif:rep0("elifPart")},{else:opt("elsePart")}],
+        elifPart: ["elif",{cond:"expr"},{then:"block"}],
+        elsePart: ["else",{then:"block"}],
+        breakStmt: ["break"],
         forStmt: ["for",{var:"symbol"},"in",{set:"expr"},{do:"block"}],
         letStmt: [{left:"lval"},"=",{right:"expr"}],
+        printStmt: ["print",{values:sep0("expr",",")},opt(",")],
         lval: g.expr({
             element: "symbol",
             operators: [
@@ -161,14 +168,15 @@ function (Grammar,Pos2RC,S/*,TError*/) {
             element: "elem",
             operators: [
                 //["infixr", "="  ] , //  = 右結合２項演算子
+                ["infixl", or("+=","-=","*=","/=","%=")],
                 ["infixl", or(">=","<=","==","!=",">","<")  ] , //  + -  左結合２項演算子
                 ["infixl", or("+","-")  ] , //  + -  左結合２項演算子
-                ["infixl", or("*","/")  ] , //  * 左結合２項演算子
+                ["infixl", or("*","/","%")  ] , //  * 左結合２項演算子
                 ["prefix",or("!","-")],
                 ["postfix" , or("args" , "memberRef") ] , // (a,b)  .x
             ]
         }),
-        memberRef: [".","symbolOrResv"],
+        memberRef: [".","symOrResv"],
         args: ["(",{body:sep0("arg",",")},")"],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: [":indent",{body:"stmtList"},"dedent"],
@@ -190,9 +198,17 @@ function (Grammar,Pos2RC,S/*,TError*/) {
     g.def(gdef);
     g.Tokenizer=Tokenizer;
     g.parse=function (srcFile) {
-        const src=srcFile.text();
+        let src=srcFile.text();
+        src=src.replace(/\s*$/,"\n");
         const t=new g.Tokenizer(src);
-        const tks=t.tokenize();
+        let tks;
+        try {
+            tks=t.tokenize();
+        }catch (er) {
+            const e=new Error("字句エラー："+er.message+" "+srcFile.name());
+            //e.noTrace=true;
+            throw e;
+        }
         //console.log("G.parse.T",tks);
         const s=P.TokensParser.parse(g.get("program"),tks);
         //console.log("G.Parse.res",s);
@@ -200,7 +216,7 @@ function (Grammar,Pos2RC,S/*,TError*/) {
             var ert=tks[s.src.maxPos];
             //console.error("Err",s.src.maxPos,ert.row,ert.col);
             const e=new Error("文法エラー："+srcFile.name()+":"+ert.row+":"+ert.col);//,ert.pos);//+ert.row+":"+ert.col);
-            e.noTrace=true;
+            //e.noTrace=true;
             throw e;
         }
         return s.result[0];
