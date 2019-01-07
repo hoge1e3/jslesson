@@ -1,0 +1,122 @@
+define(["Visitor","IndentBuffer"],
+function (Visitor,IndentBuffer) {
+    const vdef={
+        program: function (node) {
+            this.visit(node.body);
+        },
+        classdef: function (node) {
+            this.printf("class %s%v:%{%v%}",node.name,node.body);
+        },
+        define: function (node) {
+            this.printf("def %s%v:%{%v%}",node.name,node.params,node.body);
+        },
+        paramList: function (node) {
+            this.printf("(%j)",[",",node.body]);
+        },
+        importStmt: function (node) {
+            this.printf("import %s",node.name);
+            if (node.alias) this.printf(" as %v",this.visit(node.alias));
+            //this.printf("%n");
+        },
+        exprStmt: function (node) {
+            this.visit(node.expr);
+        },
+        returnStmt: function (node) {
+            this.printf("return %v",node.expr);
+        },
+        ifStmt: function (node) {
+            this.printf("if %v%v", node.cond,node.then);
+            this.visit(node.elif);
+            if (node.else) this.visit(node.else);
+        },
+        elifPart: function (node) {
+            this.printf("elif %v%v", node.cond,node.then);
+        },
+        elsePart: function (node) {
+            this.printf("else%v",node.then);
+        },
+        forStmt: function (node) {
+            this.printf("for %v in %v%v", node.var, node.set, node.do);
+        },
+        letStmt: function (node) {
+            this.visit(node.left);
+            this.printf("=");
+            this.visit(node.right);
+            //this.printf("%n");
+        },
+        printStmt: function (node) {
+            if (node.nobr) this.printf("print(%j,end='')",[",",node.values]);
+            else this.printf("print(%j)",[",",node.values]);
+        },
+        memberRef: function (node) {
+            this.printf(".%v",node.name);
+        },
+        args: function (node) {
+            this.printf("(%j)",[",",node.body]);
+        },
+        arg: function (node) {
+            if (node.name) {
+                this.printf("%s=",node.name);
+            }
+            this.visit(node.value);
+        },
+        block: function (node) {
+            this.printf(":%{");
+            this.visit(node.body);
+            this.printf("%}");
+        },
+        paren: function (node) {
+            this.printf("(%v)",node.body);
+        },
+        ":indent": function (node) {
+            this.printf(":%{");
+        },
+        "dedent": function (node) {
+            this.printf("%}");
+        },
+        "nodent": function (node) {
+            this.printf("%n");
+        },
+        infixl: function(node) {
+            this.printf("%v%v%v",node.left,node.op,node.right);
+        },
+        postfix: function (node) {
+            this.printf("%v%v",node.left,node.op);
+        },
+        prefix: function (node) {
+            this.printf("%v%v",node.op,node.right);
+        },
+        breakStmt: function (node) {
+            this.printf("break")
+        }
+    };
+    const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=",
+      ">","<","=",".",":","+","-","*","/","%","(",")",",","!",
+      "number","symbol","literal"];
+    for (const ve of verbs) {
+        vdef[ve]=function (node) {
+            //console.log("verb",node);
+            this.printf("%s",node+"");
+        };
+    }
+    function gen(node) {
+        const v=Visitor(vdef);
+        v.def=function (node) {
+            var v=this;
+            if (node instanceof Array) {
+                for (const n of node) v.visit(n);
+            } else {
+                this.printf("%s(%s)",node+"",(node ? node.type+"": "UNDEF"));
+                //throw new Error("Visiting undef "+(node && node.type));
+            }
+        };
+        const buf=IndentBuffer();
+        buf.visitor=v;
+        v.printf=buf.printf.bind(buf);
+        v.buf=buf;
+        v.visit(node);
+        //console.log("pgen res",buf.buf);
+        return buf.buf;
+    }
+    return gen;
+});

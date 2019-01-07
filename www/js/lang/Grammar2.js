@@ -18,12 +18,28 @@ class Grammar {
             if (k==="$space") {
                 //this.space=this.toParser(v);
             } else {
-                this.defs[k]=this.toParser(v).ret((r)=>{
+                const p=this.toParser(v);
+                this.defs[k]=p.ret((r)=>{
                     if (r && typeof r==="object" && !r.type) r.type=k;
                     return r;
                 });
+                if (p.names) this.defs[k].names=p.names;
             }
         }
+    }
+    genVisitorTemplate() {
+        var buf="";
+        for (let k in this.defs) {
+            var names=this.defs[k].names;
+            if (names && names.length) {
+                buf+=k+": function (node) {\n";
+                for (const n of names) {
+                    if (n) buf+="    this.visit(node."+n+");\n";
+                }
+                buf+="},\n";
+            }
+        }
+        return buf;
     }
     expr(defs) {
         const elem=defs.element;
@@ -109,6 +125,7 @@ class Grammar {
                 }
                 return r;
             });
+            p.names=names.filter((n)=>n);
             return p;
         }
         assert.fail("Invalid expr",expr);

@@ -39,10 +39,11 @@ function (Grammar,Pos2RC,S/*,TError*/) {
             this.tokens=[];
             this.pos=0;
             var lineNo=0;
-            for (const line of src.split("\n")) {
+            for (let line of src.split("\n")) {
+                line=line.replace("\r","");
                 let r=ind.exec(line);
                 const d=r[0].length;
-                //console.log("depth",d,depths);
+                //console.log("depth",lineNo+1, d,depths);
                 if (depths.length===0) {
                     depths.push(d);
                 } else {
@@ -87,7 +88,7 @@ function (Grammar,Pos2RC,S/*,TError*/) {
             const r=tokens.get("tokens").parseStr(line);
             if (!r.success) throw new Error("Error at "+(lineNo+1)+":"+(r.src.maxPos+1));
             //console.log("r",r.result[0]);
-            return r.result[0]
+            return r.result[0];
         }
     }
     const g=new Grammar;
@@ -147,7 +148,7 @@ function (Grammar,Pos2RC,S/*,TError*/) {
         stmtList: rep1("stmt"),
         stmt: or("define","printStmt","ifStmt","breakStmt","letStmt","exprStmt","forStmt","returnStmt","importStmt","nodent"),
         importStmt: ["import",{name:"symbol"},{$extend:opt(["as",{alias:"symbol"}])}],
-        exprStmt: [{expr:"expr"},"nodent"],
+        exprStmt: [{expr:"expr"}],
         returnStmt: ["return",{expr:"expr"}],
         //exprTail: or("block","nodent"),
         ifStmt: ["if",{cond:"expr"},{then:"block"},
@@ -157,7 +158,7 @@ function (Grammar,Pos2RC,S/*,TError*/) {
         breakStmt: ["break"],
         forStmt: ["for",{var:"symbol"},"in",{set:"expr"},{do:"block"}],
         letStmt: [{left:"lval"},"=",{right:"expr"}],
-        printStmt: ["print",{values:sep0("expr",",")},opt(",")],
+        printStmt: ["print",{values:sep0("expr",",")},{nobr:opt(",")}],
         lval: g.expr({
             element: "symbol",
             operators: [
@@ -176,7 +177,7 @@ function (Grammar,Pos2RC,S/*,TError*/) {
                 ["postfix" , or("args" , "memberRef") ] , // (a,b)  .x
             ]
         }),
-        memberRef: [".","symOrResv"],
+        memberRef: [".",{name:"symOrResv"}],
         args: ["(",{body:sep0("arg",",")},")"],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: [":indent",{body:"stmtList"},"dedent"],
@@ -196,6 +197,7 @@ function (Grammar,Pos2RC,S/*,TError*/) {
 
     //console.log("gdef",gdef);
     g.def(gdef);
+    //console.log("gdefed",g);
     g.Tokenizer=Tokenizer;
     g.parse=function (srcFile) {
         let src=srcFile.text();
@@ -221,5 +223,6 @@ function (Grammar,Pos2RC,S/*,TError*/) {
         }
         return s.result[0];
     };
+    //console.log(g.genVisitorTemplate());
     return g;
 });

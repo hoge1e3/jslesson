@@ -264,6 +264,7 @@ var reqConf={
             PythonBuilder:"build/python/PythonBuilder",
             PythonParser:"build/python/PythonParser",
             PythonSemantics:"build/python/PythonSemantics",
+            PythonGen:"build/python/PythonGen",
             CBuilder:"build/c/CBuilder",
             TonyuBuilder:"build/tonyu/TonyuBuilder",
             wget:"fs2/wget",

@@ -92,8 +92,8 @@ class Assignment {
     }
     function update() {
         $chk=pdo_select1("select * ".
-        "from ".self::table()." where id<>? and name=? ",
-        $this->id, $this->name);
+        "from ".self::table()." where id<>? and name=? and class=? ",
+        $this->id, $this->name, $this->_class->id);
         if ($chk) throw new Exception($this->name."はすでに存在します．");
         $rec=$this->toRecord();
         pdo_update2(self::table(),array(

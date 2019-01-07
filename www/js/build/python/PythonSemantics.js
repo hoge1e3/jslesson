@@ -54,6 +54,17 @@ const vdef={
     },
     ifStmt: function (node) {
         //console.log("ifStmt", node);
+        this.visit(node.cond);
+        this.visit(node.then);
+        for (const e of node.elif) this.visit(e);
+        if (node.else) this.visit(node.else);
+    },
+    elifPart: function (node) {
+        this.visit(node.cond);
+        this.visit(node.then);
+    },
+    elsePart: function (node) {
+        this.visit(node.then);
     },
     breakStmt: function (node) {
 
@@ -129,6 +140,9 @@ const vdef={
     },
     "literal": function (node) {
 
+    },
+    "returnStmt": function (node) {
+        this.visit(node.expr);
     },
     "paren": function (node) {
         this.visit(node.body);

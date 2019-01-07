@@ -1,5 +1,5 @@
-define(["assert","DeferredUtil","wget", "IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator","PythonParser","PythonSemantics","ctrl"],
-function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,ctrl) {//<-dtl
+define(["assert","DeferredUtil","wget", "IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator","PythonParser","PythonSemantics","PythonGen","ctrl"],
+function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,ctrl) {//<-dtl
     PythonBuilder=function (prj, dst) {//<-Dtl
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
@@ -110,6 +110,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,ctrl) {//<-dtl
             var node=PP.parse(pysrcF);
             try {
                 S.check(node);
+                var gen=G(node);
             } catch(e) {
                 if (e.node) {
                     throw TError(e.message,pysrcF,e.node.pos);

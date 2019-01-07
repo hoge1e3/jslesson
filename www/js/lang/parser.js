@@ -503,6 +503,8 @@ return Parser=function () {
 					if ($.options.traceToken) console.log("str:succ");
 					r1.pos=spos;
 					r1.src=state.src; // insert 2013/05/01
+					r1.text=str.substring(r1.pos,r1.pos+r1.len);
+					r1.toString=function () {return this.text; };
 					var ns=state.clone();
 					extend(ns, {pos:spos+r1.len, success:true, result:[r1]});
 					state.updateMaxPos(ns.pos);
