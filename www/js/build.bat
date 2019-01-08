@@ -5,4 +5,6 @@ del gen\edit_concat.js
 call r_js -o build_edit.js
 del gen\selPrj_concat.js
 call r_js -o build_selPrj.js
+del gen\pyRun_concat.js
+call r_js -o build_pyRun.js
 pause
