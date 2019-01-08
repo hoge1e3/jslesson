@@ -1,75 +1,95 @@
-define(["Visitor","IndentBuffer"],
-function (Visitor,IndentBuffer) {
+define(["Visitor","IndentBuffer","context","PyLib"],
+function (Visitor,IndentBuffer,context,PL) {
+    var PYLIB="PYLIB";
     const vdef={
         program: function (node) {
             this.visit(node.body);
         },
         classdef: function (node) {
-            this.printf("class %s%v:%{%v%}",node.name,node.body);
+            this.ctx.enter({inClass:node},()=>{
+                this.printf("%s.class('%s',{%{%j%}}",PYLIB,node.name,[",",node.body]);
+            });
         },
         define: function (node) {
-            this.printf("def %s%v:%{%v%}",node.name,node.params,node.body);
+            if (this.ctx.inClass) {
+                this.printf("%n%s: function %s(%v){%{%v%}}",node.name,node.params,node.body);
+            } else {
+                this.printf("function %s(%v){%{%v%}}%n",node.name,node.params,node.body);
+
+            }
         },
         paramList: function (node) {
             this.printf("(%j)",[",",node.body]);
         },
         importStmt: function (node) {
-            this.printf("import %s",node.name);
-            if (node.alias) this.printf(" as %v",this.visit(node.alias));
-            //this.printf("%n");
+            if (node.alias) {
+                this.printf("%s=%s.import('%v');",node.alias,PYLIB,node.name);
+            } else {
+                this.printf("%s=%s.import('%v');",node.name,PYLIB,node.name);
+            }//this.printf("%n");
         },
         exprStmt: function (node) {
             this.visit(node.expr);
         },
         returnStmt: function (node) {
-            this.printf("return %v",node.expr);
+            this.printf("return %v;",node.expr);
         },
         ifStmt: function (node) {
-            this.printf("if %v%v", node.cond,node.then);
+            this.printf("if (%v) %v", node.cond,node.then);
             this.visit(node.elif);
             if (node.else) this.visit(node.else);
         },
         elifPart: function (node) {
-            this.printf("elif %v%v", node.cond,node.then);
+            this.printf("else if (%v) %v", node.cond,node.then);
         },
         elsePart: function (node) {
-            this.printf("else%v",node.then);
+            this.printf("else %v",node.then);
         },
         forStmt: function (node) {
-            this.printf("for %v in %v%v", node.var, node.set, node.do);
+            this.printf("var %v;%nfor (%v of %v) %v", node.var,node.var, node.set, node.do);
         },
         letStmt: function (node) {
+            this.printf("var ");
             this.visit(node.left);
             this.printf("=");
             this.visit(node.right);
+            this.printf(";");
             //this.printf("%n");
         },
         printStmt: function (node) {
-            if (node.nobr) this.printf("print(%j,end=' ')",[",",node.values]);
-            else this.printf("print(%j)",[",",node.values]);
+            if (node.nobr) this.printf("%s.print(%j,%s.opt({end:' '}));",
+            PYLIB,[",",node.values],PYLIB);
+            else this.printf("%s.print(%j)",PYLIB,[",",node.values]);
         },
         memberRef: function (node) {
             this.printf(".%v",node.name);
         },
         args: function (node) {
-            this.printf("(%j)",[",",node.body]);
+            const noname=node.body.filter((a)=>!a.name);
+            const hasname=node.body.filter((a)=>a.name);
+            this.printf("(");
+            this.printf("%j",[",",noname]);
+            if (hasname.length) {
+                this.printf(",%s.opt({%j})",PYLIB,[",",hasname]);
+            }
+            this.printf(")");
         },
         arg: function (node) {
             if (node.name) {
-                this.printf("%s=",node.name);
+                this.printf("%s:",node.name);
             }
             this.visit(node.value);
         },
         block: function (node) {
-            this.printf(":%{");
+            this.printf("{%{");
             this.visit(node.body);
-            this.printf("%}");
+            this.printf("%}}");
         },
         paren: function (node) {
             this.printf("(%v)",node.body);
         },
         ":indent": function (node) {
-            this.printf(":%{");
+            this.printf("%{");
         },
         "dedent": function (node) {
             this.printf("%}");
@@ -110,10 +130,14 @@ function (Visitor,IndentBuffer) {
                 //throw new Error("Visiting undef "+(node && node.type));
             }
         };
+        v.ctx=context();
         const buf=IndentBuffer();
         buf.visitor=v;
         v.printf=buf.printf.bind(buf);
         v.buf=buf;
+        for (const n of PL.builtins) {
+            v.printf("var %s=%s.%s;%n",n,PYLIB,n);            
+        }
         v.visit(node);
         //console.log("pgen res",buf.buf);
         return buf.buf;
