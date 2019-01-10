@@ -11,11 +11,12 @@ function (Grammar,Pos2RC,S/*,TError*/) {
     });
     const reserved=[
         "class","def","if","else","elif","break",
-        "for","while","in","return","print","import","as"
+        "for","while","in","return","print","import","as",
+        "and","or"
     ];
     const resvh={};for(const r of reserved) resvh[r]=r;
     const puncts=[">=","<=","==","!=","+=","-=","*=","/=","%=",
-      ">","<","=",".",":","+","-","*","/","%","(",")",",","!"];
+      ">","<","=",".",":","+","-","*","/","%","(",")","[","]",",","!"];
     const tdef={
         tokens: [{"this":tokens.rep0("token")}, /^\s*/ ,P.StringParser.eof],
         //token: tokens.or(...reserved.concat(["quote","symbol","number","qsymbol",":"])),
@@ -168,7 +169,7 @@ function (Grammar,Pos2RC,S/*,TError*/) {
         lval: g.expr({
             element: "symbol",
             operators: [
-                ["postfix" , or("args" , "memberRef") ] // (a,b)  .x
+                ["postfix" , or("args" , "memberRef", "index") ] // (a,b)  .x
             ]
         }),
         expr: g.expr({
@@ -176,18 +177,22 @@ function (Grammar,Pos2RC,S/*,TError*/) {
             operators: [
                 //["infixr", "="  ] , //  = 右結合２項演算子
                 ["infixl", or("+=","-=","*=","/=","%=")],
+                ["infixl", or("or")  ] ,
+                ["infixl", or("and")  ] ,
                 ["infixl", or(">=","<=","==","!=",">","<")  ] , //  + -  左結合２項演算子
                 ["infixl", or("+","-")  ] , //  + -  左結合２項演算子
                 ["infixl", or("*","/","%")  ] , //  * 左結合２項演算子
                 ["prefix",or("!","-")],
-                ["postfix" , or("args" , "memberRef") ] , // (a,b)  .x
+                ["postfix" , or("args" , "memberRef","index") ] , // (a,b)  .x
             ]
         }),
         memberRef: [".",{name:"symOrResv"}],
         args: ["(",{body:sep0("arg",",")},")"],
+        array: ["[",{body:sep0("expr",",")},"]"],
+        index: ["[",{body:sep1("expr",":")},"]"],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: [":indent",{body:"stmtList"},"dedent"],
-        elem: or("symbol","number","literal","paren"),
+        elem: or("symbol","number","array","literal","paren"),
         paren: ["(",{body:"expr"},")"],
         indent: tk("indent"),
         dedent: tk("dedent"),

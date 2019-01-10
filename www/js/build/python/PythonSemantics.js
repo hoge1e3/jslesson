@@ -1,7 +1,7 @@
 // MINIJAVA
 define (["Visitor","context"],
 function (Visitor,context) {
-const builtins=["print","range","int","str","float","input"];
+const builtins=["print","range","int","str","float","input","len"];
 let curClass; // 今解析中のクラスオブジェクト
 let curMethod; // 今解析中のメソッドオブジェクト
 const importable={
@@ -125,6 +125,16 @@ const vdef={
             this.visit(b);
         }
     },
+    array: function (node) {
+        for (const b of node.body) {
+            this.visit(b);
+        }
+    },
+    index: function (node) {
+        for (const b of node.body) {
+            this.visit(b);
+        }
+    },
     memberRef: function (node) {
         // node.name
         //console.log("memberRef", args);
@@ -155,7 +165,7 @@ const vdef={
     }
 };
 const thru=["nodent",">=","<=","==","!=","+=","-=","*=","/=","%=",
-  ">","<","=",".",":","+","-","*","/","%","(",")",",","!"];
+  ">","<","=",".",":","+","-","*","/","%","(",")",",","!","and","or"];
 for (let t of thru) {
     vdef[t]=()=>{};
 }

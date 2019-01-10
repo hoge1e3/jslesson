@@ -57,6 +57,12 @@ function (Visitor,IndentBuffer) {
         args: function (node) {
             this.printf("(%j)",[",",node.body]);
         },
+        array: function (node) {
+            this.printf("[%j]",[",",node.body]);
+        },
+        index: function (node) {
+            this.printf("[%j]",[":",node.body]);
+        },
         arg: function (node) {
             if (node.name) {
                 this.printf("%s=",node.name);
@@ -95,7 +101,7 @@ function (Visitor,IndentBuffer) {
     };
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=",
       ">","<","=",".",":","+","-","*","/","%","(",")",",","!",
-      "number","symbol","literal"];
+      "number","symbol","literal","and","or"];
     for (const ve of verbs) {
         vdef[ve]=function (node) {
             //console.log("verb",node);
