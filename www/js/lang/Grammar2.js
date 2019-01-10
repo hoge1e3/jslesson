@@ -142,6 +142,7 @@ for (const m of methods) {
             return (...args)=>{
                 const a=args.map(g.toParser.bind(g));
                 const head=a.shift();
+                if (m==="sep1") a.push(true);
                 return head[m](...a);
             };
         }

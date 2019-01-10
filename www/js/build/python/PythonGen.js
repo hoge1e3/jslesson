@@ -48,6 +48,9 @@ function (Visitor,IndentBuffer) {
             if (node.nobr) this.printf("print(%j,end=' ')",[",",node.values]);
             else this.printf("print(%j)",[",",node.values]);
         },
+        printStmt3: function (node) {
+            this.printf("print%v",node.args);
+        },
         memberRef: function (node) {
             this.printf(".%v",node.name);
         },

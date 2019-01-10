@@ -59,7 +59,10 @@ function (Visitor,IndentBuffer,context,PL) {
         printStmt: function (node) {
             if (node.nobr) this.printf("%s.print(%j,%s.opt({end:' '}));",
             PYLIB,[",",node.values],PYLIB);
-            else this.printf("%s.print(%j)",PYLIB,[",",node.values]);
+            else this.printf("%s.print(%j);",PYLIB,[",",node.values]);
+        },
+        printStmt3: function (node) {
+            this.printf("%s.print %v;",PYLIB,node.args);
         },
         memberRef: function (node) {
             this.printf(".%v",node.name);
@@ -136,7 +139,7 @@ function (Visitor,IndentBuffer,context,PL) {
         v.printf=buf.printf.bind(buf);
         v.buf=buf;
         for (const n of PL.builtins) {
-            v.printf("var %s=%s.%s;%n",n,PYLIB,n);            
+            v.printf("var %s=%s.%s;%n",n,PYLIB,n);
         }
         v.visit(node);
         //console.log("pgen res",buf.buf);

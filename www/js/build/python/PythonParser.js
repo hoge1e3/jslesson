@@ -4,6 +4,11 @@ function (Grammar,Pos2RC,S/*,TError*/) {
     const spc=/^([ \t]*(#(.|\r)*$)*)*/;// (A|B)* <=> (A*B*)*
     const tokens=new Grammar({space:spc});
     const P=Grammar.P;
+    const debug=(mesg)=>Parser.create((s)=>{
+        console.log(mesg,s);
+        s.success=true;
+        return s;
+    });
     const reserved=[
         "class","def","if","else","elif","break",
         "for","while","in","return","print","import","as"
@@ -21,7 +26,7 @@ function (Grammar,Pos2RC,S/*,TError*/) {
             return r;
         }),
         number: /^[0-9]+[0-9\.]*/,
-        literal: /^(\"[^\"]*\"|\'[^\']*\')/,
+        literal: /^((\"[^\"]*\")|(\'[^\']*\'))/,
     };
     for (let p of puncts) tdef[p]="'"+p;
     //for (const r of reserved) tdef[r]="'"+r;
@@ -146,7 +151,7 @@ function (Grammar,Pos2RC,S/*,TError*/) {
         //nodedent: [rep0("nodent"),"dedent"],
         //defList: rep0("define"),
         stmtList: rep1("stmt"),
-        stmt: or("define","printStmt","ifStmt","breakStmt","letStmt","exprStmt","forStmt","returnStmt","importStmt","nodent"),
+        stmt: or("define","printStmt","printStmt3","ifStmt","breakStmt","letStmt","exprStmt","forStmt","returnStmt","importStmt","nodent"),
         importStmt: ["import",{name:"symbol"},{$extend:opt(["as",{alias:"symbol"}])}],
         exprStmt: [{expr:"expr"}],
         returnStmt: ["return",{expr:"expr"}],
@@ -158,7 +163,8 @@ function (Grammar,Pos2RC,S/*,TError*/) {
         breakStmt: ["break"],
         forStmt: ["for",{var:"symbol"},"in",{set:"expr"},{do:"block"}],
         letStmt: [{left:"lval"},"=",{right:"expr"}],
-        printStmt: ["print",{values:sep0("expr",",")},{nobr:opt(",")}],
+        printStmt: ["print",{values:sep1("expr",",")},{nobr:opt(",")}],
+        printStmt3: ["print", {args:"args"}],
         lval: g.expr({
             element: "symbol",
             operators: [

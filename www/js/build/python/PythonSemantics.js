@@ -1,7 +1,7 @@
 // MINIJAVA
 define (["Visitor","context"],
 function (Visitor,context) {
-const builtins=["print","range","int","str","float"];
+const builtins=["print","range","int","str","float","input"];
 let curClass; // 今解析中のクラスオブジェクト
 let curMethod; // 今解析中のメソッドオブジェクト
 const importable={
@@ -69,7 +69,13 @@ const vdef={
     breakStmt: function (node) {
 
     },
+    printStmt3: function (node) {
+        for (const value of node.args.body) {
+            this.visit(value);
+        }
+    },
     printStmt: function (node) {
+        //console.log("PStm",node);
         for (const value of node.values) {
             this.visit(value);
         }
