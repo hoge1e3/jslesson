@@ -1,5 +1,5 @@
-define(["assert","DeferredUtil","wget", "IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator","PythonParser","PythonSemantics","PythonGen","ctrl"],
-function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,ctrl) {//<-dtl
+define(["assert","DeferredUtil","wget", "IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator","PythonParser","PythonSemantics","PythonGen","Python2JS","ctrl"],
+function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl) {//<-dtl
     PythonBuilder=function (prj, dst) {//<-Dtl
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
@@ -106,11 +106,15 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,ctrl) {//<-dtl
     });
     p.compile=function (f) {
         var pysrcF=f.src.py;
+        var runLocal=false,js;
         if (!superMode) {
             var node=PP.parse(pysrcF);
             try {
-                S.check(node);
-                var gen=G(node);
+                var vres=S.check(node);
+                //var gen=G(node);
+                if(vres.useInput) {
+                    runLocal=true;
+                }
             } catch(e) {
                 if (e.node) {
                     throw TError(e.message,pysrcF,e.node.pos);
@@ -124,10 +128,14 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,ctrl) {//<-dtl
         //console.log("PPToken",PP.Tokenizer(pysrc).tokenize());
         var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
         buf.setSrcFile(pysrcF);//<-dtl
-        buf.printf("$.ajax(window.controllerPath+'?RunPython/run', {data:{srcPath:%s}}).then("+
-        "function (r) { $('#output').text(r.replace(/.*echo off\\s*/,''));},function (e){alert(e.responseText);});",
-            JSON.stringify(f.src.py.path())
-        );//PythonParser.parse(f.src.py.text(),{indentBuffer:buf,src:f.src.py.name(),//<-dtl
+        if (runLocal) {
+            J(node,{buf:buf,genReqJS:true, pyLibPath:WebSite.runtime+"lib/python/PyLib.js"});
+        } else {
+            buf.printf("$.ajax(window.controllerPath+'?RunPython/run', {data:{srcPath:%s}}).then("+
+            "function (r) { $('#output').text(r.replace(/.*echo off\\s*/,''));},function (e){alert(e.responseText);});",
+                JSON.stringify(f.src.py.path())
+            );
+        }
         buf.close();
 
     };

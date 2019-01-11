@@ -122,7 +122,8 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("%s",node+"");
         };
     }
-    function gen(node) {
+    function gen(node,options) {
+        options=options||{};
         const v=Visitor(vdef);
         v.def=function (node) {
             var v=this;
@@ -134,14 +135,21 @@ function (Visitor,IndentBuffer,context,PL) {
             }
         };
         v.ctx=context();
-        const buf=IndentBuffer();
+        const buf=options.buf||IndentBuffer();
         buf.visitor=v;
         v.printf=buf.printf.bind(buf);
         v.buf=buf;
+        if (options.genReqJS) {
+            options.pyLibPath=options.pyLibPath||"PyLib";
+            v.printf("requirejs(['%s'], function (%s) {%{",options.pyLibPath,PYLIB);
+        }
         for (const n of PL.builtins) {
             v.printf("var %s=%s.%s;%n",n,PYLIB,n);
         }
         v.visit(node);
+        if (options.genReqJS) {
+            v.printf("%}});");
+        }
         //console.log("pgen res",buf.buf);
         return buf.buf;
     }

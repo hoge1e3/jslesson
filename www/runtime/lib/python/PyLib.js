@@ -18,10 +18,12 @@ define([],function () {
         }
     };
     if (typeof $==="function") {
-        var c=$("#console");
-        if (c.length>0) {
-            PL.STDOUT=c;
-        }
+        $(function () {
+            var c=$("#output");
+            if (c.length>0) {
+                PL.STDOUT=c;
+            }
+        });
     }
     PL.Option=function (o){
         if (!(this instanceof PL.Option)) return new PL.Option(o);

@@ -145,6 +145,9 @@ const vdef={
     },
     symbol: function (node) {
         var i=this.getScope(node+"");
+        if (node+""==="input") {
+            this.useInput=true;
+        }
         if (!i) {
             console.log("symbol undef",node,this.curScope());
             this.error("変数または関数"+node+"は未定義です",node);
@@ -205,6 +208,7 @@ const Semantics= {
             throw e;
         };
         v.newScope(()=>v.visit(node));
+        return v;
     }
 };
 return Semantics;
