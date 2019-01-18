@@ -15,7 +15,7 @@ function (Grammar,Pos2RC,S/*,TError*/) {
         "and","or"
     ];
     const resvh={};for(const r of reserved) resvh[r]=r;
-    const puncts=[">=","<=","==","!=","+=","-=","*=","/=","%=",
+    const puncts=[">=","<=","==","!=","+=","-=","*=","/=","%=","**",
       ">","<","=",".",":","+","-","*","/","%","(",")","[","]",",","!"];
     const tdef={
         tokens: [{"this":tokens.rep0("token")}, /^\s*/ ,P.StringParser.eof],
@@ -182,6 +182,7 @@ function (Grammar,Pos2RC,S/*,TError*/) {
                 ["infixl", or(">=","<=","==","!=",">","<")  ] , //  + -  左結合２項演算子
                 ["infixl", or("+","-")  ] , //  + -  左結合２項演算子
                 ["infixl", or("*","/","%")  ] , //  * 左結合２項演算子
+                ["infixl", or("**")], 
                 ["prefix",or("!","-")],
                 ["postfix" , or("args" , "memberRef","index") ] , // (a,b)  .x
             ]

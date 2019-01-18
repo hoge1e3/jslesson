@@ -101,7 +101,16 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("%n");
         },
         infixl: function(node) {
-            this.printf("%v%v%v",node.left,node.op,node.right);
+            if (isCmp(node)) {
+                const ec=expandCmps(node);
+                if (ec.length>1) {
+                    this.printf("%j",[" and ",ec]);
+                    return;
+                }
+            }
+            var o=PL.ops[node.op+""];
+            this.printf("%s.wrap(%v).__%s__(%v)",PYLIB, node.left,o, node.right);
+            //this.printf("%v%v%v",node.left,node.op,node.right);
         },
         postfix: function (node) {
             this.printf("%v%v",node.left,node.op);
@@ -113,6 +122,19 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("break")
         }
     };
+    const cmps={">":1,"<":1,"==":1,">=":1,"<=":1,"!=":1};
+    function isCmp(node) {
+        return cmps[node.op+""];
+    }
+    function expandCmps(node) {
+        if (isCmp(node.left)) {
+            var r=expandCmps(node.left);
+            r.push( { type:"infixl", left: r[r.length-1].right, op:node.op, right:node.right});
+            return r;
+        } else {
+            return [node];
+        }
+    }
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=",
       ">","<","=",".",":","+","-","*","/","%","(",")",",","!",
       "number","symbol","literal"];

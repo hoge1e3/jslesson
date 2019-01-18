@@ -19,7 +19,7 @@ class LoginController {
         <div><font color=red><?= self::$mesg ?></font></div>
     	<form action="a.php?Login/check" method="POST">
     	  クラスID <input name="class" value="<?= $class ?>"></br>
-    	  ユーザ名 <input name="user"></br>
+    	  <?= $isPersonal ? "メールアドレス" : "ユーザ名" ?> <input name="user"></br>
     	  パスワード <input name="pass" type="password">
     	  <br/>
     	  <input type="submit" value="OK"/>
