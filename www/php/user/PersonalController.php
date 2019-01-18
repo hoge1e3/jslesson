@@ -52,7 +52,9 @@ EOF
             <input type="hidden" name="token" value="<?= $token ?>"/ >
             <?= $mesg ?><br/>
             ユーザID <?= $r->mail ?><br/>
+            <!--
             ユーザ名（任意）<input name="name" value="<?= htmlspecialchars($name) ?>"/><br/>
+            -->
             パスワード<input type="password" name="pass1"/><br/>
             パスワード(確認)<input type="password" name="pass2"/><br/>
             <input type="submit" value="登録"/>
@@ -61,7 +63,7 @@ EOF
     }
     static function regDone() {
         $token=param("token");
-        $name=param("name");
+        //$name="";//param("name");
         $pass=param("pass1");
         if (strlen($pass)<4) {
             self::regForm("パスワードが短すぎます");
@@ -74,6 +76,7 @@ EOF
         $r=MailToken::get($token);
         if (!$r) die("Token $token is invalid");
         $u=self::theUser($r->mail);
+        $name=$r->mail;
         $u->password=$pass;
         $u->setOptions("name",$name);
         $u->make();

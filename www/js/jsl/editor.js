@@ -685,11 +685,11 @@ function ready() {
     function fixName(name, options) {
         A.is(arguments,[String]);
         var upcased=false;
-        if (name.match(/^[a-z]/)) {
+        /*if (name.match(/^[a-z]/)) {
             name= name.substring(0,1).toUpperCase()+name.substring(1);
             upcased=true;
-        }
-        if (name.match(/^[A-Z_][a-zA-Z0-9_]*$/)) {
+        }*/
+        if (name.match(/^[A-Za-z_][a-zA-Z0-9_]*$/)) {
             if (sourceFiles[name]) {
                 return {ok:false, reason:name+"は存在します"};
             }
