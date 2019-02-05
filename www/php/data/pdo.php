@@ -47,6 +47,9 @@ function pdo_select_iter() {
 }
 function pdo_insert($tbl, $vals) {
     $pdo=pdo();
+    if (count($vals)==0) {
+        throw new Error("No values set when inserting into $tbl");
+    }
     $q="insert into `$tbl`(";
     $vs="";$com="";$vary=array();
     foreach ($vals as $k=>$v) {
