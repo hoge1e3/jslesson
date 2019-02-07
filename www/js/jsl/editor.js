@@ -788,6 +788,7 @@ function ready() {
                     });
                     return sync();
                 }).fail(function (e) {
+                    //console.log("betupe-ji fail",e);
                     Tonyu.onRuntimeError(e);
                     SplashScreen.hide();
                 });
@@ -1129,7 +1130,11 @@ function ready() {
                     }
                 }
             });
-            UI("div",{title:"Error",name:"runtimeErrorDialog"},"["+(cve||e)+"]",
+            var mesg;
+            if (cve) mesg=cve;
+            else if (e && e.responseText) mesg=e.responseText;
+            else mesg=e+"";
+            UI("div",{title:"Error",name:"runtimeErrorDialog"},"["+(mesg)+"]",
             //["button",{on:{click:function(){console.log("clicked");$("#reConsole"+reDialog).text(e.stack);}}},"詳細"],
             //["pre",{id:"reConsole"+reDialog},stack[0]+"\n"+stack[1]]).dialog({width:800});
             ["button",{on:{click:function(){console.log("clicked");$(this).parent("div").children("pre").text(e.stack);}}},"詳細"],

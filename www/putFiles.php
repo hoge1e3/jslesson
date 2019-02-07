@@ -16,15 +16,19 @@ $base=$_POST["base"];
 if (!isset($_POST["data"])) {
     die("Specify data");
 }
-$data=$json->decode($_POST["data"]);
+//$data=$json->decode($_POST["data"]);
+$data=json_decode($_POST["data"]);
+if (!$data) {
+    die("Invalid JSON data: ".substr($_POST["data"],0,500));
+}
 foreach ($data as $path=>$cont) {
 //print "cont $cont";
     $fp=PathUtil::rel($base, $path);
-    if (isset($cont["trashed"])) {
+    if (isset($cont->{"trashed"})) {
         if ($fs->exists($fp)) $fs->rm($fp);
     } else {
-        $fs->setContent($fp,$cont["text"]);
-        $fs->setMetaInfo($fp,array("lastUpdate"=>$cont["lastUpdate"]) );
+        $fs->setContent($fp,$cont->{"text"});
+        $fs->setMetaInfo($fp,array("lastUpdate"=>$cont->{"lastUpdate"}) );
     }
 }
 //header("Content-type: text/plain");
