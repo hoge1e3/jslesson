@@ -1,5 +1,5 @@
-define(["PythonParser","PythonSemantics","PythonGen","Python2JS","PyLib"],
-function (PP,S,G,J,PL) {
+define(["PythonParser","PythonSemantics","PythonGen","Python2JS","PyLib","TError"],
+function (PP,S,G,J,PL,TError) {
     function run(srcF) {
         var node=PP.parse(srcF);
         try {

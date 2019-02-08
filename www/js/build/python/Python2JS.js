@@ -12,9 +12,9 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         define: function (node) {
             if (this.ctx.inClass) {
-                this.printf("%n%s: function %s(%v){%{%v%}}",node.name,node.params,node.body);
+                this.printf("%n%s: function %s%v{%{%v%}}",node.name,node.params,node.body);
             } else {
-                this.printf("function %s(%v){%{%v%}}%n",node.name,node.params,node.body);
+                this.printf("function %s%v{%{%v%}}%n",node.name,node.params,node.body);
 
             }
         },
@@ -109,6 +109,7 @@ function (Visitor,IndentBuffer,context,PL) {
                 }
             }
             var o=PL.ops[node.op+""];
+            if (!o) throw new Error("No operator for "+node.op);
             this.printf("%s.wrap(%v).__%s__(%v)",PYLIB, node.left,o, node.right);
             //this.printf("%v%v%v",node.left,node.op,node.right);
         },

@@ -11,6 +11,7 @@ module!"db" [
     通学データ!”学年” ”通学距離” 箱ひげ図 描画。
 ] require.
 
+
 // Concept code
 
 /*

@@ -1,5 +1,12 @@
 define([],function () {
     var PL={};
+    PL.import=function (lib) {
+        if (lib==="random") {
+            return {
+                random: Math.random
+            };
+        }
+    };
     PL.print=function () {
         var a=PL.parseArgs(arguments);
         console.log("print",arguments,a);
@@ -12,6 +19,24 @@ define([],function () {
     };
     PL.int=function (s) {return s-0;};
     PL.str=function (s) {return s+"";};
+    PL.fillRect=function (x,y,w,h){
+        var ctx=PL.CANVAS[0].getContext("2d");
+        ctx.fillRect(x,y,w,h);
+    };
+    PL.clearRect=function(x,y,w,h){
+        var ctx=PL.CANVAS[0].getContext("2d");
+        ctx.clearRect(x,y,w,h);
+    }
+    PL.clear=function(){
+        PL.clearRect(0,0,PL.CANVAS.width(),PL.CANVAS.height());
+    }
+    PL.setColor=function (r,g,b){
+        var ctx=PL.CANVAS[0].getContext("2d");
+        ctx.fillStyle="rgb("+r+","+g+","+b+")";
+    };
+    PL.setTimeout=function (f,t){
+        setTimeout(f,t);
+    }
     PL.STDOUT={
         append: function (s) {
             console.log(s);
@@ -144,7 +169,7 @@ define([],function () {
 
         })
     };
-    PL.builtins=["range","input","str","int"];
+    PL.builtins=["range","input","str","int","fillRect","setColor","setTimeout","clearRect","clear"];
     window.PYLIB=PL;
     return PL;
 });

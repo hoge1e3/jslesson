@@ -1,7 +1,7 @@
 // MINIJAVA
-define (["Visitor","context"],
-function (Visitor,context) {
-const builtins=["print","range","int","str","float","input","len"];
+define (["Visitor","context","PyLib"],
+function (Visitor,context,PyLib) {
+const builtins=PyLib.builtins;//["print","range","int","str","float","input","len"];
 let curClass; // 今解析中のクラスオブジェクト
 let curMethod; // 今解析中のメソッドオブジェクト
 const importable={
