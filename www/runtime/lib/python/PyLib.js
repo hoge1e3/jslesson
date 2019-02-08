@@ -17,6 +17,8 @@ define([],function () {
         var r=prompt(s||"");
         return r;
     };
+    PL.len=function (s) {return s.length;};
+    PL.float=function (s) {return s-0;};
     PL.int=function (s) {return s-0;};
     PL.str=function (s) {return s+"";};
     PL.fillRect=function (x,y,w,h){
@@ -169,7 +171,7 @@ define([],function () {
 
         })
     };
-    PL.builtins=["range","input","str","int","fillRect","setColor","setTimeout","clearRect","clear"];
-    window.PYLIB=PL;
+    PL.builtins=["range","input","str","int","float","len","fillRect","setColor","setTimeout","clearRect","clear"];
+    if (typeof window!=="undefined") window.PYLIB=PL;
     return PL;
 });

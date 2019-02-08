@@ -12,7 +12,7 @@ function (Grammar,Pos2RC,S/*,TError*/) {
     const reserved=[
         "class","def","if","else","elif","break",
         "for","while","in","return","print","import","as",
-        "and","or"
+        "and","or","global"
     ];
     const resvh={};for(const r of reserved) resvh[r]=r;
     const puncts=[">=","<=","==","!=","+=","-=","*=","/=","%=","**",
@@ -152,7 +152,7 @@ function (Grammar,Pos2RC,S/*,TError*/) {
         //nodedent: [rep0("nodent"),"dedent"],
         //defList: rep0("define"),
         stmtList: rep1("stmt"),
-        stmt: or("define","printStmt","printStmt3","ifStmt","breakStmt","letStmt","exprStmt","forStmt","returnStmt","importStmt","nodent"),
+        stmt: or("define","printStmt","printStmt3","ifStmt","breakStmt","letStmt","exprStmt","forStmt","returnStmt","importStmt","globalStmt","nodent"),
         importStmt: ["import",{name:"symbol"},{$extend:opt(["as",{alias:"symbol"}])}],
         exprStmt: [{expr:"expr"}],
         returnStmt: ["return",{expr:"expr"}],
@@ -164,6 +164,7 @@ function (Grammar,Pos2RC,S/*,TError*/) {
         breakStmt: ["break"],
         forStmt: ["for",{var:"symbol"},"in",{set:"expr"},{do:"block"}],
         letStmt: [{left:"lval"},"=",{right:"expr"}],
+        globalStmt: ["global",{names:sep1("symbol",",")}],
         printStmt: ["print",{values:sep1("expr",",")},{nobr:opt(",")}],
         printStmt3: ["print", {args:"args"}],
         lval: g.expr({
@@ -182,7 +183,7 @@ function (Grammar,Pos2RC,S/*,TError*/) {
                 ["infixl", or(">=","<=","==","!=",">","<")  ] , //  + -  左結合２項演算子
                 ["infixl", or("+","-")  ] , //  + -  左結合２項演算子
                 ["infixl", or("*","/","%")  ] , //  * 左結合２項演算子
-                ["infixl", or("**")], 
+                ["infixl", or("**")],
                 ["prefix",or("!","-")],
                 ["postfix" , or("args" , "memberRef","index") ] , // (a,b)  .x
             ]

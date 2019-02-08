@@ -1,6 +1,6 @@
 // MINIJAVA
-define (["Visitor","context","PyLib"],
-function (Visitor,context,PyLib) {
+define (["Visitor","context","PyLib","Annotation"],
+function (Visitor,context,PyLib,Annotation) {
 const builtins=PyLib.builtins;//["print","range","int","str","float","input","len"];
 let curClass; // 今解析中のクラスオブジェクト
 let curMethod; // 今解析中のメソッドオブジェクト
@@ -10,7 +10,14 @@ const importable={
     jp:true
 };
 //----
-
+class ScopeInfo {
+    constructor(scope,name,kind,declarator) {
+        this.scope=scope;
+        this.name=name;
+        this.kind=kind;
+        this.declarator=declarator;
+    }
+}
 const vdef={
     program: function (node) {
         for (const b of node.body) {
@@ -21,7 +28,7 @@ const vdef={
         if (!importable[node.name]) {
             this.error(node.name+" はインポートできません",node);
         }
-        this.addScope(node.alias || node.name,{type:"module",vtype:importable[node.name]});
+        this.addScope(node.alias || node.name,{kind:"module",vtype:importable[node.name],node});
     },
     classdef: function (node) {
         //console.log("classDef",node);
@@ -31,10 +38,10 @@ const vdef={
     },
     define: function (node) {
         //console.log("define",node);
-        this.addScope(node.name,{type:"function"});
+        this.addScope(node.name,{kind:"function",node});
         this.newScope(()=>{
             for (p of node.params.body) {
-                this.addScope(p+"",{type:"local"});
+                this.addScope(p+"",{kind:"local",node:p});
             }
             for (const b of node.body) {
                 this.visit(b);
@@ -44,9 +51,20 @@ const vdef={
     exprStmt: function (node) {
         this.visit(node.expr);
     },
+    globalStmt: function (node) {
+        for (const name of node.names) {
+            this.addScope(name+"",{kind:"global",node:name});
+        }
+    },
     letStmt: function (node) {
         if (node.left.type==="symbol") {
-            this.addScope(node.left+"",{type:"local"});
+            const info=this.getScope(node.left+"");
+            if (info && info.kind==="global") {
+
+            } else if (!info || info.scope!==this.curScope()) {
+                this.addScope(node.left+"",{kind:"local",node});
+                this.anon.put(node,{needVar:true});
+            }
         } else {
             this.visit(node.left);
         }
@@ -89,7 +107,7 @@ const vdef={
         //console.log("forStmt", node);
         var loopVar=node.var;
         this.visit(node.set);
-        this.addScope(loopVar,{type:"local"});
+        this.addScope(loopVar,{kind:"local",node:loopVar});
         this.visit(node.do);
         /*this.newScope(()=>{
             this.addScope(loopVar,{type:"local"});
@@ -152,6 +170,7 @@ const vdef={
             console.log("symbol undef",node,this.curScope());
             this.error("変数または関数"+node+"は未定義です",node);
         }
+        this.anon.put(node,{scopeInfo:i});
     },
     "arg": function (node) {
         //if (node.name) console.log(node.name);
@@ -176,6 +195,7 @@ const Semantics= {
     check: function (node,srcF) {
         const v=Visitor(vdef);
         v.ctx=context();
+        v.anon=new Annotation();
         v.def=function (node) {
             if (node==null) console.log("Semantics.check.def","NULL");
             else console.log("Semantics.check.def",node.type, node);
@@ -185,7 +205,7 @@ const Semantics= {
             return this.ctx.enter(...args);
         };
         v.rootScope={};
-        for (const b of builtins) v.rootScope[b]={type:"function"};
+        for (const b of builtins) v.rootScope[b]=new ScopeInfo(v.rootScope,b,"function");
         v.newScope=function (f) {
             var pa=this.ctx.scope||this.rootScope;
             ns=Object.create(pa);
@@ -193,7 +213,12 @@ const Semantics= {
             return this.enter({scope:ns},f);
         };
         v.addScope=function (name,info) {
-            this.curScope()[name]=info;
+            const cs=this.curScope();
+            if (!info.node && name && name.type) {
+                info.node=name;
+            }
+            cs[name+""]=new ScopeInfo(cs,name+"",info.kind, info.node) ;
+            return cs[name+""];
         };
         v.getScope=function (name) {
             return this.curScope()[name];

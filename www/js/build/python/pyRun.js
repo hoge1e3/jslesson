@@ -3,9 +3,9 @@ function (PP,S,G,J,PL,TError) {
     function run(srcF) {
         var node=PP.parse(srcF);
         try {
-            S.check(node);
+            var v=S.check(node);
             var gen=G(node);
-            var genj=J(node);
+            var genj=J(node,v.anon);
             console.log(genj);
             var f=new Function(genj);
             console.log(f());

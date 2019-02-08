@@ -107,6 +107,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl) {//<-dt
     p.compile=function (f) {
         var pysrcF=f.src.py;
         var runLocal=false,js;
+        var anon;
         if (!superMode) {
             var node=PP.parse(pysrcF);
             try {
@@ -115,6 +116,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl) {//<-dt
                 if(vres.useInput) {
                     runLocal=true;
                 }
+                anon=vres.anon;
             } catch(e) {
                 if (e.node) {
                     throw TError(e.message,pysrcF,e.node.pos);
@@ -129,7 +131,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl) {//<-dt
         var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
         buf.setSrcFile(pysrcF);//<-dtl
         if (runLocal) {
-            J(node,{buf:buf,genReqJS:true, pyLibPath:WebSite.runtime+"lib/python/PyLib.js"});
+            J(node,anon,{buf:buf,genReqJS:true, pyLibPath:WebSite.runtime+"lib/python/PyLib.js"});
         } else {
             buf.printf("$.ajax(window.controllerPath+'?RunPython/run', {data:{srcPath:%s}}).then("+
             "function (r) { $('#output').text(r.replace(/.*echo off\\s*/,''));},function (e){alert(e.responseText);});",

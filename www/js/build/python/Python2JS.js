@@ -49,13 +49,16 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("var %v;%nfor (%v of %v) %v", node.var,node.var, node.set, node.do);
         },
         letStmt: function (node) {
-            this.printf("var ");
+            if (this.anon.get(node).needVar) {
+                this.printf("var ");
+            }
             this.visit(node.left);
             this.printf("=");
             this.visit(node.right);
             this.printf(";");
             //this.printf("%n");
         },
+        globalStmt: function (node) {},
         printStmt: function (node) {
             if (node.nobr) this.printf("%s.print(%j,%s.opt({end:' '}));",
             PYLIB,[",",node.values],PYLIB);
@@ -145,9 +148,10 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("%s",node+"");
         };
     }
-    function gen(node,options) {
+    function gen(node,anon,options) {
         options=options||{};
         const v=Visitor(vdef);
+        v.anon=anon;
         v.def=function (node) {
             var v=this;
             if (node instanceof Array) {

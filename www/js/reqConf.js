@@ -174,6 +174,7 @@ var reqConf={
             "ObjectMatcher": "lang/ObjectMatcher",
             "Arrow": "help/Arrow",
             "context": "lang/context",
+            Annotation: "lang/Annotation",
             "source-map": "lang/source-map",
             "CodeBuffer": "lang/IndentBuffer",
             "IndentBuffer": "lang/IndentBuffer",
