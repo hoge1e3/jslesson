@@ -29,7 +29,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG,UI) {
     "parser","ExpressionParser","context","minimal",
     "polyk","calibration","devicemotion",
     "Dict","Vec2","Actor","Group","UI","Color","Timer",
-    "Util","Turtle","Figure","DOM","TextFile","Japanese2"].map(
+    "Util","Turtle","Figure","DOM","TextFile","Japanese2","db"].map(
         function (n) {
             return "lib/dtl/"+n+".js";
         }

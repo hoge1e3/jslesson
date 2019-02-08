@@ -1,5 +1,5 @@
 //NOGENERATOR
-module!"db" [ 
+//module!"db" [ 
     通学データ=テーブル!”data/school2.tsv” ファイルから作る。
     
     一年=通学データ!「学年==1」 選択。
@@ -9,7 +9,8 @@ module!"db" [
     三年=通学データ!「学年==3」 選択。
     三年!”通学距離” 標準偏差 表示。
     通学データ!”学年” ”通学距離” 箱ひげ図 描画。
-] require.
+//] require.
+
 
 // Concept code
 
