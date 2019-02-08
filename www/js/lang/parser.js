@@ -332,10 +332,10 @@ return Parser=function () {
 			return value.and(tail.rep0()).ret(function(r1, r2){
 				var i;
 				if (valuesToArray) {
-					var r=[r1];
-						for (i in r2) {
-							r.push(r2[i]);
-						}
+					var r=[r1].concat(r2);
+					/*for (i in r2) {
+						r.push(r2[i]);
+					}*/ // NO good if Array is monkey-patched
 					return r;
 				} else {
 					return {head:r1,tails:r2};

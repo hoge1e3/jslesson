@@ -42,6 +42,9 @@ MinimalParser= function () {
 	}
     function extend(arr,obj) {
         var pos;
+		if (obj instanceof Array ){
+			console.log("Are----",obj);
+		}
         for (var k in obj) {
             var v=obj[k];
             arr[k]=v;
@@ -428,8 +431,12 @@ MinimalParser= function () {
 		        //console.log(e.pos);
 		        buf.addMapping(e);
 		    }
-    		if(typeof e=="function") return gen(e());
-    		else if(Array.isArray(e)) {
+    		if(typeof e=="function") {
+				if (e===Array.prototype.concat) {
+					console.log("WHY!",e);
+				}
+				return gen(e());
+    		} else if(Array.isArray(e)) {
     		    var f=0;
     		    e.forEach(function (el) {
     		        if (f++) buf.print(e.joined||"");
