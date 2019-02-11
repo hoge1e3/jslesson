@@ -1,9 +1,8 @@
-a=[20,40,10,30]
-print((a))
-a=[20,40,10,30]
-print((a[1]))
-a=[20,40,10,30]
-a[1]=50
-print((a))
-a=[20,40,10,30,8]
-print((len(a)))
+import _numpy as np
+import _numpy.random as rd
+saikoro=rd.randint(1,6+1,100)
+print((saikoro))
+deme=[]
+for i in range(6):
+  deme.append(np.count_nonzero(saikoro==i+1))
+print("出現数:",deme)
