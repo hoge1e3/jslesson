@@ -143,6 +143,7 @@ var reqConf={
             RenameProjectDialog: "ide/RenameProjectDialog",
             NewSampleDialog: "ide/NewSampleDialog",
             CommentDialog2: "ide/",
+            AssetDialog: "ide/",
             CommentDialog: "ide/CommentDialog",
             DistributeDialog: "ide/DistributeDialog",
             RunDialog: "ide/RunDialog",

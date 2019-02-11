@@ -30,7 +30,7 @@ function (FS,PP,S,G) {
         if (!isSuper) {
             node=PP.parse(pySrcF);
             S.check(node,pySrcF);
-            var code=G(node);
+            var code=G(node,S);
             cvSrcF.text(code);
             //console.log("GCode",code);
         } else {

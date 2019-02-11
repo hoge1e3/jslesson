@@ -7,7 +7,8 @@ let curMethod; // 今解析中のメソッドオブジェクト
 const importable={
     datetime:true,
     random:true,
-    jp:true
+    jp:true,
+    numpy:{wrapper:true}
 };
 //----
 class ScopeInfo {
@@ -25,10 +26,11 @@ const vdef={
         }
     },
     importStmt: function (node) {
-        if (!importable[node.name]) {
-            this.error(node.name+" はインポートできません",node);
+        const nameHead=node.name[0]
+        if (!importable[nameHead]) {
+            this.error(nameHead+" はインポートできません",node);
         }
-        this.addScope(node.alias || node.name,{kind:"module",vtype:importable[node.name],node});
+        this.addScope(node.alias || nameHead,{kind:"module",vtype:importable[nameHead],node});
     },
     classdef: function (node) {
         //console.log("classDef",node);
@@ -234,7 +236,8 @@ const Semantics= {
         };
         v.newScope(()=>v.visit(node));
         return v;
-    }
+    },
+    importable
 };
 return Semantics;
 });

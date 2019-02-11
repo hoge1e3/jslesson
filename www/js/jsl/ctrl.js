@@ -1,9 +1,12 @@
 define([], function () {
     var ctrl={};
+    ctrl.url=function (path) {
+        return ".?"+path;
+    };
     ctrl.run=function (method,path,params) {
         params=params||{};
         return $.ajax({
-            url: ".?"+path,
+            url: ctrl.url(path),
             data:params,
             cache: false,
             type:method

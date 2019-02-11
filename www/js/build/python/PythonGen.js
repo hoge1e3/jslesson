@@ -14,9 +14,20 @@ function (Visitor,IndentBuffer) {
             this.printf("(%j)",[",",node.body]);
         },
         importStmt: function (node) {
-            this.printf("import %s",node.name);
-            if (node.alias) this.printf(" as %v",this.visit(node.alias));
+            const nameHead=node.name[0];
+            const inf=this.importable[nameHead+""];
+            if (inf && inf.wrapper) {
+                this.printf("import _%v",node.name);
+                if (node.alias) this.printf(" as %v",node.alias);
+                else this.printf(" as %v",node.name);
+            } else {
+                this.printf("import %v",node.name);
+                if (node.alias) this.printf(" as %v",node.alias);
+            }
             //this.printf("%n");
+        },
+        packageName: function (node) {
+            this.printf("%j",[".",node]);
         },
         exprStmt: function (node) {
             this.visit(node.expr);
@@ -108,8 +119,10 @@ function (Visitor,IndentBuffer) {
             this.printf("%s",node+"");
         };
     }
-    function gen(node) {
+    function gen(node,options={}) {
         const v=Visitor(vdef);
+        v.importable=options.importable||{};
+        //console.log("IMP",v.importable);
         v.def=function (node) {
             var v=this;
             if (node instanceof Array) {

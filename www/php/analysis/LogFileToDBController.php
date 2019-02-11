@@ -110,8 +110,8 @@ class LogFileToDBController {
                 $a=array(
         	        $time,$c,$user,$lang,substr($filename,0,250),
                     $result,
-                    substr($detail,0,65000),
-                    substr($raw,0,65000),$errorType,$errorPos
+                    mb_substr($detail,0,20000),
+                    mb_substr($raw,0,20000),$errorType,$errorPos
     	        );
                 //var_dump($a);
         	    $sth->execute($a);

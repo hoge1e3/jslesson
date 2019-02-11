@@ -24,6 +24,9 @@ class PathUtil {
     return $resPath;
   }
   static function relPath($path, $base) {
+      if (substr($path,0,strlen($base))!==$base) {
+          return "../".self::relPath($path, self::up($base));
+      }
      return substr($path, strlen($base));
   }
   public static function startsWith($path, $prefix) {
@@ -37,6 +40,12 @@ class PathUtil {
           return substr($path, 0, strlen($path)-1);
       }
       return $path;
+  }
+  public static function ext($path) {
+      if (preg_match("/\.[a-zA-Z0-9]+$/",$path, $matches)) {
+          return $matches[0];
+      }
+      return "";
   }
   public static function truncExt($path) {
         $r=self::name($path);

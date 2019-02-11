@@ -39,8 +39,10 @@ class SFile{
         return PathUtil::truncExt($this->name());
     }
     public function ext() {
+        return PathUtil::ext($this->name());
     }
-    public function relPath() {
+    public function relPath($base) {
+        return PathUtil::relPath($this->path(),$base->path());
     }
     public function up() {
         return $this->resolve(PathUtil::up($this->path()));
@@ -195,7 +197,7 @@ class SFile{
         $files=$this->listFiles();
         foreach ($files as $file) {
             if ($file->isDir()) {
-                $res=array_merge($res,$file->recursive());    
+                $res=array_merge($res,$file->recursive());
             } else {
                 array_push($res,$file);
             }
@@ -217,6 +219,9 @@ class SFile{
     public function convertOptions() {
     }
     public function mkdir() {
+        if (!$this->up()->exists()) {
+            $this->up()->mkdir();
+        }
         $this->fs->mkdir($this->path());
     }
     public function link() {
@@ -226,7 +231,7 @@ class SFile{
     public function isLink() {
     }
     public function getResolvedLinkPath() {
-    }   
+    }
     public function append($t) {
         return $this->fs->appendContent($this->path(), $t);
     }
@@ -239,7 +244,7 @@ class SFile{
     public function openWrite() {
         return fopen($this->nativePath(),"w");
     }
-    
+
 }
 
 ?>

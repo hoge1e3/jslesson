@@ -1,2 +1,3 @@
 echo off
-node runpython.js %1
+set PYTHONIOENCODING="utf-8"
+node runpython.js %1 %2
