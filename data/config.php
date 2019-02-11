@@ -9,4 +9,21 @@ define("PYTHON_WORK",BA_DATA."/pythonwork/");
 //define("PDO_USER","");
 //define("PDO_PASS","");
 
+/*
+define("BA_DATA", "/path/to/badata");
+define("BA_LOG", BA_DATA."/log");
+define("BA_FS",  BA_DATA."/fs");
+define("BA_HOME",BA_FS."/home");
+define("BA_PUB", BA_FS."/pub");
+
+define("PDO_DSN","mysql:host=localhost;dbname=bitarrow;charset=utf8mb4");
+define("PDO_USER","XXX");
+define("PDO_PASS","XXX");
+
+define("SUPER_PYTHON","super");
+define("PYTHON_WORK",BA_DATA."/pythonwork");
+define("PYTHON_PATH","/path/to/pythonjs.sh");
+
+*/
+
 ?>

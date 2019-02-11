@@ -4,7 +4,6 @@
 define("BA_DATA", dirname(__DIR__)."/../data");
 //define("BA_DATA", dirname(__DIR__));
 
-//define("BA_TOP", dirname(__DIR__));
 define("BA_LOG", BA_DATA."/log");
 define("BA_FS",  BA_DATA."/fs");
 define("BA_HOME",BA_FS."/home");
