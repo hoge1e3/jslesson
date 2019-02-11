@@ -18,14 +18,16 @@ function (FS,PP,S,G) {
     var pySrcPath=process.argv[2];
     var isSuper=!!(process.argv[3]-0);
     var work=process.argv[4];
-    console.log("work",work,isSuper);
+
+    var workd=FS.get(work);
+    //console.log("work",work,isSuper);
     var pySrcF,cvSrcF;
     if (FS.PathUtil.isAbsolute(pySrcPath)) {
         pySrcF=FS.get(pySrcPath);
     } else {
         pySrcF=FS.get(process.cwd()).rel(pySrcPath);
     }
-    cvSrcF=FS.get(process.cwd()).rel("conv.py");
+    cvSrcF=workd.rel("conv.py");
     try {
         var node;
         if (!isSuper) {
@@ -39,6 +41,7 @@ function (FS,PP,S,G) {
         }
         process.env.PYTHONPATH=process.cwd()+(process.cwd().indexOf("\\")>=0?";":":")+process.env.PYTHONPATH;
         //console.log("Passed",'python '+pySrcF.path());
+        process.chdir(workd.path());
         exec('python '+cvSrcF.path(), (err, stdout, stderr) => {
             //if (err) { console.log(err+""); }
             console.log(stderr);

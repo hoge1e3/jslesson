@@ -69,6 +69,7 @@ www/db/*
 www/mei_*
 private
 /data/db/*
+/data/pythonwork/
 /data/fs/Tonyu/Projects/JSLKer/js/concat_old.js
 /data/fs/pub
 /data/fs/home/Nodepad
