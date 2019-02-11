@@ -8,6 +8,7 @@ const importable={
     datetime:true,
     random:true,
     jp:true,
+    matplotlib:true,
     numpy:{wrapper:true}
 };
 //----

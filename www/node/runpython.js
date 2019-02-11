@@ -16,8 +16,9 @@ function (FS,PP,S,G) {
     var f=c.rel("test.py");
     console.log(f.path(),f.text());*/
     var pySrcPath=process.argv[2];
-    var isSuper=process.argv[3];
-    //console.log(isSuper);
+    var isSuper=!!(process.argv[3]-0);
+    var work=process.argv[4];
+    console.log("work",work,isSuper);
     var pySrcF,cvSrcF;
     if (FS.PathUtil.isAbsolute(pySrcPath)) {
         pySrcF=FS.get(pySrcPath);

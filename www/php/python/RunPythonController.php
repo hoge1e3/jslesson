@@ -15,8 +15,10 @@ class RunPythonController {
             $npath=preg_replace("/\\//","\\",$npath);
         }
         //echo $npath;
-        $sp="";if (self::isSuper(1)) $sp="-super";
-        $res=system_ex(PYTHON_PATH." \"$npath\" $sp");
+        $sp=self::isSuper(1);
+        $wpath=PYTHON_WORK."/".rand(100000,999999);
+        mkdir($wpath);
+        $res=system_ex(PYTHON_PATH." \"$npath\" $sp \"$wpath\"");
         if ($res["return"]==0) print($res["stdout"]);
         else {
             http_response_code(500);
