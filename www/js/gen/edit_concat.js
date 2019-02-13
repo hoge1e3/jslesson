@@ -5917,10 +5917,10 @@ return Parser=function () {
 			return value.and(tail.rep0()).ret(function(r1, r2){
 				var i;
 				if (valuesToArray) {
-					var r=[r1];
-						for (i in r2) {
-							r.push(r2[i]);
-						}
+					var r=[r1].concat(r2);
+					/*for (i in r2) {
+						r.push(r2[i]);
+					}*/ // NO good if Array is monkey-patched
 					return r;
 				} else {
 					return {head:r1,tails:r2};
@@ -17613,11 +17613,11 @@ function ready() {
     function fixName(name, options) {
         A.is(arguments,[String]);
         var upcased=false;
-        if (name.match(/^[a-z]/)) {
+        /*if (name.match(/^[a-z]/)) {
             name= name.substring(0,1).toUpperCase()+name.substring(1);
             upcased=true;
-        }
-        if (name.match(/^[A-Z_][a-zA-Z0-9_]*$/)) {
+        }*/
+        if (name.match(/^[A-Za-z_][a-zA-Z0-9_]*$/)) {
             if (sourceFiles[name]) {
                 return {ok:false, reason:name+"は存在します"};
             }
@@ -17716,6 +17716,7 @@ function ready() {
                     });
                     return sync();
                 }).fail(function (e) {
+                    //console.log("betupe-ji fail",e);
                     Tonyu.onRuntimeError(e);
                     SplashScreen.hide();
                 });
@@ -18057,7 +18058,11 @@ function ready() {
                     }
                 }
             });
-            UI("div",{title:"Error",name:"runtimeErrorDialog"},"["+(cve||e)+"]",
+            var mesg;
+            if (cve) mesg=cve;
+            else if (e && e.responseText) mesg=e.responseText;
+            else mesg=e+"";
+            UI("div",{title:"Error",name:"runtimeErrorDialog"},"["+(mesg)+"]",
             //["button",{on:{click:function(){console.log("clicked");$("#reConsole"+reDialog).text(e.stack);}}},"詳細"],
             //["pre",{id:"reConsole"+reDialog},stack[0]+"\n"+stack[1]]).dialog({width:800});
             ["button",{on:{click:function(){console.log("clicked");$(this).parent("div").children("pre").text(e.stack);}}},"詳細"],
