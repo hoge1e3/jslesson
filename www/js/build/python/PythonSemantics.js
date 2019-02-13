@@ -7,6 +7,7 @@ let curMethod; // 今解析中のメソッドオブジェクト
 const importable={
     datetime:true,
     random:true,
+    math:true,
     jp:true,
     matplotlib:{wrapper:true},
     numpy:{wrapper:true}

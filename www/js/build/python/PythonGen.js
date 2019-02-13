@@ -110,7 +110,7 @@ function (Visitor,IndentBuffer) {
             this.printf("break")
         }
     };
-    const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=",
+    const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**",
       ">","<","=",".",":","+","-","*","/","%","(",")",",","!",
       "number","symbol","literal","and","or"];
     for (const ve of verbs) {
