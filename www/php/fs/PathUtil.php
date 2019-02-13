@@ -42,10 +42,10 @@ class PathUtil {
       return $path;
   }
   public static function ext($path) {
-      if (preg_match("/\.[a-zA-Z0-9]+$/",$path, $matches)) {
+      if (preg_match('/\\.[a-zA-Z0-9]+$/',$path, $matches)) {
           return $matches[0];
       }
-      return "";
+      return "";//"NO [$path]".'/\\.[a-zA-Z0-9]+$/';
   }
   public static function truncExt($path) {
         $r=self::name($path);

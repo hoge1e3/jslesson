@@ -18,9 +18,10 @@ function (FS,PP,S,G) {
     var pySrcPath=process.argv[2];
     var isSuper=!!(process.argv[3]-0);
     var work=process.argv[4];
+    //console.log("work",process.argv);
+    //return;
 
     var workd=FS.get(work);
-    //console.log("work",work,isSuper);
     var pySrcF,cvSrcF;
     if (FS.PathUtil.isAbsolute(pySrcPath)) {
         pySrcF=FS.get(pySrcPath);

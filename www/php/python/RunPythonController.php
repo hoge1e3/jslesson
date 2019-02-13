@@ -1,6 +1,41 @@
 <?php
-req("param","auth");
+req("param","auth","MySession");
 class RunPythonController {
+    static function workDirPath() {
+        if (MySession::has("PYTHON_WORK")) {
+            $w=MySession::get("PYTHON_WORK");
+            $wpath=PYTHON_WORK."/$w";
+        } else {
+            do {
+                $w=rand(100000,999999);
+                $wpath=PYTHON_WORK."/$w";
+            } while(file_exists($wpath));
+            mkdir($wpath);
+            MySession::set("PYTHON_WORK",$w);
+        }
+        return $wpath;
+    }
+    static function copyImg($path) {
+        $w=MySession::get("PYTHON_WORK");
+        $pubFilePath=BA_PUB."/$w";
+        if (!file_exists($pubFilePath)) mkdir($pubFilePath);
+        $ext=PathUtil::ext($path);
+        //$eq=($path==="C:\\bin\\Dropbox\\workspace\\jslesson\\data\\pythonwork\\959485/figure.png");
+        $pubURLPath=BA_PUB_URL."/$w";
+        do {
+            $n=rand(10000,99999);
+            $dst="$pubFilePath/$n$ext";
+        } while(file_exists($dst));
+        $exs=file_exists($path);
+        $exd=file_exists(dirname($dst));
+        $exdf=file_exists($dst);
+        if (!$exs || !$exd || $exdf) {
+            die("Renaming $path(exist=$exs) to $dst(exist dir=$exd,file=$exdf) failed");
+        }
+        rename($path,$dst);
+        //echo " BA=".BA_PUB_URL." puburlpath=$pubURLPath  /  n=$n  ext=$ext";
+        return "$pubURLPath/$n$ext";
+    }
     static function run(){
         $srcPath=param("srcPath");
         $fs=Auth::getFS();
@@ -16,13 +51,25 @@ class RunPythonController {
         }
         //echo $npath;
         $sp=self::isSuper(1);
-        $wpath=PYTHON_WORK."/".rand(100000,999999);
-        mkdir($wpath);
-        $res=system_ex(PYTHON_PATH." \"$npath\" $sp \"$wpath\"");
-        if ($res["return"]==0) print($res["stdout"]);
+        $wpath=self::workDirPath();
+        $cmd=PYTHON_PATH." \"$npath\" $sp \"$wpath\"";
+        //echo "CMD = $cmd\n";
+        $res=system_ex($cmd);
+        if ($res["return"]==0) self::convOut($res["stdout"]);
         else {
             http_response_code(500);
             print($res["stderr"]);
+        }
+    }
+    static function convOut($out) {
+        foreach (explode("\n",$out) as $line) {
+            $line=preg_replace("/\\r/","",$line);
+            if (preg_match("/##PLOT##(.*)/",$line,$m)) {
+                $src=self::copyImg($m[1]);
+                echo "<img src='$src'/>\n";
+            } else {
+                echo "$line\n";
+            }
         }
     }
     static function isSuper($called=0) {

@@ -7,6 +7,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl) {//<-dt
     var libs=["jquery-1.12.1","require"].map(function (n) {
         return "lib/"+n+".js";
     });
+    libs=libs.concat(["lib/python/runOnServer.js"]);
     var p=PythonBuilder.prototype;//<-dtl
     p.progress=function (m) {
         if (window.SplashScreen) window.SplashScreen.progress(m);
@@ -133,10 +134,13 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl) {//<-dt
         if (runLocal) {
             J(node,anon,{buf:buf,genReqJS:true, pyLibPath:WebSite.runtime+"lib/python/PyLib.js"});
         } else {
-            buf.printf("$.ajax(window.controllerPath+'?RunPython/run', {data:{srcPath:%s}}).then("+
-            "function (r) { $('#output').text(r.replace(/.*echo off\\s*/,''));},function (e){alert(e.responseText);});",
-                JSON.stringify(f.src.py.path())
-            );
+            buf.printf("runOnServer(%s);",    JSON.stringify(f.src.py.path()) );
+            if (false) {
+                buf.printf("$.ajax(window.controllerPath+'?RunPython/run', {data:{srcPath:%s}}).then("+
+                "function (r) { $('#output').text(r.replace(/.*echo off\\s*/,''));},function (e){alert(e.responseText);});",
+                    JSON.stringify(f.src.py.path())
+                );
+            }
         }
         buf.close();
 
