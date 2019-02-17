@@ -1,4 +1,4 @@
-define(["Klass","UI","ctrl"], function (Klass,UI,ctrl) {
+define(["Klass","UI","ctrl","WebSite"], function (Klass,UI,ctrl,WebSite) {
     var res={};
     AssetDialog=Klass.define({
         $this: "t",
@@ -10,23 +10,47 @@ define(["Klass","UI","ctrl"], function (Klass,UI,ctrl) {
             t.comment.val(r.comment);*/
             t.dom.dialog({width:600});
         },
+        refresh: function (t,mesg) {
+            console.log("refresh",mesg);
+            ctrl.get("Asset/list").then(function (r) {
+                t.list.empty();
+                r.forEach(function (u) {
+                    var fileName=u.replace(/[^\/]+\//,"");
+                    var urlFull=WebSite.published+u;
+                    t.list.append(UI("div",
+                        ["span",urlFull],
+                        ["button",{on:{click:del}},"削除"]
+                    ));
+                    function del() {
+                        console.log("DEL",fileName);
+                        ctrl.get("Asset/del",{fileName:fileName}).then(t.$bind.refresh,err);
+                    }
+                });
+            }).catch(err);
+        },
         createDOM: function (t) {
             if (t.dom) return t.dom;
             var dragMsg="ここに素材ファイルをドラッグ＆ドロップして追加．";
             var dragPoint=UI("div",
-                {style:"margin:10px; padding-left:10px; padding-right:10px; padding-top:50px; padding-bottom:50px; border:solid blue 2px;",
-                on:{dragover: s, dragenter: s, drop:dropAdd}},dragMsg,
+                {style:"margin:10px; padding-left:10px; padding-right:10px; padding-top:10px; padding-bottom:10px; border:solid blue 2px;",
+            /*on:{dragover: s, dragenter: s, drop:dropAdd}*/},dragMsg,
                 ["br"],
             );
-            t.dom=UI("div",{title:"素材アップロード"},
+            t.dom=UI("div",{title:"素材アップロード",on:{dragover: s, dragenter: s, drop:dropAdd}},
                 dragPoint,
-                ["div",{$var:"list"}]
+                ["div",{$var:"list",style:"height: 400px; overflow-y:scroll"}]
             );
             t.result=t.dom.$vars.result;
             t.comment=t.dom.$vars.comment;
+            t.list=t.dom.$vars.list;
+            t.refresh();
             return t.dom;
         }
     });
+    function err(e) {
+        if (e&&e.responseText) console.error(e.responseText);
+        console.error(e);
+    }
     function sendImageBinary(blob,fn) {
         var formData = new FormData();
         formData.append('acceptImage', blob,fn);
