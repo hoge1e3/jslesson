@@ -1,4 +1,4 @@
-define(["Klass","UI","ctrl","WebSite"], function (Klass,UI,ctrl,WebSite) {
+define(["Klass","UI","ctrl","WebSite","DragDrop"], function (Klass,UI,ctrl,WebSite,DragDrop) {
     var res={};
     AssetDialog=Klass.define({
         $this: "t",
@@ -31,20 +31,45 @@ define(["Klass","UI","ctrl","WebSite"], function (Klass,UI,ctrl,WebSite) {
         createDOM: function (t) {
             if (t.dom) return t.dom;
             var dragMsg="ここに素材ファイルをドラッグ＆ドロップして追加．";
+            var notice="※プログラムファイルはこのページ左端のファイル一覧にドラッグ＆ドロップしてください．"
             var dragPoint=UI("div",
-                {style:"margin:10px; padding-left:10px; padding-right:10px; padding-top:10px; padding-bottom:10px; border:solid blue 2px;",
-            /*on:{dragover: s, dragenter: s, drop:dropAdd}*/},dragMsg,
-                ["br"],
+                {style:"margin:10px; padding-left:10px; padding-right:10px; padding-top:10px; padding-bottom:10px; border:solid blue 2px;"},
+                dragMsg,["br"],
+                notice,["br"]
             );
-            t.dom=UI("div",{title:"素材アップロード",on:{dragover: s, dragenter: s, drop:dropAdd}},
-                dragPoint,
-                ["div",{$var:"list",style:"height: 400px; overflow-y:scroll"}]
+            t.dom=UI("div",{title:"素材管理"},
+                ["div",{$var:"content"},
+                    dragPoint,
+                    ["div",{$var:"list",style:"height: 400px; overflow-y:scroll"}]
+                ]
             );
+            DragDrop.accept(t.dom.$vars.content,{
+                onComplete: t.$bind.complete
+            });
             t.result=t.dom.$vars.result;
             t.comment=t.dom.$vars.comment;
             t.list=t.dom.$vars.list;
             t.refresh();
             return t.dom;
+        },
+        complete: function (t,status) {
+            var cnt=0;
+            for (var k in status) {
+                if (status[k].status!=="uploaded") continue;
+                var file=status[k].file;
+                //var fileContent=file.bytes();
+                var blob=file.getBlob();//new Blob([fileContent],{type:"application/octet-stream"});
+                cnt++;
+                sendImageBinary(blob,file.name()).then(function (r) {
+                    console.log(r);
+                },function (e) {
+                    console.error(e);
+                }).done(dec);
+            }
+            function dec() {
+                cnt--;
+                if (cnt<=0) t.refresh();
+            }
         }
     });
     function err(e) {
@@ -63,7 +88,7 @@ define(["Klass","UI","ctrl","WebSite"], function (Klass,UI,ctrl,WebSite) {
             processData: false
         });
     }
-    function dropAdd(e) {
+    /*function dropAdd(e) {
         var eo=e.originalEvent;
         var files = Array.prototype.slice.call(eo.dataTransfer.files);
         var added=[],cnt=files.length;
@@ -97,7 +122,7 @@ define(["Klass","UI","ctrl","WebSite"], function (Klass,UI,ctrl,WebSite) {
     function s(e) {
         e.stopPropagation();
         e.preventDefault();
-    }
+    }*/
 
     return AssetDialog;
 })

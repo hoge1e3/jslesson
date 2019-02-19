@@ -7,7 +7,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
            "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog",
            "IframeDialog","AssignmentDialog","SubmitDialog","CommentDialog2","NewProjectDialog",
-           "ProgramFileUploader"
+           "ProgramFileUploader","AssetDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -18,7 +18,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
           CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog,
           IframeDialog,AssignmentDialog,SubmitDialog,CommentDialog2,NPD,
-          ProgramFileUploader
+          ProgramFileUploader,AssetDialog
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -313,7 +313,7 @@ function ready() {
                       {label:"新規",id:"newFile"},
                       {label:"名前変更",id:"mvFile"},
                       {label:"コピー",id:"cpFile"},
-                      {label:"アップロード",id:"upFile",action:upFile},
+                      {label:"素材管理",id:"upFile",action:upFile},
                       //{label:"閉じる",id:"closeFile"},
                       {label:"削除", id:"rmFile"}
                   ]},
@@ -340,14 +340,15 @@ function ready() {
         Menu.appendMain({label:"使用方法",id:"openHelp"});
     }
     function upFile() {
-        FileUploadDialog.show(curProjectDir,{
+        /*FileUploadDialog.show(curProjectDir,{
             onAdd: function (fs) {
                 console.log(fs);
                 fs.forEach(FM.on.createContent);
                 fl.ls(curProjectDir);
                 sync();
             }
-        });
+        });*/
+        AssetDialog().show();
     }
     var commentDialog=new CommentDialog2(curPrj);
     var submitDialog;
@@ -537,7 +538,7 @@ function ready() {
         }
     });
     ProgramFileUploader.accept(fl,{
-        extPattern: new RegExp(EXT+"|"+HEXT)
+        ext:EXT, hext:HEXT//Pattern: new RegExp(EXT+"|"+HEXT)
     });
     var FM=FileMenu();
     FM.fileList=fl;
