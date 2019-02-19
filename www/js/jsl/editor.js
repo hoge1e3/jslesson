@@ -6,7 +6,8 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
            "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog",
-           "IframeDialog","AssignmentDialog","SubmitDialog","CommentDialog2","NewProjectDialog"
+           "IframeDialog","AssignmentDialog","SubmitDialog","CommentDialog2","NewProjectDialog",
+           "ProgramFileUploader"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -16,7 +17,8 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
           CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog,
-          IframeDialog,AssignmentDialog,SubmitDialog,CommentDialog2,NPD
+          IframeDialog,AssignmentDialog,SubmitDialog,CommentDialog2,NPD,
+          ProgramFileUploader
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -533,6 +535,9 @@ function ready() {
             select: F(open),
             displayName: dispNameFL
         }
+    });
+    ProgramFileUploader.accept(fl,{
+        extPattern: new RegExp(EXT+"|"+HEXT)
     });
     var FM=FileMenu();
     FM.fileList=fl;

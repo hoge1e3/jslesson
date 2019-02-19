@@ -3,6 +3,9 @@ body {
     font-family: 'Lucida Grande','Hiragino Kaku Gothic ProN','ヒラギノ角ゴ ProN W3','メイリオ',Meiryo,Helvetica,Arial,sans-serif;
 	padding-top: 50px;
 }
+.dragging {
+    background-color: #f80;
+}
 
 /* IME Fix */
 @font-face {

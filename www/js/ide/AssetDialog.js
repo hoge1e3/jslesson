@@ -60,18 +60,7 @@ define(["Klass","UI","ctrl","WebSite"], function (Klass,UI,ctrl,WebSite) {
             url: ctrl.url("Asset/upload"),
             data: formData,
             contentType: false,
-            processData: false,
-            /*success:function(date, dataType){
-                console.log("succcess");
-                console.log(data);
-                var $img = $('img');
-                var imgSrc = $img.attr('src');
-                $img.attr('src', "");
-                $img.attr('src', imgSrc);
-            },
-            error: function(XMLHttpRequest, textStatus, errorThrown){
-                //console.log("error");
-            }*/
+            processData: false
         });
     }
     function dropAdd(e) {
@@ -82,34 +71,18 @@ define(["Klass","UI","ctrl","WebSite"], function (Klass,UI,ctrl,WebSite) {
         files.forEach(function (file) {
             var itemName=file.name;
             console.log("FILEASSET",file);
-            /*var itemFile=dir.rel(itemName);
-            if (itemFile.exists()) {
-                upmesg=itemName+": 同名のファイルがあるため中止しました．";
-                dec();
-                res.d.$vars.result.append(
-                    UI("div",upmesg)
-                );
-            } else {*/
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    var fileContent = reader.result;
-                    var upmesg;
-                    var blob=new Blob([fileContent],{type:"application/octet-stream"});
-                    sendImageBinary(blob,itemName).then(function (r) {
-                        console.log(r);
-                    },function (e) {
-                        console.error(e);
-                    });
-                    /*itemFile.setBytes(fileContent);
-                    added.push(itemFile);
-                    upmesg=itemName+": アップロードしました．";
-                    dec();
-                    res.d.$vars.result.append(
-                        UI("div",upmesg)
-                    );*/
-                };
-                reader.readAsArrayBuffer(file);
-            //}
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var fileContent = reader.result;
+                var upmesg;
+                var blob=new Blob([fileContent],{type:"application/octet-stream"});
+                sendImageBinary(blob,itemName).then(function (r) {
+                    console.log(r);
+                },function (e) {
+                    console.error(e);
+                });
+            };
+            reader.readAsArrayBuffer(file);
         });
         function dec() {
             cnt--;

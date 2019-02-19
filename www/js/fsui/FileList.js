@@ -6,7 +6,7 @@ function FileList(elem, options) {
     //console.log(elem);
     if (!options) options={};
     var FL={select:select, ls:ls, on:(options.on?options.on:{}), curFile:curFile, curDir: curDir,
-    		setModified:setModified, isModified:isModified};
+    		setModified:setModified, isModified:isModified,elem:elem};
     var path=$("<div>");
     var items=$("<div>");
     if (!selbox) elem.append(path).append(items);
