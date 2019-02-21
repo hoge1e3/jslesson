@@ -4956,7 +4956,7 @@ function FileList(elem, options) {
     //console.log(elem);
     if (!options) options={};
     var FL={select:select, ls:ls, on:(options.on?options.on:{}), curFile:curFile, curDir: curDir,
-    		setModified:setModified, isModified:isModified};
+    		setModified:setModified, isModified:isModified,elem:elem};
     var path=$("<div>");
     var items=$("<div>");
     if (!selbox) elem.append(path).append(items);
@@ -5084,7 +5084,8 @@ function FileList(elem, options) {
         return _curDir;
     }
     return FL;
-};
+}
+;
 define("FileList", ["FS"], (function (global) {
     return function () {
         var ret, fn;
@@ -16926,6 +16927,346 @@ define('NewProjectDialog',["UI","ProjectCompiler"], function (UI,TPRC) {
     return res;
 });
 
+define('DragDrop',["FS"],function (FS) {
+    var DU=FS.DeferredUtil;
+    var SFile=FS.SFile;
+    DragDrop={};
+    DragDrop.readFile=function (file) {
+        return DU.promise(function (succ) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                succ(reader);
+            };
+            reader.readAsArrayBuffer(file);
+        });
+    };
+    DragDrop.CancelReason=function(r){
+        if (this instanceof DragDrop.CancelReason) {
+            this.reason=r;
+        } else {
+            return new DragDrop.CancelReason(r);
+        }
+    };
+    DragDrop.accept=function (dom, fdst,options) {
+        var useTmp;
+        if (!SFile.is(fdst)) {
+            options=fdst||options;
+            useTmp="/dd-ram/"+Math.random()+"/";
+            FS.mount(useTmp,"ram");
+            fdst=FS.get(useTmp);
+            console.log("Mount",useTmp);
+        }
+        options=options||{};
+        options.draggingClass=options.draggingClass||"dragging";
+        dom.on("dragover",over);
+        dom.on("dragenter",enter);
+        dom.on("dragleave",leave);
+        dom.on("drop",dropAdd);
+        if (!options.onCheckFile) {
+            options.onCheckFile=function (f) {
+                if (options.overwrite) {
+                    return f;
+                } else {
+                    if (f.exists()) return false;
+                    return f;
+                }
+            };
+        }
+        if (!options.onCheckFiles) {
+            options.onCheckFiles=function (fileEnt) {
+                return fileEnt;
+            };
+        }
+        if (!options.onError) {
+            options.onError=function (e) {
+                console.error(e);
+            };
+        }
+        function dropAdd(e) {
+            var dst=fdst;
+            if (typeof dst==="function") dst=dst();
+            dom.removeClass(options.draggingClass);
+            var status={};
+            var eo=e.originalEvent;
+            e.stopPropagation();
+            e.preventDefault();
+            var files = Array.prototype.slice.call(eo.dataTransfer.files);
+            var added=[],cnt=files.length;
+            var fileSet=files.map(function (file) {
+                var itemName=file.name;
+                var dstFile=dst.rel(itemName);
+                return {dst:dstFile,src:file,name:itemName};
+            });
+            DU.resolve(
+                options.onCheckFiles(fileSet)
+            ).then(function (fileSet) {
+                return DU.each(fileSet,function (fileEnt) {
+                    var name=fileEnt.name;
+                    var dstFile=fileEnt.dst ,actFile;
+                    var srcFile=fileEnt.src;
+                    return DU.resolve(
+                        options.onCheckFile(dstFile,srcFile)
+                    ).then(function (cr) {
+                        if (cr===false || cr instanceof DragDrop.CancelReason) {
+                            status[dstFile.path()]={
+                                file:dstFile,
+                                status:"cancelled",
+                                reason: cr.reason
+                            };
+                            return;
+                        }
+                        if (SFile.is(cr)) actFile=cr;
+                        else actFile=dstFile;
+                        return DragDrop.readFile(srcFile).then(function (reader) {
+                            var fileContent=reader.result;
+                            actFile.setBytes(fileContent);
+                            status[dstFile.path()]={
+                                file:dstFile,
+                                status:"uploaded"
+                            };
+                            if (actFile.path()!==dstFile.path()) {
+                                status[dstFile.path()].redirectedTo=actFile;
+                            }
+                        });
+                    });
+                });
+            }).then(function () {
+                if (options.onComplete) return options.onComplete(status);
+            }).catch(function (e) {
+                options.onError(e);
+            }).done(function () {
+                if (useTmp) {
+                    FS.unmount(useTmp);
+                    console.log("Umount",useTmp);
+                }
+            });
+            return false;
+        }
+        function over(e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        var entc=0;
+        function enter(e) {
+            var eo=e.originalEvent;
+            entc++;
+            dom.addClass(options.draggingClass);
+        }
+        function leave(e) {
+            var eo=e.originalEvent;
+            console.log("leave",eo.target.innerHTML,e);
+            entc--;
+            if (entc<=0) dom.removeClass(options.draggingClass);
+        }
+    };
+    return DragDrop;
+});
+
+define('ProgramFileUploader',["FS","DragDrop"],function (FS,DragDrop) {
+    var P=FS.PathUtil;
+    ProgramFileUploader={
+        accept: function (fileList,options) {
+            options=options||{};
+            //extPattern=options.extPattern||/.*/;
+            var acext={};
+            acext[options.ext]=1;
+            acext[options.hext]=1;
+            DragDrop.accept(fileList.elem, {
+                onCheckFile: function (dst,file) {
+                    if (!acext[P.ext(file.name)]) {
+                        return DragDrop.CancelReason(file.name+": このファイルは追加できません");
+                    }
+                    if (dst.exists()) {
+                        return DragDrop.CancelReason(itemName+": 同名のファイルがあるため中止しました．");
+                    }
+                    return dst;
+                },
+                onComplete: function (status) {
+                    var dstDir=fileList.curDir();
+                    for (var k in status) {
+                        if (status[k].status==="uploaded") {
+                            var srcFile=status[k].file;
+                            var srcDir=srcFile.up();
+                            var name=srcFile.truncExt();
+                            var srcPfile=srcDir.rel(name+options.ext);
+                            var dstPfile=dstDir.rel(name+options.ext);
+                            var srcHfile=srcDir.rel(name+options.hext);
+                            var dstHfile=dstDir.rel(name+options.hext);
+                            if (!srcPfile.exists()) {
+                                srcPfile.text("");
+                            }
+                            if (!srcHfile.exists()) {
+                                srcHfile.text("");
+                            }
+                            if (!dstPfile.exists()) {
+                                dstPfile.copyFrom(srcPfile);
+                            }
+                            if (!dstHfile.exists()) {
+                                dstHfile.copyFrom(srcHfile);
+                            }
+                        }
+                    }
+                    console.log(status);
+                    fileList.ls();
+                }
+            });
+        }
+    };
+    return ProgramFileUploader;
+});
+
+define('ctrl',[], function () {
+    var ctrl={};
+    ctrl.url=function (path) {
+        return ".?"+path;
+    };
+    ctrl.run=function (method,path,params) {
+        params=params||{};
+        return $.ajax({
+            url: ctrl.url(path),
+            data:params,
+            cache: false,
+            type:method
+        });
+    };
+    ctrl.get=function (path,params) {
+        return ctrl.run("get",path,params);
+    };
+    ctrl.post=function (path,params) {
+        return ctrl.run("post",path,params);
+    };
+    return ctrl;
+});
+
+define('AssetDialog',["Klass","UI","ctrl","WebSite","DragDrop"], function (Klass,UI,ctrl,WebSite,DragDrop) {
+    var res={};
+    AssetDialog=Klass.define({
+        $this: "t",
+        $: ["prj"],
+        show: function (t) {
+            t.createDOM();
+            /*if (!r) return;
+            t.result.text(r.result);
+            t.comment.val(r.comment);*/
+            t.dom.dialog({width:600});
+        },
+        refresh: function (t,mesg) {
+            console.log("refresh",mesg);
+            ctrl.get("Asset/list").then(function (r) {
+                t.list.empty();
+                r.forEach(function (u) {
+                    var fileName=u.replace(/[^\/]+\//,"");
+                    var urlFull=WebSite.published+u;
+                    t.list.append(UI("div",
+                        ["span",urlFull],
+                        ["button",{on:{click:del}},"削除"]
+                    ));
+                    function del() {
+                        console.log("DEL",fileName);
+                        ctrl.get("Asset/del",{fileName:fileName}).then(t.$bind.refresh,err);
+                    }
+                });
+            }).catch(err);
+        },
+        createDOM: function (t) {
+            if (t.dom) return t.dom;
+            var dragMsg="ここに素材ファイルをドラッグ＆ドロップして追加．";
+            var notice="※プログラムファイルはこのページ左端のファイル一覧にドラッグ＆ドロップしてください．"
+            var dragPoint=UI("div",
+                {style:"margin:10px; padding-left:10px; padding-right:10px; padding-top:10px; padding-bottom:10px; border:solid blue 2px;"},
+                dragMsg,["br"],
+                notice,["br"]
+            );
+            t.dom=UI("div",{title:"素材管理"},
+                ["div",{$var:"content"},
+                    dragPoint,
+                    ["div",{$var:"list",style:"height: 400px; overflow-y:scroll"}]
+                ]
+            );
+            DragDrop.accept(t.dom.$vars.content,{
+                onComplete: t.$bind.complete
+            });
+            t.result=t.dom.$vars.result;
+            t.comment=t.dom.$vars.comment;
+            t.list=t.dom.$vars.list;
+            t.refresh();
+            return t.dom;
+        },
+        complete: function (t,status) {
+            var cnt=0;
+            for (var k in status) {
+                if (status[k].status!=="uploaded") continue;
+                var file=status[k].file;
+                //var fileContent=file.bytes();
+                var blob=file.getBlob();//new Blob([fileContent],{type:"application/octet-stream"});
+                cnt++;
+                sendImageBinary(blob,file.name()).then(function (r) {
+                    console.log(r);
+                },function (e) {
+                    console.error(e);
+                }).done(dec);
+            }
+            function dec() {
+                cnt--;
+                if (cnt<=0) t.refresh();
+            }
+        }
+    });
+    function err(e) {
+        if (e&&e.responseText) console.error(e.responseText);
+        console.error(e);
+    }
+    function sendImageBinary(blob,fn) {
+        var formData = new FormData();
+        formData.append('acceptImage', blob,fn);
+
+        return $.ajax({
+            type: 'POST',
+            url: ctrl.url("Asset/upload"),
+            data: formData,
+            contentType: false,
+            processData: false
+        });
+    }
+    /*function dropAdd(e) {
+        var eo=e.originalEvent;
+        var files = Array.prototype.slice.call(eo.dataTransfer.files);
+        var added=[],cnt=files.length;
+
+        files.forEach(function (file) {
+            var itemName=file.name;
+            console.log("FILEASSET",file);
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var fileContent = reader.result;
+                var upmesg;
+                var blob=new Blob([fileContent],{type:"application/octet-stream"});
+                sendImageBinary(blob,itemName).then(function (r) {
+                    console.log(r);
+                },function (e) {
+                    console.error(e);
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        });
+        function dec() {
+            cnt--;
+            if (cnt<=0) {
+                options.onAdd(added);
+            }
+        }
+        e.stopPropagation();
+        e.preventDefault();
+        return false;
+    }
+    function s(e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }*/
+
+    return AssetDialog;
+})
+;
 requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "showErrorPos", "fixIndent",  "ProjectCompiler",
            "Shell","ShellUI","KeyEventChecker",
@@ -16934,7 +17275,8 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
            "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog",
-           "IframeDialog","AssignmentDialog","SubmitDialog","CommentDialog2","NewProjectDialog"
+           "IframeDialog","AssignmentDialog","SubmitDialog","CommentDialog2","NewProjectDialog",
+           "ProgramFileUploader","AssetDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -16944,7 +17286,8 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
           CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog,
-          IframeDialog,AssignmentDialog,SubmitDialog,CommentDialog2,NPD
+          IframeDialog,AssignmentDialog,SubmitDialog,CommentDialog2,NPD,
+          ProgramFileUploader,AssetDialog
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -17239,7 +17582,7 @@ function ready() {
                       {label:"新規",id:"newFile"},
                       {label:"名前変更",id:"mvFile"},
                       {label:"コピー",id:"cpFile"},
-                      {label:"アップロード",id:"upFile",action:upFile},
+                      {label:"素材管理",id:"upFile",action:upFile},
                       //{label:"閉じる",id:"closeFile"},
                       {label:"削除", id:"rmFile"}
                   ]},
@@ -17266,14 +17609,15 @@ function ready() {
         Menu.appendMain({label:"使用方法",id:"openHelp"});
     }
     function upFile() {
-        FileUploadDialog.show(curProjectDir,{
+        /*FileUploadDialog.show(curProjectDir,{
             onAdd: function (fs) {
                 console.log(fs);
                 fs.forEach(FM.on.createContent);
                 fl.ls(curProjectDir);
                 sync();
             }
-        });
+        });*/
+        AssetDialog().show();
     }
     var commentDialog=new CommentDialog2(curPrj);
     var submitDialog;
@@ -17461,6 +17805,9 @@ function ready() {
             select: F(open),
             displayName: dispNameFL
         }
+    });
+    ProgramFileUploader.accept(fl,{
+        ext:EXT, hext:HEXT//Pattern: new RegExp(EXT+"|"+HEXT)
     });
     var FM=FileMenu();
     FM.fileList=fl;
