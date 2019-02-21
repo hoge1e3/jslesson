@@ -51,7 +51,7 @@ EOF
         <form action=".?Personal/regDone" method="POST">
             <input type="hidden" name="token" value="<?= $token ?>"/ >
             <?= $mesg ?><br/>
-            ユーザID <?= $r->mail ?><br/>
+            メールアドレス <?= $r->mail ?><br/>
             <!--
             ユーザ名（任意）<input name="name" value="<?= htmlspecialchars($name) ?>"/><br/>
             -->
@@ -131,7 +131,7 @@ EOF
         <form action=".?Personal/resetDone" method="POST">
             <input type="hidden" name="token" value="<?= $token ?>"/ >
             <?= $mesg ?><br/>
-            ユーザID <?= $r->mail ?><br/>
+            メールアドレス <?= $r->mail ?><br/>
             パスワード<input type="password" name="pass1"/><br/>
             パスワード(確認)<input type="password" name="pass2"/><br/>
             <input type="submit" value="登録"/>
