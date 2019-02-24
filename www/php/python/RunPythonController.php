@@ -1,5 +1,5 @@
 <?php
-req("param","auth","MySession");
+req("param","auth","MySession","AssetController");
 class RunPythonController {
     static function workDirPath() {
         if (MySession::has("PYTHON_WORK")) {
@@ -52,7 +52,9 @@ class RunPythonController {
         //echo $npath;
         $sp=self::isSuper(1);
         $wpath=self::workDirPath();
-        $cmd=PYTHON_PATH." \"$npath\" $sp \"$wpath\"";
+        $apath=AssetController::home();
+        $apath=$apath->nativePath();
+        $cmd=PYTHON_PATH." \"$npath\" $sp \"$wpath\" \"$apath\"";
         //echo "CMD = $cmd\n";
         $res=system_ex($cmd);
         if ($res["return"]==0) self::convOut($res["stdout"]);

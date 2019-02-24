@@ -18,6 +18,7 @@ function (FS,PP,S,G) {
     var pySrcPath=process.argv[2];
     var isSuper=!!(process.argv[3]-0);
     var work=process.argv[4];
+    var asset=process.argv[5];
     //console.log("work",process.argv);
     //return;
 
@@ -28,6 +29,14 @@ function (FS,PP,S,G) {
     } else {
         pySrcF=FS.get(process.cwd()).rel(pySrcPath);
     }
+    var headerF=FS.get(process.cwd()).rel("header.py");
+    var header=[],lineAdjust=0;
+    if (headerF.exists()) {
+        header=headerF.text();
+        header=header.replace(/\n$/,"");
+        lineAdjust=header.split("\n").length;
+        header+="\n";
+    }
     cvSrcF=workd.rel("conv.py");
     try {
         var node;
@@ -35,17 +44,22 @@ function (FS,PP,S,G) {
             node=PP.parse(pySrcF);
             S.check(node,pySrcF);
             var code=G(node,S);
-            cvSrcF.text(code);
+            cvSrcF.text(header+code);
             //console.log("GCode",code);
         } else {
             cvSrcF=pySrcF;
         }
         process.env.PYTHONPATH=process.cwd()+(process.cwd().indexOf("\\")>=0?";":":")+process.env.PYTHONPATH;
+        process.env.BAASSETPATH=asset;
         //console.log("Passed",'python '+pySrcF.path());
         process.chdir(workd.path());
         exec('python '+cvSrcF.path(), (err, stdout, stderr) => {
             //if (err) { console.log(err+""); }
-            console.log(stderr);
+            var mesg=stderr+""
+            mesg=mesg.replace(/line ([0-9]+)/g,function (r,ln) {
+                return "line "+(ln-lineAdjust);
+            });
+            console.log(mesg);
             console.log(stdout);
         });
     } catch(e) {

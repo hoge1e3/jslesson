@@ -2,6 +2,7 @@
 define (["Visitor","context","PyLib","Annotation"],
 function (Visitor,context,PyLib,Annotation) {
 const builtins=PyLib.builtins;//["print","range","int","str","float","input","len"];
+builtins.push("open");
 let curClass; // 今解析中のクラスオブジェクト
 let curMethod; // 今解析中のメソッドオブジェクト
 const importable={
@@ -9,6 +10,7 @@ const importable={
     random:true,
     math:true,
     jp:true,
+    fs:true,
     matplotlib:{wrapper:true},
     numpy:{wrapper:true}
 };
