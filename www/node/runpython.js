@@ -30,13 +30,18 @@ function (FS,PP,S,G) {
         pySrcF=FS.get(process.cwd()).rel(pySrcPath);
     }
     var headerF=FS.get(process.cwd()).rel("header.py");
-    var header=[],lineAdjust=0;
-    if (headerF.exists() && !isSuper) {
+    var header="",lineAdjust=0;
+    if (!isSuper) {
+        header="import bawrapper\n";
+        lineAdjust=1;
+    }
+    /*if (headerF.exists() && !isSuper) {
         header=headerF.text();
         header=header.replace(/\n$/,"");
         lineAdjust=header.split("\n").length;
         header+="\n";
-    }
+    }*/
+
     cvSrcF=workd.rel("conv.py");
     try {
         var node;
