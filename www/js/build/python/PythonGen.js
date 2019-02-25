@@ -1,5 +1,6 @@
 define(["Visitor","IndentBuffer"],
 function (Visitor,IndentBuffer) {
+    const BAWRAPPER="bawrapper";
     const vdef={
         program: function (node) {
             this.visit(node.body);
@@ -108,19 +109,28 @@ function (Visitor,IndentBuffer) {
         },
         breakStmt: function (node) {
             this.printf("break")
+        },
+        symbol: function (node) {
+            var a=this.anon.get(node);
+            if (a.scopeInfo && a.scopeInfo.builtin) {
+                this.printf("%s._%s", BAWRAPPER,node+"");
+            } else {
+                this.printf("%s",node+"");
+            }
         }
     };
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**",
       ">","<","=",".",":","+","-","*","/","%","(",")",",","!",
-      "number","symbol","literal","and","or"];
+      "number","literal","and","or"];
     for (const ve of verbs) {
         vdef[ve]=function (node) {
             //console.log("verb",node);
             this.printf("%s",node+"");
         };
     }
-    function gen(node,options={}) {
+    function gen(node,anon,options={}) {
         const v=Visitor(vdef);
+        v.anon=anon;
         v.importable=options.importable||{};
         //console.log("IMP",v.importable);
         v.def=function (node) {

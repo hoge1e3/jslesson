@@ -211,7 +211,10 @@ const Semantics= {
             return this.ctx.enter(...args);
         };
         v.rootScope={};
-        for (const b of builtins) v.rootScope[b]=new ScopeInfo(v.rootScope,b,"function");
+        for (const b of builtins) {
+            v.rootScope[b]=new ScopeInfo(v.rootScope,b,"function");
+            v.rootScope[b].builtin=true;
+        }
         v.newScope=function (f) {
             var pa=this.ctx.scope||this.rootScope;
             ns=Object.create(pa);

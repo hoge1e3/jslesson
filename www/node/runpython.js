@@ -31,7 +31,7 @@ function (FS,PP,S,G) {
     }
     var headerF=FS.get(process.cwd()).rel("header.py");
     var header=[],lineAdjust=0;
-    if (headerF.exists()) {
+    if (headerF.exists() && !isSuper) {
         header=headerF.text();
         header=header.replace(/\n$/,"");
         lineAdjust=header.split("\n").length;
@@ -42,8 +42,8 @@ function (FS,PP,S,G) {
         var node;
         if (!isSuper) {
             node=PP.parse(pySrcF);
-            S.check(node,pySrcF);
-            var code=G(node,S);
+            var v=S.check(node,pySrcF);
+            var code=G(node,v.anon,S);
             cvSrcF.text(header+code);
             //console.log("GCode",code);
         } else {
