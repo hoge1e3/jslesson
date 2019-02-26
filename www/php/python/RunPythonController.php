@@ -57,7 +57,7 @@ class RunPythonController {
         $workDir=new SFile($nfs,$wpath);
         $d=$workDir->rel("src.py");
         $d->copyFrom($s);
-        $scrPath=$d->nativePath();
+        $copiedScriptPath=$d->nativePath();
         $apath=AssetController::home();
         $apath=$apath->nativePath();
         $apath=preg_replace('/\\\\$/',"",$apath);
@@ -67,8 +67,10 @@ class RunPythonController {
                 "sharedAsset"=>$apath,
             ))
         );
-        $cmd=PYTHON_PATH." \"$npath\" $sp \"$wpath\" \"$apath\"";
+        //$cmd=PYTHON_PATH." \"$npath\" $sp \"$wpath\" \"$apath\"";
+        $cmd=PYTHON_PATH." \"$copiedScriptPath\"";
         //echo "CMD = $cmd\n";
+        //return;
         $res=system_ex($cmd);
         if ($res["return"]==0) self::convOut($res["stdout"]);
         else {

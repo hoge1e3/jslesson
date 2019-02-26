@@ -16,20 +16,25 @@ function (FS,PP,S,G) {
     var f=c.rel("test.py");
     console.log(f.path(),f.text());*/
     var pySrcPath=process.argv[2];
-    var isSuper=!!(process.argv[3]-0);
+    /*var isSuper=!!(process.argv[3]-0);
     var work=process.argv[4];
-    var asset=process.argv[5];
+    var asset=process.argv[5];*/
     //console.log("work",process.argv);
     //return;
 
-    var workd=FS.get(work);
+    //var workd=FS.get(work);
     var pySrcF,cvSrcF;
     if (FS.PathUtil.isAbsolute(pySrcPath)) {
         pySrcF=FS.get(pySrcPath);
     } else {
         pySrcF=FS.get(process.cwd()).rel(pySrcPath);
     }
-    var headerF=FS.get(process.cwd()).rel("header.py");
+    var workd=pySrcF.up();
+    var conf=workd.rel("config.json").obj();
+    var isSuper=!!conf.super;
+    var asset=conf.sharedAsset;
+    //console.log("sp,a=",isSuper, asset);
+    //var headerF=FS.get(process.cwd()).rel("header.py");
     var header="",lineAdjust=0;
     if (!isSuper) {
         header="import bawrapper\n";
@@ -55,7 +60,7 @@ function (FS,PP,S,G) {
             cvSrcF=pySrcF;
         }
         process.env.PYTHONPATH=process.cwd()+(process.cwd().indexOf("\\")>=0?";":":")+process.env.PYTHONPATH;
-        process.env.BAASSETPATH=asset;
+        //process.env.BAASSETPATH=asset;
         //console.log("Passed",'python '+pySrcF.path());
         process.chdir(workd.path());
         exec('python '+cvSrcF.path(), (err, stdout, stderr) => {
