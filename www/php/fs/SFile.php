@@ -147,7 +147,8 @@ class SFile{
         }
     }
     public function nativePath() {
-        return $this->fs->resolve($this->path());
+        $res=$this->fs->resolve($this->path());
+        return PathUtil::fixSep($res);
     }
     public function getObj() {
         $j=new Services_JSON;

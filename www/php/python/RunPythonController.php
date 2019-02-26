@@ -37,6 +37,7 @@ class RunPythonController {
         return "$pubURLPath/$n$ext";
     }
     static function run(){
+        $nfs=new NativeFS();
         $srcPath=param("srcPath");
         $fs=Auth::getFS();
         $s=new SFile($fs,$srcPath);
@@ -46,14 +47,26 @@ class RunPythonController {
             return;
         }
         $npath=$s->nativePath();
-        if (strpos($npath,"\\")!==FALSE){
+        /*if (strpos($npath,"\\")!==FALSE){
             $npath=preg_replace("/\\//","\\",$npath);
-        }
-        //echo $npath;
+        }*/
+        //echo "npath = $npath";
+        $s=new SFile($nfs,$npath);
         $sp=self::isSuper(1);
         $wpath=self::workDirPath();
+        $workDir=new SFile($nfs,$wpath);
+        $d=$workDir->rel("src.py");
+        $d->copyFrom($s);
+        $scrPath=$d->nativePath();
         $apath=AssetController::home();
         $apath=$apath->nativePath();
+        $apath=preg_replace('/\\\\$/',"",$apath);
+        $workDir->rel("config.json")->text(
+            json_encode(array(
+                "super"=>$sp,
+                "sharedAsset"=>$apath,
+            ))
+        );
         $cmd=PYTHON_PATH." \"$npath\" $sp \"$wpath\" \"$apath\"";
         //echo "CMD = $cmd\n";
         $res=system_ex($cmd);

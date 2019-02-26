@@ -1,5 +1,7 @@
 import os
 import re
+import sys
+#print("Running "+sys.argv[0])
 def _open(filename,mode="r"):
     asset=os.getenv("BAASSETPATH")
     filename=re.sub(r'[\\/]',"",filename)

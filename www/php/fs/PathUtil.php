@@ -73,5 +73,16 @@ class PathUtil {
   public function __toString() {
       return "PathUtil";
   }
+  public static function fixSep($path,$sep=null) {
+        if (!$sep) $sep=DIRECTORY_SEPARATOR;
+        $BS="\\";
+        $path=str_replace($BS,"/",$path);
+        $path=preg_replace("/[$BS/]+/","/",$path);
+
+        if ($sep===$BS) {
+            $path=str_replace("/",$BS,$path);
+        }
+        return $path;
+  }
 }
 ?>
