@@ -11,7 +11,8 @@ const importable={
     fs:true,
     re:true,
     matplotlib:{wrapper:true},
-    numpy:{wrapper:true}
+    numpy:{wrapper:true},
+    os:{wrapper:true}
 };
 //----
 class ScopeInfo {
@@ -221,7 +222,7 @@ const vdef={
     }
 };
 const thru=["nodent",">=","<=","==","!=","+=","-=","*=","/=","%=","**",
-  ">","<","=",".",":","+","-","*","/","%","(",")",",","!","and","or"];
+  ">","<","=",".",":","+","-","*","/","%","(",")",",","not","and","or"];
 for (let t of thru) {
     vdef[t]=()=>{};
 }

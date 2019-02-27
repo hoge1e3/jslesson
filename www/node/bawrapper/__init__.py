@@ -10,8 +10,19 @@ f = open(conff)
 conf = json.load(f)
 f.close()
 #print(conf["sharedAsset"], conf["sharedAsset"]==os.getenv("BAASSETPATH"))
+def resolve(filename):
+    [context,name]=filename.split("/")
+    if context in conf["asset"]:
+        asset=conf["asset"][context]["file"]
+        asset=re.sub(r'[\\/]$',"",asset)
+        #filename=re.sub(r'[\\/]',"",name)
+        filename=asset+"/"+name
+        return filename
+    else:
+        raise Exception("directory %s is not found "%(context))
 
 def _open(filename,mode="r"):
+    return open(resolve(filename),mode)
     [context,name]=filename.split("/")
     if context in conf["asset"]:
         asset=conf["asset"][context]["file"]

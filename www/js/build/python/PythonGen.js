@@ -123,10 +123,13 @@ function (Visitor,IndentBuffer) {
             } else {
                 this.printf("%s",node+"");
             }
+        },
+        not: function(node) {
+            this.printf("not ");
         }
     };
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**",
-      ">","<","=",".",":","+","-","*","/","%","(",")",",","!",
+      ">","<","=",".",":","+","-","*","/","%","(",")",",",
       "number","literal","and","or"];
     for (const ve of verbs) {
         vdef[ve]=function (node) {
