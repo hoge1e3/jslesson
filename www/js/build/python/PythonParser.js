@@ -1,14 +1,14 @@
-define(["Grammar2","Pos2RC","PythonSemantics"/*,"TError"*/],
-function (Grammar,Pos2RC,S/*,TError*/) {
+define(["Grammar2","Pos2RC"/*,"TError"*/],
+function (Grammar,Pos2RC/*,TError*/) {
     //const spc=/^([ \t]*(#.*$)*)*/;// (A|B)* <=> (A*B*)*
     const spc=/^([ \t]*(#(.|\r)*$)*)*/;// (A|B)* <=> (A*B*)*
     const tokens=new Grammar({space:spc});
     const P=Grammar.P;
-    const debug=(mesg)=>Parser.create((s)=>{
+    /*const debug=(mesg)=>P.create((s)=>{
         console.log(mesg,s);
         s.success=true;
         return s;
-    });
+    });*/
     const reserved=[
         "class","def","if","else","elif","break",
         "for","while","in","return","print","import","as",
@@ -27,7 +27,7 @@ function (Grammar,Pos2RC,S/*,TError*/) {
             return r;
         }),
         number: /^[0-9]+[0-9\.]*/,
-        literal: /^((\"[^\"]*\")|(\'[^\']*\'))/,
+        literal: /^r?((\"[^\"]*\")|(\'[^\']*\'))/,
     };
     for (let p of puncts) tdef[p]="'"+p;
     //for (const r of reserved) tdef[r]="'"+r;
@@ -97,7 +97,7 @@ function (Grammar,Pos2RC,S/*,TError*/) {
             return r.result[0];
         }
     }
-    const g=new Grammar;
+    const g=new Grammar();
     const rep0=g.rep0;
     const rep1=g.rep1;
     const sep0=g.sep0;
@@ -152,6 +152,8 @@ function (Grammar,Pos2RC,S/*,TError*/) {
         //nodedent: [rep0("nodent"),"dedent"],
         //defList: rep0("define"),
         stmtList: rep1("stmt"),
+        // why printStmt -> printStmt3?
+        // because if parse print(x), as printStmt3, comma remains unparsed.
         stmt: or("define","printStmt","printStmt3","ifStmt","breakStmt","letStmt","exprStmt","forStmt","returnStmt","importStmt","globalStmt","nodent"),
         importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
         packageName: sep1("symbol","."),
@@ -166,14 +168,18 @@ function (Grammar,Pos2RC,S/*,TError*/) {
         forStmt: ["for",{var:"symbol"},"in",{set:"expr"},{do:"block"}],
         letStmt: [{left:"lval"},"=",{right:"expr"}],
         globalStmt: ["global",{names:sep1("symbol",",")}],
+        // print(x,y) parsed as: printStmt(2) with tuple
         printStmt: ["print",{values:sep1("expr",",")},{nobr:opt(",")}],
+        // print(x,end="") parsed as: printStmt3
         printStmt3: ["print", {args:"args"}],
-        lval: g.expr({
+        lval: or("singleLval","tupleLval"),
+        singleLval: g.expr({
             element: "symbol",
             operators: [
                 ["postfix" , or("args" , "memberRef", "index") ] // (a,b)  .x
             ]
         }),
+        tupleLval: ["(",{body:sep1("singleLval",",")},")"],
         expr: g.expr({
             element: "elem",
             operators: [
@@ -195,8 +201,9 @@ function (Grammar,Pos2RC,S/*,TError*/) {
         index: ["[",{body:sep1("expr",":")},"]"],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: [":indent",{body:"stmtList"},"dedent"],
-        elem: or("symbol","number","array","literal","paren"),
+        elem: or("symbol","number","array","literal","paren","tuple"),
         paren: ["(",{body:"expr"},")"],
+        tuple: ["(",{body:sep0("arg",",")},")"],
         indent: tk("indent"),
         dedent: tk("dedent"),
         nodent: tk("nodent"),

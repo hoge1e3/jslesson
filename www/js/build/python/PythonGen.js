@@ -69,6 +69,12 @@ function (Visitor,IndentBuffer) {
         args: function (node) {
             this.printf("(%j)",[",",node.body]);
         },
+        tuple: function (node) {
+            this.printf("(%j)",[",",node.body]);
+        },
+        tupleLval: function (node) {
+            this.printf("(%j)",[",",node.body]);
+        },
         array: function (node) {
             this.printf("[%j]",[",",node.body]);
         },

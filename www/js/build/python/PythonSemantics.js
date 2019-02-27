@@ -3,14 +3,13 @@ define (["Visitor","context","PyLib","Annotation"],
 function (Visitor,context,PyLib,Annotation) {
 const builtins=PyLib.builtins;//["print","range","int","str","float","input","len"];
 builtins.push("open");
-let curClass; // 今解析中のクラスオブジェクト
-let curMethod; // 今解析中のメソッドオブジェクト
 const importable={
     datetime:true,
     random:true,
     math:true,
     jp:true,
     fs:true,
+    re:true,
     matplotlib:{wrapper:true},
     numpy:{wrapper:true}
 };
@@ -63,13 +62,37 @@ const vdef={
         }
     },
     letStmt: function (node) {
+        var v=this;
+        function procLElem(left) {
+            if (left.type==="symbol") {
+                procSym(left);
+            } else {
+                v.visit(left);
+            }
+        }
+        function procSym(sym) {
+            const info=v.getScope(sym+"");
+            if (info && info.kind==="global") {
+
+            } else if (!info || info.scope!==v.curScope()) {
+                v.addScope(sym+"",{kind:"local",node});
+                v.anon.put(node,{needVar:true});
+            }
+        }
         if (node.left.type==="symbol") {
+            procSym(node.left);
+            /*
             const info=this.getScope(node.left+"");
             if (info && info.kind==="global") {
 
             } else if (!info || info.scope!==this.curScope()) {
                 this.addScope(node.left+"",{kind:"local",node});
                 this.anon.put(node,{needVar:true});
+            }
+            */
+        } else if (node.left.type==="tupleLval") {
+            for (const sym of node.left.body) {
+                procLElem(sym);
             }
         } else {
             this.visit(node.left);
@@ -149,6 +172,11 @@ const vdef={
             this.visit(b);
         }
     },
+    tuple: function (node) {
+        for (const b of node.body) {
+            this.visit(b);
+        }
+    },
     array: function (node) {
         for (const b of node.body) {
             this.visit(b);
@@ -217,7 +245,7 @@ const Semantics= {
         }
         v.newScope=function (f) {
             var pa=this.ctx.scope||this.rootScope;
-            ns=Object.create(pa);
+            var ns=Object.create(pa);
             //ns.PARENT_SCOPE=pa;
             return this.enter({scope:ns},f);
         };

@@ -12,11 +12,16 @@ f.close()
 #print(conf["sharedAsset"], conf["sharedAsset"]==os.getenv("BAASSETPATH"))
 
 def _open(filename,mode="r"):
-    asset=conf["sharedAsset"] # os.getenv("BAASSETPATH")
-    filename=re.sub(r'[\\/]',"",filename)
-    filename=asset+"/"+filename
-    return open(filename,mode)
-    #print ("%s open sitafuri"%(filename))
+    [context,name]=filename.split("/")
+    if context in conf["asset"]:
+        asset=conf["asset"][context]["file"]
+        asset=re.sub(r'[\\/]$',"",asset)
+        #filename=re.sub(r'[\\/]',"",name)
+        filename=asset+"/"+name
+        #print ("%s open sitafuri"%(filename))
+        return open(filename,mode)
+    else:
+        raise Exception("directory %s is not found "%(context))
 def _range(*a,**k):
     return range(*a,**k)
 def _input(*a,**k):
