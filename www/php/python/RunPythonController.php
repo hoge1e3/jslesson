@@ -58,12 +58,23 @@ class RunPythonController {
         $d=$workDir->rel("src.py");
         $d->copyFrom($s);
         $copiedScriptPath=$d->nativePath();
-        $apath=AssetController::home();
+        $homes=Asset::homes();
+        $apath=$homes["shared"]["file"];
         $apath=$apath->nativePath();
         $apath=preg_replace('/\\\\$/',"",$apath);
         $workDir->rel("config.json")->text(
             json_encode(array(
                 "super"=>$sp,
+                "asset"=>array(
+                    "personal"=>array(
+                        "file"=>$homes["personal"]["file"]->nativePath(),
+                        "url"=>$homes["personal"]["url"]
+                    ),
+                    "shared"=>array(
+                        "file"=>$homes["shared"]["file"]->nativePath(),
+                        "url"=>$homes["shared"]["url"]
+                    )
+                ),
                 "sharedAsset"=>$apath,
             ))
         );

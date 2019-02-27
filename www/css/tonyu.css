@@ -6,6 +6,9 @@ body {
 .dragging {
     background-color: #f80;
 }
+button.selected {
+    background-color: #f08;
+}
 
 /* IME Fix */
 @font-face {

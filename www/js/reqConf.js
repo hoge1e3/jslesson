@@ -118,6 +118,7 @@ var reqConf={
             jsl_edit: "jsl/editor",
             jsl_edit_concat: 'gen/edit_concat',
             Sync: "fs2/sync2",
+            root:"lib/root",
             SplashScreen: "lib/SplashScreen",
             TT: "lang/tonyu2_token",
             Auth: "jsl/auth",

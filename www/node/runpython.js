@@ -1,3 +1,4 @@
+/*global require, process*/
 const JS="../js/";
 const exec = require('child_process').exec;
 const requirejs=require("./r.js");//../node_modules/requirejs/bin/r.js");
@@ -32,7 +33,7 @@ function (FS,PP,S,G) {
     var workd=pySrcF.up();
     var conf=workd.rel("config.json").obj();
     var isSuper=!!conf.super;
-    var asset=conf.sharedAsset;
+    //var asset=conf.sharedAsset;
     //console.log("sp,a=",isSuper, asset);
     //var headerF=FS.get(process.cwd()).rel("header.py");
     var header="",lineAdjust=0;
@@ -65,7 +66,7 @@ function (FS,PP,S,G) {
         process.chdir(workd.path());
         exec('python '+cvSrcF.path(), (err, stdout, stderr) => {
             //if (err) { console.log(err+""); }
-            var mesg=stderr+""
+            var mesg=stderr+"";
             mesg=mesg.replace(/line ([0-9]+)/g,function (r,ln) {
                 return "line "+(ln-lineAdjust);
             });

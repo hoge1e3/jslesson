@@ -1,3 +1,4 @@
+/*global requirejs*/
 requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "showErrorPos", "fixIndent",  "ProjectCompiler",
            "Shell","ShellUI","KeyEventChecker",
@@ -38,7 +39,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     var curPrj=TPRC(curProjectDir);
     var isFirefox=navigator.userAgent.indexOf("Firefox")>=0;
     var isChrome=navigator.userAgent.indexOf("Chrome")>=0;
-    var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
+    //var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
     var ALWAYS_UPLOAD=(localStorage.ALWAYS_UPLOAD==="true");
     console.log("ALWAYS_UPLOAD",ALWAYS_UPLOAD);
     //var useOLDC=false;
@@ -57,6 +58,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     var Builder;
     var builder;
     var ram;
+    var scoremsg;
     function showToast(msg){
     	$("#toastArea").html(msg);
     	setTimeout(function(){
@@ -339,6 +341,7 @@ function ready() {
         showDistMenu();
         Menu.appendMain({label:"使用方法",id:"openHelp"});
     }
+    var assetDialog;
     function upFile() {
         /*FileUploadDialog.show(curProjectDir,{
             onAdd: function (fs) {
@@ -348,7 +351,8 @@ function ready() {
                 sync();
             }
         });*/
-        AssetDialog().show();
+        assetDialog=assetDialog||AssetDialog();
+        assetDialog.show();
     }
     var commentDialog=new CommentDialog2(curPrj);
     var submitDialog;
@@ -485,7 +489,7 @@ function ready() {
     onResize();
     var desktopEnv=loadDesktopEnv();
     window.editorTextSize=desktopEnv.editorFontSize||18;
-    var runMenuOrd=desktopEnv.runMenuOrd;
+    //var runMenuOrd=desktopEnv.runMenuOrd;
     var editors={};
 
     KeyEventChecker.down(document,"bs",F(function (e) {
@@ -627,7 +631,6 @@ function ready() {
         }
         return f;
     };
-    var refactorUI;
     FM.on.rm=function (f) {
         var fs=fileSet(f);
         for (var i=0;i<fs.length;i++) {

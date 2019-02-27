@@ -1,19 +1,13 @@
 <?php
-req("auth","Published");
+req("auth","Published","Asset");
 class AssetController {
-    static function pub() {
-        return new SFile(Auth::getFS(), "./pub/");
 
-    }
-    static function home() {
-        $class=Auth::curClass2();
-        $url=Published::getURL($class->id,"shared","assets");
-        $s=self::pub()->rel("$url/");
-        return $s;
-    }
     static function upload() {
+        $context=param("context","shared");
         $fn=$_FILES['acceptImage']['name'];
-        $s=self::home()->rel($fn);
+        $home=Asset::home($context);
+        $h=$home["file"];
+        $s=$h->rel($fn);
         $s->up()->mkdir();
         if ( $s->ext()===".php" ||  $s->ext()===".cgi") {
             $s=$s->sibling($s->truncExt().".txt");
@@ -23,10 +17,12 @@ class AssetController {
         echo preg_replace("/\/+/","/", $s->relPath(self::pub()) );
     }
     static function list() {
-        $h=self::home();
+        $context=param("context","shared");
+        $home=Asset::home($context);
+        $h=$home["file"];
         $res=array();
         if ($h->exists()) {
-            $pub=self::pub();
+            $pub=Asset::pub();
             foreach ($h->listFiles() as $file) {
                 array_push($res,$file->relPath($pub));
             }
@@ -35,8 +31,10 @@ class AssetController {
         print json_encode($res);
     }
     static function del() {
+        $context=param("context","shared");
         $fn=param("fileName");
-        $h=self::home();
+        $home=Asset::home($context);
+        $h=$home["file"];
         $f=$h->rel($fn);
         if ($f->exists()) $f->rm();
         echo "DONE";

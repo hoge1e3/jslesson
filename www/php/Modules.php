@@ -27,6 +27,7 @@ $mod_aliases=array(
     'KeyValueController' => 'php/data/KeyValueController.php',
     'PData' => 'php/data/PData.php',
     'pdo' => 'php/data/pdo.php',
+    "Asset" => "php/data/",
     "AssetController" => "php/data/",
     'DateUtil' => 'php/DateUtil.php',
     'Dtl' => 'php/dtl/Dtl.php',

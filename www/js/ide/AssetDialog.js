@@ -1,18 +1,16 @@
-define(["Klass","UI","ctrl","WebSite","DragDrop"], function (Klass,UI,ctrl,WebSite,DragDrop) {
-    var res={};
-    AssetDialog=Klass.define({
+define(["Klass","UI","ctrl","WebSite","DragDrop","root"],
+function (Klass,UI,ctrl,WebSite,DragDrop,root) {
+    //var res={};
+    root.AssetDialog=Klass.define({
         $this: "t",
         $: ["prj"],
         show: function (t) {
             t.createDOM();
-            /*if (!r) return;
-            t.result.text(r.result);
-            t.comment.val(r.comment);*/
             t.dom.dialog({width:600});
         },
         refresh: function (t,mesg) {
             console.log("refresh",mesg);
-            ctrl.get("Asset/list").then(function (r) {
+            ctrl.get("Asset/list",{context:t.context}).then(function (r) {
                 t.list.empty();
                 r.forEach(function (u) {
                     var fileName=u.replace(/[^\/]+\//,"");
@@ -23,7 +21,8 @@ define(["Klass","UI","ctrl","WebSite","DragDrop"], function (Klass,UI,ctrl,WebSi
                     ));
                     function del() {
                         console.log("DEL",fileName);
-                        ctrl.get("Asset/del",{fileName:fileName}).then(t.$bind.refresh,err);
+                        ctrl.get("Asset/del",{fileName:fileName,context:t.context}).
+                        then(t.$bind.refresh,err);
                     }
                 });
             }).catch(err);
@@ -31,13 +30,26 @@ define(["Klass","UI","ctrl","WebSite","DragDrop"], function (Klass,UI,ctrl,WebSi
         createDOM: function (t) {
             if (t.dom) return t.dom;
             var dragMsg="ここに素材ファイルをドラッグ＆ドロップして追加．";
-            var notice="※プログラムファイルはこのページ左端のファイル一覧にドラッグ＆ドロップしてください．"
+            var notice="※プログラムファイルはこのページ左端のファイル一覧にドラッグ＆ドロップしてください．";
             var dragPoint=UI("div",
                 {style:"margin:10px; padding-left:10px; padding-right:10px; padding-top:10px; padding-bottom:10px; border:solid blue 2px;"},
                 dragMsg,["br"],
                 notice,["br"]
             );
+            function toggleB(ctx) {
+                var cap={personal:"(自分用)",shared:"(クラスで共有)"};
+                return ["button",{
+                    $var:ctx,
+                    on:{click:function() {
+                        t.toggleContext(ctx);
+                    }}},
+                    ctx+cap[ctx]
+                ];
+            }
             t.dom=UI("div",{title:"素材管理"},
+                ["div",
+                    toggleB("personal"),toggleB("shared")
+                ],
                 ["div",{$var:"content"},
                     dragPoint,
                     ["div",{$var:"list",style:"height: 400px; overflow-y:scroll"}]
@@ -49,8 +61,17 @@ define(["Klass","UI","ctrl","WebSite","DragDrop"], function (Klass,UI,ctrl,WebSi
             t.result=t.dom.$vars.result;
             t.comment=t.dom.$vars.comment;
             t.list=t.dom.$vars.list;
-            t.refresh();
+            //t.refresh();
+            t.toggleContext("personal");
             return t.dom;
+        },
+        toggleContext: function (t,ctx) {
+            if (t.prevCtxBtn) t.prevCtxBtn.removeClass("selected");
+            var b=t.dom.$vars[ctx];
+            b.addClass("selected");
+            t.prevCtxBtn=b;
+            t.context=ctx;
+            t.refresh();
         },
         complete: function (t,status) {
             var cnt=0;
@@ -60,69 +81,32 @@ define(["Klass","UI","ctrl","WebSite","DragDrop"], function (Klass,UI,ctrl,WebSi
                 //var fileContent=file.bytes();
                 var blob=file.getBlob();//new Blob([fileContent],{type:"application/octet-stream"});
                 cnt++;
-                sendImageBinary(blob,file.name()).then(function (r) {
-                    console.log(r);
-                },function (e) {
-                    console.error(e);
-                }).done(dec);
+                t.sendImageBinary(blob,file.name()).then(log,err).done(dec);
             }
+            function log(r){console.log(r);}
+            function err(r){console.error(r);}
             function dec() {
                 cnt--;
                 if (cnt<=0) t.refresh();
             }
+        },
+        sendImageBinary:function (t,blob,fn) {
+            var formData = new FormData();
+            formData.append('acceptImage', blob,fn);
+            formData.append("context",t.context);
+            return $.ajax({
+                type: 'POST',
+                url: ctrl.url("Asset/upload"),
+                data: formData,
+                contentType: false,
+                processData: false
+            });
         }
     });
     function err(e) {
         if (e&&e.responseText) console.error(e.responseText);
         console.error(e);
     }
-    function sendImageBinary(blob,fn) {
-        var formData = new FormData();
-        formData.append('acceptImage', blob,fn);
 
-        return $.ajax({
-            type: 'POST',
-            url: ctrl.url("Asset/upload"),
-            data: formData,
-            contentType: false,
-            processData: false
-        });
-    }
-    /*function dropAdd(e) {
-        var eo=e.originalEvent;
-        var files = Array.prototype.slice.call(eo.dataTransfer.files);
-        var added=[],cnt=files.length;
-
-        files.forEach(function (file) {
-            var itemName=file.name;
-            console.log("FILEASSET",file);
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                var fileContent = reader.result;
-                var upmesg;
-                var blob=new Blob([fileContent],{type:"application/octet-stream"});
-                sendImageBinary(blob,itemName).then(function (r) {
-                    console.log(r);
-                },function (e) {
-                    console.error(e);
-                });
-            };
-            reader.readAsArrayBuffer(file);
-        });
-        function dec() {
-            cnt--;
-            if (cnt<=0) {
-                options.onAdd(added);
-            }
-        }
-        e.stopPropagation();
-        e.preventDefault();
-        return false;
-    }
-    function s(e) {
-        e.stopPropagation();
-        e.preventDefault();
-    }*/
-
-    return AssetDialog;
-})
+    return root.AssetDialog;
+});
