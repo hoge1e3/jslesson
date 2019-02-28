@@ -135,12 +135,6 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl) {//<-dt
             J(node,anon,{buf:buf,genReqJS:true, pyLibPath:WebSite.runtime+"lib/python/PyLib.js"});
         } else {
             buf.printf("runOnServer(%s);",    JSON.stringify(f.src.py.path()) );
-            if (false) {
-                buf.printf("$.ajax(window.controllerPath+'?RunPython/run', {data:{srcPath:%s}}).then("+
-                "function (r) { $('#output').text(r.replace(/.*echo off\\s*/,''));},function (e){alert(e.responseText);});",
-                    JSON.stringify(f.src.py.path())
-                );
-            }
         }
         buf.close();
 

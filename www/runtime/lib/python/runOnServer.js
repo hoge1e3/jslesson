@@ -1,6 +1,11 @@
 function runOnServer(srcPath) {
+    $('#output').text("Running python on server");
+    var t=setInterval(function () {
+        $('#output').append(".");
+    },500);
     $.ajax(window.controllerPath+'?RunPython/run', {data:{srcPath:srcPath}}).then(
         function (r) {
+            clearInterval(t);
             r=r.replace(/.*echo off\s*/,'');
             var spl="["+Math.random()+"]";
             var imgs=[];
@@ -9,6 +14,7 @@ function runOnServer(srcPath) {
                 return spl;
             });
             var out=$('#output');
+            $('#output').text("");
             console.log(r,imgs);
             r.split(spl).map(function (span) {
                 out.append($("<span>").text(span));

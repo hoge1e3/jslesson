@@ -8,7 +8,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
            "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog",
            "IframeDialog","AssignmentDialog","SubmitDialog","CommentDialog2","NewProjectDialog",
-           "ProgramFileUploader","AssetDialog"
+           "ProgramFileUploader","AssetDialog","root"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -19,7 +19,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
           CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog,
           IframeDialog,AssignmentDialog,SubmitDialog,CommentDialog2,NPD,
-          ProgramFileUploader,AssetDialog
+          ProgramFileUploader,AssetDialog,root
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -43,7 +43,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     var ALWAYS_UPLOAD=(localStorage.ALWAYS_UPLOAD==="true");
     console.log("ALWAYS_UPLOAD",ALWAYS_UPLOAD);
     //var useOLDC=false;
-    if (typeof BitArrow==="object") BitArrow.curProjectDir=curProjectDir.path();
+    if (root.BitArrow) root.BitArrow.curProjectDir=curProjectDir.path();
     var langList={
         "js":"JavaScript",
         "c":"C",
@@ -58,7 +58,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     var Builder;
     var builder;
     var ram;
-    var scoremsg;
+    //var scoremsg;
     function showToast(msg){
     	$("#toastArea").html(msg);
     	setTimeout(function(){
@@ -69,8 +69,8 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     	unsaved=false;
 	    //unsynced=false;
         return Sync.sync(curProjectDir, curProjectDir,{v:true}).then(function(r){
-            console.log("SYNCTHEN");
-            var cmtList=[];
+            console.log("SYNCTHEN",r);
+            /*var cmtList=[];
             var re= new RegExp("cmt.txt$");
             for(var i=0;i<r.downloads.length;i++){
                 if(re.test(r.downloads[i])){
@@ -95,9 +95,9 @@ function (Util, Tonyu, FS, FileList, FileMenu,
                 NotificationDialog.show("新しい採点結果が届いています(ファイル:"+c+")");
             }else{
                 scoremsg="";
-            }
+            }*/
             unsynced=false;
-            showToast("保存しました。"+scoremsg);
+            showToast("保存しました。");//+scoremsg);
         }).fail(function (e) {
             if (!e) e="Unknown error";
             logToServer2("","","","SYNC ERROR!",
@@ -133,7 +133,8 @@ function (Util, Tonyu, FS, FileList, FileMenu,
 
 function ready() {
     var F=EC.f;
-    $LASTPOS=0;
+    var JS_NOP="javascriptCOLON;".replace(/COLON/,":");
+    root.$LASTPOS=0;
     //var home=FS.resolve("${tonyuHome}");
     Tonyu.globals.$currentProject=curPrj;
     Tonyu.currentProject=curPrj;
@@ -147,7 +148,7 @@ function ready() {
         requirejs(["CBuilder"],function(_){
             /*Builder=_;
             console.log("cb requirejsed");
-            $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+            $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
             ram=FS.get("/ram/build/");
             FS.mount(ram.path(),"ram");
             builder=new Builder(curPrj, ram);
@@ -161,7 +162,7 @@ function ready() {
     	requirejs(["TJSBuilder"],function(_){
     	    /*Builder=_;
     	    console.log("tjsb requirejsed");
-    	    $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+    	    $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
             ram=FS.get("/ram/build/");
             FS.mount(ram.path(),"ram");
             builder=new Builder(curPrj, ram);
@@ -174,7 +175,7 @@ function ready() {
     	requirejs(["DtlBuilder"],function(_){
     	    /*Builder=_;
     	    console.log("dtlb requirejsed");
-    	    $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+    	    $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
             ram=FS.get("/ram/build/");
             FS.mount(ram.path(),"ram");
             builder=new Builder(curPrj, ram);*/
@@ -199,7 +200,7 @@ function ready() {
             };
             Builder=_;
             console.log("tnub requirejsed");
-            $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+            $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
             ram=FS.get("/ram/build/");
             FS.mount(ram.path(),"ram");
             curPrj=TPRC(curProjectDir);// curPrj re-construct!!!?
@@ -209,7 +210,7 @@ function ready() {
         break;
     }
     function setupBuilder(BuilderClass) {
-        $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+        $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
         ram=FS.get("/ram/build/");
         FS.mount(ram.path(),"ram");
         builder=new BuilderClass(curPrj, ram);
@@ -294,13 +295,13 @@ function ready() {
                      ["span",{id:"curFileLabel"}],
                      ["span",{id:"modLabel"}],
                      ["span",{id:"commentLink"}],
-                     ["a",{id:"fullScr",href:"javascript:;"}],
+                     ["a",{id:"fullScr",href:JS_NOP}],
                      ["span",{id:"toastArea"}]
                   ],
                   ["div",{id:"progs"}]
               ]/*,
               ["div",{id:"runArea","class":"col-xs-5"},
-               ["div","実行結果：",["a",{id:"fullScr",href:"javascript:;"}]],
+               ["div","実行結果：",["a",{id:"fullScr",href:JS_NOP}]],
                ["iframe",{id:"ifrm",width:465,height:465}],
 	       ["div",{id:"toastArea"}]
               ]*/
@@ -433,20 +434,20 @@ function ready() {
     }
     function distributeFile() {
         //alert("distributeFile!");
-        curPrjDir=curProjectDir.name();
+        var curPrjName=curProjectDir.name();
         var inf=getCurrentEditorInfo();
         if (!inf) {
             alert("配布したいファイルを開いてください。");
             return;
         }
-        curFile=getCurrentEditorInfo().file;
+        var curFile=getCurrentEditorInfo().file;
         DistributeDialog.show(curFile.text(),function(text,overwrite){
             console.log(text,overwrite);
             $.ajax({
                 type:"POST",
                 url:WebSite.controller+"?Class/distribute",
                 data:{
-                    "prj":curPrjDir,
+                    "prj":curPrjName,
                     "file":curFile.name(),
                     "htmlText":fileSet(curFile)[0].text(),
                     "html":fileSet(curFile)[0].name(),
@@ -465,9 +466,9 @@ function ready() {
         });
 
     }
-    function distributePrj() {
+    /*function distributePrj() {
         alert("distributePrj!");
-    }
+    }*/
     function checkPublishedURL() {
         Auth.publishedURL(curPrj.getName()+"/").then(function (u) {
             if (window.BitArrow) window.BitArrow.publishedURL=u;
@@ -520,7 +521,8 @@ function ready() {
     KeyEventChecker.down(document,"F9",F(run));
     KeyEventChecker.down(document,"F2",F(function(){
         stop();
-        if(progs=getCurrentEditor()) progs.focus();
+        var progs=getCurrentEditor();
+        if(progs) progs.focus();
         //console.log("F2 pressed");
     }));
     KeyEventChecker.down(document,"ctrl+s",F(function (e) {
@@ -693,6 +695,7 @@ function ready() {
     }
     function fixName(name, options) {
         A.is(arguments,[String]);
+        options=options||{};
         var upcased=false;
         /*if (name.match(/^[a-z]/)) {
             name= name.substring(0,1).toUpperCase()+name.substring(1);
@@ -870,7 +873,7 @@ function ready() {
     	                Tonyu.onRuntimeError(e);
     	            }
                 }).always(function () {
-        	        //$("#fullScr").attr("href","javascript:;").text("別ページで実行");
+        	        //$("#fullScr").attr("href",JS_NOP).text("別ページで実行");
                     SplashScreen.hide();
                 });
             }catch(e) {
@@ -884,7 +887,7 @@ function ready() {
       } else if (lang=="c") {
           try {
             SplashScreen.show();
-            $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+            $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
               DU.timeout(0).then(function () {
                   var b=builder.build({mainFile:curJSFile});
                   if (ALWAYS_UPLOAD) {
@@ -936,7 +939,7 @@ function ready() {
     	    try {
                 SplashScreen.show();
         	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
-    	        $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+    	        $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
                 DU.timeout(0).then(function () {
                     var b=builder.build({mainFile:curJSFile});
                     if (ALWAYS_UPLOAD) {
@@ -980,7 +983,7 @@ function ready() {
         } else if (lang=="tonyu") {
             try {
                 SplashScreen.show();
-                $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+                $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
                 DU.timeout(0).then(function () {
                     var t=new Date().getTime();
                     return builder.build({mainFile:curJSFile}).then(function () {
@@ -1029,7 +1032,7 @@ function ready() {
             run();
         }
     };
-    var curFrameRun;
+    //var curFrameRun;
     var curth;
     window.setupFrame=function (r) {
         A.is(r,Function);
@@ -1039,8 +1042,8 @@ function ready() {
         var curFile=inf.file;
         var curFiles=fileSet(curFile);
         var curHTMLFile=curFiles[0];
-        var curJSFile=curFiles[1];
-        var ht=curHTMLFile.text();
+        //var curJSFile=curFiles[1];
+        ht=curHTMLFile.text();
         var f=curPrj.getOutputFile();
         var js=f.text();
         curth=r(ht,js, curName);
@@ -1089,17 +1092,17 @@ function ready() {
         A(e,"Error is empty");
         var t=curPrj.env.traceTbl;
         var te;
-        var tid = t.find(e) || t.decode($LASTPOS); // user.Main:234
+        var tid = t.find(e) || t.decode(root.$LASTPOS); // user.Main:234
         if (tid) {
             te=curPrj.decodeTrace(tid);
         }
-        console.log("onRunTimeError:stackTrace1",e,e.stack,te,$LASTPOS);
+        console.log("onRunTimeError:stackTrace1",e,e.stack,te,root.$LASTPOS);
         if (te) {
             te.mesg=e;
             if (e.pluginName) {
                 alert(e.message);
             } else {
-                var diag=showErrorPos($("#errorPos"),te);
+                /*var diag=*/showErrorPos($("#errorPos"),te);
                 displayMode("runtime_error");
                 /*$("#errorPos").find(".quickFix").append(
                         UI("button",{on:{click: function () {
@@ -1199,7 +1202,7 @@ function ready() {
             prog.moveCursorTo(cur.row, cur.column);
         }
     }
-    function reloadFromFiles() {
+    /*function reloadFromFiles() {
         for (var path in editors) {
             var inf=editors[path];
             var curFile=inf.file; //fl.curFile();
@@ -1209,7 +1212,7 @@ function ready() {
                 prog.clearSelection();
             }
         }
-    }
+    }*/
     function save() {
         var inf=getCurrentEditorInfo();
         if (!inf) return;
@@ -1286,12 +1289,12 @@ function ready() {
         if (!inf) {
             var progDOM=$("<pre>").css("height", screenH+"px").text(f.text()).appendTo("#progs");
             progDOM.attr("data-file",f.name());
-            var prog=ace.edit(progDOM[0]);
+            var prog=root.ace.edit(progDOM[0]);
             if (typeof desktopEnv.editorFontSize=="number") prog.setFontSize(desktopEnv.editorFontSize);
     	    else prog.setFontSize(18);
             //prog.setFontSize(20);
             prog.setTheme("ace/theme/eclipse");
-            defaultKeyboard=prog.getKeyboardHandler();
+            //defaultKeyboard=prog.getKeyboardHandler();
             //if(desktopEnv.editorMode=="emacs") prog.setKeyboardHandler("ace/keyboard/emacs");
             //prog.setKeyboardHandler(defaultKeyboard);
             if (f.ext()==EXT && lang=="c") {
@@ -1339,7 +1342,7 @@ function ready() {
         }*/
         $("#curFileLabel").text(f.truncExt());
     }
-    d=function () {
+    root.d=function () {
         Tonyu.currentProject.dumpJS.apply(this,arguments);
     };
     function loadDesktopEnv() {
@@ -1351,21 +1354,22 @@ function ready() {
             res={};
         }
         if (!res.runMenuOrd) res.runMenuOrd=[];
-        return desktopEnv=res;
+        desktopEnv=res;
+        return res;
     }
     function saveDesktopEnv() {
         var d=curProjectDir.rel(".desktop");
         d.obj(desktopEnv);
     }
-    $("#prjOptEditor").click(F(function () {
+    /*$("#prjOptEditor").click(F(function () {
         ProjectOptionsEditor(curPrj);
-    }));
-    var helpd=null;
+    }));*/
+    //var helpd=null;
     /*$("#refHelp").click(F(function () {
     	if (!helpd) helpd=WikiDialog.create(home.rel("doc/tonyu2/"));
     	helpd.show();
     }));*/
-    if (typeof progBar=="object") {progBar.clear();}
+    if (root.progBar) {root.progBar.clear();}
     /*$("#rmPRJ").click(F(function () {
         if (prompt(curProjectDir+"内のファイルをすべて削除しますか？削除する場合はDELETE と入力してください．","")!="DELETE") {
             return;
@@ -1395,7 +1399,7 @@ function ready() {
         saveDesktopEnv();
         window.editorTextSize=desktopEnv.editorFontSize||18;
     }
-    function editorType() {
+    /*function editorType() {
         var prog=getCurrentEditor();
         if(prog.getKeyboardHandler()==defaultKeyboard){
             prog.setKeyboardHandler("ace/keyboard/emacs");
@@ -1406,7 +1410,7 @@ function ready() {
         }
         saveDesktopEnv();
         focusToEditor();
-    }
+    }*/
     $("#home").click(F(function () {
         save();
         goHome();
@@ -1424,6 +1428,7 @@ function ready() {
         return fl.curFile();
     };
     $(window).on("beforeunload",function(e){
+        e=e||{};
         if(unsynced || unsaved){
             return "保存されていないデータがあります。\nこれまでの作業を保存するためには一度実行してください。";
         }
@@ -1434,7 +1439,8 @@ function ready() {
     }));
     FM.onMenuStart=save;
     function focusToEditor(){
-        if(prog=getCurrentEditor()) prog.focus();
+        var prog=getCurrentEditor();
+        if(prog) prog.focus();
     }
     window.getCurrentEditorInfo=getCurrentEditorInfo;
     SplashScreen.hide();
