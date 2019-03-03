@@ -37,6 +37,18 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     }
     var curProjectDir=FS.get(dir);
     var curPrj=TPRC(curProjectDir);
+    /*
+    getEXT
+    getOptions
+    getPublishedURL
+    getName
+    sourceFiles
+    getOutputFile
+    env(field)
+    decodeTrace
+    method called from Builders, CommentDialog2, SubmitDialog,AssignmentDialog
+    method called from ResEditor (use from Tonyu2 Project)
+    */
     var isFirefox=navigator.userAgent.indexOf("Firefox")>=0;
     var isChrome=navigator.userAgent.indexOf("Chrome")>=0;
     //var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
@@ -138,7 +150,6 @@ function ready() {
     //var home=FS.resolve("${tonyuHome}");
     Tonyu.globals.$currentProject=curPrj;
     Tonyu.currentProject=curPrj;
-    //var EXT=A(curPrj.EXT);
     var EXT=curPrj.getEXT();
     var HEXT=".html";
     var opt=curPrj.getOptions();
@@ -146,39 +157,18 @@ function ready() {
     switch (lang){
     case "c":
         requirejs(["CBuilder"],function(_){
-            /*Builder=_;
-            console.log("cb requirejsed");
-            $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
-            ram=FS.get("/ram/build/");
-            FS.mount(ram.path(),"ram");
-            builder=new Builder(curPrj, ram);
-            window.BABuilder=builder;
-            console.log("c builderready");*/
             setupBuilder(_);
         });
         helpURL="http://bitarrow.eplang.jp/index.php?c_use";
     	break;
     case "js":
     	requirejs(["TJSBuilder"],function(_){
-    	    /*Builder=_;
-    	    console.log("tjsb requirejsed");
-    	    $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
-            ram=FS.get("/ram/build/");
-            FS.mount(ram.path(),"ram");
-            builder=new Builder(curPrj, ram);
-    	    console.log("builderready");*/
             setupBuilder(_);
     	});
     	helpURL="http://bitarrow.eplang.jp/index.php?javascript";
     	break;
     case "dtl":
     	requirejs(["DtlBuilder"],function(_){
-    	    /*Builder=_;
-    	    console.log("dtlb requirejsed");
-    	    $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
-            ram=FS.get("/ram/build/");
-            FS.mount(ram.path(),"ram");
-            builder=new Builder(curPrj, ram);*/
             setupBuilder(_);
     	});
     	helpURL="http://bitarrow.eplang.jp/index.php?dolittle_use";
@@ -745,7 +735,6 @@ function ready() {
         }
     }
     function stop() {
-        //curPrj.stop();
         if(curth){
             try {
                 curth.kill();
@@ -1361,35 +1350,7 @@ function ready() {
         var d=curProjectDir.rel(".desktop");
         d.obj(desktopEnv);
     }
-    /*$("#prjOptEditor").click(F(function () {
-        ProjectOptionsEditor(curPrj);
-    }));*/
-    //var helpd=null;
-    /*$("#refHelp").click(F(function () {
-    	if (!helpd) helpd=WikiDialog.create(home.rel("doc/tonyu2/"));
-    	helpd.show();
-    }));*/
     if (root.progBar) {root.progBar.clear();}
-    /*$("#rmPRJ").click(F(function () {
-        if (prompt(curProjectDir+"内のファイルをすべて削除しますか？削除する場合はDELETE と入力してください．","")!="DELETE") {
-            return;
-        }
-        sh.rm(curProjectDir,{r:1});
-        document.location.href="index.html";
-    }));
-    $("#mvPRJ").click(F(function () {
-        var np=prompt("新しいプロジェクトの名前を入れてください", curProjectDir.name().replace(/\//g,""));
-        if (!np || np=="") return;
-        if (!np.match(/\/$/)) np+="/";
-        var npd=curProjectDir.up().rel(np);
-        if (npd.exists()) {
-            alert(npd+" はすでに存在します");
-            return;
-        }
-        sh.cp(curProjectDir,npd);
-        sh.rm(curProjectDir,{r:1});
-        document.location.href="project.html?dir="+npd;
-    }));*/
     function textSize() {
         var prog=getCurrentEditor();
         var s=prompt("エディタの文字の大きさ", desktopEnv.editorFontSize||18);
