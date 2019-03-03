@@ -45,8 +45,11 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     sourceFiles
     getOutputFile
     env(field)
+    dir(field)-> it should be getDir
     decodeTrace
     method called from Builders, CommentDialog2, SubmitDialog,AssignmentDialog
+      getNamespace, setOptions, loadClasses (from TJSBuilder)
+      getResource, loadClasses (from TonyuBuilder)
     method called from ResEditor (use from Tonyu2 Project)
     */
     var isFirefox=navigator.userAgent.indexOf("Firefox")>=0;

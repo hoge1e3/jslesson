@@ -96,6 +96,8 @@ function (A,DU,wget,Sync) {
         }).then(function() {
             var concat=curPrj.getOutputFile();
             dst.rel("user.js").copyFrom(concat);
+            // source-map  concat.js.map(in user.js) this is not good 
+            dst.rel("concat.js.map").copyFrom(concat.sibling(concat.name()+".map"));
             curPrj.dir.each(function (f) {
                 if (f.ext()!=".html")  return;
                 t.genHTML(f.truncExt());
