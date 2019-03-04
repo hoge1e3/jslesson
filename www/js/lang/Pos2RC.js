@@ -1,6 +1,6 @@
-define([],function (){
-class Pos2RC {
-    constructor(src,origin) {
+define(["Klass"],function (Klass){
+return Klass.define({
+    $: function(src,origin) {
         if (origin==null) this.origin=1;// or 0
         else this.origin=origin;
         var t=this;
@@ -13,8 +13,8 @@ class Pos2RC {
     		pos+=line.length+1;
     	});
     	t.map.push(t.pos);
-    }
-    getRC(pos) {
+    },
+    getRC:function(pos) {
         var t=this;
         var origin=t.origin;
 		while(true) {
@@ -36,8 +36,29 @@ class Pos2RC {
 				return {row:t.lastRow+origin, col:pos-t.map[t.lastRow]+origin};
 			}
 		}
-	}
-}
-//export default Pos2RC;
-return Pos2RC;
+	},
+    getPos: function (row,col) {
+        // Although the class name Pos2RC.
+        var t=this;
+        var pos=0;
+        var lines=t.src.split("\n");
+        for (var i=0 ; i<lines.length && i+t.origin<row ; i++) {
+            pos+=lines[i].length+1;
+        }
+        pos+=col-t.origin;
+        return pos;
+    },
+    getAll: function (p) {
+        if (typeof p==="object") {
+            var n=this.getPos(p.row,p.col);
+            return {pos:n, row:p.row, col:p.col};
+        } else if (typeof p==="number"){
+            var r=this.getRC(p);
+            r.pos=p;
+            return r;
+        } else {
+            throw new Error("Invalid position type: "+p);
+        }
+    }
+});
 });

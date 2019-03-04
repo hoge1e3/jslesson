@@ -8,7 +8,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
            "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog",
            "IframeDialog","AssignmentDialog","SubmitDialog","CommentDialog2","NewProjectDialog",
-           "ProgramFileUploader","AssetDialog","root"
+           "ProgramFileUploader","AssetDialog","root","ErrorDialog","UserAgent"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -19,7 +19,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
           CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog,
           IframeDialog,AssignmentDialog,SubmitDialog,CommentDialog2,NPD,
-          ProgramFileUploader,AssetDialog,root
+          ProgramFileUploader,AssetDialog,root,ErrorDialog,ua
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -52,8 +52,8 @@ function (Util, Tonyu, FS, FileList, FileMenu,
       getResource, loadClasses (from TonyuBuilder)
     method called from ResEditor (use from Tonyu2 Project)
     */
-    var isFirefox=navigator.userAgent.indexOf("Firefox")>=0;
-    var isChrome=navigator.userAgent.indexOf("Chrome")>=0;
+    //var isFirefox=navigator.userAgent.indexOf("Firefox")>=0;
+    //var isChrome=navigator.userAgent.indexOf("Chrome")>=0;
     //var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
     var ALWAYS_UPLOAD=(localStorage.ALWAYS_UPLOAD==="true");
     console.log("ALWAYS_UPLOAD",ALWAYS_UPLOAD);
@@ -1065,11 +1065,14 @@ function ready() {
             return s;
         }
     };
+    var errorDialog=new ErrorDialog();
     EC.handleException=Tonyu.onRuntimeError=function (e) {
         if (e.type==="dialogClosed") {
             console.log(e.stack);
             return;
         }
+        errorDialog.show(e);
+        if (true) return;
         var inf=getCurrentEditorInfo();
         if (!inf) {
             console.log(e.stack);
@@ -1096,24 +1099,17 @@ function ready() {
             } else {
                 /*var diag=*/showErrorPos($("#errorPos"),te);
                 displayMode("runtime_error");
-                /*$("#errorPos").find(".quickFix").append(
-                        UI("button",{on:{click: function () {
-                            setDiagMode(true);
-                            diag.dialog("close");
-                            run();
-                        }}},"診断モードで実行しなおす"));*/
             }
             stop();
-            //logToServer("JS Runtime Error!\n"+te.src+":"+te.pos+"\n"+te.mesg+"\nJS Runtime Error End!");
             if (curJSFile) {
                 logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",te.src+":"+te.pos+"\n"+te.mesg,langList[lang]);
             }
         } else {
-            if (isChrome) {
+            if (ua.isChrome) {
                 e.stack=(""+e.stack).split("\n").map(bytes).join("\n");
                 //if (isChrome) { s=bytes(s); console.log("CONV",s); }
             }
-            if (isFirefox) {
+            if (ua.isFirefox) {
                 e.stack=(e+"\n"+e.stack).replace(/\\u([0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])/g,function (_,c) {
                     return String.fromCharCode("0x"+c);
                 });
@@ -1141,9 +1137,15 @@ function ready() {
             UI("div",{title:"Error",name:"runtimeErrorDialog"},"["+(mesg)+"]",
             //["button",{on:{click:function(){console.log("clicked");$("#reConsole"+reDialog).text(e.stack);}}},"詳細"],
             //["pre",{id:"reConsole"+reDialog},stack[0]+"\n"+stack[1]]).dialog({width:800});
-            ["button",{on:{click:function(){console.log("clicked");$(this).parent("div").children("pre").text(e.stack);}}},"詳細"],
+            ["button",{on:{click:function(){
+                console.log("clicked");
+                $(this).parent("div").children("pre").text(e.stack);
+            }}},"詳細"],
             ["pre",{id:"reConsole"},stack[0]+"\n"+stack[1]],
-            ["button",{on:{click:function(){console.log("onerr");$(this).parent().parent().css("display","none");}}},"閉じる"]).dialog({width:800});
+            ["button",{on:{click:function(){
+                console.log("onerr");
+                $(this).parent().parent().css("display","none");
+            }}},"閉じる"]).dialog({width:800});
             stop();
             //logToServer(e.stack || e);
             if (curJSFile) {
@@ -1151,7 +1153,7 @@ function ready() {
             }
         }
     };
-    $("#search").click(F(function () {
+    /*$("#search").click(F(function () {
         console.log("src diag");
         searchDialog.show(curProjectDir,function (info){
             fl.select(info.file);
@@ -1160,7 +1162,7 @@ function ready() {
                 if (prog) prog.gotoLine(info.lineNo);
             },50);
         });
-    }));
+    }));*/
     function close(rm) { // rm or mv
         var i=editors[rm.path()]; //getCurrentEditorInfo();
         if (i) {
