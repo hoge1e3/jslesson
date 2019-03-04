@@ -96,8 +96,13 @@ function (A,DU,wget,Sync) {
         }).then(function() {
             var concat=curPrj.getOutputFile();
             dst.rel("user.js").copyFrom(concat);
-            // source-map  concat.js.map(in user.js) this is not good 
-            dst.rel("concat.js.map").copyFrom(concat.sibling(concat.name()+".map"));
+            // source-map  concat.js.map(in user.js) this is not good
+            var mapfile=concat.sibling(concat.name()+".map");
+            if (mapfile.exists()) {
+                dst.rel("concat.js.map").copyFrom(mapfile);
+            } else {
+                console.log("NOTE",mapfile.path(),"not exists");
+            }
             curPrj.dir.each(function (f) {
                 if (f.ext()!=".html")  return;
                 t.genHTML(f.truncExt());

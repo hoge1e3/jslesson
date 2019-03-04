@@ -295,6 +295,7 @@ var TPRC=function (dir) {
 		var gc=mapNode.toStringWithSourceMap();
 		outf.text(gc.code+"\n//# sourceMappingURL="+mapFile.name());
 		mapFile.text(gc.map+"");
+		console.log("MAPW",mapFile.path(),"is written");
 		return evalFile(outf);
 	};
 	TPR.getDependingProjects=function () {

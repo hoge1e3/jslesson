@@ -820,7 +820,7 @@ function ready() {
         // display=none
         $("[name=runtimeErrorDialog]").parent().css("display","none");
         displayMode("run");
-        if(lang=="js"){
+        /*if(lang=="js"){
     	    try {
                 SplashScreen.show();
                 $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
@@ -866,11 +866,7 @@ function ready() {
                 console.log(e.stack);
                 SplashScreen.hide();
             }
-            /*
-            QR code
-            sync
-            */
-      } else if (lang=="c") {
+      } else */if (lang=="c") {
           try {
             SplashScreen.show();
             $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
@@ -921,7 +917,7 @@ function ready() {
               SplashScreen.hide();
           }
 
-      }else if(lang=="dtl" || lang=="dncl" || lang=="py"){//dncl ok?
+      }else if(lang=="js"||lang=="dtl" || lang=="dncl" || lang=="py"){//dncl ok?
     	    try {
                 SplashScreen.show();
     	        $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
