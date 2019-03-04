@@ -8,7 +8,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
            "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog",
            "IframeDialog","AssignmentDialog","SubmitDialog","CommentDialog2","NewProjectDialog",
-           "ProgramFileUploader","AssetDialog","root","ErrorDialog","UserAgent"
+           "ProgramFileUploader","AssetDialog","root","ErrorDialog"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -19,7 +19,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
           CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog,
           IframeDialog,AssignmentDialog,SubmitDialog,CommentDialog2,NPD,
-          ProgramFileUploader,AssetDialog,root,ErrorDialog,ua
+          ProgramFileUploader,AssetDialog,root,ErrorDialog
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -44,9 +44,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     getName
     sourceFiles
     getOutputFile
-    env(field)
     dir(field)-> it should be getDir
-    decodeTrace
     method called from Builders, CommentDialog2, SubmitDialog,AssignmentDialog
       getNamespace, setOptions, loadClasses (from TJSBuilder)
       getResource, loadClasses (from TonyuBuilder)
@@ -1051,7 +1049,7 @@ function ready() {
         if (!e) return;
         return Tonyu.onRuntimeError(e);
     };
-    var bytes=function(s) {
+    /*var bytes=function(s) {
         try {
             var r="",noconv;
             for(var i=0;i<s.length;i++) {
@@ -1064,7 +1062,7 @@ function ready() {
             console.log(e, s);
             return s;
         }
-    };
+    };*/
     var errorDialog=new ErrorDialog();
     EC.handleException=Tonyu.onRuntimeError=function (e) {
         if (e.type==="dialogClosed") {
@@ -1072,7 +1070,7 @@ function ready() {
             return;
         }
         errorDialog.show(e);
-        if (true) return;
+        /*if (true) return;
         var inf=getCurrentEditorInfo();
         if (!inf) {
             console.log(e.stack);
@@ -1097,7 +1095,7 @@ function ready() {
             if (e.pluginName) {
                 alert(e.message);
             } else {
-                /*var diag=*/showErrorPos($("#errorPos"),te);
+                showErrorPos($("#errorPos"),te);
                 displayMode("runtime_error");
             }
             stop();
@@ -1151,7 +1149,7 @@ function ready() {
             if (curJSFile) {
                 logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",e.stack || e,langList[lang]);
             }
-        }
+        }*/
     };
     /*$("#search").click(F(function () {
         console.log("src diag");
