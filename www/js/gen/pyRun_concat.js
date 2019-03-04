@@ -1330,9 +1330,176 @@ return Grammar;
 //export default Grammar;
 });
 
-define('Pos2RC',[],function (){
-class Pos2RC {
-    constructor(src,origin) {
+define('Klass',["assert"],function (A) {
+    var Klass={};
+    Klass.define=function (pd) {
+        var p,parent;
+        if (pd.$parent) {
+            parent=pd.$parent;
+            p=Object.create(parent.prototype);
+            p.super=function () {
+                var a=Array.prototype.slice.call(arguments);
+                var n=a.shift();
+                return parent.prototype[n].apply(this,a);
+            };
+        } else {
+            p={};
+        }
+        var thisName,singletonName;
+        if (pd.$this) {
+            thisName=pd.$this;
+        }
+        if (pd.$singleton) {
+            singletonName=pd.$singleton;
+        }
+        var init=wrap(pd.$) || function (e) {
+            if (e && typeof e=="object") {
+                for (var k in e) {
+                    this[k]=e[k];
+                }
+            }
+        };
+        var fldinit;
+        var check;
+        if (init instanceof Array) {
+            fldinit=init;
+            init=function () {
+                var a=Array.prototype.slice.call(arguments);
+                for (var i=0;i<fldinit.length;i++) {
+                    if (a.length>0) this[fldinit[i]]=a.shift();
+                }
+            };
+        }
+        var klass;
+        function checkSchema(self) {
+            if (pd.$fields) {
+                //console.log("Checking schema",self,pd.$fields);
+                A.is(self,pd.$fields);
+            }
+        }
+        klass=function () {
+            if (! (this instanceof klass)) {
+                var res=Object.create(p);
+                init.apply(res,arguments);
+                checkSchema(res);
+                return res;
+            }
+            init.apply(this,arguments);
+            checkSchema(this);
+        };
+        if (parent) {
+            klass.super=function () {
+                var a=Array.prototype.slice.call(arguments);
+                var t=a.shift();
+                var n=a.shift();
+                return parent.prototype[n].apply(t,a);
+            };
+        }
+        klass.inherit=function (pd) {
+            pd.$parent=klass;
+            return Klass.define(pd);
+        };
+        klass.prototype=p;
+        for (var name in pd) {
+            if (name[0]=="$") continue;
+            if (name.substring(0,7)=="static$") {
+                klass[name.substring(7)]=wrapStatic(pd[name]);
+            } else {
+                if (isPropDesc(pd[name])) {
+                    Object.defineProperty(p,name,wrap(pd[name]));
+                } else {
+                    p[name]=wrap(pd[name]);
+                }
+            }
+        }
+        function wrapStatic(m) {
+            if (!singletonName) return m;
+            var args=getArgs(m);
+            if (args[0]!==singletonName) return m;
+            return (function () {
+                var a=Array.prototype.slice.call(arguments);
+                a.unshift(klass);
+                return m.apply(klass,a);
+            });
+        }
+        function wrap(m) {
+            if (!thisName) return m;
+            if (isPropDesc(m)) {
+                for (var k in m) {
+                    m[k]=wrap(m[k]);
+                }
+                return m;
+            }
+            if (typeof m!=="function") return m;
+            var args=getArgs(m);
+            if (args[0]!==thisName) return m;
+            return (function () {
+                var a=Array.prototype.slice.call(arguments);
+                a.unshift(this);
+                return m.apply(this,a);
+            });
+        }
+        p.$=init;
+        Object.defineProperty(p,"$bind",{
+            get: function () {
+                if (!this.__bounded) {
+                    this.__bounded=new Klass.Binder(this);
+                }
+                return this.__bounded;
+            }
+        });
+        return klass;
+    };
+    function getArgs(f) {
+        var fpat=/function[^\(]+\(([^\)]*)\)/;
+        var r=fpat.exec(f+"");
+        if (r) {
+            return r[1].replace(/\s/g,"").split(",");
+        }
+        return [];
+    }
+    function isPropDesc(o) {
+        if (typeof o!=="object") return false;
+        if (!o) return false;
+        var pk={configurable:1,enumerable:1,value:1,writable:1,get:1,set:1};
+        var c=0;
+        for (var k in o) {
+            if (!pk[k]) return false;
+            c+=pk[k];
+        }
+        return c;
+    }
+    Klass.Function=function () {throw new Exception("Abstract");}
+    Klass.opt=A.opt;
+    Klass.Binder=Klass.define({
+        $this:"t",
+        $:function (t,target) {
+            for (var k in target) (function (k){
+                if (typeof target[k]!=="function") return;
+                t[k]=function () {
+                    var a=Array.prototype.slice.call(arguments);
+                    //console.log(this, this.__target);
+                    //A(this.__target,"target is not set");
+                    return target[k].apply(target,a);
+                };
+            })(k);
+        }
+    });
+    return Klass;
+});
+/*
+requirejs(["Klass"],function (k) {
+  P=k.define ({
+     $:["x","y"]
+  });
+  p=P(2,3);
+  console.log(p.x,p.y);
+});
+*/
+;
+define('Pos2RC',["Klass"],function (Klass){
+return Klass.define({
+    $: function(src,origin) {
         if (origin==null) this.origin=1;// or 0
         else this.origin=origin;
         var t=this;
@@ -1345,8 +1512,8 @@ class Pos2RC {
     		pos+=line.length+1;
     	});
     	t.map.push(t.pos);
-    }
-    getRC(pos) {
+    },
+    getRC:function(pos) {
         var t=this;
         var origin=t.origin;
 		while(true) {
@@ -1368,10 +1535,281 @@ class Pos2RC {
 				return {row:t.lastRow+origin, col:pos-t.map[t.lastRow]+origin};
 			}
 		}
-	}
-}
-//export default Pos2RC;
-return Pos2RC;
+	},
+    getPos: function (row,col) {
+        // Although the class name Pos2RC.
+        var t=this;
+        var pos=0;
+        var lines=t.src.split("\n");
+        for (var i=0 ; i<lines.length && i+t.origin<row ; i++) {
+            pos+=lines[i].length+1;
+        }
+        pos+=col-t.origin;
+        return pos;
+    },
+    getAll: function (p) {
+        if (typeof p==="object") {
+            var n=this.getPos(p.row,p.col);
+            return {pos:n, row:p.row, col:p.col};
+        } else if (typeof p==="number"){
+            var r=this.getRC(p);
+            r.pos=p;
+            return r;
+        } else {
+            throw new Error("Invalid position type: "+p);
+        }
+    }
+});
+});
+
+define('PythonParser',["Grammar2","Pos2RC"/*,"TError"*/],
+function (Grammar,Pos2RC/*,TError*/) {
+    //const spc=/^([ \t]*(#.*$)*)*/;// (A|B)* <=> (A*B*)*
+    const spc=/^([ \t]*(#(.|\r)*$)*)*/;// (A|B)* <=> (A*B*)*
+    const tokens=new Grammar({space:spc});
+    const P=Grammar.P;
+    /*const debug=(mesg)=>P.create((s)=>{
+        console.log(mesg,s);
+        s.success=true;
+        return s;
+    });*/
+    const reserved=[
+        "class","def","if","else","elif","break",
+        "for","while","in","return","print","import","as",
+        "and","or","not","global"
+    ];
+    const resvh={};for(const r of reserved) resvh[r]=r;
+    const puncts=[">=","<=","==","!=","+=","-=","*=","/=","%=","**",
+      ">","<","=",".",":","+","-","*","/","%","(",")","[","]",","];
+    const tdef={
+        tokens: [{"this":tokens.rep0("token")}, /^\s*/ ,P.StringParser.eof],
+        //token: tokens.or(...reserved.concat(["quote","symbol","number","qsymbol",":"])),
+        token: tokens.or(...["literal","symbol","number"].concat(puncts)),
+        symbol: tokens.toParser(/^[a-zA-Z$_][a-zA-Z$_0-9]*/).ret((r)=>{
+            //console.log("RDS",r);
+            if (resvh[r]) r.type=resvh[r];
+            return r;
+        }),
+        number: /^[0-9]+[0-9\.]*/,
+        literal: /^r?((\"[^\"]*\")|(\'[^\']*\'))/,
+    };
+    for (let p of puncts) tdef[p]="'"+p;
+    //for (const r of reserved) tdef[r]="'"+r;
+    //console.log("tdef",tdef);
+    tokens.def(tdef);
+    class Tokenizer {
+        constructor(src) {
+            this.src=src;
+            this.pos2rc=new Pos2RC(src);
+        }
+        tokenize() {
+            const src=this.src;
+            const ind=/^\s*/;
+            const depths=[];
+            this.tokens=[];
+            this.pos=0;
+            var lineNo=0;
+            for (let line of src.split("\n")) {
+                line=line.replace("\r","");
+                let r=ind.exec(line);
+                const d=r[0].length;
+                //console.log("depth",lineNo+1, d,depths);
+                if (depths.length===0) {
+                    depths.push(d);
+                } else {
+                    const rc=this.pos2rc.getRC(this.pos);
+                    const pd=depths[depths.length-1];
+                    if (d===pd) {
+                        this.tokens.push({type:"nodent",pos:this.pos,len:0,row:rc.row, col: rc.col});
+                    } else if (d>pd){
+                        this.tokens.push({type:"indent",pos:this.pos,len:0,row:rc.row, col: rc.col});
+                        depths.push(d);
+                    } else {
+                        // dedent
+                        this.tokens.push({type:"nodent",pos:this.pos,len:0,row:rc.row, col: rc.col});
+                        for (let i=depths.length-1;i>=0;i--) {
+                            //console.log("dede",d,depths,i,depths[i]);
+                            if (depths[i]<d) {
+                                throw new Error("インデント幅"+d+"の行が"+(lineNo+1)+"行目より前に存在しません。");
+                            }
+                            if (depths[i]==d) {
+                                break;
+                            }
+                            this.tokens.push({type:"dedent",pos:this.pos,len:0,row:rc.row, col: rc.col});
+                            depths.pop();
+                        }
+                    }
+                }
+                const tks=this.tokenizeLine(line,lineNo);
+                for (const tk of tks) {
+                    tk.pos+=this.pos;
+                    const rc=this.pos2rc.getRC(tk.pos);
+                    tk.row=rc.row;
+                    tk.col=rc.col;
+                }
+                this.tokens=this.tokens.concat(tks);
+                this.pos+=line.length+1;
+                lineNo++;
+            }
+            return this.tokens;
+        }
+        tokenizeLine(line,lineNo) {
+            //console.log("parse token",line);
+            const r=tokens.get("tokens").parseStr(line);
+            if (!r.success) throw new Error("Error at "+(lineNo+1)+":"+(r.src.maxPos+1));
+            //console.log("r",r.result[0]);
+            return r.result[0];
+        }
+    }
+    const g=new Grammar();
+    const rep0=g.rep0;
+    const rep1=g.rep1;
+    const sep0=g.sep0;
+    const sep1=g.sep1;
+    const opt=g.opt;
+    const or=g.or;
+    const br=/^\r?\n/;
+    function getIndents(str,pos) {
+        const opos=pos;
+        const after=str.substring(pos);
+        const r=br.exec(after);
+        if (!r) return false;
+        const before=str.substring(0,pos);
+        const ber=/(^|\n)([ \t]*)[^\n]*$/.exec(before);
+        if (!ber) return false;
+        const bindent=ber[2].length;
+        pos+=r[0].length;
+        const nl=str.substring(pos);
+        const nlr=/^([ \t]*)/.exec(nl);
+        const aindent=nlr[1].length;
+        pos+=aindent;
+        //console.log(aindent,bindent);
+        return {after:aindent,before:bindent,pos:pos,len:pos-opos};
+    }
+    const indent=P.StringParser.strLike((str,pos)=>{
+        const r=getIndents(str,pos);
+        if (!r) return false;
+        if (r.after>r.before) return r;
+    });
+    const dedent=P.StringParser.strLike((str,pos)=>{
+        const r=getIndents(str,pos);
+        if (!r) return false;
+        if (r.after<r.before) return r;
+    });
+    const nodent=P.StringParser.strLike((str,pos)=>{
+        const r=getIndents(str,pos);
+        if (!r) return false;
+        if (r.after===r.before) return r;
+    });
+    const tk=P.TokensParser.token;
+    const gdef={
+        //$space: spc,
+        program: [{body:rep0(or("stmt","classdef"))},P.TokensParser.eof],
+        classdef: ["class",{name:"symbol"},":indent",
+            {body:"stmtList"},
+        "dedent"],
+        define: ["def",{name:"symbol"},{params:"paramList"},":indent",
+            {body:"stmtList"},
+        "dedent"],
+        paramList: ["(",{body:sep0("symbol",",")},")"],
+        ":indent": [":","indent"],
+        //nodedent: [rep0("nodent"),"dedent"],
+        //defList: rep0("define"),
+        stmtList: rep1("stmt"),
+        // why printStmt -> printStmt3?
+        // because if parse print(x), as printStmt3, comma remains unparsed.
+        stmt: or("define","printStmt","printStmt3","ifStmt","breakStmt","letStmt","exprStmt","forStmt","returnStmt","importStmt","globalStmt","nodent"),
+        importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
+        packageName: sep1("symbol","."),
+        exprStmt: [{expr:"expr"}],
+        returnStmt: ["return",{expr:"expr"}],
+        //exprTail: or("block","nodent"),
+        ifStmt: ["if",{cond:"expr"},{then:"block"},
+        {elif:rep0("elifPart")},{else:opt("elsePart")}],
+        elifPart: ["elif",{cond:"expr"},{then:"block"}],
+        elsePart: ["else",{then:"block"}],
+        breakStmt: ["break"],
+        forStmt: ["for",{var:"symbol"},"in",{set:"expr"},{do:"block"}],
+        letStmt: [{left:"lval"},"=",{right:"expr"}],
+        globalStmt: ["global",{names:sep1("symbol",",")}],
+        // print(x,y) parsed as: printStmt(2) with tuple
+        printStmt: ["print",{values:sep1("expr",",")},{nobr:opt(",")}],
+        // print(x,end="") parsed as: printStmt3
+        printStmt3: ["print", {args:"args"}],
+        lval: or("singleLval","tupleLval"),
+        singleLval: g.expr({
+            element: "symbol",
+            operators: [
+                ["postfix" , or("args" , "memberRef", "index") ] // (a,b)  .x
+            ]
+        }),
+        tupleLval: ["(",{body:sep1("singleLval",",")},")"],
+        expr: g.expr({
+            element: "elem",
+            operators: [
+                //["infixr", "="  ] , //  = 右結合２項演算子
+                ["infixl", or("+=","-=","*=","/=","%=")],
+                ["infixl", or("or")  ] ,
+                ["infixl", or("and")  ] ,
+                ["infixl", or(">=","<=","==","!=",">","<")  ] , //  + -  左結合２項演算子
+                ["infixl", or("+","-")  ] , //  + -  左結合２項演算子
+                ["infixl", or("*","/","%")  ] , //  * 左結合２項演算子
+                ["infixl", or("**")],
+                ["prefix",or("not","-")],
+                ["postfix" , or("args" , "memberRef","index") ] , // (a,b)  .x
+            ]
+        }),
+        memberRef: [".",{name:"symOrResv"}],
+        args: ["(",{body:sep0("arg",",")},")"],
+        array: ["[",{body:sep0("expr",",")},"]"],
+        index: ["[",{body:sep1("expr",":")},"]"],
+        arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
+        block: [":indent",{body:"stmtList"},"dedent"],
+        elem: or("symbol","number","array","literal","paren","tuple"),
+        paren: ["(",{body:"expr"},")"],
+        tuple: ["(",{body:sep0("arg",",")},")"],
+        indent: tk("indent"),
+        dedent: tk("dedent"),
+        nodent: tk("nodent"),
+        symOrResv: or(...reserved.concat(["symbol"])),
+    };
+    for (const k in tdef) {
+        if (!k.match(/^\$/) && !gdef[k]) gdef[k]=tk(k);
+    }
+    for (const k of reserved) {
+        if (!gdef[k]) gdef[k]=tk(k);
+    }
+
+    //console.log("gdef",gdef);
+    g.def(gdef);
+    //console.log("gdefed",g);
+    g.Tokenizer=Tokenizer;
+    g.parse=function (srcFile) {
+        let src=srcFile.text();
+        src=src.replace(/\s*$/,"\n");
+        const t=new g.Tokenizer(src);
+        let tks;
+        try {
+            tks=t.tokenize();
+        }catch (er) {
+            const e=new Error("字句エラー："+er.message+" "+srcFile.name());
+            //e.noTrace=true;
+            throw e;
+        }
+        //console.log("G.parse.T",tks);
+        const s=P.TokensParser.parse(g.get("program"),tks);
+        //console.log("G.Parse.res",s);
+        if (!s.success) {
+            var ert=tks[s.src.maxPos];
+            //console.error("Err",s.src.maxPos,ert.row,ert.col);
+            const e=new Error("文法エラー："+srcFile.name()+":"+ert.row+":"+ert.col);//,ert.pos);//+ert.row+":"+ert.col);
+            //e.noTrace=true;
+            throw e;
+        }
+        return s.result[0];
+    };
+    //console.log(g.genVisitorTemplate());
+    return g;
 });
 
 if (typeof define!=="function") {
@@ -1674,15 +2112,17 @@ define('Annotation',['require','exports','module'],function (require,exports,mod
 define ('PythonSemantics',["Visitor","context","PyLib","Annotation"],
 function (Visitor,context,PyLib,Annotation) {
 const builtins=PyLib.builtins;//["print","range","int","str","float","input","len"];
-let curClass; // 今解析中のクラスオブジェクト
-let curMethod; // 今解析中のメソッドオブジェクト
+builtins.push("open");
 const importable={
     datetime:true,
     random:true,
     math:true,
     jp:true,
+    fs:true,
+    re:true,
     matplotlib:{wrapper:true},
-    numpy:{wrapper:true}
+    numpy:{wrapper:true},
+    os:{wrapper:true}
 };
 //----
 class ScopeInfo {
@@ -1733,13 +2173,37 @@ const vdef={
         }
     },
     letStmt: function (node) {
+        var v=this;
+        function procLElem(left) {
+            if (left.type==="symbol") {
+                procSym(left);
+            } else {
+                v.visit(left);
+            }
+        }
+        function procSym(sym) {
+            const info=v.getScope(sym+"");
+            if (info && info.kind==="global") {
+
+            } else if (!info || info.scope!==v.curScope()) {
+                v.addScope(sym+"",{kind:"local",node});
+                v.anon.put(node,{needVar:true});
+            }
+        }
         if (node.left.type==="symbol") {
+            procSym(node.left);
+            /*
             const info=this.getScope(node.left+"");
             if (info && info.kind==="global") {
 
             } else if (!info || info.scope!==this.curScope()) {
                 this.addScope(node.left+"",{kind:"local",node});
                 this.anon.put(node,{needVar:true});
+            }
+            */
+        } else if (node.left.type==="tupleLval") {
+            for (const sym of node.left.body) {
+                procLElem(sym);
             }
         } else {
             this.visit(node.left);
@@ -1819,6 +2283,11 @@ const vdef={
             this.visit(b);
         }
     },
+    tuple: function (node) {
+        for (const b of node.body) {
+            this.visit(b);
+        }
+    },
     array: function (node) {
         for (const b of node.body) {
             this.visit(b);
@@ -1863,7 +2332,7 @@ const vdef={
     }
 };
 const thru=["nodent",">=","<=","==","!=","+=","-=","*=","/=","%=","**",
-  ">","<","=",".",":","+","-","*","/","%","(",")",",","!","and","or"];
+  ">","<","=",".",":","+","-","*","/","%","(",")",",","not","and","or"];
 for (let t of thru) {
     vdef[t]=()=>{};
 }
@@ -1881,10 +2350,13 @@ const Semantics= {
             return this.ctx.enter(...args);
         };
         v.rootScope={};
-        for (const b of builtins) v.rootScope[b]=new ScopeInfo(v.rootScope,b,"function");
+        for (const b of builtins) {
+            v.rootScope[b]=new ScopeInfo(v.rootScope,b,"function");
+            v.rootScope[b].builtin=true;
+        }
         v.newScope=function (f) {
             var pa=this.ctx.scope||this.rootScope;
-            ns=Object.create(pa);
+            var ns=Object.create(pa);
             //ns.PARENT_SCOPE=pa;
             return this.enter({scope:ns},f);
         };
@@ -1914,249 +2386,6 @@ const Semantics= {
     importable
 };
 return Semantics;
-});
-
-define('PythonParser',["Grammar2","Pos2RC","PythonSemantics"/*,"TError"*/],
-function (Grammar,Pos2RC,S/*,TError*/) {
-    //const spc=/^([ \t]*(#.*$)*)*/;// (A|B)* <=> (A*B*)*
-    const spc=/^([ \t]*(#(.|\r)*$)*)*/;// (A|B)* <=> (A*B*)*
-    const tokens=new Grammar({space:spc});
-    const P=Grammar.P;
-    const debug=(mesg)=>Parser.create((s)=>{
-        console.log(mesg,s);
-        s.success=true;
-        return s;
-    });
-    const reserved=[
-        "class","def","if","else","elif","break",
-        "for","while","in","return","print","import","as",
-        "and","or","global"
-    ];
-    const resvh={};for(const r of reserved) resvh[r]=r;
-    const puncts=[">=","<=","==","!=","+=","-=","*=","/=","%=","**",
-      ">","<","=",".",":","+","-","*","/","%","(",")","[","]",",","!"];
-    const tdef={
-        tokens: [{"this":tokens.rep0("token")}, /^\s*/ ,P.StringParser.eof],
-        //token: tokens.or(...reserved.concat(["quote","symbol","number","qsymbol",":"])),
-        token: tokens.or(...["literal","symbol","number"].concat(puncts)),
-        symbol: tokens.toParser(/^[a-zA-Z$_][a-zA-Z$_0-9]*/).ret((r)=>{
-            //console.log("RDS",r);
-            if (resvh[r]) r.type=resvh[r];
-            return r;
-        }),
-        number: /^[0-9]+[0-9\.]*/,
-        literal: /^((\"[^\"]*\")|(\'[^\']*\'))/,
-    };
-    for (let p of puncts) tdef[p]="'"+p;
-    //for (const r of reserved) tdef[r]="'"+r;
-    //console.log("tdef",tdef);
-    tokens.def(tdef);
-    class Tokenizer {
-        constructor(src) {
-            this.src=src;
-            this.pos2rc=new Pos2RC(src);
-        }
-        tokenize() {
-            const src=this.src;
-            const ind=/^\s*/;
-            const depths=[];
-            this.tokens=[];
-            this.pos=0;
-            var lineNo=0;
-            for (let line of src.split("\n")) {
-                line=line.replace("\r","");
-                let r=ind.exec(line);
-                const d=r[0].length;
-                //console.log("depth",lineNo+1, d,depths);
-                if (depths.length===0) {
-                    depths.push(d);
-                } else {
-                    const rc=this.pos2rc.getRC(this.pos);
-                    const pd=depths[depths.length-1];
-                    if (d===pd) {
-                        this.tokens.push({type:"nodent",pos:this.pos,len:0,row:rc.row, col: rc.col});
-                    } else if (d>pd){
-                        this.tokens.push({type:"indent",pos:this.pos,len:0,row:rc.row, col: rc.col});
-                        depths.push(d);
-                    } else {
-                        // dedent
-                        this.tokens.push({type:"nodent",pos:this.pos,len:0,row:rc.row, col: rc.col});
-                        for (let i=depths.length-1;i>=0;i--) {
-                            //console.log("dede",d,depths,i,depths[i]);
-                            if (depths[i]<d) {
-                                throw new Error("インデント幅"+d+"の行が"+(lineNo+1)+"行目より前に存在しません。");
-                            }
-                            if (depths[i]==d) {
-                                break;
-                            }
-                            this.tokens.push({type:"dedent",pos:this.pos,len:0,row:rc.row, col: rc.col});
-                            depths.pop();
-                        }
-                    }
-                }
-                const tks=this.tokenizeLine(line,lineNo);
-                for (const tk of tks) {
-                    tk.pos+=this.pos;
-                    const rc=this.pos2rc.getRC(tk.pos);
-                    tk.row=rc.row;
-                    tk.col=rc.col;
-                }
-                this.tokens=this.tokens.concat(tks);
-                this.pos+=line.length+1;
-                lineNo++;
-            }
-            return this.tokens;
-        }
-        tokenizeLine(line,lineNo) {
-            //console.log("parse token",line);
-            const r=tokens.get("tokens").parseStr(line);
-            if (!r.success) throw new Error("Error at "+(lineNo+1)+":"+(r.src.maxPos+1));
-            //console.log("r",r.result[0]);
-            return r.result[0];
-        }
-    }
-    const g=new Grammar;
-    const rep0=g.rep0;
-    const rep1=g.rep1;
-    const sep0=g.sep0;
-    const sep1=g.sep1;
-    const opt=g.opt;
-    const or=g.or;
-    const br=/^\r?\n/;
-    function getIndents(str,pos) {
-        const opos=pos;
-        const after=str.substring(pos);
-        const r=br.exec(after);
-        if (!r) return false;
-        const before=str.substring(0,pos);
-        const ber=/(^|\n)([ \t]*)[^\n]*$/.exec(before);
-        if (!ber) return false;
-        const bindent=ber[2].length;
-        pos+=r[0].length;
-        const nl=str.substring(pos);
-        const nlr=/^([ \t]*)/.exec(nl);
-        const aindent=nlr[1].length;
-        pos+=aindent;
-        //console.log(aindent,bindent);
-        return {after:aindent,before:bindent,pos:pos,len:pos-opos};
-    }
-    const indent=P.StringParser.strLike((str,pos)=>{
-        const r=getIndents(str,pos);
-        if (!r) return false;
-        if (r.after>r.before) return r;
-    });
-    const dedent=P.StringParser.strLike((str,pos)=>{
-        const r=getIndents(str,pos);
-        if (!r) return false;
-        if (r.after<r.before) return r;
-    });
-    const nodent=P.StringParser.strLike((str,pos)=>{
-        const r=getIndents(str,pos);
-        if (!r) return false;
-        if (r.after===r.before) return r;
-    });
-    const tk=P.TokensParser.token;
-    const gdef={
-        //$space: spc,
-        program: [{body:rep0(or("stmt","classdef"))},P.TokensParser.eof],
-        classdef: ["class",{name:"symbol"},":indent",
-            {body:"stmtList"},
-        "dedent"],
-        define: ["def",{name:"symbol"},{params:"paramList"},":indent",
-            {body:"stmtList"},
-        "dedent"],
-        paramList: ["(",{body:sep0("symbol",",")},")"],
-        ":indent": [":","indent"],
-        //nodedent: [rep0("nodent"),"dedent"],
-        //defList: rep0("define"),
-        stmtList: rep1("stmt"),
-        stmt: or("define","printStmt","printStmt3","ifStmt","breakStmt","letStmt","exprStmt","forStmt","returnStmt","importStmt","globalStmt","nodent"),
-        importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
-        packageName: sep1("symbol","."),
-        exprStmt: [{expr:"expr"}],
-        returnStmt: ["return",{expr:"expr"}],
-        //exprTail: or("block","nodent"),
-        ifStmt: ["if",{cond:"expr"},{then:"block"},
-        {elif:rep0("elifPart")},{else:opt("elsePart")}],
-        elifPart: ["elif",{cond:"expr"},{then:"block"}],
-        elsePart: ["else",{then:"block"}],
-        breakStmt: ["break"],
-        forStmt: ["for",{var:"symbol"},"in",{set:"expr"},{do:"block"}],
-        letStmt: [{left:"lval"},"=",{right:"expr"}],
-        globalStmt: ["global",{names:sep1("symbol",",")}],
-        printStmt: ["print",{values:sep1("expr",",")},{nobr:opt(",")}],
-        printStmt3: ["print", {args:"args"}],
-        lval: g.expr({
-            element: "symbol",
-            operators: [
-                ["postfix" , or("args" , "memberRef", "index") ] // (a,b)  .x
-            ]
-        }),
-        expr: g.expr({
-            element: "elem",
-            operators: [
-                //["infixr", "="  ] , //  = 右結合２項演算子
-                ["infixl", or("+=","-=","*=","/=","%=")],
-                ["infixl", or("or")  ] ,
-                ["infixl", or("and")  ] ,
-                ["infixl", or(">=","<=","==","!=",">","<")  ] , //  + -  左結合２項演算子
-                ["infixl", or("+","-")  ] , //  + -  左結合２項演算子
-                ["infixl", or("*","/","%")  ] , //  * 左結合２項演算子
-                ["infixl", or("**")],
-                ["prefix",or("!","-")],
-                ["postfix" , or("args" , "memberRef","index") ] , // (a,b)  .x
-            ]
-        }),
-        memberRef: [".",{name:"symOrResv"}],
-        args: ["(",{body:sep0("arg",",")},")"],
-        array: ["[",{body:sep0("expr",",")},"]"],
-        index: ["[",{body:sep1("expr",":")},"]"],
-        arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
-        block: [":indent",{body:"stmtList"},"dedent"],
-        elem: or("symbol","number","array","literal","paren"),
-        paren: ["(",{body:"expr"},")"],
-        indent: tk("indent"),
-        dedent: tk("dedent"),
-        nodent: tk("nodent"),
-        symOrResv: or(...reserved.concat(["symbol"])),
-    };
-    for (const k in tdef) {
-        if (!k.match(/^\$/) && !gdef[k]) gdef[k]=tk(k);
-    }
-    for (const k of reserved) {
-        if (!gdef[k]) gdef[k]=tk(k);
-    }
-
-    //console.log("gdef",gdef);
-    g.def(gdef);
-    //console.log("gdefed",g);
-    g.Tokenizer=Tokenizer;
-    g.parse=function (srcFile) {
-        let src=srcFile.text();
-        src=src.replace(/\s*$/,"\n");
-        const t=new g.Tokenizer(src);
-        let tks;
-        try {
-            tks=t.tokenize();
-        }catch (er) {
-            const e=new Error("字句エラー："+er.message+" "+srcFile.name());
-            //e.noTrace=true;
-            throw e;
-        }
-        //console.log("G.parse.T",tks);
-        const s=P.TokensParser.parse(g.get("program"),tks);
-        //console.log("G.Parse.res",s);
-        if (!s.success) {
-            var ert=tks[s.src.maxPos];
-            //console.error("Err",s.src.maxPos,ert.row,ert.col);
-            const e=new Error("文法エラー："+srcFile.name()+":"+ert.row+":"+ert.col);//,ert.pos);//+ert.row+":"+ert.col);
-            //e.noTrace=true;
-            throw e;
-        }
-        return s.result[0];
-    };
-    //console.log(g.genVisitorTemplate());
-    return g;
 });
 
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -5501,6 +5730,7 @@ return IndentBuffer=function (options) {
 
 define('PythonGen',["Visitor","IndentBuffer"],
 function (Visitor,IndentBuffer) {
+    const BAWRAPPER="bawrapper";
     const vdef={
         program: function (node) {
             this.visit(node.body);
@@ -5569,6 +5799,12 @@ function (Visitor,IndentBuffer) {
         args: function (node) {
             this.printf("(%j)",[",",node.body]);
         },
+        tuple: function (node) {
+            this.printf("(%j)",[",",node.body]);
+        },
+        tupleLval: function (node) {
+            this.printf("(%j)",[",",node.body]);
+        },
         array: function (node) {
             this.printf("[%j]",[",",node.body]);
         },
@@ -5609,19 +5845,31 @@ function (Visitor,IndentBuffer) {
         },
         breakStmt: function (node) {
             this.printf("break")
+        },
+        symbol: function (node) {
+            var a=this.anon.get(node);
+            if (a.scopeInfo && a.scopeInfo.builtin) {
+                this.printf("%s._%s", BAWRAPPER,node+"");
+            } else {
+                this.printf("%s",node+"");
+            }
+        },
+        not: function(node) {
+            this.printf("not ");
         }
     };
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**",
-      ">","<","=",".",":","+","-","*","/","%","(",")",",","!",
-      "number","symbol","literal","and","or"];
+      ">","<","=",".",":","+","-","*","/","%","(",")",",",
+      "number","literal","and","or"];
     for (const ve of verbs) {
         vdef[ve]=function (node) {
             //console.log("verb",node);
             this.printf("%s",node+"");
         };
     }
-    function gen(node,options={}) {
+    function gen(node,anon,options={}) {
         const v=Visitor(vdef);
+        v.anon=anon;
         v.importable=options.importable||{};
         //console.log("IMP",v.importable);
         v.def=function (node) {

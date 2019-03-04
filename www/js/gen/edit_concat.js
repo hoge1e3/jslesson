@@ -17138,21 +17138,27 @@ define('ctrl',[], function () {
     return ctrl;
 });
 
-define('AssetDialog',["Klass","UI","ctrl","WebSite","DragDrop"], function (Klass,UI,ctrl,WebSite,DragDrop) {
-    var res={};
-    AssetDialog=Klass.define({
+/*global window,self,global*/
+define('root',[],function (){
+    if (typeof window!=="undefined") return window;
+    if (typeof self!=="undefined") return self;
+    if (typeof global!=="undefined") return global;
+    return (function (){return this;})();
+});
+
+define('AssetDialog',["Klass","UI","ctrl","WebSite","DragDrop","root"],
+function (Klass,UI,ctrl,WebSite,DragDrop,root) {
+    //var res={};
+    root.AssetDialog=Klass.define({
         $this: "t",
         $: ["prj"],
         show: function (t) {
             t.createDOM();
-            /*if (!r) return;
-            t.result.text(r.result);
-            t.comment.val(r.comment);*/
             t.dom.dialog({width:600});
         },
         refresh: function (t,mesg) {
             console.log("refresh",mesg);
-            ctrl.get("Asset/list").then(function (r) {
+            ctrl.get("Asset/list",{context:t.context}).then(function (r) {
                 t.list.empty();
                 r.forEach(function (u) {
                     var fileName=u.replace(/[^\/]+\//,"");
@@ -17163,7 +17169,8 @@ define('AssetDialog',["Klass","UI","ctrl","WebSite","DragDrop"], function (Klass
                     ));
                     function del() {
                         console.log("DEL",fileName);
-                        ctrl.get("Asset/del",{fileName:fileName}).then(t.$bind.refresh,err);
+                        ctrl.get("Asset/del",{fileName:fileName,context:t.context}).
+                        then(t.$bind.refresh,err);
                     }
                 });
             }).catch(err);
@@ -17171,13 +17178,26 @@ define('AssetDialog',["Klass","UI","ctrl","WebSite","DragDrop"], function (Klass
         createDOM: function (t) {
             if (t.dom) return t.dom;
             var dragMsg="ここに素材ファイルをドラッグ＆ドロップして追加．";
-            var notice="※プログラムファイルはこのページ左端のファイル一覧にドラッグ＆ドロップしてください．"
+            var notice="※プログラムファイルはこのページ左端のファイル一覧にドラッグ＆ドロップしてください．";
             var dragPoint=UI("div",
                 {style:"margin:10px; padding-left:10px; padding-right:10px; padding-top:10px; padding-bottom:10px; border:solid blue 2px;"},
                 dragMsg,["br"],
                 notice,["br"]
             );
+            function toggleB(ctx) {
+                var cap={personal:"(自分用)",shared:"(クラスで共有)"};
+                return ["button",{
+                    $var:ctx,
+                    on:{click:function() {
+                        t.toggleContext(ctx);
+                    }}},
+                    ctx+cap[ctx]
+                ];
+            }
             t.dom=UI("div",{title:"素材管理"},
+                ["div",
+                    toggleB("personal"),toggleB("shared")
+                ],
                 ["div",{$var:"content"},
                     dragPoint,
                     ["div",{$var:"list",style:"height: 400px; overflow-y:scroll"}]
@@ -17189,8 +17209,17 @@ define('AssetDialog',["Klass","UI","ctrl","WebSite","DragDrop"], function (Klass
             t.result=t.dom.$vars.result;
             t.comment=t.dom.$vars.comment;
             t.list=t.dom.$vars.list;
-            t.refresh();
+            //t.refresh();
+            t.toggleContext("personal");
             return t.dom;
+        },
+        toggleContext: function (t,ctx) {
+            if (t.prevCtxBtn) t.prevCtxBtn.removeClass("selected");
+            var b=t.dom.$vars[ctx];
+            b.addClass("selected");
+            t.prevCtxBtn=b;
+            t.context=ctx;
+            t.refresh();
         },
         complete: function (t,status) {
             var cnt=0;
@@ -17200,73 +17229,234 @@ define('AssetDialog',["Klass","UI","ctrl","WebSite","DragDrop"], function (Klass
                 //var fileContent=file.bytes();
                 var blob=file.getBlob();//new Blob([fileContent],{type:"application/octet-stream"});
                 cnt++;
-                sendImageBinary(blob,file.name()).then(function (r) {
-                    console.log(r);
-                },function (e) {
-                    console.error(e);
-                }).done(dec);
+                t.sendImageBinary(blob,file.name()).then(log,err).done(dec);
             }
+            function log(r){console.log(r);}
+            function err(r){console.error(r);}
             function dec() {
                 cnt--;
                 if (cnt<=0) t.refresh();
             }
+        },
+        sendImageBinary:function (t,blob,fn) {
+            var formData = new FormData();
+            formData.append('acceptImage', blob,fn);
+            formData.append("context",t.context);
+            return $.ajax({
+                type: 'POST',
+                url: ctrl.url("Asset/upload"),
+                data: formData,
+                contentType: false,
+                processData: false
+            });
         }
     });
     function err(e) {
         if (e&&e.responseText) console.error(e.responseText);
         console.error(e);
     }
-    function sendImageBinary(blob,fn) {
-        var formData = new FormData();
-        formData.append('acceptImage', blob,fn);
 
-        return $.ajax({
-            type: 'POST',
-            url: ctrl.url("Asset/upload"),
-            data: formData,
-            contentType: false,
-            processData: false
-        });
-    }
-    /*function dropAdd(e) {
-        var eo=e.originalEvent;
-        var files = Array.prototype.slice.call(eo.dataTransfer.files);
-        var added=[],cnt=files.length;
+    return root.AssetDialog;
+});
 
-        files.forEach(function (file) {
-            var itemName=file.name;
-            console.log("FILEASSET",file);
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                var fileContent = reader.result;
-                var upmesg;
-                var blob=new Blob([fileContent],{type:"application/octet-stream"});
-                sendImageBinary(blob,itemName).then(function (r) {
-                    console.log(r);
-                },function (e) {
-                    console.error(e);
-                });
-            };
-            reader.readAsArrayBuffer(file);
-        });
-        function dec() {
-            cnt--;
-            if (cnt<=0) {
-                options.onAdd(added);
-            }
+define('Pos2RC',["Klass"],function (Klass){
+return Klass.define({
+    $: function(src,origin) {
+        if (origin==null) this.origin=1;// or 0
+        else this.origin=origin;
+        var t=this;
+        t.src=src;
+        t.map=[];
+    	t.lastRow=0;
+        var pos=0;
+    	src.split("\n").forEach(function (line) {
+    		t.map.push(pos);
+    		pos+=line.length+1;
+    	});
+    	t.map.push(t.pos);
+    },
+    getRC:function(pos) {
+        var t=this;
+        var origin=t.origin;
+		while(true) {
+			if (t.lastRow<0) {
+                t.lastRow=0;
+				return {row:origin, col:origin};
+			}
+			if (t.lastRow+1>=t.map.length) {
+                t.lastRow=t.map.length-2;
+				return {row:t.map.length+origin, col:origin};
+			}
+			//A(!( pos<map[lastRow]  &&  map[lastRow]<=pos ));
+			//A(!( map[lastRow+1]<=pos  &&  pos<map[lastRow+1] ));
+			if (pos<t.map[t.lastRow]) {
+				t.lastRow--;
+			} else if (t.map[t.lastRow+1]<=pos) {
+				t.lastRow++;
+			} else {
+				return {row:t.lastRow+origin, col:pos-t.map[t.lastRow]+origin};
+			}
+		}
+	},
+    getPos: function (row,col) {
+        // Although the class name Pos2RC.
+        var t=this;
+        var pos=0;
+        var lines=t.src.split("\n");
+        for (var i=0 ; i<lines.length && i+t.origin<row ; i++) {
+            pos+=lines[i].length+1;
         }
-        e.stopPropagation();
-        e.preventDefault();
-        return false;
+        pos+=col-t.origin;
+        return pos;
+    },
+    getAll: function (p) {
+        if (typeof p==="object") {
+            var n=this.getPos(p.row,p.col);
+            return {pos:n, row:p.row, col:p.col};
+        } else if (typeof p==="number"){
+            var r=this.getRC(p);
+            r.pos=p;
+            return r;
+        } else {
+            throw new Error("Invalid position type: "+p);
+        }
     }
-    function s(e) {
-        e.stopPropagation();
-        e.preventDefault();
-    }*/
+});
+});
 
-    return AssetDialog;
-})
-;
+define('UserAgent',["root"],function (root) {
+    return {
+        isFirefox:root.navigator.userAgent.indexOf("Firefox")>=0,
+        isChrome:navigator.userAgent.indexOf("Chrome")>=0
+    };
+});
+
+define('ErrorDialog',["Klass","FS","UI","Pos2RC","UserAgent"],
+function (Klass,FS,UI,Pos2RC,ua) {
+    var regrc=/:([0-9]+):([0-9]+)/;
+    //function unknownF(){return "不明";}
+    var bytes=function(s) {
+        try {
+            var r="",noconv;
+            for(var i=0;i<s.length;i++) {
+                var c=s.charCodeAt(i);
+                if (c>=256) noconv=true;
+                r+="%"+(c.toString(16));
+            }
+            return noconv?s:decodeURIComponent(r);
+        }catch(e) {
+            console.log(e, s);
+            return s;
+        }
+    };
+    return Klass.define({
+        $this:"t",
+        decodeTrace: function (t,e) {
+            var stack=e.stack+"";
+            if (ua.isChrome) {
+                stack=(""+stack).split("\n").map(bytes).join("\n");
+            }
+            if (ua.isFirefox) {
+                stack=(e+"\n"+stack).replace(/\\u([0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])/g,function (_,c) {
+                    return String.fromCharCode("0x"+c);
+                });
+            }
+            return stack.split("\n").map(function (line) {
+                var r=regrc.exec(line);
+                var res={line:line};
+                if (r) {
+                    res.row=r[1];
+                    res.col=r[2];
+                    var before=line.substring(0,r.index);
+                    var pathCand;
+                    for (var i=before.length-1; i>=0;i--) {
+                        if (before[i]==="/" || before[i]==="\\") {
+                            var path=before.substring(i);
+                            try {
+                                if (FS.get(path).exists()) {
+                                    pathCand=path;
+                                }
+                            } catch(e){console.error(e);}
+                        }
+                    }
+                    if (pathCand) {
+                        res.file=FS.get(pathCand);
+                    }
+                }
+                return res;
+            });
+        },
+        show: function (t, mesg, src, pos, trace) {
+            if (mesg && mesg.stack) {
+                var tr=t.decodeTrace(mesg);
+                for (var i=0;i<tr.length;i++) {
+                    if (tr[i].file) {
+                        var cve=tr[i].file.name()+"の"+
+                        tr[i].row+"行目"+tr[i].col+"文字目付近でエラーが発生しました";
+                        return t.show(cve,tr[i].file, tr[i] , mesg.stack);
+                    }
+                }
+                src=mesg.src;
+                pos=mesg.pos;
+                //console.log(mesg,mesg.stack);
+                trace=mesg.stack;
+                mesg=mesg+"";
+            }
+            var elem=t.createDom();
+            t.mesgd.text(
+                mesg//+" 場所："+src.name()+(typeof row=="number"?":"+p.row+":"+p.col:"")
+            );
+            if (src && pos!=null) {
+                var str=src.text();
+                var p=new Pos2RC(str).getAll(pos);
+                t.srcd.show();
+                t.srcd.empty();
+                t.srcd.append($("<span>").text(str.substring(0,p.pos)));
+                t.srcd.append($("<img>").attr("src",FS.expandPath("${sampleImg}/ecl.png")));//MODJSL
+                t.srcd.append($("<span>").text(str.substring(p.pos)));
+            } else {
+                t.srcd.hide();
+            }
+            if (!trace) {
+                t.traceb.hide();
+                t.traced.hide();
+            } else {
+                t.traceb.show();
+                t.traced.text(trace);
+            }
+            elem.dialog({width:600,height:400});
+        },
+        createDom: function (t) {
+            if (t.dom) return t.dom;
+            var elem=$("<div>");
+            elem.attr("title","エラー");
+            t.dom=elem;
+            t.mesgd=$("<div>");
+            elem.append(t.mesgd);
+            //elem.append($("<div>").attr("class","quickFix"));
+            t.srcd=$("<pre>");
+            elem.append($("<div>").append(t.srcd));
+            t.traced=$("<pre>");
+            t.traceb=$("<button>").text("エラーの詳細...").click(t.$bind.showTrace);
+            elem.append($("<div>").
+                append(t.traceb).
+                append($("<div>").append(t.traced))
+            );
+            t.traced.hide();
+            return t.dom;
+        },
+        showTrace: function (t) {
+            if (t.traceShowing) {
+                t.traced.hide();
+            } else {
+                t.traced.show();
+            }
+            t.traceShowing=!t.traceShowing;
+        }
+    });
+});
+
+/*global requirejs*/
 requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "showErrorPos", "fixIndent",  "ProjectCompiler",
            "Shell","ShellUI","KeyEventChecker",
@@ -17276,7 +17466,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
            "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog",
            "IframeDialog","AssignmentDialog","SubmitDialog","CommentDialog2","NewProjectDialog",
-           "ProgramFileUploader","AssetDialog"
+           "ProgramFileUploader","AssetDialog","root","ErrorDialog","UserAgent"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -17287,7 +17477,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
           CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog,
           IframeDialog,AssignmentDialog,SubmitDialog,CommentDialog2,NPD,
-          ProgramFileUploader,AssetDialog
+          ProgramFileUploader,AssetDialog,root,ErrorDialog,ua
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -17305,13 +17495,28 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     }
     var curProjectDir=FS.get(dir);
     var curPrj=TPRC(curProjectDir);
-    var isFirefox=navigator.userAgent.indexOf("Firefox")>=0;
-    var isChrome=navigator.userAgent.indexOf("Chrome")>=0;
-    var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
+    /*
+    getEXT
+    getOptions
+    getPublishedURL
+    getName
+    sourceFiles
+    getOutputFile
+    env(field)
+    dir(field)-> it should be getDir
+    decodeTrace
+    method called from Builders, CommentDialog2, SubmitDialog,AssignmentDialog
+      getNamespace, setOptions, loadClasses (from TJSBuilder)
+      getResource, loadClasses (from TonyuBuilder)
+    method called from ResEditor (use from Tonyu2 Project)
+    */
+    //var isFirefox=navigator.userAgent.indexOf("Firefox")>=0;
+    //var isChrome=navigator.userAgent.indexOf("Chrome")>=0;
+    //var isChrome53=navigator.userAgent.indexOf("Chrome/53")>=0;
     var ALWAYS_UPLOAD=(localStorage.ALWAYS_UPLOAD==="true");
     console.log("ALWAYS_UPLOAD",ALWAYS_UPLOAD);
     //var useOLDC=false;
-    if (typeof BitArrow==="object") BitArrow.curProjectDir=curProjectDir.path();
+    if (root.BitArrow) root.BitArrow.curProjectDir=curProjectDir.path();
     var langList={
         "js":"JavaScript",
         "c":"C",
@@ -17326,6 +17531,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     var Builder;
     var builder;
     var ram;
+    //var scoremsg;
     function showToast(msg){
     	$("#toastArea").html(msg);
     	setTimeout(function(){
@@ -17336,8 +17542,8 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     	unsaved=false;
 	    //unsynced=false;
         return Sync.sync(curProjectDir, curProjectDir,{v:true}).then(function(r){
-            console.log("SYNCTHEN");
-            var cmtList=[];
+            console.log("SYNCTHEN",r);
+            /*var cmtList=[];
             var re= new RegExp("cmt.txt$");
             for(var i=0;i<r.downloads.length;i++){
                 if(re.test(r.downloads[i])){
@@ -17362,9 +17568,9 @@ function (Util, Tonyu, FS, FileList, FileMenu,
                 NotificationDialog.show("新しい採点結果が届いています(ファイル:"+c+")");
             }else{
                 scoremsg="";
-            }
+            }*/
             unsynced=false;
-            showToast("保存しました。"+scoremsg);
+            showToast("保存しました。");//+scoremsg);
         }).fail(function (e) {
             if (!e) e="Unknown error";
             logToServer2("","","","SYNC ERROR!",
@@ -17400,11 +17606,11 @@ function (Util, Tonyu, FS, FileList, FileMenu,
 
 function ready() {
     var F=EC.f;
-    $LASTPOS=0;
+    var JS_NOP="javascriptCOLON;".replace(/COLON/,":");
+    root.$LASTPOS=0;
     //var home=FS.resolve("${tonyuHome}");
     Tonyu.globals.$currentProject=curPrj;
     Tonyu.currentProject=curPrj;
-    //var EXT=A(curPrj.EXT);
     var EXT=curPrj.getEXT();
     var HEXT=".html";
     var opt=curPrj.getOptions();
@@ -17412,39 +17618,18 @@ function ready() {
     switch (lang){
     case "c":
         requirejs(["CBuilder"],function(_){
-            /*Builder=_;
-            console.log("cb requirejsed");
-            $("#fullScr").attr("href","javascript:;").text("別ページで表示");
-            ram=FS.get("/ram/build/");
-            FS.mount(ram.path(),"ram");
-            builder=new Builder(curPrj, ram);
-            window.BABuilder=builder;
-            console.log("c builderready");*/
             setupBuilder(_);
         });
         helpURL="http://bitarrow.eplang.jp/index.php?c_use";
     	break;
     case "js":
     	requirejs(["TJSBuilder"],function(_){
-    	    /*Builder=_;
-    	    console.log("tjsb requirejsed");
-    	    $("#fullScr").attr("href","javascript:;").text("別ページで表示");
-            ram=FS.get("/ram/build/");
-            FS.mount(ram.path(),"ram");
-            builder=new Builder(curPrj, ram);
-    	    console.log("builderready");*/
             setupBuilder(_);
     	});
     	helpURL="http://bitarrow.eplang.jp/index.php?javascript";
     	break;
     case "dtl":
     	requirejs(["DtlBuilder"],function(_){
-    	    /*Builder=_;
-    	    console.log("dtlb requirejsed");
-    	    $("#fullScr").attr("href","javascript:;").text("別ページで表示");
-            ram=FS.get("/ram/build/");
-            FS.mount(ram.path(),"ram");
-            builder=new Builder(curPrj, ram);*/
             setupBuilder(_);
     	});
     	helpURL="http://bitarrow.eplang.jp/index.php?dolittle_use";
@@ -17466,7 +17651,7 @@ function ready() {
             };
             Builder=_;
             console.log("tnub requirejsed");
-            $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+            $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
             ram=FS.get("/ram/build/");
             FS.mount(ram.path(),"ram");
             curPrj=TPRC(curProjectDir);// curPrj re-construct!!!?
@@ -17476,7 +17661,7 @@ function ready() {
         break;
     }
     function setupBuilder(BuilderClass) {
-        $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+        $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
         ram=FS.get("/ram/build/");
         FS.mount(ram.path(),"ram");
         builder=new BuilderClass(curPrj, ram);
@@ -17561,13 +17746,13 @@ function ready() {
                      ["span",{id:"curFileLabel"}],
                      ["span",{id:"modLabel"}],
                      ["span",{id:"commentLink"}],
-                     ["a",{id:"fullScr",href:"javascript:;"}],
+                     ["a",{id:"fullScr",href:JS_NOP}],
                      ["span",{id:"toastArea"}]
                   ],
                   ["div",{id:"progs"}]
               ]/*,
               ["div",{id:"runArea","class":"col-xs-5"},
-               ["div","実行結果：",["a",{id:"fullScr",href:"javascript:;"}]],
+               ["div","実行結果：",["a",{id:"fullScr",href:JS_NOP}]],
                ["iframe",{id:"ifrm",width:465,height:465}],
 	       ["div",{id:"toastArea"}]
               ]*/
@@ -17608,6 +17793,7 @@ function ready() {
         showDistMenu();
         Menu.appendMain({label:"使用方法",id:"openHelp"});
     }
+    var assetDialog;
     function upFile() {
         /*FileUploadDialog.show(curProjectDir,{
             onAdd: function (fs) {
@@ -17617,7 +17803,8 @@ function ready() {
                 sync();
             }
         });*/
-        AssetDialog().show();
+        assetDialog=assetDialog||AssetDialog();
+        assetDialog.show();
     }
     var commentDialog=new CommentDialog2(curPrj);
     var submitDialog;
@@ -17698,20 +17885,20 @@ function ready() {
     }
     function distributeFile() {
         //alert("distributeFile!");
-        curPrjDir=curProjectDir.name();
+        var curPrjName=curProjectDir.name();
         var inf=getCurrentEditorInfo();
         if (!inf) {
             alert("配布したいファイルを開いてください。");
             return;
         }
-        curFile=getCurrentEditorInfo().file;
+        var curFile=getCurrentEditorInfo().file;
         DistributeDialog.show(curFile.text(),function(text,overwrite){
             console.log(text,overwrite);
             $.ajax({
                 type:"POST",
                 url:WebSite.controller+"?Class/distribute",
                 data:{
-                    "prj":curPrjDir,
+                    "prj":curPrjName,
                     "file":curFile.name(),
                     "htmlText":fileSet(curFile)[0].text(),
                     "html":fileSet(curFile)[0].name(),
@@ -17730,9 +17917,9 @@ function ready() {
         });
 
     }
-    function distributePrj() {
+    /*function distributePrj() {
         alert("distributePrj!");
-    }
+    }*/
     function checkPublishedURL() {
         Auth.publishedURL(curPrj.getName()+"/").then(function (u) {
             if (window.BitArrow) window.BitArrow.publishedURL=u;
@@ -17754,7 +17941,7 @@ function ready() {
     onResize();
     var desktopEnv=loadDesktopEnv();
     window.editorTextSize=desktopEnv.editorFontSize||18;
-    var runMenuOrd=desktopEnv.runMenuOrd;
+    //var runMenuOrd=desktopEnv.runMenuOrd;
     var editors={};
 
     KeyEventChecker.down(document,"bs",F(function (e) {
@@ -17785,7 +17972,8 @@ function ready() {
     KeyEventChecker.down(document,"F9",F(run));
     KeyEventChecker.down(document,"F2",F(function(){
         stop();
-        if(progs=getCurrentEditor()) progs.focus();
+        var progs=getCurrentEditor();
+        if(progs) progs.focus();
         //console.log("F2 pressed");
     }));
     KeyEventChecker.down(document,"ctrl+s",F(function (e) {
@@ -17896,7 +18084,6 @@ function ready() {
         }
         return f;
     };
-    var refactorUI;
     FM.on.rm=function (f) {
         var fs=fileSet(f);
         for (var i=0;i<fs.length;i++) {
@@ -17959,6 +18146,7 @@ function ready() {
     }
     function fixName(name, options) {
         A.is(arguments,[String]);
+        options=options||{};
         var upcased=false;
         /*if (name.match(/^[a-z]/)) {
             name= name.substring(0,1).toUpperCase()+name.substring(1);
@@ -18008,7 +18196,6 @@ function ready() {
         }
     }
     function stop() {
-        //curPrj.stop();
         if(curth){
             try {
                 curth.kill();
@@ -18136,7 +18323,7 @@ function ready() {
     	                Tonyu.onRuntimeError(e);
     	            }
                 }).always(function () {
-        	        //$("#fullScr").attr("href","javascript:;").text("別ページで実行");
+        	        //$("#fullScr").attr("href",JS_NOP).text("別ページで実行");
                     SplashScreen.hide();
                 });
             }catch(e) {
@@ -18150,7 +18337,7 @@ function ready() {
       } else if (lang=="c") {
           try {
             SplashScreen.show();
-            $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+            $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
               DU.timeout(0).then(function () {
                   var b=builder.build({mainFile:curJSFile});
                   if (ALWAYS_UPLOAD) {
@@ -18202,7 +18389,7 @@ function ready() {
     	    try {
                 SplashScreen.show();
         	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
-    	        $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+    	        $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
                 DU.timeout(0).then(function () {
                     var b=builder.build({mainFile:curJSFile});
                     if (ALWAYS_UPLOAD) {
@@ -18246,7 +18433,7 @@ function ready() {
         } else if (lang=="tonyu") {
             try {
                 SplashScreen.show();
-                $("#fullScr").attr("href","javascript:;").text("別ページで表示");
+                $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
                 DU.timeout(0).then(function () {
                     var t=new Date().getTime();
                     return builder.build({mainFile:curJSFile}).then(function () {
@@ -18295,7 +18482,7 @@ function ready() {
             run();
         }
     };
-    var curFrameRun;
+    //var curFrameRun;
     var curth;
     window.setupFrame=function (r) {
         A.is(r,Function);
@@ -18305,8 +18492,8 @@ function ready() {
         var curFile=inf.file;
         var curFiles=fileSet(curFile);
         var curHTMLFile=curFiles[0];
-        var curJSFile=curFiles[1];
-        var ht=curHTMLFile.text();
+        //var curJSFile=curFiles[1];
+        ht=curHTMLFile.text();
         var f=curPrj.getOutputFile();
         var js=f.text();
         curth=r(ht,js, curName);
@@ -18336,11 +18523,14 @@ function ready() {
             return s;
         }
     };
+    var errorDialog=new ErrorDialog();
     EC.handleException=Tonyu.onRuntimeError=function (e) {
         if (e.type==="dialogClosed") {
             console.log(e.stack);
             return;
         }
+        errorDialog.show(e);
+        if (true) return;
         var inf=getCurrentEditorInfo();
         if (!inf) {
             console.log(e.stack);
@@ -18355,36 +18545,29 @@ function ready() {
         A(e,"Error is empty");
         var t=curPrj.env.traceTbl;
         var te;
-        var tid = t.find(e) || t.decode($LASTPOS); // user.Main:234
+        var tid = t.find(e) || t.decode(root.$LASTPOS); // user.Main:234
         if (tid) {
             te=curPrj.decodeTrace(tid);
         }
-        console.log("onRunTimeError:stackTrace1",e,e.stack,te,$LASTPOS);
+        console.log("onRunTimeError:stackTrace1",e,e.stack,te,root.$LASTPOS);
         if (te) {
             te.mesg=e;
             if (e.pluginName) {
                 alert(e.message);
             } else {
-                var diag=showErrorPos($("#errorPos"),te);
+                /*var diag=*/showErrorPos($("#errorPos"),te);
                 displayMode("runtime_error");
-                /*$("#errorPos").find(".quickFix").append(
-                        UI("button",{on:{click: function () {
-                            setDiagMode(true);
-                            diag.dialog("close");
-                            run();
-                        }}},"診断モードで実行しなおす"));*/
             }
             stop();
-            //logToServer("JS Runtime Error!\n"+te.src+":"+te.pos+"\n"+te.mesg+"\nJS Runtime Error End!");
             if (curJSFile) {
                 logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",te.src+":"+te.pos+"\n"+te.mesg,langList[lang]);
             }
         } else {
-            if (isChrome) {
+            if (ua.isChrome) {
                 e.stack=(""+e.stack).split("\n").map(bytes).join("\n");
                 //if (isChrome) { s=bytes(s); console.log("CONV",s); }
             }
-            if (isFirefox) {
+            if (ua.isFirefox) {
                 e.stack=(e+"\n"+e.stack).replace(/\\u([0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])/g,function (_,c) {
                     return String.fromCharCode("0x"+c);
                 });
@@ -18412,9 +18595,15 @@ function ready() {
             UI("div",{title:"Error",name:"runtimeErrorDialog"},"["+(mesg)+"]",
             //["button",{on:{click:function(){console.log("clicked");$("#reConsole"+reDialog).text(e.stack);}}},"詳細"],
             //["pre",{id:"reConsole"+reDialog},stack[0]+"\n"+stack[1]]).dialog({width:800});
-            ["button",{on:{click:function(){console.log("clicked");$(this).parent("div").children("pre").text(e.stack);}}},"詳細"],
+            ["button",{on:{click:function(){
+                console.log("clicked");
+                $(this).parent("div").children("pre").text(e.stack);
+            }}},"詳細"],
             ["pre",{id:"reConsole"},stack[0]+"\n"+stack[1]],
-            ["button",{on:{click:function(){console.log("onerr");$(this).parent().parent().css("display","none");}}},"閉じる"]).dialog({width:800});
+            ["button",{on:{click:function(){
+                console.log("onerr");
+                $(this).parent().parent().css("display","none");
+            }}},"閉じる"]).dialog({width:800});
             stop();
             //logToServer(e.stack || e);
             if (curJSFile) {
@@ -18422,7 +18611,7 @@ function ready() {
             }
         }
     };
-    $("#search").click(F(function () {
+    /*$("#search").click(F(function () {
         console.log("src diag");
         searchDialog.show(curProjectDir,function (info){
             fl.select(info.file);
@@ -18431,7 +18620,7 @@ function ready() {
                 if (prog) prog.gotoLine(info.lineNo);
             },50);
         });
-    }));
+    }));*/
     function close(rm) { // rm or mv
         var i=editors[rm.path()]; //getCurrentEditorInfo();
         if (i) {
@@ -18465,7 +18654,7 @@ function ready() {
             prog.moveCursorTo(cur.row, cur.column);
         }
     }
-    function reloadFromFiles() {
+    /*function reloadFromFiles() {
         for (var path in editors) {
             var inf=editors[path];
             var curFile=inf.file; //fl.curFile();
@@ -18475,7 +18664,7 @@ function ready() {
                 prog.clearSelection();
             }
         }
-    }
+    }*/
     function save() {
         var inf=getCurrentEditorInfo();
         if (!inf) return;
@@ -18552,12 +18741,12 @@ function ready() {
         if (!inf) {
             var progDOM=$("<pre>").css("height", screenH+"px").text(f.text()).appendTo("#progs");
             progDOM.attr("data-file",f.name());
-            var prog=ace.edit(progDOM[0]);
+            var prog=root.ace.edit(progDOM[0]);
             if (typeof desktopEnv.editorFontSize=="number") prog.setFontSize(desktopEnv.editorFontSize);
     	    else prog.setFontSize(18);
             //prog.setFontSize(20);
             prog.setTheme("ace/theme/eclipse");
-            defaultKeyboard=prog.getKeyboardHandler();
+            //defaultKeyboard=prog.getKeyboardHandler();
             //if(desktopEnv.editorMode=="emacs") prog.setKeyboardHandler("ace/keyboard/emacs");
             //prog.setKeyboardHandler(defaultKeyboard);
             if (f.ext()==EXT && lang=="c") {
@@ -18605,7 +18794,7 @@ function ready() {
         }*/
         $("#curFileLabel").text(f.truncExt());
     }
-    d=function () {
+    root.d=function () {
         Tonyu.currentProject.dumpJS.apply(this,arguments);
     };
     function loadDesktopEnv() {
@@ -18617,41 +18806,14 @@ function ready() {
             res={};
         }
         if (!res.runMenuOrd) res.runMenuOrd=[];
-        return desktopEnv=res;
+        desktopEnv=res;
+        return res;
     }
     function saveDesktopEnv() {
         var d=curProjectDir.rel(".desktop");
         d.obj(desktopEnv);
     }
-    $("#prjOptEditor").click(F(function () {
-        ProjectOptionsEditor(curPrj);
-    }));
-    var helpd=null;
-    /*$("#refHelp").click(F(function () {
-    	if (!helpd) helpd=WikiDialog.create(home.rel("doc/tonyu2/"));
-    	helpd.show();
-    }));*/
-    if (typeof progBar=="object") {progBar.clear();}
-    /*$("#rmPRJ").click(F(function () {
-        if (prompt(curProjectDir+"内のファイルをすべて削除しますか？削除する場合はDELETE と入力してください．","")!="DELETE") {
-            return;
-        }
-        sh.rm(curProjectDir,{r:1});
-        document.location.href="index.html";
-    }));
-    $("#mvPRJ").click(F(function () {
-        var np=prompt("新しいプロジェクトの名前を入れてください", curProjectDir.name().replace(/\//g,""));
-        if (!np || np=="") return;
-        if (!np.match(/\/$/)) np+="/";
-        var npd=curProjectDir.up().rel(np);
-        if (npd.exists()) {
-            alert(npd+" はすでに存在します");
-            return;
-        }
-        sh.cp(curProjectDir,npd);
-        sh.rm(curProjectDir,{r:1});
-        document.location.href="project.html?dir="+npd;
-    }));*/
+    if (root.progBar) {root.progBar.clear();}
     function textSize() {
         var prog=getCurrentEditor();
         var s=prompt("エディタの文字の大きさ", desktopEnv.editorFontSize||18);
@@ -18661,7 +18823,7 @@ function ready() {
         saveDesktopEnv();
         window.editorTextSize=desktopEnv.editorFontSize||18;
     }
-    function editorType() {
+    /*function editorType() {
         var prog=getCurrentEditor();
         if(prog.getKeyboardHandler()==defaultKeyboard){
             prog.setKeyboardHandler("ace/keyboard/emacs");
@@ -18672,7 +18834,7 @@ function ready() {
         }
         saveDesktopEnv();
         focusToEditor();
-    }
+    }*/
     $("#home").click(F(function () {
         save();
         goHome();
@@ -18690,6 +18852,7 @@ function ready() {
         return fl.curFile();
     };
     $(window).on("beforeunload",function(e){
+        e=e||{};
         if(unsynced || unsaved){
             return "保存されていないデータがあります。\nこれまでの作業を保存するためには一度実行してください。";
         }
@@ -18700,7 +18863,8 @@ function ready() {
     }));
     FM.onMenuStart=save;
     function focusToEditor(){
-        if(prog=getCurrentEditor()) prog.focus();
+        var prog=getCurrentEditor();
+        if(prog) prog.focus();
     }
     window.getCurrentEditorInfo=getCurrentEditorInfo;
     SplashScreen.hide();
