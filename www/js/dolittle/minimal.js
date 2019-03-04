@@ -402,7 +402,9 @@ MinimalParser= function () {
     				"throw new Error('"+mesg.replace(/\n/g,"\\n")+"');"
     				],{type:"ERROR",message:mesg});
 				} else {
-				    throw new Error(mesg);
+					var e=new Error(mesg);
+					e.pos=result.src.maxPos;
+				    throw e;
 				}
 			}
 		}

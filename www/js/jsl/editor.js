@@ -821,10 +821,9 @@ function ready() {
         $("[name=runtimeErrorDialog]").parent().css("display","none");
         displayMode("run");
         if(lang=="js"){
-    	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
-            SplashScreen.show();
-            //RunDialog2 (new version)
-            try {
+    	    try {
+                SplashScreen.show();
+                $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
                 DU.timeout(0).then(function () {
                     var b=builder.build({mainFile:curJSFile});
                     if (ALWAYS_UPLOAD) {
@@ -840,11 +839,9 @@ function ready() {
                     if (ALWAYS_UPLOAD) {
                         return Auth.publishedURL(curProjectDir.name()).then(function (pub) {
                             var runURL=pub+curHTMLFile.name();
-                            //$("<iframe>").attr({src:runURL}).dialog({width:600,height:400});
                             return IframeDialog.show(runURL,{width:600,height:400});
                         });
                     }
-                    //console.log(ram.ls());
                     var indexF=ram.rel(curHTMLFile.name());
                     RunDialog2.show(indexF,{
                         window:newwnd,
@@ -855,21 +852,20 @@ function ready() {
                 }).fail(function (e) {
                     console.log(e.stack);
     	            if (e.isTError) {
-    	                console.log("showErr: run",e);
     	                showErrorPos($("#errorPos"),e);
-    	                displayMode("compile_error");
-                        logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"JS Compile Error",e.src+":"+e.pos+"\n"+e.mesg,"JavaScript");
+    	                //displayMode("compile_error");
+                        logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),lang.toUpperCase()+" Compile Error",e.src+":"+e.pos+"\n"+e.mesg,langList[lang]);
     	            }else{
     	                Tonyu.onRuntimeError(e);
     	            }
                 }).always(function () {
-        	        //$("#fullScr").attr("href",JS_NOP).text("別ページで実行");
-                    SplashScreen.hide();
+        	        SplashScreen.hide();
+                    return sync();
                 });
             }catch(e) {
                 console.log(e.stack);
+                SplashScreen.hide();
             }
-            return sync();
             /*
             QR code
             sync
@@ -928,7 +924,6 @@ function ready() {
       }else if(lang=="dtl" || lang=="dncl" || lang=="py"){//dncl ok?
     	    try {
                 SplashScreen.show();
-        	    //logToServer("//"+curJSFile.path()+"\n"+curJSFile.text()+"\n//"+curHTMLFile.path()+"\n"+curHTMLFile.text());
     	        $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
                 DU.timeout(0).then(function () {
                     var b=builder.build({mainFile:curJSFile});
@@ -946,19 +941,21 @@ function ready() {
                     if (ALWAYS_UPLOAD) {
                         return Auth.publishedURL(curProjectDir.name()).then(function (pub) {
                             var runURL=pub+curHTMLFile.name();
-                            console.log("Run url",runURL);
                             return IframeDialog.show(runURL,{width:600,height:400});
                         });
                     }
                     var indexF=ram.rel(curHTMLFile.name());
-                    return RunDialog2.show(indexF,
-                    {window:newwnd,height:RunDialog2.geom.height||screenH-50,
-                      toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+                    return RunDialog2.show(indexF,{
+                        window:newwnd,
+                        height:RunDialog2.geom.height||screenH-50,
+                        toEditor:focusToEditor,
+                        font:desktopEnv.editorFontSize||18
+                    });
                 }).fail(function (e) {
-                    //console.log("FAIL", arguments);
-                    console.log("DTLFAIL",e,e.stack);
+                    console.log(e.stack);
                     if (e.isTError) {
                         showErrorPos($("#errorPos"),e);
+                        logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),lang.toUpperCase()+" Compile Error",e.src+":"+e.pos+"\n"+e.mesg,langList[lang]);
                     } else {
                         Tonyu.onRuntimeError(e);
                     }
