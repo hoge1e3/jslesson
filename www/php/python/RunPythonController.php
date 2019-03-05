@@ -36,6 +36,19 @@ class RunPythonController {
         //echo " BA=".BA_PUB_URL." puburlpath=$pubURLPath  /  n=$n  ext=$ext";
         return "$pubURLPath/$n$ext";
     }
+    static function convHomes($homes) {
+        if (is_array($homes)) {
+            $res=array();
+            foreach ($homes as $k=>$v) {
+                $res[$k]=self::convHomes($v);
+            }
+            return $res;
+        } else if (is_object($homes)) {
+            return $homes->nativePath();
+        } else {
+            return $homes;
+        }
+    }
     static function run(){
         $nfs=new NativeFS();
         $srcPath=param("srcPath");
@@ -65,7 +78,7 @@ class RunPythonController {
         $workDir->rel("config.json")->text(
             json_encode(array(
                 "super"=>$sp,
-                "asset"=>array(
+                "asset"=>self::convHomes($homes)/*array(
                     "user"=>array(
                         "file"=>$homes["user"]["file"]->nativePath(),
                         "url"=>$homes["user"]["url"]
@@ -74,7 +87,7 @@ class RunPythonController {
                         "file"=>$homes["class"]["file"]->nativePath(),
                         "url"=>$homes["class"]["url"]
                     )
-                )//,
+                )*///,
                 //"sharedAsset"=>$apath,
             ))
         );
