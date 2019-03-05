@@ -403,6 +403,7 @@ MinimalParser= function () {
     				],{type:"ERROR",message:mesg});
 				} else {
 					var e=new Error(mesg);
+					e.srcPath=options.srcPath;
 					e.pos=result.src.maxPos;
 				    throw e;
 				}

@@ -891,13 +891,15 @@ function ready() {
                       });
                   }
                   var indexF=ram.rel(curHTMLFile.name());
-                  console.log("screenH",screenH);
-                  return RunDialog2.show(indexF,
-                  {window:newwnd,height:RunDialog2.geom.height||screenH-50,
-                    toEditor:focusToEditor,font:desktopEnv.editorFontSize||18});
+                  return RunDialog2.show(indexF,{
+                      window:newwnd,
+                      height:RunDialog2.geom.height||screenH-50,
+                      toEditor:focusToEditor,
+                      font:desktopEnv.editorFontSize||18
+                  });
               }).fail(function (e) {
-                  //var eobj={stack:e.stack,message:e+""};
-                  //for (var k in e) eobj[k]=e[k];
+                  //logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Compile Error",e,"C");
+                  //errorDialog.show(e);
                   if (e.pos) {
                       logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Compile Error",e,"C");
                       var te=TError(e+"",curJSFile, e.pos);

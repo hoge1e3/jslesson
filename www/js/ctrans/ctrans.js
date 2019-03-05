@@ -54,6 +54,7 @@ _global.MinimalParser= function () {
         var e=new Error(mesg);
         e.errorType=mesgTmpl;
         e.errorParams=params;
+        e.srcPath=ctx.srcPath;
 	    e.pos=node && node.pos;
 	    if (!e.pos) {
     	    console.log("newerror2 Warning no node info in",node);
@@ -1604,20 +1605,29 @@ extern char* strstr(char *h,char *n);
 	};
 
 
-	parser.parse=function (str) {
+	parser.parse=function (src) {
+        var str;
+        if (typeof src==="string") {
+            str=src;
+        } else if (src && src.text) {
+            str=src.text();
+        } else {
+            throw new Error("Invalid src "+src);
+        }
 	    startSeq=0;
 		defines={RAND_MAX:0x7fffffff};
 		var output="";
 		errors=[];
 		typeDefs=[];
 		str+="\n";
-		var preLines=str.split("\n").length;
+		//var preLines=str.split("\n").length;
 		var preLength=str.length;
 		var processed=preprocess(str);
 		console.log("processed",processed);
 		var postLength=processed.length;
-		var postLines=processed.split("\n").length;
+		//var postLines=processed.split("\n").length;
 		ctx=context();
+        ctx.srcPath=src.path && src.path();
 		var result;
 		try {
     		result=program.parseStr(processed);
@@ -1631,6 +1641,7 @@ extern char* strstr(char *h,char *n);
     			var parseErr=new Error("文法エラーがあります．");//\n"+pos.row+"行目付近を確認してください。");
                 parseErr.errorType="文法エラーがあります．";
                 parseErr.errorParams=[];
+                parseErr.srcPath=ctx.srcPath;
                 parseErr.pos=correctPos(result.src.maxPos);
     			errors.unshift(parseErr);
     		}
@@ -1656,7 +1667,7 @@ extern char* strstr(char *h,char *n);
 		}
         _global.lastOutput=output;
     	return output;
-    	function rowcol(p) {
+    	/*function rowcol(p) {
 			var max=processed.substring(0,p);
 			//var lines=max.match(/\n/g);
 			var lines=max.split("\n");
@@ -1664,7 +1675,7 @@ extern char* strstr(char *h,char *n);
 			var line=lines.length;
 			var before=lines.join("\n").length;
 			return {row:line+1-(postLines-preLines),col:p-before+1};
-    	}
+    	}*/
     	function correctPos(p) {
     	    var s=processed.substring(0,p);
     	    s=s.replace(/\s*$/,"");

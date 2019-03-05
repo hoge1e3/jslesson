@@ -64,6 +64,9 @@ function (Klass,FS,UI,Pos2RC,ua) {
                     }
                 }
                 src=mesg.src;
+                if (!src && mesg.srcPath) {
+                    src=FS.get(mesg.srcPath);
+                }
                 pos=mesg.pos;
                 //console.log(mesg,mesg.stack);
                 trace=mesg.stack;
