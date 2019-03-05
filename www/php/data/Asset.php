@@ -6,13 +6,13 @@ class Asset{
     }
     static function homes() {
         return array(
-            "personal"=>self::home("personal"),
-            "shared"=>self::home("shared")
+            "user"=>self::home("user"),
+            "class"=>self::home("class")
         );
     }
     static function home($context) {
         $class=Auth::curClass2();
-        if ($context==="personal") {
+        if ($context==="user") {
             $u=Auth::curUser2();
             $context=$u->name;
         }

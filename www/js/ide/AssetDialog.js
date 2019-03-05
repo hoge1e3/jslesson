@@ -37,7 +37,7 @@ function (Klass,UI,ctrl,WebSite,DragDrop,root) {
                 notice,["br"]
             );
             function toggleB(ctx) {
-                var cap={personal:"(自分用)",shared:"(クラスで共有)"};
+                var cap={user:"(自分用)",class:"(クラスで共有)"};
                 return ["button",{
                     $var:ctx,
                     on:{click:function() {
@@ -48,7 +48,7 @@ function (Klass,UI,ctrl,WebSite,DragDrop,root) {
             }
             t.dom=UI("div",{title:"素材管理"},
                 ["div",
-                    toggleB("personal"),toggleB("shared")
+                    toggleB("user"),toggleB("class")
                 ],
                 ["div",{$var:"content"},
                     dragPoint,
@@ -62,7 +62,7 @@ function (Klass,UI,ctrl,WebSite,DragDrop,root) {
             t.comment=t.dom.$vars.comment;
             t.list=t.dom.$vars.list;
             //t.refresh();
-            t.toggleContext("personal");
+            t.toggleContext("user");
             return t.dom;
         },
         toggleContext: function (t,ctx) {

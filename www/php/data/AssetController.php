@@ -3,7 +3,7 @@ req("auth","Published","Asset");
 class AssetController {
 
     static function upload() {
-        $context=param("context","shared");
+        $context=param("context","user");
         $fn=$_FILES['acceptImage']['name'];
         $home=Asset::home($context);
         $h=$home["file"];
@@ -17,7 +17,7 @@ class AssetController {
         echo preg_replace("/\/+/","/", $s->relPath(self::pub()) );
     }
     static function list() {
-        $context=param("context","shared");
+        $context=param("context","user");
         $home=Asset::home($context);
         $h=$home["file"];
         $res=array();
@@ -31,7 +31,7 @@ class AssetController {
         print json_encode($res);
     }
     static function del() {
-        $context=param("context","shared");
+        $context=param("context","user");
         $fn=param("fileName");
         $home=Asset::home($context);
         $h=$home["file"];
