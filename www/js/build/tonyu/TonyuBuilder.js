@@ -1,5 +1,5 @@
-define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync"],
-        function (FS,Util,WebSite,plugins,sh,Tonyu,Sync) {
+define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditor"],
+        function (FS,Util,WebSite,plugins,sh,Tonyu,Sync,ResEditor) {
     var MkRun=function (prj, dst) {
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
@@ -132,5 +132,15 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync"],
     p.upload=function (pub) {
         return Sync.sync(this.dst,pub,{excludes:["images/","sounds/"]});
     };
+    p.addMenu=function (Menu) {
+        Menu.appendSub(
+            {label:"ツール",id:"tool",after:$("#config")},
+            {label:"画像リスト",id:"imageList",action:this.showImageList.bind(this)}
+        );
+    };
+    p.showImageList=function () {
+        ResEditor(this.prj,"image");
+    };
+
     return MkRun;
 });

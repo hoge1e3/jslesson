@@ -212,6 +212,7 @@ function ready() {
     }
     function builderReady() {
         window.curPrj=curPrj;
+        if (builder.addMenu) builder.addMenu(Menu);
         autoexec();
         autologexec();
         autosubexec();
@@ -319,7 +320,7 @@ function ready() {
                   ]*/},
                   {label:"保存",id:"save"},
                   //{label:"提出",id:"submit"},
-                  {label:"設定",sub:[
+                  {label:"設定",id:"config",sub:[
                       {label:"エディタの文字の大きさ",id:"textsize",action:textSize}/*,
                       {label:"エディタモード切替",id:"editorType",action:editorType}*/
                   ]}
@@ -331,7 +332,7 @@ function ready() {
                 //$("#submit").click(submit);
             }
         });
-        showToolMenu();
+        //showToolMenu();
         showDistMenu();
         Menu.appendMain({label:"使用方法",id:"openHelp"});
     }
@@ -356,7 +357,7 @@ function ready() {
         if (!inf || !inf.file) return alert("提出するファイルを開いてください");
         submitDialog.show(inf.file);
     }
-    function showFileList() {
+    /*function showFileList() {
         function cjsFileHome() {
         	var d;
         	if (window.BitArrow && typeof window.BitArrow.publishedURL==="string") {
@@ -372,15 +373,15 @@ function ready() {
             console.log(e.stack);
             alert(e);
         });
-    }
-    function showImageList() {
+    }*/
+    /*function showImageList() {
         DU.requirejs(["ResEditor"]).then(function (ResEditor) {
             ResEditor(curPrj,"image");
         }).fail(function (e) {
             console.log(e.stack);
             alert(e);
         });
-    }
+    }*/
     function showDistMenu(){
         if(Auth.teacher){
             Menu.appendMain(
@@ -409,7 +410,7 @@ function ready() {
         var inf=getCurrentEditorInfo();
         assignmentDialog.show(inf && inf.file);
     }
-    function showToolMenu() {
+    /*function showToolMenu() {
         if (lang==="tonyu") {
             Menu.appendSub(
                 {label:"ツール",id:"tool"},
@@ -424,7 +425,7 @@ function ready() {
         } else {
             //$("#tool").css("display","none");
         }
-    }
+    }*/
     function distributeFile() {
         //alert("distributeFile!");
         var curPrjName=curProjectDir.name();

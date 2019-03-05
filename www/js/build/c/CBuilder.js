@@ -1,5 +1,5 @@
-define(["assert","DeferredUtil","wget", "cCompiler","IndentBuffer","Sync","FS","SplashScreen"],
-function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
+define(["assert","DeferredUtil","wget", "cCompiler","IndentBuffer","Sync","FS","SplashScreen","FileBrowser"],
+function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen,FileBrowser) {
     CBuilder=function (prj, dst) {
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
@@ -165,5 +165,26 @@ function (A,DU,wget,compile,IndentBuffer,Sync,FS,SplashScreen) {
             //BABuilder.silentRun(FS.get("/ram/build/P0414_2.html"),{stdin:"20\n15\n"}).then(function (r){console.log("R",r);},function (r){console.log("E",r);});
         });
     };
+    p.addMenu=function (Menu) {
+        Menu.appendSub(
+            {label:"ツール",id:"tool",after:$("#config")},
+            {label:"ファイルブラウザ",id:"fileList",action:this.showFileList.bind(this)}
+        );
+    };
+    p.showFileList=function showFileList() {
+        function cjsFileHome() {
+        	var d;
+        	if (window.BitArrow && typeof window.BitArrow.publishedURL==="string") {
+        		var a=window.BitArrow.publishedURL.replace(/\/$/,"").split("/");
+        		d=a.pop();
+        	}
+        	if (!d) d="unknown";
+        	return FS.get("/c-js/").rel(d+"/");
+        }
+        FileBrowser.show(cjsFileHome() ,{l:true});
+    };
+
+
+
     return CBuilder;
 });
