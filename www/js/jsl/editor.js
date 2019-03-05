@@ -189,12 +189,14 @@ function ready() {
                 run: {mainClass: "Main", bootClass: "Boot"},
                 kernelEditable: false
             };
+            ALWAYS_UPLOAD=true;
             Builder=_;
             console.log("tnub requirejsed");
             $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
             ram=FS.get("/ram/build/");
             FS.mount(ram.path(),"ram");
             curPrj=TPRC(curProjectDir);// curPrj re-construct!!!?
+            root.tprj=curPrj;
             builder=new Builder(curPrj, ram);
             curPrj.getPublishedURL().then(builderReady);
         });
@@ -866,7 +868,7 @@ function ready() {
                 console.log(e.stack);
                 SplashScreen.hide();
             }
-      } else */if (lang=="c") {
+      } else if (lang=="c") {
           try {
             SplashScreen.show();
             $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
@@ -919,7 +921,7 @@ function ready() {
               SplashScreen.hide();
           }
 
-      }else if(lang=="js"||lang=="dtl" || lang=="dncl" || lang=="py"){//dncl ok?
+      }else */if(lang=="c"|| lang=="js"||lang=="dtl" || lang=="dncl" || lang=="py"||lang=="tonyu"){//dncl ok?
     	    try {
                 SplashScreen.show();
     	        $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
@@ -938,7 +940,7 @@ function ready() {
                     logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Run","実行しました",langList[lang]);
                     if (ALWAYS_UPLOAD) {
                         return Auth.publishedURL(curProjectDir.name()).then(function (pub) {
-                            var runURL=pub+curHTMLFile.name();
+                            var runURL=pub+(lang=="tonyu"?"index.html": curHTMLFile.name());
                             return IframeDialog.show(runURL,{width:600,height:400});
                         });
                     }
@@ -965,7 +967,7 @@ function ready() {
 	            if(e) console.log(e.stack);
                 SplashScreen.hide();
             }
-        } else if (lang=="tonyu") {
+        }/* else if (lang=="tonyu") {
             try {
                 SplashScreen.show();
                 $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
@@ -1007,7 +1009,7 @@ function ready() {
                 if(e) console.log(e.stack);
                 SplashScreen.hide();
             }
-        }
+        }*/
     }
     window.moveFromFrame=function (name) {
         A.is(name,String);

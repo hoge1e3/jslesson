@@ -65,7 +65,7 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync"],
             //var runScr2=tonyuLibDir.rel("gen/runScript2_concat.js");
             return $.when(
                 usrjs.copyTo(dest.rel("js/concat.js")),
-                usrjsmap.copyTo(dest.rel("js/concat.js.map")),
+                usrjsmap.copyTo(dest.rel("js/concat.js.map"))
                 //kerjs.copyTo(dest.rel("js/kernel.js"))//,
                 //runScr2.copyTo(dest.rel("js/runScript2_concat.js"))
             );

@@ -9,7 +9,8 @@ class BlobController {
 		$class=$user->_class;
 		$urlFrac=Published::getURL($class->id,$user->name,$project);
 		$uploadfile=BA_PUB."/".$urlFrac.$path;
-		mkdir(dirname($uploadfile), 0777, true);
+		$dir=dirname($uploadfile);
+		if (!file_exists($dir)) mkdir($dir, 0777, true);
 		if (move_uploaded_file($_FILES['theFile']['tmp_name'], $uploadfile)) {
 			echo "Uploaded to $uploadfile";
 		} else {
