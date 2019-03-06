@@ -105,8 +105,8 @@ var reqConf={
                     //"ctrans/compiler",
                     //"ctrans/context",
                     "ctrans/ctrans",
-                    "ctrans/jsgen",
-                    "ctrans/lib"
+                    "ctrans/jsgen"
+                    //"ctrans/lib"
                 ],
                 exports:"compile"
             }

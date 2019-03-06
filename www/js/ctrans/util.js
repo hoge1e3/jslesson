@@ -1,15 +1,17 @@
-window.supportsAsync=false;
+(function(){
+var _global=(typeof window!=="undefined" ? window : global);
+_global.supportsAsync=false;
 try {
     f=new Function ("var a=async function (){};");
     f();
-    window.supportsAsync=true;
+    _global.supportsAsync=true;
 }catch(e){
 }
-function LocalVariables() {
+_global.LocalVariables=function LocalVariables() {
     if (!(this instanceof LocalVariables)) return new LocalVariables();
     this.__addresses={};
 }
-LocalVariables.prototype={
+_global.LocalVariables.prototype={
     __getAddress: function (name,vtype) {
         var a=this.__addresses;
         if (!a[name]) a[name]=pointer.inc(vtype.sizeOf());
@@ -17,7 +19,9 @@ LocalVariables.prototype={
     }
 };
 var STRUCT_TYPE="#struct_type",SYM_ADDR="#ADDR";
-function StructObj(vtype) {
+_global.STRUCT_TYPE=STRUCT_TYPE;
+_global.SYM_ADDR=SYM_ADDR;
+_global.StructObj=function StructObj(vtype) {
     var hasDust=true; // TODO
     if (!(this instanceof StructObj)) return new StructObj(vtype);
     this[STRUCT_TYPE]=vtype;
@@ -39,8 +43,8 @@ function StructObj(vtype) {
     } else {
         throw new Error("Type should be set");
     }
-}
-function copyStruct(src) {
+};
+_global.copyStruct=function copyStruct(src) {
     var res=StructObj(src[STRUCT_TYPE]);
     for (var k in src) {
         if (k===STRUCT_TYPE) continue;
@@ -51,8 +55,8 @@ function copyStruct(src) {
     function isStruct(o) {
         return o instanceof StructObj;
     }
-}
-function copyArray(dst,src,vtype) {
+};
+_global.copyArray=function copyArray(dst,src,vtype) {
     var e=vtype.e;
     for (var i=0;i<vtype.length;i++) {
         var v=src.offset(i).read();
@@ -61,8 +65,8 @@ function copyArray(dst,src,vtype) {
         else dst.offset(i).write(v);
     }
     return dst;
-}
-function copyStruct2(dst,src,vtype) {
+};
+_global.copyStruct2=function copyStruct2(dst,src,vtype) {
     //console.log("CopyStruct",dst,src);
     vtype.members.forEach(function (m,i) {
         var k=m.name+"";
@@ -72,8 +76,8 @@ function copyStruct2(dst,src,vtype) {
         else dst[k]=val;
     });
     return dst;
-}
-function pointer(obj,key,vtype,ofs) {
+};
+_global.pointer=function pointer(obj,key,vtype,ofs) {
     if (obj.IS_POINTER) {
         return obj.offset(key);
     }
@@ -137,15 +141,15 @@ function pointer(obj,key,vtype,ofs) {
         addr: addr,
 		IS_POINTER:true
     };
-}
-pointer.cnt=0xfd9f33;
-pointer.inc=function (by) {
+};
+_global.pointer.cnt=0xfd9f33;
+_global.pointer.inc=function (by) {
     var s=pointer.cnt;
     pointer.cnt+=by;
     return s;
 };
 
-function promisize(p) {
+_global.promisize=function promisize(p) {
     if (typeof AsyncByGenerator=="object") {
         if (AsyncByGenerator.supportsGenerator &&
             AsyncByGenerator.isGenerator(p)) {
@@ -160,7 +164,7 @@ function promisize(p) {
     }
 }
 
-function search_scope_level(key,chk){
+_global.search_scope_level=function search_scope_level(key,chk){
 	var i=scopes.length-1;
 	for(;i>=0;i--)
 		if(scopes[i][key]!==undefined)break;
@@ -168,29 +172,29 @@ function search_scope_level(key,chk){
 	if(i>=0) return i;
 	else throw("変数"+key+"は定義されていません。");
 }
-function loop_start2(){
-    //if (window.parent) window.parent.dialogClosed=false;
-    window.startTime=new Date().getTime();
-}
-function loop_chk2() {
-    if (window.parent && window.parent.dialogClosed) {
+_global.loop_start2=function loop_start2(){
+    //if (_global.parent) _global.parent.dialogClosed=false;
+    _global.startTime=new Date().getTime();
+};
+_global.loop_chk2=function loop_chk2() {
+    if (_global.parent && _global.parent.dialogClosed) {
         var e=new Error("ダイアログが閉じられたので実行を停止しました");
         e.type="dialogClosed";
         throw e;
     }
     var now=new Date().getTime();
-    if (now-window.startTime>5000) {
-        //console.log(window.parent, window.opener);
+    if (now-_global.startTime>5000) {
+        //console.log(_global.parent, _global.opener);
         var b=confirm("ループが５秒以上続いています。\n実行を停止するにはOKを押してください。");
 	    if(b){throw new Error("実行を停止しました。");}
 		else loop_start2();
     }
-}
-function loop_start(){
+};
+_global.loop_start=function loop_start(){
 	return {time:(new Date().getTime()),count:0};
-}
+};
 
-function loop_chk(start){
+_global.loop_chk=function loop_chk(start){
 	var now=new Date().getTime();
 	start.count++;
 	if(now-start.time>5000 && start.count>10){
@@ -198,21 +202,16 @@ function loop_chk(start){
 	    if(b){throw new Error("実行を停止しました。");}
 		else start.time=new Date().getTime();
 	}
-}
+};
 
-/*function eval(){
-  var str =prompt();
-	new Function(str)();
-}*/
-
-function str_to_ch_ptr(str){
+_global.str_to_ch_ptr=function str_to_ch_ptr(str){
 	var $=[];
 	str=str+"";
 	for(var i=0;i<str.length;i++){$.push(str.charCodeAt(i));}
 	$.push(0);
 	return pointer($,0);
-}
-function ch_ptr_to_str(ptr) {
+};
+_global.ch_ptr_to_str=function ch_ptr_to_str(ptr) {
 	var line="";
 	if (typeof ptr==="string") return ptr;
 	if (ptr instanceof Array) ptr=pointer(ptr,0);
@@ -221,7 +220,7 @@ function ch_ptr_to_str(ptr) {
 	    line+=(String.fromCharCode(c));
 	}
 	return line;
-}
+};
 //obsolate
 function str_to_ch_arr(str){
 	var $=[];
@@ -240,33 +239,33 @@ function ch_arr_to_str(arr){
 
 }
 
-function param_init(arg,init){
+_global.param_init=function param_init(arg,init){
 	var res=null;
 	if(arg!==undefined&&arg!==null)res=arg;
 	else if(init!==undefined&&init!==null)res=init;
 	else throw("関数の引数が足りません。");
 	return res;
-}
-function dustValue() {
+};
+_global.dustValue=function dustValue() {
     return 0xdeadbeef;
-}
-function doNotification(mesg) {
+};
+_global.doNotification=function doNotification(mesg) {
     if (parent && parent.NotificationDialog) {
         parent.NotificationDialog.show(mesg);
     }
     console.log("doNotification",mesg);
-}
-function checkDust(v,name) {
+};
+_global.checkDust=function checkDust(v,name) {
     if (v===dustValue()) {
         doNotification("値が初期化されていない可能性があります");
     }
     return v;
-}
-function expandArray(aryptr,vtype,hasDust) {
+};
+_global.expandArray=function expandArray(aryptr,vtype,hasDust) {
     var a=aryptr.obj;
     while(a.length<vtype.length) a.push(initialValue(vtype.e,hasDust));
-}
-function initialValue(vtype,hasDust) {
+};
+_global.initialValue=function initialValue(vtype,hasDust) {
     var e;
     if (vtype instanceof CType.Array) {
         e=arrInit2(vtype.e,vtype.length,hasDust);
@@ -277,8 +276,8 @@ function initialValue(vtype,hasDust) {
     }
     pointer.inc(vtype.sizeOf());
     return e;
-}
-function arrInit2(vtype,length,hasDust){
+};
+_global.arrInit2=function arrInit2(vtype,length,hasDust){
     var res=[];
     res[SYM_ADDR]=pointer.inc(0);
     for (var i=0;i<length;i++) {
@@ -291,8 +290,8 @@ function arrInit2(vtype,length,hasDust){
         res.push(e);
     }
     return pointer(res,0,vtype);
-}
-function arrInit(){
+};
+_global.arrInit=function arrInit(){
     var a=Array.prototype.slice.call(arguments);
     if (a.length===0) return null;
     var n=a.shift();
@@ -309,9 +308,9 @@ function arrInit(){
 		}
 	}
 	return res;*/
-}
+};
 
-function constructByArrInit(vtype,data) {
+_global.constructByArrInit=function constructByArrInit(vtype,data) {
     //console.log("cbai",vtype, data.obj);
     var ary,str;
     function get(i) {
@@ -355,7 +354,7 @@ function constructByArrInit(vtype,data) {
     }
     return cast(vtype,data);
 }
-function cast(vtype,data){
+_global.cast=function cast(vtype,data){
     if (!(vtype instanceof CType.Base)) {
         console.log("ERR",vtype,": not a type");
         throw new Error(vtype+": not a type");
@@ -437,3 +436,5 @@ var casts={
 		return res;
 	},
 };
+_global.casts=casts;
+})();

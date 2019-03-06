@@ -1,51 +1,22 @@
-lineBuf=[];
-NULL=undefined;
-EOF=-1;
-function log(){
+(function () {
+var _global=(typeof window!=="undefined" ? window : global);
+_global.lineBuf=[];
+_global.NULL=undefined;
+_global.EOF=-1;
+_global.log=function log(){
 	console.log(arguments);
-}
+};
 
-// Moved to util.js
-/*function pointer(obj,key,type,ofs) {
-	if(Array.isArray(obj[key])){
-		var tmp=[];
-		ofs=ofs||0;
-		for(var i=0;i<obj[key].length;i++){
-		    (function (i) {
-    			var $={
-    				read:function(){return obj[key][i+ofs];},
-    				write:function(v){return obj[key][i+ofs]=v;},
-    				offset: function (o) {
-                	    return tmp[i+o];
-                	},
-    				type:type.split(",")[1],
-    			};
-    			tmp.push($);
-		    })(i);
-		}
-        //for(var i=0;i<tmp.length;i++)console.log(tmp[i].read());
-		return tmp;
-	}
-    return {
-        read: function () { return obj[key];},
-        write: function (v) { return obj[key]=v;},
-    	type: type,
-    	offset: function (o) {
-    	    if (typeof key!="number") throw new Error(key+": この操作はできません");
-    	    return pointer(obj,key+o,type);
-    	}
-    };
-}*/
-function cjsFileHome() {
+_global.cjsFileHome=function cjsFileHome() {
 	var d;
-	if (window.BitArrow && typeof window.BitArrow.publishedURL==="string") {
-		var a=window.BitArrow.publishedURL.replace(/\/$/,"").split("/");
+	if (typeof BitArrow!=="undefined" && typeof BitArrow.publishedURL==="string") {
+		var a=BitArrow.publishedURL.replace(/\/$/,"").split("/");
 		d=a.pop();
 	}
 	if (!d) d="unknown";
 	return FS.get("/c-js/").rel(d+"/");
-}
-function fopen(file, mode) {
+};
+_global.fopen=function fopen(file, mode) {
 	file=ch_ptr_to_str(file);
 	mode=ch_ptr_to_str(mode);
 	var f=cjsFileHome().rel(file);
@@ -74,16 +45,16 @@ function fopen(file, mode) {
 		throw new Error('fopenの第２引数には "r" "w" "a" のいずれかを指定してください．→'+mode);
 	}
 	return fp;
-}
-function fputs(str,fp) {
+};
+_global.fputs=function fputs(str,fp) {
 	if (!fp||!fp.isFP) throw new Error("fputs: 第2引数がファイルではありません");
 	if (fp.closed) throw new Error("fputs: このファイルはすでに閉じられています");
 	if (fp.mode==="r") throw new Error("読み込み中のファイルにfputsはできません");
 	str=ch_ptr_to_str(str);
 	fp.text+=str;
 	fp.pos+=str.length;
-}
-function fgets(str,len,fp) {
+};
+_global.fgets=function fgets(str,len,fp) {
 	if (!fp||!fp.isFP) throw new Error("fgets: 第3引数がファイルではありません");
 	if (fp.closed) throw new Error("fgets: このファイルはすでに閉じられています");
 	if (fp.mode!=="r") throw new Error("書き込み中のファイルにfgetsはできません");
@@ -97,20 +68,20 @@ function fgets(str,len,fp) {
 	var input=heading.substring(0,inputLen);
 	fp.pos+=inputLen;
 	return strcpy(str,str_to_ch_ptr(input));
-}
-function fclose(fp) {
+};
+_global.fclose=function fclose(fp) {
 	if (!fp||!fp.isFP) throw new Error("fclose: 引数がファイルではありません");
 	if (fp.closed) throw new Error("fclose: このファイルはすでに閉じられています");
 	fp.file.text(fp.text);
 	fp.closed=true;
-}
-function fprintf() {
+};
+_global.fprintf=function fprintf() {
 	var a=Array.prototype.slice.call(arguments);
 	var fp=a.shift();
 	var line=sprintfJS.apply(this,a);
 	return fputs(str_to_ch_ptr(line),fp);
-}
-function fscanf() {
+};
+_global.fscanf=function fscanf() {
 	var args=Array.prototype.slice.call(arguments);
 	var fp=args.shift();
 	if (!fp||!fp.isFP) throw new Error("fscanf: 第1引数がファイルではありません");
@@ -131,71 +102,33 @@ function fscanf() {
 	} while (input.trim()==="");
 	args.unshift(str_to_ch_ptr(input));
 	return sscanf.apply(this,args);
-}
-function scanfOLD(line, dest) {
-    //console.log(dest);
-	line=ch_ptr_to_str(line);
-	if (scanf.STDIN) {
-	    afterScan(scanf.STDIN.shift());
-	} else if (window.AsyncByGenerator &&
-	    window.AsyncByGenerator.supportsGenerator &&
-	    $("#console")[0]) {
-	    return new Promise(function (p) {
-	        var box=$("<input>").on("keydown",function (e) {
-	            console.log(e);
-	            if (e.originalEvent.keyCode==13) {
-	                $(this).remove();
-	                p(this.value);
-	            }
-	        });
-	        $("#console").append(box);
-	        box.focus();
-	    }).then(afterScan);
-	} else {
-        var input=prompt(lineBuf.join("")+"\n(実行を停止するには^Cを入力)","");
-        afterScan(input);
-	}
-    function afterScan(input) {
-		var val;
-    	loop_start2();
-        if (input.toLowerCase()=="^c") throw new Error("実行を停止しました");
-		printScanfLine(input+"\n");
-		//printf(str_to_ch_ptr(input+"\n"));
-    	var format=line.match(/%d|%c|%x|%#x|%lf|%f|%s/);
-    	switch(format+""){
-    	case "%d":
-    		val=parseInt(input);
-    	    break;
-    	case "%f":case "%lf":
-    		val=parseFloat(input);
-    	    break;
-    	case "%c":
-    		val=input.charCodeAt(0);
-    	    break;
-    	case "%s":
-    		val=input;
-    		var src=str_to_ch_ptr(val);
-    		strcpy(dest, src);
-    		dest=null;
-    	    break;
-    	}
-
-    	if(dest && typeof dest.write=="function") {
-    	    if (dest.type instanceof CType.Base) {
-        		dest.write(cast(dest.type,val));
-    	    } else {
-        		dest.write(val);
-    	    }
-    	}
-    	//else dest=val;
-    }
-}
-function scanf() {
+};
+_global.scanf=function scanf() {
 	var args=Array.prototype.slice.call(arguments);
     if (scanf.STDIN) {
 		return afterScan(scanf.STDIN.shift());
-	} else if (window.AsyncByGenerator &&
-	    window.AsyncByGenerator.supportsGenerator &&
+	} else if (typeof window==="undefined") {
+		if (!scanf.nodeInterface) {
+			var readline = require('readline');
+			scanf.nodeInterface = readline.createInterface({
+			  input: process.stdin,
+			  output: process.stdout
+			});
+			scanf.nodeBuf=[];
+			scanf.nodeInterface.on("line",function (l) {
+				scnaf.nodeBuf.push(l);
+				if (scanf.nodeOnLine) {
+					scanf.nodeOnLine(afterScan(scanf.nodeBuf.shift()));
+					delete scanf.nodeOnLine;
+				}
+			});
+		}
+		if (scanf.nodeBuf.length>0) return afterScan(scanf.nodeBuf.shift());
+		return new Promise(function (p) {
+			scanf.nodeOnLine=p;
+		});
+	} else if (typeof AsyncByGenerator!=="undefined" &&
+	    AsyncByGenerator.supportsGenerator &&
 	    $("#console")[0]) {
 	    return new Promise(function (p) {
 	        var box=$("<input>").on("keydown",function (e) {
@@ -220,8 +153,8 @@ function scanf() {
 		args.unshift(str_to_ch_ptr(input));
 		return sscanf.apply(this,args);
 	}
-}
-function sscanf() {
+};
+_global.sscanf=function sscanf() {
 	var dests=Array.prototype.slice.call(arguments);
 	var line=ch_ptr_to_str(dests.shift());
 	var format=ch_ptr_to_str(dests.shift());
@@ -248,7 +181,7 @@ function sscanf() {
 		}
 	});
 	return dests.length;
-}
+};
 
 function sprintfJS() {
 	//  input -> chrptr  output->jsString
@@ -307,7 +240,7 @@ function sprintfJS() {
 	if (!idx && next<argv.length) doNotification("printfの引数が多すぎます．");
 	return line;
 }
-function printf() {
+_global.printf=function printf() {
 	var line=sprintfJS.apply(this,arguments);
 	lineBuf.push(line);
 	if (lineBuf.length>5) lineBuf.shift();
@@ -326,8 +259,9 @@ function printScanfLine(line) {
 ["abs","acos","asin","atan","atan2","ceil","cos","exp","floor",
 "log","max","min","pow","random","round","sin","sqrt","tan"].forEach(function (k) {
     var f=Math[k];
+	//var _global=(typeof window!=="undefined" ? window : global);
     if (typeof f=="function") {
-        window[k]=f.bind(Math);
+        _global[k]=f.bind(Math);
     }
 });
 // -------- 文字列関数はchr_arrayを想定していたが、本当はpointerが通じるようにしないといかん
@@ -337,7 +271,7 @@ function pointerize(s) {
     if (!s.IS_POINTER) throw new Error(s+" is not pointer.");
     return s;
 }
-function strlen(str) {
+_global.strlen=function strlen(str) {
     str=pointerize(str);
     var len=0;
     while (str.read()) {
@@ -345,10 +279,10 @@ function strlen(str) {
         len++;
     }
     return len;
-}
-function strcpy(dst,src) {
+};
+_global.strcpy=function strcpy(dst,src) {
     return strncpy(dst,src,strlen(src)+1);
-}
+};
 function fillStr(str,n) {
     str=pointerize(str);
     //  "ABC", 5 ->   "ABC\0\0"
@@ -373,7 +307,7 @@ function fillStr(str,n) {
     }
     return dst;
 }
-function strncpy(dst, src,n) {
+_global.strncpy=function strncpy(dst, src,n) {
     dst=pointerize(dst);
     var r=dst;
     src=fillStr(src,n);
@@ -383,7 +317,7 @@ function strncpy(dst, src,n) {
     }
     return r;
 }
-function strncmp(s1,s2,n) {
+_global.strncmp=function strncmp(s1,s2,n) {
     s1=pointerize(s1);
     s2=pointerize(s2);
     for (var i=0;i<n;i++) {
@@ -396,14 +330,14 @@ function strncmp(s1,s2,n) {
     }
     return 0;
 }
-function strcmp(s1,s2) {
+_global.strcmp=function strcmp(s1,s2) {
     var len=Math.max(strlen(s1),strlen(s2));
     return strncmp( fillStr(s1,len),fillStr(s2,len) ,len);
 }
-function strcat(dst,src) {
+_global.strcat=function strcat(dst,src) {
     return strncat(dst,src,strlen(src)+1);
 }
-function strncat(dst,src,n) {
+_global.strncat=function strncat(dst,src,n) {
     src=pointerize(src);
     var head=pointerize(dst);
     var p=strlen(head);
@@ -418,14 +352,14 @@ function strncat(dst,src,n) {
     if (i>=n) src.write(0);
     return head;
 }
-function memset(dst,s,n) {
+_global.memset=function memset(dst,s,n) {
     dst=pointerize(dst);
     while(n--) {
         dst.write(s);
         dst=dst.offset(1);
     }
 }
-function index(str,c) {
+_global.index=function index(str,c) {
     str=pointerize(str);
     for (var i=0; str.read() ; i++) {
         if (str.read()==c) return str;
@@ -433,7 +367,7 @@ function index(str,c) {
     }
     return NULL;
 }
-function rindex(str,c) {
+_global.rindex=function rindex(str,c) {
     str=pointerize(str);
     var ini=strlen(str)-1;
     str=str.offset(ini);
@@ -443,7 +377,7 @@ function rindex(str,c) {
     }
     return NULL;
 }
-function strstr(haystack, needle) {
+_global.strstr=function strstr(haystack, needle) {
     needle=pointerize(needle);
     haystack=pointerize(haystack);
     var cnt=strlen(haystack)-strlen(needle);
@@ -460,7 +394,7 @@ function strstr(haystack, needle) {
     }
     return NULL;
 }
-function memcmp(s1,s2,n) {
+_global.memcmp=function memcmp(s1,s2,n) {
     s1=pointerize(s1);
     s2=pointerize(s2);
     for (var i=0;i<n;i++) {
@@ -472,7 +406,7 @@ function memcmp(s1,s2,n) {
     }
     return 0;
 }
-function memcpy(dst, src,n) {
+_global.memcpy=function memcpy(dst, src,n) {
     src=pointerize(src);
     dst=pointerize(dst);
     var r=dst;
@@ -483,32 +417,33 @@ function memcpy(dst, src,n) {
     }
     return r;
 }
-function usleep(msec) {
+_global.usleep=function usleep(msec) {
     loop_start2();
     return new Promise(function (succ) {
         setTimeout(succ,msec/1000);
     });
 }
-function sleep(msec) {
+_global.sleep=function sleep(msec) {
     loop_start2();
     return new Promise(function (succ) {
         setTimeout(succ,msec*1000);
     });
 }
 RAND_MAX=0x7fffffff;
-function rand() {
+_global.rand=function rand() {
     return Math.floor(Math.random()*RAND_MAX);
 }
-function srand(s) {
+_global.srand=function srand(s) {
 
 }
-function time() {
+_global.time=function time() {
 	return (new Date).getTime();
 }
-function exit(status) {
+_global.exit=function exit(status) {
 	var e=new Error("exit()によりプログラムが終了しました");
 	e.suppressHandleError=!status;
 	e.status=status;
 	throw e;
 }
-window.print=function() {throw new Error("print関数はありません。printfの間違いではないですか？");};
+})();
+//function print() {throw new Error("print関数はありません。printfの間違いではないですか？");};
