@@ -146,7 +146,7 @@ var scanf = (function() {
             result.push(dealType(val));
         });
         return result;
-    };
+    }
     exports.sscanfJS=sscanfJS;
 
     var getInput = function(pre, next, match, type) {

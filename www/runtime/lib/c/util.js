@@ -1,8 +1,9 @@
+/*global window,global*/
 (function(){
 var _global=(typeof window!=="undefined" ? window : global);
 _global.supportsAsync=false;
 try {
-    f=new Function ("var a=async function (){};");
+    var f=new Function ("var a=async function (){};");
     f();
     _global.supportsAsync=true;
 }catch(e){
@@ -10,11 +11,11 @@ try {
 _global.LocalVariables=function LocalVariables() {
     if (!(this instanceof LocalVariables)) return new LocalVariables();
     this.__addresses={};
-}
+};
 _global.LocalVariables.prototype={
     __getAddress: function (name,vtype) {
         var a=this.__addresses;
-        if (!a[name]) a[name]=pointer.inc(vtype.sizeOf());
+        if (!a[name]) a[name]=_global.pointer.inc(vtype.sizeOf());
         return a[name];
     }
 };
@@ -25,18 +26,11 @@ _global.StructObj=function StructObj(vtype) {
     var hasDust=true; // TODO
     if (!(this instanceof StructObj)) return new StructObj(vtype);
     this[STRUCT_TYPE]=vtype;
-    this[SYM_ADDR]=pointer.inc(0);
-    if (vtype instanceof CType.Struct) {//TODO: CTYPE_NAME
+    this[SYM_ADDR]=_global.pointer.inc(0);
+    if (vtype instanceof _global.CType.Struct) {//TODO: CTYPE_NAME
         var t=this;
         vtype.members.forEach(function (m) {
-            var v=initialValue(m.vtype, hasDust);
-            /*if ((m.vtype) instanceof CType.Struct) {//TODO: CTYPE_NAME
-                v=StructObj(m.vtype);
-            } else if ((m.vtype) instanceof CType.Array) {//TODO: CTYPE_NAME
-                v=arrInit2(m.vtype.e, m.vtype.length);
-            } else {
-                v=dustValue();
-            }*/
+            var v=_global.initialValue(m.vtype, hasDust);
             t[m.name+""]=v;
         });
         //console.log("StructObjCreat",vtype.name,this);
@@ -45,7 +39,7 @@ _global.StructObj=function StructObj(vtype) {
     }
 };
 _global.copyStruct=function copyStruct(src) {
-    var res=StructObj(src[STRUCT_TYPE]);
+    var res=_global.StructObj(src[STRUCT_TYPE]);
     for (var k in src) {
         if (k===STRUCT_TYPE) continue;
         if (isStruct(src[k])) res[k]=copyStruct(src[k]);
@@ -53,7 +47,7 @@ _global.copyStruct=function copyStruct(src) {
     }
     return res;
     function isStruct(o) {
-        return o instanceof StructObj;
+        return o instanceof _global.StructObj;
     }
 };
 _global.copyArray=function copyArray(dst,src,vtype) {
@@ -120,7 +114,7 @@ _global.pointer=function pointer(obj,key,vtype,ofs) {
 		writeOp:function(op,v){
 		    this.checkBorder();
 		    switch (op) {
-		    case "=":return obj[key]=v;
+		    case "=":obj[key]=v;return v;
 		    case "+=":return obj[key]+=v;
 		    case "-=":return obj[key]-=v;
 		    case "*=":return obj[key]*=v;
@@ -361,14 +355,14 @@ _global.constructByArrInit=function constructByArrInit(vtype,data) {
         return data;
     }
     return cast(vtype,data);
-}
+};
 _global.cast=function cast(vtype,data){
-    if (!(vtype instanceof CType.Base)) {
+    if (!(vtype instanceof _global.CType.Base)) {
         console.log("ERR",vtype,": not a type");
         throw new Error(vtype+": not a type");
     }
     return vtype.cast(data);
-}
+};
 
 var casts={
 	toInt:function(param){
