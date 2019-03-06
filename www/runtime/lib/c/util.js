@@ -250,11 +250,19 @@ _global.dustValue=function dustValue() {
     return 0xdeadbeef;
 };
 _global.doNotification=function doNotification(mesg) {
+    var n=_global.doNotification.state;
     if (parent && parent.NotificationDialog) {
-        parent.NotificationDialog.show(mesg);
+        var now=new Date().getTime();
+        if (now-n.last>10) n.cnt=0;
+        if (n.cnt<5 ) {
+            parent.NotificationDialog.show(mesg);
+            n.cnt++;
+        }
+        n.last=now;
     }
     console.log("doNotification",mesg);
 };
+_global.doNotification.state={cnt:0,last:0};
 _global.checkDust=function checkDust(v,name) {
     if (v===dustValue()) {
         doNotification("値が初期化されていない可能性があります");
