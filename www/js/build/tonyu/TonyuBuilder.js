@@ -10,6 +10,8 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditor","Tony
         this.prj=prj;// BitArrow-based
         this.dst=dst;// SFile in ramdisk
         this.tprj=TPRC(prj.getDir()); // Tonyu-based
+        Tonyu.globals.$currentProject=this.tprj;
+        Tonyu.currentProject=this.tprj;
         //prj.getPublishedURL()
     };
     var p=MkRun.prototype;

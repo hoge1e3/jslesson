@@ -1,9 +1,12 @@
 /*global requirejs*/
-define(["assert","DeferredUtil","wget","Sync","WebSite"],
-function (A,DU,wget,Sync,WebSite) {
+define(["assert","DeferredUtil","wget","Sync","WebSite","Tonyu","ProjectCompiler"],
+function (A,DU,wget,Sync,WebSite,Tonyu,PRC) {
     var TJSBuilder=function (prj, dst) {
-        this.prj=prj;// TPRC
+        this.prj=prj;// TPRC from BA
+        this.tprj=PRC(prj.getDir());// Tonyu-lang dependent
         this.dst=dst;// SFile in ramdisk
+        Tonyu.globals.$currentProject=this.tprj;
+        Tonyu.currentProject=this.tprj;
     };
     var p=TJSBuilder.prototype;
     p.dlFiles=function () {
@@ -21,7 +24,7 @@ function (A,DU,wget,Sync,WebSite) {
     };
     p.genHTML=function (name) {
         var dst=this.dst;
-        var d=this.prj.dir;
+        var d=this.tprj.getDir();
         var curHTMLFile=d.rel(name+".html");
         var dp=new DOMParser();
         var dom=dp.parseFromString(curHTMLFile.text(),"text/html");
@@ -72,14 +75,14 @@ function (A,DU,wget,Sync,WebSite) {
         });
         nn=document.createElement("script");
         nn.setAttribute("charset","utf-8");
-        var ns=this.prj.getNamespace();
+        var ns=this.tprj.getNamespace();
         nn.appendChild(document.createTextNode("run('"+ns+"."+name+"');"));
         body.appendChild(nn);
         var dstHTMLF=dst.rel(curHTMLFile.name());
         dstHTMLF.text("<html>"+html.innerHTML+"</html>");
     };
     p.build=function () {
-        var curPrj=this.prj;
+        var curPrj=this.tprj;
         var opt=curPrj.getOptions();
         console.log("opT",opt);
         if (opt.compiler &&

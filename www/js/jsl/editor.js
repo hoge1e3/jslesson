@@ -115,9 +115,8 @@ function ready() {
     var F=EC.f;
     var JS_NOP="javascriptCOLON;".replace(/COLON/,":");
     root.$LASTPOS=0;
-    //var home=FS.resolve("${tonyuHome}");
-    Tonyu.globals.$currentProject=curPrj;
-    Tonyu.currentProject=curPrj;
+    //Tonyu.globals.$currentProject=curPrj;
+    //Tonyu.currentProject=curPrj;
     var EXT=curPrj.getEXT();
     var HEXT=".html";
     var opt=curPrj.getOptions();
