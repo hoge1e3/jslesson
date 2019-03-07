@@ -47,8 +47,6 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     dir(field)-> it should be getDir
     method called from Builders, CommentDialog2, SubmitDialog,AssignmentDialog
       getNamespace, setOptions, loadClasses (from TJSBuilder)
-      getResource, loadClasses (from TonyuBuilder)
-    method called from ResEditor (use from Tonyu2 Project)
     */
     var ALWAYS_UPLOAD=(localStorage.ALWAYS_UPLOAD==="true");
     console.log("ALWAYS_UPLOAD",ALWAYS_UPLOAD);
@@ -64,7 +62,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     var helpURL;
     var unsaved=false;
     var unsynced=false;
-    var Builder;
+    //var Builder;
     var builder;
     var ram;
     //var scoremsg;
@@ -152,23 +150,8 @@ function ready() {
     	//helpURL="http://bitarrow.eplang.jp/index.php?dncl_use";
     	break;
     case "tonyu":
-        requirejs(["TonyuBuilder","TonyuProject"],function(_,TPRC){
-            Tonyu.defaultOptions={
-                compiler: { defaultSuperClass: "Actor"},
-                run: {mainClass: "Main", bootClass: "Boot"},
-                kernelEditable: false
-            };
-            ALWAYS_UPLOAD=true;
-            Builder=_;
-            console.log("tnub requirejsed");
-            $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
-            ram=FS.get("/ram/build/");
-            FS.mount(ram.path(),"ram");
-            curPrj=TPRC(curProjectDir);// curPrj re-construct!!!?
-            root.tprj=curPrj;
-            builder=new Builder(curPrj, ram);
-            curPrj.getPublishedURL().then(builderReady);
-        });
+        ALWAYS_UPLOAD=true;
+        requirejs(["TonyuBuilder"],setupBuilder);
         break;
     }
     function setupBuilder(BuilderClass) {

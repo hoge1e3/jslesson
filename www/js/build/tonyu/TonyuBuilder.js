@@ -1,13 +1,21 @@
-define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditor"],
-        function (FS,Util,WebSite,plugins,sh,Tonyu,Sync,ResEditor) {
+define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditor","TonyuProject"],
+        function (FS,Util,WebSite,plugins,sh,Tonyu,Sync,ResEditor,TPRC) {
     var MkRun=function (prj, dst) {
-        this.prj=prj;// TPRC
+        Tonyu.defaultOptions={
+            compiler: { defaultSuperClass: "Actor"},
+            run: {mainClass: "Main", bootClass: "Boot"},
+            kernelEditable: false
+        };
+
+        this.prj=prj;// BitArrow-based
         this.dst=dst;// SFile in ramdisk
+        this.tprj=TPRC(prj.getDir()); // Tonyu-based
+        //prj.getPublishedURL()
     };
     var p=MkRun.prototype;
     p.build=function (options) {
         FS.mount(location.protocol+"//"+location.host+"/", "web");
-        var prj=this.prj;
+        var prj=this.tprj;
         var dest=this.dst;
         options=options||{};
         var prjDir=prj.getDir();
@@ -139,7 +147,11 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditor"],
         );
     };
     p.showImageList=function () {
-        ResEditor(this.prj,"image");
+        var t=this;
+        t.prj.getPublishedURL().then(function (r) {
+            t.tprj._publishedURL=r;
+            ResEditor(t.tprj,"image");
+        }).catch(console.error.bind(console));
     };
 
     return MkRun;

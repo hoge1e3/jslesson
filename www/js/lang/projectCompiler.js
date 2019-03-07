@@ -95,7 +95,7 @@ var TPRC=function (dir) {
 		return A(opt.compiler.namespace,"namespace not specified opt="+JSON.stringify(opt));
 	};
 	TPR.getPublishedURL=function () {//ADDBA
-		if (TPR._publishedURL) return TPR._publishedURL;
+		if (TPR._publishedURL) return DU.resolve(TPR._publishedURL);
 		return DU.requirejs(["Auth"]).then(function (Auth) {
 			return Auth.publishedURL(TPR.getName()+"/");
 		}).then(function (r) {
