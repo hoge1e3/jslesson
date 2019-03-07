@@ -1,6 +1,7 @@
-define(["assert","DeferredUtil","wget","Sync"],
-function (A,DU,wget,Sync) {
-    TJSBuilder=function (prj, dst) {
+/*global requirejs*/
+define(["assert","DeferredUtil","wget","Sync","WebSite"],
+function (A,DU,wget,Sync,WebSite) {
+    var TJSBuilder=function (prj, dst) {
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
     };
@@ -22,7 +23,7 @@ function (A,DU,wget,Sync) {
         var dst=this.dst;
         var d=this.prj.dir;
         var curHTMLFile=d.rel(name+".html");
-        var dp=new DOMParser;
+        var dp=new DOMParser();
         var dom=dp.parseFromString(curHTMLFile.text(),"text/html");
         var html=dom.getElementsByTagName("html")[0];
         var head=dom.getElementsByTagName("head")[0];
@@ -42,9 +43,9 @@ function (A,DU,wget,Sync) {
         $(head).append($("<meta>").attr("charset","UTF-8"));
         if (window.BitArrow) {
             var ba={
-                version:BitArrow.version,
-                urlArgs:BitArrow.urlArgs,
-                publishedURL:BitArrow.publishedURL,
+                version:window.BitArrow.version,
+                urlArgs:window.BitArrow.urlArgs,
+                publishedURL:window.BitArrow.publishedURL,
                 runtimePath:WebSite.runtime};
             $(head).append($("<script>").text("window.BitArrow="+JSON.stringify(ba)+";"));
         }
@@ -54,7 +55,7 @@ function (A,DU,wget,Sync) {
         nn.setAttribute("src",WebSite.runtime+"lib/tjs/documentWrite.js");
         head.appendChild(nn);
 
-        var nn=document.createElement("script");
+        nn=document.createElement("script");
         nn.setAttribute("charset","utf-8");
         nn.setAttribute("src",WebSite.runtime+"lib/plotly-latest.min.js");
         head.appendChild(nn);
@@ -69,7 +70,7 @@ function (A,DU,wget,Sync) {
             nn.setAttribute("src",url);
             body.appendChild(nn);
         });
-        var nn=document.createElement("script");
+        nn=document.createElement("script");
         nn.setAttribute("charset","utf-8");
         var ns=this.prj.getNamespace();
         nn.appendChild(document.createTextNode("run('"+ns+"."+name+"');"));
