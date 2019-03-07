@@ -13379,7 +13379,7 @@ var TPRC=function (dir) {
 		return A(opt.compiler.namespace,"namespace not specified opt="+JSON.stringify(opt));
 	};
 	TPR.getPublishedURL=function () {//ADDBA
-		if (TPR._publishedURL) return TPR._publishedURL;
+		if (TPR._publishedURL) return DU.resolve(TPR._publishedURL);
 		return DU.requirejs(["Auth"]).then(function (Auth) {
 			return Auth.publishedURL(TPR.getName()+"/");
 		}).then(function (r) {
@@ -13579,6 +13579,7 @@ var TPRC=function (dir) {
 		var gc=mapNode.toStringWithSourceMap();
 		outf.text(gc.code+"\n//# sourceMappingURL="+mapFile.name());
 		mapFile.text(gc.map+"");
+		console.log("MAPW",mapFile.path(),"is written");
 		return evalFile(outf);
 	};
 	TPR.getDependingProjects=function () {
