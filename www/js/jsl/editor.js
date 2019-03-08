@@ -8,7 +8,7 @@ requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
            "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
            "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog",
            "IframeDialog","AssignmentDialog","SubmitDialog","CommentDialog2","NewProjectDialog",
-           "ProgramFileUploader","AssetDialog","root","ErrorDialog"
+           "ProgramFileUploader","AssetDialog","root","ErrorDialog","BAProject"
           ],
 function (Util, Tonyu, FS, FileList, FileMenu,
           showErrorPos, fixIndent, TPRC,
@@ -19,7 +19,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
           LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
           CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog,
           IframeDialog,AssignmentDialog,SubmitDialog,CommentDialog2,NPD,
-          ProgramFileUploader,AssetDialog,root,ErrorDialog
+          ProgramFileUploader,AssetDialog,root,ErrorDialog,BAProject
 ) {
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -36,7 +36,7 @@ function (Util, Tonyu, FS, FileList, FileMenu,
         return;
     }
     var curProjectDir=FS.get(dir);
-    var curPrj=TPRC(curProjectDir);
+    var curPrj=BAProject(curProjectDir);
     /*
     getEXT
     getOptions
