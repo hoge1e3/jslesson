@@ -43,10 +43,8 @@ function (Util, Tonyu, FS, FileList, FileMenu,
     getPublishedURL
     getName
     sourceFiles
-    getOutputFile
     dir(field)-> it should be getDir
     method called from Builders, CommentDialog2, SubmitDialog,AssignmentDialog
-      getNamespace, setOptions, loadClasses (from TJSBuilder)
     */
     var ALWAYS_UPLOAD=(localStorage.ALWAYS_UPLOAD==="true");
     console.log("ALWAYS_UPLOAD",ALWAYS_UPLOAD);
@@ -618,7 +616,7 @@ function ready() {
         }
     }
     function stop() {
-        if(curth){
+        /*if(curth){
             try {
                 curth.kill();
             }catch(e) {
@@ -626,10 +624,10 @@ function ready() {
                 console.log(e);
             }
             curth=null;
-        }
+        }*/
         displayMode("edit");
     }
-    var curName,runURL;
+    //var curName,runURL;
     $("#fullScr").click(runFullScr);
     function runFullScr() {
             var inf=getCurrentEditorInfo();
@@ -659,7 +657,7 @@ function ready() {
                 }).then(function (_u) {
                     var cv=$("<div>");
                     cv.dialog();
-                    runURL=_u+(lang=="tonyu"?"index.html":curHTMLFile.name());
+                    var runURL=_u+(lang=="tonyu"?"index.html":curHTMLFile.name());
                     cv.append($("<div>").append(
                         $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
                     ));
@@ -754,8 +752,8 @@ function ready() {
             run();
         }
     };
-    var curth;
-    window.setupFrame=function (r) {
+    //var curth;
+    /*window.setupFrame=function (r) {
         A.is(r,Function);
         var inf=getCurrentEditorInfo();
         var ht="";
@@ -768,7 +766,7 @@ function ready() {
         var js=f.text();
         curth=r(ht,js, curName);
         SplashScreen.hide();
-    };
+    };*/
     var alertOnce;
     alertOnce=function (e) {
         alert(e);
