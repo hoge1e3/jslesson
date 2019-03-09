@@ -1,24 +1,24 @@
 /*global requirejs*/
-requirejs(["Util", "Tonyu", "FS", "FileList", "FileMenu",
-           "showErrorPos", "fixIndent",  "ProjectCompiler",
+requirejs(["Util", "FS", "FileList", "FileMenu",
+           "showErrorPos", "fixIndent",
            "Shell","ShellUI","KeyEventChecker",
-           "runtime", "searchDialog","StackTrace",
-           "UI","UIDiag","WebSite","exceptionCatcher","Tonyu.TraceTbl",
-           "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog","RunDialog2",
-           "LocalBrowser","logToServer","logToServer2","zip","SplashScreen","Auth",
-           "CommentDialog","DistributeDialog","NotificationDialog","FileUploadDialog",
-           "IframeDialog","AssignmentDialog","SubmitDialog","CommentDialog2","NewProjectDialog",
+           "UI","UIDiag","WebSite","exceptionCatcher",
+           "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog2",
+           "LocalBrowser","logToServer2","SplashScreen","Auth",
+           "DistributeDialog","NotificationDialog","FileUploadDialog",
+           "IframeDialog","AssignmentDialog","SubmitDialog",
+           "CommentDialog2","NewProjectDialog",
            "ProgramFileUploader","AssetDialog","root","ErrorDialog","BAProject"
           ],
-function (Util, Tonyu, FS, FileList, FileMenu,
-          showErrorPos, fixIndent, TPRC,
+function (Util, FS, FileList, FileMenu,
+          showErrorPos, fixIndent,
           sh,shui,  KeyEventChecker,
-          rt, searchDialog,StackTrace,
-          UI, UIDiag,WebSite,EC,TTB,
-          Columns,A,Menu,TError,DU,Sync,RunDialog,RunDialog2,
-          LocalBrowser,logToServer,logToServer2,zip,SplashScreen,Auth,
-          CommentDialog,DistributeDialog,NotificationDialog,FileUploadDialog,
-          IframeDialog,AssignmentDialog,SubmitDialog,CommentDialog2,NPD,
+          UI, UIDiag,WebSite,EC,
+          Columns,A,Menu,TError,DU,Sync,RunDialog2,
+          LocalBrowser,logToServer2,SplashScreen,Auth,
+          DistributeDialog,NotificationDialog,FileUploadDialog,
+          IframeDialog,AssignmentDialog,SubmitDialog,
+          CommentDialog2,NPD,
           ProgramFileUploader,AssetDialog,root,ErrorDialog,BAProject
 ) {
     if (location.href.match(/localhost/)) {
@@ -670,7 +670,7 @@ function ready() {
                     return sync();
                 }).fail(function (e) {
                     //console.log("betupe-ji fail",e);
-                    Tonyu.onRuntimeError(e);
+                    EC.handleException(e);
                     SplashScreen.hide();
                 });
             }
@@ -733,7 +733,7 @@ function ready() {
                         showErrorPos($("#errorPos"),e);
                         logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),lang.toUpperCase()+" Compile Error",e.src+":"+e.pos+"\n"+e.mesg,langList[lang]);
                     } else {
-                        Tonyu.onRuntimeError(e);
+                        EC.handleException(e);
                     }
                 }).always(function () {
                     SplashScreen.hide();
@@ -775,10 +775,10 @@ function ready() {
     window.onerror=function (a,b,c,d,e) {
         console.log("window.onerror",arguments);
         if (!e) return;
-        return Tonyu.onRuntimeError(e);
+        return EC.handleException(e);
     };
     var errorDialog=new ErrorDialog();
-    EC.handleException=Tonyu.onRuntimeError=function (e) {
+    EC.handleException=function (e) {
         if (e.type==="dialogClosed") {
             console.log(e.stack);
             return;
@@ -950,7 +950,7 @@ function ready() {
         $("#curFileLabel").text(f.truncExt());
     }
     root.d=function () {
-        Tonyu.currentProject.dumpJS.apply(this,arguments);
+        root.Tonyu.currentProject.dumpJS.apply(this,arguments);
     };
     function loadDesktopEnv() {
         var d=curProjectDir.rel(".desktop");
