@@ -1,26 +1,37 @@
 /*global requirejs*/
-requirejs(["Util", "FS", "FileList", "FileMenu",
-           "showErrorPos", "fixIndent",
-           "Shell","ShellUI","KeyEventChecker",
-           "UI","UIDiag","WebSite","exceptionCatcher",
-           "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog2",
-           "LocalBrowser","logToServer2","SplashScreen","Auth",
-           "DistributeDialog","NotificationDialog","FileUploadDialog",
-           "IframeDialog","AssignmentDialog","SubmitDialog",
-           "CommentDialog2","NewProjectDialog",
-           "ProgramFileUploader","AssetDialog","root","ErrorDialog","BAProject"
-          ],
-function (Util, FS, FileList, FileMenu,
-          showErrorPos, fixIndent,
-          sh,shui,  KeyEventChecker,
-          UI, UIDiag,WebSite,EC,
-          Columns,A,Menu,TError,DU,Sync,RunDialog2,
-          LocalBrowser,logToServer2,SplashScreen,Auth,
-          DistributeDialog,NotificationDialog,FileUploadDialog,
-          IframeDialog,AssignmentDialog,SubmitDialog,
-          CommentDialog2,NPD,
-          ProgramFileUploader,AssetDialog,root,ErrorDialog,BAProject
-) {
+define(function (require) {
+    var Util=require("Util");
+    var FS=require("FS");
+    var FileList=require("FileList");
+    var FileMenu=require("FileMenu");
+    var showErrorPos=require("showErrorPos");
+    var fixIndent=require("fixIndent");
+    var sh=require("Shell");
+    var KeyEventChecker=require("KeyEventChecker");
+    var UIDiag=require("UIDiag");
+    var WebSite=require("WebSite");
+    var EC=require("exceptionCatcher");
+    var Columns=require("Columns");
+    var A=require("assert");
+    var Menu=require("Menu");
+    var DU=require("DeferredUtil");
+    var Sync=require("Sync");
+    var RunDialog2=require("RunDialog2");
+    var logToServer2=require("logToServer2");
+    var SplashScreen=require("SplashScreen");
+    var Auth=require("Auth");
+    var DistributeDialog=require("DistributeDialog");
+    var NotificationDialog=require("NotificationDialog");
+    var IframeDialog=require("IframeDialog");
+    var AssignmentDialog=require("AssignmentDialog");
+    var SubmitDialog=require("SubmitDialog");
+    var CommentDialog2=require("CommentDialog2");
+    var NPD=require("NewProjectDialog");
+    var ProgramFileUploader=require("ProgramFileUploader");
+    var AssetDialog=require("AssetDialog");
+    var root=require("root");
+    var ErrorDialog=require("ErrorDialog");
+    var BAProject=require("BAProject");
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
         A.setMode(A.MODE_STRICT);

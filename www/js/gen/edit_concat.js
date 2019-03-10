@@ -9951,6 +9951,258 @@ define('Shell',["FS","assert"],
     return Shell;
 });
 
+define('KeyEventChecker',[],function () {
+	var KEC={};
+	KEC.down=function (elem, name, handler) {
+		if (!(elem instanceof $)) elem=$(elem);
+		elem.bind("keydown", function (e) {
+			if (KEC.is(e, name)) {
+				return handler.call(elem[0],e);
+			}
+		});
+	};
+	var codes={8:"bs",13:"enter",37:"left",38:"up",39:"right",40:"down"};
+	KEC.is=function (e,name) {
+		name=name.toLowerCase();
+		e = e.originalEvent || e;
+		var s="";
+		if (e.altKey) {
+			s+="alt+";
+		}
+		if (e.ctrlKey) {
+			s+="ctrl+";
+		}
+		if (e.shiftKey) {
+			s+="shift+";
+		}
+		if (e.keyCode>=112 && e.keyCode<=123) {
+			s+="f"+(e.keyCode-111);
+        } else if (codes[e.keyCode]){
+            s+=codes[e.keyCode];
+		} else {
+			s+=String.fromCharCode(e.keyCode);
+		}
+		s=s.toLowerCase();
+		return name==s;
+	};
+	return KEC;
+});
+define('UIDiag',["UI"],function (UI) {
+    var UIDiag={};
+    UIDiag.confirm=function (mesg) {
+        var di=UI("div",{title:"確認"},["div",mesg],
+                ["button",{on:{click:sendF(true)}},"OK"],
+                ["button",{on:{click:sendF(false)}},"キャンセル"]).dialog({width:"auto",close:sendF(false)});
+        var d=$.Deferred();
+        function sendF(r) {
+            return function () { d.resolve(r); di.dialog("close"); di.remove(); };
+        }
+        return d.promise();
+    };
+    UIDiag.alert=function (mesg) {
+        var di=UI("div",{title:"確認"},["div",mesg],
+                ["button",{on:{click:sendF(true)}},"OK"]).dialog({width:"auto",close:sendF(false)});
+        var d=$.Deferred();
+        function sendF(r) {
+            return function () { d.resolve(r); di.dialog("close"); di.remove(); };
+        }
+        return d.promise();
+    };
+
+    UIDiag.prompt=function (mesg,value) {
+        var di=UI("div",{title:"入力"},["div",mesg],
+                ["input",{on:{enterkey:ok},$var:"val", value:value}],["br"],
+                ["button",{on:{click:ok}},"OK"],
+                ["button",{on:{click:cancel}},"キャンセル"]).dialog({width:"auto",close:function (){
+                    di.dialog("close");
+                    d.resolve();
+                }});
+        setTimeout(function () {
+            di.$vars.val.focus();
+            //console.log("FOcus");
+        },10);
+        var d=$.Deferred();
+        function ok() {
+            var r=di.$vars.val.val();
+            d.resolve(r);
+            di.dialog("close");
+            di.remove();
+        }
+        function cancel() {
+            di.dialog("close");
+            di.remove();
+            d.resolve();
+        }
+        return d.promise();
+
+    };
+    if (typeof window!="undefined") window.UIDiag=UIDiag;
+    return UIDiag;
+});
+define('Columns',["UI"],function (UI) {
+    var Columns={};
+    Columns.make=function () {
+        var div=UI("div",{"class":"container"});
+        var row=UI("div",{"class":"row"});
+        var res=[];
+        for (var i=0; i<arguments.length ; i++) {
+            var col=UI.apply(UI,arguments[i]);
+            res.push(col);
+            row.append(col);
+        }
+        div.append(row);
+        $("body").append(div);
+        return res;
+    };
+    return Columns;
+});
+
+define('Menu',["UI"], function (UI) {
+    var Menu={};
+    Menu.makeOLD=function (title, hier) {
+        if (title.sub) hier=title.sub;
+        /*
+           [{label:"main1",id:"main1",sub:[{label:"sub1", id:"sub1", action:f}]]
+         */
+        var ul1=UI("ul", {"class":"nav navbar-nav"});
+        hier.forEach(function (mainMenuItem) {
+            var li=UI("li",
+                    ["a",{
+                        href:(mainMenuItem.href||"#"),
+                        id:mainMenuItem.id,
+                        "class":(mainMenuItem.sub?"dropdown-toggle":null),
+                        "data-toggle":(mainMenuItem.sub?"dropdown":null)
+                    }, mainMenuItem.label]
+            );
+            ul1.append(li);
+            if (mainMenuItem.sub) {
+                var ul2=UI("ul",{"class":"dropdown-menu"});
+                mainMenuItem.sub.forEach(function (subMenuItem) {
+                    ul2.append(UI("li",
+                        ["a", {
+                             id:subMenuItem.id,
+                             href:subMenuItem.href||"#",
+                             on:{
+                                 click:subMenuItem.action
+                             }
+                        },subMenuItem.label]
+                    ));
+                });
+                li.append(ul2);
+            }
+        });
+        var menu=UI("div",{"class":"collapse navbar-collapse"},ul1);
+        $("body").append(UI(
+          "div",{"class":"navbar navbar-inverse navbar-fixed-top",id:"navBar"},
+                ["div",{"class":"container",id:"nav-A"},
+                    ["div", {"class":"navbar-header",id:"nav-B"},
+                        ["button",{type:"button", "class":"navbar-toggle",
+                            "data-toggle":"collapse",
+                            "data-target":".navbar-collapse"},
+                            ["span",{"class":"icon-bar"}],
+                            ["span",{"class":"icon-bar"}],
+                            ["span",{"class":"icon-bar"}]
+                        ],
+                        ["a", {"class":"navbar-brand" ,href:"#",id:title.id},title.label]
+                    ],
+                    menu
+                ]
+        ));
+    };
+    Menu.make=function (title, hier) {
+        if (title.sub) hier=title.sub;
+        this.initMenuBar(title);
+        /*
+           [{label:"main1",id:"main1",sub:[{label:"sub1", id:"sub1", action:f}]]
+         */
+        hier.forEach(function (mainMenuItem) {
+            Menu.appendMain(mainMenuItem);
+        });
+    };
+    Menu.initMenuBar=function (title) {
+        if (this.ul1)return;
+        var ul1=UI("ul", {"class":"nav navbar-nav"});
+        var menu=UI("div",{"class":"collapse navbar-collapse"},ul1);
+        $("body").append(UI(
+          "div",{"class":"navbar navbar-inverse navbar-fixed-top",id:"navBar"},
+                ["div",{"class":"container",id:"nav-A"},
+                    ["div", {"class":"navbar-header",id:"nav-B"},
+                        ["button",{type:"button", "class":"navbar-toggle",
+                            "data-toggle":"collapse",
+                            "data-target":".navbar-collapse"},
+                            ["span",{"class":"icon-bar"}],
+                            ["span",{"class":"icon-bar"}],
+                            ["span",{"class":"icon-bar"}]
+                        ],
+                        ["a", {"class":"navbar-brand" ,href:"#",id:title.id},title.label]
+                    ],
+                    menu
+                ]
+        ));
+        this.ul1=ul1;
+    };
+    Menu.appendMain=function (mainMenuItem) {
+        //[{label:"main1",id:"main1",sub:[{label:"sub1", id:"sub1", action:f}]]
+        var ul1=this.ul1;
+        var li=UI("li",
+                ["a",{
+                    href:(mainMenuItem.href||"#"),
+                    id:mainMenuItem.id,
+                    "class":(mainMenuItem.sub?"dropdown-toggle":null),
+                    "data-toggle":(mainMenuItem.sub?"dropdown":null)
+                }, mainMenuItem.label]
+        );
+        if (mainMenuItem.action) {
+            li.find("a").click(mainMenuItem.action);
+        }
+        if (mainMenuItem.after) {
+            $(mainMenuItem.after).closest("li").after(li);
+        } else {
+            ul1.append(li);
+        }
+        if (mainMenuItem.sub) {
+            var ul2=UI("ul",{
+                id:"submenu_"+mainMenuItem.id,
+                "class":"dropdown-menu"
+            });
+            li.append(ul2);
+            mainMenuItem.sub.forEach(function (subMenuItem) {
+                Menu.appendSub(mainMenuItem,subMenuItem);
+            });
+        }
+    };
+    Menu.appendSub=function (mainObj,subMenuItem) {
+        var mainID;
+        switch (typeof mainObj) {
+            case "object":
+            mainID=mainObj.id;
+            mainObj.sub=[subMenuItem];
+            break;
+            case "string":
+            mainID=mainObj;
+            mainObj={label:mainID,id:mainID};
+            break;
+        }
+        var ul2=$("#submenu_"+mainID);
+        if (ul2.length==0) {
+            Menu.appendMain(mainObj);
+            //ul2=$("#submenu_"+mainID);
+            return;
+        }
+        ul2.append(UI("li",
+            ["a", {
+                 id:subMenuItem.id,
+                 href:subMenuItem.href||"#",
+                 on:{
+                     click:subMenuItem.action
+                 }
+            },subMenuItem.label]
+        ));
+    };
+
+    return Menu;
+});
+
 define('DeferredUtil',[], function () {
     var root=(
         typeof window!=="undefined" ? window :
@@ -10229,632 +10481,6 @@ define('DeferredUtil',[], function () {
     DU.external={Promise:root.Promise};
     if (!root.DeferredUtil) root.DeferredUtil=DU;
     return DU;
-});
-
-define('ShellParser',["Shell","DeferredUtil"],function (sh,DU) {
-    var envMulti=/\$\{([^\}]*)\}/;
-    var envSingle=/^\$\{([^\}]*)\}$/;
-    var F=DU.throwF;
-    sh.enterCommand=function (s) {
-        if (!this._history) this._history=[];
-        this._history.push(s);
-        var args=this.parseCommand(s);
-        if (this._skipto) {
-            if (args[0]=="label") {
-                this.label(args[1]);
-            } else {
-                this.echo("Skipping command: "+s);
-            }
-        } else {
-            return this.evalCommand(args);
-        }
-    };
-    sh.label=function (n) {
-        this._labels=this._labels||{};
-        this._labels[n]=this._history.length;
-        if (this._skipto==n) delete this._skipto;
-    };
-    sh["goto"]=function (n,cond) {
-        if (arguments.length==1) cond=true;
-        var t=this;
-        return $.when(cond).then(function (c) {
-            if (!c) return;
-            t._labels=t._labels||{};
-            var pc=t._labels[n];
-            if (pc) {
-                if (!t._pc) {
-                    t._pc=pc;
-                    return t.gotoLoop();
-                } else {
-                    t._pc=pc;
-                }
-            } else {
-                t._skipto=n;
-            }
-        });
-    };
-    sh.gotoLoop=function () {
-        var t=this;
-        var cnt=0;
-        return DU.loop(F(function () {
-            if (cnt++>100) {
-                delete t._pc;
-                throw new Error("Are infinite loops scary?");
-            }
-            if (t._skipto || !t._pc || t._pc>=t._history.length) {
-                delete t._pc;
-                return DU.brk();
-            }
-            var s=t._history[t._pc++];
-            var args=t.parseCommand(s);
-            return t.evalCommand(args);
-        }));
-    };
-    sh.sleep=function (t) {
-        var d=new $.Deferred;
-        t=parseFloat(t);
-        setTimeout(function () {d.resolve();},t*1000);
-        return d.promise();
-    };
-    sh.include=function (f) {
-        f=this.resolve(f,true);
-        var t=this;
-        var ln=f.lines();
-        return DU.each(ln,F(function (l) {
-            return t.enterCommand(l);
-        }));
-    };
-    /*
-    set a 1
-    label loop
-    echo ${a}
-    calc add ${a} 1
-    set a ${_}
-    goto loop ( calc lt ${a} 10 )
-    */
-    sh.parseCommand=function (s) {
-        var space=/^\s*/;
-        var nospace=/^([^\s]*(\\.)*)*/;
-        var dq=/^"([^"]*(\\.)*)*"/;
-        var sq=/^'([^']*(\\.)*)*'/;
-        var lpar=/^\(/;
-        var rpar=/^\)/;
-        function parse() {
-            var a=[];
-            while(s.length) {
-                s=s.replace(space,"");
-                var r;
-                if (r=dq.exec(s)) {
-                    a.push(expand( unesc(r[1]) ));
-                    s=s.substring(r[0].length);
-                } else if (r=sq.exec(s)) {
-                    a.push(unesc(r[1]));
-                    s=s.substring(r[0].length);
-                } else if (r=lpar.exec(s)) {
-                    s=s.substring(r[0].length);
-                    a.push( parse() );
-                } else if (r=rpar.exec(s)) {
-                    s=s.substring(r[0].length);
-                    break;
-                } else if (r=nospace.exec(s)) {
-                    a.push(expand(unesc(r[0])));
-                    s=s.substring(r[0].length);
-                } else {
-                    break;
-                }
-            }
-            var options,args=[];
-            a.forEach(function (ce) {
-                var opt=/^-([A-Za-z_0-9]+)(=(.*))?/.exec(ce);
-                if (opt) {
-                    if (!options) options={};
-                    options[opt[1]]=opt[3]!=null ? opt[3] : true;
-                } else {
-                    if (options) args.push(options);
-                    options=null;
-                    args.push(ce);
-                }
-            });
-            if (options) args.push(options);
-            return args;
-        }
-        var args=parse();
-        return args;
-        /*console.log("parsed:",JSON.stringify(args));
-        var res=this.evalCommand(args);
-        return res;*/
-        function expand(s) {
-            var r;
-            /*if (r=envSingle.exec(s)) {
-                return ["get",r[1]];
-            }
-            if (!(r=envMulti.exec(s))) return s;*/
-            var ex=["strcat"];
-            while(s.length) {
-                r=envMulti.exec(s);
-                if (!r) {
-                    ex.push(s);
-                    break;
-                }
-                if (r.index>0) {
-                    ex.push(s.substring(0,r.index));
-                }
-                ex.push(["get",r[1]]);
-                s=s.substring(r.index+r[0].length);
-            }
-            if (ex.length==2) return ex[1];
-            return ex;
-        }
-        function unesc(s) {
-            return s.replace(/\\(.)/g,function (_,b){
-                return b;
-            });
-        }
-    };
-    sh.evalCommand=function (expr) {
-        var t=this;
-        if (expr instanceof Array) {
-            if (expr.length==0) return;
-            var c=expr.shift();
-            var f=this[c];
-            if (typeof f!="function") throw new Error(c+": Command not found");
-            var a=[];
-            while(expr.length) {
-                var e=expr.shift();
-                a.push( this.evalCommand(e) );
-            }
-            return $.when.apply($,a).then(F(function () {
-                return f.apply(t,arguments);
-            }));
-        } else {
-            return expr;
-        }   
-    };
-    sh.calc=function (op) {
-        var i=1;
-        var r=parseFloat(arguments[i]);
-        for(i=2;i<arguments.length;i++) {
-            var b=arguments[i];
-            switch(op) {
-                case "add":r+=parseFloat(b);break;
-                case "sub":r-=parseFloat(b);break;
-                case "mul":r*=parseFloat(b);break;
-                case "div":r/=parseFloat(b);break;
-                case "lt":r=(r<b);break;
-            }     
-        }
-        this.set("_",r);
-        return r;
-    };
-    sh.history=function () {
-        var t=this;
-        this._history.forEach(function (e) {
-            t.echo(e);    
-        });
-    };
-});
-define('ShellUI',["Shell","UI","FS","Util","ShellParser"], 
-function (shParent,UI,FS,Util,shp) {
-    var res={};
-    var sh=shParent.clone();
-    res.show=function (dir) {
-        var d=res.embed(dir);
-        d.dialog({width:600,height:500});
-    };
-    res.embed=function (dir) {
-        if (!res.d) {
-            res.d=UI("div",{title:"Shell"},["div",{$var:"inner"},"Type 'help' to show commands.",["br"]]);
-            res.inner=res.d.$vars.inner;
-            sh.prompt();
-        }
-        var d=res.d;
-        return d;
-    };
-    sh.cls=function () {
-        res.d.$vars.inner.empty();
-    };
-    function hitBottom() {
-        res.inner.closest(".ui-dialog-content").scrollTop(res.inner.height());
-    }
-
-    sh.prompt=function () {
-        var t=this;
-        var line=UI("div",
-            ["input",{$var:"cmd",size:40,on:{keydown: kd}}],
-            ["pre",{$var:"out","class":"shell out"},["div",{$var:"cand","class":"shell cand"}]]
-        );
-        var cmd=line.$vars.cmd;
-        var out=line.$vars.out;
-        var cand=line.$vars.cand;
-        line.appendTo(res.inner);
-        hitBottom();
-        cmd.focus();
-        //var d=new $.Deferred;
-        t.setout({log:function () {
-           // return $.when.apply($,arguments).then(function () {
-                var a=[];
-                for (var i=0; i<arguments.length; i++) {
-                    a.push(arguments[i]);
-                }
-                if (a[0] instanceof $) {
-                    out.append(a[0]);
-                } else {
-                    out.append(UI("span",a.join(" ")+"\n"));
-                }
-            //});
-        },err:function (e) {
-            if (typeof e=="object") {
-                if (e.responseText) e=e.responseText;
-                else e=JSON.stringify(e);
-            }
-            out.append(UI("div",{"class": "shell error"},e,["br"],["pre",e.stack]));
-        }});
-        return;// d.promise();
-        function kd(e) {
-            if (e.which==9) {
-                e.stopPropagation();
-                e.preventDefault();
-                comp();
-                return false;
-            }
-            if (e.which==13) {
-                cand.empty();
-                exec(cmd.val());
-            }
-        }
-        function exec() {
-            try {
-                var sres=t.enterCommand(cmd.val());
-                cmd.blur();
-                return $.when(sres).then(function (sres) {
-                    if (typeof sres=="object") {
-                        if (sres instanceof Array) {
-                            var table=UI("table");
-                            var tr=null;
-                            var cnt=0;
-                            sres.forEach(function (r) {
-                                if (typeof r!="string") return;
-                                if (!tr) tr=UI("tr").appendTo(table);
-                                tr.append(UI("td",r));
-                                cnt++;if(cnt%3==0) tr=null;
-                            });
-                            table.appendTo(out);
-                        } else {
-                            out.append(JSON.stringify(sres));
-                        }
-                    } else {
-                        out.append(sres);
-                    }
-                    t.prompt();
-                }).fail(function (e) {
-                    t.err(e);
-                    t.prompt();
-                });
-            } catch(e) {
-                t.err(e);
-                //out.append(UI("div",{"class": "shell error"},e,["br"],["pre",e.stack]));
-                t.prompt();
-            }
-        }
-        function comp(){
-            var c=cmd.val();
-            var cs=c.split(" ");
-            var fn=cs.pop();
-            var canda=[];
-            if (cs.length==0) {
-                for (var k in sh) {
-                    if (typeof sh[k]=="function" && Util.startsWith(k, fn)) {
-                        canda.push(k);
-                    }
-                }
-            } else {
-                var f=sh.resolve(fn,false);
-                //console.log(fn,f);
-                if (!f) return;
-                var d=(f.isDir() ? f : f.up());
-                d.each(function (e) {
-                    if ( Util.startsWith(e.path(), f.path()) ) {
-                        canda.push(e.name());
-                    }
-                });
-            }
-            if (canda.length==1) {
-                var fns=fn.split("/");
-                fns.pop();
-                fns.push(canda[0]);
-                cs.push(fns.join("/"));
-                cmd.val(cs.join(" "));
-                cand.empty();
-            } else {
-                cand.text(canda.join(", "));
-            }
-            hitBottom();
-            //console.log(canda);
-            //cmd.val(cmd.val()+"hokan");
-        }
-    };
-    sh.edit=function (f) {
-        f=this.resolve(f);
-        var u=UI("div",
-            ["div",["textarea",{rows:10,cols:60,$var:"prog"}]],
-            ["div",["button",{on:{click:save}},"Save"]]
-        );
-        if (f.exists()) u.$vars.prog.val(f.text());
-        return this.echo(u);
-        function save() {
-            f.text( u.$vars.prog.val() );
-        }
-    };
-    sh.window=shParent.window=function () {
-        res.show(sh.cwd);
-    };
-    sh.atest=function (a,b,options) {
-        console.log(a,b,options);
-    };
-    var oldcat=sh.cat;
-    sh.cat=function (file,options) {
-        file=sh.resolve(file, true);
-        if (file.contentType().match(/^image\//)) {
-            return file.getContent(function (c) {
-                sh.echo(UI("img",{src:c.toURL()}));
-            });
-        } else {
-            return oldcat.apply(sh,arguments);
-        }
-    };
-
-    return res;
-});
-define('KeyEventChecker',[],function () {
-	var KEC={};
-	KEC.down=function (elem, name, handler) {
-		if (!(elem instanceof $)) elem=$(elem);
-		elem.bind("keydown", function (e) {
-			if (KEC.is(e, name)) {
-				return handler.call(elem[0],e);
-			}
-		});
-	};
-	var codes={8:"bs",13:"enter",37:"left",38:"up",39:"right",40:"down"};
-	KEC.is=function (e,name) {
-		name=name.toLowerCase();
-		e = e.originalEvent || e;
-		var s="";
-		if (e.altKey) {
-			s+="alt+";
-		}
-		if (e.ctrlKey) {
-			s+="ctrl+";
-		}
-		if (e.shiftKey) {
-			s+="shift+";
-		}
-		if (e.keyCode>=112 && e.keyCode<=123) {
-			s+="f"+(e.keyCode-111);
-        } else if (codes[e.keyCode]){
-            s+=codes[e.keyCode];
-		} else {
-			s+=String.fromCharCode(e.keyCode);
-		}
-		s=s.toLowerCase();
-		return name==s;
-	};
-	return KEC;
-});
-define('UIDiag',["UI"],function (UI) {
-    var UIDiag={};
-    UIDiag.confirm=function (mesg) {
-        var di=UI("div",{title:"確認"},["div",mesg],
-                ["button",{on:{click:sendF(true)}},"OK"],
-                ["button",{on:{click:sendF(false)}},"キャンセル"]).dialog({width:"auto",close:sendF(false)});
-        var d=$.Deferred();
-        function sendF(r) {
-            return function () { d.resolve(r); di.dialog("close"); di.remove(); };
-        }
-        return d.promise();
-    };
-    UIDiag.alert=function (mesg) {
-        var di=UI("div",{title:"確認"},["div",mesg],
-                ["button",{on:{click:sendF(true)}},"OK"]).dialog({width:"auto",close:sendF(false)});
-        var d=$.Deferred();
-        function sendF(r) {
-            return function () { d.resolve(r); di.dialog("close"); di.remove(); };
-        }
-        return d.promise();
-    };
-
-    UIDiag.prompt=function (mesg,value) {
-        var di=UI("div",{title:"入力"},["div",mesg],
-                ["input",{on:{enterkey:ok},$var:"val", value:value}],["br"],
-                ["button",{on:{click:ok}},"OK"],
-                ["button",{on:{click:cancel}},"キャンセル"]).dialog({width:"auto",close:function (){
-                    di.dialog("close");
-                    d.resolve();
-                }});
-        setTimeout(function () {
-            di.$vars.val.focus();
-            //console.log("FOcus");
-        },10);
-        var d=$.Deferred();
-        function ok() {
-            var r=di.$vars.val.val();
-            d.resolve(r);
-            di.dialog("close");
-            di.remove();
-        }
-        function cancel() {
-            di.dialog("close");
-            di.remove();
-            d.resolve();
-        }
-        return d.promise();
-
-    };
-    if (typeof window!="undefined") window.UIDiag=UIDiag;
-    return UIDiag;
-});
-define('Columns',["UI"],function (UI) {
-    var Columns={};
-    Columns.make=function () {
-        var div=UI("div",{"class":"container"});
-        var row=UI("div",{"class":"row"});
-        var res=[];
-        for (var i=0; i<arguments.length ; i++) {
-            var col=UI.apply(UI,arguments[i]);
-            res.push(col);
-            row.append(col);
-        }
-        div.append(row);
-        $("body").append(div);
-        return res;
-    };
-    return Columns;
-});
-
-define('Menu',["UI"], function (UI) {
-    var Menu={};
-    Menu.makeOLD=function (title, hier) {
-        if (title.sub) hier=title.sub;
-        /*
-           [{label:"main1",id:"main1",sub:[{label:"sub1", id:"sub1", action:f}]]
-         */
-        var ul1=UI("ul", {"class":"nav navbar-nav"});
-        hier.forEach(function (mainMenuItem) {
-            var li=UI("li",
-                    ["a",{
-                        href:(mainMenuItem.href||"#"),
-                        id:mainMenuItem.id,
-                        "class":(mainMenuItem.sub?"dropdown-toggle":null),
-                        "data-toggle":(mainMenuItem.sub?"dropdown":null)
-                    }, mainMenuItem.label]
-            );
-            ul1.append(li);
-            if (mainMenuItem.sub) {
-                var ul2=UI("ul",{"class":"dropdown-menu"});
-                mainMenuItem.sub.forEach(function (subMenuItem) {
-                    ul2.append(UI("li",
-                        ["a", {
-                             id:subMenuItem.id,
-                             href:subMenuItem.href||"#",
-                             on:{
-                                 click:subMenuItem.action
-                             }
-                        },subMenuItem.label]
-                    ));
-                });
-                li.append(ul2);
-            }
-        });
-        var menu=UI("div",{"class":"collapse navbar-collapse"},ul1);
-        $("body").append(UI(
-          "div",{"class":"navbar navbar-inverse navbar-fixed-top",id:"navBar"},
-                ["div",{"class":"container",id:"nav-A"},
-                    ["div", {"class":"navbar-header",id:"nav-B"},
-                        ["button",{type:"button", "class":"navbar-toggle",
-                            "data-toggle":"collapse",
-                            "data-target":".navbar-collapse"},
-                            ["span",{"class":"icon-bar"}],
-                            ["span",{"class":"icon-bar"}],
-                            ["span",{"class":"icon-bar"}]
-                        ],
-                        ["a", {"class":"navbar-brand" ,href:"#",id:title.id},title.label]
-                    ],
-                    menu
-                ]
-        ));
-    };
-    Menu.make=function (title, hier) {
-        if (title.sub) hier=title.sub;
-        this.initMenuBar(title);
-        /*
-           [{label:"main1",id:"main1",sub:[{label:"sub1", id:"sub1", action:f}]]
-         */
-        hier.forEach(function (mainMenuItem) {
-            Menu.appendMain(mainMenuItem);
-        });
-    };
-    Menu.initMenuBar=function (title) {
-        if (this.ul1)return;
-        var ul1=UI("ul", {"class":"nav navbar-nav"});
-        var menu=UI("div",{"class":"collapse navbar-collapse"},ul1);
-        $("body").append(UI(
-          "div",{"class":"navbar navbar-inverse navbar-fixed-top",id:"navBar"},
-                ["div",{"class":"container",id:"nav-A"},
-                    ["div", {"class":"navbar-header",id:"nav-B"},
-                        ["button",{type:"button", "class":"navbar-toggle",
-                            "data-toggle":"collapse",
-                            "data-target":".navbar-collapse"},
-                            ["span",{"class":"icon-bar"}],
-                            ["span",{"class":"icon-bar"}],
-                            ["span",{"class":"icon-bar"}]
-                        ],
-                        ["a", {"class":"navbar-brand" ,href:"#",id:title.id},title.label]
-                    ],
-                    menu
-                ]
-        ));
-        this.ul1=ul1;
-    };
-    Menu.appendMain=function (mainMenuItem) {
-        //[{label:"main1",id:"main1",sub:[{label:"sub1", id:"sub1", action:f}]]
-        var ul1=this.ul1;
-        var li=UI("li",
-                ["a",{
-                    href:(mainMenuItem.href||"#"),
-                    id:mainMenuItem.id,
-                    "class":(mainMenuItem.sub?"dropdown-toggle":null),
-                    "data-toggle":(mainMenuItem.sub?"dropdown":null)
-                }, mainMenuItem.label]
-        );
-        if (mainMenuItem.action) {
-            li.find("a").click(mainMenuItem.action);
-        }
-        if (mainMenuItem.after) {
-            $(mainMenuItem.after).closest("li").after(li);
-        } else {
-            ul1.append(li);
-        }
-        if (mainMenuItem.sub) {
-            var ul2=UI("ul",{
-                id:"submenu_"+mainMenuItem.id,
-                "class":"dropdown-menu"
-            });
-            li.append(ul2);
-            mainMenuItem.sub.forEach(function (subMenuItem) {
-                Menu.appendSub(mainMenuItem,subMenuItem);
-            });
-        }
-    };
-    Menu.appendSub=function (mainObj,subMenuItem) {
-        var mainID;
-        switch (typeof mainObj) {
-            case "object":
-            mainID=mainObj.id;
-            mainObj.sub=[subMenuItem];
-            break;
-            case "string":
-            mainID=mainObj;
-            mainObj={label:mainID,id:mainID};
-            break;
-        }
-        var ul2=$("#submenu_"+mainID);
-        if (ul2.length==0) {
-            Menu.appendMain(mainObj);
-            //ul2=$("#submenu_"+mainID);
-            return;
-        }
-        ul2.append(UI("li",
-            ["a", {
-                 id:subMenuItem.id,
-                 href:subMenuItem.href||"#",
-                 on:{
-                     click:subMenuItem.action
-                 }
-            },subMenuItem.label]
-        ));
-    };
-
-    return Menu;
 });
 
 define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
@@ -12414,123 +12040,6 @@ define('NotificationDialog',["UI"], function (UI) {
             c.append(res.lastLine);
         }
     	d.done=function () {
-    	    /*if (d.$edits.validator.isValid()) {
-                onOK(model);
-                d.dialog("close");
-    	    }*/
-    	};
-    	return d;
-    };
-    return res;
-});
-
-define('FileUploadDialog',["FS","UI"],function (FS,UI) {
-    var res={};
-    var P=FS.PathUtil;
-	res.show=function (dir,options) {
-    	var d=res.embed(dir,options);
-    	if (!res.opened) {
-        	d.dialog({width:600,height:300,
-        	    close: function () {
-        	        res.opened=false;
-        	    }
-        	});
-    	}
-    	res.opened=true;
-	};
-	res.embed=function (dir, options) {
-	    if (!options) options={};
-	    options.onAdd=options.onAdd||function (){};
-	    var mediaInfos={
-	        c:{
-	            name:"Cソースファイル",
-	            exts:["c"],
-                extPattern:/\.c$/i,
-                contentType:/text\/.*/,
-            }
-	    };
-	    var mediaInfo=mediaInfos.c;
-        if (!res.d) {
-            var FType={
-                fromVal: function (val){
-                    return val=="" ? null : FS.get(val);
-                },
-                toVal: function (v){ return v ? v.path() : "";}
-            };
-            var dragMsg="ここに"+mediaInfo.name+"ファイル("+mediaInfo.exts.join("/")+")をドラッグ＆ドロップして追加．";
-            res.dragPoint=UI("div",
-                {style:"margin:10px; padding-left:10px; padding-right:10px; padding-top:50px; padding-bottom:50px; border:solid blue 2px;",
-                on:{dragover: s, dragenter: s, drop:dropAdd}},dragMsg,
-                ["br"],        "※ファイルの文字コードはUTF-8Nにしてください．"
-            );
-        	res.d=UI("div",{title:"ファイルアップロード"},
-        	    res.dragPoint,
-        	    ["div",{$var:"result"}]
-        	    /* ["button", {$var:"OKButton", on:{click: function () {
-                	 res.d.done();
-                 }}}, "OK"]*/
-            );
-        }
-        function dropAdd(e) {
-            eo=e.originalEvent;
-            var files = Array.prototype.slice.call(eo.dataTransfer.files);
-            var added=[],cnt=files.length;
-
-            files.forEach(function (file) {
-                var itemName=file.name;//.replace(mediaInfo.extPattern,"").replace(/\W/g,"_");
-                if (!P.ext(file.name).match(mediaInfo.extPattern)) {
-                    res.d.$vars.result.append(
-                        UI("div",itemName+": このファイルは追加できません")
-                    );
-                    dec();
-                    return;
-                }
-                var itemFile=dir.rel(itemName);
-                if (itemFile.exists()) {
-                    upmesg=itemName+": 同名のファイルがあるため中止しました．";
-                    dec();
-                    res.d.$vars.result.append(
-                        UI("div",upmesg)
-                    );
-                } else {
-                    var reader = new FileReader();
-                    reader.onload = function(e) {
-                        var fileContent = reader.result;
-                        var upmesg;
-                        itemFile.setBytes(fileContent);
-                        added.push(itemFile);
-                        upmesg=itemName+": アップロードしました．";
-                        dec();
-                        res.d.$vars.result.append(
-                            UI("div",upmesg)
-                        );
-                        //v.url="ls:"+itemFile.relPath(prj.getDir());// fileContent;
-                        //add(v);
-                    };
-                    reader.readAsArrayBuffer(file);
-                }
-            });
-            function dec() {
-                cnt--;
-                if (cnt<=0) {
-                    options.onAdd(added);
-                }
-            }
-            e.stopPropagation();
-            e.preventDefault();
-            return false;
-        }
-        function s(e) {
-            e.stopPropagation();
-            e.preventDefault();
-        }
-
-        var d=res.d;
-        d.$vars.result.empty();
-        //var c=d.$vars.cont;
-        //c.append($("<div>").text(mesg));
-    	d.done=function () {
-
     	    /*if (d.$edits.validator.isValid()) {
                 onOK(model);
                 d.dialog("close");
@@ -17319,28 +16828,39 @@ define('BAProject',["Klass","DeferredUtil"],function (Klass,DU) {
 });
 
 /*global requirejs*/
-requirejs(["Util", "FS", "FileList", "FileMenu",
-           "showErrorPos", "fixIndent",
-           "Shell","ShellUI","KeyEventChecker",
-           "UI","UIDiag","WebSite","exceptionCatcher",
-           "Columns","assert","Menu","TError","DeferredUtil","Sync","RunDialog2",
-           "LocalBrowser","logToServer2","SplashScreen","Auth",
-           "DistributeDialog","NotificationDialog","FileUploadDialog",
-           "IframeDialog","AssignmentDialog","SubmitDialog",
-           "CommentDialog2","NewProjectDialog",
-           "ProgramFileUploader","AssetDialog","root","ErrorDialog","BAProject"
-          ],
-function (Util, FS, FileList, FileMenu,
-          showErrorPos, fixIndent,
-          sh,shui,  KeyEventChecker,
-          UI, UIDiag,WebSite,EC,
-          Columns,A,Menu,TError,DU,Sync,RunDialog2,
-          LocalBrowser,logToServer2,SplashScreen,Auth,
-          DistributeDialog,NotificationDialog,FileUploadDialog,
-          IframeDialog,AssignmentDialog,SubmitDialog,
-          CommentDialog2,NPD,
-          ProgramFileUploader,AssetDialog,root,ErrorDialog,BAProject
-) {
+define('jsl_edit',['require','Util','FS','FileList','FileMenu','showErrorPos','fixIndent','Shell','KeyEventChecker','UIDiag','WebSite','exceptionCatcher','Columns','assert','Menu','DeferredUtil','Sync','RunDialog2','logToServer2','SplashScreen','Auth','DistributeDialog','NotificationDialog','IframeDialog','AssignmentDialog','SubmitDialog','CommentDialog2','NewProjectDialog','ProgramFileUploader','AssetDialog','root','ErrorDialog','BAProject'],function (require) {
+    var Util=require("Util");
+    var FS=require("FS");
+    var FileList=require("FileList");
+    var FileMenu=require("FileMenu");
+    var showErrorPos=require("showErrorPos");
+    var fixIndent=require("fixIndent");
+    var sh=require("Shell");
+    var KeyEventChecker=require("KeyEventChecker");
+    var UIDiag=require("UIDiag");
+    var WebSite=require("WebSite");
+    var EC=require("exceptionCatcher");
+    var Columns=require("Columns");
+    var A=require("assert");
+    var Menu=require("Menu");
+    var DU=require("DeferredUtil");
+    var Sync=require("Sync");
+    var RunDialog2=require("RunDialog2");
+    var logToServer2=require("logToServer2");
+    var SplashScreen=require("SplashScreen");
+    var Auth=require("Auth");
+    var DistributeDialog=require("DistributeDialog");
+    var NotificationDialog=require("NotificationDialog");
+    var IframeDialog=require("IframeDialog");
+    var AssignmentDialog=require("AssignmentDialog");
+    var SubmitDialog=require("SubmitDialog");
+    var CommentDialog2=require("CommentDialog2");
+    var NPD=require("NewProjectDialog");
+    var ProgramFileUploader=require("ProgramFileUploader");
+    var AssetDialog=require("AssetDialog");
+    var root=require("root");
+    var ErrorDialog=require("ErrorDialog");
+    var BAProject=require("BAProject");
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
         A.setMode(A.MODE_STRICT);
@@ -18346,6 +17866,4 @@ function ready() {
     window.NotificationDialog=NotificationDialog;
 }// of ready
 });
-
-define("jsl_edit", function(){});
 

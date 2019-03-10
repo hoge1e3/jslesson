@@ -69,7 +69,9 @@ requirejs(["Util"],function (Util){
     if (!noconcat) {
         console.log(reqConf.paths[run+"_concat"]);
         if (reqConf.paths[run+"_concat"]) {
-            run+="_concat";
+            reqConf.paths[run]=reqConf.paths[run+"_concat"];
+            requirejs.config(reqConf);
+            //run+="_concat";
         }
     } else {
         delete localStorage.BAVer;
