@@ -30,10 +30,10 @@ var reqConf={
             "Arrow": {
                 "exports": "Arrow"
             },
-            "fixIndent": {
+            /*"fixIndent": {
                 "deps": ["TonyuLang", "Visitor", "Grammar"],
                 "exports": "fixIndent"
-            },
+            },*/
             "Key": {
                 "exports": "Key"
             },
@@ -85,15 +85,15 @@ var reqConf={
                 exports:"MinimalParser"
             },*/
             "dolittle/minimal": {
-                deps:["Parser"],
+                deps:["Parser","ExpressionParser","context"],
                 exports:"MinimalParser"
             },
             "dncl/minimal": {
-                deps:["Parser"],
+                deps:["Parser","ExpressionParser","context"],
                 exports:"MinimalParser"
             },
             "dncl/dncl2js": {
-                deps:["Parser"],
+                deps:["Parser","ExpressionParser","context"],
                 exports:"dncl2js"
             },
             AsyncByGenerator: {

@@ -1,11 +1,12 @@
-dncl2js= function () {
+/*global Parser, ExpressionParser, context */
+window.dncl2js= function () {
 	function extend(dst,src) {
 		for (var k in src) dst[k]=src[k];
 	}
 	var parser={};
 	var sp=Parser.StringParser; // 文字列を解析するパーサ
 	var ctx;
-	function ent(entf, parser) {
+	/*function ent(entf, parser) {
         if (typeof parser == "function") {
 	       var res;
 	       ctx.enter(entf(), function () {
@@ -23,7 +24,7 @@ dncl2js= function () {
 	}
 	function lit(s) {
 	    return '"'+s+'"';
-	}
+	}*/
 	//    ↓ 空白またはコメントを解析するパーサ
 	var space=sp.reg(/^(\s*(\/\*([^\/]|[^*]\/|\r|\n)*\*\/)*(\/\/[^\r\n]*\r?\n)*)*/);/*.ret(function (a) {
 	    //console.log("READ space ! ",a.pos,a.len, a.src.str.substring( a.pos));
@@ -49,7 +50,7 @@ dncl2js= function () {
 						//return this.text+"("+this.pos+")";
 						return this.text;
 					}
-			}
+			};
 		});
 	}
 
@@ -457,7 +458,7 @@ dncl2js= function () {
 		while(str.match(/__if_id__/))str=str.replace(/__if_id__/,if_id++);
 		console.log(str);
 		return str;
-	}
+	};
 	parser.parse=function (str,options) {
 		var output=parser.parseAsNode(str,options);
 		output=parser.node2js(output,options);

@@ -1,8 +1,10 @@
-MinimalParser= function () {
+// These should be written in reqConf.shim.deps
+/*global Parser, ExpressionParser, context */
+window.MinimalParser= function () {
 	var parser={};
 	var sp=Parser.StringParser; // 文字列を解析するパーサ
 	var ctx;
-	function ent(entf, parser) {
+	/*function ent(entf, parser) {
         if (typeof parser == "function") {
 	       var res;
 	       ctx.enter(entf(), function () {
@@ -20,7 +22,7 @@ MinimalParser= function () {
 	}
 	function lit(s) {
 	    return '"'+s+'"';
-	}
+	}*/
 	//    ↓ 空白またはコメントを解析するパーサ
 	var space=sp.reg(/^(\s*(\/\*([^\/]|[^*]\/|\r|\n)*\*\/)*(\/\/[^\r\n]*\r?\n)*)*/);/*.ret(function (a) {
 	    //console.log("READ space ! ",a.pos,a.len, a.src.str.substring( a.pos));
@@ -46,12 +48,12 @@ MinimalParser= function () {
 						//return this.text+"("+this.pos+")";
 						return this.text;
 					}
-			}
+			};
 		});
 	}
 
 	var reserved=/^(?:もし|ならば|を実行し|を実行する|そうでなければ|そうでなく|そうでなくもし|の間|を繰り返す|と|改行を表示する|と改行|と改行と|と改行を表示する|改行|を表示する|表示する|改行なしで|を改行なしで|を改行なしで表示する|改行なしで表示する|を|から|まで|ずつ|増やしながら|減らしながら|ずつ増やしながら|ずつ減らしながら|を繰り返す|増やす|減らす|のすべての値を|すべての値を|すべての値|にする|繰り返し|になるまで実行する|は|性能を|性能を確認する|の|の性能を|の性能を確認する|確認する)$/;
-	
+
 	var reg_string = /^[a-zａ-ｚA-ZＡ-Ｚ_＿\\$＄\\?？ーぁ-んァ-ヶ々〇〻\u3400-\u9FFF\uF900-\uFAFF\uD840-\uD87F\uDC00-\uDFFF][a-zａ-ｚA-ZＡ-Ｚ_＿\\$＄\\?？0-9０-９ーぁ-んァ-ヶ々〇〻\u3400-\u9FFF\uF900-\uFAFF\uD840-\uD87F\uDC00-\uDFFF]*/;
 	var trim_name=function(name){
 		return toHalfWidth(name);
@@ -72,7 +74,7 @@ MinimalParser= function () {
 	        .replace(/　/g, " ")
 	        .replace(/〜/g, "~");
 	}
-	
+
 
   // \lazies
 	var term,program,expression,statement;
@@ -85,12 +87,12 @@ MinimalParser= function () {
 	var rsb=token(/^[\]]/).ret(function(){return "]";});
 	var lp=token(/^[(（]/).ret(function(){return "(";});
 	var rp=token(/^[)）]/).ret(function(){return ")";});
-	var lcb=token(/^[｛{]/).ret(function(){return "{"});
-	var rcb=token(/^[｝}]/).ret(function(){return "}"});
+	var lcb=token(/^[｛{]/).ret(function(){return "{";});
+	var rcb=token(/^[｝}]/).ret(function(){return "}";});
 	var add=token(/^[+＋]/).ret(function(){return "+";});
 	var sub=token(/^[-−–－]/).ret(function(){return "-";});
 	var mul=token(/^[*×＊∗]/).ret(function(){return "*";});
-	var div_float=token(/^[/／]/).ret(function(){return "/";});
+	var div_float=token(/^[\/／]/).ret(function(){return "/";});
 	var div_int=token(/^÷/).ret(function(){return "÷";});
 	var gt=token(/^[>＞]/).ret(function(){return ">";});
 	var ge=token(/^(?:[>＞][=＝])|^≧/).ret(function(){return ">=";});
@@ -116,9 +118,9 @@ MinimalParser= function () {
 			'toString':(function(){
 				return 'this["param_or_this"]("'+_name+'",this["params"])["'+_name+'"]';
 			})
-		}
+		};
 	});
-	var name_2byte = token(reg_string).except(function(str){return (""+str).search(reserved)===0}).ret(function(_name){
+	var name_2byte = token(reg_string).except(function(str){return (""+str).search(reserved)===0;}).ret(function(_name){
 	    return trim_name(_name.text);
 	});
 	var reg_str = RegExp("^[\"\”\“「｢][^\"\“\”\」｣]*[\"\”\“」｣]");
@@ -172,13 +174,13 @@ MinimalParser= function () {
 	//   // return '(dnclroot["ref"]("'+name+'",'+_name+indexs+'))';
 	//   // return _name+indexs.join("");
 	// });
-	var paren_expression = lp.and(expression_lazy.opt()).and(rp).ret(function(_lp,_expr,_rp){
-		return "("+(_expr?_expr:"")+")"
+	var paren_expression = lp.and(expression_lazy.opt()).and(rp).ret(function(_lp,_expr/*,_rp*/){
+		return "("+(_expr?_expr:"")+")";
 	});
-	var unary_term = add.or(sub).and(term_lazy).ret(function(_sign,_term){
+	/*var unary_term = add.or(sub).and(term_lazy).ret(function(_sign,_term){
 		return _sign+"("+_term+")";
-	});
-	
+	});*/
+
 	var variable=arr_ref.or(name).ret(function(_var){return _var;});
 	var factor=paren_expression.or(num).or(str).or(arr_ref.ret(function(e){
 			return '(this["ref"]("'+e.name+'",'+e+'))';
@@ -193,7 +195,7 @@ MinimalParser= function () {
 	infix_expr_build.infixl(4,mul);
 	infix_expr_build.infixl(4,mod);
 	infix_expr_build.mkInfixl(infix_mk);
-	function infix_mk(left,op,right){	
+	function infix_mk(left,op,right){
 		// left='(dnclroot["undef20"]('+left+'))';
 		// right='(dnclroot["undef20"]('+right+'))';
 		// return '(dnclroot["toInt"]('+left+op+right+"))";
@@ -203,10 +205,10 @@ MinimalParser= function () {
 				left='(dnclroot["toInt"]('+left+'))';
 				right='(dnclroot["toInt"]('+right+'))';
 				return '(dnclroot["toInt"]('+left+op+right+"))";
-				break;
+				//break;
 			default:
 				return '('+left+op+right+")";
-				break;
+				//break;
 		}
 	}
 	var infix_expr = infix_expr_build.build();
@@ -241,7 +243,7 @@ MinimalParser= function () {
 	}
 	var logical_expr = logical_expr_build.build();
 
-	var expression = logical_expr;
+	expression = logical_expr;
 
 
 	var func_call_param = lp.and(expression_lazy.sep0(comma,true)).and(rp).ret(function(_lp,_params){
@@ -283,7 +285,7 @@ MinimalParser= function () {
 		return true;
 	}).opt()).and(token(/^表示する/)).ret(function(_params,_wo,_noNewLineFlag){
 		var _newLineFlag=(_noNewLineFlag)?false:true;
-		return 'this["dncl_disp"](['+_params+"],"+_newLineFlag+");"
+		return 'this["dncl_disp"](['+_params+"],"+_newLineFlag+");";
 	});
 	var if_state_1liner=token(/^もし/).and(expression).and(token(/^ならば/)).and(statement_lazy).ret(function(_if,_expr,_then,_state){
 		return 'if(this["if_judge_with_inc"](__if_id__,'+_expr+")){"+_state+"}";
@@ -314,11 +316,11 @@ MinimalParser= function () {
 		 *		var id=this["for_ent"]();
 		 *		for ( part1 ; part2 ; this["for_inc"](id),part3 ){ program }
 		 *	}).apply(this);
-		*/	
+		*/
 		var part1=_var+"="+_init;
 		var part2=_var+((_sign==="+")?"<=":">=")+_end;
 		var part3=_var+((_sign==="+")?"+=":"-=")+_step;
-		return 'for('+part1+";"+part2+';this["for_judge_with_inc"](__for_id__,'+part3+")){"+_program+"}"
+		return 'for('+part1+";"+part2+';this["for_judge_with_inc"](__for_id__,'+part3+")){"+_program+"}";
 	});
 	var arr_init=variable.and(token(/^の/)).and(token(/^すべての値を/)).and(expression).and(token(/^にする/)).ret(function(_var,_no,_all,_val){
 		return 'this["allSet"]'+'("'+_var['name']+'",'+_val+");";
@@ -351,7 +353,7 @@ MinimalParser= function () {
 	});
 	var dec=variable.and(token(/^を/)).and(expression).and(token(/^減らす/)).ret(function(_var,_1,_expr){
 		return _var+"=(("+_var+"!==undefined)?"+_var+":0)-"+_expr+";";
-	});;
+	});
 
 	var control_state=if_state.or(if_state_1liner).or(while_state).or(repeat_state);
 	statement=performance_test.or(func).or(control_state).or(arr_init).or(disp_state).or(inc).or(dec).or(return_state).or(assigns);
@@ -411,6 +413,17 @@ MinimalParser= function () {
 		}
         return output;
     };
+	function extend(arr,obj) {
+        var pos;
+        for (var k in obj) {
+            var v=obj[k];
+            arr[k]=v;
+            if (typeof v=="number") pos=v;
+            if (v && typeof v.pos=="number") pos=v.pos;
+        }
+        arr.pos=arr.pos||pos;
+        return arr;
+    }
 	/*ポストプロセス*/
 	parser.postprocess=function(str){
 		console.log(str);
