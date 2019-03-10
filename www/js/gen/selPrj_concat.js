@@ -5078,7 +5078,7 @@ define('Klass',["assert"],function (A) {
         return klass;
     };
     function getArgs(f) {
-        var fpat=/function[^\(]+\(([^\)]*)\)/;
+        var fpat=/function[^\(]*\(([^\)]*)\)/;
         var r=fpat.exec(f+"");
         if (r) {
             return r[1].replace(/\s/g,"").split(",");
