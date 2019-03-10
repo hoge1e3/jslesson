@@ -1,4 +1,4 @@
-define(["UI","ProjectCompiler"], function (UI,TPRC) {
+define(["UI","BAProject"], function (UI,BAProject) {
     var res={};
 	res.show=function (prjInfo, onOK,options) {
     	var d=res.embed(prjInfo,onOK,options);
@@ -83,7 +83,7 @@ define(["UI","ProjectCompiler"], function (UI,TPRC) {
 	    console.log(model);
 	    var prjDir=projectsDir.rel(model.name+"/");
         prjDir.mkdir();
-        TPRC(prjDir).setOptions({
+        new BAProject(prjDir).setOptions({
             compiler:{
                 namespace:"user",
                 outputFile:"js/concat.js",
