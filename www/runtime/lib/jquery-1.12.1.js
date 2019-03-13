@@ -3401,7 +3401,7 @@ jQuery.extend( {
 					return this;
 				},
 				"finally": function (f) {//@hoge1e3
-					return this.then(function (r) {
+                    return this.then(function (r) {
 						f();
 						return r;
 					},function (e) {
@@ -3415,10 +3415,12 @@ jQuery.extend( {
 					},f);
 				},
 				then: function( /* fnDone, fnFail, fnProgress */ ) {
-					function throwF(f) {//@hoge1e3
+					function throwF(f,wrapPromise) {//@hoge1e3
                         return function () {
                             try {
-                                return f.apply(this,arguments);
+								var r=f.apply(this,arguments);
+                                if (wrapPromise) return jQuery.when(r);
+								else return r;
                             } catch(e) {
             	                var d=new jQuery.Deferred;
             	                d.reject(e);
@@ -3429,7 +3431,7 @@ jQuery.extend( {
 					var fns = arguments;
 					return jQuery.Deferred( function( newDefer ) {
 						jQuery.each( tuples, function( i, tuple ) {
-							var fn = jQuery.isFunction( fns[ i ] ) && throwF(fns[ i ]); //@hoge1e3
+							var fn = jQuery.isFunction( fns[ i ] ) && throwF(fns[ i ],tuple[1]==="fail"); //@hoge1e3
 
 							// deferred[ done | fail | progress ] for forwarding actions to newDefer
 							deferred[ tuple[ 1 ] ]( function() {
@@ -3466,10 +3468,8 @@ jQuery.extend( {
 		jQuery.each( tuples, function( i, tuple ) {
 			var list = tuple[ 2 ],
 				stateString = tuple[ 3 ];
-
 			// promise[ done | fail | progress ] = list.add
-			promise[ tuple[ 1 ] ] = list.add;
-
+			promise[ tuple[ 1 ] ] =	list.add;
 			// Handle state
 			if ( stateString ) {
 				list.add( function() {

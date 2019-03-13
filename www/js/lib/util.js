@@ -1,11 +1,15 @@
 Util=(function () {
+    var _global=(typeof window!=="undefined" ? window : global);
 
 function getQueryString(key, default_)
 {
     if (arguments.length===1) default_="";
+    if (typeof LocalBrowserInfo==="object") {
+        return key in LocalBrowserInfo.params? LocalBrowserInfo.params[key] : default_;
+    }
    key = key.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
    var regex = new RegExp("[\\?&]"+key+"=([^&#]*)");
-   var qs = regex.exec(window.location.href);
+   var qs = regex.exec(_global.location.href);
    if(qs == null)
     return default_;
    else
