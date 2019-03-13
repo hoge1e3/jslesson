@@ -1,4 +1,5 @@
 (function () {
+    var _global=(typeof window!=="undefined" ? window : global);
 var utils = (function() {
     var exports = {};
 
@@ -145,7 +146,7 @@ var scanf = (function() {
             result.push(dealType(val));
         });
         return result;
-    };
+    }
     exports.sscanfJS=sscanfJS;
 
     var getInput = function(pre, next, match, type) {
@@ -287,5 +288,5 @@ var scanf = (function() {
     return exports;
 })();
 
-window.sscanfJS=scanf.sscanfJS;
+_global.sscanfJS=scanf.sscanfJS;
 })();
