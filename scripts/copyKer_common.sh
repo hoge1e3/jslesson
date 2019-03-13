@@ -2,9 +2,9 @@
 # run at git root(not scripts/)
 #
 #common?
-src=./www/js/lib/
+src=./www/js
 dst=./www/runtime/lib
-cp $src/assert.js $dst
-cp $src/Klass.js $dst
-cp js/fs2/FS.js $dst
-cp js/ctrans/AsyncByGenerator.js $dst
+cp $src/lib/assert.js $dst
+cp $src/lib/Klass.js $dst
+cp $src/fs2/FS.js $dst
+cp $src/ctrans/AsyncByGenerator.js $dst
