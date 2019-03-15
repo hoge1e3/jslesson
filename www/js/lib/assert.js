@@ -2,7 +2,7 @@ define([],function () {
     var Assertion=function(failMesg) {
         this.failMesg=flatten(failMesg || "Assertion failed: ");
     };
-    var $a;
+    var $a;//ab
     Assertion.prototype={
         _regedType:{},
         registerType: function (name,t) {

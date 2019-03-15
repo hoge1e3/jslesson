@@ -1901,10 +1901,11 @@ define('NativeFS',["FSClass","assert","PathUtil","extend","Content"],
             var t=this;
             var rfs=t.getRootFS();
             options=options||{};
+            var isDir=this.isDir(apath);
             //console.log("Invoke oao",options);
             var w=fs.watch(apath, options, function (evt,rpath) {
                 //console.log(path);
-                var fpath=P.rel(apath,rpath);
+                var fpath=isDir ? P.rel(apath,rpath) : apath;
                 var meta;
                 if (t.exists(fpath)) {
                     meta=extend({eventType:evt},t.getMetaInfo(fpath));

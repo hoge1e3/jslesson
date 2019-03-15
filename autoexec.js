@@ -1,38 +1,40 @@
 /*global global,atom,require*/
 console.log("Auto desu");
-global.rerunit=function () {
+/*global.rerunit=function () {
     console.log("Auto desuka?");
     init();
-};
-const fs=require("fs");
+};*/
+//const fs=require("fs");
+const dirs=atom.project.getDirectories();
+console.log(dirs);
+if (!dirs[0]) return;
+const projectRootPath=dirs[0].path;
+//const prjRoot=`${projectRoot}/TODO.txt`;
+const requirejs=require(`${projectRootPath}/www/node/r.js`);
+const JS=`${projectRootPath}/www/js`;
+const reqConf=require(`${JS}/reqConf.js`).conf;
+delete reqConf.urlArgs;
+reqConf.baseUrl=JS;
+requirejs.config(reqConf);
 
-init();
-function init() {
-    const dirs=atom.project.getDirectories();
-    console.log(dirs);
-    if (!dirs[0]) return;
-    const projectRoot=dirs[0].path;
-    //const prjRoot=`${projectRoot}/TODO.txt`;
-    const requirejs=require(`${projectRoot}/www/node/r.js`);
-    const JS=`${projectRoot}/www/js`;
-    const reqConf=require(`${JS}/reqConf.js`).conf;
-    delete reqConf.urlArgs;
-    reqConf.baseUrl=JS;
-    requirejs.config(reqConf);
-
-    requirejs(["FS"],(FS)=> {
-        console.log(FS.get(projectRoot).rel("TODO.txt").text());
-    });
+requirejs(["FS"],(FS)=> {
+    const projectRoot=FS.get(projectRootPath);
+    const sy=require(`${projectRootPath}/scripts/sync.js`);
+    sy(sync);
+    function sync(path1,path2) {
+        const f1=projectRoot.rel(path1);
+        const f2=projectRoot.rel(path2);
+        f1.watch((type,f)=>{
+            console.log(type,f,f1.path());
+        });
+        f2.watch((type,f)=>{
+            console.log(type,f,f2.path());
+        });
+    }
+    //console.log(FS.get(projectRoot).rel("TODO.txt").text());
+});
 
     /*fs.watch(prjRoot,(type,path)=>{
         console.log(type,path);
 
     });*/
-}
-function sync(path1,path2) {
-    const c=fs.readSync(path1);
-
-    fs.watch(path1, (type,path)=>{
-
-    });
-}
