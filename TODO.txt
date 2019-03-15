@@ -1,8 +1,5 @@
-
-
 * 作品一覧
-
-* personalクラス
+* OK personalクラス
 
 *OK 隠し from teacher(オプションで再出現)
 -未採点の課題
