@@ -1,0 +1,14 @@
+{
+  "babelMapsPath":                    "www/es5",
+  "babelMapsAddUrl":                  true,
+  "babelSourcePath":                  "www/js",
+  "babelTranspilePath":               "www/es5",
+  "createMap":                        true,
+  "createTargetDirectories":          true,
+  "createTranspiledCode":             true,
+  "disableWhenNoBabelrcFileInPath":   true,
+  "projectRoot":                      true,
+  "suppressSourcePathMessages":       false,
+  "suppressTranspileOnSaveMessages":  true,
+  "transpileOnSave":                  true
+}
