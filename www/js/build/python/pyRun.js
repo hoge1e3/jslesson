@@ -4,7 +4,7 @@ function (PP,S,G,J,PL,TError) {
         var node=PP.parse(srcF);
         try {
             var v=S.check(node);
-            var gen=G(node);
+            //var gen=G(node);
             var genj=J(node,v.anon);
             console.log(genj);
             var f=new Function(genj);

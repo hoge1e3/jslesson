@@ -1,5 +1,5 @@
-define(["Visitor","IndentBuffer"],
-function (Visitor,IndentBuffer) {
+define(["Visitor","IndentBuffer","assert"],
+function (Visitor,IndentBuffer,assert) {
     const BAWRAPPER="bawrapper";
     const vdef={
         program: function (node) {
@@ -95,13 +95,13 @@ function (Visitor,IndentBuffer) {
         paren: function (node) {
             this.printf("(%v)",node.body);
         },
-        ":indent": function (node) {
+        ":indent": function () {
             this.printf(":%{");
         },
-        "dedent": function (node) {
+        "dedent": function () {
             this.printf("%}");
         },
-        "nodent": function (node) {
+        "nodent": function () {
             this.printf("%n");
         },
         infixl: function(node) {
@@ -113,8 +113,8 @@ function (Visitor,IndentBuffer) {
         prefix: function (node) {
             this.printf("%v%v",node.op,node.right);
         },
-        breakStmt: function (node) {
-            this.printf("break")
+        breakStmt: function () {
+            this.printf("break");
         },
         symbol: function (node) {
             var a=this.anon.get(node);
@@ -124,7 +124,7 @@ function (Visitor,IndentBuffer) {
                 this.printf("%s",node+"");
             }
         },
-        not: function(node) {
+        not: function() {
             this.printf("not ");
         }
     };
@@ -139,7 +139,7 @@ function (Visitor,IndentBuffer) {
     }
     function gen(node,anon,options={}) {
         const v=Visitor(vdef);
-        v.anon=anon;
+        v.anon=assert(anon);
         v.importable=options.importable||{};
         //console.log("IMP",v.importable);
         v.def=function (node) {

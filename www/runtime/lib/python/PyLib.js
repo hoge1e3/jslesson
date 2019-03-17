@@ -28,17 +28,17 @@ define([],function () {
     PL.clearRect=function(x,y,w,h){
         var ctx=PL.CANVAS[0].getContext("2d");
         ctx.clearRect(x,y,w,h);
-    }
+    };
     PL.clear=function(){
         PL.clearRect(0,0,PL.CANVAS.width(),PL.CANVAS.height());
-    }
+    };
     PL.setColor=function (r,g,b){
         var ctx=PL.CANVAS[0].getContext("2d");
         ctx.fillStyle="rgb("+r+","+g+","+b+")";
     };
     PL.setTimeout=function (f,t){
         setTimeout(f,t);
-    }
+    };
     PL.STDOUT={
         append: function (s) {
             console.log(s);
@@ -95,14 +95,15 @@ define([],function () {
             return self;
         };
         res.prototype=Object.create(parent.prototype,{});
-        for (var k in defs) (function (k) {
+        function addMethod(k) {
             var m=defs[k];
             res.prototype[k]=function () {
                 var a=Array.prototype.slice.call(arguments);
                 a.unshift(this);
                 return m.apply(this,a);
             };
-        })(k);
+        }
+        for (var k in defs) addMethod(k);
         return res;
     };
     PL.invoke=function (self,name,args) {
@@ -160,7 +161,7 @@ define([],function () {
                     for (;other;other--) res+=self.unwrap();
                     return res;
                 default:
-                    PY.invalidOP("__mul__",other);
+                    PL.invalidOP("__mul__",other);
                 }
             }
         }),
@@ -170,6 +171,9 @@ define([],function () {
         function:PL.class(PL.Wrapper,{
 
         })
+    };
+    PL.invalidOP=function (op,to) {
+        throw new Error("Cannot do opration "+op+" to "+to);
     };
     PL.builtins=["range","input","str","int","float","len","fillRect","setColor","setTimeout","clearRect","clear"];
     if (typeof window!=="undefined") window.PYLIB=PL;
