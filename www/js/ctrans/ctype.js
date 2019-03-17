@@ -1,3 +1,4 @@
+/* global global */
 define(["Klass","assert"],function (Klass,assert) {
     var _global=(typeof window!=="undefined" ? window : global);
     var t={};
@@ -19,7 +20,7 @@ define(["Klass","assert"],function (Klass,assert) {
         equals: function (o) {
             return this===o;
         },
-        binOpable: function (op,right) {
+        binOpable: function (op/*,right*/) {
             if (op+""==="=" && this.assignableFrom(t)) return this;
             return false;
         },
@@ -33,7 +34,8 @@ define(["Klass","assert"],function (Klass,assert) {
         cast:function(param){return param;},
         modifiers: {
             get: function(){
-                return this._mods=this._mods||{};
+                this._mods=this._mods||{};
+                return this._mods;
             }
         },
         extendModifiers: function (t) {
@@ -97,7 +99,7 @@ define(["Klass","assert"],function (Klass,assert) {
                 !bitWiseOp[op+""] ) return this;
             return t.Number.super(this,"binOpable",op,right);
         }
-    })
+    });
     t.Char=t.IntNum.inherit({name:"char",numOrd:1,max:0xff,_sizeOf:1});
     t.char=t.Char();
     t.Byte=t.IntNum.inherit({name:"byte",numOrd:1,max:0xff,_sizeOf:1});

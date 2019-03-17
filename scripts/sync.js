@@ -1,5 +1,5 @@
 /* global module*/
-const c=sync=>{
+const common=sync=>{
     const src="www/js";
     const dst="www/runtime/lib";
 
@@ -14,6 +14,17 @@ const c=sync=>{
     sync(`${src}/lib/require.js`,dst);
     sync(`${src}/lib/util.js`,dst);
 };
+const c=sync=>{
+    const src="www/js/ctrans/";
+    const dst="www/runtime/lib/c";
+    sync(`${src}/lib.js`,dst);
+    sync(`${src}/util.js`,dst);
+    sync(`${src}/x.js`,dst);
+    sync(`${src}/ctype.js`,dst);
+    sync(`${src}/runc.js`,dst);
+    sync(`${src}/scanf.js`,dst);
+};
 module.exports=sync=>{
+    common(sync);
     c(sync);
 };
