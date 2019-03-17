@@ -28,7 +28,7 @@ define(["assert"],function (A) {
             }
         };
         var fldinit;
-        var check;
+        //var check;
         if (init instanceof Array) {
             fldinit=init;
             init=function () {
@@ -137,12 +137,12 @@ define(["assert"],function (A) {
         }
         return c;
     }
-    Klass.Function=function () {throw new Exception("Abstract");}
+    Klass.Function=function () {throw new Error("Abstract");};
     Klass.opt=A.opt;
     Klass.Binder=Klass.define({
         $this:"t",
         $:function (t,target) {
-            for (var k in target) (function (k){
+            function addMethod(k){
                 if (typeof target[k]!=="function") return;
                 t[k]=function () {
                     var a=Array.prototype.slice.call(arguments);
@@ -150,7 +150,8 @@ define(["assert"],function (A) {
                     //A(this.__target,"target is not set");
                     return target[k].apply(target,a);
                 };
-            })(k);
+            }
+            for (var k in target) addMethod(k);
         }
     });
     return Klass;

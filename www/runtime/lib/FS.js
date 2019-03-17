@@ -91,7 +91,8 @@ define([],function () {
 //----------
 define('extend',[],function (){
    return function extend(d,s) {
-      for (var i in s) {d[i]=s[i];} 
+      for (var i in s) {d[i]=s[i];}
+      return d;
    };
 });
 
@@ -541,8 +542,10 @@ define('DeferredUtil',[], function () {
     );
     //  promise.then(S,F)  and promise.then(S).fail(F) is not same!
     //  ->  when fail on S,  F is executed?
+    //   same is promise.then(S).then(same,F)
     var DU;
     var DUBRK=function(r){this.res=r;};
+    function same(e){return e;}
     DU={
         isNativePromise: function (p) {
             return p && (typeof p.then==="function") &&
@@ -643,7 +646,7 @@ define('DeferredUtil',[], function () {
                     } else {
                         resolve(r);
                     }
-                }).fail(function (r) {
+                }).then(same,function (r) {
                     if (!isDeferred) {
                         setTimeout(function () {
                             reject(r);
@@ -756,7 +759,7 @@ define('DeferredUtil',[], function () {
                         deff1=false;
                         if (r instanceof DUBRK) return r.res;
                         if (deff2) return DU.loop(f,r); //☆
-                    }).fail(function (e) {
+                    }).then(same,function (e) {
                         deff1=false;
                         err=e;
                     });
@@ -968,6 +971,8 @@ function (extend, P, M,assert,DU){
         },
         getURL: function (path) {
             stub("");
+        },
+        onAddObserver: function (path) {
         }
     });
     //res=[]; for (var k in a) { res.push(k); } res;
@@ -1891,6 +1896,29 @@ define('NativeFS',["FSClass","assert","PathUtil","extend","Content"],
         },
         getURL:function (path) {
             return "file:///"+path.replace(/\\/g,"/");
+        },
+        onAddObserver: function (apath,options) {
+            var t=this;
+            var rfs=t.getRootFS();
+            options=options||{};
+            var isDir=this.isDir(apath);
+            //console.log("Invoke oao",options);
+            var w=fs.watch(apath, options, function (evt,rpath) {
+                //console.log(path);
+                var fpath=isDir ? P.rel(apath,rpath) : apath;
+                var meta;
+                if (t.exists(fpath)) {
+                    meta=extend({eventType:evt},t.getMetaInfo(fpath));
+                } else {
+                    meta={eventType:evt};
+                }
+                rfs.notifyChanged(fpath,meta);
+            });
+            return {
+                remove: function () {
+                    w.close();
+                }
+            };
         }
     });
     return NativeFS;
@@ -1908,7 +1936,7 @@ define('LSFS',["FSClass","PathUtil","extend","assert","Util","Content"],
     var up = P.up.bind(P);
     var endsWith= P.endsWith.bind(P);
     //var getName = P.name.bind(P);
-    var Path=P.Path;
+    //var Path=P.Path;
     var Absolute=P.Absolute;
     var SEP= P.SEP;
     function now(){
@@ -1929,7 +1957,7 @@ define('LSFS',["FSClass","PathUtil","extend","assert","Util","Content"],
     });
 
     LSFS.now=now;
-    LSFS.prototype=new FS;
+    LSFS.prototype=new FS();
     //private methods
     LSFS.prototype.resolveKey=function (path) {
         assert.is(path,P.Absolute);
@@ -1974,9 +2002,9 @@ define('LSFS',["FSClass","PathUtil","extend","assert","Util","Content"],
         if (!endsWith(path, SEP)) path += SEP;
         assert(this.inMyFS(path));
         if (this.dirCache && this.dirCache[path]) return this.dirCache[path];
-        var dinfo =  {};
+        var dinfo =  {},dinfos;
         try {
-            var dinfos = this.getItem(path);
+            dinfos = this.getItem(path);
             if (dinfos) {
                 dinfo = JSON.parse(dinfos);
             }
@@ -2007,13 +2035,16 @@ define('LSFS',["FSClass","PathUtil","extend","assert","Util","Content"],
         // trashed: this touch is caused by trashing the file/dir.
         assert.is(arguments,[Object, String, String]);
         assert(this.inMyFS(path));
+        var eventType="change";
         if (!dinfo[name]) {
+            eventType="create";
             dinfo[name] = {};
             if (trashed) dinfo[name].trashed = true;
         }
         if (!trashed) delete dinfo[name].trashed;
         dinfo[name].lastUpdate = now();
-        this.getRootFS().notifyChanged(P.rel(path,name), dinfo[name]);
+        var meta=extend({eventType:eventType},dinfo[name]);
+        this.getRootFS().notifyChanged(P.rel(path,name), meta);
         this.putDirInfo(path, dinfo, trashed);
     };
     LSFS.prototype.removeEntry=function removeEntry(dinfo, path, name) { // path:path of dinfo
@@ -2023,6 +2054,7 @@ define('LSFS',["FSClass","PathUtil","extend","assert","Util","Content"],
                 lastUpdate: now(),
                 trashed: true
             };
+            this.getRootFS().notifyChanged(P.rel(path,name), {eventType:"trash"});
             this.putDirInfo(path, dinfo, true);
         }
     };
@@ -2030,6 +2062,7 @@ define('LSFS',["FSClass","PathUtil","extend","assert","Util","Content"],
         assert.is(arguments,[Object, String, String]);
         if (dinfo[name]) {
             delete dinfo[name];
+            this.getRootFS().notifyChanged(P.rel(path,name), {eventType:"delete"});
             this.putDirInfo(path, dinfo, true);
         }
     };
@@ -2990,6 +3023,18 @@ SFile.prototype={
         for (var k in data) {
             this.rel(k).text(data[k]);
         }
+    },
+    watch: function (_1,_2) {
+        var options={},handler=function(){};
+        if (typeof _1==="object") options=_1;
+        if (typeof _2==="object") options=_2;
+        if (typeof _1==="function") handler=_1;
+        if (typeof _2==="function") handler=_2;
+        var rfs=this.getFS().getRootFS();
+        //var t=this;
+        rfs.addObserver(this.path(),function (path, meta) {
+            handler(meta.eventType, rfs.get(path),meta );
+        });
     }
 };
 Object.defineProperty(SFile.prototype,"act",{
@@ -3059,21 +3104,23 @@ define('RootFS',["assert","FSClass","PathUtil","SFile"], function (assert,FS,P,S
             get: function (path) {
                 assert.is(path,P.Absolute);
                 return new SFile(this.resolveFS(path), path);
-            },   
-            addObserver: function () {
+            },
+            addObserver: function (_1,_2,_3) {
                 this.observers=this.observers||[];
-                var path,f;
-                if (arguments.length==2) {
-                    path=arguments[0];
-                    f=arguments[1];
-                } else if (arguments.length==1) {
-                    path="";
-                    f=arguments[0];
-                } else {
-                    throw new Error("Invalid argument spec");
-                }
+                var options={},path,f;
+                if (typeof _1==="string") path=_1;
+                if (typeof _2==="string") path=_2;
+                if (typeof _3==="string") path=_3;
+                if (typeof _1==="object") options=_1;
+                if (typeof _2==="object") options=_2;
+                if (typeof _3==="object") options=_3;
+                if (typeof _1==="function") f=_1;
+                if (typeof _2==="function") f=_2;
+                if (typeof _3==="function") f=_3;
                 assert.is(path,String);
                 assert.is(f,Function);
+                var fs=this.resolveFS(path);
+                var remover=fs.onAddObserver(path,options);
                 var observers=this.observers;
                 var observer={
                     path:path,
@@ -3081,6 +3128,7 @@ define('RootFS',["assert","FSClass","PathUtil","SFile"], function (assert,FS,P,S
                     remove: function () {
                         var i=observers.indexOf(this);
                         observers.splice(i,1);
+                        if (remover) remover.remove();
                     }
                 };
                 this.observers.push(observer);
@@ -3103,6 +3151,7 @@ define('RootFS',["assert","FSClass","PathUtil","SFile"], function (assert,FS,P,S
     }
     return RootFS;
 });
+
 define('zip',["SFile",/*"jszip",*/"FileSaver","Util","DeferredUtil"],
 function (SFile,/*JSZip,*/fsv,Util,DU) {
     var zip={};
