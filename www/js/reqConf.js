@@ -305,5 +305,10 @@ var reqConf={
 (function(){
     for (var k in reqConf.paths)
     if (reqConf.paths[k].match(/\/$/)) reqConf.paths[k]+=k;
+    try {
+        new Function("const {x,y}={x:3,y:5};return x;")();
+    } catch(e) {
+        reqConf.baseUrl="es5";
+    }
 })();
 if (typeof exports!=="undefined") exports.conf=reqConf;

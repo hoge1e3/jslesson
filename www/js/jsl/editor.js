@@ -32,6 +32,7 @@ define(function (require) {
     var root=require("root");
     var ErrorDialog=require("ErrorDialog");
     var BAProject=require("BAProject");
+    var UA=require("UserAgent");
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
         A.setMode(A.MODE_STRICT);
@@ -155,6 +156,7 @@ function ready() {
     	break;
     case "py":
     	requirejs(["PythonBuilder"],setupBuilder);
+        ALWAYS_UPLOAD=UA.isIE;
     	//helpURL="http://bitarrow.eplang.jp/index.php?dncl_use";
     	break;
     case "tonyu":
