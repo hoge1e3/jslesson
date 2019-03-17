@@ -89,3 +89,4 @@ fszone.txt
 __pycache__
 www/node/conv.py
 www/js/jsl/editor_comment.js
+www/es5/*

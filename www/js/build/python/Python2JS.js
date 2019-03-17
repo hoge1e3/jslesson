@@ -9,7 +9,7 @@ function (Visitor,IndentBuffer,context,PL) {
             this.ctx.enter({inClass:node},()=>{
                 this.printf("%s.class('%s',{%{%j%}}",PYLIB,node.name,[",",node.body]);
             });
-        },
+        },//
         define: function (node) {
             if (this.ctx.inClass) {
                 this.printf("%n%s: function %s%v{%{%v%}}",node.name,node.params,node.body);

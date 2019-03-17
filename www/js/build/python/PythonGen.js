@@ -1,6 +1,6 @@
 define(["Visitor","IndentBuffer","assert"],
 function (Visitor,IndentBuffer,assert) {
-    const BAWRAPPER="bawrapper";
+    const BAWRAPPER="bawrapper";//
     const vdef={
         program: function (node) {
             this.visit(node.body);

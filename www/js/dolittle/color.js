@@ -15,7 +15,7 @@ color = {
         obj={};
     }
     return obj;
-  }
+  },
 
   randomcreate: function() {
     return (new button_obj({random: true}));

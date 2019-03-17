@@ -995,14 +995,14 @@ _global.MinimalParser= function () {
         }));
 
 	var iteration_statement=t("while").and(t("(")).and(expression).and(t(")")).and(statement_lazy)
-		.ret(function(_while,rp,expr,rp,state){
+		.ret(function(_while,lp,expr,rp,state){
 		    var startName="start"+(startSeq++);
 		    return [
 			"var ",startName,"=loop_start();","while","(",expr,"){try{",state,
 			"}finally{loop_chk2(",startName,");}}"];});
 	iteration_statement=iteration_statement.or(t("do").and(statement_lazy)
 		.and(t("while")).and(t("(")).and(expression).and(t(")")).and(t(";"))
-			.ret(function(_do,state,_while,lp,expr,rp,semicolon){
+			.ret(function(_do,state,_while,lp,expr/*,rp,semicolon*/){
 				var startName="start"+(startSeq++);
 				return ["var ",startName,"=loop_start();","do{try{",state,
 					"}finally{loop_chk2(",startName,");}}","while","(",expr,")",";"

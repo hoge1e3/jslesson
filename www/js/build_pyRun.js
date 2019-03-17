@@ -4,8 +4,8 @@
     optimize:"none",
     baseUrl: ".",
     wrap: {
-        startFile: "requireSimulator2_head.js",
-        endFile: "requireSimulator2_tail.js"
+        startFile: "requireSimulator2_head.js.txt",
+        endFile: "requireSimulator2_tail.js.txt"
     },
     paths: (function () {
         var conf=nodeRequire(process.cwd()+"/reqConf.js");

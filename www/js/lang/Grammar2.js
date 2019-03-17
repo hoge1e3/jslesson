@@ -3,6 +3,7 @@ function (P,assert,EP) {
 //import P from "./Parser.js";
 //import assert from "../lib/assert.js";
 class Grammar {
+    // abc
     constructor(options) {
         this.defs={};
         if (options) {

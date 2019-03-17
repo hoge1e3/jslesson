@@ -8,7 +8,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         console.log(mesg,s);
         s.success=true;
         return s;
-    });*/
+    }); */
     const reserved=[
         "class","def","if","else","elif","break",
         "for","while","in","return","print","import","as",

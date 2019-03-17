@@ -14,7 +14,7 @@ const importable={
     numpy:{wrapper:true},
     os:{wrapper:true}
 };
-//----
+//-----
 class ScopeInfo {
     constructor(scope,name,kind,declarator) {
         this.scope=scope;
