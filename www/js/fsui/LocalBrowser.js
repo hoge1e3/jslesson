@@ -1,12 +1,12 @@
 define(["Shell", "FS","DeferredUtil","UI","source-map","LocalBrowserInfoClass"],
 function (sh,FS,DU,UI,S,LocalBrowserInfoClass) {
     var LocalBrowser={};
-    var F=DU.tr;
+    //var F=DU.tr;
     LocalBrowser=function (dom,options) {
         this.targetAttr=options||{};
         this.targetArea=dom;//=UI("iframe");
     };
-    p=LocalBrowser.prototype;
+    var p=LocalBrowser.prototype;
     p.close=function () {
         $(this.targetArea).empty();
     };

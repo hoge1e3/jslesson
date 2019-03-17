@@ -1,3 +1,4 @@
+define (["root"],function(root) {
 function FileList(elem, options) {
     var _curDir=null;
     var _curFile=null;
@@ -135,3 +136,6 @@ function FileList(elem, options) {
     }
     return FL;
 }
+root.FileList=FileList;
+return FileList;
+});

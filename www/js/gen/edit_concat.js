@@ -1,11 +1,18 @@
-Util=(function () {
+//(function (){
+(function () {
+    var root=(
+        typeof window!=="undefined" ? window :
+        typeof global!=="undefined" ? global : self);
 
 function getQueryString(key, default_)
 {
     if (arguments.length===1) default_="";
+    if (typeof LocalBrowserInfo==="object") {
+        return key in LocalBrowserInfo.params? LocalBrowserInfo.params[key] : default_;
+    }
    key = key.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
    var regex = new RegExp("[\\?&]"+key+"=([^&#]*)");
-   var qs = regex.exec(window.location.href);
+   var qs = regex.exec(root.location.href);
    if(qs == null)
     return default_;
    else
@@ -62,7 +69,7 @@ function Base64_To_ArrayBuffer(base64){
         i ++;
 
         b = dic[base64.charCodeAt(i)];
-        if(b === undefined) fail("Invalid letter: "+base64.charCodeAt(i))
+        if(b === undefined) fail("Invalid letter: "+base64.charCodeAt(i));
         ary_u8[p] = n | ((b >> 4) & 0x3);
         n = (b & 0x0f) << 4;
         i ++;
@@ -70,7 +77,7 @@ function Base64_To_ArrayBuffer(base64){
         if(p >= e) break;
 
         b = dic[base64.charCodeAt(i)];
-        if(b === undefined) fail("Invalid letter: "+base64.charCodeAt(i))
+        if(b === undefined) fail("Invalid letter: "+base64.charCodeAt(i));
         ary_u8[p] = n | ((b >> 2) & 0xf);
         n = (b & 0x03) << 6;
         i ++;
@@ -78,7 +85,7 @@ function Base64_To_ArrayBuffer(base64){
         if(p >= e) break;
 
         b = dic[base64.charCodeAt(i)];
-        if(b === undefined) fail("Invalid letter: "+base64.charCodeAt(i))
+        if(b === undefined) fail("Invalid letter: "+base64.charCodeAt(i));
         ary_u8[p] = n | b;
         i ++;
         p ++;
@@ -189,7 +196,7 @@ function str2utf8bytes(str, binType) {
     return (typeof Buffer!="undefined" && binType===Buffer ? new Buffer(a) : new Uint8Array(a).buffer);
 }
 */
-return {
+root.Util={
     getQueryString:getQueryString,
     endsWith: endsWith, startsWith: startsWith,
     Base64_To_ArrayBuffer:Base64_To_ArrayBuffer,
@@ -202,6 +209,7 @@ return {
     isNodeBuffer: isNodeBuffer,
     isBuffer: isBuffer*/
 };
+return root.Util;
 })();
 
 define("Util", (function (global) {
@@ -304,7 +312,8 @@ define('FSLib',[],function () {
 //----------
 define('extend',[],function (){
    return function extend(d,s) {
-      for (var i in s) {d[i]=s[i];} 
+      for (var i in s) {d[i]=s[i];}
+      return d;
    };
 });
 
@@ -754,8 +763,10 @@ define('DeferredUtil',[], function () {
     );
     //  promise.then(S,F)  and promise.then(S).fail(F) is not same!
     //  ->  when fail on S,  F is executed?
+    //   same is promise.then(S).then(same,F)
     var DU;
     var DUBRK=function(r){this.res=r;};
+    function same(e){return e;}
     DU={
         isNativePromise: function (p) {
             return p && (typeof p.then==="function") &&
@@ -856,7 +867,7 @@ define('DeferredUtil',[], function () {
                     } else {
                         resolve(r);
                     }
-                }).fail(function (r) {
+                }).then(same,function (r) {
                     if (!isDeferred) {
                         setTimeout(function () {
                             reject(r);
@@ -969,7 +980,7 @@ define('DeferredUtil',[], function () {
                         deff1=false;
                         if (r instanceof DUBRK) return r.res;
                         if (deff2) return DU.loop(f,r); //☆
-                    }).fail(function (e) {
+                    }).then(same,function (e) {
                         deff1=false;
                         err=e;
                     });
@@ -1181,6 +1192,8 @@ function (extend, P, M,assert,DU){
         },
         getURL: function (path) {
             stub("");
+        },
+        onAddObserver: function (path) {
         }
     });
     //res=[]; for (var k in a) { res.push(k); } res;
@@ -2104,6 +2117,29 @@ define('NativeFS',["FSClass","assert","PathUtil","extend","Content"],
         },
         getURL:function (path) {
             return "file:///"+path.replace(/\\/g,"/");
+        },
+        onAddObserver: function (apath,options) {
+            var t=this;
+            var rfs=t.getRootFS();
+            options=options||{};
+            var isDir=this.isDir(apath);
+            //console.log("Invoke oao",options);
+            var w=fs.watch(apath, options, function (evt,rpath) {
+                //console.log(path);
+                var fpath=isDir ? P.rel(apath,rpath) : apath;
+                var meta;
+                if (t.exists(fpath)) {
+                    meta=extend({eventType:evt},t.getMetaInfo(fpath));
+                } else {
+                    meta={eventType:evt};
+                }
+                rfs.notifyChanged(fpath,meta);
+            });
+            return {
+                remove: function () {
+                    w.close();
+                }
+            };
         }
     });
     return NativeFS;
@@ -2121,7 +2157,7 @@ define('LSFS',["FSClass","PathUtil","extend","assert","Util","Content"],
     var up = P.up.bind(P);
     var endsWith= P.endsWith.bind(P);
     //var getName = P.name.bind(P);
-    var Path=P.Path;
+    //var Path=P.Path;
     var Absolute=P.Absolute;
     var SEP= P.SEP;
     function now(){
@@ -2142,7 +2178,7 @@ define('LSFS',["FSClass","PathUtil","extend","assert","Util","Content"],
     });
 
     LSFS.now=now;
-    LSFS.prototype=new FS;
+    LSFS.prototype=new FS();
     //private methods
     LSFS.prototype.resolveKey=function (path) {
         assert.is(path,P.Absolute);
@@ -2187,9 +2223,9 @@ define('LSFS',["FSClass","PathUtil","extend","assert","Util","Content"],
         if (!endsWith(path, SEP)) path += SEP;
         assert(this.inMyFS(path));
         if (this.dirCache && this.dirCache[path]) return this.dirCache[path];
-        var dinfo =  {};
+        var dinfo =  {},dinfos;
         try {
-            var dinfos = this.getItem(path);
+            dinfos = this.getItem(path);
             if (dinfos) {
                 dinfo = JSON.parse(dinfos);
             }
@@ -2220,13 +2256,16 @@ define('LSFS',["FSClass","PathUtil","extend","assert","Util","Content"],
         // trashed: this touch is caused by trashing the file/dir.
         assert.is(arguments,[Object, String, String]);
         assert(this.inMyFS(path));
+        var eventType="change";
         if (!dinfo[name]) {
+            eventType="create";
             dinfo[name] = {};
             if (trashed) dinfo[name].trashed = true;
         }
         if (!trashed) delete dinfo[name].trashed;
         dinfo[name].lastUpdate = now();
-        this.getRootFS().notifyChanged(P.rel(path,name), dinfo[name]);
+        var meta=extend({eventType:eventType},dinfo[name]);
+        this.getRootFS().notifyChanged(P.rel(path,name), meta);
         this.putDirInfo(path, dinfo, trashed);
     };
     LSFS.prototype.removeEntry=function removeEntry(dinfo, path, name) { // path:path of dinfo
@@ -2236,6 +2275,7 @@ define('LSFS',["FSClass","PathUtil","extend","assert","Util","Content"],
                 lastUpdate: now(),
                 trashed: true
             };
+            this.getRootFS().notifyChanged(P.rel(path,name), {eventType:"trash"});
             this.putDirInfo(path, dinfo, true);
         }
     };
@@ -2243,6 +2283,7 @@ define('LSFS',["FSClass","PathUtil","extend","assert","Util","Content"],
         assert.is(arguments,[Object, String, String]);
         if (dinfo[name]) {
             delete dinfo[name];
+            this.getRootFS().notifyChanged(P.rel(path,name), {eventType:"delete"});
             this.putDirInfo(path, dinfo, true);
         }
     };
@@ -3203,6 +3244,18 @@ SFile.prototype={
         for (var k in data) {
             this.rel(k).text(data[k]);
         }
+    },
+    watch: function (_1,_2) {
+        var options={},handler=function(){};
+        if (typeof _1==="object") options=_1;
+        if (typeof _2==="object") options=_2;
+        if (typeof _1==="function") handler=_1;
+        if (typeof _2==="function") handler=_2;
+        var rfs=this.getFS().getRootFS();
+        //var t=this;
+        rfs.addObserver(this.path(),function (path, meta) {
+            handler(meta.eventType, rfs.get(path),meta );
+        });
     }
 };
 Object.defineProperty(SFile.prototype,"act",{
@@ -3272,21 +3325,23 @@ define('RootFS',["assert","FSClass","PathUtil","SFile"], function (assert,FS,P,S
             get: function (path) {
                 assert.is(path,P.Absolute);
                 return new SFile(this.resolveFS(path), path);
-            },   
-            addObserver: function () {
+            },
+            addObserver: function (_1,_2,_3) {
                 this.observers=this.observers||[];
-                var path,f;
-                if (arguments.length==2) {
-                    path=arguments[0];
-                    f=arguments[1];
-                } else if (arguments.length==1) {
-                    path="";
-                    f=arguments[0];
-                } else {
-                    throw new Error("Invalid argument spec");
-                }
+                var options={},path,f;
+                if (typeof _1==="string") path=_1;
+                if (typeof _2==="string") path=_2;
+                if (typeof _3==="string") path=_3;
+                if (typeof _1==="object") options=_1;
+                if (typeof _2==="object") options=_2;
+                if (typeof _3==="object") options=_3;
+                if (typeof _1==="function") f=_1;
+                if (typeof _2==="function") f=_2;
+                if (typeof _3==="function") f=_3;
                 assert.is(path,String);
                 assert.is(f,Function);
+                var fs=this.resolveFS(path);
+                var remover=fs.onAddObserver(path,options);
                 var observers=this.observers;
                 var observer={
                     path:path,
@@ -3294,6 +3349,7 @@ define('RootFS',["assert","FSClass","PathUtil","SFile"], function (assert,FS,P,S
                     remove: function () {
                         var i=observers.indexOf(this);
                         observers.splice(i,1);
+                        if (remover) remover.remove();
                     }
                 };
                 this.observers.push(observer);
@@ -3316,6 +3372,7 @@ define('RootFS',["assert","FSClass","PathUtil","SFile"], function (assert,FS,P,S
     }
     return RootFS;
 });
+
 define('zip',["SFile",/*"jszip",*/"FileSaver","Util","DeferredUtil"],
 function (SFile,/*JSZip,*/fsv,Util,DU) {
     var zip={};
@@ -3631,6 +3688,15 @@ define('FS',["FSLib","WebSite"],
     FS.setEnv(WebSite);
     return FS;
 });
+/*global window,self,global*/
+define('root',[],function (){
+    if (typeof window!=="undefined") return window;
+    if (typeof self!=="undefined") return self;
+    if (typeof global!=="undefined") return global;
+    return (function (){return this;})();
+});
+
+define ('FileList',["root"],function(root) {
 function FileList(elem, options) {
     var _curDir=null;
     var _curFile=null;
@@ -3768,13 +3834,9 @@ function FileList(elem, options) {
     }
     return FL;
 }
-;
-define("FileList", ["FS"], (function (global) {
-    return function () {
-        var ret, fn;
-        return ret || global.FileList;
-    };
-}(this)));
+root.FileList=FileList;
+return FileList;
+});
 
 define('exceptionCatcher',[], function () {
     var res={};
@@ -4024,6 +4086,7 @@ define('UI',["Util","exceptionCatcher"],function (Util, EC) {
     return UI;
 });
 
+/*global global*/
 define('assert',[],function () {
     var Assertion=function(failMesg) {
         this.failMesg=flatten(failMesg || "Assertion failed: ");
@@ -4041,7 +4104,7 @@ define('assert',[],function () {
             var a=$a(arguments);
             var value=a.shift();
             a=flatten(a);
-            a=this.failMesg.concat(value).concat(a).concat(["mode",this._mode]);
+            a=this.failMesg.concat(value).concat(a);//.concat(["mode",this._mode]);
             console.log.apply(console,a);
             if (this.isDefensive()) return value;
             if (this.isBool()) return false;
@@ -4069,7 +4132,7 @@ define('assert',[],function () {
             return this.isBool()?true:a;
         },
         is: function (value,type) {
-            var t=type,v=value;
+            var t=type,v=value,na;
             if (t==null) {
                 return this.fail(value, "assert.is: type must be set");
                 // return t; Why!!!!???? because is(args,[String,Number])
@@ -4085,7 +4148,7 @@ define('assert',[],function () {
                 }
                 var self=this;
                 for (var i=0 ;i<t.length; i++) {
-                    var na=self.subAssertion("failed at ",value,"[",i,"]: ");
+                    na=self.subAssertion("failed at ",value,"[",i,"]: ");
                     if (t[i]==null) {
                         console.log("WOW!7", v[i],t[i]);
                     }
@@ -4116,7 +4179,7 @@ define('assert',[],function () {
             }
             if (t && typeof t=="object") {
                 for (var k in t) {
-                    var na=this.subAssertion("failed at ",value,".",k,":");
+                    na=this.subAssertion("failed at ",value,".",k,":");
                     na.is(value[k],t[k]);
                 }
                 return this.isBool()?true:value;
@@ -4213,9 +4276,9 @@ define('assert',[],function () {
         }
         return [a];
     }
-    function isArg(a) {
+    /*function isArg(a) {
         return "length" in a && "caller" in a && "callee" in a;
-    };
+    };*/
     return assert;
 });
 
@@ -4462,819 +4525,1078 @@ return function showErrorPos(elem, err) {
 };
 });
 
-if (typeof define!=="function") {
-	define=require("requirejs").define;
-}
-define('Parser',[],function() {
-return Parser=function () {
-	function extend(dst, src) {
-		var i;
-		for(i in src){
-			dst[i]=src[i];
-		}
-		return dst;
-	}
-	var $={
-		consoleBuffer:"",
-		options: {traceTap:false, optimizeFirst: true, profile: false ,
-		verboseFirst: false,traceFirstTbl:false},
-		Parser: Parser,
-		StringParser: StringParser,
-		nc: nc
-	};
-	$.dispTbl=function (tbl) {
-		var buf="";
-		var h={};
-		if (!tbl) return buf;
-		for (var i in tbl) {// tbl:{char:Parser}   i:char
-			var n=tbl[i].name;
-			if (!h[n]) h[n]="";
-			h[n]+=i;
-		}
-		for (var n in h) {
-			buf+=h[n]+"->"+n+",";
-		}
-		return buf;
-	}
-	//var console={log:function (s) { $.consoleBuffer+=s; }};
-	function _debug(s) {console.log(s);}
-	function Parser(parseFunc){
-		if ($.options.traceTap) {
-			this.parse=function(s){
-				console.log("tap: name="+this.name+"  pos="+(s?s.pos:"?"));
-				var r=parseFunc.apply(this,[s]);
-				var img="NOIMG";
-				if (r.src && r.src.str) {
-					img=r.src.str.substring(r.pos-3,r.pos)+"^"+r.src.str.substring(r.pos,r.pos+3);
-				}
-				if (r.src && r.src.tokens) {
-					img=r.src.tokens[r.pos-1]+"["+r.src.tokens[r.pos]+"]"+r.src.tokens[r.pos+1];
-				}
-
-				console.log("/tap: name="+this.name+
-						" pos="+(s?s.pos:"?")+"->"+(r?r.pos:"?")+" "+img+" res="+(r?r.success:"?"));
-				return r;
-			};
-		} else {
-			this.parse=parseFunc;
-		}
-	};
-	Parser.create=function(parseFunc) { // (State->State)->Parser
-		return new Parser(parseFunc);
-	};
-	$.create=Parser.create;
-	function nc(v,name) {
-		if (v==null) throw name+" is null!";
-		return v;
-	}
-	extend(Parser.prototype, {// class Parser
-		// Parser.parse:: State->State
-		except: function (f) {
-			var t=this;
-			return this.ret(Parser.create(function (res) {
-				//var res=t.parse(s);
-				//if (!res.success) return res;
-				if (f.apply({}, res.result)) {
-					res.success=false;
-				}
-				return res;
-			}).setName("(except "+t.name+")"));
-		},
-		noFollow: function (p) {
-			var t=this;
-			nc(p,"p");
-			return this.ret(Parser.create(function (res) {
-				//var res=t.parse(s);
-				//if (!res.success) return res;
-				var res2=p.parse(res);
-				res.success=!res2.success;
-				return res;
-			}).setName("("+t.name+" noFollow "+p.name+")"));
-		},
-		andNoUnify: function(next) {// Parser.and:: (Function|Parser)  -> Parser
-			nc(next,"next"); // next==next
-			var t=this; // Parser
-			var res=Parser.create(function(s){ //s:State
-				var r1=t.parse(s); // r1:State
-				if (!r1.success) return r1;
-				var r2=next.parse(r1); //r2:State
-				if (r2.success) {
-					r2.result=r1.result.concat(r2.result); // concat===append built in func in Array
-				}
-				return r2;
-			});
-			return res.setName("("+this.name+" "+next.name+")");
-		},
-		and: function(next) {// Parser.and:: Parser  -> Parser
-			var res=this.andNoUnify(next);
-			//if (!$.options.optimizeFirst) return res;
-			if (!this._first) return res;
-			var tbl=this._first.tbl;
-			var ntbl={};
-			//  tbl           ALL:a1  b:b1     c:c1
-			//  next.tbl      ALL:a2           c:c2     d:d2
-			//           ALL:a1>>next   b:b1>>next c:c1>>next
-			for (var c in tbl) {
-				ntbl[c]=tbl[c].andNoUnify(next);
-			}
-			res=Parser.fromFirst(this._first.space, ntbl);
-			res.setName("("+this.name+" >> "+next.name+")");
-			if ($.options.verboseFirst) {
-				console.log("Created aunify name=" +res.name+" tbl="+$.dispTbl(ntbl));
-			}
-			return res;
-		},
-		retNoUnify: function (f) {
-			var t=this;
-			var p;
-			if (typeof f=="function") {
-				p=Parser.create(function (r1) {
-					var r2=r1.clone();
-					r2.result=[ f.apply({}, r1.result) ];
-					return r2;
-				}).setName("retfunc");
-			} else p=f;
-			var res=Parser.create(function(s){ //s:State
-				var r1=t.parse(s); // r1:State
-				if (!r1.success) return r1;
-				return p.parse(r1);
-				/*var r2=r1.clone();
-				r2.result=[ f.apply({}, r1.result) ];
-				return r2;*/
-			}).setName("("+this.name+" >= "+p.name+")");
-			return res;
-		},
-		ret: function(next) {// Parser.ret:: (Function|Parser)  -> Parser
-			if (!this._first) return this.retNoUnify(next);
-			var tbl=this._first.tbl;
-			var ntbl={};
-			for (var c in tbl) {
-				ntbl[c]=tbl[c].retNoUnify(next);
-			}
-			res=Parser.fromFirst(this._first.space, ntbl);
-			res.setName("("+this.name+" >>= "+next.name+")");
-			if ($.options.verboseFirst) {
-				console.log("Created runify name=" +res.name+" tbl="+$.dispTbl(ntbl));
-			}
-			return res;
-		},
-
-		/*
-		this._first={space: space, chars:String};
-		this._first={space: space, tbl:{char:Parser}};
-	*/
-		first: function (space, ct) {
-			if (!$.options.optimizeFirst) return this;
-			if (space==null) throw "Space is null2!";
-			if (typeof ct=="string") {
-					var tbl={};
-					for (var i=0; i<ct.length ; i++) {
-						tbl[ct.substring(i,i+1)]=this;
-					}
-				//this._first={space: space, tbl:tbl};
-				return Parser.fromFirst(space,tbl).setName("(fst "+this.name+")");
-//        		this._first={space: space, chars:ct};
-			} else if (ct==null) {
-				return Parser.fromFirst(space,{ALL:this}).setName("(fst "+this.name+")");
-				//this._first={space:space, tbl:{ALL:this}};
-			} else if (typeof ct=="object") {
-				throw "this._first={space: space, tbl:ct}";
-			}
-			return this;
-		},
-		firstTokens: function (tokens) {
-			if (!$.options.optimizeFirst) return this;
-			if (typeof tokens=="string") tokens=[tokens];
-			var tbl={};
-				if (tokens) {
-					var t=this;
-					tokens.forEach(function (token) {
-					tbl[token]=t;
-				});
+/*global define*/
+define('fixIndent',[],function () {
+	return fixIndent;
+function fixIndent(str, indentStr) {
+	if (!indentStr) indentStr="    ";
+	var incdec={"{":1, "}":-1,"[":1,"]":-1,"「":1,"」":-1};
+	var linfo=[];
+		var r={row:0, col:0};
+		var len=str.length;
+		for (var i=0 ; i<len ;i++) {
+			var c=str.substring(i,i+1);
+			if (incdec[c]) {
+				if (!linfo[r.row]) linfo[r.row]="";
+				linfo[r.row]+=c;
+			} else if (c=="\n") {
+				r.row++;
+				r.col=0;
 			} else {
-				tbl.ALL=this;
-			}
-			return Parser.fromFirstTokens(tbl).setName("(fstT "+this.name+")");
-		},
-		unifyFirst: function (other) {
-			var thiz=this;
-			function or(a,b) {
-				if (!a) return b;
-				if (!b) return a;
-				return a.orNoUnify(b).checkTbl();
-			}
-			var tbl={}; // tbl.* includes tbl.ALL
-			this.checkTbl();
-			other.checkTbl();
-			function mergeTbl() {
-			//   {except_ALL: contains_ALL}
-				var t2=other._first.tbl;
-				//before tbl={ALL:a1, b:b1, c:c1}   t2={ALL:a2,c:c2,d:d2}
-				//       b1 conts a1  c1 conts a1     c2 conts a2   d2 conts a2
-				//after  tbl={ALL:a1|a2 , b:b1|a2    c:c1|c2    d:a1|d2 }
-				var keys={};
-				for (var k in tbl) { /*if (d) console.log("tbl.k="+k);*/ keys[k]=1;}
-				for (var k in t2)  { /*if (d) console.log("t2.k="+k);*/ keys[k]=1;}
-				delete keys.ALL;
-				if (tbl.ALL || t2.ALL) {
-					tbl.ALL=or(tbl.ALL, t2.ALL);
-				}
-				for (var k in keys ) {
-					//if (d) console.log("k="+k);
-					//if (tbl[k] && !tbl[k].parse) throw "tbl["+k+"] = "+tbl[k];
-					//if (t2[k] && !t2[k].parse) throw "t2["+k+"] = "+tbl[k];
-					if (tbl[k] && t2[k]) {
-						tbl[k]=or(tbl[k],t2[k]);
-					} else if (tbl[k] && !t2[k]) {
-						tbl[k]=or(tbl[k],t2.ALL);
-					} else if (!tbl[k] && t2[k]) {
-						tbl[k]=or(tbl.ALL, t2[k]);
-					}
-				}
-			}
-			extend(tbl, this._first.tbl);
-			mergeTbl();
-			var res=Parser.fromFirst(this._first.space, tbl).setName("("+this.name+")U("+other.name+")");
-			if ($.options.verboseFirst) console.log("Created unify name=" +res.name+" tbl="+$.dispTbl(tbl));
-			return res;
-		},
-		or: function(other) { // Parser->Parser
-			nc(other,"other");
-				if (this._first && other._first &&
-						this._first.space && this._first.space===other._first.space) {
-				return this.unifyFirst(other);
-				} else {
-					if ($.options.verboseFirst) {
-						console.log("Cannot unify"+this.name+" || "+other.name+" "+this._first+" - "+other._first);
-					}
-					return this.orNoUnify(other);
-				}
-		},
-		orNoUnify: function (other) {
-				var t=this;  // t:Parser
-			var res=Parser.create(function(s){
-				var r1=t.parse(s); // r1:State
-				if (!r1.success){
-					var r2=other.parse(s); // r2:State
-					return r2;
-				} else {
-					return r1;
-				}
-			});
-			res.name="("+this.name+")|("+other.name+")";
-			return res;
-		},
-		setName: function (n) {
-			this.name=n;
-			if (this._first) {
-				/*var tbl=this._first.tbl;
-				for (var i in tbl) {
-					tbl[i].setName("(elm "+i+" of "+n+")");
-				}*/
-			}
-			return this;
-		},
-		profile: function (name) {
-			if ($.options.profile) {
-				this.parse=this.parse.profile(name || this.name);
-			}
-			return this;
-		},
-		repN: function(min){
-			var p=this;
-			if (!min) min=0;
-			var res=Parser.create(function(s) {
-				var current=s;
-				var result=[];
-				while(true){
-					var next=p.parse(current);
-					if(!next.success) {
-						var res;
-						if (result.length>=min) {
-							res=current.clone();
-							res.result=[result];
-							res.success=true;
-							//console.log("rep0 res="+disp(res.result));
-							return res;
-						} else {
-							res=s.clone();
-							res.success=false;
-							return res;
-						}
-					} else {
-						result.push(next.result[0]);
-						current=next;
-					}
-				}
-			});
-			//if (min>0) res._first=p._first;
-			return res.setName("("+p.name+" * "+min+")");
-		},
-		rep0: function () { return this.repN(0); },
-		rep1: function () { return this.repN(1); },
-		opt: function () {
-			var t=this;
-			return Parser.create(function (s) {
-				var r=t.parse(s);
-				if (r.success) {
-					return r;
-				} else {
-					s=s.clone();
-					s.success=true;
-					s.result=[null];
-					return s;
-				}
-			}).setName("("+t.name+")?");
-		},
-		sep1: function(sep, valuesToArray) {
-			var value=this;
-			nc(value,"value");nc(sep,"sep");
-			var tail=sep.and(value).ret(function(r1, r2) {
-				if(valuesToArray) return r2;
-				return {sep:r1, value:r2};
-			});
-			return value.and(tail.rep0()).ret(function(r1, r2){
-				var i;
-				if (valuesToArray) {
-					var r=[r1].concat(r2);
-					/*for (i in r2) {
-						r.push(r2[i]);
-					}*/ // NO good if Array is monkey-patched
-					return r;
-				} else {
-					return {head:r1,tails:r2};
-				}
-			}).setName("(sep1 "+value.name+"~~"+sep.name+")");
-		},
-		sep0: function(s){
-			return this.sep1(s,true).opt().ret(function (r) {
-				if (!r) return [];
-				return r;
-			});
-		},
-		tap: function (msg) {
-			return this;
-			if (!$.options.traceTap) return this;
-			if (!msg) msg="";
-			var t=this;
-			var res=Parser.create(function(s){
-				console.log("tap:"+msg+" name:"+t.name+"  pos="+(s?s.pos:"?"));
-				var r=t.parse(s);
-				var img=r.src.str.substring(r.pos-3,r.pos)+"^"+r.src.str.substring(r.pos,r.pos+3);
-				console.log("/tap:"+msg+" name:"+t.name+" pos="+(s?s.pos:"?")+"->"+(r?r.pos:"?")+" "+img+" res="+(r?r.success:"?"));
-				return r;
-			});
-			/*if (this._first) {
-				var ntbl={},tbl=this._first.tbl;
-				for (var c in tbl) {
-					ntbl=tbl[c].
-				}
-			}*/
-			return res.setName("(Tap "+t.name+")");
-		},
-		retN: function (i) {
-			return this.ret(function () {
-				return arguments[i];
-			})
-		},
-		parseStr: function (str,global) {
-			var st=new State(str,global);
-			return this.parse(st);
-		},
-		checkTbl: function () {
-			if (!this._first) return this;
-			var tbl=this._first.tbl;
-			for (var k in tbl) {
-				if (!tbl[k].parse) throw this.name+": tbl."+k+" is not a parser :"+tbl[k];
-			}
-			return this;
-		}
-	});
-	function State(strOrTokens, global) { // class State
-		if (strOrTokens!=null) {
-			this.src={maxPos:0, global:global};// maxPos is shared by all state
-			if (typeof strOrTokens=="string") {
-				this.src.str=strOrTokens;
-			}
-			if (strOrTokens instanceof Array) {
-				this.src.tokens=strOrTokens;
-			}
-			this.pos=0;
-			this.result=[]
-			this.success=true;
-		}
-	};
-	extend(State.prototype, {
-		clone: function() {
-			var s=new State();
-			s.src=this.src;
-			s.pos=this.pos;
-			s.result=this.result.slice();
-			s.success=this.success;
-			return s;
-		},
-		updateMaxPos:function (npos) {
-			if (npos > this.src.maxPos) {
-				this.src.maxPos=npos;
-			}
-		},
-		isSuccess: function () {
-			return this.success;
-		},
-		getGlobal: function () {
-				if (!this.src.global) this.src.global={};
-				return this.src.global;
-		}
-	});
-	Parser.fromFirst=function (space, tbl) {
-		if (space=="TOKEN") {
-			return Parser.fromFirstTokens(tbl);
-		}
-		var res=Parser.create(function (s0) {
-			var s=space.parse(s0);
-			var f=s.src.str.substring(s.pos,s.pos+1);
-			if ($.options.traceFirstTbl) {
-				console.log(this.name+": first="+f+" tbl="+( tbl[f]?tbl[f].name:"-") );
-			}
-			if (tbl[f]) {
-				return tbl[f].parse(s);
-			}
-			if (tbl.ALL) return tbl.ALL.parse(s);
-			s.success=false;
-			return s;
-		});
-		res._first={space:space,tbl:tbl};
-		res.checkTbl();
-		return res;
-	};
-	Parser.fromFirstTokens=function (tbl) {
-		var res=Parser.create(function (s) {
-			var t=s.src.tokens[s.pos];
-			var f=t?t.type:null;
-			if ($.options.traceFirstTbl) {
-				console.log(this.name+": firstT="+f+" tbl="+( tbl[f]?tbl[f].name:"-") );
-			}
-			if (f!=null && tbl[f]) {
-				return tbl[f].parse(s);
-			}
-			if (tbl.ALL) return tbl.ALL.parse(s);
-			s.success=false;
-			return s;
-		});
-		res._first={space:"TOKEN",tbl:tbl};
-		res.checkTbl();
-		return res;
-	};
-
-	var StringParser={
-		empty: Parser.create(function(state) {
-			var res=state.clone();
-			res.success=true;
-			res.result=[null]; //{length:0, isEmpty:true}];
-			return res;
-		}).setName("E"),
-		fail: Parser.create(function(s){
-			s.success=false;
-			return s;
-		}).setName("F"),
-		str: function (st) { // st:String
-			return this.strLike(function (str,pos) {
-				if (str.substring(pos, pos+st.length)===st) return {len:st.length};
-				return null;
-			}).setName(st);
-		},
-		reg: function (r) {//r: regex (must have ^ at the head)
-			if (!(r+"").match(/^\/\^/)) console.log("Waring regex should have ^ at the head:"+(r+""));
-			return this.strLike(function (str,pos) {
-				var res=r.exec( str.substring(pos) );
-				if (res) {
-					res.len=res[0].length;
-					return res;
-				}
-				return null;
-			}).setName(r+"");
-		},
-		strLike: function (func) {
-			// func :: str,pos, state? -> {len:int, other...}  (null for no match )
-			return Parser.create(function(state){
-				var str= state.src.str;
-				if (str==null) throw "strLike: str is null!";
-				var spos=state.pos;
-				//console.log(" strlike: "+str+" pos:"+spos);
-				var r1=func(str, spos, state);
-				if ($.options.traceToken) console.log("pos="+spos+" r="+r1);
-				if(r1) {
-					if ($.options.traceToken) console.log("str:succ");
-					r1.pos=spos;
-					r1.src=state.src; // insert 2013/05/01
-					r1.text=str.substring(r1.pos,r1.pos+r1.len);
-					r1.toString=function () {return this.text; };
-					var ns=state.clone();
-					extend(ns, {pos:spos+r1.len, success:true, result:[r1]});
-					state.updateMaxPos(ns.pos);
-					return ns;
-				}else{
-					if ($.options.traceToken) console.log("str:fail");
-					state.success=false;
-					return state;
-				}
-			}).setName("STRLIKE");
-		},
-		parse: function (parser, str,global) {
-			var st=new State(str,global);
-			return parser.parse(st);
-		}
-	};
-	//  why not eof: ? because StringParser.strLike
-	StringParser.eof=StringParser.strLike(function (str,pos) {
-		if (pos==str.length) return {len:0};
-		return null;
-	}).setName("EOF");
-	$.StringParser=StringParser;
-	var TokensParser={
-		token: function (type) {
-			return Parser.create(function (s) {
-				var t=s.src.tokens[s.pos];
-				s.success=false;
-				if (!t) return s;
-				if (t.type==type) {
-					s=s.clone();
-					s.updateMaxPos(s.pos);
-				s.pos++;
-					s.success=true;
-					s.result=[t];
-				}
-				return s;
-			}).setName(type).firstTokens(type);
-		},
-		parse:function (parser, tokens, global) {
-			var st=new State(tokens,global);
-			return parser.parse(st);
-		},
-		eof: Parser.create(function (s) {
-			var suc=(s.pos>=s.src.tokens.length);
-			s.success=suc;
-			if (suc) {
-				s=s.clone();
-				s.result=[{type:"EOF"}];
-			}
-			return s;
-		}).setName("EOT")
-	};
-	$.TokensParser=TokensParser;
-	$.lazy=function (pf) { //   ( ()->Parser ) ->Parser
-		var p=null;
-		return Parser.create(function (st) {
-			if (!p) p=pf();
-			if (!p) throw pf+" returned null!";
-			this.name=pf.name;
-			return p.parse(st);
-		}).setName("LZ");
-	};
-	$.addRange=function(res, newr) {
-		if (newr==null) return res;
-		if (typeof (res.pos)!="number") {
-			res.pos=newr.pos;
-			res.len=newr.len;
-			return res;
-		}
-		var newEnd=newr.pos+newr.len;
-		var curEnd=res.pos+res.len;
-		if (newr.pos<res.pos) res.pos=newr.pos;
-		if (newEnd>curEnd) res.len= newEnd-res.pos;
-		return res;
-	};
-	$.setRange=function (res) {
-		if (res==null || typeof res=="string" || typeof res=="number" || typeof res=="boolean") return;
-		var exRange=$.getRange(res);
-		if (exRange!=null) return res;
-		for (var i in res) {
-			if (!res.hasOwnProperty(i)) continue;
-			var range=$.setRange(res[i]);
-			$.addRange(res,range);
-		}
-		return res;
-	};
-
-	$.getRange=function(e) {
-		if (e==null) return null;
-		if (typeof e.pos!="number") return null;
-		if (typeof e.len=="number") return e;
-		return null;
-	};
-	return $;
-}();
-
-});
-
-if (typeof define!=="function") {
-	define=require("requirejs").define;
-}
-
-define('Grammar',["Parser"], function (Parser) {
-Grammar=function () {
-	var p=Parser;
-
-	var $=null;
-	function trans(name) {
-		if (typeof name=="string") return $.get(name);
-		return name;
-	}
-	function tap(name) {
-		return p.Parser.create(function (st) {
-			console.log("Parsing "+name+" at "+st.pos+"  "+st.src.str.substring(st.pos, st.pos+20).replace(/[\r\n]/g,"\\n"));
-			return st;
-		});
-	}
-	$=function (name){
-		var $$={};
-		$$.ands=function() {
-			var p=trans(arguments[0]);  //  ;
-			for (var i=1 ; i<arguments.length ;i++) {
-				p=p.and( trans(arguments[i]) );
-			}
-			p=p.tap(name);
-			$.defs[name]=p;
-			var $$$={};
-			$$$.autoNode=function () {
-				var res=p.ret(function () {
-					var res={type:name};
-					for (var i=0 ; i<arguments.length ;i++) {
-						var e=arguments[i];
-						var rg=Parser.setRange(e);
-						Parser.addRange(res, rg);
-						res["-element"+i]=e;
-					}
-					res.toString=function () {
-						return "("+this.type+")";
-					};
-				}).setName(name);
-				return $.defs[name]=res;
-			};
-			$$$.ret=function (f) {
-				if (arguments.length==0) return p;
-				if (typeof f=="function") {
-					return $.defs[name]=p.ret(f);
-				}
-				var names=[];
-				var fn=function(e){return e;};
-				for (var i=0 ; i<arguments.length ;i++) {
-					if (typeof arguments[i]=="function") {
-						fn=arguments[i];
-						break;
-					}
-					names[i]=arguments[i];
-				}
-				var res=p.ret(function () {
-					var res={type:name};
-					res[Grammar.SUBELEMENTS]=[];
-					for (var i=0 ; i<arguments.length ;i++) {
-						var e=arguments[i];
-						var rg=Parser.setRange(e);
-						Parser.addRange(res, rg);
-						if (names[i]) {
-							res[names[i]]=e;
-						}
-						res[Grammar.SUBELEMENTS].push(e);
-					}
-					res.toString=function () {
-						return "("+this.type+")";
-					};
-					return fn(res);
-				}).setName(name);
-				return  $.defs[name]=res;
-			};
-			return $$$;
-		};
-		$$.ors= function () {
-			var p=trans(arguments[0]);
-			for (var i=1 ; i<arguments.length ;i++) {
-				p=p.or( trans(arguments[i]) );
-			}
-			return $.defs[name]=p.setName(name);
-		};
-		return $$;
-	};
-
-	$.defs={};
-	$.get=function (name) {
-		if ($.defs[name]) return $.defs[name];
-		return p.lazy(function () {
-			var r=$.defs[name];
-			if (!r) throw "grammar named '"+name +"' is undefined";
-			return r;
-		}).setName("(Lazy of "+name+")");
-	};
-	return $;
-};
-Grammar.SUBELEMENTS="[SUBELEMENTS]";
-return Grammar;
-});
-// var b=XMLBuffer(src);
-// b(node);
-// console.log(b.buf);
-if (typeof define!=="function") {
-	define=require("requirejs").define;
-}
-define('XMLBuffer',["Parser"],
-function(Parser) {
-XMLBuffer=function (src) {
-	var $;
-	$=function (node, attrName){
-		//console.log("genX: "+node+ " typeof = "+typeof node+"  pos="+node.pos+" attrName="+attrName+" ary?="+(node instanceof Array));
-		if (node==null || typeof node=="string" || typeof node=="number") return;
-		var r=Parser.getRange(node);
-		if (r) {
-			while ($.srcLen < r.pos) {
-				$.src(src.substring($.srcLen, r.pos));
-			}
-		}
-		if (node==null) return;
-		if (attrName) $.startTag("attr_"+attrName+"");
-		if (node.type) {
-			if (node.isToken) $.startTag("token_"+node.type+"");
-			else $.startTag(node.type+"");
-		}
-		if (node.text) $.src(r.text);
-		else {
-			var n=$.orderByPos(node);
-			n.forEach(function (subnode) {
-				if (subnode.name && subnode.name.match(/^-/)) {
-					$(subnode.value);
-				} else {
-					$(subnode.value, subnode.name);
-				}
-			});
-		}
-		if (r) {
-			while ($.srcLen < r.pos+r.len) {
-				$.src(src.substring($.srcLen, r.pos+r.len));
-			}
-		}
-		if (node.type) {
-			if (node.isToken) $.endTag("token_"+node.type+"");
-			else $.endTag(""+node.type+"");
-		}
-		if (attrName) $.endTag("attr_"+attrName);
-	};
-	$.orderByPos=XMLBuffer.orderByPos;
-	$.src=function (str) {
-		$.buf+=str.replace(/&/g,"&amp;").replace(/>/g,"&gt;").replace(/</g,"&lt;");
-		$.srcLen+=str.length;
-	};
-	$.tag=function (str) {
-		$.buf+=str;
-	};
-	$.startTag=function (tagName) {
-		if (tagName.match(/^[a-zA-Z_0-9]+$/)) {
-			$.tag("<"+tagName+">");
-		} else {
-			$.tag("<token>");
-			//$.tag("<operator name=\""+tagName+"\">");
-		}
-	};
-	$.endTag=function (tagName) {
-		if (tagName.match(/^[a-zA-Z_0-9]+$/)) {
-			$.tag("</"+tagName+">");
-		} else {
-			$.tag("</token>");
-			//$.tag("</operator>");
-		}
-	};
-
-	$.buf="";
-	$.srcLen=0;
-	return $;
-};
-XMLBuffer.orderByPos=function (node) {
-	var res=[];
-	/*if (node[XMLBuffer.SUBELEMENTS]) {
-		//console.log("subele",node);
-		node[XMLBuffer.SUBELEMENTS].forEach(function (e,i) {
-			if (e) {
-				res.push({value:e});
-			}
-		});
-	} else {*/
-		for (var i in node) {
-			if (!node.hasOwnProperty(i)) continue;
-			if (node[i]==null || typeof node[i]=="string" || typeof node[i]=="number") continue;
-			if (typeof(node[i].pos)!="number") continue;
-			if (isNaN(parseInt(i)) && !(i+"").match(/^-/)) {
-				res.push({name: i, value: node[i]}); 
-			} else {
-				res.push({value: node[i]}); 
+				r.col++;
 			}
 		}
 	//}
-	res=res.sort(function (a,b) {
-		return a.value.pos-b.value.pos;
+	//console.log(linfo);
+	var res="";
+	var lines=str.split("\n");
+	var curDepth=0;
+	var row=0;
+	lines.forEach(function (line) {
+		var opens=0, closes=0;
+		line=line.replace(/^\s*/,"");
+		if (linfo[row]!=null) {
+			linfo[row].match(/^([\]\}\)」]*)/);
+			//console.log(linfo[row],RegExp.$1);
+			closes=RegExp.$1.length;
+			linfo[row].match(/([\[\{\(「]*)$/);
+			//console.log(linfo[row],RegExp.$1);
+			opens=RegExp.$1.length;
+		}
+		curDepth-=closes;
+		line=indStr()+line;
+		curDepth+=opens;
+		res+=line+"\n";
+		row++;
 	});
+	res=res.replace(/\n$/,"");
+	//console.log(res);
 	return res;
-};
-XMLBuffer.SUBELEMENTS="[SUBELEMENTS]";
-return XMLBuffer;
+	function indStr() {
+		var res="";
+		for (var i=0 ;i<curDepth ;i++) {
+			res+=indentStr;
+		}
+		return res;
+	}
+}
 });
+
+define('Shell',["FS","assert"],
+        function (FS,assert) {
+    var Shell={};
+    var PathUtil=assert(FS.PathUtil);
+    Shell.newCommand=function (name,func) {
+        this[name]=func;
+    };
+    Shell.cd=function (dir) {
+        Shell.cwd=resolve(dir,true);
+        return Shell.pwd();
+    };
+    Shell.vars=Object.create(FS.getEnv());
+    Shell.mount=function (options, path) {
+        //var r=resolve(path);
+        if (!options || !options.t) {
+            var fst=[];
+            for (var k in FS.getRootFS().availFSTypes()) {
+                fst.push(k);
+            }
+            sh.err("-t=("+fst.join("|")+") should be specified.");
+            return;
+        }
+        FS.mount(path,options.t, options);
+    };
+    Shell.unmount=function (path) {
+        FS.unmount(path);
+    };
+    Shell.fstab=function () {
+        var rfs=FS.getRootFS();
+        var t=rfs.fstab();
+        var sh=this;
+        //sh.echo(rfs.fstype()+"\t"+"<Root>");
+        t.forEach(function (fs) {
+            sh.echo(fs.fstype()+"\t"+(fs.mountPoint||"<Default>"));
+        });
+    }
+    Shell.resolve=resolve;
+    function resolve(v, mustExist) {
+        var r=resolve2(v);
+        if (!FS.SFile.is(r)) {console.log(r," is not file");}
+        if (mustExist && !r.exists()) throw new Error(r+": no such file or directory");
+        return r;
+    }
+    function resolve2(v) {
+        if (typeof v!="string") return v;
+        var c=Shell.cwd;
+        if (PathUtil.isAbsolutePath(v)) return FS.resolve(v,c);
+        return c.rel(v);
+    }
+    Shell.pwd=function () {
+        return Shell.cwd+"";
+    };
+    Shell.ls=function (dir){
+    	if (!dir) dir=Shell.cwd;
+    	else dir=resolve(dir, true);
+        return dir.ls();
+    };
+    Shell.cp=function (from ,to ,options) {
+        if (!options) options={};
+        if (options.v) {
+            Shell.echo("cp", from ,to);
+            options.echo=Shell.echo.bind(Shell);
+        }
+        var f=resolve(from, true);
+        var t=resolve(to);
+        return f.copyTo(t,options);
+    };
+    Shell.ln=function (to , from ,options) {
+        var f=resolve(from);
+        var t=resolve(to, true);
+        if (f.isDir() && f.exists()) {
+            f=f.rel(t.name());
+        }
+        if (f.exists()) {
+            throw new Error(f+" exists");
+        }
+        return f.link(t,options);
+    };
+    Shell.rm=function (file, options) {
+        if (!options) options={};
+        if (options.notrash) {
+            file=resolve(file, false);
+            file.removeWithoutTrash();
+            return 1;
+        }
+        file=resolve(file, true);
+        if (file.isDir() && options.r) {
+            var dir=file;
+            var sum=0;
+            dir.each(function (f) {
+                if (f.exists()) {
+                    sum+=Shell.rm(f, options);
+                }
+            });
+            dir.rm();
+            return sum+1;
+        } else {
+            file.rm();
+            return 1;
+        }
+    };
+    Shell.mkdir=function (file,options) {
+        file=resolve(file, false);
+        if (file.exists()) throw new Error(file+" : exists");
+        return file.mkdir();
+
+    };
+    Shell.cat=function (file,options) {
+        file=resolve(file, true);
+        return Shell.echo(file.getContent(function (c) {
+            if (file.isText()) {
+                return c.toPlainText();
+            } else {
+                return c.toURL();
+            }
+        }));
+    };
+    Shell.resolve=function (file) {
+        if (!file) file=".";
+        file=resolve(file);
+        return file;
+    };
+    Shell.grep=function (pattern, file, options) {
+        file=resolve(file, true);
+        if (!options) options={};
+        if (!options.res) options.res=[];
+        if (file.isDir()) {
+            file.each(function (e) {
+                Shell.grep(pattern, e, options);
+            });
+        } else {
+            if (typeof pattern=="string") {
+                file.lines().forEach(function (line, i) {
+                    if (line.indexOf(pattern)>=0) {
+                        report(file, i+1, line);
+                    }
+                });
+            }
+        }
+        return options.res;
+        function report(file, lineNo, line) {
+            if (options.res) {
+                options.res.push({file:file, lineNo:lineNo,line:line});
+            }
+            Shell.echo(file+"("+lineNo+"): "+line);
+
+        }
+    };
+    Shell.touch=function (f) {
+    	f=resolve(f);
+    	f.text(f.exists() ? f.text() : "");
+    	return 1;
+    };
+    Shell.setout=function (ui) {
+        Shell.outUI=ui;
+    };
+    Shell.echo=function () {
+        return $.when.apply($,arguments).then(function () {
+            console.log.apply(console,arguments);
+            if (Shell.outUI && Shell.outUI.log) Shell.outUI.log.apply(Shell.outUI,arguments);
+        });
+    };
+    Shell.err=function (e) {
+        console.log.apply(console,arguments);
+        if (e && e.stack) console.log(e.stack);
+        if (Shell.outUI && Shell.outUI.err) Shell.outUI.err.apply(Shell.outUI,arguments);
+    };
+    Shell.clone= function () {
+        var r=Object.create(this);
+        r.vars=Object.create(this.vars);
+        return r;
+    };
+    Shell.getvar=function (k) {
+        return this.vars[k] || (process && process.env[k]);
+    };
+    Shell.get=Shell.getvar;
+    Shell.set=function (k,v) {
+        return this.vars[k]=v;
+    };
+    Shell.strcat=function () {
+        if (arguments.length==1) return arguments[0];
+        var s="";
+        for (var i=0;i<arguments.length;i++) s+=arguments[i];
+        return s;
+    };
+    Shell.exists=function (f) {
+        f=this.resolve(f);
+        return f.exists();
+    };
+    Shell.dl=function (f) {
+        return f.download();
+    };
+    Shell.zip=function () {
+        var t=this;
+        var a=Array.prototype.slice.call(arguments).map(function (e) {
+            if (typeof e==="string") return t.resolve(e);
+            return e;
+        });
+        return FS.zip.zip.apply(FS.zip,a);
+    };
+    Shell.unzip=function () {
+        var t=this;
+        var a=Array.prototype.slice.call(arguments).map(function (e) {
+            if (typeof e==="string") return t.resolve(e);
+            return e;
+        });
+        return FS.zip.unzip.apply(FS.zip,a);
+    };
+
+    Shell.prompt=function () {};
+    Shell.ASYNC={r:"SH_ASYNC"};
+    Shell.help=function () {
+        for (var k in Shell) {
+            var c=Shell[k];
+            if (typeof c=="function") {
+                Shell.echo(k+(c.description?" - "+c.description:""));
+            }
+        }
+    };
+    if (!window.sh) window.sh=Shell;
+    if (typeof process=="object") {
+        sh.devtool=function () { require('nw.gui').Window.get().showDevTools();}
+        sh.cd(process.cwd().replace(/\\/g,"/"));
+    } else {
+        sh.cd("/");
+    }
+    return Shell;
+});
+
+define('KeyEventChecker',[],function () {
+	var KEC={};
+	KEC.down=function (elem, name, handler) {
+		if (!(elem instanceof $)) elem=$(elem);
+		elem.bind("keydown", function (e) {
+			if (KEC.is(e, name)) {
+				return handler.call(elem[0],e);
+			}
+		});
+	};
+	var codes={8:"bs",13:"enter",37:"left",38:"up",39:"right",40:"down"};
+	KEC.is=function (e,name) {
+		name=name.toLowerCase();
+		e = e.originalEvent || e;
+		var s="";
+		if (e.altKey) {
+			s+="alt+";
+		}
+		if (e.ctrlKey) {
+			s+="ctrl+";
+		}
+		if (e.shiftKey) {
+			s+="shift+";
+		}
+		if (e.keyCode>=112 && e.keyCode<=123) {
+			s+="f"+(e.keyCode-111);
+        } else if (codes[e.keyCode]){
+            s+=codes[e.keyCode];
+		} else {
+			s+=String.fromCharCode(e.keyCode);
+		}
+		s=s.toLowerCase();
+		return name==s;
+	};
+	return KEC;
+});
+define('UIDiag',["UI"],function (UI) {
+    var UIDiag={};
+    UIDiag.confirm=function (mesg) {
+        var di=UI("div",{title:"確認"},["div",mesg],
+                ["button",{on:{click:sendF(true)}},"OK"],
+                ["button",{on:{click:sendF(false)}},"キャンセル"]).dialog({width:"auto",close:sendF(false)});
+        var d=$.Deferred();
+        function sendF(r) {
+            return function () { d.resolve(r); di.dialog("close"); di.remove(); };
+        }
+        return d.promise();
+    };
+    UIDiag.alert=function (mesg) {
+        var di=UI("div",{title:"確認"},["div",mesg],
+                ["button",{on:{click:sendF(true)}},"OK"]).dialog({width:"auto",close:sendF(false)});
+        var d=$.Deferred();
+        function sendF(r) {
+            return function () { d.resolve(r); di.dialog("close"); di.remove(); };
+        }
+        return d.promise();
+    };
+
+    UIDiag.prompt=function (mesg,value) {
+        var di=UI("div",{title:"入力"},["div",mesg],
+                ["input",{on:{enterkey:ok},$var:"val", value:value}],["br"],
+                ["button",{on:{click:ok}},"OK"],
+                ["button",{on:{click:cancel}},"キャンセル"]).dialog({width:"auto",close:function (){
+                    di.dialog("close");
+                    d.resolve();
+                }});
+        setTimeout(function () {
+            di.$vars.val.focus();
+            //console.log("FOcus");
+        },10);
+        var d=$.Deferred();
+        function ok() {
+            var r=di.$vars.val.val();
+            d.resolve(r);
+            di.dialog("close");
+            di.remove();
+        }
+        function cancel() {
+            di.dialog("close");
+            di.remove();
+            d.resolve();
+        }
+        return d.promise();
+
+    };
+    if (typeof window!="undefined") window.UIDiag=UIDiag;
+    return UIDiag;
+});
+define('Columns',["UI"],function (UI) {
+    var Columns={};
+    Columns.make=function () {
+        var div=UI("div",{"class":"container"});
+        var row=UI("div",{"class":"row"});
+        var res=[];
+        for (var i=0; i<arguments.length ; i++) {
+            var col=UI.apply(UI,arguments[i]);
+            res.push(col);
+            row.append(col);
+        }
+        div.append(row);
+        $("body").append(div);
+        return res;
+    };
+    return Columns;
+});
+
+define('Menu',["UI"], function (UI) {
+    var Menu={};
+    Menu.makeOLD=function (title, hier) {
+        if (title.sub) hier=title.sub;
+        /*
+           [{label:"main1",id:"main1",sub:[{label:"sub1", id:"sub1", action:f}]]
+         */
+        var ul1=UI("ul", {"class":"nav navbar-nav"});
+        hier.forEach(function (mainMenuItem) {
+            var li=UI("li",
+                    ["a",{
+                        href:(mainMenuItem.href||"#"),
+                        id:mainMenuItem.id,
+                        "class":(mainMenuItem.sub?"dropdown-toggle":null),
+                        "data-toggle":(mainMenuItem.sub?"dropdown":null)
+                    }, mainMenuItem.label]
+            );
+            ul1.append(li);
+            if (mainMenuItem.sub) {
+                var ul2=UI("ul",{"class":"dropdown-menu"});
+                mainMenuItem.sub.forEach(function (subMenuItem) {
+                    ul2.append(UI("li",
+                        ["a", {
+                             id:subMenuItem.id,
+                             href:subMenuItem.href||"#",
+                             on:{
+                                 click:subMenuItem.action
+                             }
+                        },subMenuItem.label]
+                    ));
+                });
+                li.append(ul2);
+            }
+        });
+        var menu=UI("div",{"class":"collapse navbar-collapse"},ul1);
+        $("body").append(UI(
+          "div",{"class":"navbar navbar-inverse navbar-fixed-top",id:"navBar"},
+                ["div",{"class":"container",id:"nav-A"},
+                    ["div", {"class":"navbar-header",id:"nav-B"},
+                        ["button",{type:"button", "class":"navbar-toggle",
+                            "data-toggle":"collapse",
+                            "data-target":".navbar-collapse"},
+                            ["span",{"class":"icon-bar"}],
+                            ["span",{"class":"icon-bar"}],
+                            ["span",{"class":"icon-bar"}]
+                        ],
+                        ["a", {"class":"navbar-brand" ,href:"#",id:title.id},title.label]
+                    ],
+                    menu
+                ]
+        ));
+    };
+    Menu.make=function (title, hier) {
+        if (title.sub) hier=title.sub;
+        this.initMenuBar(title);
+        /*
+           [{label:"main1",id:"main1",sub:[{label:"sub1", id:"sub1", action:f}]]
+         */
+        hier.forEach(function (mainMenuItem) {
+            Menu.appendMain(mainMenuItem);
+        });
+    };
+    Menu.initMenuBar=function (title) {
+        if (this.ul1)return;
+        var ul1=UI("ul", {"class":"nav navbar-nav"});
+        var menu=UI("div",{"class":"collapse navbar-collapse"},ul1);
+        $("body").append(UI(
+          "div",{"class":"navbar navbar-inverse navbar-fixed-top",id:"navBar"},
+                ["div",{"class":"container",id:"nav-A"},
+                    ["div", {"class":"navbar-header",id:"nav-B"},
+                        ["button",{type:"button", "class":"navbar-toggle",
+                            "data-toggle":"collapse",
+                            "data-target":".navbar-collapse"},
+                            ["span",{"class":"icon-bar"}],
+                            ["span",{"class":"icon-bar"}],
+                            ["span",{"class":"icon-bar"}]
+                        ],
+                        ["a", {"class":"navbar-brand" ,href:"#",id:title.id},title.label]
+                    ],
+                    menu
+                ]
+        ));
+        this.ul1=ul1;
+    };
+    Menu.appendMain=function (mainMenuItem) {
+        //[{label:"main1",id:"main1",sub:[{label:"sub1", id:"sub1", action:f}]]
+        var ul1=this.ul1;
+        var li=UI("li",
+                ["a",{
+                    href:(mainMenuItem.href||"#"),
+                    id:mainMenuItem.id,
+                    "class":(mainMenuItem.sub?"dropdown-toggle":null),
+                    "data-toggle":(mainMenuItem.sub?"dropdown":null)
+                }, mainMenuItem.label]
+        );
+        if (mainMenuItem.action) {
+            li.find("a").click(mainMenuItem.action);
+        }
+        if (mainMenuItem.after) {
+            $(mainMenuItem.after).closest("li").after(li);
+        } else {
+            ul1.append(li);
+        }
+        if (mainMenuItem.sub) {
+            var ul2=UI("ul",{
+                id:"submenu_"+mainMenuItem.id,
+                "class":"dropdown-menu"
+            });
+            li.append(ul2);
+            mainMenuItem.sub.forEach(function (subMenuItem) {
+                Menu.appendSub(mainMenuItem,subMenuItem);
+            });
+        }
+    };
+    Menu.appendSub=function (mainObj,subMenuItem) {
+        var mainID;
+        switch (typeof mainObj) {
+            case "object":
+            mainID=mainObj.id;
+            mainObj.sub=[subMenuItem];
+            break;
+            case "string":
+            mainID=mainObj;
+            mainObj={label:mainID,id:mainID};
+            break;
+        }
+        var ul2=$("#submenu_"+mainID);
+        if (ul2.length==0) {
+            Menu.appendMain(mainObj);
+            //ul2=$("#submenu_"+mainID);
+            return;
+        }
+        ul2.append(UI("li",
+            ["a", {
+                 id:subMenuItem.id,
+                 href:subMenuItem.href||"#",
+                 on:{
+                     click:subMenuItem.action
+                 }
+            },subMenuItem.label]
+        ));
+    };
+
+    return Menu;
+});
+
+define('DeferredUtil',[], function () {
+    var root=(
+        typeof window!=="undefined" ? window :
+        typeof self!=="undefined" ? self :
+        typeof global!=="undefined" ? global : null
+    );
+    //  promise.then(S,F)  and promise.then(S).fail(F) is not same!
+    //  ->  when fail on S,  F is executed?
+    var DU;
+    var DUBRK=function(r){this.res=r;};
+    DU={
+        isNativePromise: function (p) {
+            return p && (typeof p.then==="function") &&
+            (typeof p.promise!=="function") && (typeof p.catch==="function") ;
+        },
+        isJQPromise: function (p) {
+            return p && (typeof p.then==="function") &&
+            (typeof p.promise==="function") &&(typeof p.fail==="function") ;
+        },
+        isPromise: function (p) {
+            return p && (typeof p.then==="function") &&
+            ((typeof p.promise==="function") || (typeof p.catch==="function")) ;
+        },
+        all: function (a) {
+            //var a=Array.prototype.slice.call(arguments);
+            return DU.promise(function (succ,fail) {
+                var res=[],rest=a.length;
+                a.forEach(function (p, i) {
+                    DU.resolve(p).then(function (r) {
+                        res[i]=r;
+                        rest--;
+                        if (rest===0) {
+                            succ(res);
+                        }
+                    },fail);
+                });
+            });
+        },
+        resolve: function (p) {
+            if (DU.config.useJQ && DU.isJQPromise(p)) return p;
+            if (!DU.config.useJQ && DU.isNativePromise(p)) return p;
+            return DU.promise(function (succ,fail) {
+                if (DU.isPromise(p)) {
+                    p.then(succ,fail);
+                } else {
+                    succ(p);
+                }
+            });
+            /*if (DU.isPromise(p)) { // NO! it returns Promise when using JQPromise and vise versa.
+                return f;
+            }
+            if (DU.confing.useJQ) {
+                return $.when(p);
+            }*/
+        },
+        throwNowIfRejected: function (p) {
+            // If Promise p has already rejected, throws the rejeceted reason immediately.
+            var state;
+            var err;
+            var res=p.then(function (r) {
+                if (!state) {
+                    state="resolved";
+                }
+                return r;
+            },function (e) {
+                if (!state) {
+                    state="rejected";
+                    err=e;
+                } else {
+                    return DU.reject(e);
+                }
+            });
+            if (!state) state="notyet";
+            if (state==="rejected") throw err;
+            return res;
+        },
+        assertResolved: function (p) {
+            var res,resolved;
+            p.then(function (r) {
+                res=r;
+                resolved=true;
+            });
+            if (!resolved) {
+                console.log(r);
+                throw new Error("Promise not resolved");
+            }
+            return res;
+        },
+        /*toJQPromise: function (p) {// From native Promise
+            if (!p) return $.when(p);
+            if ($.isFunction(p.promise)) return p;
+            if (!$.isFunction(p.then) || !$.isFunction(p.catch)) return $.when(p);
+            var d=new $.Deferred();
+            p.then(function (r) {
+                d.resolve(r);
+            }).catch(function (r) {
+                d.reject(r);
+            });
+            return d.promise();
+        },*/
+        ensureDefer: function (v) {
+            return DU.promise(function (resolve,reject) {
+                var isDeferred;
+                DU.resolve(v).then(function (r) {
+                    if (!isDeferred) {
+                        setTimeout(function () {
+                            resolve(r);
+                        },0);
+                    } else {
+                        resolve(r);
+                    }
+                }).fail(function (r) {
+                    if (!isDeferred) {
+                        setTimeout(function () {
+                            reject(r);
+                        },0);
+                    } else {
+                        reject(r);
+                    }
+                });
+                isDeferred=true;
+            });
+        },
+            directPromise:function (v) {
+                return DU.timeout(v,0);
+            },
+            then: function (f) {
+                return DU.directPromise().then(f);
+            },
+            timeout:function (timeout,value) {
+                return DU.promise(function (resolve) {
+                    setTimeout(function () {resolve(value);},timeout||0);
+                });
+            },
+            funcPromise:function (f) {
+                if (DU.config.useJQ) {
+                    var d=new $.Deferred();
+                    try {
+                        f(function (v) {
+                            d.resolve(v);
+                        },function (e) {
+                            d.reject(e);
+                        });
+                    }catch(e) {
+                        d.reject(e);
+                    }
+                    return d.promise();
+                } else if (DU.external.Promise) {
+                    return new DU.external.Promise(function (resolve,reject) {
+                        try {
+                            f(resolve,reject);
+                        }catch(e) {
+                            reject(e);
+                        }
+                    });
+                } else {
+                    throw new Error("promise is not found");
+                }
+            },
+            reject: function (e) {
+                if (DU.config.useJQ) {
+                    var d=new $.Deferred();
+                    d.reject(e);
+                    return d.promise();
+                } else {
+                    return new JQ.external.Promise(function (s,rej) {
+                        rej(e);
+                    });
+                }
+            },
+            throwPromise:function (e) {
+                if (DU.config.useJQ) {
+                    var d=new $.Deferred();
+                    setTimeout(function () {
+                        d.reject(e);
+                    }, 0);
+                    return d.promise();
+                } else {
+                    return new JQ.external.Promise(function (s,rej) {
+                        rej(e);
+                    });
+                }
+            },
+            throwF: function (f) {
+                return function () {
+                    try {
+                        return f.apply(this,arguments);
+                    } catch(e) {
+                        console.log(e,e.stack);
+                        return DU.throwPromise(e);
+                    }
+                };
+            },
+            each: function (set,f) {
+                if (set instanceof Array) {
+                    return DU.loop(function (i) {
+                        if (i>=set.length) return DU.brk();
+                        return DU.resolve(f(set[i],i)).then(function () {
+                            return i+1;
+                        });
+                    },0);
+                } else {
+                    var objs=[];
+                    for (var i in set) {
+                        objs.push({k:i,v:set[i]});
+                    }
+                    return DU.each(objs,function (e) {
+                        return f(e.k, e.v);
+                    });
+                }
+            },
+            loop: function (f,r) {
+                try {
+                    var err;
+                    while(true) {
+                        if (r instanceof DUBRK) return DU.when1(r.res);
+                        var deff1=true, deff2=false;
+                        // ★ not deffered  ☆  deferred
+                        var r1=f(r);
+                        var dr=DU.resolve(r1).then(function (r2) {
+                            r=r2;
+                            deff1=false;
+                            if (r instanceof DUBRK) return r.res;
+                            if (deff2) return DU.loop(f,r); //☆
+                        }).fail(function (e) {
+                            deff1=false;
+                            err=e;
+                        });
+                        if (err) throw err;
+                        deff2=true;
+                        if (deff1) return dr;//☆
+                        //★
+                    }
+                }catch (e) {
+                    return DU.reject(e);
+                }
+            },
+            brk: function (res) {
+                return new DUBRK(res);
+            },
+            tryLoop: function (f,r) {
+                return DU.loop(DU.tr(f),r);
+            },
+            tryEach: function (s,f) {
+                return DU.loop(s,DU.tr(f));
+            },
+            documentReady:function () {
+                return DU.callbackToPromise(function (s) {$(s);});
+            },
+            requirejs:function (modules) {
+                if (!root.requirejs) throw new Error("requirejs is not loaded");
+                return DU.callbackToPromise(function (s) {
+                    root.requirejs(modules,s);
+                });
+            }
+    };
+    DU.NOP=function (r) {return r;};
+    DU.E=function () {
+        console.log("DUE",arguments);
+        DU.errorHandler.apply(DU,arguments);
+    };
+    DU.errorHandler=function (e) {
+        console.error.apply(console,arguments);
+        alert(e);
+    };
+    DU.setE=function (f) {
+        DU.errorHandler=f;
+    };
+    DU.begin=DU.try=DU.tr=DU.throwF;
+    DU.promise=DU.callbackToPromise=DU.funcPromise;
+    DU.when1=DU.resolve;
+    DU.config={};
+    if (root.$ && root.$.Deferred) {
+        DU.config.useJQ=true;
+    }
+    DU.external={Promise:root.Promise};
+    if (!root.DeferredUtil) root.DeferredUtil=DU;
+    return DU;
+});
+
+define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
+        function (FS,sh,WebSite,A,DU) {
+    var Sync={};
+    //var PathUtil=FS.PathUtil; Not avail
+    sh.sync=function () {
+        // sync options:o      local=remote=cwd
+        // sync dir:s|file options:o local=remote=dir
+        // sync local:s|file remote:s|file options:o
+        var local,remote,options,onend=function(){};
+        var i=0;
+        if (typeof arguments[i]=="string" || FS.isFile(arguments[i])) {
+            local=sh.resolve(arguments[i], true);
+            i++;
+            if (typeof arguments[i]=="string" || FS.isFile(arguments[i])) {
+                remote=sh.resolve(arguments[i], false);
+                i++;
+            }
+        }
+        if (typeof arguments[i]=="object") { options=arguments[i]; i++;}
+        if (!local) remote=local=sh.cwd;
+        if (!remote) remote=local;
+        sh.echo("sync args=",local,remote,options);
+        return Sync.sync(local,remote,options);
+    };
+    Sync.NOT_LOGGED_IN="Not logged in.";
+    Sync.sync=function () {
+        // sync dir:file options:o local=remote=dir
+        // sync local:file remote:file options:o
+        var local,remote,options;
+        function diffTree(a,b) {
+            console.log("diff",a,b);
+            for (var k in unionKeys(a,b)) {
+                if (!k in a) console.log(k," is not in a",k[b]);
+                if (!k in b) console.log(k," is not in b",k[a]);
+                if (typeof k[a]=="object" && typeof k[b]=="object") {
+                    diffTree(k[a],k[b]);
+                } else {
+                    if (k[a]!=k[b]) console.log(k," is differ",k[a],k[b]);
+                }
+            }
+        }
+        function getLocalDirInfo() {
+            console.log("gerLCD");
+            var res2=local.getDirTree({style:"flat-relative",excludes:[".sync/"]});
+            console.log("gerLCD done",res2);
+            return res2;
+        }
+        function unionKeys() {
+            var keys={};
+            for (var i=0 ; i<arguments.length ;i++) {
+                for (var key in arguments[i]) {keys[key]=1;}
+            }
+            return keys;
+        }
+        function getDelta(before,after) {
+            //console.log("getDelta",before,after);
+            var keys=unionKeys(before,after);
+            var res={};
+            for (var key in keys) {
+                var inb=(key in before),ina=(key in after);
+                //console.log("Compare", before[key], after[key], ina, inb);
+                if (inb && !ina) {
+                    // DELETED
+                    res[key]={lastUpdate:-1, trashed:true};
+                } else if (!inb && ina) {
+                    // CREATEDED
+                    res[key]={lastUpdate:after[key].lastUpdate, created:true};
+                } else if (before[key].lastUpdate != after[key].lastUpdate) {
+                    // MODIFIED
+                    res[key]={
+                            lastUpdate: after[key].lastUpdate,
+                            modified:true
+                    };
+                    //console.log("Added", key, before[key].lastUpdate , after[key].lastUpdate)
+                }
+            }
+            return res;
+        }
+        function getDeltaDelta(local,remote) {
+            var keys=unionKeys(local,remote);
+            var res={local:{}, remote:{} };
+            for (var key in keys) {
+                var inl=(key in local),inr=(key in remote);
+                if (inl && !inr) {
+                    res.local[key]=local[key];
+                } else if (!inl && inr) {
+                    res.remote[key]=remote[key];
+                } else if (local[key].lastUpdate > remote[key].lastUpdate) {
+                    res.local[key]=local[key];
+                } else {
+                    res.remote[key]=remote[key];
+                }
+            }
+            return res;
+        }
+        function status(name, param) {
+            sh.echo("Status: "+name+" param:",param);
+            if (options.onstatus) {
+                options.onstatus(name, param);
+            }
+        }
+        var i=0;
+        if (FS.isFile(arguments[i])) {
+            local=arguments[i];
+            i++;
+            if (FS.isFile(arguments[i])) {
+                remote=arguments[i];
+                i++;
+            }
+        }
+        if (typeof arguments[i]=="object") { options=arguments[i]; i++;}
+        if (!local) throw "Sync.sync: Local dir must be specified as file object";
+        if (!remote) remote=local;
+        if (!options) options={};
+        if (options.test) options.v=1;
+        var syncInfoDir=local.rel(".sync/");
+        options.excludes=options.excludes||[];
+        options.excludes=options.excludes.concat(syncInfoDir.name());
+        var downloadSkipped, uploadSkipped;
+        var uploads={},downloads=[];
+        var user;
+        var classid;
+        var localDelta;
+        // local.json exists / remote.json not exists -> download / no upload   -> remote.json did not create
+        // local.json not exists / remote.json exists -> no download / upload   -> local.json did not create
+        var localDirInfoFile=syncInfoDir.rel("local.json");
+        var remoteDirInfoFile=syncInfoDir.rel("remote.json");
+        var lastLocalDirInfo=localDirInfoFile.exists()?localDirInfoFile.obj():{};
+        var lastRemoteDirInfo=remoteDirInfoFile.exists()?remoteDirInfoFile.obj():{};
+        status("getLocalDirInfo", req);
+        var curLocalDirInfo=getLocalDirInfo();
+        var curRemoteDirInfo;
+        if (options.v) sh.echo("last/cur LocalDirInfo",lastLocalDirInfo, curLocalDirInfo);
+        localDelta=getDelta(lastLocalDirInfo, curLocalDirInfo);
+        if (options.v) sh.echo("localDelta",localDelta);
+        var req={base:remote.path(),excludes:JSON.stringify(options.excludes),token:""+Math.random()};
+        status("getDirInfo", req);
+        return $.ajax({
+            type:"get",
+            url:A(WebSite.url.getDirInfo),
+            data:req
+        }).then(function n1(gd) {
+            curRemoteDirInfo=gd.data;
+            var d;
+            if (options.v) sh.echo("getDirInfo",gd);
+            if (gd.NOT_LOGGED_IN) {
+                d = new $.Deferred;
+                setTimeout(function(){
+                  d.reject(Sync.NOT_LOGGED_IN);
+                }, 0);
+                return d.promise();
+            }
+            user=gd.user;
+            classid=gd["class"];
+            var base=local;
+            var remoteDelta=getDelta(lastRemoteDirInfo, curRemoteDirInfo);
+            if (options.v) sh.echo("remoteDelta",remoteDelta);
+            var dd=getDeltaDelta(localDelta,remoteDelta);
+            var o,f,m;
+            for (var key in dd.local) {
+                 f=local.rel(key);
+                 if (f.isDir()) continue;
+                 o={};
+                 if (f.exists()) o.text=f.text();
+                 m=dd.local[key];
+                 for (var i in m) o[i]=m[i];
+                 uploads[key]=o;
+                 if (options.v) sh.echo("Upload",key,m);
+            }
+            for (var key in dd.remote) {
+                downloads.push(key);
+                //if (PathUtil.isDir(key)) continue;  //Not avail
+                if (options.v)
+                    sh.echo("Download",key,dd.remote[key]);
+            }
+            if (options.v) {
+                sh.echo("uploads:",uploads);
+                sh.echo("downloads:",downloads);
+            }
+            if (downloads.length==0) {
+                if (options.v) sh.echo("Skip Download");
+                downloadSkipped=true;
+                return {data:{},downloadSkipped:true};
+            }
+            var req={base:remote.path(),paths:JSON.stringify(downloads),token:""+Math.random()};
+            status("getFiles", req);
+            return $.ajax({
+                type:"post",
+                url:A(WebSite.url.getFiles),
+                data:req
+            });
+        }).then(function n2(dlData) {
+            //dlData=JSON.parse(dlData);
+            if (options.v) sh.echo("dlData:",dlData);
+            var base=local;//FS.get(dlData.base);
+            if (options.test) return;
+            for (var rel in dlData.data) {
+                var dlf=base.rel(rel);
+                if (dlf.isDir()) continue;
+                if (dlf.path().indexOf(".sync/")>=0) continue;
+                var d=dlData.data[rel];
+                //if (options.v) sh.echo(dlf.path(), d);
+                if (d.trashed) {
+                    if (dlf.exists()) dlf.rm();
+                } else {
+                    dlf.text(d.text);
+                }
+                delete d.text;
+                dlf.metaInfo(d);
+            }
+            if (Object.keys(uploads).length==0) {
+                if (options.v) sh.echo("Skip Upload");
+                uploadSkipped=true;
+                return {uploadSkipped:true};
+            }
+            var req={base:remote.path(),data:JSON.stringify(uploads),token:""+Math.random()};
+            console.log("Data len=",req.data.length);
+            req.pathInfo=A(WebSite.url.putFiles);
+            status("putFiles", req);
+            return $.ajax({  // TODO:requestFragment
+                type:"post",
+                url:req.pathInfo,
+                data:req
+            });
+        }).then(function n3(res){
+            if (options.v) sh.echo("putFiles res=",res);
+            if (!downloadSkipped) {
+                var newLocalDirInfo=getLocalDirInfo();
+                localDirInfoFile.obj(newLocalDirInfo);
+            } else {
+                localDirInfoFile.obj(curLocalDirInfo);
+            }
+            if (!uploadSkipped) {
+                var newRemoteDirInfo=res.data;
+                remoteDirInfoFile.obj(newRemoteDirInfo);
+            } else {
+                remoteDirInfoFile.obj(curRemoteDirInfo);
+            }
+            var upds=[];
+            for (var i in uploads) upds.push(i);
+            return res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};
+        });
+    };
+    sh.rsh=function () {
+        var a=[];
+        for (var i=0; i<arguments.length; i++) a[i]=arguments[i];
+        return $.ajax({
+            url:A(WebSite.url.rsh),
+            data:{args:JSON.stringify(a)},
+        });
+    };
+    return Sync;
+});
+
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -8330,2413 +8652,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ ])
 });
 ;
-if (typeof define!=="function") {
-	define=require("requirejs").define;
-}
-define('IndentBuffer',["assert","source-map"],function (A, S) {
-var Pos2RC=function (src) {
-	var $={};
-	var map=[];
-	var pos=0;
-	var lastRow=0;
-	src.split("\n").forEach(function (line) {
-		map.push(pos);
-		pos+=line.length+1;
-	});
-	map.push(pos);
-	$.getRC=function (pos) {
-		while(true) {
-			if (lastRow<0) {
-				return {row:1, col:1};
-			}
-			if (lastRow+1>=map.length) {
-				return {row:map.length, col:1};
-			}
-			//A(!( pos<map[lastRow]  &&  map[lastRow]<=pos ));
-			//A(!( map[lastRow+1]<=pos  &&  pos<map[lastRow+1] ));
-			if (pos<map[lastRow]) {
-				lastRow--;
-			} else if (map[lastRow+1]<=pos) {
-				lastRow++;
-			} else {
-				return {row:lastRow+1, col:pos-map[lastRow]+1};
-			}
-		}
-	};
-	return $;
-};
-return IndentBuffer=function (options) {
-	options=options||{};
-	var $=function () {
-		var args=arguments;
-		var fmt=args[0];
-		//console.log(fmt+ " -- "+arguments[0]+" --- "+arguments.length);
-		var ai=0;
-		function shiftArg(nullable) {
-			ai++;
-			var res=args[ai];
-			if (res==null && !nullable) {
-				console.log(args);
-				throw new Error(ai+"th null param: fmt="+fmt);
-			}
-			return res;
-		}
-		function nc(val, msg) {
-			if(val==null) throw msg;
-			return val;
-		}
-		while (true) {
-			var i=fmt.indexOf("%");
-			if (i<0) {$.print(fmt); break;}
-			$.print(fmt.substring(0,i));
-			i++;
-			var fstr=fmt.charAt(i);
-			if (fstr=="s") {
-				var str=shiftArg();
-				if (typeof str == "string" || typeof str =="number") {}
-				else if (str==null) str="null";
-				else if (str.text) {
-					$.addMapping(str);
-					str=str.text;
-				}
-				$.print(str);
-				i++;
-			} else if (fstr=="d") {
-				var n=shiftArg();
-				if (typeof n!="number") throw new Error (n+" is not a number: fmt="+fmt);
-				$.print(n);
-				i++;
-			} else if (fstr=="n") {
-				$.ln();
-				i++;
-			} else if (fstr=="{") {
-				$.indent();
-				i++;
-			} else if (fstr=="}") {
-				$.dedent();
-				i++;
-			} else if (fstr=="%") {
-				$.print("%");
-				i++;
-			} else if (fstr=="f") {
-				shiftArg()($);
-				i++;
-			} else if (fstr=="l") {
-				var lit=shiftArg();
-				$.print($.toLiteral(lit));
-				i++;
-			} else if (fstr=="v") {
-				var a=shiftArg();
-				if (!a) throw new Error ("Null %v");
-				if (typeof a!="object") throw new Error("nonobject %v:"+a);
-				$.addMapping(a);
-				$.visitor.visit(a);
-				i++;
-			} else if (fstr=="z") {
-				var place=shiftArg();
-				if ("val" in place) {
-					$.print(place.val);
-					return;
-				}
-				if (!place.inited) {
-					$.lazy(place);
-				}
-				place.print();
-				//$.print(place.gen);
-				i++;
-			} else if (fstr=="j") {
-				var sp_node=shiftArg();
-				var sp=sp_node[0];
-				var node=sp_node[1];
-				var sep=false;
-				if (!node || !node.forEach) {
-					console.log(node);
-					throw new Error (node+" is not array. cannot join fmt:"+fmt);
-				}
-				node.forEach(function (n) {
-					if (sep) $.printf(sp);
-					sep=true;
-					$.visitor.visit(n);
-				});
-				i++;
-			} else if (fstr=="D"){
-				shiftArg(true);
-				i++;
-			} else {
-				i+=2;
-			}
-			fmt=fmt.substring(i);
-		}
-	};
-	$.addMapping=function (token) {
-		//console.log("Token",token,$.srcFile+"");
-		if (!$.srcFile) return ;
-		// token:extend({text:String},{pos:Number}|{row:Number,col:Number})
-		var rc;
-		if (typeof token.row=="number" && typeof token.col=="number") {
-			rc={row:token.row, col:token.col};
-		} else if (typeof token.pos=="number") {
-			rc=$.srcRCM.getRC(token.pos);
-		}
-		if (rc) {
-			//console.log("Map",{src:{file:$.srcFile+"",row:rc.row,col:rc.col},
-			//dst:{row:$.bufRow,col:$.bufCol}  });
-			$.srcmap.addMapping({
-				generated: {
-					line: $.bufRow,
-					column: $.bufCol
-				},
-				source: $.srcFile+"",
-				original: {
-					line: rc.row,
-					column: rc.col
-				}
-				//name: "christopher"
-			});
-		}
-	};
-	$.setSrcFile=function (f) {
-		$.srcFile=f;
-		$.srcRCM=Pos2RC(f.text());
-		$.srcmap.setSourceContent(f.path(),f.text());
-	};
-	$.print=function (v) {
-		$.buf+=v;
-		var a=(v+"").split("\n");
-		a.forEach(function (line,i) {
-			if (i<a.length-1) {// has \n
-				$.bufCol+=line.length+1;
-				$.bufRow++;
-				$.bufCol=1;
-			} else {
-				$.bufCol+=line.length;
-			}
-		});
-	};
-	$.dstFile=options.dstFile;
-	$.mapFile=options.mapFile;
-	$.printf=$;
-	$.buf="";
-	$.bufRow=1;
-	$.bufCol=1;
-	$.srcmap=new S.SourceMapGenerator();
-	$.lazy=function (place) {
-		if (!place) place={};
-		if (options.fixLazyLength) {
-			place.length=place.length||options.fixLazyLength;
-			place.pad=place.pad||" ";
-			place.gen=(function () {
-				var r="";
-				for(var i=0;i<place.length;i++) r+=place.pad;
-				return r;
-			})();
-			place.puts=[];
-			$.useLengthPlace=true;
-		} else {
-			//cannot use with sourcemap
-			place.gen=("GENERETID"+Math.random()+"DITERENEG").replace(/\W/g,"");
-			place.reg=new RegExp(place.gen,"g");
-			A(!$.useLengthPlace,"GENERETID cannot be used");
-		}
-		place.inited=true;
-		//place.src=place.gen;
-		place.put=function (val) {
-			this.val=val+"";
-			if (this.puts) {
-				if (this.val.length>this.length) {
-					$.lazyOverflow=true;
-				}
-				while (this.val.length<this.length) {
-					this.val+=this.pad;
-				}
-				var place=this;
-				this.puts.forEach(function (i) {
-					var pl=$.buf.length;
-					$.buf=$.buf.substring(0,i)+place.val+$.buf.substring(i+place.length);
-					A.eq(pl,$.buf.length);
-				});
-			}
-			if (this.reg) {
-				$.buf=$.buf.replace(this.reg, val);
-			}
-			return this.val;
-		};
-		place.print=function () {
-			if (this.puts) this.puts.push($.buf.length);
-			$.print(this.gen);
-		};
-		return place;
-		//return {put: function () {} };
-	};
-	$.ln=function () {
-		$.print("\n"+$.indentBuf);
-	};
-	$.indent=function () {
-		$.indentBuf+=$.indentStr;
-		$.print("\n"+$.indentBuf);
-	};
-	$.dedent = function () {
-		var len=$.indentStr.length;
-		if (!$.buf.substring($.buf.length-len).match(/^\s*$/)) {
-			$.ln();
-			//console.log($.buf);
-			//throw new Error ("Non-space truncated ");
-		}
-		$.buf=$.buf.substring(0,$.buf.length-len);
-		$.indentBuf=$.indentBuf.substring(0 , $.indentBuf.length-len);
-	};
-	$.toLiteral= function (s, quote) {
-		if (!quote) quote="'";
-	if (typeof s!=="string") {
-		console.log("no literal ",s);
-		throw new Error("toLiteral:"+s+" is not a literal");
-	}
-		s = s.replace(/\\/g, "\\\\");
-		s = s.replace(/\r/g, "\\r");
-		s = s.replace(/\n/g, "\\n");
-		if (quote=="'") s = s.replace(/'/g, "\\'");
-		else s = s.replace(/"/g, '\\"');
-		return quote + s + quote;
-	};
-	$.indentBuf="";
-	$.indentStr="  ";
-	$.close=function () {
-		$.mapStr=$.srcmap.toString();
-		if ($.mapFile && $.dstFile) {
-			$.mapFile.text($.mapStr);
-			$.printf("%n//# sourceMappingURL=%s%n",$.mapFile.relPath($.dstFile.up()));
-		}
-		if ($.dstFile) {
-			$.dstFile.text($.buf);
-		}
-		return $.buf;
-	};
-	return $;
-};
-});
-
-if (typeof define!=="function") {
-   define=require("requirejs").define;
-}
-define('disp',["IndentBuffer"], function(IndentBuffer) {
-// オブジェクトの内容を表示する． デバッグ用
-return disp=function (a) {
-	var p=IndentBuffer();
-	function disp2(a) {
-		if (a==null) return p("null%n");
-		if (typeof a == "string" )
-			return p("'%s'%n",a);
-		if (typeof a =="number")
-			return p("%s%n",a);
-		if (typeof a=="function") return p("func%n");
-		if (a instanceof Array) p("[%{");
-		else p("{%{");
-		var c = "";
-		for (var i in a) {
-			p(c + i+":");
-			disp2(a[i]);
-		}
-		if (a instanceof Array) p("%}]%n");
-		else  p("%}}%n");
-	}
-	disp2(a);
-	return p.buf;
-};
-});
-if (typeof define!=="function") {
-	define=require("requirejs").define;
-}
-define('TError',[],function () {
-TError=function (mesg, src, pos) {
-	if (typeof src=="string") {
-		return {
-			isTError:true,
-			mesg:mesg,
-			src:{
-				name:function () { return src;},
-				text:function () { return src;}
-			},
-			pos:pos,
-			toString:function (){
-				return this.mesg+" at "+src+":"+this.pos;
-			},
-			raise: function () {
-				throw this;
-			}
-		};
-	}
-	var klass=null;
-	if (src && src.src) {
-		klass=src;
-		src=klass.src.tonyu;
-	}
-	if (typeof src.name!=="function") {
-		throw "src="+src+" should be file object";
-	}
-	var rc;
-	if ( (typeof (src.text))=="function") {
-		var s=src.text();
-		if (typeof s=="string") {
-			rc=TError.calcRowCol(s,pos);
-		}
-	}
-	return {
-		isTError:true,
-		mesg:mesg,src:src,pos:pos,row:rc.row, col:rc.col, klass:klass,
-		toString:function (){
-			return this.mesg+" at "+this.src.name()+":"+this.row+":"+this.col;
-		},
-		raise: function () {
-			throw this;
-		}
-	};
-};
-TError.calcRowCol=function (text,pos) {
-	var lines=text.split("\n");
-	var pp=0,row,col;
-	for (row=0;row<lines.length ; row++) {
-		pp+=lines[row].length+1;
-		if (pp>pos) {
-			col=pos-(pp-lines[row].length);
-			break;
-		}
-	}
-	return {row:row,col:col};
-};
-return TError;
-});
-/*sys.load("js/parser.js");
-sys.load("js/ExpressionParser2Tonyu.js");
-sys.load("js/GrammarTonyu.js");
-sys.load("js/XMLBuffer.js");
-sys.load("js/IndentBuffer.js");
-sys.load("js/disp.js");
-sys.load("js/profiler.js");
-*/
-if (typeof define!=="function") {
-	define=require("requirejs").define;
-}
-define('TT',["Grammar", "XMLBuffer", "IndentBuffer","disp", "Parser","TError"],
-function (Grammar, XMLBuffer, IndentBuffer, disp, Parser,TError) {
-return TT=function () {
-	function profileTbl(parser, name) {
-		var tbl=parser._first.tbl;
-		for (var c in tbl) {
-			tbl[c].profile();//(c+" of "+tbl[name);
-		}
-	}
-	var sp=Parser.StringParser;
-	var SAMENAME="SAMENAME";
-	var DIV=1,REG=2;
-	var space=sp.reg(/^(\s*(\/\*([^\/]|[^*]\/|\r|\n)*\*\/)*(\/\/.*\r?\n)*)*/).setName("space");
-	function tk(r, name) {
-		var pat;
-		var fst;
-		if (typeof r=="string") {
-			pat=sp.str(r);
-			if (r.length>0) fst=r.substring(0,1);
-			if (!name) name=r;
-		} else {
-			pat=sp.reg(r);
-			if (!name) name=r+"";
-		}
-		var res=space.and(pat).ret(function(a, b) {
-			var res={};
-			res.pos=b.pos;
-			if (typeof res.pos!="number") throw "no pos for "+name+" "+disp(b);
-			res.len=b.len;
-			res.text=b.src.str.substring(res.pos, res.pos+res.len);
-			if (typeof res.text!="string") throw "no text("+res.text+") for "+name+" "+disp(b);
-			res.toString=function (){
-				return this.text;
-			};
-			res.isToken=true;
-			return res;
-		});
-		if (fst) res=res.first(space, fst);
-		return res.setName(name);//.profile();
-	}
-	var parsers={},posts={};
-	function dtk2(prev, name, parser, post) {
-		//console.log("2reg="+prev+" name="+name);
-		if (typeof parser=="string") parser=tk(parser);
-		parsers[prev]=or(parsers[prev], parser.ret(function (res) {
-			res.type=name;
-			return res;
-		}).setName(name) );
-	}
-	function dtk(prev, name, parser, post) {
-		if(name==SAMENAME) name=parser;
-		for (var m=1; m<=prev; m*=2) {
-			//prev=1  -> m=1
-			//prev=2  -> m=1x,2
-			//XXprev=3  -> m=1,2,3
-			if ((prev&m)!=0) dtk2(prev&m, name,parser,post);
-		}
-		posts[name]=post;
-	}
-	function or(a,b){
-		if (!a) return b;
-		return a.or(b);
-	}
-
-	var all=Parser.create(function (st) {
-		var mode=REG;
-		var res=[];
-		while (true) {
-			st=parsers[mode].parse(st);
-			if (!st.success) break;
-			var e=st.result[0];
-			mode=posts[e.type];
-			res.push(e);
-		}
-		st=space.parse(st);
-		//console.log(st.src.maxPos+"=="+st.src.str.length)
-		st.success=st.src.maxPos==st.src.str.length;
-		st.result[0]=res;
-		return st;
-	});
-	/*function exprHead(name, parser) {
-		dtk(REG, name, parser, DIV);
-	}
-	function exprMid(name, parser) {
-		dtk(DIV, name, parser, REG);
-	}
-	function exprTail(name, parser) {
-		dtk(DIV, name, parser, DIV);
-	}*/
-	var reserved={"function":true, "var":true , "return":true, "typeof": true, "if":true,
-			"__typeof": true,
-			"for":true,
-			"else": true,
-			"super": true,
-			"while":true,
-			"continue":true,
-			"break":true,
-			"do":true,
-			"switch":true,
-			"case":true,
-			"default":true,
-			"try": true,
-			"catch": true,
-			"finally": true,
-			"throw": true,
-			"of": true,
-			"in": true,
-			fiber:true,
-			"native": true,
-			"instanceof":true,
-			"new": true,
-			"is": true,
-			"true": true,
-			"false": true,
-			"null":true,
-			"this":true,
-			"undefined": true,
-			"usethread": true,
-			"constructor": true,
-			ifwait:true,
-			nowait:true,
-			_thread:true,
-			arguments:true,
-			"delete": true,
-			"extends":true,
-			"includes":true
-	};
-
-	var num=tk(/^[0-9\.]+/).ret(function (n) {
-		n.type="number";
-		n.value=parseInt(n.text);
-		return n;
-	}).first(space,"0123456789");
-	var literal=tk({exec: function (s) {
-		var head=s.substring(0,1);
-		if (head!=='"' && head!=="'") return false;
-		for (var i=1 ;i<s.length ; i++) {
-			var c=s.substring(i,i+1);
-			if (c===head) {
-				return [s.substring(0,i+1)];
-			} else if (c==="\\") {
-				i++;
-			}
-		}
-		return false;
-	},toString:function(){return"literal";}
-	}).first(space,"\"'");
-	var regex=tk({exec: function (s) {
-		if (s.substring(0,1)!=='/') return false;
-		for (var i=1 ;i<s.length ; i++) {
-			var c=s.substring(i,i+1);
-			if (c==='/') {
-				var r=/^[ig]*/.exec( s.substring(i+1) );
-				return [s.substring(0,i+1+r[0].length)];
-			} else if (c=="\n") {
-				return false;
-			} else if (c==="\\") {
-				i++;
-			}
-		}
-		return false;
-	},toString:function(){return"regex";}
-	}).first(space,"/");
-
-	dtk(REG|DIV, "number", num,DIV );
-	dtk(REG,  "regex" ,regex,DIV );
-	dtk(REG|DIV,  "literal" ,literal,DIV );
-
-	dtk(REG|DIV,SAMENAME ,"++",DIV );
-	dtk(REG|DIV,SAMENAME ,"--",DIV );
-
-	dtk(REG|DIV,SAMENAME ,"!==",REG );
-	dtk(REG|DIV,SAMENAME ,"===",REG );
-	dtk(REG|DIV,SAMENAME ,"+=",REG );
-	dtk(REG|DIV,SAMENAME ,"-=",REG );
-	dtk(REG|DIV,SAMENAME ,"*=",REG );
-	dtk(REG|DIV,SAMENAME ,"/=",REG );
-	dtk(REG|DIV,SAMENAME ,"%=",REG );
-	dtk(REG|DIV,SAMENAME ,">=",REG );
-	dtk(REG|DIV,SAMENAME ,"<=",REG );
-	dtk(REG|DIV,SAMENAME ,"!=",REG );
-	dtk(REG|DIV,SAMENAME ,"==",REG );
-	dtk(REG|DIV,SAMENAME ,">>",REG );
-	dtk(REG|DIV,SAMENAME ,"<<",REG );
-
-	dtk(REG|DIV,SAMENAME ,"&&",REG );
-	dtk(REG|DIV,SAMENAME ,"||",REG );
-
-
-	dtk(REG|DIV,SAMENAME ,"(",REG );
-	dtk(REG|DIV,SAMENAME ,")",DIV );
-
-
-	dtk(REG|DIV,SAMENAME ,"[",REG );
-	dtk(REG|DIV,SAMENAME ,"]",DIV );  // a[i]/3
-
-	dtk(REG|DIV,SAMENAME ,"{",REG );
-	//dtk(REG|DIV,SAMENAME ,"}",REG );  // if () { .. }  /[a-z]/.exec()
-	dtk(REG|DIV,SAMENAME ,"}",DIV ); //in tonyu:  a{x:5}/3
-
-	dtk(REG|DIV,SAMENAME ,">",REG );
-	dtk(REG|DIV,SAMENAME ,"<",REG );
-	dtk(REG|DIV,SAMENAME ,"+",REG );
-	dtk(REG|DIV,SAMENAME ,"-",REG );
-	dtk(REG|DIV, SAMENAME ,".",REG );
-	dtk(REG|DIV,SAMENAME ,"?",REG );
-
-	dtk(REG|DIV, SAMENAME ,"=",REG );
-	dtk(REG|DIV, SAMENAME ,"*",REG );
-	dtk(REG|DIV, SAMENAME ,"%",REG );
-	dtk(DIV, SAMENAME ,"/",REG );
-
-	dtk(DIV|REG, SAMENAME ,"^",REG );
-	dtk(DIV|REG, SAMENAME ,"~",REG );
-
-	dtk(DIV|REG, SAMENAME ,"\\",REG );
-	dtk(DIV|REG, SAMENAME ,":",REG );
-	dtk(DIV|REG, SAMENAME ,";",REG );
-	dtk(DIV|REG, SAMENAME ,",",REG );
-	dtk(REG|DIV,SAMENAME ,"!",REG );
-	dtk(REG|DIV,SAMENAME ,"&",REG );
-	dtk(REG|DIV,SAMENAME ,"|",REG );
-
-	var symresv=tk(/^[a-zA-Z_$][a-zA-Z0-9_$]*/,"symresv_reg").ret(function (s) {
-	s.type=(s.text=="constructor" ? "tk_constructor" :
-		reserved.hasOwnProperty(s.text) ? s.text : "symbol");
-	return s;
-	}).first(space);
-	for (var n in reserved) {
-		posts[n]=REG;
-	}
-	posts.tk_constructor=REG;
-	posts.symbol=DIV;
-	parsers[REG]=or(parsers[REG],symresv);
-	parsers[DIV]=or(parsers[DIV],symresv);
-
-//	dtk(REG|DIV, "symbol", tk(/^[a-zA-Z_$][a-zA-Z0-9_$]*/,"ident_reg").except(function (s) {
-	/*      return reserved.hasOwnProperty(s.text);
-	}).first(space), DIV);
-	dtk(REG|DIV, "tk_constructor", "constructor", REG);
-	var resvs=[];
-	for (var n in reserved) {
-		if (n!="constructor") resvs.push(n);
-	}
-	resvs.sort(function (a,b) {
-		return b.length-a.length;
-	});
-	resvs.forEach(function (n) {
-		dtk(REG|DIV, SAMENAME, n, REG);
-	});
-*/
-	//profileTbl( parsers[REG],"reg");
-	//profileTbl( parsers[DIV],"div");
-	//profileTbl( parsers[REG|DIV],"regdiv");
-	//parsers[REG|DIV]=parsers[REG].or(parsers[DIV]);
-	function parse(str) {
-		//if (str.length>100000) return;
-		var t1=new Date().getTime();
-		var res=Parser.StringParser.parse(all, str);
-		//console.log("Time="+(new Date().getTime()-t1));
-		if (res.success) {
-			/*res.result[0].forEach(function (e) {
-				if (e.type=="REGEX" || e.type=="DIV") {
-					console.log(e.type+"\t"+ str.substring(e.pos-5,e.pos+6));
-					//console.log( e.text+"\t"+e.type+"\t"+e.pos+"-"+e.len);
-				}
-			});*/
-		} else {
-			console.log("Stopped at "+str.substring( res.src.maxPos-5, res.src.maxPos+5));
-		}
-		/*if (typeof WebSite=="object" && WebSite.devMode) {//DELJSL
-			window.tokenStat=window.tokenStat||{};
-			res.result[0].forEach(function (r) {
-				window.tokenStat[ r.text ]= window.tokenStat[ r.text ] || 0;
-				window.tokenStat[ r.text ]++;
-			});
-			//buf=""; for (var k in tokenStat) {  buf+=k+"\t"+tokenStat[k]+"\n"; }; buf;
-			//console.log(res);
-		}*/
-		return res;
-		//console.log(Profiler.report());
-		//console.log( disp(res.result[0]) );
-	}
-	return {parse:parse, extension:"js"};
-}();
-
-});
-if (typeof define!=="function") {
-	define=require("requirejs").define;
-}
-
-define('ExpressionParser',["Parser"], function (Parser) {
-// parser.js の補助ライブラリ．式の解析を担当する
-return ExpressionParser=function () {
-	var $={};
-	var EXPSTAT="EXPSTAT";
-	//  first 10     *  +  <>  &&  ||  =     0  later
-	function opType(type, prio) {
-		var $={};
-		$.eq=function (o) {return type==o.type() && prio==o.prio(); };
-		$.type=function (t) { if (!t) return type; else return t==type;};
-		$.prio=function () {return prio;};
-		$.toString=function () {return "["+type+":"+prio+"]"; }
-		return $;
-	}
-	function composite(a) {
-		var $={};
-		var e=a;
-		$.add=function (a) {
-			if (!e) {
-				e=a;
-			} else {
-				e=e.or(a);
-			}
-		};
-		$.get=function () {
-			return e;
-		};
-		return $;
-	}
-	function typeComposite() {
-		var built=composite();
-		//var lastOP , isBuilt;
-		var $={};
-		$.reg=function (type, prio, a) {
-			var opt=opType(type, prio);
-			built.add(a.ret(Parser.create(function (r) {
-				r.opType=opt;
-				return r;
-			})).setName("(opType "+opt+" "+a.name+")") );
-		};
-		$.get=function () {return built.get();};
-		$.parse=function (st) {
-			return $.get().parse(st);
-		};
-		return $;
-	}
-	var prefixOrElement=typeComposite(), postfixOrInfix=typeComposite();
-	var element=composite();
-	var trifixes=[];
-	$.element=function (e) {
-		prefixOrElement.reg("element", -1, e);
-		element.add(e);
-	};
-	$.getElement=function () {return element.get();};
-	$.prefix=function (prio, pre) {
-		prefixOrElement.reg("prefix", prio, pre);
-	};
-	$.postfix=function (prio, post) {
-		postfixOrInfix.reg("postfix", prio, post);
-	};
-	$.infixl =function (prio, inf) {
-		postfixOrInfix.reg("infixl", prio, inf);
-	};
-	$.infixr =function (prio, inf) {
-		postfixOrInfix.reg("infixr", prio, inf);
-	};
-	$.infix =function (prio, inf) {
-		postfixOrInfix.reg("infix", prio, inf);
-	};
-	$.trifixr = function (prio, tf1, tf2) {
-		postfixOrInfix.reg("trifixr", prio, tf1);
-		//postfixOrInfix.reg("trifixr2", prio, tf2);
-		trifixes[prio]=tf2;
-	};
-	$.custom = function (prio, func) {
-		// func :: Elem(of next higher) -> Parser
-	};
-	$.mkInfix=function (f) {
-		$.mkInfix.def=f;
-	};
-	$.mkInfix.def=function (left,op,right) {
-		return Parser.setRange({type:"infix", op:op, left: left, right: right});
-	}
-	$.mkInfixl=function (f) {
-		$.mkInfixl.def=f;
-	};
-	$.mkInfixl.def=function (left, op , right) {
-		return Parser.setRange({type:"infixl",op:op ,left:left, right:right});
-	};
-	$.mkInfixr=function (f) {
-		$.mkInfixr.def=f;
-	};
-	$.mkInfixr.def=function (left, op , right) {
-		return Parser.setRange({type:"infixr",op:op ,left:left, right:right});
-	};
-	$.mkPrefix=function (f) {
-		$.mkPrefix.def=f;
-	};
-	$.mkPrefix.def=function (op , right) {
-		return Parser.setRange({type:"prefix", op:op, right:right});
-	};
-	$.mkPostfix=function (f) {
-		$.mkPostfix.def=f;
-	};
-	$.mkPostfix.def=function (left, op) {
-		return Parser.setRange({type:"postfix", left:left, op:op});
-	};
-	$.mkTrifixr=function(f) {
-		$.mkTrifixr.def=f;
-	};
-	$.mkTrifixr.def=function (left, op1, mid, op2, right) {
-		return Parser.setRange({type:"trifixr", left:left, op1:op1, mid:mid, op2:op2, right:right});
-	};
-	$.build= function () {
-		//postfixOrInfix.build();
-		//prefixOrElement.build();
-		$.built= Parser.create(function (st) {
-			return parse(0,st);
-		}).setName("ExpBuilt");
-		return $.built;
-	};
-	function dump(st, lbl) {
-		return ;
-		var s=st.src.str;
-		console.log("["+lbl+"] "+s.substring(0,st.pos)+"^"+s.substring(st.pos)+
-				" opType="+ st.opType+"  Succ = "+st.isSuccess()+" res="+st.result[0]);
-	}
-	function parse(minPrio, st) {
-		var stat=0, res=st ,  opt;
-		dump(st," start minprio= "+minPrio);
-		st=prefixOrElement.parse(st);
-		dump(st," prefixorelem "+minPrio);
-		if (!st.isSuccess()) {
-			return st;
-		}
-		//p2=st.result[0];
-		opt=st.opType;
-		if (opt.type("prefix") ) {
-			// st = -^elem
-			var pre=st.result[0];
-			st=parse(opt.prio(), st);
-			if (!st.isSuccess()) {
-				return st;
-			}
-				// st: Expr    st.pos = -elem^
-			var pex=$.mkPrefix.def(pre, st.result[0]);
-			res=st.clone();  //  res:Expr
-			res.result=[pex]; // res:prefixExpr  res.pos= -elem^
-			if (!st.nextPostfixOrInfix) {
-				return res;
-			}
-			// st.next =  -elem+^elem
-			st=st.nextPostfixOrInfix;  // st: postfixOrInfix
-		} else { //elem
-			//p=p2;
-			res=st.clone(); // res:elemExpr   res =  elem^
-			st=postfixOrInfix.parse(st);
-			if (!st.isSuccess()) {
-				return res;
-			}
-		}
-		// assert st:postfixOrInfix  res:Expr
-		while (true) {
-			dump(st,"st:pi"); dump(res,"res:ex");
-			opt=st.opType;
-			if (opt.prio()<minPrio) {
-				res.nextPostfixOrInfix=st;
-				return res;
-			}
-			// assert st:postfixOrInfix  res:Expr
-			if (opt.type("postfix")) {
-				// st:postfix
-				var pex=$.mkPostfix.def(res.result[0],st.result[0]);
-				res=st.clone();
-				res.result=[pex]; // res.pos= expr++^
-				dump(st, "185");
-				st=postfixOrInfix.parse(st); // st. pos= expr++--^
-				if (!st.isSuccess()) {
-					return res;
-				}
-			} else if (opt.type("infixl")){  //x+y+z
-				// st: infixl
-				var inf=st.result[0];
-				st=parse(opt.prio()+1, st);
-				if (!st.isSuccess()) {
-					return res;
-				}
-				// st: expr   st.pos=  expr+expr^
-				var pex=$.mkInfixl.def(res.result[0], inf , st.result[0]);
-				res=st.clone();
-				res.result=[pex]; //res:infixlExpr
-				if (!st.nextPostfixOrInfix) {
-					return res;
-				}
-				st=st.nextPostfixOrInfix;
-			} else if (opt.type("infixr")) { //a=^b=c
-				// st: infixr
-				var inf=st.result[0];
-				st=parse(opt.prio() ,st);
-				if (!st.isSuccess()) {
-					return res;
-				}
-				// st: expr   st.pos=  a=b=c^
-				var pex=$.mkInfixr.def(res.result[0], inf , st.result[0]);
-				res=st.clone();
-				res.result=[pex]; //res:infixrExpr
-				if (!st.nextPostfixOrInfix) {
-					return res;
-				}
-				st=st.nextPostfixOrInfix;
-			} else if (opt.type("trifixr")) { //left?^mid:right
-				// st: trifixr
-				var left=res.result[0];
-				var inf1=st.result[0];  // inf1 =  ?
-				st=parse(opt.prio()+1 ,st);
-				if (!st.isSuccess()) {
-					return res;
-				}
-				// st= expr   st.pos=  left?mid^:right
-				var mid=st.result[0];
-				var st=trifixes[opt.prio()].parse(st);
-				// st= :      st.pos= left?mid:^right;
-				if (!st.isSuccess()) {
-					return res;
-				}
-				var inf2= st.result[0];
-				st=parse(opt.prio() ,st);
-				if (!st.isSuccess()) {
-					return res;
-				}
-				var right=st.result[0];
-				// st=right      st.pos= left?mid:right^;
-				var pex=$.mkTrifixr.def(left, inf1 , mid, inf2, right);
-				res=st.clone();
-				res.result=[pex]; //res:infixrExpr
-				if (!st.nextPostfixOrInfix) {
-					return res;
-				}
-				st=st.nextPostfixOrInfix;
-			} else { // infix
-				// st: infixl
-				var inf=st.result[0];
-				st=parse(opt.prio()+1 ,st);
-				if (!st.isSuccess()) {
-					return res;
-				}
-				// st: expr   st.pos=  expr+expr^
-				var pex=$.mkInfix.def(res.result[0], inf , st.result[0]);
-				res=st.clone();
-				res.result=[pex]; //res:infixExpr
-				if (!st.nextPostfixOrInfix) {
-					return res;
-				}
-				st=st.nextPostfixOrInfix;
-				if (opt.prio()==st.opType.prio()) {
-					res.success=false;
-					return res;
-				}
-			}
-			// assert st:postfixOrInfix  res:Expr
-		}
-	}
-	$.lazy = function () {
-		return Parser.create(function (st) {
-			return $.built.parse(st);
-		});
-	};
-	return $;
-};
-
-});
-
-if (typeof define!=="function") {
-	define=require("requirejs").define;
-}
-
-/*
-* Tonyu2 の構文解析を行う．
-* TonyuLang.parse(src);
-*   - srcを解析して構文木を返す．構文エラーがあれば例外を投げる．
-*/
-define('TonyuLang',["Grammar", "XMLBuffer", "IndentBuffer", "TT",
-		"disp", "Parser", "ExpressionParser", "TError"],
-function (Grammar, XMLBuffer, IndentBuffer, TT,
-		disp, Parser, ExpressionParser, TError) {
-return TonyuLang=function () {
-	var p=Parser;
-	var $={};
-	var g=Grammar();
-	var G=g.get;
-
-	var sp=p.StringParser;//(str);
-	var tk=p.TokensParser.token;
-	var num=tk("number").ret(function (n) {
-		n.type="number";
-		if (typeof n.text!="string") throw "No text for "+disp(n);
-		n.value=parseFloat(n.text);
-		if (isNaN(n.value)) throw "No value for "+disp(n);
-		return n;
-	});
-	var symbol=tk("symbol");
-	var eqq=tk("===");
-	var nee=tk("!==");
-	var eq=tk("==");
-	var ne=tk("!=");
-	var ge=tk(">=");
-	var le=tk("<=");
-	var gt=tk(">");
-	var lt=tk("<");
-	var andand=tk("&&");
-	var oror=tk("||");
-
-	var minus=tk("-");//.first(space,"-");
-	var plus=tk("+");//.first(space,"+");
-	var mul=tk("*");
-	var div=tk("/");
-	var mod=tk("%");
-	var assign=tk("=");
-	var literal=tk("literal");
-	var regex=tk("regex");
-	function retF(n) {
-		return function () {
-			return arguments[n];
-		};
-	}
-
-	var e=ExpressionParser() ;
-	var arrayElem=g("arrayElem").ands(tk("["), e.lazy() , tk("]")).ret(null,"subscript");
-	var argList=g("argList").ands(tk("("), e.lazy().sep0(tk(","),true) , tk(")")).ret(null,"args");
-	var member=g("member").ands(tk(".") , symbol ).ret(null,     "name" );
-	var parenExpr = g("parenExpr").ands(tk("("), e.lazy() , tk(")")).ret(null,"expr");
-	var varAccess = g("varAccess").ands(symbol).ret("name");
-	var funcExpr_l=G("funcExpr").firstTokens(["function","\\"]);
-	var funcExprArg=g("funcExprArg").ands(funcExpr_l).ret("obj");
-	var objlit_l=G("objlit").firstTokens("{");
-	var objlitArg=g("objlitArg").ands(objlit_l).ret("obj");
-	var objOrFuncArg=objlitArg.or(funcExprArg);
-	function genCallBody(argList, oof) {
-		var res=[];
-		if (argList && !argList.args) {
-			throw disp(argList);
-		}
-		if (argList) {
-			var rg=Parser.getRange(argList);
-			Parser.addRange(res,rg);
-			argList.args.forEach(function (arg) {
-				res.push(arg);
-			});
-		}
-		oof.forEach(function (o) {
-			var rg=Parser.getRange(o);
-			Parser.addRange(res,rg);
-			res.push(o.obj);
-		});
-		return res;
-	}
-	var callBody=argList.and(objOrFuncArg.rep0()).ret(function(a,oof) {
-		return genCallBody(a,oof);
-	}).or(objOrFuncArg.rep1().ret(function (oof) {
-		return genCallBody(null,oof);
-	}));
-	var callBodyOld=argList.or(objlitArg);
-	var call=g("call").ands( callBody ).ret("args");
-	var scall=g("scall").ands( callBody ).ret("args");//supercall
-	var newExpr = g("newExpr").ands(tk("new"),varAccess, call.opt()).ret(null, "klass","params");
-	var superExpr =g("superExpr").ands(
-			tk("super"), tk(".").and(symbol).ret(retF(1)).opt() , scall).ret(
-			null,                 "name",                       "params");
-	var reservedConst = tk("true").or(tk("false")).
-	or(tk("null")).
-	or(tk("undefined")).
-	or(tk("_thread")).
-	or(tk("this")).
-	or(tk("arguments")).ret(function (t) {
-		t.type="reservedConst";
-		return t;
-	});
-	e.element(num);
-	e.element(reservedConst);
-	e.element(regex);
-	e.element(literal);
-	e.element(parenExpr);
-	e.element(newExpr);
-	e.element(superExpr);
-	e.element(funcExpr_l);
-	e.element(objlit_l);
-	e.element(G("arylit").firstTokens("["));
-	e.element(varAccess);
-	var prio=0;
-	e.infixr(prio,assign);
-	e.infixr(prio,tk("+="));
-	e.infixr(prio,tk("-="));
-	e.infixr(prio,tk("*="));
-	e.infixr(prio,tk("/="));
-	e.infixr(prio,tk("%="));
-	e.infixr(prio,tk("|="));
-	e.infixr(prio,tk("&="));
-	prio++;
-	e.trifixr(prio,tk("?"), tk(":"));
-	prio++;
-	e.infixl(prio,oror);
-	prio++;
-	e.infixl(prio,andand);
-	prio++;
-	e.infix(prio,tk("instanceof"));
-	e.infix(prio,tk("is"));
-	//e.infix(prio,tk("in"));
-	e.infix(prio,eqq);
-	e.infix(prio,nee);
-	e.infix(prio,eq);
-	e.infix(prio,ne);
-	e.infix(prio,ge);
-	e.infix(prio,le);
-	e.infix(prio,gt);
-	e.infix(prio,lt);
-	prio++;
-	e.postfix(prio+3,tk("++"));
-	e.postfix(prio+3,tk("--"));
-	e.infixl(prio,minus);
-	e.infixl(prio,plus);
-	prio++;
-	e.infixl(prio,mul);
-	e.infixl(prio,div);
-	e.infixl(prio,mod);
-	prio++;
-	e.prefix(prio,tk("typeof"));
-	e.prefix(prio,tk("__typeof"));
-	e.prefix(prio,tk("delete"));
-	e.prefix(prio,tk("++"));
-	e.prefix(prio,tk("--"));
-	e.prefix(prio,tk("+"));
-	e.prefix(prio,tk("-"));
-	e.prefix(prio,tk("!"));
-	prio++;
-//    e.postfix(prio,tk("++"));
-//    e.postfix(prio,tk("--"));
-
-	prio++;
-	e.postfix(prio,call);
-	e.postfix(prio,member);
-	e.postfix(prio,arrayElem);
-	function mki(left, op ,right) {
-		var res={type:"infix",left:left,op:op,right:right};
-		Parser.setRange(res);
-		res.toString=function () {
-			return "("+left+op+right+")";
-		};
-		return res;
-	}
-	e.mkInfixl(mki);
-	e.mkInfixr(mki);
-	/*e.mkPostfix(function (p) {
-		return {type:"postfix", expr:p};
-	});*/
-	var expr=e.build().setName("expr").profile();
-	var retF=function (i) { return function (){ return arguments[i];}; };
-
-	var stmt=G("stmt").firstTokens();
-	var exprstmt=g("exprstmt").ands(expr,tk(";")).ret("expr");
-	g("compound").ands(tk("{"), stmt.rep0(),tk("}")).ret(null,"stmts") ;
-	var elseP=tk("else").and(stmt).ret(retF(1));
-	var returns=g("return").ands(tk("return"),expr.opt(),tk(";") ).ret(null,"value");
-	var ifs=g("if").ands(tk("if"), tk("("), expr, tk(")"), stmt, elseP.opt() ).ret(null, null,"cond",null,"then","_else");
-	/*var trailFor=tk(";").and(expr.opt()).and(tk(";")).and(expr.opt()).ret(function (s, cond, s2, next) {
-		return {cond: cond, next:next  };
-	});*/
-	var forin=g("forin").ands(tk("var").opt(), symbol.sep1(tk(","),true), tk("in").or(tk("of")), expr).ret(
-										"isVar", "vars","inof", "set" );
-	var normalFor=g("normalFor").ands(stmt, expr.opt() , tk(";") , expr.opt()).ret(
-									"init", "cond",     null, "next");
-	/*var infor=expr.and(trailFor.opt()).ret(function (a,b) {
-		if (b==null) return {type:"forin", expr: a};
-		return {type:"normalFor", init:a, cond: b.cond, next:b.next  };
-	});*/
-	var infor=normalFor.or(forin);
-	var fors=g("for").ands(tk("for"),tk("("), infor , tk(")"),"stmt" ).ret(
-								null,null,    "inFor", null   ,"loop");
-	//var fors=g("for").ands(tk("for"),tk("("), tk("var").opt() , infor , tk(")"),"stmt" ).ret(null,null,"isVar", "inFor",null, "loop");
-	var whiles=g("while").ands(tk("while"), tk("("), expr, tk(")"), "stmt").ret(null,null,"cond",null,"loop");
-	var dos=g("do").ands(tk("do"), "stmt" , tk("while"), tk("("), expr, tk(")"), tk(";")).ret(null,"loop",null,null,"cond",null,null);
-	var cases=g("case").ands(tk("case"),expr,tk(":"), stmt.rep0() ).ret(null, "value", null,"stmts");
-	var defaults=g("default").ands(tk("default"),tk(":"), stmt.rep0() ).ret(null, null,"stmts");
-	var switchs=g("switch").ands(tk("switch"), tk("("), expr, tk(")"),tk("{"), cases.rep1(), defaults.opt(), tk("}")).ret(null,null,"value",null,null,"cases","defs");
-	var breaks=g("break").ands(tk("break"), tk(";")).ret("brk");
-	var continues=g("continue").ands(tk("continue"), tk(";")).ret("cont");
-	var fins=g("finally").ands(tk("finally"), "stmt" ).ret(null, "stmt");
-	var catchs=g("catch").ands(tk("catch"), tk("("), symbol, tk(")"), "stmt" ).ret(null,null,"name",null, "stmt");
-	var catches=g("catches").ors("catch","finally");
-	var trys=g("try").ands(tk("try"),"stmt",catches.rep1() ).ret(null, "stmt","catches");
-	var throwSt=g("throw").ands(tk("throw"),expr,tk(";")).ret(null,"ex");
-	var typeExpr=g("typeExpr").ands(symbol).ret("name");
-	var typeDecl=g("typeDecl").ands(tk(":"),typeExpr).ret(null,"vtype");
-	var varDecl=g("varDecl").ands(symbol, typeDecl.opt(), tk("=").and(expr).ret(retF(1)).opt() ).ret("name","typeDecl","value");
-	var varsDecl= g("varsDecl").ands(tk("var"), varDecl.sep1(tk(","),true), tk(";") ).ret(null ,"decls");
-	var paramDecl= g("paramDecl").ands(symbol,typeDecl.opt() ).ret("name","typeDecl");
-	var paramDecls=g("paramDecls").ands(tk("("), paramDecl.sep0(tk(","),true), tk(")")  ).ret(null, "params");
-	var setterDecl= g("setterDecl").ands(tk("="), paramDecl).ret(null,"value");
-	g("funcDeclHead").ands(
-			tk("nowait").opt(),
-			tk("function").or(tk("fiber")).or(tk("tk_constructor")).or(tk("\\")).opt(),
-			symbol.or(tk("new")) , setterDecl.opt(), paramDecls.opt(),typeDecl.opt()   // if opt this it is getter
-	).ret("nowait","ftype","name","setter", "params","rtype");
-	var funcDecl=g("funcDecl").ands("funcDeclHead","compound").ret("head","body");
-	var nativeDecl=g("nativeDecl").ands(tk("native"),symbol,tk(";")).ret(null, "name");
-	var ifwait=g("ifWait").ands(tk("ifwait"),"stmt",elseP.opt()).ret(null, "then","_else");
-	//var useThread=g("useThread").ands(tk("usethread"),symbol,"stmt").ret(null, "threadVarName","stmt");
-	stmt=g("stmt").ors("return", "if", "for", "while", "do","break", "continue", "switch","ifWait","try", "throw","nativeDecl", "funcDecl", "compound", "exprstmt", "varsDecl");
-	// ------- end of stmts
-	g("funcExprHead").ands(tk("function").or(tk("\\")), symbol.opt() ,paramDecls.opt() ).ret(null,"name","params");
-	var funcExpr=g("funcExpr").ands("funcExprHead","compound").ret("head","body");
-	var jsonElem=g("jsonElem").ands(
-			symbol.or(literal),
-			tk(":").or(tk("=")).and(expr).ret(function (c,v) {return v;}).opt()
-	).ret("key","value");
-	var objlit=g("objlit").ands(tk("{"), jsonElem.sep0(tk(","),true), tk(",").opt(), tk("}")).ret(null, "elems");
-	var arylit=g("arylit").ands(tk("["), expr.sep0(tk(","),true),  tk("]")).ret(null, "elems");
-	var ext=g("extends").ands(tk("extends"),symbol.or(tk("null")), tk(";")).
-	ret(null, "superclassName");
-	var incl=g("includes").ands(tk("includes"), symbol.sep1(tk(","),true),tk(";")).
-	ret(null, "includeClassNames");
-	var program=g("program").
-	ands(ext.opt(),incl.opt(),stmt.rep0(), Parser.TokensParser.eof).
-	ret("ext","incl","stmts");
-
-	for (var i in g.defs) {
-		g.defs[i].profile();
-	}
-	$.parse = function (file) {
-		if (typeof file=="string") {
-			str=file;
-		} else {
-			str=file.text();
-		}
-		str+="\n"; // For end with // comment with no \n
-		var tokenRes=TT.parse(str);
-		if (!tokenRes.isSuccess() ) {
-			//return "ERROR\nToken error at "+tokenRes.src.maxPos+"\n"+
-			//	str.substring(0,tokenRes.src.maxPos)+"!!HERE!!"+str.substring(tokenRes.src.maxPos);
-			throw TError("文法エラー(Token)", file ,  tokenRes.src.maxPos);
-		}
-		var tokens=tokenRes.result[0];
-		//console.log("Tokens: "+tokens.join(","));
-		var res=p.TokensParser.parse(program, tokens);
-		//console.log("POS="+res.src.maxPos);
-		if (res.isSuccess() ) {
-			var node=res.result[0];
-			//console.log(disp(node));
-			return node;
-			//var xmlsrc=$.genXML(str, node);
-			//return "<program>"+xmlsrc+"</program>";
-
-		}
-		var lt=tokens[res.src.maxPos];
-		var mp=(lt?lt.pos+lt.len: str.length);
-		throw TError("文法エラー", file ,  mp );
-		/*return "ERROR\nSyntax error at "+mp+"\n"+
-		str.substring(0,mp)+"!!HERE!!"+str.substring(mp);*/
-	};
-	$.genXML= function (src, node) {
-		var x=XMLBuffer(src) ;
-		x(node);
-		return x.buf;
-	};
-	$.extension="tonyu";
-	return $;
-}();
-
-});
-
-if (typeof define!=="function") {
-	define=require("requirejs").define;
-}
-define('Visitor',[],function (){
-return Visitor = function (funcs) {
-	var $={funcs:funcs, path:[]};
-	$.visit=function (node) {
-		try {
-			$.path.push(node);
-			if ($.debug) console.log("visit ",node.type, node.pos);
-			var v=(node ? funcs[node.type] :null);
-			if (v) return v.call($, node);
-			else if ($.def) return $.def.call($,node);
-		} finally {
-			$.path.pop();
-		}
-	};
-	$.replace=function (node) {
-		if (!$.def) {
-			$.def=function (node) {
-				if (typeof node=="object"){
-					for (var i in node) {
-						if (node[i] && typeof node[i]=="object") {
-							node[i]=$.visit(node[i]);
-						}
-					}
-				}
-				return node;
-			};
-		}
-		return $.visit(node);
-	};
-	return $;
-};
-});
-function fixIndent(str, indentStr) {
-	if (!indentStr) indentStr="    ";
-	var incdec={"{":1, "}":-1,"[":1,"]":-1,"「":1,"」":-1};
-	var linfo=[];
-	/*try {
-		var tokenRes=TT.parse(str);
-	var tokens=tokenRes.result[0];
-	tokens.forEach(function (token) {
-		if (incdec[token.type]) {
-		if (!linfo[r.row]) linfo[r.row]="";
-				linfo[r.row]+=token.type;
-		}
-	});
-		/*var v=Visitor({
-			"{": function (node) {
-				var r=pos2RC(str, node.pos);
-				if (!linfo[r.row]) linfo[r.row]="";
-				linfo[r.row]+=node.text;
-			},
-		"}": function (node) {
-				var r=pos2RC(str, node.pos);
-				if (!linfo[r.row]) linfo[r.row]="";
-				linfo[r.row]+=node.text;
-			}
-		});
-		v.def=function (node) {
-			if (!node || typeof node!="object") return;
-			if (node[Grammar.SUBELEMENTS]) {
-				node[Grammar.SUBELEMENTS].forEach(function (e) {
-					v.visit(e);
-				});
-				return;
-			}
-			for (var i in node) {
-				if (node.hasOwnProperty(i)) {
-					v.visit(node[i]);
-				}
-			}
-		};
-		v.visit(node);
-	}catch(e) {
-	alert(e);*/
-		var r={row:0, col:0};
-		var len=str.length;
-		for (var i=0 ; i<len ;i++) {
-			var c=str.substring(i,i+1);
-			if (incdec[c]) {
-				if (!linfo[r.row]) linfo[r.row]="";
-				linfo[r.row]+=c;
-			} else if (c=="\n") {
-				r.row++;
-				r.col=0;
-			} else {
-				r.col++;
-			}
-		}
-	//}
-	//console.log(linfo);
-	var res="";
-	var lines=str.split("\n");
-	var curDepth=0;
-	var row=0;
-	lines.forEach(function (line) {
-	var opens=0, closes=0;
-		line=line.replace(/^\s*/,"");
-		if (linfo[row]!=null) {
-			linfo[row].match(/^([\]\}\)」]*)/);
-			//console.log(linfo[row],RegExp.$1);
-			closes=RegExp.$1.length;
-			linfo[row].match(/([\[\{\(「]*)$/);
-			//console.log(linfo[row],RegExp.$1);
-			opens=RegExp.$1.length;
-		}
-		curDepth-=closes;
-		line=indStr()+line;
-		curDepth+=opens;
-		res+=line+"\n";
-		row++;
-	});
-	res=res.replace(/\n$/,"");
-	//console.log(res);
-	return res;
-	function indStr() {
-		var res="";
-		for (var i=0 ;i<curDepth ;i++) {
-			res+=indentStr;
-		}
-		return res;
-	}
-	function pos2RC(str, pos) {
-		var res={row:0, col:0};
-		var len=Math.min(str.length,pos);
-		for (var i=0 ; i<len ;i++) {
-			if (str.substring(i,i+1)=="\n") {
-				res.row++;
-				res.col=0;
-			} else {
-				res.col++;
-			}
-		}
-		return res;
-	}
-}
-;
-define("fixIndent", ["TonyuLang","Visitor","Grammar"], (function (global) {
-    return function () {
-        var ret, fn;
-        return ret || global.fixIndent;
-    };
-}(this)));
-
-define('Shell',["FS","assert"],
-        function (FS,assert) {
-    var Shell={};
-    var PathUtil=assert(FS.PathUtil);
-    Shell.newCommand=function (name,func) {
-        this[name]=func;
-    };
-    Shell.cd=function (dir) {
-        Shell.cwd=resolve(dir,true);
-        return Shell.pwd();
-    };
-    Shell.vars=Object.create(FS.getEnv());
-    Shell.mount=function (options, path) {
-        //var r=resolve(path);
-        if (!options || !options.t) {
-            var fst=[];
-            for (var k in FS.getRootFS().availFSTypes()) {
-                fst.push(k);
-            }
-            sh.err("-t=("+fst.join("|")+") should be specified.");
-            return;
-        }
-        FS.mount(path,options.t, options);
-    };
-    Shell.unmount=function (path) {
-        FS.unmount(path);
-    };
-    Shell.fstab=function () {
-        var rfs=FS.getRootFS();
-        var t=rfs.fstab();
-        var sh=this;
-        //sh.echo(rfs.fstype()+"\t"+"<Root>");
-        t.forEach(function (fs) {
-            sh.echo(fs.fstype()+"\t"+(fs.mountPoint||"<Default>"));
-        });
-    }
-    Shell.resolve=resolve;
-    function resolve(v, mustExist) {
-        var r=resolve2(v);
-        if (!FS.SFile.is(r)) {console.log(r," is not file");}
-        if (mustExist && !r.exists()) throw new Error(r+": no such file or directory");
-        return r;
-    }
-    function resolve2(v) {
-        if (typeof v!="string") return v;
-        var c=Shell.cwd;
-        if (PathUtil.isAbsolutePath(v)) return FS.resolve(v,c);
-        return c.rel(v);
-    }
-    Shell.pwd=function () {
-        return Shell.cwd+"";
-    };
-    Shell.ls=function (dir){
-    	if (!dir) dir=Shell.cwd;
-    	else dir=resolve(dir, true);
-        return dir.ls();
-    };
-    Shell.cp=function (from ,to ,options) {
-        if (!options) options={};
-        if (options.v) {
-            Shell.echo("cp", from ,to);
-            options.echo=Shell.echo.bind(Shell);
-        }
-        var f=resolve(from, true);
-        var t=resolve(to);
-        return f.copyTo(t,options);
-    };
-    Shell.ln=function (to , from ,options) {
-        var f=resolve(from);
-        var t=resolve(to, true);
-        if (f.isDir() && f.exists()) {
-            f=f.rel(t.name());
-        }
-        if (f.exists()) {
-            throw new Error(f+" exists");
-        }
-        return f.link(t,options);
-    };
-    Shell.rm=function (file, options) {
-        if (!options) options={};
-        if (options.notrash) {
-            file=resolve(file, false);
-            file.removeWithoutTrash();
-            return 1;
-        }
-        file=resolve(file, true);
-        if (file.isDir() && options.r) {
-            var dir=file;
-            var sum=0;
-            dir.each(function (f) {
-                if (f.exists()) {
-                    sum+=Shell.rm(f, options);
-                }
-            });
-            dir.rm();
-            return sum+1;
-        } else {
-            file.rm();
-            return 1;
-        }
-    };
-    Shell.mkdir=function (file,options) {
-        file=resolve(file, false);
-        if (file.exists()) throw new Error(file+" : exists");
-        return file.mkdir();
-
-    };
-    Shell.cat=function (file,options) {
-        file=resolve(file, true);
-        return Shell.echo(file.getContent(function (c) {
-            if (file.isText()) {
-                return c.toPlainText();
-            } else {
-                return c.toURL();
-            }
-        }));
-    };
-    Shell.resolve=function (file) {
-        if (!file) file=".";
-        file=resolve(file);
-        return file;
-    };
-    Shell.grep=function (pattern, file, options) {
-        file=resolve(file, true);
-        if (!options) options={};
-        if (!options.res) options.res=[];
-        if (file.isDir()) {
-            file.each(function (e) {
-                Shell.grep(pattern, e, options);
-            });
-        } else {
-            if (typeof pattern=="string") {
-                file.lines().forEach(function (line, i) {
-                    if (line.indexOf(pattern)>=0) {
-                        report(file, i+1, line);
-                    }
-                });
-            }
-        }
-        return options.res;
-        function report(file, lineNo, line) {
-            if (options.res) {
-                options.res.push({file:file, lineNo:lineNo,line:line});
-            }
-            Shell.echo(file+"("+lineNo+"): "+line);
-
-        }
-    };
-    Shell.touch=function (f) {
-    	f=resolve(f);
-    	f.text(f.exists() ? f.text() : "");
-    	return 1;
-    };
-    Shell.setout=function (ui) {
-        Shell.outUI=ui;
-    };
-    Shell.echo=function () {
-        return $.when.apply($,arguments).then(function () {
-            console.log.apply(console,arguments);
-            if (Shell.outUI && Shell.outUI.log) Shell.outUI.log.apply(Shell.outUI,arguments);
-        });
-    };
-    Shell.err=function (e) {
-        console.log.apply(console,arguments);
-        if (e && e.stack) console.log(e.stack);
-        if (Shell.outUI && Shell.outUI.err) Shell.outUI.err.apply(Shell.outUI,arguments);
-    };
-    Shell.clone= function () {
-        var r=Object.create(this);
-        r.vars=Object.create(this.vars);
-        return r;
-    };
-    Shell.getvar=function (k) {
-        return this.vars[k] || (process && process.env[k]);
-    };
-    Shell.get=Shell.getvar;
-    Shell.set=function (k,v) {
-        return this.vars[k]=v;
-    };
-    Shell.strcat=function () {
-        if (arguments.length==1) return arguments[0];
-        var s="";
-        for (var i=0;i<arguments.length;i++) s+=arguments[i];
-        return s;
-    };
-    Shell.exists=function (f) {
-        f=this.resolve(f);
-        return f.exists();
-    };
-    Shell.dl=function (f) {
-        return f.download();
-    };
-    Shell.zip=function () {
-        var t=this;
-        var a=Array.prototype.slice.call(arguments).map(function (e) {
-            if (typeof e==="string") return t.resolve(e);
-            return e;
-        });
-        return FS.zip.zip.apply(FS.zip,a);
-    };
-    Shell.unzip=function () {
-        var t=this;
-        var a=Array.prototype.slice.call(arguments).map(function (e) {
-            if (typeof e==="string") return t.resolve(e);
-            return e;
-        });
-        return FS.zip.unzip.apply(FS.zip,a);
-    };
-
-    Shell.prompt=function () {};
-    Shell.ASYNC={r:"SH_ASYNC"};
-    Shell.help=function () {
-        for (var k in Shell) {
-            var c=Shell[k];
-            if (typeof c=="function") {
-                Shell.echo(k+(c.description?" - "+c.description:""));
-            }
-        }
-    };
-    if (!window.sh) window.sh=Shell;
-    if (typeof process=="object") {
-        sh.devtool=function () { require('nw.gui').Window.get().showDevTools();}
-        sh.cd(process.cwd().replace(/\\/g,"/"));
-    } else {
-        sh.cd("/");
-    }
-    return Shell;
-});
-
-define('KeyEventChecker',[],function () {
-	var KEC={};
-	KEC.down=function (elem, name, handler) {
-		if (!(elem instanceof $)) elem=$(elem);
-		elem.bind("keydown", function (e) {
-			if (KEC.is(e, name)) {
-				return handler.call(elem[0],e);
-			}
-		});
-	};
-	var codes={8:"bs",13:"enter",37:"left",38:"up",39:"right",40:"down"};
-	KEC.is=function (e,name) {
-		name=name.toLowerCase();
-		e = e.originalEvent || e;
-		var s="";
-		if (e.altKey) {
-			s+="alt+";
-		}
-		if (e.ctrlKey) {
-			s+="ctrl+";
-		}
-		if (e.shiftKey) {
-			s+="shift+";
-		}
-		if (e.keyCode>=112 && e.keyCode<=123) {
-			s+="f"+(e.keyCode-111);
-        } else if (codes[e.keyCode]){
-            s+=codes[e.keyCode];
-		} else {
-			s+=String.fromCharCode(e.keyCode);
-		}
-		s=s.toLowerCase();
-		return name==s;
-	};
-	return KEC;
-});
-define('UIDiag',["UI"],function (UI) {
-    var UIDiag={};
-    UIDiag.confirm=function (mesg) {
-        var di=UI("div",{title:"確認"},["div",mesg],
-                ["button",{on:{click:sendF(true)}},"OK"],
-                ["button",{on:{click:sendF(false)}},"キャンセル"]).dialog({width:"auto",close:sendF(false)});
-        var d=$.Deferred();
-        function sendF(r) {
-            return function () { d.resolve(r); di.dialog("close"); di.remove(); };
-        }
-        return d.promise();
-    };
-    UIDiag.alert=function (mesg) {
-        var di=UI("div",{title:"確認"},["div",mesg],
-                ["button",{on:{click:sendF(true)}},"OK"]).dialog({width:"auto",close:sendF(false)});
-        var d=$.Deferred();
-        function sendF(r) {
-            return function () { d.resolve(r); di.dialog("close"); di.remove(); };
-        }
-        return d.promise();
-    };
-
-    UIDiag.prompt=function (mesg,value) {
-        var di=UI("div",{title:"入力"},["div",mesg],
-                ["input",{on:{enterkey:ok},$var:"val", value:value}],["br"],
-                ["button",{on:{click:ok}},"OK"],
-                ["button",{on:{click:cancel}},"キャンセル"]).dialog({width:"auto",close:function (){
-                    di.dialog("close");
-                    d.resolve();
-                }});
-        setTimeout(function () {
-            di.$vars.val.focus();
-            //console.log("FOcus");
-        },10);
-        var d=$.Deferred();
-        function ok() {
-            var r=di.$vars.val.val();
-            d.resolve(r);
-            di.dialog("close");
-            di.remove();
-        }
-        function cancel() {
-            di.dialog("close");
-            di.remove();
-            d.resolve();
-        }
-        return d.promise();
-
-    };
-    if (typeof window!="undefined") window.UIDiag=UIDiag;
-    return UIDiag;
-});
-define('Columns',["UI"],function (UI) {
-    var Columns={};
-    Columns.make=function () {
-        var div=UI("div",{"class":"container"});
-        var row=UI("div",{"class":"row"});
-        var res=[];
-        for (var i=0; i<arguments.length ; i++) {
-            var col=UI.apply(UI,arguments[i]);
-            res.push(col);
-            row.append(col);
-        }
-        div.append(row);
-        $("body").append(div);
-        return res;
-    };
-    return Columns;
-});
-
-define('Menu',["UI"], function (UI) {
-    var Menu={};
-    Menu.makeOLD=function (title, hier) {
-        if (title.sub) hier=title.sub;
-        /*
-           [{label:"main1",id:"main1",sub:[{label:"sub1", id:"sub1", action:f}]]
-         */
-        var ul1=UI("ul", {"class":"nav navbar-nav"});
-        hier.forEach(function (mainMenuItem) {
-            var li=UI("li",
-                    ["a",{
-                        href:(mainMenuItem.href||"#"),
-                        id:mainMenuItem.id,
-                        "class":(mainMenuItem.sub?"dropdown-toggle":null),
-                        "data-toggle":(mainMenuItem.sub?"dropdown":null)
-                    }, mainMenuItem.label]
-            );
-            ul1.append(li);
-            if (mainMenuItem.sub) {
-                var ul2=UI("ul",{"class":"dropdown-menu"});
-                mainMenuItem.sub.forEach(function (subMenuItem) {
-                    ul2.append(UI("li",
-                        ["a", {
-                             id:subMenuItem.id,
-                             href:subMenuItem.href||"#",
-                             on:{
-                                 click:subMenuItem.action
-                             }
-                        },subMenuItem.label]
-                    ));
-                });
-                li.append(ul2);
-            }
-        });
-        var menu=UI("div",{"class":"collapse navbar-collapse"},ul1);
-        $("body").append(UI(
-          "div",{"class":"navbar navbar-inverse navbar-fixed-top",id:"navBar"},
-                ["div",{"class":"container",id:"nav-A"},
-                    ["div", {"class":"navbar-header",id:"nav-B"},
-                        ["button",{type:"button", "class":"navbar-toggle",
-                            "data-toggle":"collapse",
-                            "data-target":".navbar-collapse"},
-                            ["span",{"class":"icon-bar"}],
-                            ["span",{"class":"icon-bar"}],
-                            ["span",{"class":"icon-bar"}]
-                        ],
-                        ["a", {"class":"navbar-brand" ,href:"#",id:title.id},title.label]
-                    ],
-                    menu
-                ]
-        ));
-    };
-    Menu.make=function (title, hier) {
-        if (title.sub) hier=title.sub;
-        this.initMenuBar(title);
-        /*
-           [{label:"main1",id:"main1",sub:[{label:"sub1", id:"sub1", action:f}]]
-         */
-        hier.forEach(function (mainMenuItem) {
-            Menu.appendMain(mainMenuItem);
-        });
-    };
-    Menu.initMenuBar=function (title) {
-        if (this.ul1)return;
-        var ul1=UI("ul", {"class":"nav navbar-nav"});
-        var menu=UI("div",{"class":"collapse navbar-collapse"},ul1);
-        $("body").append(UI(
-          "div",{"class":"navbar navbar-inverse navbar-fixed-top",id:"navBar"},
-                ["div",{"class":"container",id:"nav-A"},
-                    ["div", {"class":"navbar-header",id:"nav-B"},
-                        ["button",{type:"button", "class":"navbar-toggle",
-                            "data-toggle":"collapse",
-                            "data-target":".navbar-collapse"},
-                            ["span",{"class":"icon-bar"}],
-                            ["span",{"class":"icon-bar"}],
-                            ["span",{"class":"icon-bar"}]
-                        ],
-                        ["a", {"class":"navbar-brand" ,href:"#",id:title.id},title.label]
-                    ],
-                    menu
-                ]
-        ));
-        this.ul1=ul1;
-    };
-    Menu.appendMain=function (mainMenuItem) {
-        //[{label:"main1",id:"main1",sub:[{label:"sub1", id:"sub1", action:f}]]
-        var ul1=this.ul1;
-        var li=UI("li",
-                ["a",{
-                    href:(mainMenuItem.href||"#"),
-                    id:mainMenuItem.id,
-                    "class":(mainMenuItem.sub?"dropdown-toggle":null),
-                    "data-toggle":(mainMenuItem.sub?"dropdown":null)
-                }, mainMenuItem.label]
-        );
-        if (mainMenuItem.action) {
-            li.find("a").click(mainMenuItem.action);
-        }
-        if (mainMenuItem.after) {
-            $(mainMenuItem.after).closest("li").after(li);
-        } else {
-            ul1.append(li);
-        }
-        if (mainMenuItem.sub) {
-            var ul2=UI("ul",{
-                id:"submenu_"+mainMenuItem.id,
-                "class":"dropdown-menu"
-            });
-            li.append(ul2);
-            mainMenuItem.sub.forEach(function (subMenuItem) {
-                Menu.appendSub(mainMenuItem,subMenuItem);
-            });
-        }
-    };
-    Menu.appendSub=function (mainObj,subMenuItem) {
-        var mainID;
-        switch (typeof mainObj) {
-            case "object":
-            mainID=mainObj.id;
-            mainObj.sub=[subMenuItem];
-            break;
-            case "string":
-            mainID=mainObj;
-            mainObj={label:mainID,id:mainID};
-            break;
-        }
-        var ul2=$("#submenu_"+mainID);
-        if (ul2.length==0) {
-            Menu.appendMain(mainObj);
-            //ul2=$("#submenu_"+mainID);
-            return;
-        }
-        ul2.append(UI("li",
-            ["a", {
-                 id:subMenuItem.id,
-                 href:subMenuItem.href||"#",
-                 on:{
-                     click:subMenuItem.action
-                 }
-            },subMenuItem.label]
-        ));
-    };
-
-    return Menu;
-});
-
-define('DeferredUtil',[], function () {
-    var root=(
-        typeof window!=="undefined" ? window :
-        typeof self!=="undefined" ? self :
-        typeof global!=="undefined" ? global : null
-    );
-    //  promise.then(S,F)  and promise.then(S).fail(F) is not same!
-    //  ->  when fail on S,  F is executed?
-    var DU;
-    var DUBRK=function(r){this.res=r;};
-    DU={
-        isNativePromise: function (p) {
-            return p && (typeof p.then==="function") &&
-            (typeof p.promise!=="function") && (typeof p.catch==="function") ;
-        },
-        isJQPromise: function (p) {
-            return p && (typeof p.then==="function") &&
-            (typeof p.promise==="function") &&(typeof p.fail==="function") ;
-        },
-        isPromise: function (p) {
-            return p && (typeof p.then==="function") &&
-            ((typeof p.promise==="function") || (typeof p.catch==="function")) ;
-        },
-        all: function (a) {
-            //var a=Array.prototype.slice.call(arguments);
-            return DU.promise(function (succ,fail) {
-                var res=[],rest=a.length;
-                a.forEach(function (p, i) {
-                    DU.resolve(p).then(function (r) {
-                        res[i]=r;
-                        rest--;
-                        if (rest===0) {
-                            succ(res);
-                        }
-                    },fail);
-                });
-            });
-        },
-        resolve: function (p) {
-            if (DU.config.useJQ && DU.isJQPromise(p)) return p;
-            if (!DU.config.useJQ && DU.isNativePromise(p)) return p;
-            return DU.promise(function (succ,fail) {
-                if (DU.isPromise(p)) {
-                    p.then(succ,fail);
-                } else {
-                    succ(p);
-                }
-            });
-            /*if (DU.isPromise(p)) { // NO! it returns Promise when using JQPromise and vise versa.
-                return f;
-            }
-            if (DU.confing.useJQ) {
-                return $.when(p);
-            }*/
-        },
-        throwNowIfRejected: function (p) {
-            // If Promise p has already rejected, throws the rejeceted reason immediately.
-            var state;
-            var err;
-            var res=p.then(function (r) {
-                if (!state) {
-                    state="resolved";
-                }
-                return r;
-            },function (e) {
-                if (!state) {
-                    state="rejected";
-                    err=e;
-                } else {
-                    return DU.reject(e);
-                }
-            });
-            if (!state) state="notyet";
-            if (state==="rejected") throw err;
-            return res;
-        },
-        assertResolved: function (p) {
-            var res,resolved;
-            p.then(function (r) {
-                res=r;
-                resolved=true;
-            });
-            if (!resolved) {
-                console.log(r);
-                throw new Error("Promise not resolved");
-            }
-            return res;
-        },
-        /*toJQPromise: function (p) {// From native Promise
-            if (!p) return $.when(p);
-            if ($.isFunction(p.promise)) return p;
-            if (!$.isFunction(p.then) || !$.isFunction(p.catch)) return $.when(p);
-            var d=new $.Deferred();
-            p.then(function (r) {
-                d.resolve(r);
-            }).catch(function (r) {
-                d.reject(r);
-            });
-            return d.promise();
-        },*/
-        ensureDefer: function (v) {
-            return DU.promise(function (resolve,reject) {
-                var isDeferred;
-                DU.resolve(v).then(function (r) {
-                    if (!isDeferred) {
-                        setTimeout(function () {
-                            resolve(r);
-                        },0);
-                    } else {
-                        resolve(r);
-                    }
-                }).fail(function (r) {
-                    if (!isDeferred) {
-                        setTimeout(function () {
-                            reject(r);
-                        },0);
-                    } else {
-                        reject(r);
-                    }
-                });
-                isDeferred=true;
-            });
-        },
-            directPromise:function (v) {
-                return DU.timeout(v,0);
-            },
-            then: function (f) {
-                return DU.directPromise().then(f);
-            },
-            timeout:function (timeout,value) {
-                return DU.promise(function (resolve) {
-                    setTimeout(function () {resolve(value);},timeout||0);
-                });
-            },
-            funcPromise:function (f) {
-                if (DU.config.useJQ) {
-                    var d=new $.Deferred();
-                    try {
-                        f(function (v) {
-                            d.resolve(v);
-                        },function (e) {
-                            d.reject(e);
-                        });
-                    }catch(e) {
-                        d.reject(e);
-                    }
-                    return d.promise();
-                } else if (DU.external.Promise) {
-                    return new DU.external.Promise(function (resolve,reject) {
-                        try {
-                            f(resolve,reject);
-                        }catch(e) {
-                            reject(e);
-                        }
-                    });
-                } else {
-                    throw new Error("promise is not found");
-                }
-            },
-            reject: function (e) {
-                if (DU.config.useJQ) {
-                    var d=new $.Deferred();
-                    d.reject(e);
-                    return d.promise();
-                } else {
-                    return new JQ.external.Promise(function (s,rej) {
-                        rej(e);
-                    });
-                }
-            },
-            throwPromise:function (e) {
-                if (DU.config.useJQ) {
-                    var d=new $.Deferred();
-                    setTimeout(function () {
-                        d.reject(e);
-                    }, 0);
-                    return d.promise();
-                } else {
-                    return new JQ.external.Promise(function (s,rej) {
-                        rej(e);
-                    });
-                }
-            },
-            throwF: function (f) {
-                return function () {
-                    try {
-                        return f.apply(this,arguments);
-                    } catch(e) {
-                        console.log(e,e.stack);
-                        return DU.throwPromise(e);
-                    }
-                };
-            },
-            each: function (set,f) {
-                if (set instanceof Array) {
-                    return DU.loop(function (i) {
-                        if (i>=set.length) return DU.brk();
-                        return DU.resolve(f(set[i],i)).then(function () {
-                            return i+1;
-                        });
-                    },0);
-                } else {
-                    var objs=[];
-                    for (var i in set) {
-                        objs.push({k:i,v:set[i]});
-                    }
-                    return DU.each(objs,function (e) {
-                        return f(e.k, e.v);
-                    });
-                }
-            },
-            loop: function (f,r) {
-                try {
-                    var err;
-                    while(true) {
-                        if (r instanceof DUBRK) return DU.when1(r.res);
-                        var deff1=true, deff2=false;
-                        // ★ not deffered  ☆  deferred
-                        var r1=f(r);
-                        var dr=DU.resolve(r1).then(function (r2) {
-                            r=r2;
-                            deff1=false;
-                            if (r instanceof DUBRK) return r.res;
-                            if (deff2) return DU.loop(f,r); //☆
-                        }).fail(function (e) {
-                            deff1=false;
-                            err=e;
-                        });
-                        if (err) throw err;
-                        deff2=true;
-                        if (deff1) return dr;//☆
-                        //★
-                    }
-                }catch (e) {
-                    return DU.reject(e);
-                }
-            },
-            brk: function (res) {
-                return new DUBRK(res);
-            },
-            tryLoop: function (f,r) {
-                return DU.loop(DU.tr(f),r);
-            },
-            tryEach: function (s,f) {
-                return DU.loop(s,DU.tr(f));
-            },
-            documentReady:function () {
-                return DU.callbackToPromise(function (s) {$(s);});
-            },
-            requirejs:function (modules) {
-                if (!root.requirejs) throw new Error("requirejs is not loaded");
-                return DU.callbackToPromise(function (s) {
-                    root.requirejs(modules,s);
-                });
-            }
-    };
-    DU.NOP=function (r) {return r;};
-    DU.E=function () {
-        console.log("DUE",arguments);
-        DU.errorHandler.apply(DU,arguments);
-    };
-    DU.errorHandler=function (e) {
-        console.error.apply(console,arguments);
-        alert(e);
-    };
-    DU.setE=function (f) {
-        DU.errorHandler=f;
-    };
-    DU.begin=DU.try=DU.tr=DU.throwF;
-    DU.promise=DU.callbackToPromise=DU.funcPromise;
-    DU.when1=DU.resolve;
-    DU.config={};
-    if (root.$ && root.$.Deferred) {
-        DU.config.useJQ=true;
-    }
-    DU.external={Promise:root.Promise};
-    if (!root.DeferredUtil) root.DeferredUtil=DU;
-    return DU;
-});
-
-define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
-        function (FS,sh,WebSite,A,DU) {
-    var Sync={};
-    //var PathUtil=FS.PathUtil; Not avail
-    sh.sync=function () {
-        // sync options:o      local=remote=cwd
-        // sync dir:s|file options:o local=remote=dir
-        // sync local:s|file remote:s|file options:o
-        var local,remote,options,onend=function(){};
-        var i=0;
-        if (typeof arguments[i]=="string" || FS.isFile(arguments[i])) {
-            local=sh.resolve(arguments[i], true);
-            i++;
-            if (typeof arguments[i]=="string" || FS.isFile(arguments[i])) {
-                remote=sh.resolve(arguments[i], false);
-                i++;
-            }
-        }
-        if (typeof arguments[i]=="object") { options=arguments[i]; i++;}
-        if (!local) remote=local=sh.cwd;
-        if (!remote) remote=local;
-        sh.echo("sync args=",local,remote,options);
-        return Sync.sync(local,remote,options);
-    };
-    Sync.NOT_LOGGED_IN="Not logged in.";
-    Sync.sync=function () {
-        // sync dir:file options:o local=remote=dir
-        // sync local:file remote:file options:o
-        var local,remote,options;
-        function diffTree(a,b) {
-            console.log("diff",a,b);
-            for (var k in unionKeys(a,b)) {
-                if (!k in a) console.log(k," is not in a",k[b]);
-                if (!k in b) console.log(k," is not in b",k[a]);
-                if (typeof k[a]=="object" && typeof k[b]=="object") {
-                    diffTree(k[a],k[b]);
-                } else {
-                    if (k[a]!=k[b]) console.log(k," is differ",k[a],k[b]);
-                }
-            }
-        }
-        function getLocalDirInfo() {
-            console.log("gerLCD");
-            var res2=local.getDirTree({style:"flat-relative",excludes:[".sync/"]});
-            console.log("gerLCD done",res2);
-            return res2;
-        }
-        function unionKeys() {
-            var keys={};
-            for (var i=0 ; i<arguments.length ;i++) {
-                for (var key in arguments[i]) {keys[key]=1;}
-            }
-            return keys;
-        }
-        function getDelta(before,after) {
-            //console.log("getDelta",before,after);
-            var keys=unionKeys(before,after);
-            var res={};
-            for (var key in keys) {
-                var inb=(key in before),ina=(key in after);
-                //console.log("Compare", before[key], after[key], ina, inb);
-                if (inb && !ina) {
-                    // DELETED
-                    res[key]={lastUpdate:-1, trashed:true};
-                } else if (!inb && ina) {
-                    // CREATEDED
-                    res[key]={lastUpdate:after[key].lastUpdate, created:true};
-                } else if (before[key].lastUpdate != after[key].lastUpdate) {
-                    // MODIFIED
-                    res[key]={
-                            lastUpdate: after[key].lastUpdate,
-                            modified:true
-                    };
-                    //console.log("Added", key, before[key].lastUpdate , after[key].lastUpdate)
-                }
-            }
-            return res;
-        }
-        function getDeltaDelta(local,remote) {
-            var keys=unionKeys(local,remote);
-            var res={local:{}, remote:{} };
-            for (var key in keys) {
-                var inl=(key in local),inr=(key in remote);
-                if (inl && !inr) {
-                    res.local[key]=local[key];
-                } else if (!inl && inr) {
-                    res.remote[key]=remote[key];
-                } else if (local[key].lastUpdate > remote[key].lastUpdate) {
-                    res.local[key]=local[key];
-                } else {
-                    res.remote[key]=remote[key];
-                }
-            }
-            return res;
-        }
-        function status(name, param) {
-            sh.echo("Status: "+name+" param:",param);
-            if (options.onstatus) {
-                options.onstatus(name, param);
-            }
-        }
-        var i=0;
-        if (FS.isFile(arguments[i])) {
-            local=arguments[i];
-            i++;
-            if (FS.isFile(arguments[i])) {
-                remote=arguments[i];
-                i++;
-            }
-        }
-        if (typeof arguments[i]=="object") { options=arguments[i]; i++;}
-        if (!local) throw "Sync.sync: Local dir must be specified as file object";
-        if (!remote) remote=local;
-        if (!options) options={};
-        if (options.test) options.v=1;
-        var syncInfoDir=local.rel(".sync/");
-        options.excludes=options.excludes||[];
-        options.excludes=options.excludes.concat(syncInfoDir.name());
-        var downloadSkipped, uploadSkipped;
-        var uploads={},downloads=[];
-        var user;
-        var classid;
-        var localDelta;
-        // local.json exists / remote.json not exists -> download / no upload   -> remote.json did not create
-        // local.json not exists / remote.json exists -> no download / upload   -> local.json did not create
-        var localDirInfoFile=syncInfoDir.rel("local.json");
-        var remoteDirInfoFile=syncInfoDir.rel("remote.json");
-        var lastLocalDirInfo=localDirInfoFile.exists()?localDirInfoFile.obj():{};
-        var lastRemoteDirInfo=remoteDirInfoFile.exists()?remoteDirInfoFile.obj():{};
-        status("getLocalDirInfo", req);
-        var curLocalDirInfo=getLocalDirInfo();
-        var curRemoteDirInfo;
-        if (options.v) sh.echo("last/cur LocalDirInfo",lastLocalDirInfo, curLocalDirInfo);
-        localDelta=getDelta(lastLocalDirInfo, curLocalDirInfo);
-        if (options.v) sh.echo("localDelta",localDelta);
-        var req={base:remote.path(),excludes:JSON.stringify(options.excludes),token:""+Math.random()};
-        status("getDirInfo", req);
-        return $.ajax({
-            type:"get",
-            url:A(WebSite.url.getDirInfo),
-            data:req
-        }).then(function n1(gd) {
-            curRemoteDirInfo=gd.data;
-            var d;
-            if (options.v) sh.echo("getDirInfo",gd);
-            if (gd.NOT_LOGGED_IN) {
-                d = new $.Deferred;
-                setTimeout(function(){
-                  d.reject(Sync.NOT_LOGGED_IN);
-                }, 0);
-                return d.promise();
-            }
-            user=gd.user;
-            classid=gd["class"];
-            var base=local;
-            var remoteDelta=getDelta(lastRemoteDirInfo, curRemoteDirInfo);
-            if (options.v) sh.echo("remoteDelta",remoteDelta);
-            var dd=getDeltaDelta(localDelta,remoteDelta);
-            var o,f,m;
-            for (var key in dd.local) {
-                 f=local.rel(key);
-                 if (f.isDir()) continue;
-                 o={};
-                 if (f.exists()) o.text=f.text();
-                 m=dd.local[key];
-                 for (var i in m) o[i]=m[i];
-                 uploads[key]=o;
-                 if (options.v) sh.echo("Upload",key,m);
-            }
-            for (var key in dd.remote) {
-                downloads.push(key);
-                //if (PathUtil.isDir(key)) continue;  //Not avail
-                if (options.v)
-                    sh.echo("Download",key,dd.remote[key]);
-            }
-            if (options.v) {
-                sh.echo("uploads:",uploads);
-                sh.echo("downloads:",downloads);
-            }
-            if (downloads.length==0) {
-                if (options.v) sh.echo("Skip Download");
-                downloadSkipped=true;
-                return {data:{},downloadSkipped:true};
-            }
-            var req={base:remote.path(),paths:JSON.stringify(downloads),token:""+Math.random()};
-            status("getFiles", req);
-            return $.ajax({
-                type:"post",
-                url:A(WebSite.url.getFiles),
-                data:req
-            });
-        }).then(function n2(dlData) {
-            //dlData=JSON.parse(dlData);
-            if (options.v) sh.echo("dlData:",dlData);
-            var base=local;//FS.get(dlData.base);
-            if (options.test) return;
-            for (var rel in dlData.data) {
-                var dlf=base.rel(rel);
-                if (dlf.isDir()) continue;
-                if (dlf.path().indexOf(".sync/")>=0) continue;
-                var d=dlData.data[rel];
-                //if (options.v) sh.echo(dlf.path(), d);
-                if (d.trashed) {
-                    if (dlf.exists()) dlf.rm();
-                } else {
-                    dlf.text(d.text);
-                }
-                delete d.text;
-                dlf.metaInfo(d);
-            }
-            if (Object.keys(uploads).length==0) {
-                if (options.v) sh.echo("Skip Upload");
-                uploadSkipped=true;
-                return {uploadSkipped:true};
-            }
-            var req={base:remote.path(),data:JSON.stringify(uploads),token:""+Math.random()};
-            console.log("Data len=",req.data.length);
-            req.pathInfo=A(WebSite.url.putFiles);
-            status("putFiles", req);
-            return $.ajax({  // TODO:requestFragment
-                type:"post",
-                url:req.pathInfo,
-                data:req
-            });
-        }).then(function n3(res){
-            if (options.v) sh.echo("putFiles res=",res);
-            if (!downloadSkipped) {
-                var newLocalDirInfo=getLocalDirInfo();
-                localDirInfoFile.obj(newLocalDirInfo);
-            } else {
-                localDirInfoFile.obj(curLocalDirInfo);
-            }
-            if (!uploadSkipped) {
-                var newRemoteDirInfo=res.data;
-                remoteDirInfoFile.obj(newRemoteDirInfo);
-            } else {
-                remoteDirInfoFile.obj(curRemoteDirInfo);
-            }
-            var upds=[];
-            for (var i in uploads) upds.push(i);
-            return res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};
-        });
-    };
-    sh.rsh=function () {
-        var a=[];
-        for (var i=0; i<arguments.length; i++) a[i]=arguments[i];
-        return $.ajax({
-            url:A(WebSite.url.rsh),
-            data:{args:JSON.stringify(a)},
-        });
-    };
-    return Sync;
-});
-
 define('Klass',["assert"],function (A) {
     var Klass={};
     Klass.define=function (pd) {
@@ -10767,7 +8682,7 @@ define('Klass',["assert"],function (A) {
             }
         };
         var fldinit;
-        var check;
+        //var check;
         if (init instanceof Array) {
             fldinit=init;
             init=function () {
@@ -10876,12 +8791,12 @@ define('Klass',["assert"],function (A) {
         }
         return c;
     }
-    Klass.Function=function () {throw new Exception("Abstract");}
+    Klass.Function=function () {throw new Error("Abstract");};
     Klass.opt=A.opt;
     Klass.Binder=Klass.define({
         $this:"t",
         $:function (t,target) {
-            for (var k in target) (function (k){
+            function addMethod(k){
                 if (typeof target[k]!=="function") return;
                 t[k]=function () {
                     var a=Array.prototype.slice.call(arguments);
@@ -10889,7 +8804,8 @@ define('Klass',["assert"],function (A) {
                     //A(this.__target,"target is not set");
                     return target[k].apply(target,a);
                 };
-            })(k);
+            }
+            for (var k in target) addMethod(k);
         }
     });
     return Klass;
@@ -11124,12 +9040,12 @@ define('LocalBrowserInfoClass',["FS","Klass","source-map","DeferredUtil"], funct
 define('LocalBrowser',["Shell", "FS","DeferredUtil","UI","source-map","LocalBrowserInfoClass"],
 function (sh,FS,DU,UI,S,LocalBrowserInfoClass) {
     var LocalBrowser={};
-    var F=DU.tr;
+    //var F=DU.tr;
     LocalBrowser=function (dom,options) {
         this.targetAttr=options||{};
         this.targetArea=dom;//=UI("iframe");
     };
-    p=LocalBrowser.prototype;
+    var p=LocalBrowser.prototype;
     p.close=function () {
         $(this.targetArea).empty();
     };
@@ -11230,7 +9146,7 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass,WebSite) {
         this.window=options.window||window.open("about:blank","LocalBrowserWindow","menubar=no,toolbar=no,width=500,height=500");
     };
     var BLANK_URL=WebSite.runtime+"blank.html";
-    p=LocalBrowserWindow.prototype;
+    var p=LocalBrowserWindow.prototype;
     p.close=function () {
         this.window.close();
     };
@@ -11850,8 +9766,9 @@ define("SplashScreen", (function (global) {
   }
 }(this))
 ;
-define('Auth',["FS","md5","WebSite","DeferredUtil"], function (FS,md5,WebSite,DU) {
-    Auth={
+/* global $ */
+define('Auth',["FS","md5","WebSite","DeferredUtil","root"], function (FS,md5,WebSite,DU,root) {
+    root.Auth={
         check:function () {
             var self=this;
             //console.log("CHK");
@@ -11862,7 +9779,7 @@ define('Auth',["FS","md5","WebSite","DeferredUtil"], function (FS,md5,WebSite,DU
                 return self;
             });
 
-            return $.when(
+            /*return $.when(
                 $.get(WebSite.controller+"?Login/curclass&"+Math.random()),
                 $.get(WebSite.controller+"?Login/curuser&"+Math.random()),
                 $.get(WebSite.controller+"?Login/curTeacher&"+Math.random())
@@ -11870,11 +9787,11 @@ define('Auth',["FS","md5","WebSite","DeferredUtil"], function (FS,md5,WebSite,DU
                 //console.log("CHKE",c[0],u[0]);
                 self.login(c[0],u[0],t[0]);
                 return self;
-            });
+            });*/
         },
         assertLogin: function (options) {
             var self=this;
-            return DU.promise(function (succ,fail) {
+            return DU.promise(function (succ/*,fail*/) {
                 if (self.loggedIn()) {
                     onsucc();
                 } else {
@@ -11944,7 +9861,7 @@ define('Auth',["FS","md5","WebSite","DeferredUtil"], function (FS,md5,WebSite,DU
         },
         hashCache:{}
     };
-    return Auth;
+    return root.Auth;
 });
 
 define('DistributeDialog',["UI"], function (UI) {
@@ -12629,9 +10546,10 @@ function (UI,Klass,DU){
     return SubmitDialog;
 });
 
-define('CommentDialog2',["UI","Klass"],function (UI,Klass) {
-    var res={};
-    CommentDialog2=Klass.define({
+/*global $*/
+define('CommentDialog2',["UI","Klass","root","WebSite"],function (UI,Klass,root,WebSite) {
+    //var res={};
+    root.CommentDialog2=Klass.define({
         $this: "t",
         $: ["prj"],
         getComment: function (t,file) {
@@ -12660,7 +10578,7 @@ define('CommentDialog2',["UI","Klass"],function (UI,Klass) {
             return t.dom;
         }
     });
-    return CommentDialog2;
+    return root.CommentDialog2;
 });
 
 define('BAProject',["Klass","DeferredUtil"],function (Klass,DU) {
@@ -12824,14 +10742,14 @@ define('NewProjectDialog',["UI","BAProject"], function (UI,BAProject) {
     return res;
 });
 
-define('DragDrop',["FS"],function (FS) {
+define('DragDrop',["FS","root"],function (FS,root) {
     var DU=FS.DeferredUtil;
     var SFile=FS.SFile;
-    DragDrop={};
+    var DragDrop={};
     DragDrop.readFile=function (file) {
         return DU.promise(function (succ) {
             var reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function() {
                 succ(reader);
             };
             reader.readAsArrayBuffer(file);
@@ -12956,12 +10874,13 @@ define('DragDrop',["FS"],function (FS) {
             if (entc<=0) dom.removeClass(options.draggingClass);
         }
     };
+    root.DragDrop=DragDrop;
     return DragDrop;
 });
 
-define('ProgramFileUploader',["FS","DragDrop"],function (FS,DragDrop) {
+define('ProgramFileUploader',["FS","DragDrop","root"],function (FS,DragDrop,root) {
     var P=FS.PathUtil;
-    ProgramFileUploader={
+    var ProgramFileUploader={
         accept: function (fileList,options) {
             options=options||{};
             //extPattern=options.extPattern||/.*/;
@@ -12974,7 +10893,7 @@ define('ProgramFileUploader',["FS","DragDrop"],function (FS,DragDrop) {
                         return DragDrop.CancelReason(file.name+": このファイルは追加できません");
                     }
                     if (dst.exists()) {
-                        return DragDrop.CancelReason(itemName+": 同名のファイルがあるため中止しました．");
+                        return DragDrop.CancelReason(file.name+": 同名のファイルがあるため中止しました．");
                     }
                     return dst;
                 },
@@ -13009,6 +10928,7 @@ define('ProgramFileUploader',["FS","DragDrop"],function (FS,DragDrop) {
             });
         }
     };
+    root.ProgramFileUploader=ProgramFileUploader;
     return ProgramFileUploader;
 });
 
@@ -13033,14 +10953,6 @@ define('ctrl',[], function () {
         return ctrl.run("post",path,params);
     };
     return ctrl;
-});
-
-/*global window,self,global*/
-define('root',[],function (){
-    if (typeof window!=="undefined") return window;
-    if (typeof self!=="undefined") return self;
-    if (typeof global!=="undefined") return global;
-    return (function (){return this;})();
 });
 
 define('AssetDialog',["Klass","UI","ctrl","WebSite","DragDrop","root"],
@@ -13222,7 +11134,9 @@ return Klass.define({
 });
 
 define('UserAgent',["root"],function (root) {
+    var ua = root.navigator.userAgent.toLowerCase();
     return {
+        isIE: (ua.indexOf('msie') >= 0 || ua.indexOf('trident') >= 0),
         isFirefox:root.navigator.userAgent.indexOf("Firefox")>=0,
         isChrome:navigator.userAgent.indexOf("Chrome")>=0
     };
@@ -13360,7 +11274,7 @@ function (Klass,FS,UI,Pos2RC,ua) {
 });
 
 /*global requirejs*/
-define('jsl_edit',['require','Util','FS','FileList','FileMenu','showErrorPos','fixIndent','Shell','KeyEventChecker','UIDiag','WebSite','exceptionCatcher','Columns','assert','Menu','DeferredUtil','Sync','RunDialog2','logToServer2','SplashScreen','Auth','DistributeDialog','NotificationDialog','IframeDialog','AssignmentDialog','SubmitDialog','CommentDialog2','NewProjectDialog','ProgramFileUploader','AssetDialog','root','ErrorDialog','BAProject'],function (require) {
+define('jsl_edit',['require','Util','FS','FileList','FileMenu','showErrorPos','fixIndent','Shell','KeyEventChecker','UIDiag','WebSite','exceptionCatcher','Columns','assert','Menu','DeferredUtil','Sync','RunDialog2','logToServer2','SplashScreen','Auth','DistributeDialog','NotificationDialog','IframeDialog','AssignmentDialog','SubmitDialog','CommentDialog2','NewProjectDialog','ProgramFileUploader','AssetDialog','root','ErrorDialog','BAProject','UserAgent'],function (require) {
     var Util=require("Util");
     var FS=require("FS");
     var FileList=require("FileList");
@@ -13393,6 +11307,7 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','showErrorPos','f
     var root=require("root");
     var ErrorDialog=require("ErrorDialog");
     var BAProject=require("BAProject");
+    var UA=require("UserAgent");
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
         A.setMode(A.MODE_STRICT);
@@ -13516,6 +11431,7 @@ function ready() {
     	break;
     case "py":
     	requirejs(["PythonBuilder"],setupBuilder);
+        ALWAYS_UPLOAD=UA.isIE;
     	//helpURL="http://bitarrow.eplang.jp/index.php?dncl_use";
     	break;
     case "tonyu":
@@ -14399,3 +12315,4 @@ function ready() {
 }// of ready
 });
 
+//}).call(window);

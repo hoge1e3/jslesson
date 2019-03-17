@@ -689,6 +689,7 @@ return Parser=function () {
 
 });
 
+/*global global*/
 define('assert',[],function () {
     var Assertion=function(failMesg) {
         this.failMesg=flatten(failMesg || "Assertion failed: ");
@@ -706,7 +707,7 @@ define('assert',[],function () {
             var a=$a(arguments);
             var value=a.shift();
             a=flatten(a);
-            a=this.failMesg.concat(value).concat(a).concat(["mode",this._mode]);
+            a=this.failMesg.concat(value).concat(a);//.concat(["mode",this._mode]);
             console.log.apply(console,a);
             if (this.isDefensive()) return value;
             if (this.isBool()) return false;
@@ -734,7 +735,7 @@ define('assert',[],function () {
             return this.isBool()?true:a;
         },
         is: function (value,type) {
-            var t=type,v=value;
+            var t=type,v=value,na;
             if (t==null) {
                 return this.fail(value, "assert.is: type must be set");
                 // return t; Why!!!!???? because is(args,[String,Number])
@@ -750,7 +751,7 @@ define('assert',[],function () {
                 }
                 var self=this;
                 for (var i=0 ;i<t.length; i++) {
-                    var na=self.subAssertion("failed at ",value,"[",i,"]: ");
+                    na=self.subAssertion("failed at ",value,"[",i,"]: ");
                     if (t[i]==null) {
                         console.log("WOW!7", v[i],t[i]);
                     }
@@ -781,7 +782,7 @@ define('assert',[],function () {
             }
             if (t && typeof t=="object") {
                 for (var k in t) {
-                    var na=this.subAssertion("failed at ",value,".",k,":");
+                    na=this.subAssertion("failed at ",value,".",k,":");
                     na.is(value[k],t[k]);
                 }
                 return this.isBool()?true:value;
@@ -878,9 +879,9 @@ define('assert',[],function () {
         }
         return [a];
     }
-    function isArg(a) {
+    /*function isArg(a) {
         return "length" in a && "caller" in a && "callee" in a;
-    };
+    };*/
     return assert;
 });
 
@@ -1165,6 +1166,7 @@ function (P,assert,EP) {
 //import P from "./Parser.js";
 //import assert from "../lib/assert.js";
 class Grammar {
+    // abc
     constructor(options) {
         this.defs={};
         if (options) {
@@ -1360,7 +1362,7 @@ define('Klass',["assert"],function (A) {
             }
         };
         var fldinit;
-        var check;
+        //var check;
         if (init instanceof Array) {
             fldinit=init;
             init=function () {
@@ -1469,12 +1471,12 @@ define('Klass',["assert"],function (A) {
         }
         return c;
     }
-    Klass.Function=function () {throw new Exception("Abstract");}
+    Klass.Function=function () {throw new Error("Abstract");};
     Klass.opt=A.opt;
     Klass.Binder=Klass.define({
         $this:"t",
         $:function (t,target) {
-            for (var k in target) (function (k){
+            function addMethod(k){
                 if (typeof target[k]!=="function") return;
                 t[k]=function () {
                     var a=Array.prototype.slice.call(arguments);
@@ -1482,7 +1484,8 @@ define('Klass',["assert"],function (A) {
                     //A(this.__target,"target is not set");
                     return target[k].apply(target,a);
                 };
-            })(k);
+            }
+            for (var k in target) addMethod(k);
         }
     });
     return Klass;
@@ -1572,7 +1575,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         console.log(mesg,s);
         s.success=true;
         return s;
-    });*/
+    }); */
     const reserved=[
         "class","def","if","else","elif","break",
         "for","while","in","return","print","import","as",
@@ -1932,17 +1935,17 @@ define('PyLib',[],function () {
     PL.clearRect=function(x,y,w,h){
         var ctx=PL.CANVAS[0].getContext("2d");
         ctx.clearRect(x,y,w,h);
-    }
+    };
     PL.clear=function(){
         PL.clearRect(0,0,PL.CANVAS.width(),PL.CANVAS.height());
-    }
+    };
     PL.setColor=function (r,g,b){
         var ctx=PL.CANVAS[0].getContext("2d");
         ctx.fillStyle="rgb("+r+","+g+","+b+")";
     };
     PL.setTimeout=function (f,t){
         setTimeout(f,t);
-    }
+    };
     PL.STDOUT={
         append: function (s) {
             console.log(s);
@@ -1999,14 +2002,15 @@ define('PyLib',[],function () {
             return self;
         };
         res.prototype=Object.create(parent.prototype,{});
-        for (var k in defs) (function (k) {
+        function addMethod(k) {
             var m=defs[k];
             res.prototype[k]=function () {
                 var a=Array.prototype.slice.call(arguments);
                 a.unshift(this);
                 return m.apply(this,a);
             };
-        })(k);
+        }
+        for (var k in defs) addMethod(k);
         return res;
     };
     PL.invoke=function (self,name,args) {
@@ -2064,7 +2068,7 @@ define('PyLib',[],function () {
                     for (;other;other--) res+=self.unwrap();
                     return res;
                 default:
-                    PY.invalidOP("__mul__",other);
+                    PL.invalidOP("__mul__",other);
                 }
             }
         }),
@@ -2074,6 +2078,9 @@ define('PyLib',[],function () {
         function:PL.class(PL.Wrapper,{
 
         })
+    };
+    PL.invalidOP=function (op,to) {
+        throw new Error("Cannot do opration "+op+" to "+to);
     };
     PL.builtins=["range","input","str","int","float","len","fillRect","setColor","setTimeout","clearRect","clear"];
     if (typeof window!=="undefined") window.PYLIB=PL;
@@ -2124,7 +2131,7 @@ const importable={
     numpy:{wrapper:true},
     os:{wrapper:true}
 };
-//----
+//-----
 class ScopeInfo {
     constructor(scope,name,kind,declarator) {
         this.scope=scope;
@@ -5728,9 +5735,9 @@ return IndentBuffer=function (options) {
 };
 });
 
-define('PythonGen',["Visitor","IndentBuffer"],
-function (Visitor,IndentBuffer) {
-    const BAWRAPPER="bawrapper";
+define('PythonGen',["Visitor","IndentBuffer","assert"],
+function (Visitor,IndentBuffer,assert) {
+    const BAWRAPPER="bawrapper";//
     const vdef={
         program: function (node) {
             this.visit(node.body);
@@ -5825,13 +5832,13 @@ function (Visitor,IndentBuffer) {
         paren: function (node) {
             this.printf("(%v)",node.body);
         },
-        ":indent": function (node) {
+        ":indent": function () {
             this.printf(":%{");
         },
-        "dedent": function (node) {
+        "dedent": function () {
             this.printf("%}");
         },
-        "nodent": function (node) {
+        "nodent": function () {
             this.printf("%n");
         },
         infixl: function(node) {
@@ -5843,8 +5850,8 @@ function (Visitor,IndentBuffer) {
         prefix: function (node) {
             this.printf("%v%v",node.op,node.right);
         },
-        breakStmt: function (node) {
-            this.printf("break")
+        breakStmt: function () {
+            this.printf("break");
         },
         symbol: function (node) {
             var a=this.anon.get(node);
@@ -5854,7 +5861,7 @@ function (Visitor,IndentBuffer) {
                 this.printf("%s",node+"");
             }
         },
-        not: function(node) {
+        not: function() {
             this.printf("not ");
         }
     };
@@ -5869,7 +5876,7 @@ function (Visitor,IndentBuffer) {
     }
     function gen(node,anon,options={}) {
         const v=Visitor(vdef);
-        v.anon=anon;
+        v.anon=assert(anon);
         v.importable=options.importable||{};
         //console.log("IMP",v.importable);
         v.def=function (node) {
@@ -5903,7 +5910,7 @@ function (Visitor,IndentBuffer,context,PL) {
             this.ctx.enter({inClass:node},()=>{
                 this.printf("%s.class('%s',{%{%j%}}",PYLIB,node.name,[",",node.body]);
             });
-        },
+        },//
         define: function (node) {
             if (this.ctx.inClass) {
                 this.printf("%n%s: function %s%v{%{%v%}}",node.name,node.params,node.body);
@@ -6145,7 +6152,7 @@ function (PP,S,G,J,PL,TError) {
         var node=PP.parse(srcF);
         try {
             var v=S.check(node);
-            var gen=G(node);
+            //var gen=G(node);
             var genj=J(node,v.anon);
             console.log(genj);
             var f=new Function(genj);

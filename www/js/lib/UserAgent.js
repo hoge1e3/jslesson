@@ -1,5 +1,5 @@
 define(["root"],function (root) {
-    const ua = root.navigator.userAgent.toLowerCase();
+    var ua = root.navigator.userAgent.toLowerCase();
     return {
         isIE: (ua.indexOf('msie') >= 0 || ua.indexOf('trident') >= 0),
         isFirefox:root.navigator.userAgent.indexOf("Firefox")>=0,

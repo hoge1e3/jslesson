@@ -1,5 +1,6 @@
-define(["FS","md5","WebSite","DeferredUtil"], function (FS,md5,WebSite,DU) {
-    Auth={
+/* global $ */
+define(["FS","md5","WebSite","DeferredUtil","root"], function (FS,md5,WebSite,DU,root) {
+    root.Auth={
         check:function () {
             var self=this;
             //console.log("CHK");
@@ -10,7 +11,7 @@ define(["FS","md5","WebSite","DeferredUtil"], function (FS,md5,WebSite,DU) {
                 return self;
             });
 
-            return $.when(
+            /*return $.when(
                 $.get(WebSite.controller+"?Login/curclass&"+Math.random()),
                 $.get(WebSite.controller+"?Login/curuser&"+Math.random()),
                 $.get(WebSite.controller+"?Login/curTeacher&"+Math.random())
@@ -18,11 +19,11 @@ define(["FS","md5","WebSite","DeferredUtil"], function (FS,md5,WebSite,DU) {
                 //console.log("CHKE",c[0],u[0]);
                 self.login(c[0],u[0],t[0]);
                 return self;
-            });
+            });*/
         },
         assertLogin: function (options) {
             var self=this;
-            return DU.promise(function (succ,fail) {
+            return DU.promise(function (succ/*,fail*/) {
                 if (self.loggedIn()) {
                     onsucc();
                 } else {
@@ -92,5 +93,5 @@ define(["FS","md5","WebSite","DeferredUtil"], function (FS,md5,WebSite,DU) {
         },
         hashCache:{}
     };
-    return Auth;
+    return root.Auth;
 });

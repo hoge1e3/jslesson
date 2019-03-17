@@ -1,11 +1,11 @@
-define(["FS"],function (FS) {
+define(["FS","root"],function (FS,root) {
     var DU=FS.DeferredUtil;
     var SFile=FS.SFile;
-    DragDrop={};
+    var DragDrop={};
     DragDrop.readFile=function (file) {
         return DU.promise(function (succ) {
             var reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function() {
                 succ(reader);
             };
             reader.readAsArrayBuffer(file);
@@ -130,5 +130,6 @@ define(["FS"],function (FS) {
             if (entc<=0) dom.removeClass(options.draggingClass);
         }
     };
+    root.DragDrop=DragDrop;
     return DragDrop;
 });

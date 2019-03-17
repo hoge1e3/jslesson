@@ -1,6 +1,6 @@
-define(["FS","DragDrop"],function (FS,DragDrop) {
+define(["FS","DragDrop","root"],function (FS,DragDrop,root) {
     var P=FS.PathUtil;
-    ProgramFileUploader={
+    var ProgramFileUploader={
         accept: function (fileList,options) {
             options=options||{};
             //extPattern=options.extPattern||/.*/;
@@ -13,7 +13,7 @@ define(["FS","DragDrop"],function (FS,DragDrop) {
                         return DragDrop.CancelReason(file.name+": このファイルは追加できません");
                     }
                     if (dst.exists()) {
-                        return DragDrop.CancelReason(itemName+": 同名のファイルがあるため中止しました．");
+                        return DragDrop.CancelReason(file.name+": 同名のファイルがあるため中止しました．");
                     }
                     return dst;
                 },
@@ -48,5 +48,6 @@ define(["FS","DragDrop"],function (FS,DragDrop) {
             });
         }
     };
+    root.ProgramFileUploader=ProgramFileUploader;
     return ProgramFileUploader;
 });

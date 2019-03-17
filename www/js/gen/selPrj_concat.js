@@ -1,3 +1,4 @@
+//(function (){
 // This is kowareta! because r.js does not generate module name:
 //   define("FSLib",[], function () { ...
 //(function (global) {
@@ -91,7 +92,8 @@ define('FSLib',[],function () {
 //----------
 define('extend',[],function (){
    return function extend(d,s) {
-      for (var i in s) {d[i]=s[i];} 
+      for (var i in s) {d[i]=s[i];}
+      return d;
    };
 });
 
@@ -541,8 +543,10 @@ define('DeferredUtil',[], function () {
     );
     //  promise.then(S,F)  and promise.then(S).fail(F) is not same!
     //  ->  when fail on S,  F is executed?
+    //   same is promise.then(S).then(same,F)
     var DU;
     var DUBRK=function(r){this.res=r;};
+    function same(e){return e;}
     DU={
         isNativePromise: function (p) {
             return p && (typeof p.then==="function") &&
@@ -643,7 +647,7 @@ define('DeferredUtil',[], function () {
                     } else {
                         resolve(r);
                     }
-                }).fail(function (r) {
+                }).then(same,function (r) {
                     if (!isDeferred) {
                         setTimeout(function () {
                             reject(r);
@@ -756,7 +760,7 @@ define('DeferredUtil',[], function () {
                         deff1=false;
                         if (r instanceof DUBRK) return r.res;
                         if (deff2) return DU.loop(f,r); //☆
-                    }).fail(function (e) {
+                    }).then(same,function (e) {
                         deff1=false;
                         err=e;
                     });
@@ -968,6 +972,8 @@ function (extend, P, M,assert,DU){
         },
         getURL: function (path) {
             stub("");
+        },
+        onAddObserver: function (path) {
         }
     });
     //res=[]; for (var k in a) { res.push(k); } res;
@@ -1891,6 +1897,29 @@ define('NativeFS',["FSClass","assert","PathUtil","extend","Content"],
         },
         getURL:function (path) {
             return "file:///"+path.replace(/\\/g,"/");
+        },
+        onAddObserver: function (apath,options) {
+            var t=this;
+            var rfs=t.getRootFS();
+            options=options||{};
+            var isDir=this.isDir(apath);
+            //console.log("Invoke oao",options);
+            var w=fs.watch(apath, options, function (evt,rpath) {
+                //console.log(path);
+                var fpath=isDir ? P.rel(apath,rpath) : apath;
+                var meta;
+                if (t.exists(fpath)) {
+                    meta=extend({eventType:evt},t.getMetaInfo(fpath));
+                } else {
+                    meta={eventType:evt};
+                }
+                rfs.notifyChanged(fpath,meta);
+            });
+            return {
+                remove: function () {
+                    w.close();
+                }
+            };
         }
     });
     return NativeFS;
@@ -1908,7 +1937,7 @@ define('LSFS',["FSClass","PathUtil","extend","assert","Util","Content"],
     var up = P.up.bind(P);
     var endsWith= P.endsWith.bind(P);
     //var getName = P.name.bind(P);
-    var Path=P.Path;
+    //var Path=P.Path;
     var Absolute=P.Absolute;
     var SEP= P.SEP;
     function now(){
@@ -1929,7 +1958,7 @@ define('LSFS',["FSClass","PathUtil","extend","assert","Util","Content"],
     });
 
     LSFS.now=now;
-    LSFS.prototype=new FS;
+    LSFS.prototype=new FS();
     //private methods
     LSFS.prototype.resolveKey=function (path) {
         assert.is(path,P.Absolute);
@@ -1974,9 +2003,9 @@ define('LSFS',["FSClass","PathUtil","extend","assert","Util","Content"],
         if (!endsWith(path, SEP)) path += SEP;
         assert(this.inMyFS(path));
         if (this.dirCache && this.dirCache[path]) return this.dirCache[path];
-        var dinfo =  {};
+        var dinfo =  {},dinfos;
         try {
-            var dinfos = this.getItem(path);
+            dinfos = this.getItem(path);
             if (dinfos) {
                 dinfo = JSON.parse(dinfos);
             }
@@ -2007,13 +2036,16 @@ define('LSFS',["FSClass","PathUtil","extend","assert","Util","Content"],
         // trashed: this touch is caused by trashing the file/dir.
         assert.is(arguments,[Object, String, String]);
         assert(this.inMyFS(path));
+        var eventType="change";
         if (!dinfo[name]) {
+            eventType="create";
             dinfo[name] = {};
             if (trashed) dinfo[name].trashed = true;
         }
         if (!trashed) delete dinfo[name].trashed;
         dinfo[name].lastUpdate = now();
-        this.getRootFS().notifyChanged(P.rel(path,name), dinfo[name]);
+        var meta=extend({eventType:eventType},dinfo[name]);
+        this.getRootFS().notifyChanged(P.rel(path,name), meta);
         this.putDirInfo(path, dinfo, trashed);
     };
     LSFS.prototype.removeEntry=function removeEntry(dinfo, path, name) { // path:path of dinfo
@@ -2023,6 +2055,7 @@ define('LSFS',["FSClass","PathUtil","extend","assert","Util","Content"],
                 lastUpdate: now(),
                 trashed: true
             };
+            this.getRootFS().notifyChanged(P.rel(path,name), {eventType:"trash"});
             this.putDirInfo(path, dinfo, true);
         }
     };
@@ -2030,6 +2063,7 @@ define('LSFS',["FSClass","PathUtil","extend","assert","Util","Content"],
         assert.is(arguments,[Object, String, String]);
         if (dinfo[name]) {
             delete dinfo[name];
+            this.getRootFS().notifyChanged(P.rel(path,name), {eventType:"delete"});
             this.putDirInfo(path, dinfo, true);
         }
     };
@@ -2990,6 +3024,18 @@ SFile.prototype={
         for (var k in data) {
             this.rel(k).text(data[k]);
         }
+    },
+    watch: function (_1,_2) {
+        var options={},handler=function(){};
+        if (typeof _1==="object") options=_1;
+        if (typeof _2==="object") options=_2;
+        if (typeof _1==="function") handler=_1;
+        if (typeof _2==="function") handler=_2;
+        var rfs=this.getFS().getRootFS();
+        //var t=this;
+        rfs.addObserver(this.path(),function (path, meta) {
+            handler(meta.eventType, rfs.get(path),meta );
+        });
     }
 };
 Object.defineProperty(SFile.prototype,"act",{
@@ -3059,21 +3105,23 @@ define('RootFS',["assert","FSClass","PathUtil","SFile"], function (assert,FS,P,S
             get: function (path) {
                 assert.is(path,P.Absolute);
                 return new SFile(this.resolveFS(path), path);
-            },   
-            addObserver: function () {
+            },
+            addObserver: function (_1,_2,_3) {
                 this.observers=this.observers||[];
-                var path,f;
-                if (arguments.length==2) {
-                    path=arguments[0];
-                    f=arguments[1];
-                } else if (arguments.length==1) {
-                    path="";
-                    f=arguments[0];
-                } else {
-                    throw new Error("Invalid argument spec");
-                }
+                var options={},path,f;
+                if (typeof _1==="string") path=_1;
+                if (typeof _2==="string") path=_2;
+                if (typeof _3==="string") path=_3;
+                if (typeof _1==="object") options=_1;
+                if (typeof _2==="object") options=_2;
+                if (typeof _3==="object") options=_3;
+                if (typeof _1==="function") f=_1;
+                if (typeof _2==="function") f=_2;
+                if (typeof _3==="function") f=_3;
                 assert.is(path,String);
                 assert.is(f,Function);
+                var fs=this.resolveFS(path);
+                var remover=fs.onAddObserver(path,options);
                 var observers=this.observers;
                 var observer={
                     path:path,
@@ -3081,6 +3129,7 @@ define('RootFS',["assert","FSClass","PathUtil","SFile"], function (assert,FS,P,S
                     remove: function () {
                         var i=observers.indexOf(this);
                         observers.splice(i,1);
+                        if (remover) remover.remove();
                     }
                 };
                 this.observers.push(observer);
@@ -3103,6 +3152,7 @@ define('RootFS',["assert","FSClass","PathUtil","SFile"], function (assert,FS,P,S
     }
     return RootFS;
 });
+
 define('zip',["SFile",/*"jszip",*/"FileSaver","Util","DeferredUtil"],
 function (SFile,/*JSZip,*/fsv,Util,DU) {
     var zip={};
@@ -3418,6 +3468,7 @@ define('FS',["FSLib","WebSite"],
     FS.setEnv(WebSite);
     return FS;
 });
+/*global global*/
 define('assert',[],function () {
     var Assertion=function(failMesg) {
         this.failMesg=flatten(failMesg || "Assertion failed: ");
@@ -3435,7 +3486,7 @@ define('assert',[],function () {
             var a=$a(arguments);
             var value=a.shift();
             a=flatten(a);
-            a=this.failMesg.concat(value).concat(a).concat(["mode",this._mode]);
+            a=this.failMesg.concat(value).concat(a);//.concat(["mode",this._mode]);
             console.log.apply(console,a);
             if (this.isDefensive()) return value;
             if (this.isBool()) return false;
@@ -3463,7 +3514,7 @@ define('assert',[],function () {
             return this.isBool()?true:a;
         },
         is: function (value,type) {
-            var t=type,v=value;
+            var t=type,v=value,na;
             if (t==null) {
                 return this.fail(value, "assert.is: type must be set");
                 // return t; Why!!!!???? because is(args,[String,Number])
@@ -3479,7 +3530,7 @@ define('assert',[],function () {
                 }
                 var self=this;
                 for (var i=0 ;i<t.length; i++) {
-                    var na=self.subAssertion("failed at ",value,"[",i,"]: ");
+                    na=self.subAssertion("failed at ",value,"[",i,"]: ");
                     if (t[i]==null) {
                         console.log("WOW!7", v[i],t[i]);
                     }
@@ -3510,7 +3561,7 @@ define('assert',[],function () {
             }
             if (t && typeof t=="object") {
                 for (var k in t) {
-                    var na=this.subAssertion("failed at ",value,".",k,":");
+                    na=this.subAssertion("failed at ",value,".",k,":");
                     na.is(value[k],t[k]);
                 }
                 return this.isBool()?true:value;
@@ -3607,9 +3658,9 @@ define('assert',[],function () {
         }
         return [a];
     }
-    function isArg(a) {
+    /*function isArg(a) {
         return "length" in a && "caller" in a && "callee" in a;
-    };
+    };*/
     return assert;
 });
 
@@ -3842,14 +3893,20 @@ define('Shell',["FS","assert"],
     return Shell;
 });
 
-Util=(function () {
+(function () {
+    var root=(
+        typeof window!=="undefined" ? window :
+        typeof global!=="undefined" ? global : self);
 
 function getQueryString(key, default_)
 {
     if (arguments.length===1) default_="";
+    if (typeof LocalBrowserInfo==="object") {
+        return key in LocalBrowserInfo.params? LocalBrowserInfo.params[key] : default_;
+    }
    key = key.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
    var regex = new RegExp("[\\?&]"+key+"=([^&#]*)");
-   var qs = regex.exec(window.location.href);
+   var qs = regex.exec(root.location.href);
    if(qs == null)
     return default_;
    else
@@ -3906,7 +3963,7 @@ function Base64_To_ArrayBuffer(base64){
         i ++;
 
         b = dic[base64.charCodeAt(i)];
-        if(b === undefined) fail("Invalid letter: "+base64.charCodeAt(i))
+        if(b === undefined) fail("Invalid letter: "+base64.charCodeAt(i));
         ary_u8[p] = n | ((b >> 4) & 0x3);
         n = (b & 0x0f) << 4;
         i ++;
@@ -3914,7 +3971,7 @@ function Base64_To_ArrayBuffer(base64){
         if(p >= e) break;
 
         b = dic[base64.charCodeAt(i)];
-        if(b === undefined) fail("Invalid letter: "+base64.charCodeAt(i))
+        if(b === undefined) fail("Invalid letter: "+base64.charCodeAt(i));
         ary_u8[p] = n | ((b >> 2) & 0xf);
         n = (b & 0x03) << 6;
         i ++;
@@ -3922,7 +3979,7 @@ function Base64_To_ArrayBuffer(base64){
         if(p >= e) break;
 
         b = dic[base64.charCodeAt(i)];
-        if(b === undefined) fail("Invalid letter: "+base64.charCodeAt(i))
+        if(b === undefined) fail("Invalid letter: "+base64.charCodeAt(i));
         ary_u8[p] = n | b;
         i ++;
         p ++;
@@ -4033,7 +4090,7 @@ function str2utf8bytes(str, binType) {
     return (typeof Buffer!="undefined" && binType===Buffer ? new Buffer(a) : new Uint8Array(a).buffer);
 }
 */
-return {
+root.Util={
     getQueryString:getQueryString,
     endsWith: endsWith, startsWith: startsWith,
     Base64_To_ArrayBuffer:Base64_To_ArrayBuffer,
@@ -4046,6 +4103,7 @@ return {
     isNodeBuffer: isNodeBuffer,
     isBuffer: isBuffer*/
 };
+return root.Util;
 })();
 
 define("Util", (function (global) {
@@ -4987,7 +5045,7 @@ define('Klass',["assert"],function (A) {
             }
         };
         var fldinit;
-        var check;
+        //var check;
         if (init instanceof Array) {
             fldinit=init;
             init=function () {
@@ -5096,12 +5154,12 @@ define('Klass',["assert"],function (A) {
         }
         return c;
     }
-    Klass.Function=function () {throw new Exception("Abstract");}
+    Klass.Function=function () {throw new Error("Abstract");};
     Klass.opt=A.opt;
     Klass.Binder=Klass.define({
         $this:"t",
         $:function (t,target) {
-            for (var k in target) (function (k){
+            function addMethod(k){
                 if (typeof target[k]!=="function") return;
                 t[k]=function () {
                     var a=Array.prototype.slice.call(arguments);
@@ -5109,7 +5167,8 @@ define('Klass',["assert"],function (A) {
                     //A(this.__target,"target is not set");
                     return target[k].apply(target,a);
                 };
-            })(k);
+            }
+            for (var k in target) addMethod(k);
         }
     });
     return Klass;
@@ -14184,8 +14243,17 @@ define('NewProjectDialog',["UI","BAProject"], function (UI,BAProject) {
   }
 }(this))
 ;
-define('Auth',["FS","md5","WebSite","DeferredUtil"], function (FS,md5,WebSite,DU) {
-    Auth={
+/*global window,self,global*/
+define('root',[],function (){
+    if (typeof window!=="undefined") return window;
+    if (typeof self!=="undefined") return self;
+    if (typeof global!=="undefined") return global;
+    return (function (){return this;})();
+});
+
+/* global $ */
+define('Auth',["FS","md5","WebSite","DeferredUtil","root"], function (FS,md5,WebSite,DU,root) {
+    root.Auth={
         check:function () {
             var self=this;
             //console.log("CHK");
@@ -14196,7 +14264,7 @@ define('Auth',["FS","md5","WebSite","DeferredUtil"], function (FS,md5,WebSite,DU
                 return self;
             });
 
-            return $.when(
+            /*return $.when(
                 $.get(WebSite.controller+"?Login/curclass&"+Math.random()),
                 $.get(WebSite.controller+"?Login/curuser&"+Math.random()),
                 $.get(WebSite.controller+"?Login/curTeacher&"+Math.random())
@@ -14204,11 +14272,11 @@ define('Auth',["FS","md5","WebSite","DeferredUtil"], function (FS,md5,WebSite,DU
                 //console.log("CHKE",c[0],u[0]);
                 self.login(c[0],u[0],t[0]);
                 return self;
-            });
+            });*/
         },
         assertLogin: function (options) {
             var self=this;
-            return DU.promise(function (succ,fail) {
+            return DU.promise(function (succ/*,fail*/) {
                 if (self.loggedIn()) {
                     onsucc();
                 } else {
@@ -14278,7 +14346,7 @@ define('Auth',["FS","md5","WebSite","DeferredUtil"], function (FS,md5,WebSite,DU
         },
         hashCache:{}
     };
-    return Auth;
+    return root.Auth;
 });
 
 define('zip',["FS","Shell","Util"],function (FS,sh,Util) {
@@ -15080,3 +15148,4 @@ function ready() {//-------------------------
 
 define("jsl_selProject", function(){});
 
+//}).call(window);

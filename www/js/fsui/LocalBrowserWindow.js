@@ -5,7 +5,7 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass,WebSite) {
         this.window=options.window||window.open("about:blank","LocalBrowserWindow","menubar=no,toolbar=no,width=500,height=500");
     };
     var BLANK_URL=WebSite.runtime+"blank.html";
-    p=LocalBrowserWindow.prototype;
+    var p=LocalBrowserWindow.prototype;
     p.close=function () {
         this.window.close();
     };

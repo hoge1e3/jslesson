@@ -1,5 +1,7 @@
-Util=(function () {
-    var _global=(typeof window!=="undefined" ? window : global);
+(function () {
+    var root=(
+        typeof window!=="undefined" ? window :
+        typeof global!=="undefined" ? global : self);
 
 function getQueryString(key, default_)
 {
@@ -9,7 +11,7 @@ function getQueryString(key, default_)
     }
    key = key.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
    var regex = new RegExp("[\\?&]"+key+"=([^&#]*)");
-   var qs = regex.exec(_global.location.href);
+   var qs = regex.exec(root.location.href);
    if(qs == null)
     return default_;
    else
@@ -66,7 +68,7 @@ function Base64_To_ArrayBuffer(base64){
         i ++;
 
         b = dic[base64.charCodeAt(i)];
-        if(b === undefined) fail("Invalid letter: "+base64.charCodeAt(i))
+        if(b === undefined) fail("Invalid letter: "+base64.charCodeAt(i));
         ary_u8[p] = n | ((b >> 4) & 0x3);
         n = (b & 0x0f) << 4;
         i ++;
@@ -74,7 +76,7 @@ function Base64_To_ArrayBuffer(base64){
         if(p >= e) break;
 
         b = dic[base64.charCodeAt(i)];
-        if(b === undefined) fail("Invalid letter: "+base64.charCodeAt(i))
+        if(b === undefined) fail("Invalid letter: "+base64.charCodeAt(i));
         ary_u8[p] = n | ((b >> 2) & 0xf);
         n = (b & 0x03) << 6;
         i ++;
@@ -82,7 +84,7 @@ function Base64_To_ArrayBuffer(base64){
         if(p >= e) break;
 
         b = dic[base64.charCodeAt(i)];
-        if(b === undefined) fail("Invalid letter: "+base64.charCodeAt(i))
+        if(b === undefined) fail("Invalid letter: "+base64.charCodeAt(i));
         ary_u8[p] = n | b;
         i ++;
         p ++;
@@ -193,7 +195,7 @@ function str2utf8bytes(str, binType) {
     return (typeof Buffer!="undefined" && binType===Buffer ? new Buffer(a) : new Uint8Array(a).buffer);
 }
 */
-return {
+root.Util={
     getQueryString:getQueryString,
     endsWith: endsWith, startsWith: startsWith,
     Base64_To_ArrayBuffer:Base64_To_ArrayBuffer,
@@ -206,4 +208,5 @@ return {
     isNodeBuffer: isNodeBuffer,
     isBuffer: isBuffer*/
 };
+return root.Util;
 })();

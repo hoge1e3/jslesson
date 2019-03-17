@@ -1,6 +1,7 @@
-define(["UI","Klass"],function (UI,Klass) {
-    var res={};
-    CommentDialog2=Klass.define({
+/*global $*/
+define(["UI","Klass","root","WebSite"],function (UI,Klass,root,WebSite) {
+    //var res={};
+    root.CommentDialog2=Klass.define({
         $this: "t",
         $: ["prj"],
         getComment: function (t,file) {
@@ -29,5 +30,5 @@ define(["UI","Klass"],function (UI,Klass) {
             return t.dom;
         }
     });
-    return CommentDialog2;
+    return root.CommentDialog2;
 });
