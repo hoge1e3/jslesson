@@ -1,8 +1,9 @@
+/*global global*/
 define([],function () {
     var Assertion=function(failMesg) {
         this.failMesg=flatten(failMesg || "Assertion failed: ");
     };
-    var $a;//ab
+    var $a;
     Assertion.prototype={
         _regedType:{},
         registerType: function (name,t) {
@@ -15,7 +16,7 @@ define([],function () {
             var a=$a(arguments);
             var value=a.shift();
             a=flatten(a);
-            a=this.failMesg.concat(value).concat(a).concat(["mode",this._mode]);
+            a=this.failMesg.concat(value).concat(a);//.concat(["mode",this._mode]);
             console.log.apply(console,a);
             if (this.isDefensive()) return value;
             if (this.isBool()) return false;
@@ -43,7 +44,7 @@ define([],function () {
             return this.isBool()?true:a;
         },
         is: function (value,type) {
-            var t=type,v=value;
+            var t=type,v=value,na;
             if (t==null) {
                 return this.fail(value, "assert.is: type must be set");
                 // return t; Why!!!!???? because is(args,[String,Number])
@@ -59,7 +60,7 @@ define([],function () {
                 }
                 var self=this;
                 for (var i=0 ;i<t.length; i++) {
-                    var na=self.subAssertion("failed at ",value,"[",i,"]: ");
+                    na=self.subAssertion("failed at ",value,"[",i,"]: ");
                     if (t[i]==null) {
                         console.log("WOW!7", v[i],t[i]);
                     }
@@ -90,7 +91,7 @@ define([],function () {
             }
             if (t && typeof t=="object") {
                 for (var k in t) {
-                    var na=this.subAssertion("failed at ",value,".",k,":");
+                    na=this.subAssertion("failed at ",value,".",k,":");
                     na.is(value[k],t[k]);
                 }
                 return this.isBool()?true:value;
@@ -187,8 +188,8 @@ define([],function () {
         }
         return [a];
     }
-    function isArg(a) {
+    /*function isArg(a) {
         return "length" in a && "caller" in a && "callee" in a;
-    };
+    };*/
     return assert;
 });
