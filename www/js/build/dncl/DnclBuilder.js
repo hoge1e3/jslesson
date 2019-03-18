@@ -1,9 +1,10 @@
-define(["assert","DeferredUtil","wget", "dncl/dncl2js","IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator"],
-function (A,DU,wget,dnclParser,IndentBuffer,Sync,FS,SplashScreen,ABG) {//<-dtl
-    DnclBuilder=function (prj, dst) {//<-Dtl
+define(["assert","DeferredUtil","wget", "dncl/dncl2js","IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator","root","WebSite"],
+function (A,DU,wget,dnclParser,IndentBuffer,Sync,FS,SplashScreen,ABG,root,WebSite) {//<-dtl
+    var DnclBuilder=function (prj, dst) {//<-Dtl
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
     };
+    root.DnclBuilder=DnclBuilder;
     var libs=["jquery-1.12.1","require","AsyncByGenerator"].map(function (n) {
         return "lib/"+n+".js";
     });
@@ -42,13 +43,14 @@ function (A,DU,wget,dnclParser,IndentBuffer,Sync,FS,SplashScreen,ABG) {//<-dtl
     p.genHTML=function (f) {
         this.progress("generate "+f.src.html.name());
         //var curHTMLFile=d.rel(name+".html");
-        var dp=new DOMParser;
+        var dp=new DOMParser();
         var dom=dp.parseFromString(f.src.html.text(),"text/html");
         var html=dom.getElementsByTagName("html")[0];
         var head=dom.getElementsByTagName("head")[0];
         var body=dom.getElementsByTagName("body")[0];
         $(head).append($("<meta>").attr("charset","UTF-8"));
         if (window.BitArrow) {
+            var BitArrow=window.BitArrow;
             var ba={
                 version:BitArrow.version,
                 urlArgs:BitArrow.urlArgs,
@@ -67,6 +69,7 @@ function (A,DU,wget,dnclParser,IndentBuffer,Sync,FS,SplashScreen,ABG) {//<-dtl
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
             var src2;
+            var requirejs=root.requirejs;
             if (FS.PathUtil.isURL(src) && requirejs.version!=="2.1.9" && typeof requirejs.s.contexts._.config.urlArgs==="function") {
                 src2=src+requirejs.s.contexts._.config.urlArgs("",src);
             } else {

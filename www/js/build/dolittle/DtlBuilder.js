@@ -1,6 +1,6 @@
-define(["assert","DeferredUtil","wget", "dolittle/minimal","IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator","UI"],
-function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG,UI) {
-    DtlBuilder=function (prj, dst) {
+define(["assert","DeferredUtil","wget", "dolittle/minimal","IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator","UI","root","WebSite"],
+function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG,UI,root,WebSite) {
+    var DtlBuilder=root.DtlBuilder=function (prj, dst) {
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
     };
@@ -56,13 +56,14 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG,UI) {
     p.genHTML=function (f) {
         this.progress("generate "+f.src.html.name());
         //var curHTMLFile=d.rel(name+".html");
-        var dp=new DOMParser;
+        var dp=new DOMParser();
         var dom=dp.parseFromString(f.src.html.text(),"text/html");
         var html=dom.getElementsByTagName("html")[0];
         var head=dom.getElementsByTagName("head")[0];
         var body=dom.getElementsByTagName("body")[0];
         $(head).append($("<meta>").attr("charset","UTF-8"));
         if (window.BitArrow) {
+            var BitArrow=window.BitArrow;
             var ba={
                 version:BitArrow.version,
                 urlArgs:BitArrow.urlArgs,
@@ -81,6 +82,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG,UI) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
             var src2;
+            var requirejs=root.requirejs;
             if (FS.PathUtil.isURL(src) && requirejs.version!=="2.1.9" && typeof requirejs.s.contexts._.config.urlArgs==="function") {
                 src2=src+requirejs.s.contexts._.config.urlArgs("",src);
             } else {
@@ -157,6 +159,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG,UI) {
     		var vmcj=JSON.stringify(vmc);
     		f.dst.dtlvm.text(vmcj);
 			console.log("VM Code", vmcj);
+            var DATA="dummy";
 			var scr=function () {
 			    $.post("runDtl.php",DATA).then(function (res) {
 			        console.log("VMRES",res);

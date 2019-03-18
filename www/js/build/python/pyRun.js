@@ -1,5 +1,5 @@
-define(["PythonParser","PythonSemantics","PythonGen","Python2JS","PyLib","TError"],
-function (PP,S,G,J,PL,TError) {
+define(["PythonParser","PythonSemantics","PythonGen","Python2JS","PyLib","TError","jshint"],
+function (PP,S,G,J,PL,TError,jshint) {
     function run(srcF) {
         var node=PP.parse(srcF);
         try {
@@ -7,7 +7,7 @@ function (PP,S,G,J,PL,TError) {
             //var gen=G(node);
             var genj=J(node,v.anon);
             console.log(genj);
-            var f=new Function(genj);
+            var f=new jshint.Function(genj);
             console.log(f());
         } catch(e) {
             if (e.node) {

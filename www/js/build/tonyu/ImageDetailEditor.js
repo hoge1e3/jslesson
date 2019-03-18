@@ -1,3 +1,4 @@
+/*global require*/
 define(["UI","ImageList","ImageRect","PatternParser","WebSite","Assets"],
         function (UI,ImageList,ImageRect,PP,WebSite,Assets) {
     var d=UI("div",{title:"画像詳細"},
@@ -139,7 +140,7 @@ define(["UI","ImageList","ImageRect","PatternParser","WebSite","Assets"],
                 curChipIndex=i;
                 rect(ctx,cr,"#ff0");
             }
-        })
+        });
     }
     function cvClick() {
         var pc=chipRects[curChipIndex];

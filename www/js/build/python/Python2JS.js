@@ -123,7 +123,7 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("%v%v",node.op,node.right);
         },
         breakStmt: function (node) {
-            this.printf("break")
+            this.printf("break");
         }
     };
     const cmps={">":1,"<":1,"==":1,">=":1,"<=":1,"!=":1};

@@ -6,7 +6,7 @@ define(["assert","Tonyu.Thread","Tonyu.Iterator","DeferredUtil","root"],
 var Tonyu=function () {
 	var preemptionTime=60;
 	function thread() {
-		var t=new TT;
+		var t=new TT();
 		t.handleEx=handleEx;
 		return t;
 	}
@@ -25,8 +25,8 @@ var Tonyu=function () {
 		if (Tonyu.onRuntimeError) {
 			Tonyu.onRuntimeError(e);
 		} else {
-			if (typeof $LASTPOS=="undefined") $LASTPOS=0;
-			alert ("エラー! at "+$LASTPOS+" メッセージ  : "+e);
+			if (!root.$LASTPOS) root.$LASTPOS=0;
+			alert ("エラー! at "+root.$LASTPOS+" メッセージ  : "+e);
 			console.log(e.stack);
 			throw e;
 		}
@@ -113,7 +113,8 @@ var Tonyu=function () {
 		});
 		var props={};
 		var propReg=/^__([gs]et)ter__(.*)$/;
-		for (var k in prot) {
+		var k;
+		for ( k in prot) {
 			if (k.match(/^fiber\$/)) continue;
 			if (prot["fiber$"+k]) {
 				prot[k].fiber=prot["fiber$"+k];
@@ -128,7 +129,7 @@ var Tonyu=function () {
 		}
 		res.prototype=bless(parent, prot);
 		res.prototype.isTonyuObject=true;
-		for (var k in props) {
+		for ( k in props) {
 			Object.defineProperty(res.prototype, k , props[k]);
 		}
 		res.meta=addMeta(fullName,{
@@ -261,12 +262,12 @@ var Tonyu=function () {
 		var boot=new bootClass();
 		var th=thread();
 		th.apply(boot,"main");
-		var TPR;
-		if (TPR=Tonyu.currentProject) {
+		var TPR=Tonyu.currentProject;
+		if (TPR) {
 			TPR.runningThread=th;
 			TPR.runningObj=boot;
 		}
-		$LASTPOS=0;
+		root.$LASTPOS=0;
 		th.steps();
 	}
 	var lastLoopCheck=new Date().getTime();

@@ -30,7 +30,7 @@ const vdef={
         }
     },
     importStmt: function (node) {
-        const nameHead=node.name[0]
+        const nameHead=node.name[0];
         if (!importable[nameHead]) {
             this.error(nameHead+" はインポートできません",node);
         }
@@ -46,7 +46,7 @@ const vdef={
         //console.log("define",node);
         this.addScope(node.name,{kind:"function",node});
         this.newScope(()=>{
-            for (p of node.params.body) {
+            for (const p of node.params.body) {
                 this.addScope(p+"",{kind:"local",node:p});
             }
             for (const b of node.body) {

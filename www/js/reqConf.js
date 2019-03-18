@@ -98,7 +98,7 @@ var reqConf={
             },
             AsyncByGenerator: {
                 exports: "AsyncByGenerator"
-            },
+            }/*,
             cCompiler: {
                 deps: [
                     "ctrans/beautify",
@@ -109,7 +109,7 @@ var reqConf={
                     //"ctrans/lib"
                 ],
                 exports:"compile"
-            }
+            }*/
         },
         "paths": {
             jsl_selProject: "jsl/selProject",
@@ -120,6 +120,7 @@ var reqConf={
             BAProject: "jsl/BAProject",
             Sync: "fs2/sync2",
             root:"lib/root",
+            jshint: "lib/jshint",
             SplashScreen: "lib/SplashScreen",
             TT: "lang/tonyu2_token",
             Auth: "jsl/auth",

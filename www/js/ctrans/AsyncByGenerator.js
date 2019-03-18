@@ -1,3 +1,4 @@
+/*global self,global*/
 //define([],function () {
 (function () {
     function F(f) {
@@ -11,7 +12,16 @@
             return f;
         }
     }
-    AsyncByGenerator={
+    // same with root.js
+    function getRoot(){
+        if (typeof window!=="undefined") return window;
+        if (typeof self!=="undefined") return self;
+        if (typeof global!=="undefined") return global;
+        return (function (){return this;})();
+    }
+    var root=getRoot();
+
+    var AsyncByGenerator=root.AsyncByGenerator={
         doReady: function () {
            this.isReady=true;
            if (this.onReady) {
@@ -37,7 +47,7 @@
         },
         init: function () {
             try {
-                f=new Function("this.GeneratorFunction = ((function*(){})()).constructor;");
+                var f=new Function("this.GeneratorFunction = ((function*(){})()).constructor;");
                 f.call(this);
                 this.supportsGenerator=true;
             } catch(e) {
@@ -98,7 +108,7 @@
             ---*/
         })
     };
-    AsyncByGenerator.init();
+    root.AsyncByGenerator.init();
     /*var text="return (function*(){});";
     try{
         (new Function(text))();
@@ -110,5 +120,5 @@
         AsyncByGenerator.supportsGenerator=false;
         AsyncByGenerator.doReady();
     }*/
-    return AsyncByGenerator;
+    return root.AsyncByGenerator;
 })();

@@ -1,3 +1,4 @@
+/*global process*/
 define([], function () {
 	if (typeof document==="undefined") {
 		// node?;
@@ -32,7 +33,7 @@ define([], function () {
 	WS.tonyuHome="/Tonyu/";//changeHOME
 	WS.JSLKer="runtime/lib/tjs/kernel.js";
 	//WS.JSLKer="fs/Tonyu/Projects/JSLKer";
-	WS.serverTop=location.href.replace(/\?.*$/,"").replace(/[^/]*$/,"");//"."; // includes /
+	WS.serverTop=location.href.replace(/\?.*$/,"").replace(/[^\/]*$/,"");//"."; // includes /
 	WS.phpTop=WS.serverTop+"";//php/";
 	WS.url={
 		getDirInfo:WS.serverTop+"?getDirInfo",
@@ -62,7 +63,7 @@ define([], function () {
 			"images/sound_wav.png":WS.runtime+"images/sound_wav.png",
 			"images/ecl.png":WS.runtime+"images/ecl.png"
 	};
-	WebSite.compiledKernel=WebSite.runtime+"/lib/tonyu/kernel.js";
+	WS.compiledKernel=WS.runtime+"/lib/tonyu/kernel.js";
 	/*if (WS.isNW) {
 		if (process.env.TONYU_HOME) {
 			WS.tonyuHome=process.env.TONYU_HOME.replace(/\\/g,"/");

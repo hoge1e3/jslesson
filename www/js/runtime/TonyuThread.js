@@ -1,4 +1,4 @@
-define(["DeferredUtil","Klass"],function (DU,Klass) {
+define(["DeferredUtil","Klass","root"],function (DU,Klass,root) {
 	var cnts={enterC:{},exitC:0};
 	try {window.cnts=cnts;}catch(e){}
 	var TonyuThread=Klass.define({
@@ -20,11 +20,12 @@ define(["DeferredUtil","Klass"],function (DU,Klass) {
 			//return this.frame!=null && this._isAlive;
 		},
 		isDead: function () {
-			return this._isDead=this._isDead || (this.frame==null) ||
+			 this._isDead=this._isDead || (this.frame==null) ||
 			(this._threadGroup && (
 					this._threadGroup.objectPoolAge!=this.tGrpObjectPoolAge ||
 					this._threadGroup.isDeadThreadGroup()
 			));
+			return this._isDead;
 		},
 		setThreadGroup: function setThreadGroup(g) {// g:TonyuThread
 			this._threadGroup=g;
@@ -209,6 +210,7 @@ define(["DeferredUtil","Klass"],function (DU,Klass) {
 		steps: function steps() {
 			var fb=this;
 			if (fb.isDead()) return;
+			var Tonyu=root.Tonyu;
 			var sv=Tonyu.currentThread;
 			Tonyu.currentThread=fb;
 			fb.cnt=fb.preemptionTime;

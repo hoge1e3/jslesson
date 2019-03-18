@@ -1,8 +1,8 @@
-define(["ctrans/ctype","AsyncByGenerator","Parser","context","ExpressionParser","assert","Message"],
-function (T,ABG,Parser,context,ExpressionParser,assert,Message) {
+define(["ctrans/ctype","AsyncByGenerator","Parser","context","ExpressionParser","assert","Message","root"],
+function (T,ABG,Parser,context,ExpressionParser,assert,Message,root) {
 //\b(t|T|CType)\.(char|byte|int|double|float|void)\b
-var _global=(typeof window!=="undefined" ? window : global);
-_global.MinimalParser= function () {
+//var root=(typeof window!=="undefined" ? window : global);
+root.MinimalParser= function () {
     var supportsAsync=false;
     /*try {
         f=new Function ("var a=async function (){};");
@@ -618,7 +618,7 @@ _global.MinimalParser= function () {
 	calc_expression=ExpressionParser();
 	calc_expression.element(cast_expression_lazy);
 	// See https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
-	calc_expression.infixl(5,t("||"))
+	calc_expression.infixl(5,t("||"));
 	calc_expression.infixl(6,t("&&"));
 	calc_expression.infixl(7,t("|"));
 	calc_expression.infixl(8,t("^"));
@@ -788,7 +788,7 @@ _global.MinimalParser= function () {
                 });
             } else return r;
         });
-    };
+    }
     function unwrapParen(ex) {
         if(ex.type!=="paren_expr") {
             return [ex,function (e){return e;}];
@@ -799,7 +799,7 @@ _global.MinimalParser= function () {
         return [ex,function (e){return ["(",e,")"];}];
     }
     //\assign
-	assign=unary_expression_lazy.and(assignment_operator)
+	var assign=unary_expression_lazy.and(assignment_operator)
 		.and(/*structCp(*/calc_expression/*)*/).ret(function(unary_expr,op,calc_expr){
 		    var t;
 		    if (op+""==="=") {
@@ -1137,7 +1137,7 @@ _global.MinimalParser= function () {
 	    return r;
 	});
 
-	primary_expression=var_identifier.or(constant).or(string).or(
+	var primary_expression=var_identifier.or(constant).or(string).or(
 	    t("(").and(expression.ret(chkTypeIsSet("ln.585"))).and(t(")")).ret(function(lp,expr,rp){
 	        return extend(["(",expr,")"],{vtype:expr.vtype,type:"paren_expr"});
 	    })
@@ -1221,7 +1221,7 @@ _global.MinimalParser= function () {
     	    return extend([op,wrapF(right)], {vtype:right.vtype});
 	    })
 	);
-	type_name=specifier_qualifier_list.and(abstract_declarator.opt())
+	var type_name=specifier_qualifier_list.and(abstract_declarator.opt())
 		.ret(function(specifier_qualifier_list,abstract_declarator){
 		    var vtype=typeNamesToType(specifier_qualifier_list);
 			return extend([specifier_qualifier_list,abstract_declarator],{vtype:vtype});
@@ -1383,7 +1383,7 @@ _global.MinimalParser= function () {
         return rst;
     })).ret(getTh(1));
     function getTh(n) {
-        return function () {return arguments[n];}
+        return function () {return arguments[n];};
     }
     //\addScope
     function addScope(name,obj) {
@@ -1574,7 +1574,7 @@ extern char* strstr(char *h,char *n);
 
     var topdecl = newDecl;
     //var topdecl = func.or(declaration);
-	program=newScope(topdecl.rep0()).and(space).and(sp.eof).ret(function (decls,space,eof){
+	var program=newScope(topdecl.rep0()).and(space).and(sp.eof).ret(function (decls,space,eof){
 	    return extend(decls,{type:"program",decls:decls});
 	});
 
@@ -1665,7 +1665,7 @@ extern char* strstr(char *h,char *n);
 		    //ne.original=e;
 		    throw ne;
 		}
-        _global.lastOutput=output;
+        root.lastOutput=output;
     	return output;
     	/*function rowcol(p) {
 			var max=processed.substring(0,p);
@@ -1691,5 +1691,5 @@ extern char* strstr(char *h,char *n);
 	}
 	return parser;
 }();
-return _global.MinimalParser;
+return root.MinimalParser;
 });

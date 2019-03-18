@@ -1,4 +1,4 @@
-define(["plugins","compiledProject"], function (plugins,CPR) {
+define(["plugins","compiledProject","WebSite","Tonyu"], function (plugins,CPR,WebSite,Tonyu) {
     var CPTR=function (ns, url, dir) {
         var cpr=CPR(ns,url);
         var kernelProject=CPR("kernel", WebSite.compiledKernel);

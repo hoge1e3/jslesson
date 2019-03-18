@@ -1,4 +1,4 @@
-define([],function () {
+define(["root"],function (root) {
     var PL={};
     PL.import=function (lib) {
         if (lib==="random") {
@@ -176,6 +176,6 @@ define([],function () {
         throw new Error("Cannot do opration "+op+" to "+to);
     };
     PL.builtins=["range","input","str","int","float","len","fillRect","setColor","setTimeout","clearRect","clear"];
-    if (typeof window!=="undefined") window.PYLIB=PL;
+    root.PYLIB=PL;
     return PL;
 });

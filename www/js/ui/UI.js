@@ -37,15 +37,16 @@ define(["Util","exceptionCatcher"],function (Util, EC) {
         $edits.validator={
        		errors:{},
        		show: function () {
+                var name;
        			if ($vars.validationMessage) {
        				$vars.validationMessage.empty();
-       				for (var name in this.errors) {
+       				for (name in this.errors) {
        					$vars.validationMessage.append(UI("div", this.errors[name].mesg));
        				}
        			}
        			if ($vars.OKButton) {
        				var ok=true;
-       				for (var name in this.errors) {
+       				for (name in this.errors) {
        					ok=false;
        				}
        				$vars.OKButton.attr("disabled", !ok);

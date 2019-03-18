@@ -4,7 +4,7 @@ define(["Tonyu", "ProjectCompiler", "TError", "FS", "Tonyu.TraceTbl","ImageList"
         function (Tonyu, ProjectCompiler, TError, FS, Tonyu_TraceTbl, ImageList,StackTrace,
                 Blob,/*thumbnail,*/WebSite,plugins, Semantics, JSGenerator,
                 DU,CPRJ) {
-return Tonyu.Project=function (dir, kernelDir) {
+Tonyu.Project=function (dir, kernelDir) {
     var TPR=ProjectCompiler(dir);
     var _super=Tonyu.extend({},TPR);
     var home=FS.get(WebSite.tonyuHome);
@@ -23,14 +23,14 @@ return Tonyu.Project=function (dir, kernelDir) {
     function orderByInheritance(classes) {/*ENVC*/
         var added={};
         var res=[];
-        var ccnt=0;
-        for (var n in classes) {/*ENVC*/
+        var ccnt=0,n;
+        for ( n in classes) {/*ENVC*/
             added[n]=false;
             ccnt++;
         }
         while (res.length<ccnt) {
             var p=res.length;
-            for (var n in classes) {/*ENVC*/
+            for ( n in classes) {/*ENVC*/
                 if (added[n]) continue;
                 var c=classes[n];/*ENVC*/
                 var spc=c.superclass;
@@ -56,7 +56,7 @@ return Tonyu.Project=function (dir, kernelDir) {
         }
         if (n) dumpn(n);
         else {
-            for (var n in env.classes) dumpn(n);
+            for ( n in env.classes) dumpn(n);
         }
     };
     TPR.stop=function () {
@@ -249,7 +249,7 @@ return Tonyu.Project=function (dir, kernelDir) {
         }
     };
     TPR.rawBoot=function (bootClassName) {
-        TPR.showProgress("Running "+bootClassName)
+        TPR.showProgress("Running "+bootClassName);
         Tonyu.run(bootClassName);
     };
 
@@ -326,4 +326,5 @@ return Tonyu.Project=function (dir, kernelDir) {
     return TPR;
 };
 if (typeof getReq=="function") getReq.exports("Tonyu.Project");
+return Tonyu.Project;
 });
