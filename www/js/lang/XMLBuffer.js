@@ -1,12 +1,12 @@
 // var b=XMLBuffer(src);
 // b(node);
 // console.log(b.buf);
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define(["Parser"],
-function(Parser) {
-XMLBuffer=function (src) {
+}*/
+define(["Parser","root"],
+function(Parser,root) {
+var XMLBuffer=function (src) {
 	var $;
 	$=function (node, attrName){
 		//console.log("genX: "+node+ " typeof = "+typeof node+"  pos="+node.pos+" attrName="+attrName+" ary?="+(node instanceof Array));
@@ -89,9 +89,9 @@ XMLBuffer.orderByPos=function (node) {
 			if (node[i]==null || typeof node[i]=="string" || typeof node[i]=="number") continue;
 			if (typeof(node[i].pos)!="number") continue;
 			if (isNaN(parseInt(i)) && !(i+"").match(/^-/)) {
-				res.push({name: i, value: node[i]}); 
+				res.push({name: i, value: node[i]});
 			} else {
-				res.push({value: node[i]}); 
+				res.push({value: node[i]});
 			}
 		}
 	//}
@@ -101,5 +101,6 @@ XMLBuffer.orderByPos=function (node) {
 	return res;
 };
 XMLBuffer.SUBELEMENTS="[SUBELEMENTS]";
+root.XMLBuffer=XMLBuffer;
 return XMLBuffer;
 });

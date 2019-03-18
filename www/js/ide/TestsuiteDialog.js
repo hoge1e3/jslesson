@@ -1,5 +1,5 @@
-define(["Klass","UI","assert","DateUtil","DeferredUtil"],
-function (Klass,UI,A,DateUtil,DU) {
+define(["Klass","UI","assert","DateUtil","DeferredUtil","WebSite"],
+function (Klass,UI,A,DateUtil,DU,WebSite) {
     var TestsuiteDialog=Klass.define({
         $this:"t",
         controller: "Testcase",

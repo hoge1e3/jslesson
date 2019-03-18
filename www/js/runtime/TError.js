@@ -1,8 +1,8 @@
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define([],function () {
-TError=function (mesg, src, pos) {
+}*/
+define(["root"],function (root) {
+var TError=function (mesg, src, pos) {
 	if (typeof src=="string") {
 		return {
 			isTError:true,
@@ -58,5 +58,6 @@ TError.calcRowCol=function (text,pos) {
 	}
 	return {row:row,col:col};
 };
+root.TError=TError;
 return TError;
 });

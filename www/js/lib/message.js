@@ -1,5 +1,5 @@
-define([],function () {
-    Message={};
+define(["root"],function (root) {
+    var Message={};
     Message.build=function () {
         var a=Array.prototype.slice.call(arguments);
         var format=a.shift();
@@ -11,5 +11,6 @@ define([],function () {
         });
         return format;
     };
+    root.Message=Message;
     return Message;
 });

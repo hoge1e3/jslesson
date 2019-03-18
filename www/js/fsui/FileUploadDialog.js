@@ -46,7 +46,7 @@ define(["FS","UI"],function (FS,UI) {
             );
         }
         function dropAdd(e) {
-            eo=e.originalEvent;
+            var eo=e.originalEvent;
             var files = Array.prototype.slice.call(eo.dataTransfer.files);
             var added=[],cnt=files.length;
 
@@ -61,7 +61,7 @@ define(["FS","UI"],function (FS,UI) {
                 }
                 var itemFile=dir.rel(itemName);
                 if (itemFile.exists()) {
-                    upmesg=itemName+": 同名のファイルがあるため中止しました．";
+                    var upmesg=itemName+": 同名のファイルがあるため中止しました．";
                     dec();
                     res.d.$vars.result.append(
                         UI("div",upmesg)

@@ -34,6 +34,6 @@ define(["UI"], function (UI) {
             d.dialog("close");
         };
         return d;
-    }
+    };
     return res;
 });

@@ -86,7 +86,7 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass) {
     }
     if (typeof sh=="object") sh.browser=function (f,options) {
         f=this.resolve(f,true);
-        var d=new $.Deferred;
+        var d=new $.Deferred();
         var place=$("<div>");
         this.echo(place);
         var ifrm=new LocalBrowser(place,options);

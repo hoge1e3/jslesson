@@ -1,5 +1,5 @@
-define([],function () {
-    RemoteProject={};
+define(["root"],function (root) {
+    var RemoteProject={};
     RemoteProject.url=function () {
         return "runDtl.php?"+Math.random();
     };
@@ -15,5 +15,6 @@ define([],function () {
 	        from:from+"/",to:to+"/"
 	    });
 	};
+    root.RemoteProject=RemoteProject;
 	return RemoteProject;
 });

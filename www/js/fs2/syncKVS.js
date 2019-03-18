@@ -245,7 +245,8 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
             }
             var upds=[];
             for (var i in uploads) upds.push(i);
-            return res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};
+            res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};
+            return res;
          });
     };
     return Sync;

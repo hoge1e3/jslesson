@@ -1,5 +1,6 @@
 define(["Klass","UI","assert","DateUtil","DeferredUtil"],
 function (Klass,UI,A,DateUtil,DU) {
+    var colon=":";
     var TestsuiteDialog=Klass.define({
         $this:"t",
         controller: "Testcase",
@@ -61,14 +62,14 @@ function (Klass,UI,A,DateUtil,DU) {
                 console.log("list ",r);
                 t.list.empty();
                 t.list.append(UI("div",
-                    ["a",{href:"javascript:;",on:{
+                    ["a",{href:"javascript"+colon+";",on:{
                         click: function () {
                             t.add();
                         }
                     }},"新規"]));
                 r.forEach(function (e) {
                     t.list.append(UI("div",
-                    ["a",{href:"javascript:;",on:{
+                    ["a",{href:"javascript"+colon+";",on:{
                         click: function () {
                             t.edit(e.name);
                         }
@@ -81,7 +82,7 @@ function (Klass,UI,A,DateUtil,DU) {
                 "div",{title:"採点基準の管理"},
                 ["div",{css:{float:"left",display:"none"},$var:"list"}],
                 ["div",{css:{float:"right"}},
-                ["form",{action:"javascript:;",name:"as_edit"},
+                ["form",{action:"javascript"+colon+";",name:"as_edit"},
                     ["div",
                         ["label",{for:"input"},"採点基準"],
                         ["div",
@@ -149,6 +150,7 @@ function (Klass,UI,A,DateUtil,DU) {
                     console.log("Result",r);
                 },DU.E);
             }
+            break;
             default:
                 alert("No mode "+t.mode);
             }

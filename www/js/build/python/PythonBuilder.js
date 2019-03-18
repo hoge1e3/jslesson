@@ -1,6 +1,6 @@
-define(["assert","DeferredUtil","wget", "IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator","PythonParser","PythonSemantics","PythonGen","Python2JS","ctrl"],
-function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl) {//<-dtl
-    PythonBuilder=function (prj, dst) {//<-Dtl
+define(["assert","DeferredUtil","wget", "IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator","PythonParser","PythonSemantics","PythonGen","Python2JS","ctrl","root","WebSite","TError"],
+function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,WebSite,TError) {//<-dtl
+    var PythonBuilder=function (prj, dst) {//<-Dtl
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
     };
@@ -25,14 +25,15 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl) {//<-dt
     };
     p.genHTML=function (f) {
         this.progress("generate "+f.src.html.name());
-        var dp=new DOMParser;
+        var dp=new DOMParser();
         var dom=dp.parseFromString(f.src.html.text(),"text/html");
         var html=dom.getElementsByTagName("html")[0];
         var head=dom.getElementsByTagName("head")[0];
         var body=dom.getElementsByTagName("body")[0];
         $(body).append($("<pre>").attr("id",'output'));
         $(head).append($("<meta>").attr("charset","UTF-8"));
-        if (window.BitArrow) {
+        if (root.BitArrow) {
+            var BitArrow=root.BitArrow;
             var ba={
                 version:BitArrow.version,
                 urlArgs:BitArrow.urlArgs,
@@ -52,6 +53,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl) {//<-dt
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
             var src2;
+            var requirejs=root.requirejs;
             if (FS.PathUtil.isURL(src) && requirejs.version!=="2.1.9" && typeof requirejs.s.contexts._.config.urlArgs==="function") {
                 src2=src+requirejs.s.contexts._.config.urlArgs("",src);
             } else {
@@ -108,9 +110,9 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl) {//<-dt
     p.compile=function (f) {
         var pysrcF=f.src.py;
         var runLocal=false,js;
-        var anon;
+        var anon,node;
         if (!superMode) {
-            var node=PP.parse(pysrcF);
+            node=PP.parse(pysrcF);
             try {
                 var vres=S.check(node);
                 //var gen=G(node);

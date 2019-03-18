@@ -4,9 +4,9 @@ define([],function () {
         var d=new Date();
 		var t=(new Date().getTime());
 		c+=1/time-t;
-		code={};
+		var code={};
 		code[lang]=codeL;
-		code["HTML"]=codeH;
+		code.HTML=codeH;
         if (detail instanceof Error) {
             var eobj={stack:detail.stack,message:detail+""};
             for (var k in detail) {

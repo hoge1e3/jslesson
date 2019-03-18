@@ -1,4 +1,4 @@
-define (["root"],function(root) {
+define (["FS","root"],function(FS,root) {
 function FileList(elem, options) {
     var _curDir=null;
     var _curFile=null;
@@ -126,7 +126,7 @@ function FileList(elem, options) {
     }
     function displayName(fname) {
         if (FL.on.displayName) return FL.on.displayName.apply(FL, arguments );
-        return f;
+        return fname;
     }
     function curFile() {
         return _curFile;

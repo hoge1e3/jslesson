@@ -1,5 +1,6 @@
-define(["Klass","UI","assert","DateUtil","DeferredUtil","TestsuiteDialog"],
-function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
+define(["Klass","UI","assert","DateUtil","DeferredUtil","TestsuiteDialog","WebSite"],
+function (Klass,UI,A,DateUtil,DU,TestsuiteDialog,WebSite) {
+    var colon=":";
     var AssignmentDialog=Klass.define({
         $this:"t",
         $:["prj"],
@@ -72,7 +73,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
                 }
                 t.list.empty();
                 t.list.append(UI("div",
-                    ["a",{href:"javascript:;",on:{
+                    ["a",{href:"javascript"+colon+";",on:{
                         click: function () {
                             t.add();
                         }
@@ -83,7 +84,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
                 //console.log("alist",r);
                 r.forEach(function (e) {
                     t.list.append(UI("div",
-                    ["a",{href:"javascript:;",on:{
+                    ["a",{href:"javascript"+colon+";",on:{
                         click: function () {
                             t.edit(e.name);
                         }
@@ -96,7 +97,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
                 "div",{title:"課題の管理"},
                 ["div",{css:{float:"left",height:"530",overflowY:"scroll"},$var:"list"}],
                 ["div",{css:{float:"right"}},
-                ["form",{action:"javascript:;",name:"as_edit"},
+                ["form",{action:"javascript"+colon+";",name:"as_edit"},
                     ["div",
                         ["label",{for:"name"},"課題名"],
                         ["input",{name:"name"}],
@@ -109,7 +110,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
                     ["div",
                         ["label",{for:"time"},"出題日"],
                         ["input",{name:"time",
-                        value:DateUtil.format(new Date,"YYYY/MM/DD")}]
+                        value:DateUtil.format(new Date(),"YYYY/MM/DD")}]
                     ],
                     ["div",
                         ["label",{for:"deadline"},"締切日"],

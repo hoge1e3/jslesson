@@ -136,7 +136,7 @@ define(["FS","Klass","source-map","DeferredUtil"], function (FS,Klass,S,DU) {
 				return onerror(message, source, lineno, colno,ex);
 				//if (window.onerror) window.onerror(message, source, lineno, colno,ex);
 			};
-		}, 
+		},
 		loadNode: function (f) {
             var dp=new DOMParser();
             var src=dp.parseFromString(f.text(),"text/html");
@@ -160,7 +160,7 @@ define(["FS","Klass","source-map","DeferredUtil"], function (FS,Klass,S,DU) {
 			var c=src.childNodes;
 			return DU.tryLoop(function (i){
 				var d;
-				if (!(i<c.length)) return DU.brk();
+				if (i>=c.length) return DU.brk();
 				var n=c[i];
 				switch (n.nodeType) {
 				case Node.ELEMENT_NODE:
@@ -179,15 +179,16 @@ define(["FS","Klass","source-map","DeferredUtil"], function (FS,Klass,S,DU) {
 						names.unshift("charset");
 					}
 					names.forEach(function (name) {
+						var colon=":";
 						var value=n.getAttribute(name);
 						if (n.tagName.toLowerCase()=="a" && name=="href" &&
 						FS.PathUtil.isRelativePath(value)) {
-							value="javascript:LocalBrowserInfo.open('"+value+"');";
+							value="javascript"+colon+"LocalBrowserInfo.open('"+value+"');";
 						}
 						if (name=="src") {
 							value=self.convertURL(value);
 							if (n.tagName.toLowerCase()=="script") {
-								d=new $.Deferred;
+								d=new $.Deferred();
 								nn.onload = nn.onreadystatechange = function() {
 									d.resolve(i+1);
 								};

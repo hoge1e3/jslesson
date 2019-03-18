@@ -1,9 +1,5 @@
-if (typeof define!=="function") {
-	define=require("requirejs").define;
-}
-
-define(["Parser"], function (Parser) {
-Grammar=function () {
+define(["Parser","root"], function (Parser, root) {
+var Grammar=function () {
 	var p=Parser;
 
 	var $=null;
@@ -40,12 +36,14 @@ Grammar=function () {
 						return "("+this.type+")";
 					};
 				}).setName(name);
-				return $.defs[name]=res;
+				$.defs[name]=res;
+				return res;
 			};
 			$$$.ret=function (f) {
 				if (arguments.length==0) return p;
 				if (typeof f=="function") {
-					return $.defs[name]=p.ret(f);
+					$.defs[name]=p.ret(f);
+					return $.defs[name];
 				}
 				var names=[];
 				var fn=function(e){return e;};
@@ -73,7 +71,8 @@ Grammar=function () {
 					};
 					return fn(res);
 				}).setName(name);
-				return  $.defs[name]=res;
+				$.defs[name]=res;
+				return res;
 			};
 			return $$$;
 		};
@@ -82,7 +81,8 @@ Grammar=function () {
 			for (var i=1 ; i<arguments.length ;i++) {
 				p=p.or( trans(arguments[i]) );
 			}
-			return $.defs[name]=p.setName(name);
+			$.defs[name]=p.setName(name);
+			return $.defs[name];
 		};
 		return $$;
 	};
@@ -98,6 +98,7 @@ Grammar=function () {
 	};
 	return $;
 };
+root.Grammar=Grammar;
 Grammar.SUBELEMENTS="[SUBELEMENTS]";
 return Grammar;
 });

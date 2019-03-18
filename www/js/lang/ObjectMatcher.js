@@ -1,8 +1,8 @@
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define([],function () {
-return ObjectMatcher=function () {
+}*/
+define(["root"],function (root) {
+var ObjectMatcher=function () {
 	var OM={};
 	var VAR="$var",THIZ="$this";
 	OM.v=v;
@@ -52,4 +52,6 @@ return ObjectMatcher=function () {
 	}
 	return OM;
 }();
+root.ObjectMatcher=ObjectMatcher;
+return ObjectMatcher;
 });

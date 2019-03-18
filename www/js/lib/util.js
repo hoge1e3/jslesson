@@ -1,13 +1,19 @@
+/* global global, self */
 (function () {
-    var root=(
-        typeof window!=="undefined" ? window :
-        typeof global!=="undefined" ? global : self);
+    // same with root.js
+    function getRoot(){
+        if (typeof window!=="undefined") return window;
+        if (typeof self!=="undefined") return self;
+        if (typeof global!=="undefined") return global;
+        return (function (){return this;})();
+    }
+    var root=getRoot();
 
 function getQueryString(key, default_)
 {
     if (arguments.length===1) default_="";
-    if (typeof LocalBrowserInfo==="object") {
-        return key in LocalBrowserInfo.params? LocalBrowserInfo.params[key] : default_;
+    if (root.LocalBrowserInfo==="object") {
+        return key in root.LocalBrowserInfo.params? root.LocalBrowserInfo.params[key] : default_;
     }
    key = key.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
    var regex = new RegExp("[\\?&]"+key+"=([^&#]*)");
@@ -33,7 +39,7 @@ function extend(d,s) {
 // From http://hakuhin.jp/js/base64.html#BASE64_DECODE_ARRAY_BUFFER
 function Base64_To_ArrayBuffer(base64){
     base64=base64.replace(/[\n=]/g,"");
-    var dic = new Object();
+    var dic = {};
     dic[0x41]= 0; dic[0x42]= 1; dic[0x43]= 2; dic[0x44]= 3; dic[0x45]= 4; dic[0x46]= 5; dic[0x47]= 6; dic[0x48]= 7; dic[0x49]= 8; dic[0x4a]= 9; dic[0x4b]=10; dic[0x4c]=11; dic[0x4d]=12; dic[0x4e]=13; dic[0x4f]=14; dic[0x50]=15;
     dic[0x51]=16; dic[0x52]=17; dic[0x53]=18; dic[0x54]=19; dic[0x55]=20; dic[0x56]=21; dic[0x57]=22; dic[0x58]=23; dic[0x59]=24; dic[0x5a]=25; dic[0x61]=26; dic[0x62]=27; dic[0x63]=28; dic[0x64]=29; dic[0x65]=30; dic[0x66]=31;
     dic[0x67]=32; dic[0x68]=33; dic[0x69]=34; dic[0x6a]=35; dic[0x6b]=36; dic[0x6c]=37; dic[0x6d]=38; dic[0x6e]=39; dic[0x6f]=40; dic[0x70]=41; dic[0x71]=42; dic[0x72]=43; dic[0x73]=44; dic[0x74]=45; dic[0x75]=46; dic[0x76]=47;
@@ -145,16 +151,17 @@ function Base64_From_ArrayBuffer(ary_buffer){
 function privatize(o){
     if (o.__privatized) return o;
     var res={__privatized:true};
+    function add(n) {
+        var m=o[n];
+        if (n.match(/^_/)) return;
+        if (typeof m!="function") return;
+        res[n]=function () {
+            var r=m.apply(o,arguments);
+            return r;
+        };
+    }
     for (var n in o) {
-        (function (n) {
-            var m=o[n];
-            if (n.match(/^_/)) return;
-            if (typeof m!="function") return;
-            res[n]=function () {
-                var r=m.apply(o,arguments);
-                return r;
-            };
-        })(n);
+        add(n);
     }
     return res;
 }
@@ -196,6 +203,7 @@ function str2utf8bytes(str, binType) {
 }
 */
 root.Util={
+    root:root,
     getQueryString:getQueryString,
     endsWith: endsWith, startsWith: startsWith,
     Base64_To_ArrayBuffer:Base64_To_ArrayBuffer,

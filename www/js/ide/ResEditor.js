@@ -1,7 +1,7 @@
-define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite"
-        ,"ImageDetailEditor","Util","Assets"],
+define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
+        "ImageDetailEditor","Util","Assets","root"],
         function (FS, Tonyu, UI,IL,Blob,Auth,WebSite,
-                ImageDetailEditor,Util,Assets) {
+                ImageDetailEditor,Util,Assets,root) {
     var ResEditor=function (prj, mediaType) {
         var mediaInfos={
                 image:{name:"画像",exts:["png","gif","jpg"],path:"images/",key:"images",
@@ -68,7 +68,7 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite"
                          ["button", {on:{click:function (){ d.dialog("close"); }}}, "完了"]
             ));
             function dropAdd(e) {
-                eo=e.originalEvent;
+                var eo=e.originalEvent;
                 var file = eo.dataTransfer.files[0];
                 var useBlob=WebSite.serverType=="BA" || WebSite.serverType=="GAE" && (file.size>1000*300);
                 if(!file.type.match(mediaInfo.contentType)) {
@@ -204,8 +204,8 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite"
                     if (!u) return;
                     var rtf=[];
                     items.forEach(function (item) {
-                        var a,ogg;
-                        if (a=Blob.isBlobURL(item.url)) {
+                        var a=Blob.isBlobURL(item.url),ogg;
+                        if (a) {
                             rtf.push(a.fileName);
                             ogg=a.fileName.replace(/\.(mp3|mp4|m4a)$/,".ogg");
                             if (ogg!=a.fileName) rtf.push(ogg);
@@ -256,7 +256,7 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite"
                 update();
                 cleanFiles();
                 if (mediaType=="sound") {
-                    OggConverter.convert(rsrcDir);
+                    root.OggConverter.convert(rsrcDir);
                 }
             }
         });

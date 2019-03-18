@@ -62,8 +62,8 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass,WebSite) {
     }
     if (typeof sh=="object") sh.browserw=function (f,options) {
         f=this.resolve(f,true);
-        var d=new $.Deferred;
-        this.echo(place);
+        var d=new $.Deferred();
+        //this.echo(place);
         var w=new LocalBrowserWindow(options);
         w.open(f,{onload:function () {
             d.resolve();

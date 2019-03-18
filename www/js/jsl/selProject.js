@@ -1,10 +1,10 @@
-requirejs(["FS","Shell","Shell2","ProjectCompiler",
+define(["FS","Shell","Shell2","ProjectCompiler",
            "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog","RenameProjectDialog",
            "assert","DeferredUtil","RemoteProject","SplashScreen",
        "ctrl"],
     function(FS, sh,sh2,TPRC,
            NPD, UI, Auth,zip,Sync,NSD,RPD,
-           A,DU,RemoteProject,Spla,
+           A,DU,RemoteProject,SplashScreen,
        ctrl) {
     if (location.href.match(/localhost/)) {
         A.setMode(A.MODE_STRICT);

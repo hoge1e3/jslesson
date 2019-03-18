@@ -1,4 +1,4 @@
-define(["UI"], function (UI) {
+define(["UI","FS"], function (UI,FS) {
     var res={};
 	res.show=function (prjInfo,from, onOK,options) {
     	var d=res.embed(prjInfo,from, onOK,options);

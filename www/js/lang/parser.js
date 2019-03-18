@@ -1,8 +1,8 @@
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define([],function() {
-return Parser=function () {
+}*/
+define(["root"],function(root) {
+var Parser=function () {
 	function extend(dst, src) {
 		var i;
 		for(i in src){
@@ -600,5 +600,6 @@ return Parser=function () {
 	};
 	return $;
 }();
-
+root.Parser=Parser;
+return Parser;
 });

@@ -14,11 +14,11 @@
 
 	});
 */
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define([],function () {
-return context=function () {
+}*/
+define(["root"],function (root) {
+root.context=function () {
 	var c={};
 	c.ovrFunc=function (from , to) {
 		to.parent=from;
@@ -34,8 +34,8 @@ return context=function () {
 	for (var k in c) { builtins[k]=true; }
 	return c;
 	function enter(val, act) {
-		var sv={};
-		for (var k in val) {
+		var sv={},k;
+		for (k in val) {
 			if (k.match(/^\$/)) {
 				k=RegExp.rightContext;
 				sv[k]=c[k];
@@ -46,10 +46,11 @@ return context=function () {
 			}
 		}
 		var res=act(c);
-		for (var k in sv) {
+		for (k in sv) {
 			c[k]=sv[k];
 		}
 		return res;
 	}
 };
+return root.context;
 });

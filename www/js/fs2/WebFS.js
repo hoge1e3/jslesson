@@ -6,7 +6,7 @@ define(["FS","jquery.binarytransport","DeferredUtil"],
     var WebFS=function (){};
     var p=WebFS.prototype=new FS.Class();
     FS.addFSType("web", function () {
-        return new WebFS;
+        return new WebFS();
     });
     p.fstype=function () {return "Web";};
     p.supportsSync=function () {return false;};

@@ -1,4 +1,4 @@
-define(["UI"], function (UI) {
+define(["UI","FS"], function (UI,FS) {
     var res={};
 	res.show=function (mesg,options) {
     	var d=res.embed(mesg,options);
@@ -41,7 +41,7 @@ define(["UI"], function (UI) {
         if (res.lastLine) {
             if (res.lastLine.$vars.mesg.text()===mesg) {
                 var ti=res.lastLine.$vars.times;
-                var c=ti.text();
+                c=ti.text();
                 if (!c) c="(2)";
                 else c="("+(c.replace(/\D/g,"")-(-1))+")";
                 ti.text(c);

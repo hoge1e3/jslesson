@@ -1,9 +1,9 @@
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define(["assert","Tonyu.Thread","Tonyu.Iterator","DeferredUtil"],
-		function (assert,TT,IT,DU) {
-return Tonyu=function () {
+}*/
+define(["assert","Tonyu.Thread","Tonyu.Iterator","DeferredUtil","root"],
+		function (assert,TT,IT,DU,root) {
+var Tonyu=function () {
 	var preemptionTime=60;
 	function thread() {
 		var t=new TT;
@@ -31,10 +31,11 @@ return Tonyu=function () {
 			throw e;
 		}
 	}
-	klass=function () {
+	var klass=function () {
 		alert("この関数は古くなりました。コンパイルをやり直してください。 Deprecated. compile again.");
 		throw new Error("この関数は古くなりました。コンパイルをやり直してください。 Deprecated. compile again.");
 	};
+	root.klass=klass;
 	klass.addMeta=addMeta;
 	function addMeta(fn,m) {
 		assert.is(arguments,[String,Object]);
@@ -294,7 +295,7 @@ return Tonyu=function () {
 		//Functi.... never mind.
 	}
 	setInterval(resetLoopCheck,16);
-	return Tonyu={thread:thread, /*threadGroup:threadGroup,*/ klass:klass, bless:bless, extend:extend,
+	return {thread:thread, /*threadGroup:threadGroup,*/ klass:klass, bless:bless, extend:extend,
 			globals:globals, classes:classes, classMetas:classMetas, setGlobal:setGlobal, getGlobal:getGlobal, getClass:getClass,
 			timeout:timeout,animationFrame:animationFrame, /*asyncResult:asyncResult,*/
 			bindFunc:bindFunc,not_a_tonyu_object:not_a_tonyu_object,
@@ -303,4 +304,6 @@ return Tonyu=function () {
 			VERSION:1503453200013,//EMBED_VERSION
 			A:A};
 }();
+root.Tonyu=Tonyu;
+return Tonyu;
 });

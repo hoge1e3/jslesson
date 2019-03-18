@@ -6,12 +6,12 @@ sys.load("js/IndentBuffer.js");
 sys.load("js/disp.js");
 sys.load("js/profiler.js");
 */
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define(["Grammar", "XMLBuffer", "IndentBuffer","disp", "Parser","TError"],
-function (Grammar, XMLBuffer, IndentBuffer, disp, Parser,TError) {
-return TT=function () {
+}*/
+define(["Grammar", "XMLBuffer", "IndentBuffer","disp", "Parser","TError","root"],
+function (Grammar, XMLBuffer, IndentBuffer, disp, Parser,TError,root) {
+var TT=function () {
 	function profileTbl(parser, name) {
 		var tbl=parser._first.tbl;
 		for (var c in tbl) {
@@ -294,5 +294,6 @@ return TT=function () {
 	}
 	return {parse:parse, extension:"js"};
 }();
-
+root.TT=TT;
+return TT;
 });

@@ -1,11 +1,11 @@
-if (typeof define!=="function") {//B
+/*if (typeof define!=="function") {//B
 	define=require("requirejs").define;
-}
+}*/
 define(["Tonyu", "Tonyu.Iterator", "TonyuLang", "ObjectMatcher", "TError", "IndentBuffer",
 		"context", "Visitor","Tonyu.Compiler"],
 function(Tonyu, Tonyu_iterator, TonyuLang, ObjectMatcher, TError, IndentBuffer,
 		context, Visitor,cu) {
-return cu.Semantics=(function () {
+cu.Semantics=(function () {
 /*var ScopeTypes={FIELD:"field", METHOD:"method", NATIVE:"native",//B
 		LOCAL:"local", THVAR:"threadvar", PARAM:"param", GLOBAL:"global", CLASS:"class"};*/
 var ScopeTypes=cu.ScopeTypes;
@@ -664,5 +664,6 @@ function annotateSource2(klass, env) {//B
 }//B  end of annotateSource2
 return {initClassDecls:initClassDecls, annotate:annotateSource2};
 })();
+return cu.Semantics;
 //if (typeof getReq=="function") getReq.exports("Tonyu.Compiler");
 });

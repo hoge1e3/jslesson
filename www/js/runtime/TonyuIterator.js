@@ -112,7 +112,7 @@ define(["Klass"], function (Klass) {
 			console.log(set);
 			throw new Error(set+" is not iterable");
 		}
-		return res;
+		//return res;
 	}
 
 //   Tonyu.iterator=IT;

@@ -1,11 +1,11 @@
-if (typeof define!=="function") {//B
+/*if (typeof define!=="function") {//B
 	define=require("requirejs").define;
-}
+}*/
 define(["Tonyu", "Tonyu.Iterator", "TonyuLang", "ObjectMatcher", "TError", "IndentBuffer",
 		"context", "Visitor","Tonyu.Compiler","assert"],
 function(Tonyu, Tonyu_iterator, TonyuLang, ObjectMatcher, TError, IndentBuffer,
 		context, Visitor,cu,A) {
-return cu.JSGenerator=(function () {
+cu.JSGenerator=(function () {
 // TonyuソースファイルをJavascriptに変換する
 var TH="_thread",THIZ="_this", ARGS="_arguments",FIBPRE="fiber$", FRMPC="__pc", LASTPOS="$LASTPOS",CNTV="__cnt",CNTC=100;//G
 var BINDF="Tonyu.bindFunc";
@@ -125,7 +125,7 @@ function genJS(klass, env) {//B
 		};
 	}
 	var THNode={type:"THNode"};//G
-	v=buf.visitor=Visitor({//G
+	var v=buf.visitor=Visitor({//G
 		THNode: function (node) {
 			buf.printf(TH);
 		},
@@ -172,7 +172,7 @@ function genJS(klass, env) {//B
 			}
 		},
 		program: function (node) {
-			genClass(node.stmts);
+			//genClass(node.stmts);
 		},
 		number: function (node) {
 			buf.printf("%s", node.value );
@@ -247,7 +247,7 @@ function genJS(klass, env) {//B
 			var si=varAccess(n,annotation(node).scopeInfo, annotation(node));
 		},
 		exprstmt: function (node) {//exprStmt
-			var t={};
+			var t={},p;
 			lastPosF(node)();
 			if (!ctx.noWait) {
 				t=annotation(node).fiberCall || {};
@@ -273,7 +273,7 @@ function genJS(klass, env) {//B
 							t.L, t.O, TH
 				);
 			} else if (t.type=="noRetSuper") {
-				var p=getClassName(klass.superclass);
+				 p=getClassName(klass.superclass);
 					buf.printf(
 							"%s.prototype.%s%s.apply( %s, [%j]);%n" +
 							"%s=%s;return;%n" +/*B*/
@@ -283,6 +283,7 @@ function genJS(klass, env) {//B
 								ctx.pc++
 					);
 			} else if (t.type=="retSuper") {
+				p=getClassName(klass.superclass);
 					buf.printf(
 							"%s.prototype.%s%s.apply( %s, [%j]);%n" +
 							"%s=%s;return;%n" +/*B*/
@@ -1067,5 +1068,6 @@ function genJS(klass, env) {//B
 }//B
 return {genJS:genJS};
 })();
+return cu.JSGenerator;
 //if (typeof getReq=="function") getReq.exports("Tonyu.Compiler");
 });

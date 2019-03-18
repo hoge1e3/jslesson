@@ -1,7 +1,7 @@
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define(["assert","source-map"],function (A, S) {
+}*/
+define(["assert","source-map","root"],function (A, S,root) {
 var Pos2RC=function (src) {
 	var $={};
 	var map=[];
@@ -33,7 +33,7 @@ var Pos2RC=function (src) {
 	};
 	return $;
 };
-return IndentBuffer=function (options) {
+var IndentBuffer=function (options) {
 	options=options||{};
 	var $=function () {
 		var args=arguments;
@@ -281,4 +281,6 @@ return IndentBuffer=function (options) {
 	};
 	return $;
 };
+root.IndentBuffer=IndentBuffer;
+return IndentBuffer;
 });

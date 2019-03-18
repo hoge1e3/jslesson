@@ -1,4 +1,4 @@
-TextEditor=function (elem, options) {
+window.TextEditor=function (elem, options) {
     var fn=$("<div>");
     var text=$("<textarea>").css({width:"100%", height:"100px"});
     var height;

@@ -1,5 +1,5 @@
-define(["UI","Klass","DeferredUtil"],
-function (UI,Klass,DU){
+define(["UI","Klass","DeferredUtil","WebSite"],
+function (UI,Klass,DU,WebSite){
     var SubmitDialog=Klass.define({
         $this:"t",
         $: function (t,prj) {

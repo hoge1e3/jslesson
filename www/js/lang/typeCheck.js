@@ -1,8 +1,8 @@
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define(["Visitor"],function (Visitor) {
-TypeCheck=function () {
+}*/
+define(["Visitor","root"],function (Visitor,root) {
+var TypeCheck=function () {
 	var ex={"[SUBELEMENTS]":1,pos:1,len:1};
 
 
@@ -29,5 +29,6 @@ TypeCheck=function () {
 		return buf;
 	}
 };
+root.TypeCheck=TypeCheck;
 return TypeCheck;
 });

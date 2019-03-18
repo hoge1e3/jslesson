@@ -1,6 +1,6 @@
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
+}*/
 
 /*
 * Tonyu2 の構文解析を行う．
@@ -8,10 +8,10 @@ if (typeof define!=="function") {
 *   - srcを解析して構文木を返す．構文エラーがあれば例外を投げる．
 */
 define(["Grammar", "XMLBuffer", "IndentBuffer", "TT",
-		"disp", "Parser", "ExpressionParser", "TError"],
+		"disp", "Parser", "ExpressionParser", "TError","root"],
 function (Grammar, XMLBuffer, IndentBuffer, TT,
-		disp, Parser, ExpressionParser, TError) {
-return TonyuLang=function () {
+		disp, Parser, ExpressionParser, TError,root) {
+var TonyuLang=function () {
 	var p=Parser;
 	var $={};
 	var g=Grammar();
@@ -292,5 +292,6 @@ return TonyuLang=function () {
 	$.extension="tonyu";
 	return $;
 }();
-
+root.TonyuLang=TonyuLang;
+return TonyuLang;
 });

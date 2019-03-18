@@ -1,7 +1,8 @@
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define(["Visitor","Tonyu.Compiler","context"],function (Visitor,cu,context) {
+}*/
+define(["Visitor","Tonyu.Compiler","context","Grammar"],
+function (Visitor,cu,context,Grammar) {
 	var ex={"[SUBELEMENTS]":1,pos:1,len:1};
 	var ScopeTypes=cu.ScopeTypes;
 	var genSt=cu.newScopeType;

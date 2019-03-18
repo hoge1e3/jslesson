@@ -1,4 +1,4 @@
-define(["UI","BAProject"], function (UI,BAProject) {
+define(["UI","BAProject","FS"], function (UI,BAProject,FS) {
     var res={};
 	res.show=function (prjInfo, onOK,options) {
     	var d=res.embed(prjInfo,onOK,options);

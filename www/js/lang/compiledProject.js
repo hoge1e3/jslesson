@@ -19,7 +19,7 @@ define(["DeferredUtil","WebSite","assert"], function (DU,WebSite,A) {
 			},
 			loadClasses: function (ctx) {
 				console.log("Load compiled classes ns=",ns,"url=",url);
-				var d=new $.Deferred;
+				var d=new $.Deferred();
 				var head = document.getElementsByTagName("head")[0] || document.documentElement;
 				var script = document.createElement("script");
 				script.src = url+(WebSite.serverType==="BA"?"?"+Math.random():"");
@@ -32,7 +32,7 @@ define(["DeferredUtil","WebSite","assert"], function (DU,WebSite,A) {
 						if ( head && script.parentNode ) {
 							head.removeChild( script );
 						}
-						console.log("Done Load compiled classes ns=",ns,"url=",url,Tonyu.classes);
+						console.log("Done Load compiled classes ns=",ns,"url=",url);//,Tonyu.classes);
 						//same as projectCompiler (XXXX)
 						/*var cls=Tonyu.classes;
 						ns.split(".").forEach(function (c) {
@@ -56,7 +56,7 @@ define(["DeferredUtil","WebSite","assert"], function (DU,WebSite,A) {
 				});
 				return d.promise();
 			}
-		}
+		};
 	};
 	return CPR;
 });

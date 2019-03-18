@@ -30,8 +30,8 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
         function diffTree(a,b) {
             console.log("diff",a,b);
             for (var k in unionKeys(a,b)) {
-                if (!k in a) console.log(k," is not in a",k[b]);
-                if (!k in b) console.log(k," is not in b",k[a]);
+                if (!(k in a)) console.log(k," is not in a",k[b]);
+                if (!(k in b)) console.log(k," is not in b",k[a]);
                 if (typeof k[a]=="object" && typeof k[b]=="object") {
                     diffTree(k[a],k[b]);
                 } else {
@@ -144,7 +144,7 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
             var d;
             if (options.v) sh.echo("getDirInfo",gd);
             if (gd.NOT_LOGGED_IN) {
-                d = new $.Deferred;
+                d = new $.Deferred();
                 setTimeout(function(){
                   d.reject(Sync.NOT_LOGGED_IN);
                 }, 0);
@@ -156,8 +156,8 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
             var remoteDelta=getDelta(lastRemoteDirInfo, curRemoteDirInfo);
             if (options.v) sh.echo("remoteDelta",remoteDelta);
             var dd=getDeltaDelta(localDelta,remoteDelta);
-            var o,f,m;
-            for (var key in dd.local) {
+            var o,f,m,key;
+            for (key in dd.local) {
                  f=local.rel(key);
                  if (f.isDir()) continue;
                  o={};
@@ -167,7 +167,7 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
                  uploads[key]=o;
                  if (options.v) sh.echo("Upload",key,m);
             }
-            for (var key in dd.remote) {
+            for (key in dd.remote) {
                 downloads.push(key);
                 //if (PathUtil.isDir(key)) continue;  //Not avail
                 if (options.v)
@@ -238,7 +238,8 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
             }
             var upds=[];
             for (var i in uploads) upds.push(i);
-            return res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};
+            res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};
+            return res;
         });
     };
     sh.rsh=function () {

@@ -101,7 +101,7 @@ class Grammar {
                 if (e.constructor===Object) {
                     const tnames=[];
                     for (let k in e) {
-                        tnames.push(k)
+                        tnames.push(k);
                     }
                     assert(tnames.length===1,"Invalid expr ",expr);
                     assert(tnames[0]!=="type", "Cannot use the name 'type' as an attribute name", expr);
@@ -131,7 +131,7 @@ class Grammar {
         }
         assert.fail("Invalid expr",expr);
     }
-};
+}
 //const testf=(...{a,b})=>a+b;
 const methods=["opt","rep0","rep1","sep0","sep1","except"];
 const p=Grammar.prototype;

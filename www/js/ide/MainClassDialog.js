@@ -14,7 +14,7 @@ define(["UI"],function (UI) {
                           ["div", {$var:"validationMessage", css:{color:"red"}}],
                           ["button", {$var:"OKButton", on:{click: function () {
                               res.d.done();
-                          }}}, "OK"]
+                          }}}, "OK"],
                           ["button", {$var:"RunButton", on:{click: function () {
                               res.d.run();
                           }}}, "実行"]

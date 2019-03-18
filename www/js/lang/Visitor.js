@@ -1,8 +1,8 @@
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define([],function (){
-return Visitor = function (funcs) {
+}*/
+define(["root"],function (root){
+var Visitor = function (funcs) {
 	var $={funcs:funcs, path:[]};
 	$.visit=function (node) {
 		try {
@@ -32,4 +32,6 @@ return Visitor = function (funcs) {
 	};
 	return $;
 };
+root.Visitor=Visitor;
+return Visitor;
 });
