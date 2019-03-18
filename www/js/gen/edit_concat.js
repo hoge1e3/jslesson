@@ -1,9 +1,14 @@
 //(function (){
 /* global global, self */
 (function () {
-    var root=(
-        typeof window!=="undefined" ? window :
-        typeof global!=="undefined" ? global : self);
+    // same with root.js
+    function getRoot(){
+        if (typeof window!=="undefined") return window;
+        if (typeof self!=="undefined") return self;
+        if (typeof global!=="undefined") return global;
+        return (function (){return this;})();
+    }
+    var root=getRoot();
 
 function getQueryString(key, default_)
 {
@@ -199,6 +204,7 @@ function str2utf8bytes(str, binType) {
 }
 */
 root.Util={
+    root:root,
     getQueryString:getQueryString,
     endsWith: endsWith, startsWith: startsWith,
     Base64_To_ArrayBuffer:Base64_To_ArrayBuffer,
@@ -3609,6 +3615,7 @@ define('FS',["FSClass","NativeFS","LSFS", "WebFS", "PathUtil","Env","assert","SF
 });
 //})(window);
 
+/*global process*/
 define('WebSite',[], function () {
 	if (typeof document==="undefined") {
 		// node?;
@@ -3643,7 +3650,7 @@ define('WebSite',[], function () {
 	WS.tonyuHome="/Tonyu/";//changeHOME
 	WS.JSLKer="runtime/lib/tjs/kernel.js";
 	//WS.JSLKer="fs/Tonyu/Projects/JSLKer";
-	WS.serverTop=location.href.replace(/\?.*$/,"").replace(/[^/]*$/,"");//"."; // includes /
+	WS.serverTop=location.href.replace(/\?.*$/,"").replace(/[^\/]*$/,"");//"."; // includes /
 	WS.phpTop=WS.serverTop+"";//php/";
 	WS.url={
 		getDirInfo:WS.serverTop+"?getDirInfo",
@@ -3673,7 +3680,7 @@ define('WebSite',[], function () {
 			"images/sound_wav.png":WS.runtime+"images/sound_wav.png",
 			"images/ecl.png":WS.runtime+"images/ecl.png"
 	};
-	WebSite.compiledKernel=WebSite.runtime+"/lib/tonyu/kernel.js";
+	WS.compiledKernel=WS.runtime+"/lib/tonyu/kernel.js";
 	/*if (WS.isNW) {
 		if (process.env.TONYU_HOME) {
 			WS.tonyuHome=process.env.TONYU_HOME.replace(/\\/g,"/");
@@ -3698,7 +3705,7 @@ define('root',[],function (){
     return (function (){return this;})();
 });
 
-define ('FileList',["root"],function(root) {
+define ('FileList',["FS","root"],function(FS,root) {
 function FileList(elem, options) {
     var _curDir=null;
     var _curFile=null;
@@ -3826,7 +3833,7 @@ function FileList(elem, options) {
     }
     function displayName(fname) {
         if (FL.on.displayName) return FL.on.displayName.apply(FL, arguments );
-        return f;
+        return fname;
     }
     function curFile() {
         return _curFile;
@@ -3910,15 +3917,16 @@ define('UI',["Util","exceptionCatcher"],function (Util, EC) {
         $edits.validator={
        		errors:{},
        		show: function () {
+                var name;
        			if ($vars.validationMessage) {
        				$vars.validationMessage.empty();
-       				for (var name in this.errors) {
+       				for (name in this.errors) {
        					$vars.validationMessage.append(UI("div", this.errors[name].mesg));
        				}
        			}
        			if ($vars.OKButton) {
        				var ok=true;
-       				for (var name in this.errors) {
+       				for (name in this.errors) {
        					ok=false;
        				}
        				$vars.OKButton.attr("disabled", !ok);
@@ -5377,8 +5385,8 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
         function diffTree(a,b) {
             console.log("diff",a,b);
             for (var k in unionKeys(a,b)) {
-                if (!k in a) console.log(k," is not in a",k[b]);
-                if (!k in b) console.log(k," is not in b",k[a]);
+                if (!(k in a)) console.log(k," is not in a",k[b]);
+                if (!(k in b)) console.log(k," is not in b",k[a]);
                 if (typeof k[a]=="object" && typeof k[b]=="object") {
                     diffTree(k[a],k[b]);
                 } else {
@@ -5491,7 +5499,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             var d;
             if (options.v) sh.echo("getDirInfo",gd);
             if (gd.NOT_LOGGED_IN) {
-                d = new $.Deferred;
+                d = new $.Deferred();
                 setTimeout(function(){
                   d.reject(Sync.NOT_LOGGED_IN);
                 }, 0);
@@ -5503,8 +5511,8 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             var remoteDelta=getDelta(lastRemoteDirInfo, curRemoteDirInfo);
             if (options.v) sh.echo("remoteDelta",remoteDelta);
             var dd=getDeltaDelta(localDelta,remoteDelta);
-            var o,f,m;
-            for (var key in dd.local) {
+            var o,f,m,key;
+            for (key in dd.local) {
                  f=local.rel(key);
                  if (f.isDir()) continue;
                  o={};
@@ -5514,7 +5522,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                  uploads[key]=o;
                  if (options.v) sh.echo("Upload",key,m);
             }
-            for (var key in dd.remote) {
+            for (key in dd.remote) {
                 downloads.push(key);
                 //if (PathUtil.isDir(key)) continue;  //Not avail
                 if (options.v)
@@ -5585,7 +5593,8 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             }
             var upds=[];
             for (var i in uploads) upds.push(i);
-            return res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};
+            res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};
+            return res;
         });
     };
     sh.rsh=function () {
@@ -8960,7 +8969,7 @@ define('LocalBrowserInfoClass',["FS","Klass","source-map","DeferredUtil"], funct
 				return onerror(message, source, lineno, colno,ex);
 				//if (window.onerror) window.onerror(message, source, lineno, colno,ex);
 			};
-		}, 
+		},
 		loadNode: function (f) {
             var dp=new DOMParser();
             var src=dp.parseFromString(f.text(),"text/html");
@@ -8984,7 +8993,7 @@ define('LocalBrowserInfoClass',["FS","Klass","source-map","DeferredUtil"], funct
 			var c=src.childNodes;
 			return DU.tryLoop(function (i){
 				var d;
-				if (!(i<c.length)) return DU.brk();
+				if (i>=c.length) return DU.brk();
 				var n=c[i];
 				switch (n.nodeType) {
 				case Node.ELEMENT_NODE:
@@ -9003,15 +9012,16 @@ define('LocalBrowserInfoClass',["FS","Klass","source-map","DeferredUtil"], funct
 						names.unshift("charset");
 					}
 					names.forEach(function (name) {
+						var colon=":";
 						var value=n.getAttribute(name);
 						if (n.tagName.toLowerCase()=="a" && name=="href" &&
 						FS.PathUtil.isRelativePath(value)) {
-							value="javascript:LocalBrowserInfo.open('"+value+"');";
+							value="javascript"+colon+"LocalBrowserInfo.open('"+value+"');";
 						}
 						if (name=="src") {
 							value=self.convertURL(value);
 							if (n.tagName.toLowerCase()=="script") {
-								d=new $.Deferred;
+								d=new $.Deferred();
 								nn.onload = nn.onreadystatechange = function() {
 									d.resolve(i+1);
 								};
@@ -9127,7 +9137,7 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass) {
     }
     if (typeof sh=="object") sh.browser=function (f,options) {
         f=this.resolve(f,true);
-        var d=new $.Deferred;
+        var d=new $.Deferred();
         var place=$("<div>");
         this.echo(place);
         var ifrm=new LocalBrowser(place,options);
@@ -9205,8 +9215,8 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass,WebSite) {
     }
     if (typeof sh=="object") sh.browserw=function (f,options) {
         f=this.resolve(f,true);
-        var d=new $.Deferred;
-        this.echo(place);
+        var d=new $.Deferred();
+        //this.echo(place);
         var w=new LocalBrowserWindow(options);
         w.open(f,{onload:function () {
             d.resolve();
@@ -9385,9 +9395,9 @@ define('logToServer2',[],function () {
         var d=new Date();
 		var t=(new Date().getTime());
 		c+=1/time-t;
-		code={};
+		var code={};
 		code[lang]=codeL;
-		code["HTML"]=codeH;
+		code.HTML=codeH;
         if (detail instanceof Error) {
             var eobj={stack:detail.stack,message:detail+""};
             for (var k in detail) {
@@ -9902,11 +9912,11 @@ define('DistributeDialog',["UI"], function (UI) {
             d.dialog("close");
         };
         return d;
-    }
+    };
     return res;
 });
 
-define('NotificationDialog',["UI"], function (UI) {
+define('NotificationDialog',["UI","FS"], function (UI,FS) {
     var res={};
 	res.show=function (mesg,options) {
     	var d=res.embed(mesg,options);
@@ -9949,7 +9959,7 @@ define('NotificationDialog',["UI"], function (UI) {
         if (res.lastLine) {
             if (res.lastLine.$vars.mesg.text()===mesg) {
                 var ti=res.lastLine.$vars.times;
-                var c=ti.text();
+                c=ti.text();
                 if (!c) c="(2)";
                 else c="("+(c.replace(/\D/g,"")-(-1))+")";
                 ti.text(c);
@@ -10077,6 +10087,7 @@ define('DateUtil',[],function (){
 
 define('TestsuiteDialog',["Klass","UI","assert","DateUtil","DeferredUtil"],
 function (Klass,UI,A,DateUtil,DU) {
+    var colon=":";
     var TestsuiteDialog=Klass.define({
         $this:"t",
         controller: "Testcase",
@@ -10138,14 +10149,14 @@ function (Klass,UI,A,DateUtil,DU) {
                 console.log("list ",r);
                 t.list.empty();
                 t.list.append(UI("div",
-                    ["a",{href:"javascript:;",on:{
+                    ["a",{href:"javascript"+colon+";",on:{
                         click: function () {
                             t.add();
                         }
                     }},"新規"]));
                 r.forEach(function (e) {
                     t.list.append(UI("div",
-                    ["a",{href:"javascript:;",on:{
+                    ["a",{href:"javascript"+colon+";",on:{
                         click: function () {
                             t.edit(e.name);
                         }
@@ -10158,7 +10169,7 @@ function (Klass,UI,A,DateUtil,DU) {
                 "div",{title:"採点基準の管理"},
                 ["div",{css:{float:"left",display:"none"},$var:"list"}],
                 ["div",{css:{float:"right"}},
-                ["form",{action:"javascript:;",name:"as_edit"},
+                ["form",{action:"javascript"+colon+";",name:"as_edit"},
                     ["div",
                         ["label",{for:"input"},"採点基準"],
                         ["div",
@@ -10226,6 +10237,7 @@ function (Klass,UI,A,DateUtil,DU) {
                     console.log("Result",r);
                 },DU.E);
             }
+            break;
             default:
                 alert("No mode "+t.mode);
             }
@@ -10247,8 +10259,9 @@ function (Klass,UI,A,DateUtil,DU) {
     return TestsuiteDialog;
 });
 
-define('AssignmentDialog',["Klass","UI","assert","DateUtil","DeferredUtil","TestsuiteDialog"],
-function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
+define('AssignmentDialog',["Klass","UI","assert","DateUtil","DeferredUtil","TestsuiteDialog","WebSite"],
+function (Klass,UI,A,DateUtil,DU,TestsuiteDialog,WebSite) {
+    var colon=":";
     var AssignmentDialog=Klass.define({
         $this:"t",
         $:["prj"],
@@ -10321,7 +10334,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
                 }
                 t.list.empty();
                 t.list.append(UI("div",
-                    ["a",{href:"javascript:;",on:{
+                    ["a",{href:"javascript"+colon+";",on:{
                         click: function () {
                             t.add();
                         }
@@ -10332,7 +10345,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
                 //console.log("alist",r);
                 r.forEach(function (e) {
                     t.list.append(UI("div",
-                    ["a",{href:"javascript:;",on:{
+                    ["a",{href:"javascript"+colon+";",on:{
                         click: function () {
                             t.edit(e.name);
                         }
@@ -10345,7 +10358,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
                 "div",{title:"課題の管理"},
                 ["div",{css:{float:"left",height:"530",overflowY:"scroll"},$var:"list"}],
                 ["div",{css:{float:"right"}},
-                ["form",{action:"javascript:;",name:"as_edit"},
+                ["form",{action:"javascript"+colon+";",name:"as_edit"},
                     ["div",
                         ["label",{for:"name"},"課題名"],
                         ["input",{name:"name"}],
@@ -10358,7 +10371,7 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
                     ["div",
                         ["label",{for:"time"},"出題日"],
                         ["input",{name:"time",
-                        value:DateUtil.format(new Date,"YYYY/MM/DD")}]
+                        value:DateUtil.format(new Date(),"YYYY/MM/DD")}]
                     ],
                     ["div",
                         ["label",{for:"deadline"},"締切日"],
@@ -10469,8 +10482,8 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog) {
     return AssignmentDialog;
 });
 
-define('SubmitDialog',["UI","Klass","DeferredUtil"],
-function (UI,Klass,DU){
+define('SubmitDialog',["UI","Klass","DeferredUtil","WebSite"],
+function (UI,Klass,DU,WebSite){
     var SubmitDialog=Klass.define({
         $this:"t",
         $: function (t,prj) {
@@ -10643,7 +10656,7 @@ define('BAProject',["Klass","DeferredUtil"],function (Klass,DU) {
     });
 });
 
-define('NewProjectDialog',["UI","BAProject"], function (UI,BAProject) {
+define('NewProjectDialog',["UI","BAProject","FS"], function (UI,BAProject,FS) {
     var res={};
 	res.show=function (prjInfo, onOK,options) {
     	var d=res.embed(prjInfo,onOK,options);

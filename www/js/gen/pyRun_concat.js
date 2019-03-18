@@ -84,11 +84,19 @@
 	R.modules={};
 	//requireSimulator=R;
 //----------
-if (typeof define!=="function") {
+/*global window,self,global*/
+define('root',[],function (){
+    if (typeof window!=="undefined") return window;
+    if (typeof self!=="undefined") return self;
+    if (typeof global!=="undefined") return global;
+    return (function (){return this;})();
+});
+
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define('Parser',[],function() {
-return Parser=function () {
+}*/
+define('Parser',["root"],function(root) {
+var Parser=function () {
 	function extend(dst, src) {
 		var i;
 		for(i in src){
@@ -686,7 +694,8 @@ return Parser=function () {
 	};
 	return $;
 }();
-
+root.Parser=Parser;
+return Parser;
 });
 
 /*global global*/
@@ -885,13 +894,13 @@ define('assert',[],function () {
     return assert;
 });
 
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
+}*/
 
-define('ExpressionParser',["Parser"], function (Parser) {
+define('ExpressionParser',["Parser","root"], function (Parser,root) {
 // parser.js の補助ライブラリ．式の解析を担当する
-return ExpressionParser=function () {
+var ExpressionParser=function () {
 	var $={};
 	var EXPSTAT="EXPSTAT";
 	//  first 10     *  +  <>  &&  ||  =     0  later
@@ -900,7 +909,7 @@ return ExpressionParser=function () {
 		$.eq=function (o) {return type==o.type() && prio==o.prio(); };
 		$.type=function (t) { if (!t) return type; else return t==type;};
 		$.prio=function () {return prio;};
-		$.toString=function () {return "["+type+":"+prio+"]"; }
+		$.toString=function () {return "["+type+":"+prio+"]"; };
 		return $;
 	}
 	function composite(a) {
@@ -971,7 +980,7 @@ return ExpressionParser=function () {
 	};
 	$.mkInfix.def=function (left,op,right) {
 		return Parser.setRange({type:"infix", op:op, left: left, right: right});
-	}
+	};
 	$.mkInfixl=function (f) {
 		$.mkInfixl.def=f;
 	};
@@ -1012,12 +1021,12 @@ return ExpressionParser=function () {
 	};
 	function dump(st, lbl) {
 		return ;
-		var s=st.src.str;
+		/*var s=st.src.str;
 		console.log("["+lbl+"] "+s.substring(0,st.pos)+"^"+s.substring(st.pos)+
-				" opType="+ st.opType+"  Succ = "+st.isSuccess()+" res="+st.result[0]);
+				" opType="+ st.opType+"  Succ = "+st.isSuccess()+" res="+st.result[0]);*/
 	}
 	function parse(minPrio, st) {
-		var stat=0, res=st ,  opt;
+		var stat=0, res=st ,  opt,/*const*/pex,inf;
 		dump(st," start minprio= "+minPrio);
 		st=prefixOrElement.parse(st);
 		dump(st," prefixorelem "+minPrio);
@@ -1034,7 +1043,7 @@ return ExpressionParser=function () {
 				return st;
 			}
 				// st: Expr    st.pos = -elem^
-			var pex=$.mkPrefix.def(pre, st.result[0]);
+			pex=$.mkPrefix.def(pre, st.result[0]);
 			res=st.clone();  //  res:Expr
 			res.result=[pex]; // res:prefixExpr  res.pos= -elem^
 			if (!st.nextPostfixOrInfix) {
@@ -1061,7 +1070,7 @@ return ExpressionParser=function () {
 			// assert st:postfixOrInfix  res:Expr
 			if (opt.type("postfix")) {
 				// st:postfix
-				var pex=$.mkPostfix.def(res.result[0],st.result[0]);
+				pex=$.mkPostfix.def(res.result[0],st.result[0]);
 				res=st.clone();
 				res.result=[pex]; // res.pos= expr++^
 				dump(st, "185");
@@ -1071,13 +1080,13 @@ return ExpressionParser=function () {
 				}
 			} else if (opt.type("infixl")){  //x+y+z
 				// st: infixl
-				var inf=st.result[0];
+				inf=st.result[0];
 				st=parse(opt.prio()+1, st);
 				if (!st.isSuccess()) {
 					return res;
 				}
 				// st: expr   st.pos=  expr+expr^
-				var pex=$.mkInfixl.def(res.result[0], inf , st.result[0]);
+				pex=$.mkInfixl.def(res.result[0], inf , st.result[0]);
 				res=st.clone();
 				res.result=[pex]; //res:infixlExpr
 				if (!st.nextPostfixOrInfix) {
@@ -1086,13 +1095,13 @@ return ExpressionParser=function () {
 				st=st.nextPostfixOrInfix;
 			} else if (opt.type("infixr")) { //a=^b=c
 				// st: infixr
-				var inf=st.result[0];
+				inf=st.result[0];
 				st=parse(opt.prio() ,st);
 				if (!st.isSuccess()) {
 					return res;
 				}
 				// st: expr   st.pos=  a=b=c^
-				var pex=$.mkInfixr.def(res.result[0], inf , st.result[0]);
+				pex=$.mkInfixr.def(res.result[0], inf , st.result[0]);
 				res=st.clone();
 				res.result=[pex]; //res:infixrExpr
 				if (!st.nextPostfixOrInfix) {
@@ -1109,7 +1118,7 @@ return ExpressionParser=function () {
 				}
 				// st= expr   st.pos=  left?mid^:right
 				var mid=st.result[0];
-				var st=trifixes[opt.prio()].parse(st);
+				st=trifixes[opt.prio()].parse(st);
 				// st= :      st.pos= left?mid:^right;
 				if (!st.isSuccess()) {
 					return res;
@@ -1121,7 +1130,7 @@ return ExpressionParser=function () {
 				}
 				var right=st.result[0];
 				// st=right      st.pos= left?mid:right^;
-				var pex=$.mkTrifixr.def(left, inf1 , mid, inf2, right);
+				pex=$.mkTrifixr.def(left, inf1 , mid, inf2, right);
 				res=st.clone();
 				res.result=[pex]; //res:infixrExpr
 				if (!st.nextPostfixOrInfix) {
@@ -1130,13 +1139,13 @@ return ExpressionParser=function () {
 				st=st.nextPostfixOrInfix;
 			} else { // infix
 				// st: infixl
-				var inf=st.result[0];
+				inf=st.result[0];
 				st=parse(opt.prio()+1 ,st);
 				if (!st.isSuccess()) {
 					return res;
 				}
 				// st: expr   st.pos=  expr+expr^
-				var pex=$.mkInfix.def(res.result[0], inf , st.result[0]);
+				pex=$.mkInfix.def(res.result[0], inf , st.result[0]);
 				res=st.clone();
 				res.result=[pex]; //res:infixExpr
 				if (!st.nextPostfixOrInfix) {
@@ -1158,7 +1167,8 @@ return ExpressionParser=function () {
 	};
 	return $;
 };
-
+root.ExpressionParser=ExpressionParser;
+return ExpressionParser;
 });
 
 define('Grammar2',["Parser","assert","ExpressionParser"],
@@ -1264,7 +1274,7 @@ class Grammar {
                 if (e.constructor===Object) {
                     const tnames=[];
                     for (let k in e) {
-                        tnames.push(k)
+                        tnames.push(k);
                     }
                     assert(tnames.length===1,"Invalid expr ",expr);
                     assert(tnames[0]!=="type", "Cannot use the name 'type' as an attribute name", expr);
@@ -1294,7 +1304,7 @@ class Grammar {
         }
         assert.fail("Invalid expr",expr);
     }
-};
+}
 //const testf=(...{a,b})=>a+b;
 const methods=["opt","rep0","rep1","sep0","sep1","except"];
 const p=Grammar.prototype;
@@ -1815,11 +1825,11 @@ function (Grammar,Pos2RC/*,TError*/) {
     return g;
 });
 
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define('Visitor',[],function (){
-return Visitor = function (funcs) {
+}*/
+define('Visitor',["root"],function (root){
+var Visitor = function (funcs) {
 	var $={funcs:funcs, path:[]};
 	$.visit=function (node) {
 		try {
@@ -1849,7 +1859,10 @@ return Visitor = function (funcs) {
 	};
 	return $;
 };
+root.Visitor=Visitor;
+return Visitor;
 });
+
 /*
 コード生成中に使う補助ライブラリ．自分の処理しているクラス，メソッド，変数などの情報を保持する
 使い方:
@@ -1866,11 +1879,11 @@ return Visitor = function (funcs) {
 
 	});
 */
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define('context',[],function () {
-return context=function () {
+}*/
+define('context',["root"],function (root) {
+root.context=function () {
 	var c={};
 	c.ovrFunc=function (from , to) {
 		to.parent=from;
@@ -1886,8 +1899,8 @@ return context=function () {
 	for (var k in c) { builtins[k]=true; }
 	return c;
 	function enter(val, act) {
-		var sv={};
-		for (var k in val) {
+		var sv={},k;
+		for (k in val) {
 			if (k.match(/^\$/)) {
 				k=RegExp.rightContext;
 				sv[k]=c[k];
@@ -1898,14 +1911,16 @@ return context=function () {
 			}
 		}
 		var res=act(c);
-		for (var k in sv) {
+		for (k in sv) {
 			c[k]=sv[k];
 		}
 		return res;
 	}
 };
+return root.context;
 });
-define('PyLib',[],function () {
+
+define('PyLib',["root"],function (root) {
     var PL={};
     PL.import=function (lib) {
         if (lib==="random") {
@@ -2083,7 +2098,7 @@ define('PyLib',[],function () {
         throw new Error("Cannot do opration "+op+" to "+to);
     };
     PL.builtins=["range","input","str","int","float","len","fillRect","setColor","setTimeout","clearRect","clear"];
-    if (typeof window!=="undefined") window.PYLIB=PL;
+    root.PYLIB=PL;
     return PL;
 });
 
@@ -2147,7 +2162,7 @@ const vdef={
         }
     },
     importStmt: function (node) {
-        const nameHead=node.name[0]
+        const nameHead=node.name[0];
         if (!importable[nameHead]) {
             this.error(nameHead+" はインポートできません",node);
         }
@@ -2163,7 +2178,7 @@ const vdef={
         //console.log("define",node);
         this.addScope(node.name,{kind:"function",node});
         this.newScope(()=>{
-            for (p of node.params.body) {
+            for (const p of node.params.body) {
                 this.addScope(p+"",{kind:"local",node:p});
             }
             for (const b of node.body) {
@@ -5450,10 +5465,10 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ ])
 });
 ;
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define('IndentBuffer',["assert","source-map"],function (A, S) {
+}*/
+define('IndentBuffer',["assert","source-map","root"],function (A, S,root) {
 var Pos2RC=function (src) {
 	var $={};
 	var map=[];
@@ -5485,7 +5500,7 @@ var Pos2RC=function (src) {
 	};
 	return $;
 };
-return IndentBuffer=function (options) {
+var IndentBuffer=function (options) {
 	options=options||{};
 	var $=function () {
 		var args=arguments;
@@ -5733,6 +5748,8 @@ return IndentBuffer=function (options) {
 	};
 	return $;
 };
+root.IndentBuffer=IndentBuffer;
+return IndentBuffer;
 });
 
 define('PythonGen',["Visitor","IndentBuffer","assert"],
@@ -6024,7 +6041,7 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("%v%v",node.op,node.right);
         },
         breakStmt: function (node) {
-            this.printf("break")
+            this.printf("break");
         }
     };
     const cmps={">":1,"<":1,"==":1,">=":1,"<=":1,"!=":1};
@@ -6084,11 +6101,11 @@ function (Visitor,IndentBuffer,context,PL) {
     return gen;
 });
 
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define('TError',[],function () {
-TError=function (mesg, src, pos) {
+}*/
+define('TError',["root"],function (root) {
+var TError=function (mesg, src, pos) {
 	if (typeof src=="string") {
 		return {
 			isTError:true,
@@ -6144,10 +6161,23 @@ TError.calcRowCol=function (text,pos) {
 	}
 	return {row:row,col:col};
 };
+root.TError=TError;
 return TError;
 });
-define('pyRun',["PythonParser","PythonSemantics","PythonGen","Python2JS","PyLib","TError"],
-function (PP,S,G,J,PL,TError) {
+
+define('jshint',[],function () {
+    var colon=":";
+    return {
+        Function: Function,
+        use: function () {},
+        scriptURL: function (url) {
+            return "javascript"+colon+url;
+        }
+    };
+});
+
+define('pyRun',["PythonParser","PythonSemantics","PythonGen","Python2JS","PyLib","TError","jshint"],
+function (PP,S,G,J,PL,TError,jshint) {
     function run(srcF) {
         var node=PP.parse(srcF);
         try {
@@ -6155,7 +6185,7 @@ function (PP,S,G,J,PL,TError) {
             //var gen=G(node);
             var genj=J(node,v.anon);
             console.log(genj);
-            var f=new Function(genj);
+            var f=new jshint.Function(genj);
             console.log(f());
         } catch(e) {
             if (e.node) {

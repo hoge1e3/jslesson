@@ -3387,6 +3387,7 @@ define('FS',["FSClass","NativeFS","LSFS", "WebFS", "PathUtil","Env","assert","SF
 });
 //})(window);
 
+/*global process*/
 define('WebSite',[], function () {
 	if (typeof document==="undefined") {
 		// node?;
@@ -3421,7 +3422,7 @@ define('WebSite',[], function () {
 	WS.tonyuHome="/Tonyu/";//changeHOME
 	WS.JSLKer="runtime/lib/tjs/kernel.js";
 	//WS.JSLKer="fs/Tonyu/Projects/JSLKer";
-	WS.serverTop=location.href.replace(/\?.*$/,"").replace(/[^/]*$/,"");//"."; // includes /
+	WS.serverTop=location.href.replace(/\?.*$/,"").replace(/[^\/]*$/,"");//"."; // includes /
 	WS.phpTop=WS.serverTop+"";//php/";
 	WS.url={
 		getDirInfo:WS.serverTop+"?getDirInfo",
@@ -3451,7 +3452,7 @@ define('WebSite',[], function () {
 			"images/sound_wav.png":WS.runtime+"images/sound_wav.png",
 			"images/ecl.png":WS.runtime+"images/ecl.png"
 	};
-	WebSite.compiledKernel=WebSite.runtime+"/lib/tonyu/kernel.js";
+	WS.compiledKernel=WS.runtime+"/lib/tonyu/kernel.js";
 	/*if (WS.isNW) {
 		if (process.env.TONYU_HOME) {
 			WS.tonyuHome=process.env.TONYU_HOME.replace(/\\/g,"/");
@@ -3895,9 +3896,14 @@ define('Shell',["FS","assert"],
 
 /* global global, self */
 (function () {
-    var root=(
-        typeof window!=="undefined" ? window :
-        typeof global!=="undefined" ? global : self);
+    // same with root.js
+    function getRoot(){
+        if (typeof window!=="undefined") return window;
+        if (typeof self!=="undefined") return self;
+        if (typeof global!=="undefined") return global;
+        return (function (){return this;})();
+    }
+    var root=getRoot();
 
 function getQueryString(key, default_)
 {
@@ -4093,6 +4099,7 @@ function str2utf8bytes(str, binType) {
 }
 */
 root.Util={
+    root:root,
     getQueryString:getQueryString,
     endsWith: endsWith, startsWith: startsWith,
     Base64_To_ArrayBuffer:Base64_To_ArrayBuffer,
@@ -4185,15 +4192,16 @@ define('UI',["Util","exceptionCatcher"],function (Util, EC) {
         $edits.validator={
        		errors:{},
        		show: function () {
+                var name;
        			if ($vars.validationMessage) {
        				$vars.validationMessage.empty();
-       				for (var name in this.errors) {
+       				for (name in this.errors) {
        					$vars.validationMessage.append(UI("div", this.errors[name].mesg));
        				}
        			}
        			if ($vars.OKButton) {
        				var ok=true;
-       				for (var name in this.errors) {
+       				for (name in this.errors) {
        					ok=false;
        				}
        				$vars.OKButton.attr("disabled", !ok);
@@ -5185,7 +5193,15 @@ requirejs(["Klass"],function (k) {
 });
 */
 ;
-define('Tonyu.Thread',["DeferredUtil","Klass"],function (DU,Klass) {
+/*global window,self,global*/
+define('root',[],function (){
+    if (typeof window!=="undefined") return window;
+    if (typeof self!=="undefined") return self;
+    if (typeof global!=="undefined") return global;
+    return (function (){return this;})();
+});
+
+define('Tonyu.Thread',["DeferredUtil","Klass","root"],function (DU,Klass,root) {
 	var cnts={enterC:{},exitC:0};
 	try {window.cnts=cnts;}catch(e){}
 	var TonyuThread=Klass.define({
@@ -5207,11 +5223,12 @@ define('Tonyu.Thread',["DeferredUtil","Klass"],function (DU,Klass) {
 			//return this.frame!=null && this._isAlive;
 		},
 		isDead: function () {
-			return this._isDead=this._isDead || (this.frame==null) ||
+			 this._isDead=this._isDead || (this.frame==null) ||
 			(this._threadGroup && (
 					this._threadGroup.objectPoolAge!=this.tGrpObjectPoolAge ||
 					this._threadGroup.isDeadThreadGroup()
 			));
+			return this._isDead;
 		},
 		setThreadGroup: function setThreadGroup(g) {// g:TonyuThread
 			this._threadGroup=g;
@@ -5396,6 +5413,7 @@ define('Tonyu.Thread',["DeferredUtil","Klass"],function (DU,Klass) {
 		steps: function steps() {
 			var fb=this;
 			if (fb.isDead()) return;
+			var Tonyu=root.Tonyu;
 			var sv=Tonyu.currentThread;
 			Tonyu.currentThread=fb;
 			fb.cnt=fb.preemptionTime;
@@ -5546,22 +5564,22 @@ define('Tonyu.Iterator',["Klass"], function (Klass) {
 			console.log(set);
 			throw new Error(set+" is not iterable");
 		}
-		return res;
+		//return res;
 	}
 
 //   Tonyu.iterator=IT;
 	return IT;
 });
 
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define('Tonyu',["assert","Tonyu.Thread","Tonyu.Iterator","DeferredUtil"],
-		function (assert,TT,IT,DU) {
-return Tonyu=function () {
+}*/
+define('Tonyu',["assert","Tonyu.Thread","Tonyu.Iterator","DeferredUtil","root"],
+		function (assert,TT,IT,DU,root) {
+var Tonyu=function () {
 	var preemptionTime=60;
 	function thread() {
-		var t=new TT;
+		var t=new TT();
 		t.handleEx=handleEx;
 		return t;
 	}
@@ -5580,16 +5598,17 @@ return Tonyu=function () {
 		if (Tonyu.onRuntimeError) {
 			Tonyu.onRuntimeError(e);
 		} else {
-			if (typeof $LASTPOS=="undefined") $LASTPOS=0;
-			alert ("エラー! at "+$LASTPOS+" メッセージ  : "+e);
+			if (!root.$LASTPOS) root.$LASTPOS=0;
+			alert ("エラー! at "+root.$LASTPOS+" メッセージ  : "+e);
 			console.log(e.stack);
 			throw e;
 		}
 	}
-	klass=function () {
+	var klass=function () {
 		alert("この関数は古くなりました。コンパイルをやり直してください。 Deprecated. compile again.");
 		throw new Error("この関数は古くなりました。コンパイルをやり直してください。 Deprecated. compile again.");
 	};
+	root.klass=klass;
 	klass.addMeta=addMeta;
 	function addMeta(fn,m) {
 		assert.is(arguments,[String,Object]);
@@ -5667,7 +5686,8 @@ return Tonyu=function () {
 		});
 		var props={};
 		var propReg=/^__([gs]et)ter__(.*)$/;
-		for (var k in prot) {
+		var k;
+		for ( k in prot) {
 			if (k.match(/^fiber\$/)) continue;
 			if (prot["fiber$"+k]) {
 				prot[k].fiber=prot["fiber$"+k];
@@ -5682,7 +5702,7 @@ return Tonyu=function () {
 		}
 		res.prototype=bless(parent, prot);
 		res.prototype.isTonyuObject=true;
-		for (var k in props) {
+		for ( k in props) {
 			Object.defineProperty(res.prototype, k , props[k]);
 		}
 		res.meta=addMeta(fullName,{
@@ -5815,12 +5835,12 @@ return Tonyu=function () {
 		var boot=new bootClass();
 		var th=thread();
 		th.apply(boot,"main");
-		var TPR;
-		if (TPR=Tonyu.currentProject) {
+		var TPR=Tonyu.currentProject;
+		if (TPR) {
 			TPR.runningThread=th;
 			TPR.runningObj=boot;
 		}
-		$LASTPOS=0;
+		root.$LASTPOS=0;
 		th.steps();
 	}
 	var lastLoopCheck=new Date().getTime();
@@ -5849,7 +5869,7 @@ return Tonyu=function () {
 		//Functi.... never mind.
 	}
 	setInterval(resetLoopCheck,16);
-	return Tonyu={thread:thread, /*threadGroup:threadGroup,*/ klass:klass, bless:bless, extend:extend,
+	return {thread:thread, /*threadGroup:threadGroup,*/ klass:klass, bless:bless, extend:extend,
 			globals:globals, classes:classes, classMetas:classMetas, setGlobal:setGlobal, getGlobal:getGlobal, getClass:getClass,
 			timeout:timeout,animationFrame:animationFrame, /*asyncResult:asyncResult,*/
 			bindFunc:bindFunc,not_a_tonyu_object:not_a_tonyu_object,
@@ -5858,13 +5878,15 @@ return Tonyu=function () {
 			VERSION:1503453200013,//EMBED_VERSION
 			A:A};
 }();
+root.Tonyu=Tonyu;
+return Tonyu;
 });
 
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define('Parser',[],function() {
-return Parser=function () {
+}*/
+define('Parser',["root"],function(root) {
+var Parser=function () {
 	function extend(dst, src) {
 		var i;
 		for(i in src){
@@ -6462,15 +6484,12 @@ return Parser=function () {
 	};
 	return $;
 }();
-
+root.Parser=Parser;
+return Parser;
 });
 
-if (typeof define!=="function") {
-	define=require("requirejs").define;
-}
-
-define('Grammar',["Parser"], function (Parser) {
-Grammar=function () {
+define('Grammar',["Parser","root"], function (Parser, root) {
+var Grammar=function () {
 	var p=Parser;
 
 	var $=null;
@@ -6507,12 +6526,14 @@ Grammar=function () {
 						return "("+this.type+")";
 					};
 				}).setName(name);
-				return $.defs[name]=res;
+				$.defs[name]=res;
+				return res;
 			};
 			$$$.ret=function (f) {
 				if (arguments.length==0) return p;
 				if (typeof f=="function") {
-					return $.defs[name]=p.ret(f);
+					$.defs[name]=p.ret(f);
+					return $.defs[name];
 				}
 				var names=[];
 				var fn=function(e){return e;};
@@ -6540,7 +6561,8 @@ Grammar=function () {
 					};
 					return fn(res);
 				}).setName(name);
-				return  $.defs[name]=res;
+				$.defs[name]=res;
+				return res;
 			};
 			return $$$;
 		};
@@ -6549,7 +6571,8 @@ Grammar=function () {
 			for (var i=1 ; i<arguments.length ;i++) {
 				p=p.or( trans(arguments[i]) );
 			}
-			return $.defs[name]=p.setName(name);
+			$.defs[name]=p.setName(name);
+			return $.defs[name];
 		};
 		return $$;
 	};
@@ -6565,18 +6588,20 @@ Grammar=function () {
 	};
 	return $;
 };
+root.Grammar=Grammar;
 Grammar.SUBELEMENTS="[SUBELEMENTS]";
 return Grammar;
 });
+
 // var b=XMLBuffer(src);
 // b(node);
 // console.log(b.buf);
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define('XMLBuffer',["Parser"],
-function(Parser) {
-XMLBuffer=function (src) {
+}*/
+define('XMLBuffer',["Parser","root"],
+function(Parser,root) {
+var XMLBuffer=function (src) {
 	var $;
 	$=function (node, attrName){
 		//console.log("genX: "+node+ " typeof = "+typeof node+"  pos="+node.pos+" attrName="+attrName+" ary?="+(node instanceof Array));
@@ -6659,9 +6684,9 @@ XMLBuffer.orderByPos=function (node) {
 			if (node[i]==null || typeof node[i]=="string" || typeof node[i]=="number") continue;
 			if (typeof(node[i].pos)!="number") continue;
 			if (isNaN(parseInt(i)) && !(i+"").match(/^-/)) {
-				res.push({name: i, value: node[i]}); 
+				res.push({name: i, value: node[i]});
 			} else {
-				res.push({value: node[i]}); 
+				res.push({value: node[i]});
 			}
 		}
 	//}
@@ -6671,8 +6696,10 @@ XMLBuffer.orderByPos=function (node) {
 	return res;
 };
 XMLBuffer.SUBELEMENTS="[SUBELEMENTS]";
+root.XMLBuffer=XMLBuffer;
 return XMLBuffer;
 });
+
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -9728,10 +9755,10 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ ])
 });
 ;
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define('IndentBuffer',["assert","source-map"],function (A, S) {
+}*/
+define('IndentBuffer',["assert","source-map","root"],function (A, S,root) {
 var Pos2RC=function (src) {
 	var $={};
 	var map=[];
@@ -9763,7 +9790,7 @@ var Pos2RC=function (src) {
 	};
 	return $;
 };
-return IndentBuffer=function (options) {
+var IndentBuffer=function (options) {
 	options=options||{};
 	var $=function () {
 		var args=arguments;
@@ -10011,6 +10038,8 @@ return IndentBuffer=function (options) {
 	};
 	return $;
 };
+root.IndentBuffer=IndentBuffer;
+return IndentBuffer;
 });
 
 if (typeof define!=="function") {
@@ -10041,11 +10070,11 @@ return disp=function (a) {
 	return p.buf;
 };
 });
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define('TError',[],function () {
-TError=function (mesg, src, pos) {
+}*/
+define('TError',["root"],function (root) {
+var TError=function (mesg, src, pos) {
 	if (typeof src=="string") {
 		return {
 			isTError:true,
@@ -10101,8 +10130,10 @@ TError.calcRowCol=function (text,pos) {
 	}
 	return {row:row,col:col};
 };
+root.TError=TError;
 return TError;
 });
+
 /*sys.load("js/parser.js");
 sys.load("js/ExpressionParser2Tonyu.js");
 sys.load("js/GrammarTonyu.js");
@@ -10111,12 +10142,12 @@ sys.load("js/IndentBuffer.js");
 sys.load("js/disp.js");
 sys.load("js/profiler.js");
 */
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define('TT',["Grammar", "XMLBuffer", "IndentBuffer","disp", "Parser","TError"],
-function (Grammar, XMLBuffer, IndentBuffer, disp, Parser,TError) {
-return TT=function () {
+}*/
+define('TT',["Grammar", "XMLBuffer", "IndentBuffer","disp", "Parser","TError","root"],
+function (Grammar, XMLBuffer, IndentBuffer, disp, Parser,TError,root) {
+var TT=function () {
 	function profileTbl(parser, name) {
 		var tbl=parser._first.tbl;
 		for (var c in tbl) {
@@ -10399,15 +10430,17 @@ return TT=function () {
 	}
 	return {parse:parse, extension:"js"};
 }();
-
+root.TT=TT;
+return TT;
 });
-if (typeof define!=="function") {
-	define=require("requirejs").define;
-}
 
-define('ExpressionParser',["Parser"], function (Parser) {
+/*if (typeof define!=="function") {
+	define=require("requirejs").define;
+}*/
+
+define('ExpressionParser',["Parser","root"], function (Parser,root) {
 // parser.js の補助ライブラリ．式の解析を担当する
-return ExpressionParser=function () {
+var ExpressionParser=function () {
 	var $={};
 	var EXPSTAT="EXPSTAT";
 	//  first 10     *  +  <>  &&  ||  =     0  later
@@ -10416,7 +10449,7 @@ return ExpressionParser=function () {
 		$.eq=function (o) {return type==o.type() && prio==o.prio(); };
 		$.type=function (t) { if (!t) return type; else return t==type;};
 		$.prio=function () {return prio;};
-		$.toString=function () {return "["+type+":"+prio+"]"; }
+		$.toString=function () {return "["+type+":"+prio+"]"; };
 		return $;
 	}
 	function composite(a) {
@@ -10487,7 +10520,7 @@ return ExpressionParser=function () {
 	};
 	$.mkInfix.def=function (left,op,right) {
 		return Parser.setRange({type:"infix", op:op, left: left, right: right});
-	}
+	};
 	$.mkInfixl=function (f) {
 		$.mkInfixl.def=f;
 	};
@@ -10528,12 +10561,12 @@ return ExpressionParser=function () {
 	};
 	function dump(st, lbl) {
 		return ;
-		var s=st.src.str;
+		/*var s=st.src.str;
 		console.log("["+lbl+"] "+s.substring(0,st.pos)+"^"+s.substring(st.pos)+
-				" opType="+ st.opType+"  Succ = "+st.isSuccess()+" res="+st.result[0]);
+				" opType="+ st.opType+"  Succ = "+st.isSuccess()+" res="+st.result[0]);*/
 	}
 	function parse(minPrio, st) {
-		var stat=0, res=st ,  opt;
+		var stat=0, res=st ,  opt,/*const*/pex,inf;
 		dump(st," start minprio= "+minPrio);
 		st=prefixOrElement.parse(st);
 		dump(st," prefixorelem "+minPrio);
@@ -10550,7 +10583,7 @@ return ExpressionParser=function () {
 				return st;
 			}
 				// st: Expr    st.pos = -elem^
-			var pex=$.mkPrefix.def(pre, st.result[0]);
+			pex=$.mkPrefix.def(pre, st.result[0]);
 			res=st.clone();  //  res:Expr
 			res.result=[pex]; // res:prefixExpr  res.pos= -elem^
 			if (!st.nextPostfixOrInfix) {
@@ -10577,7 +10610,7 @@ return ExpressionParser=function () {
 			// assert st:postfixOrInfix  res:Expr
 			if (opt.type("postfix")) {
 				// st:postfix
-				var pex=$.mkPostfix.def(res.result[0],st.result[0]);
+				pex=$.mkPostfix.def(res.result[0],st.result[0]);
 				res=st.clone();
 				res.result=[pex]; // res.pos= expr++^
 				dump(st, "185");
@@ -10587,13 +10620,13 @@ return ExpressionParser=function () {
 				}
 			} else if (opt.type("infixl")){  //x+y+z
 				// st: infixl
-				var inf=st.result[0];
+				inf=st.result[0];
 				st=parse(opt.prio()+1, st);
 				if (!st.isSuccess()) {
 					return res;
 				}
 				// st: expr   st.pos=  expr+expr^
-				var pex=$.mkInfixl.def(res.result[0], inf , st.result[0]);
+				pex=$.mkInfixl.def(res.result[0], inf , st.result[0]);
 				res=st.clone();
 				res.result=[pex]; //res:infixlExpr
 				if (!st.nextPostfixOrInfix) {
@@ -10602,13 +10635,13 @@ return ExpressionParser=function () {
 				st=st.nextPostfixOrInfix;
 			} else if (opt.type("infixr")) { //a=^b=c
 				// st: infixr
-				var inf=st.result[0];
+				inf=st.result[0];
 				st=parse(opt.prio() ,st);
 				if (!st.isSuccess()) {
 					return res;
 				}
 				// st: expr   st.pos=  a=b=c^
-				var pex=$.mkInfixr.def(res.result[0], inf , st.result[0]);
+				pex=$.mkInfixr.def(res.result[0], inf , st.result[0]);
 				res=st.clone();
 				res.result=[pex]; //res:infixrExpr
 				if (!st.nextPostfixOrInfix) {
@@ -10625,7 +10658,7 @@ return ExpressionParser=function () {
 				}
 				// st= expr   st.pos=  left?mid^:right
 				var mid=st.result[0];
-				var st=trifixes[opt.prio()].parse(st);
+				st=trifixes[opt.prio()].parse(st);
 				// st= :      st.pos= left?mid:^right;
 				if (!st.isSuccess()) {
 					return res;
@@ -10637,7 +10670,7 @@ return ExpressionParser=function () {
 				}
 				var right=st.result[0];
 				// st=right      st.pos= left?mid:right^;
-				var pex=$.mkTrifixr.def(left, inf1 , mid, inf2, right);
+				pex=$.mkTrifixr.def(left, inf1 , mid, inf2, right);
 				res=st.clone();
 				res.result=[pex]; //res:infixrExpr
 				if (!st.nextPostfixOrInfix) {
@@ -10646,13 +10679,13 @@ return ExpressionParser=function () {
 				st=st.nextPostfixOrInfix;
 			} else { // infix
 				// st: infixl
-				var inf=st.result[0];
+				inf=st.result[0];
 				st=parse(opt.prio()+1 ,st);
 				if (!st.isSuccess()) {
 					return res;
 				}
 				// st: expr   st.pos=  expr+expr^
-				var pex=$.mkInfix.def(res.result[0], inf , st.result[0]);
+				pex=$.mkInfix.def(res.result[0], inf , st.result[0]);
 				res=st.clone();
 				res.result=[pex]; //res:infixExpr
 				if (!st.nextPostfixOrInfix) {
@@ -10674,12 +10707,13 @@ return ExpressionParser=function () {
 	};
 	return $;
 };
-
+root.ExpressionParser=ExpressionParser;
+return ExpressionParser;
 });
 
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
+}*/
 
 /*
 * Tonyu2 の構文解析を行う．
@@ -10687,10 +10721,10 @@ if (typeof define!=="function") {
 *   - srcを解析して構文木を返す．構文エラーがあれば例外を投げる．
 */
 define('TonyuLang',["Grammar", "XMLBuffer", "IndentBuffer", "TT",
-		"disp", "Parser", "ExpressionParser", "TError"],
+		"disp", "Parser", "ExpressionParser", "TError","root"],
 function (Grammar, XMLBuffer, IndentBuffer, TT,
-		disp, Parser, ExpressionParser, TError) {
-return TonyuLang=function () {
+		disp, Parser, ExpressionParser, TError,root) {
+var TonyuLang=function () {
 	var p=Parser;
 	var $={};
 	var g=Grammar();
@@ -10971,14 +11005,15 @@ return TonyuLang=function () {
 	$.extension="tonyu";
 	return $;
 }();
-
+root.TonyuLang=TonyuLang;
+return TonyuLang;
 });
 
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define('ObjectMatcher',[],function () {
-return ObjectMatcher=function () {
+}*/
+define('ObjectMatcher',["root"],function (root) {
+var ObjectMatcher=function () {
 	var OM={};
 	var VAR="$var",THIZ="$this";
 	OM.v=v;
@@ -11028,7 +11063,10 @@ return ObjectMatcher=function () {
 	}
 	return OM;
 }();
+root.ObjectMatcher=ObjectMatcher;
+return ObjectMatcher;
 });
+
 /*
 コード生成中に使う補助ライブラリ．自分の処理しているクラス，メソッド，変数などの情報を保持する
 使い方:
@@ -11045,11 +11083,11 @@ return ObjectMatcher=function () {
 
 	});
 */
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define('context',[],function () {
-return context=function () {
+}*/
+define('context',["root"],function (root) {
+root.context=function () {
 	var c={};
 	c.ovrFunc=function (from , to) {
 		to.parent=from;
@@ -11065,8 +11103,8 @@ return context=function () {
 	for (var k in c) { builtins[k]=true; }
 	return c;
 	function enter(val, act) {
-		var sv={};
-		for (var k in val) {
+		var sv={},k;
+		for (k in val) {
 			if (k.match(/^\$/)) {
 				k=RegExp.rightContext;
 				sv[k]=c[k];
@@ -11077,18 +11115,20 @@ return context=function () {
 			}
 		}
 		var res=act(c);
-		for (var k in sv) {
+		for (k in sv) {
 			c[k]=sv[k];
 		}
 		return res;
 	}
 };
+return root.context;
 });
-if (typeof define!=="function") {
+
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define('Visitor',[],function (){
-return Visitor = function (funcs) {
+}*/
+define('Visitor',["root"],function (root){
+var Visitor = function (funcs) {
 	var $={funcs:funcs, path:[]};
 	$.visit=function (node) {
 		try {
@@ -11118,7 +11158,10 @@ return Visitor = function (funcs) {
 	};
 	return $;
 };
+root.Visitor=Visitor;
+return Visitor;
 });
+
 define('Tonyu.Compiler',["Tonyu","ObjectMatcher", "TError"],
 		function(Tonyu,ObjectMatcher, TError) {
 	var cu={};
@@ -11229,14 +11272,14 @@ define('Tonyu.Compiler',["Tonyu","ObjectMatcher", "TError"],
 
 });
 
-if (typeof define!=="function") {//B
+/*if (typeof define!=="function") {//B
 	define=require("requirejs").define;
-}
+}*/
 define('Tonyu.Compiler.JSGenerator',["Tonyu", "Tonyu.Iterator", "TonyuLang", "ObjectMatcher", "TError", "IndentBuffer",
 		"context", "Visitor","Tonyu.Compiler","assert"],
 function(Tonyu, Tonyu_iterator, TonyuLang, ObjectMatcher, TError, IndentBuffer,
 		context, Visitor,cu,A) {
-return cu.JSGenerator=(function () {
+cu.JSGenerator=(function () {
 // TonyuソースファイルをJavascriptに変換する
 var TH="_thread",THIZ="_this", ARGS="_arguments",FIBPRE="fiber$", FRMPC="__pc", LASTPOS="$LASTPOS",CNTV="__cnt",CNTC=100;//G
 var BINDF="Tonyu.bindFunc";
@@ -11356,7 +11399,7 @@ function genJS(klass, env) {//B
 		};
 	}
 	var THNode={type:"THNode"};//G
-	v=buf.visitor=Visitor({//G
+	var v=buf.visitor=Visitor({//G
 		THNode: function (node) {
 			buf.printf(TH);
 		},
@@ -11403,7 +11446,7 @@ function genJS(klass, env) {//B
 			}
 		},
 		program: function (node) {
-			genClass(node.stmts);
+			//genClass(node.stmts);
 		},
 		number: function (node) {
 			buf.printf("%s", node.value );
@@ -11478,7 +11521,7 @@ function genJS(klass, env) {//B
 			var si=varAccess(n,annotation(node).scopeInfo, annotation(node));
 		},
 		exprstmt: function (node) {//exprStmt
-			var t={};
+			var t={},p;
 			lastPosF(node)();
 			if (!ctx.noWait) {
 				t=annotation(node).fiberCall || {};
@@ -11504,7 +11547,7 @@ function genJS(klass, env) {//B
 							t.L, t.O, TH
 				);
 			} else if (t.type=="noRetSuper") {
-				var p=getClassName(klass.superclass);
+				 p=getClassName(klass.superclass);
 					buf.printf(
 							"%s.prototype.%s%s.apply( %s, [%j]);%n" +
 							"%s=%s;return;%n" +/*B*/
@@ -11514,6 +11557,7 @@ function genJS(klass, env) {//B
 								ctx.pc++
 					);
 			} else if (t.type=="retSuper") {
+				p=getClassName(klass.superclass);
 					buf.printf(
 							"%s.prototype.%s%s.apply( %s, [%j]);%n" +
 							"%s=%s;return;%n" +/*B*/
@@ -12298,17 +12342,18 @@ function genJS(klass, env) {//B
 }//B
 return {genJS:genJS};
 })();
+return cu.JSGenerator;
 //if (typeof getReq=="function") getReq.exports("Tonyu.Compiler");
 });
 
-if (typeof define!=="function") {//B
+/*if (typeof define!=="function") {//B
 	define=require("requirejs").define;
-}
+}*/
 define('Tonyu.Compiler.Semantics',["Tonyu", "Tonyu.Iterator", "TonyuLang", "ObjectMatcher", "TError", "IndentBuffer",
 		"context", "Visitor","Tonyu.Compiler"],
 function(Tonyu, Tonyu_iterator, TonyuLang, ObjectMatcher, TError, IndentBuffer,
 		context, Visitor,cu) {
-return cu.Semantics=(function () {
+cu.Semantics=(function () {
 /*var ScopeTypes={FIELD:"field", METHOD:"method", NATIVE:"native",//B
 		LOCAL:"local", THVAR:"threadvar", PARAM:"param", GLOBAL:"global", CLASS:"class"};*/
 var ScopeTypes=cu.ScopeTypes;
@@ -12967,6 +13012,7 @@ function annotateSource2(klass, env) {//B
 }//B  end of annotateSource2
 return {initClassDecls:initClassDecls, annotate:annotateSource2};
 })();
+return cu.Semantics;
 //if (typeof getReq=="function") getReq.exports("Tonyu.Compiler");
 });
 
@@ -13037,7 +13083,7 @@ define('StackTrace',[],function (){
 });
 define('Tonyu.TraceTbl',["Tonyu", "FS", "TError","StackTrace"],
 function(Tonyu, FS, TError,trc) {
-return Tonyu.TraceTbl=(function () {
+Tonyu.TraceTbl=(function () {
 	var TTB={};
 	var POSMAX=1000000;
 	var pathIdSeq=1;
@@ -13122,6 +13168,7 @@ return Tonyu.TraceTbl=(function () {
 	return TTB;
 })();
 //if (typeof getReq=="function") getReq.exports("Tonyu.TraceTbl");
+return Tonyu.TraceTbl;
 });
 
 define('compiledProject',["DeferredUtil","WebSite","assert"], function (DU,WebSite,A) {
@@ -13145,7 +13192,7 @@ define('compiledProject',["DeferredUtil","WebSite","assert"], function (DU,WebSi
 			},
 			loadClasses: function (ctx) {
 				console.log("Load compiled classes ns=",ns,"url=",url);
-				var d=new $.Deferred;
+				var d=new $.Deferred();
 				var head = document.getElementsByTagName("head")[0] || document.documentElement;
 				var script = document.createElement("script");
 				script.src = url+(WebSite.serverType==="BA"?"?"+Math.random():"");
@@ -13158,7 +13205,7 @@ define('compiledProject',["DeferredUtil","WebSite","assert"], function (DU,WebSi
 						if ( head && script.parentNode ) {
 							head.removeChild( script );
 						}
-						console.log("Done Load compiled classes ns=",ns,"url=",url,Tonyu.classes);
+						console.log("Done Load compiled classes ns=",ns,"url=",url);//,Tonyu.classes);
 						//same as projectCompiler (XXXX)
 						/*var cls=Tonyu.classes;
 						ns.split(".").forEach(function (c) {
@@ -13182,15 +13229,16 @@ define('compiledProject',["DeferredUtil","WebSite","assert"], function (DU,WebSi
 				});
 				return d.promise();
 			}
-		}
+		};
 	};
 	return CPR;
 });
 
-if (typeof define!=="function") {
+/*if (typeof define!=="function") {
 	define=require("requirejs").define;
-}
-define('TypeChecker',["Visitor","Tonyu.Compiler","context"],function (Visitor,cu,context) {
+}*/
+define('TypeChecker',["Visitor","Tonyu.Compiler","context","Grammar"],
+function (Visitor,cu,context,Grammar) {
 	var ex={"[SUBELEMENTS]":1,pos:1,len:1};
 	var ScopeTypes=cu.ScopeTypes;
 	var genSt=cu.newScopeType;
@@ -13862,7 +13910,7 @@ define('BAProject',["Klass","DeferredUtil"],function (Klass,DU) {
     });
 });
 
-define('NewProjectDialog',["UI","BAProject"], function (UI,BAProject) {
+define('NewProjectDialog',["UI","BAProject","FS"], function (UI,BAProject,FS) {
     var res={};
 	res.show=function (prjInfo, onOK,options) {
     	var d=res.embed(prjInfo,onOK,options);
@@ -14245,14 +14293,6 @@ define('NewProjectDialog',["UI","BAProject"], function (UI,BAProject) {
   }
 }(this))
 ;
-/*global window,self,global*/
-define('root',[],function (){
-    if (typeof window!=="undefined") return window;
-    if (typeof self!=="undefined") return self;
-    if (typeof global!=="undefined") return global;
-    return (function (){return this;})();
-});
-
 /* global $ */
 define('Auth',["FS","md5","WebSite","DeferredUtil","root"], function (FS,md5,WebSite,DU,root) {
     root.Auth={
@@ -14435,8 +14475,8 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
         function diffTree(a,b) {
             console.log("diff",a,b);
             for (var k in unionKeys(a,b)) {
-                if (!k in a) console.log(k," is not in a",k[b]);
-                if (!k in b) console.log(k," is not in b",k[a]);
+                if (!(k in a)) console.log(k," is not in a",k[b]);
+                if (!(k in b)) console.log(k," is not in b",k[a]);
                 if (typeof k[a]=="object" && typeof k[b]=="object") {
                     diffTree(k[a],k[b]);
                 } else {
@@ -14549,7 +14589,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             var d;
             if (options.v) sh.echo("getDirInfo",gd);
             if (gd.NOT_LOGGED_IN) {
-                d = new $.Deferred;
+                d = new $.Deferred();
                 setTimeout(function(){
                   d.reject(Sync.NOT_LOGGED_IN);
                 }, 0);
@@ -14561,8 +14601,8 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             var remoteDelta=getDelta(lastRemoteDirInfo, curRemoteDirInfo);
             if (options.v) sh.echo("remoteDelta",remoteDelta);
             var dd=getDeltaDelta(localDelta,remoteDelta);
-            var o,f,m;
-            for (var key in dd.local) {
+            var o,f,m,key;
+            for (key in dd.local) {
                  f=local.rel(key);
                  if (f.isDir()) continue;
                  o={};
@@ -14572,7 +14612,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                  uploads[key]=o;
                  if (options.v) sh.echo("Upload",key,m);
             }
-            for (var key in dd.remote) {
+            for (key in dd.remote) {
                 downloads.push(key);
                 //if (PathUtil.isDir(key)) continue;  //Not avail
                 if (options.v)
@@ -14643,7 +14683,8 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             }
             var upds=[];
             for (var i in uploads) upds.push(i);
-            return res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};
+            res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};
+            return res;
         });
     };
     sh.rsh=function () {
@@ -14772,7 +14813,7 @@ define('NewSampleDialog',["UI"], function (UI) {
     return res;
 });
 
-define('RenameProjectDialog',["UI"], function (UI) {
+define('RenameProjectDialog',["UI","FS"], function (UI,FS) {
     var res={};
 	res.show=function (prjInfo,from, onOK,options) {
     	var d=res.embed(prjInfo,from, onOK,options);
@@ -14827,8 +14868,8 @@ define('RenameProjectDialog',["UI"], function (UI) {
     return res;
 });
 
-define('RemoteProject',[],function () {
-    RemoteProject={};
+define('RemoteProject',["root"],function (root) {
+    var RemoteProject={};
     RemoteProject.url=function () {
         return "runDtl.php?"+Math.random();
     };
@@ -14844,6 +14885,7 @@ define('RemoteProject',[],function () {
 	        from:from+"/",to:to+"/"
 	    });
 	};
+    root.RemoteProject=RemoteProject;
 	return RemoteProject;
 });
 
@@ -14943,13 +14985,13 @@ define('ctrl',[], function () {
     return ctrl;
 });
 
-requirejs(["FS","Shell","Shell2","ProjectCompiler",
+define('jsl_selProject',["FS","Shell","Shell2","ProjectCompiler",
            "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog","RenameProjectDialog",
            "assert","DeferredUtil","RemoteProject","SplashScreen",
        "ctrl"],
     function(FS, sh,sh2,TPRC,
            NPD, UI, Auth,zip,Sync,NSD,RPD,
-           A,DU,RemoteProject,Spla,
+           A,DU,RemoteProject,SplashScreen,
        ctrl) {
     if (location.href.match(/localhost/)) {
         A.setMode(A.MODE_STRICT);
@@ -15147,7 +15189,5 @@ function ready() {//-------------------------
     });
 }//------of function ready()-----------
 });
-
-define("jsl_selProject", function(){});
 
 //}).call(window);
