@@ -69,7 +69,7 @@ define(["Klass","assert"],function (Klass,assert) {
             return t.Number.super(this,"binOpable",op,right);
         },
         cast:function(v){
-            if (v.IS_POINTER) {
+            if (v && v.IS_POINTER) {
                 v=v.addr;
             }
             v=v||0;
