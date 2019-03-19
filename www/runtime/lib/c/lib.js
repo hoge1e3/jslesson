@@ -1,7 +1,16 @@
-/* global window,global*/
+/* global window,global,self*/
 (function () {
-var _global=(typeof window!=="undefined" ? window : global);
-var root=(typeof window!=="undefined" ? window : global);
+	// same with root.js
+    function getRoot(){
+        if (typeof window!=="undefined") return window;
+        if (typeof self!=="undefined") return self;
+        if (typeof global!=="undefined") return global;
+        return (function (){return this;})();
+    }
+    var root=getRoot();
+	var BA_C=root.BA_C=root.BA_C||{};
+var _global=root;//(typeof window!=="undefined" ? window : global);
+BA_C.lib=_global;
 _global.lineBuf=[];
 _global.NULL=undefined;
 _global.EOF=-1;
@@ -244,11 +253,11 @@ function sprintfJS() {
 	if (!idx && next<argv.length) _global.doNotification("printfの引数が多すぎます．");
 	return line;
 }
-_global.printf=function printf() {
+_global.printf=function () {
 	var line=sprintfJS.apply(this,arguments);
 	_global.lineBuf.push(line);
 	if (_global.lineBuf.length>5) _global.lineBuf.shift();
-	var con=(printf.STDOUT||$("#console"));
+	var con=(_global.printf.STDOUT||$("#console"));
 	con.append(line);
 	if (con.text().length>65536) throw new Error("printfによる出力が多すぎます");
 };
@@ -449,5 +458,6 @@ _global.exit=function exit(status) {
 	e.status=status;
 	throw e;
 };
+return root.BA_C.lib;
 })();
 //function print() {throw new Error("print関数はありません。printfの間違いではないですか？");};

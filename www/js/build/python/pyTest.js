@@ -1,7 +1,6 @@
 define(["UI","pyRun","FS","PyLib","root","SplashScreen"],
-function (UI,prun,FS,root,SplashScreen) {
+function (UI,prun,FS,PYLIB,root,SplashScreen) {
     //alert("LOAD");
-    var PYLIB=root.PYLIB;
     var prog=UI("textarea",{rows:30,cols:50}).appendTo("body");
     var runB=UI("button",{on:{click:run}},"Run").appendTo("body");
     PYLIB.STDOUT=UI("pre",{id:"console"}).appendTo("body");

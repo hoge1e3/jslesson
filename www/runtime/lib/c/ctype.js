@@ -1,12 +1,22 @@
-/* global global */
+/* global global,self */
 define(["Klass","assert"],function (Klass,assert) {
-    var _global=(typeof window!=="undefined" ? window : global);
+    // same with root.js
+    function getRoot(){
+        if (typeof window!=="undefined") return window;
+        if (typeof self!=="undefined") return self;
+        if (typeof global!=="undefined") return global;
+        return (function (){return this;})();
+    }
+    var root=getRoot();
+    var BA_C=root.BA_C=root.BA_C||{};
+    var _global=root;//(typeof window!=="undefined" ? window : global);
     var t={};
     var bitWiseOp={
         "|":1, "&":1 , "<<":1, ">>":1, "^":1,"~":1,"%":1
     };
     var CTYPE_NAME="CType";
     _global[CTYPE_NAME]=t;
+    BA_C[CTYPE_NAME]=t;
     t.Base=Klass.define({
         $name:"ctype::Base",
         // Check var_of_this = var_of_t; is OK?
