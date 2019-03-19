@@ -1,3 +1,4 @@
+define([],function () {
 var js_gen=function(p,options){
 	options=options||{};
 	var result="";
@@ -9,3 +10,5 @@ var js_gen=function(p,options){
 	gen(p);
 	return "scopes_0=window;"+result+"loop_start2();"+(options.noReturn?"":"return main();");
 };
+return js_gen;
+});

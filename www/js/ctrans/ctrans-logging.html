@@ -24,7 +24,7 @@ file:///C:/bin/Dropbox/workspace/jslesson/www/js/ctrans2/ctrans-test3.html
             "ctrans/ctype":"ctype",
             "Klass":"../lib/Klass",
             "Parser":"parser",
-            "ExpressionParser":"ExpressionParser2",
+            "ExpressionParser":"../lang/ExpressionParser2",
             "hoge":"fuga"
         }
     })
@@ -99,7 +99,7 @@ async function loop() {
     function HERE(src,ln) {
         var a=src.split("\n");
         a.splice(ln-1,0,"↓!!!HERE!!!↓");
-        return a.join("\n");        
+        return a.join("\n");
     }
     function sleep(){
         return new Promise(function (s) {

@@ -1,14 +1,3 @@
-/*sys.load("js/parser.js");
-sys.load("js/ExpressionParser2Tonyu.js");
-sys.load("js/GrammarTonyu.js");
-sys.load("js/XMLBuffer.js");
-sys.load("js/IndentBuffer.js");
-sys.load("js/disp.js");
-sys.load("js/profiler.js");
-*/
-/*if (typeof define!=="function") {
-	define=require("requirejs").define;
-}*/
 define(["Grammar", "XMLBuffer", "IndentBuffer","disp", "Parser","TError","root"],
 function (Grammar, XMLBuffer, IndentBuffer, disp, Parser,TError,root) {
 var TT=function () {

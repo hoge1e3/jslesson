@@ -19,14 +19,15 @@ requirejs.config({
 		"ctrans/ctype":"../../runtime/lib/c/ctype",
         "Klass":"../lib/Klass",
         "Parser":"parser",
-        "ExpressionParser":"ExpressionParser2",
+        "ExpressionParser":"../lang/ExpressionParser2",
         "scanf": "../../runtime/lib/c/scanf",
         "lib": "../../runtime/lib/c/lib",
         "util": "../../runtime/lib/c/util",
         "hoge":"fuga"
     }
 })
-requirejs(["scanf","ctrans","jsgen","beautify","lib","util","x"],function () {
+requirejs(["scanf","ctrans","jsgen","beautify","lib","util","x"],
+function (scanf,ctrans,js_gen) {
 	runc=function (src,stdin,options) {
 		try {
 			options=options||{};

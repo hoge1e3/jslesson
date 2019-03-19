@@ -1,3 +1,4 @@
+/* global global */
 (function () {
     var _global=(typeof window!=="undefined" ? window : global);
 var utils = (function() {
@@ -281,7 +282,7 @@ var scanf = (function() {
                 break;
 
             default:
-                throw new Error('Unknown type "' + type + '"')
+                throw new Error('Unknown type "' + type + '"');
         }
         return ret;
     };

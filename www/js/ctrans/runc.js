@@ -1,3 +1,4 @@
+/* global requirejs */
 (function () {
     var R=window.BitArrow ? window.BitArrow.runtimePath : window.runtimePath;
     requirejs.config({
@@ -18,7 +19,7 @@
             //console.log("URLARGS",id,url);
             if (url.match(/^http/)) {
                 try {
-                    return (url.indexOf("?")<0?"?":"&")+BitArrow.urlArgs;
+                    return (url.indexOf("?")<0?"?":"&")+window.BitArrow.urlArgs;
                 } catch (e) {
                     //console.log("URLARGS err",e.stack);
                     return "";
@@ -35,14 +36,15 @@ requirejs(["assert","Klass","FS","_Util"],function (assert,Klass,FS,_Util) {
     requirejs([window.sourceName],function () {
         try{
             if ($("#console").length==0) {
+                var size;
                 if (parent && parent.editorTextSize) {
-                    var size=parent.editorTextSize+"px";
+                    size=parent.editorTextSize+"px";
                 }else{
-                    var size="";
+                    size="";
                 }
                 $("<pre>").attr({id:"console",style:"font-size:"+size+";"}).appendTo("body");
             }
-            var s=Util.getQueryString("stdin",null);
+            var s=window.Util.getQueryString("stdin",null);
             if(typeof s==="string") scanf.STDIN=s.split("\n");
             if (typeof main!=="function") throw new Error("main関数がありません");
             promisize(main()).then(function () {
