@@ -2,6 +2,20 @@
 (function () {
     var R=window.BitArrow ? window.BitArrow.runtimePath : window.runtimePath;
     requirejs.config({
+        shim: {
+            "lib": {
+                exports:"BA_C.lib"
+            },
+            "util": {
+                exports:"BA_C.util"
+            },
+            "_Util": {
+                exports:"Util"
+            },
+            "x": {
+                deps:["lib","util"]
+            }
+        },
         paths: {
           "lib": R+"lib/c/lib",
           "scanf": R+"lib/c/scanf",
@@ -44,12 +58,12 @@ requirejs(["assert","Klass","FS","_Util"],function (assert,Klass,FS,_Util) {
                 }
                 $("<pre>").attr({id:"console",style:"font-size:"+size+";"}).appendTo("body");
             }
-            var s=window.Util.getQueryString("stdin",null);
-            if(typeof s==="string") scanf.STDIN=s.split("\n");
-            if (typeof main!=="function") throw new Error("main関数がありません");
-            promisize(main()).then(function () {
+            var s=_Util.getQueryString("stdin",null);
+            if(typeof s==="string") lib.scanf.STDIN=s.split("\n");
+            if (typeof lib.main!=="function") throw new Error("main関数がありません");
+            u.promisize(lib.main()).then(function () {
                 var sr=window.runc_sendResult||parent.sendResult;
-                sr($("#console").text());
+                if (sr) sr($("#console").text());
             },handleError);
   		}catch(e){
   		    handleError(e);

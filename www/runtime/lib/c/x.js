@@ -1,26 +1,39 @@
-function fillRect(x,y,w,h) {
+/*global global,self*/
+(function () {
+    // same with root.js
+    function getRoot(){
+        if (typeof window!=="undefined") return window;
+        if (typeof self!=="undefined") return self;
+        if (typeof global!=="undefined") return global;
+        return (function (){return this;})();
+    }
+    var root=getRoot();
+    var lib=root.BA_C.lib;
+    var util=root.BA_C.util;
+lib.fillRect=function (x,y,w,h) {
     var ctx=initX()[0].getContext("2d");
     ctx.fillRect(x,y,w,h);
     writeGraphicsLog("fillRect("+[x,y,w,h].join(",")+");\n");
-}
+};
 function writeGraphicsLog(s) {
     if (typeof writeGraphicsLog.buffer==="string") {
         writeGraphicsLog.buffer+=s;
     }
 }
-function clear() {
+lib.writeGraphicsLog=writeGraphicsLog;
+lib.clear=function() {
     var c=initX()[0];
     var ctx=c.getContext("2d");
     var saveFillStyle=ctx.fillStyle;
     ctx.fillStyle="white";
-    fillRect(0,0,c.width,c.height);
+    lib.fillRect(0,0,c.width,c.height);
     ctx.fillStyle=saveFillStyle;
     if (window.drawGridFlag) doDrawGrid();
     writeGraphicsLog("clear();\n");
-}
-function update(){
+};
+lib.update=function (){
     var msec=16;
-    loop_start2();
+    util.loop_start2();
     var stats=KeyInfo.stats;
     for (var i in stats) {
         if (stats[i]>0) {stats[i]++;}
@@ -31,7 +44,7 @@ function update(){
         //console.log("Sleeping for ",msec);
         setTimeout(succ,msec);
     });
-}
+};
 var KeyInfo={
     stats:{},
     codes:{
@@ -70,26 +83,27 @@ function initX() {
     }
     return window.xCanvas;
 }
-function setColor(r,g,b) {
+lib.setColor=function (r,g,b) {
     var ctx=initX()[0].getContext("2d");
     ctx.fillStyle="rgb("+[Math.floor(r-0),Math.floor(g-0),Math.floor(b-0)].join(",")+")";
     ctx.strokeStyle="rgb("+[Math.floor(r-0),Math.floor(g-0),Math.floor(b-0)].join(",")+")";
     writeGraphicsLog("setColor("+[r,g,b].join(",")+");\n");
-}
-function setLineWidth(w) {
+};
+lib.setLineWidth=function (w) {
     var ctx=initX()[0].getContext("2d");
     ctx.lineWidth=w;
-}
-function drawGrid() {
+};
+lib.drawGrid=function () {
     window.drawGridFlag=true;
     doDrawGrid();
-}
+};
 function doDrawGrid() {
     var c=initX()[0];
     var ctx=c.getContext("2d");
     ctx.save();
 	ctx.strokeStyle="#00ff00";
-	for (var i=0 ; i<c.width ; i+=10) {
+    var i;
+	for ( i=0 ; i<c.width ; i+=10) {
 	    ctx.beginPath();
 	    ctx.lineWidth=(i % 100 ==0 ? 4 : 1);
 	    ctx.moveTo(i,0);
@@ -97,8 +111,7 @@ function doDrawGrid() {
 	    ctx.closePath();
 	    ctx.stroke();
 	}
-
-	for (var i=0 ; i<c.height ; i+=10) {
+	for ( i=0 ; i<c.height ; i+=10) {
 	    ctx.beginPath();
 	    ctx.lineWidth=(i % 100 ==0 ? 4 : 1);
 	    ctx.moveTo(0,i);
@@ -108,23 +121,24 @@ function doDrawGrid() {
 	}
 	ctx.fillStyle="black";
 	ctx.font="15px monospaced";
-	for (var i=100 ; i<c.width ; i+=100) {
+	for ( i=100 ; i<c.width ; i+=100) {
 	    ctx.fillText(i, i,15);
 	}
-	for (var i=100 ; i<c.height ; i+=100) {
+	for ( i=100 ; i<c.height ; i+=100) {
 	    ctx.fillText(i, 0,i);
 	}
     ctx.restore();
 }
-function setPen(x, y) {
+lib.setPen=function (x, y) {
     var ctx=initX()[0].getContext("2d");
     setPen.sx = x;
     setPen.sy = y;
     writeGraphicsLog("setPen("+[x,y].join(",")+");\n");
-}
+};
+var setPen=lib.setPen;
 setPen.sx=0;
 setPen.sy=0;
-function movePen(dx, dy) {
+lib.movePen=function (dx, dy) {
     var ctx=initX()[0].getContext("2d");
     ctx.beginPath();
     ctx.moveTo(setPen.sx, setPen.sy);
@@ -133,33 +147,33 @@ function movePen(dx, dy) {
     ctx.lineTo(setPen.sx, setPen.sy);
     ctx.stroke();
     writeGraphicsLog("movePen("+[dx,dy].join(",")+");\n");
-}
-function setTextSize(s) {
+};
+lib.setTextSize=function (s) {
     var ctx=initX()[0].getContext("2d");
     ctx.font=s+"px monospaced";
-}
-function drawString(s, x, y, sz) {
+};
+lib.drawString=function (s, x, y, sz) {
     var ctx=initX()[0].getContext("2d");
     if (sz) {
         ctx.font = sz + "px monospace";
     }
-    ctx.fillText(ch_ptr_to_str(s), x, y);
-}
-function drawText(s, x, y, sz) {
-    drawString(s,x,y,sz);
-}
-function drawNumber(s, x, y, sz) {
-    drawString(s+"",x,y,sz);
-}
-function drawLine(x1, y1, x2, y2) {
+    ctx.fillText(util.ch_ptr_to_str(s), x, y);
+};
+lib.drawText=function (s, x, y, sz) {
+    lib.drawString(s,x,y,sz);
+};
+lib.drawNumber=function (s, x, y, sz) {
+    lib.drawString(s+"",x,y,sz);
+};
+lib.drawLine=function (x1, y1, x2, y2) {
     var ctx=initX()[0].getContext("2d");
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
     ctx.stroke();
     //  setPen(x1,y1);movePen(x2-x1,y2-y1);
-}
-function fillOval(x, y, w, h) {
+};
+lib.fillOval=function (x, y, w, h) {
     var ctx=initX()[0].getContext("2d");
     if (w * h === 0) return;
     var a = w / h;
@@ -171,13 +185,13 @@ function fillOval(x, y, w, h) {
     ctx.fill();
     ctx.restore();
     writeGraphicsLog("fillOval("+[x,y,w,h].join(",")+");\n");
-}
-function getkey(code) {
+};
+lib.getkey=function (code) {
     var ctx=initX()[0].getContext("2d");
     var stats=KeyInfo.stats;
     var codes=KeyInfo.codes;
     if (code.IS_POINTER) {
-        code=ch_ptr_to_str(code);
+        code=util.ch_ptr_to_str(code);
     }
     if (typeof code=="string") {
         code=codes[code.toLowerCase()];
@@ -187,5 +201,6 @@ function getkey(code) {
     if (stats[code]==-1) return 0;
     if (!stats[code]) stats[code]=0;
     return stats[code];
-}
-function wait() {}
+};
+lib.wait=function () {};
+})();
