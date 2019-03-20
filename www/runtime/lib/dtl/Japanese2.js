@@ -207,7 +207,7 @@ this['addAliasFromTable']("screen","音楽効果","おんがくこうか","showa
 this['addAliasFromTable']("color","暗くする","くらくする","darker");
 this['addAliasFromTable']("color","明るくする","あかるくする","brighter");
 this['addAliasFromTable']("color","半透明にする","はんとうめいにする","settransparency,maketranslucent");
-this['addAliasFromTable']("color","ランダムに作る,くじ引き","らんだむにつくる,くじびき","random");
+this['addAliasFromTable']("color","ランダムに作る,くじ引き","らんだむにつくる,くじびき","randomCreate");
 this['addAliasFromTable']("palette","混ぜる","まぜる","mix");
 this['addAliasFromTable']("guiButton,guiField,guiLabel,guiList,guiMenu,guiSlider,guiArea","次の行","つぎのぎょう","nextline");
 this['addAliasFromTable']("guiButton,guiField,guiLabel,guiList,guiMenu,guiSlider,guiArea","位置","いち","position,moveto");

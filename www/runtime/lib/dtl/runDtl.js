@@ -11,9 +11,9 @@
     function mapDtlNoJS(n) {
         return R+"lib/dtl/"+n;
     }
-    var dtlPreLibs=["promise","mt","lib","polyk","calibration"].map(mapDtl);
+    var dtlPreLibs=["promise","mt","polyk","calibration"].map(mapDtl);
     dtlPreLibs.push("minimal");
-    var dtlLibs=["devicemotion","Dict","Vec2","Actor","Group","UI","Color","Timer",
+    var dtlLibs=["lib","devicemotion","Dict","Vec2","Actor","Group","UI","Color","Timer",
     "Util","Turtle","Figure","DOM","TextFile","Japanese2","db"].map(mapDtl).map(function (e) {
         return [e];
     });
