@@ -1,6 +1,6 @@
 // These should be written in reqConf.shim.deps
 /*global Parser, ExpressionParser, context */
-window.MinimalParser= function () {
+(function () {
 	var parser={};
 	var sp=Parser.StringParser; // 文字列を解析するパーサ
 	var ctx;
@@ -323,7 +323,7 @@ window.MinimalParser= function () {
 		return 'for('+part1+";"+part2+';this["for_judge_with_inc"](__for_id__,'+part3+")){"+_program+"}";
 	});
 	var arr_init=variable.and(token(/^の/)).and(token(/^すべての値を/)).and(expression).and(token(/^にする/)).ret(function(_var,_no,_all,_val){
-		return 'this["allSet"]'+'("'+_var['name']+'",'+_val+");";
+		return 'this["allSet"]'+'("'+_var.name+'",'+_val+");";
 	});
 
 	var return_state=expression.and(token(/^を/)).and(token(/^返す/)).ret(function(_expr){
@@ -335,7 +335,7 @@ window.MinimalParser= function () {
 		if(_call!=undefined){
 			ret+='var end=this["性能測定スタート"]();';
 			ret+=_call+";";
-			ret+='end();'
+			ret+='end();';
 		}else{
 			ret+='this["性能"]();';
 		}
@@ -357,7 +357,7 @@ window.MinimalParser= function () {
 
 	var control_state=if_state.or(if_state_1liner).or(while_state).or(repeat_state);
 	statement=performance_test.or(func).or(control_state).or(arr_init).or(disp_state).or(inc).or(dec).or(return_state).or(assigns);
-	statements=statement.rep1().ret(function(stmts){return stmts.join("");});
+	var statements=statement.rep1().ret(function(stmts){return stmts.join("");});
 
   program = statements.and(space.opt());
 
@@ -398,7 +398,7 @@ window.MinimalParser= function () {
 		if(result.success){
 			output=result.result[0];
 			if(result.src.maxPos<str.length){
-				var line=(str.substr(0,result.src.maxPos)).match(/\n/g);
+				line=(str.substr(0,result.src.maxPos)).match(/\n/g);
 				line=(line)?line.length:0;
 				//alert("エラーが発生しました。\n"+line+"行目付近を確認してください。");
 				var mesg=de+"エラーが発生しました。\n"+(line+1)+"行目付近を確認してください。";
@@ -434,7 +434,7 @@ window.MinimalParser= function () {
 		while(str.match(/__if_id__/))str=str.replace(/__if_id__/,if_id++);
 		console.log(str);
 		return str;
-	}
+	};
 	parser.parse=function (str,options) {
 		var output=parser.parseAsNode(str,options);
 		output=parser.node2js(output,options);
@@ -475,5 +475,6 @@ window.MinimalParser= function () {
     	//console.log("dtlgen",p,result);
     	return buf.buf;
     };
+	window.MinimalParser=parser;
 	return parser;
-}();
+})();

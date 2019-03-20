@@ -89,12 +89,12 @@ window.dncl2js= function () {
 	var rsb=token(/^[\]]/).ret(function(){return "]";});
 	var lp=token(/^[(（]/).ret(function(){return "(";});
 	var rp=token(/^[)）]/).ret(function(){return ")";});
-	var lcb=token(/^[｛{]/).ret(function(){return "{"});
-	var rcb=token(/^[｝}]/).ret(function(){return "}"});
+	var lcb=token(/^[｛{]/).ret(function(){return "{";});
+	var rcb=token(/^[｝}]/).ret(function(){return "}";});
 	var add=token(/^[+＋]/).ret(function(){return "+";});
 	var sub=token(/^[-−–－]/).ret(function(){return "-";});
 	var mul=token(/^[*×＊∗]/).ret(function(){return "*";});
-	var div_float=token(/^[/／]/).ret(function(){return "/";});
+	var div_float=token(/^[\/／]/).ret(function(){return "/";});
 	var div_int=token(/^÷/).ret(function(){return "÷";});
 	var gt=token(/^[>＞]/).ret(function(){return ">";});
 	var ge=token(/^(?:[>＞][=＝])|^≧/).ret(function(){return ">=";});
@@ -120,9 +120,9 @@ window.dncl2js= function () {
 			'toString':(function(){
 				return 'this["param_or_this"]("'+_name+'",this["params"])["'+_name+'"]';
 			})
-		}
+		};
 	});
-	var name_2byte = token(reg_string).except(function(str){return (""+str).search(reserved)===0}).ret(function(_name){
+	var name_2byte = token(reg_string).except(function(str){return (""+str).search(reserved)===0;}).ret(function(_name){
 	    return trim_name(_name.text);
 	});
 	var reg_str = RegExp("^[\"\”\“「｢][^\"\“\”\」｣]*[\"\”\“」｣]");
@@ -177,7 +177,7 @@ window.dncl2js= function () {
 	//   // return _name+indexs.join("");
 	// });
 	var paren_expression = lp.and(expression_lazy.opt()).and(rp).ret(function(_lp,_expr,_rp){
-		return "("+(_expr?_expr:"")+")"
+		return "("+(_expr?_expr:"")+")";
 	});
 	var unary_term = add.or(sub).and(term_lazy).ret(function(_sign,_term){
 		return _sign+"("+_term+")";
@@ -207,10 +207,10 @@ window.dncl2js= function () {
 				left='(dnclroot["toInt"]('+left+'))';
 				right='(dnclroot["toInt"]('+right+'))';
 				return '(dnclroot["toInt"]('+left+op+right+"))";
-				break;
+				//break;
 			default:
 				return '('+left+op+right+")";
-				break;
+				//break;
 		}
 	}
 	var infix_expr = infix_expr_build.build();
@@ -245,7 +245,7 @@ window.dncl2js= function () {
 	}
 	var logical_expr = logical_expr_build.build();
 
-	var expression = logical_expr;
+	expression = logical_expr;
 
 
 	var func_call_param = lp.and(expression_lazy.sep0(comma,true)).and(rp).ret(function(_lp,_params){
@@ -302,7 +302,7 @@ window.dncl2js= function () {
 		return true;
 	}).opt()).and(token(/^表示する/)).ret(function(_params,_wo,_noNewLineFlag){
 		var _newLineFlag=(_noNewLineFlag)?false:true;
-		return 'this["dncl_disp"](['+_params+"],"+_newLineFlag+");"
+		return 'this["dncl_disp"](['+_params+"],"+_newLineFlag+");";
 	});
 	var if_state_1liner=token(/^もし/).and(expression).and(token(/^ならば/)).and(statement_lazy).ret(function(_if,_expr,_then,_state){
 		return 'if(this["if_judge_with_inc"](__if_id__,'+_expr+")){"+_state+"}";
@@ -337,18 +337,18 @@ window.dncl2js= function () {
 		var part1=_var+"="+_init;
 		var part2=_var+((_sign==="+")?"<=":">=")+_end;
 		var part3=_var+((_sign==="+")?"+=":"-=")+_step;
-		return 'for('+part1+';this["for_judge_with_inc"](__for_id__,'+part2+');'+part3+"){"+_program+"}"
+		return 'for('+part1+';this["for_judge_with_inc"](__for_id__,'+part2+');'+part3+"){"+_program+"}";
 	});
 	var repeat_state2=token(/^ここから/).and(expression).and(token(/^回/)).and(comma).and(program_lazy).and(token(/^を繰り返す/)).ret(function(_1,_num,_3,_4,_program){
 		return 'for(var i=0;this["for_judge_with_inc"](__for_id__,i<'+_num+");i++){"+_program+"}";
-	})
+	});
 
 	var repeat_state=repeat_state1.or(repeat_state2);
 
 	var arr_init=variable.and(token(/^の/)).and(token(/^すべての値を/)).and(expression).and(token(/^にする/)).ret(function(_var,_no,_all,_val){
 		var ret="";
-		ret+=	'this["'+_var['name']+'"]=this["'+_var['name']+'"]||[];'
-		ret+= 'this["allSet"]'+'("'+_var['name']+'",'+_val+");";
+		ret+=	'this["'+_var.name+'"]=this["'+_var.name+'"]||[];';
+		ret+= 'this["allSet"]'+'("'+_var.name+'",'+_val+");";
 		return ret;
 	});
 
@@ -361,7 +361,7 @@ window.dncl2js= function () {
 		if(_call!=undefined){
 			ret+='var end=this["性能測定スタート"]();';
 			ret+=_call+";";
-			ret+='end();'
+			ret+='end();';
 		}else{
 			ret+='this["性能"]();';
 		}
@@ -383,7 +383,7 @@ window.dncl2js= function () {
 
 	var control_state=if_state.or(if_state_1liner).or(while_state).or(repeat_state);
 	statement=performance_test.or(func).or(control_state).or(arr_init).or(disp_state).or(inc).or(dec).or(return_state).or(assigns);
-	statements=statement.rep1().ret(function(stmts){return stmts.join("");});
+	var statements=statement.rep1().ret(function(stmts){return stmts.join("");});
 
   program = statements.and(space.opt());
 
@@ -421,13 +421,14 @@ window.dncl2js= function () {
 		ctx=context();
 	    //console.log("INP",input,input.length);
 		var result = program.parseStr(input);
+		var mesg;
 		if(result.success){
 			output=result.result[0];
 			if(result.src.maxPos<str.length){
-				var line=(str.substr(0,result.src.maxPos)).match(/\n/g);
+				line=(str.substr(0,result.src.maxPos)).match(/\n/g);
 				line=(line)?line.length:0;
 				//alert("エラーが発生しました。\n"+line+"行目付近を確認してください。");
-				var mesg=de+"エラーが発生しました。\n"+(line+1)+"行目付近を確認してください。";
+				mesg=de+"エラーが発生しました。\n"+(line+1)+"行目付近を確認してください。";
 				if (options.throwCompileErrorOnRuntime) {
     				return extend([
     				"throw new Error('"+mesg.replace(/\n/g,"\\n")+"');"
@@ -437,7 +438,7 @@ window.dncl2js= function () {
 				}
 			}
 		}else{
-			var mesg=de+"エラーが発生しました。\n"+"1行目付近を確認してください。";
+			mesg=de+"エラーが発生しました。\n"+"1行目付近を確認してください。";
 			if (options.throwCompileErrorOnRuntime) {
 					return extend([
 					"throw new Error('"+mesg.replace(/\n/g,"\\n")+"');"
