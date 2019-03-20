@@ -68,6 +68,42 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG,UI,root,WebS
                 version:BitArrow.version,
                 urlArgs:BitArrow.urlArgs,
                 publishedURL:BitArrow.publishedURL,
+                runtimePath:WebSite.runtime,
+                main:f.name};
+            $(head).append($("<script>").text("window.BitArrow="+JSON.stringify(ba)+";"));
+        }
+        (["lib/require.js","lib/dtl/runDtl.js"]).map(function (r) {
+            return WebSite.runtime+r;
+        }).forEach(function (src) {
+            var nn=document.createElement("script");
+            nn.setAttribute("charset","utf-8");
+            var src2;
+            var requirejs=root.requirejs;
+            if (FS.PathUtil.isURL(src) && requirejs.version!=="2.1.9" && typeof requirejs.s.contexts._.config.urlArgs==="function") {
+                src2=src+requirejs.s.contexts._.config.urlArgs("",src);
+            } else {
+                src2=src+(src.indexOf("?")<0?"?":"&")+Math.random();
+            }
+            nn.setAttribute("src",src2);
+            body.appendChild(nn);
+        });
+        return f.dst.html.text("<!DOCTYPE HTML>\n<html>"+html.innerHTML+"</html>");
+    };
+    p.genHTMLOLD=function (f) {
+        this.progress("generate "+f.src.html.name());
+        //var curHTMLFile=d.rel(name+".html");
+        var dp=new DOMParser();
+        var dom=dp.parseFromString(f.src.html.text(),"text/html");
+        var html=dom.getElementsByTagName("html")[0];
+        var head=dom.getElementsByTagName("head")[0];
+        var body=dom.getElementsByTagName("body")[0];
+        $(head).append($("<meta>").attr("charset","UTF-8"));
+        if (window.BitArrow) {
+            var BitArrow=window.BitArrow;
+            var ba={
+                version:BitArrow.version,
+                urlArgs:BitArrow.urlArgs,
+                publishedURL:BitArrow.publishedURL,
                 runtimePath:WebSite.runtime};
             $(head).append($("<script>").text("window.BitArrow="+JSON.stringify(ba)+";"));
         }
