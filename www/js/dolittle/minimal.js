@@ -1,6 +1,13 @@
-/*global Parser, ExpressionParser, context */
+/*global Parser, ExpressionParser, context, self,global */
 (function () {
-	var root=(function(){return this;})();
+	// same with root.js
+	function getRoot(){
+		if (typeof window!=="undefined") return window;
+		if (typeof self!=="undefined") return self;
+		if (typeof global!=="undefined") return global;
+		return (function (){return this;})();
+	}
+	var root=getRoot();
 	var parser={};
 	var sp=Parser.StringParser; // 文字列を解析するパーサ
 	var ctx;

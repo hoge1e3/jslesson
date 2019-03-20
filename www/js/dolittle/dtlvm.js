@@ -1,3 +1,5 @@
+/*global MinimalParser, Visitor, context*/
+(function () {
 MinimalParser.node2vm=function (node) {
     var ctx=context();
     var inf2meth={"+":"add","-":"sub","*":"mul","/":"div",
@@ -43,7 +45,7 @@ MinimalParser.node2vm=function (node) {
             v.visit(left);
             v.visit(right);
             add(["send",1,inf2meth[op+""]]);
-            
+
         },
         prefix: function (node) {
             var op=node.subnodes[0];
@@ -55,7 +57,7 @@ MinimalParser.node2vm=function (node) {
             var left=node.subnodes[0];
             var op=node.subnodes[1];
             v.visit(left);
-            v.visit(op);            
+            v.visit(op);
         },
         number:function (node) {
             add(["pushi",parseFloat(node.value+"")]);
@@ -72,7 +74,7 @@ MinimalParser.node2vm=function (node) {
             locals.forEach(function (p) {
             	add(["tmp",p+""]);
             });*/
-            
+
         },
         block: function (node) {
             var param=node.subnodes[1];
@@ -139,7 +141,7 @@ MinimalParser.node2vm=function (node) {
                 else add(["pop",1]);
             })
         }
-    }); 
+    });
     v.def=function (node) {
         if (node instanceof Array && !node.type) {
             node.forEach(function (n) {v.visit(n);});
@@ -156,3 +158,4 @@ MinimalParser.node2vm=function (node) {
     }
     return nc;
 };
+})();

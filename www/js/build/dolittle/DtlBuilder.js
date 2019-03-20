@@ -164,16 +164,19 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG,UI,root,WebS
                 //console.log("File new?",f.src.html.name(), isNewer(f.dst.html, f.src.html), isNewer(f.dst.js, f.src.dtl));
                 var isMainFile=(f.src.dtl.path()==mainFilePath);
                 if (!isMainFile && isNewer(f.dst.js, f.src.dtl) && isNewer(f.dst.html, f.src.html)) return SplashScreen.waitIfBusy();
-                if (f.dst.dtlvm) return compileVM(f);
-                var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
-                buf.setSrcFile(f.src.dtl);
-                var js=dtlParser.parse(f.src.dtl.text(),{
-                    indentBuffer:buf,
-                    src:f.src.dtl.name(),
-                    srcPath: f.src.dtl.path(),
-                    throwCompileErrorOnRuntime:!isMainFile
-                });
-                buf.close();
+                if (f.dst.dtlvm) {
+                    compileVM(f);
+                } else {
+                    var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
+                    buf.setSrcFile(f.src.dtl);
+                    var js=dtlParser.parse(f.src.dtl.text(),{
+                        indentBuffer:buf,
+                        src:f.src.dtl.name(),
+                        srcPath: f.src.dtl.path(),
+                        throwCompileErrorOnRuntime:!isMainFile
+                    });
+                    buf.close();
+                }
                 t.genHTML(f);
                 return SplashScreen.waitIfBusy();
             });

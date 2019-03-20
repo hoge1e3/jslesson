@@ -88,6 +88,9 @@ var reqConf={
                 deps:["Parser","ExpressionParser","context"],
                 exports:"MinimalParser"
             },
+            "dolittle/dtlvm": {
+                deps:["dolittle/minimal", "Visitor", "context"]
+            },
             "dncl/minimal": {
                 deps:["Parser","ExpressionParser","context"],
                 exports:"MinimalParser"
