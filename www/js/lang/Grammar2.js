@@ -14,7 +14,7 @@ class Grammar {
         if (defs.$space) {
             this.space=this.toParser(defs.$space);
         }
-        for (let k in defs) {
+        const proc=k=>{
             let v=defs[k];
             if (k==="$space") {
                 //this.space=this.toParser(v);
@@ -26,7 +26,8 @@ class Grammar {
                 });
                 if (p.names) this.defs[k].names=p.names;
             }
-        }
+        };
+        for (let k in defs) proc(k);
     }
     genVisitorTemplate() {
         var buf="";

@@ -1,8 +1,8 @@
-define(["FS","Shell","Shell2","ProjectCompiler",
+define(["FS","Shell","Shell2",
            "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog","RenameProjectDialog",
            "assert","DeferredUtil","RemoteProject","SplashScreen",
        "ctrl"],
-    function(FS, sh,sh2,TPRC,
+    function(FS, sh,sh2,
            NPD, UI, Auth,zip,Sync,NSD,RPD,
            A,DU,RemoteProject,SplashScreen,
        ctrl) {
