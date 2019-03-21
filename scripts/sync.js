@@ -1,6 +1,6 @@
 /* global module*/
 const common=sync=>{
-    const src="www/js";
+    const src="www/es5";
     const dst="www/runtime/lib";
 
     sync(`${src}/lib/assert.js`,dst);
@@ -15,7 +15,7 @@ const common=sync=>{
     sync(`${src}/lib/util.js`,dst);
 };
 const c=sync=>{
-    const src="www/js/ctrans/";
+    const src="www/es5/ctrans/";
     const dst="www/runtime/lib/c";
     sync(`${src}/lib.js`,dst);
     sync(`${src}/util.js`,dst);

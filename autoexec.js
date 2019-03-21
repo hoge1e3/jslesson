@@ -31,20 +31,22 @@ requirejs(["FS"],(FS)=> {
         function same() {
             return f1.text()===f2.text();
         }
-        if (same()) {
-            f1.watch(()=>{
-                if (!same()) {
-                    f1.copyTo(f2);
-                }
-            });
-            f2.watch(()=>{
-                if (!same()) {
-                    f2.copyTo(f1);
-                }
-            });
-        } else {
-            console.warn(f1.path()+" and "+f2.path()+" are not synced. Auto-sync disabled.");
+        if (!same()) {
+            f1.copyTo(f2);
         }
+        f1.watch(()=>{
+            if (!same()) {
+                f1.copyTo(f2);
+            }
+        });
+        f2.watch(()=>{
+            if (!same()) {
+                f2.copyTo(f1);
+            }
+        });
+        /*} else {
+            console.warn(f1.path()+" and "+f2.path()+" are not synced. Auto-sync disabled.");
+        }*/
     }
     //console.log(FS.get(projectRoot).rel("TODO.txt").text());
 });
