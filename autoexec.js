@@ -39,11 +39,11 @@ requirejs(["FS"],(FS)=> {
                 f1.copyTo(f2);
             }
         });
-        f2.watch(()=>{
+        /*f2.watch(()=>{
             if (!same()) {
                 f2.copyTo(f1);
             }
-        });
+        });*/
         /*} else {
             console.warn(f1.path()+" and "+f2.path()+" are not synced. Auto-sync disabled.");
         }*/

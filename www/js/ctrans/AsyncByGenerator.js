@@ -20,7 +20,7 @@
         return (function (){return this;})();
     }
     var root=getRoot();
-
+    //
     var AsyncByGenerator=root.AsyncByGenerator={
         doReady: function () {
            this.isReady=true;

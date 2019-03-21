@@ -1,3 +1,5 @@
+"use strict";
+
 /*
 コード生成中に使う補助ライブラリ．自分の処理しているクラス，メソッド，変数などの情報を保持する
 使い方:
@@ -17,40 +19,44 @@
 /*if (typeof define!=="function") {
 	define=require("requirejs").define;
 }*/
-define(["root"],function (root) {
-root.context=function () {
-	var c={};
-	c.ovrFunc=function (from , to) {
-		to.parent=from;
-		return to;
-	};
-	c.enter=enter;
-	var builtins={};
-	c.clear=function () {
-		for (var k in c) {
-			if (!builtins[k]) delete c[k];
-		}
-	};
-	for (var k in c) { builtins[k]=true; }
-	return c;
-	function enter(val, act) {
-		var sv={},k;
-		for (k in val) {
-			if (k.match(/^\$/)) {
-				k=RegExp.rightContext;
-				sv[k]=c[k];
-				c[k]=c.ovrFunc(c[k], val[k]);
-			} else {
-				sv[k]=c[k];
-				c[k]=val[k];
+define(["root"], function (root) {
+	root.context = function () {
+		var c = {};
+		c.ovrFunc = function (from, to) {
+			to.parent = from;
+			return to;
+		};
+		c.enter = enter;
+		var builtins = {};
+		c.clear = function () {
+			for (var k in c) {
+				if (!builtins[k]) delete c[k];
 			}
+		};
+		for (var k in c) {
+			builtins[k] = true;
 		}
-		var res=act(c);
-		for (k in sv) {
-			c[k]=sv[k];
+		return c;
+		function enter(val, act) {
+			var sv = {},
+			    k;
+			for (k in val) {
+				if (k.match(/^\$/)) {
+					k = RegExp.rightContext;
+					sv[k] = c[k];
+					c[k] = c.ovrFunc(c[k], val[k]);
+				} else {
+					sv[k] = c[k];
+					c[k] = val[k];
+				}
+			}
+			var res = act(c);
+			for (k in sv) {
+				c[k] = sv[k];
+			}
+			return res;
 		}
-		return res;
-	}
-};
-return root.context;
+	};
+	return root.context;
 });
+//# sourceMappingURL=context.js.map
