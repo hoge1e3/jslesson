@@ -1,4 +1,4 @@
-//(function (){
+(function (){
 /* global global, self */
 (function () {
     // same with root.js
@@ -12330,4 +12330,4 @@ function ready() {
 }// of ready
 });
 
-//}).call(window);
+}).call(window);

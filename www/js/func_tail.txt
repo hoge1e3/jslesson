@@ -1,1 +1,1 @@
-//}).call(window);
+}).call(window);

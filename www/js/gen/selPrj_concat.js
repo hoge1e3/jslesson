@@ -1,4 +1,4 @@
-//(function (){
+(function (){
 // This is kowareta! because r.js does not generate module name:
 //   define("FSLib",[], function () { ...
 //(function (global) {
@@ -1192,7 +1192,7 @@ function privatize(o){
     return res;
 }
 function extend(d,s) {
-    for (var i in (s||{})) {d[i]=s[i];} 
+    for (var i in (s||{})) {d[i]=s[i];}
     return d;
 }
 return {
@@ -1414,7 +1414,7 @@ define('Content',["assert","Util","FileSaver"],function (assert,Util,saveAs) {
         } else if (bin && Content.isBuffer(bin.buffer)) {
             // in node.js v8.9.1 ,
             ///  bin is Buffer, bin.buffer is ArrayBuffer
-            //   and bin.buffer is content of different file(memory leak?) 
+            //   and bin.buffer is content of different file(memory leak?)
             b.bufType="array1";
             b.arrayBuffer=bin.buffer;
         } else {
@@ -4828,7 +4828,7 @@ define('ShellParser',["Shell","DeferredUtil"],function (sh,DU) {
             }));
         } else {
             return expr;
-        }   
+        }
     };
     sh.calc=function (op) {
         var i=1;
@@ -4841,7 +4841,7 @@ define('ShellParser',["Shell","DeferredUtil"],function (sh,DU) {
                 case "mul":r*=parseFloat(b);break;
                 case "div":r/=parseFloat(b);break;
                 case "lt":r=(r<b);break;
-            }     
+            }
         }
         this.set("_",r);
         return r;
@@ -4849,11 +4849,11 @@ define('ShellParser',["Shell","DeferredUtil"],function (sh,DU) {
     sh.history=function () {
         var t=this;
         this._history.forEach(function (e) {
-            t.echo(e);    
+            t.echo(e);
         });
     };
 });
-define('Shell2',["Shell","UI","FS","Util","ShellParser"], 
+define('Shell2',["Shell","UI","FS","Util","ShellParser"],
 function (shParent,UI,FS,Util,shp) {
     var res={};
     var sh=shParent.clone();
@@ -10047,7 +10047,7 @@ if (typeof define!=="function") {
 }
 define('disp',["IndentBuffer"], function(IndentBuffer) {
 // オブジェクトの内容を表示する． デバッグ用
-return disp=function (a) {
+return window.disp=function (a) {
 	var p=IndentBuffer();
 	function disp2(a) {
 		if (a==null) return p("null%n");
@@ -14701,7 +14701,7 @@ define('NewSampleDialog',["UI"], function (UI) {
         			 ["span","サンプル"],
         			 ["select",{$edit:"sample"/*,on:{realtimechange:sel}*/},
         			 ["option",{$var:"loading",selected:true,value:"notsel"},"読込中.."]]
-				],                 
+				],
 				["div",
 				    ["span","プロジェクト名"],
         			 ["input",{$edit:"name",value:options.defName||"",
@@ -14723,7 +14723,7 @@ define('NewSampleDialog',["UI"], function (UI) {
             d.$vars.sample.append(UI("option",{$var:"loading",selected:true,value:"notsel"},"選択してください"));
             d.$vars.loading.text("選択してください");
             r.sort().forEach(function (n) {
-                    d.$vars.sample.append(UI("option",{value:n},n)); 
+                    d.$vars.sample.append(UI("option",{value:n},n));
             });
         });
         var model={name:options.defName||"",lang:"js"};
@@ -14769,7 +14769,7 @@ define('NewSampleDialog',["UI"], function (UI) {
     	            );
     	            ovrd.dialog({modal:true,width:600});
     	        } else doCopy();
-    	    } 
+    	    }
     	    function handle() {
     	        //alert(ovrd.$vars.theForm[0].overwrite.value);
     	        //return;
@@ -14909,7 +14909,7 @@ window.SplashScreen=window.SplashScreen||(function () {
                 SS.state=false;
             } else {
                 s.css("left",SS.x);
-            }       
+            }
         } else if (SS.state===true) {
             //s.text("Please wait"+(cnt%2==0?"...":""));
             cnt+=0.5;
@@ -14926,7 +14926,7 @@ window.SplashScreen=window.SplashScreen||(function () {
             var d=new $.Deferred;
             setTimeout(function () {d.resolve(r)},0);
             return d.promise();
-        }  
+        }
         return r;
     };
     SS.busyTime=function () {
@@ -15179,4 +15179,4 @@ function ready() {//-------------------------
 }//------of function ready()-----------
 });
 
-//}).call(window);
+}).call(window);
