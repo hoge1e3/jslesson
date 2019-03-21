@@ -51,7 +51,6 @@ var TonyuLang=function () {
 			return arguments[n];
 		};
 	}
-
 	var e=ExpressionParser() ;
 	var arrayElem=g("arrayElem").ands(tk("["), e.lazy() , tk("]")).ret(null,"subscript");
 	var argList=g("argList").ands(tk("("), e.lazy().sep0(tk(","),true) , tk(")")).ret(null,"args");
@@ -181,7 +180,6 @@ var TonyuLang=function () {
 		return {type:"postfix", expr:p};
 	});*/
 	var expr=e.build().setName("expr").profile();
-	var retF=function (i) { return function (){ return arguments[i];}; };
 
 	var stmt=G("stmt").firstTokens();
 	var exprstmt=g("exprstmt").ands(expr,tk(";")).ret("expr");
@@ -254,6 +252,7 @@ var TonyuLang=function () {
 		g.defs[i].profile();
 	}
 	$.parse = function (file) {
+		var str;
 		if (typeof file=="string") {
 			str=file;
 		} else {

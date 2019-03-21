@@ -334,11 +334,12 @@ function genJS(klass, env) {//B
 		},
 		postfix: function (node) {
 			var a=annotation(node);
+			var mc,si,st;
 			if (diagnose) {
 				if (a.myMethodCall) {
-					var mc=a.myMethodCall;
-					var si=mc.scopeInfo;
-					var st=stype(si);
+					mc=a.myMethodCall;
+					si=mc.scopeInfo;
+					st=stype(si);
 					if (st==ST.FIELD || st==ST.METHOD) {
 						buf.printf("%s(%s, %l, [%j], %l )", INVOKE_FUNC,THIZ, mc.name, [",",mc.args],"this");
 					} else {
@@ -355,9 +356,9 @@ function genJS(klass, env) {//B
 					return;
 				}
 			} else if (a.myMethodCall) {
-				var mc=a.myMethodCall;
-				var si=mc.scopeInfo;
-				var st=stype(si);
+				mc=a.myMethodCall;
+				si=mc.scopeInfo;
+				st=stype(si);
 				if (st==ST.METHOD) {
 					buf.printf("%s.%s(%j)",THIZ, mc.name, [",",mc.args]);
 					return;
@@ -438,8 +439,7 @@ function genJS(klass, env) {//B
 						"switch (%v) {%{"+
 						"%f"+
 						"%n%}}%n"+
-						"break;%n"
-						,
+						"break;%n",
 						node.value,
 						function setpc() {
 							var i=0;
@@ -457,8 +457,7 @@ function genJS(klass, env) {//B
 					node.cases.forEach(function (c) {
 						buf.printf(
 								"%}case %f:%{"+
-								"%j%n"
-								,
+								"%j%n"					,
 								function () { buf.print(labels[i].put(ctx.pc++)); },
 								["%n",c.stmts]);
 						i++;
@@ -466,8 +465,7 @@ function genJS(klass, env) {//B
 					if (node.defs) {
 						buf.printf(
 								"%}case %f:%{"+
-								"%j%n"
-								,
+								"%j%n"								,
 								function () { buf.print(labels[i].put(ctx.pc++)); },
 								["%n",node.defs.stmts]);
 					}
@@ -479,8 +477,7 @@ function genJS(klass, env) {//B
 						"switch (%v) {%{"+
 						"%j"+
 						(node.defs?"%v":"%D")+
-						"%n%}}"
-						,
+						"%n%}}"						,
 						node.value,
 						["%n",node.cases],
 						node.defs
@@ -555,13 +552,13 @@ function genJS(klass, env) {//B
 		},
 		"for": function (node) {
 			lastPosF(node)();
-			var an=annotation(node);
+			var an=annotation(node),brkpos,pc;
 			if (node.inFor.type=="forin") {
 				var itn=annotation(node.inFor).iterName;
 				if (!ctx.noWait &&
 						(an.fiberCallRequired || an.hasReturn)) {
-					var brkpos=buf.lazy();
-					var pc=ctx.pc++;
+					brkpos=buf.lazy();
+					pc=ctx.pc++;
 					buf.printf(
 							"%s=%s(%v,%s);%n"+
 							"%}case %d:%{" +
@@ -596,9 +593,9 @@ function genJS(klass, env) {//B
 			} else {
 				if (!ctx.noWait&&
 						(an.fiberCallRequired || an.hasReturn)) {
-					var brkpos=buf.lazy();
+					brkpos=buf.lazy();
 					var cntpos=buf.lazy();
-					var pc=ctx.pc++;
+					pc=ctx.pc++;
 					buf.printf(
 							"%v%n"+
 							"%}case %d:%{" +
@@ -625,8 +622,7 @@ function genJS(klass, env) {//B
 									"for (; %v ; %v) {%{"+
 										(doLoopCheck?"Tonyu.checkLoop();%n":"")+
 										"%v%n" +
-									"%}}"
-										,
+									"%}}"										,
 									/*enterV({noLastPos:true},*/ node.inFor.init,
 									node.inFor.cond, node.inFor.next,
 									node.loop

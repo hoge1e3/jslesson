@@ -3,7 +3,7 @@ if (typeof define!=="function") {
 }
 define(["IndentBuffer"], function(IndentBuffer) {
 // オブジェクトの内容を表示する． デバッグ用
-return disp=function (a) {
+return window.disp=function (a) {
 	var p=IndentBuffer();
 	function disp2(a) {
 		if (a==null) return p("null%n");
