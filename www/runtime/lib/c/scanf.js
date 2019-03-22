@@ -1,5 +1,3 @@
-'use strict';
-
 /* global global */
 (function () {
     var _global = typeof window !== "undefined" ? window : global;

@@ -1,5 +1,3 @@
-"use strict";
-
 /* global requirejs */
 (function () {
     var R = window.BitArrow ? window.BitArrow.runtimePath : window.runtimePath;

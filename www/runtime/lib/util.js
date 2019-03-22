@@ -1,5 +1,3 @@
-"use strict";
-
 /* global global, self */
 (function () {
     // same with root.js

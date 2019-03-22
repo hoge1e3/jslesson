@@ -1,5 +1,3 @@
-"use strict";
-
 define([], function () {
     var root = typeof window !== "undefined" ? window : typeof self !== "undefined" ? self : typeof global !== "undefined" ? global : null;
     //  promise.then(S,F)  and promise.then(S).fail(F) is not same!

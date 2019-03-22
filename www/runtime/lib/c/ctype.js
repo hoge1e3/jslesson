@@ -1,5 +1,3 @@
-"use strict";
-
 /* global global,self */
 define(["Klass", "assert"], function (Klass, assert) {
     // same with root.js

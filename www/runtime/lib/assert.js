@@ -1,5 +1,3 @@
-"use strict";
-
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 /*global global*/
@@ -7,7 +5,7 @@ define([], function () {
     var Assertion = function Assertion(failMesg) {
         this.failMesg = flatten(failMesg || "Assertion failed: ");
     };
-    var $a; //
+    var $a; //test
     Assertion.prototype = {
         _regedType: {},
         registerType: function registerType(name, t) {
