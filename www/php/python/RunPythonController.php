@@ -49,6 +49,31 @@ class RunPythonController {
             return $homes;
         }
     }
+    static function runStr(){
+        $nfs=new NativeFS();
+        $str=param("str");
+        $fs=Auth::getFS();
+        $sp=self::isSuper(1);
+        $wpath=self::workDirPath();
+        $workDir=new SFile($nfs,$wpath);
+        $d=$workDir->rel("src.py");
+        $d->text($str);
+        $copiedScriptPath=$d->nativePath();
+        $homes=Asset::homes();
+        $workDir->rel("config.json")->text(
+            json_encode(array(
+                "super"=>$sp,
+                "asset"=>self::convHomes($homes)
+            ))
+        );
+        $cmd=PYTHON_PATH." \"$copiedScriptPath\"";
+        $res=system_ex($cmd);
+        if ($res["return"]==0) self::convOut($res["stdout"]);
+        else {
+            http_response_code(500);
+            print($res["stderr"]);
+        }
+    }
     static function run(){
         $nfs=new NativeFS();
         $srcPath=param("srcPath");

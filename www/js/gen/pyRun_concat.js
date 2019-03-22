@@ -1922,7 +1922,17 @@ root.context=function () {
 return root.context;
 });
 
-define('PyLib',["root"],function (root) {
+/* global self,global*/
+define('PyLib',[],function () {
+    // same with root.js
+    function getRoot(){
+        if (typeof window!=="undefined") return window;
+        if (typeof self!=="undefined") return self;
+        if (typeof global!=="undefined") return global;
+        return (function (){return this;})();
+    }
+    var root=getRoot();
+
     var PL={};
     PL.import=function (lib) {
         if (lib==="random") {

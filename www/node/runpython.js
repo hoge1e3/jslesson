@@ -8,7 +8,7 @@ reqConf.baseUrl=JS;
 requirejs.config(reqConf);
 requirejs(["FS","PythonParser","PythonSemantics","PythonGen"],
 function (FS,PP,S,G) {
-
+// ps -ax|grep python|wc
     /*
     var c=FS.get(process.cwd());
     console.log(c.ls());
