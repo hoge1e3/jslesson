@@ -1,157 +1,165 @@
-define(["assert"],function (A) {
-    var Klass={};
-    Klass.define=function (pd) {
-        var p,parent;
+"use strict";
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+define(["assert"], function (A) {
+    var Klass = {};
+    Klass.define = function (pd) {
+        var p, parent;
         if (pd.$parent) {
-            parent=pd.$parent;
-            p=Object.create(parent.prototype);
-            p.super=function () {
-                var a=Array.prototype.slice.call(arguments);
-                var n=a.shift();
-                return parent.prototype[n].apply(this,a);
+            parent = pd.$parent;
+            p = Object.create(parent.prototype);
+            p.super = function () {
+                var a = Array.prototype.slice.call(arguments);
+                var n = a.shift();
+                return parent.prototype[n].apply(this, a);
             };
         } else {
-            p={};
+            p = {};
         }
-        var thisName,singletonName;
+        var thisName, singletonName;
         if (pd.$this) {
-            thisName=pd.$this;
+            thisName = pd.$this;
         }
         if (pd.$singleton) {
-            singletonName=pd.$singleton;
+            singletonName = pd.$singleton;
         }
-        var init=wrap(pd.$) || function (e) {
-            if (e && typeof e=="object") {
+        var init = wrap(pd.$) || function (e) {
+            if (e && (typeof e === "undefined" ? "undefined" : _typeof(e)) == "object") {
                 for (var k in e) {
-                    this[k]=e[k];
+                    this[k] = e[k];
                 }
             }
         };
         var fldinit;
         //var check;
         if (init instanceof Array) {
-            fldinit=init;
-            init=function () {
-                var a=Array.prototype.slice.call(arguments);
-                for (var i=0;i<fldinit.length;i++) {
-                    if (a.length>0) this[fldinit[i]]=a.shift();
+            fldinit = init;
+            init = function init() {
+                var a = Array.prototype.slice.call(arguments);
+                for (var i = 0; i < fldinit.length; i++) {
+                    if (a.length > 0) this[fldinit[i]] = a.shift();
                 }
             };
         }
-        var klass;
+        var _klass;
         function checkSchema(self) {
             if (pd.$fields) {
                 //console.log("Checking schema",self,pd.$fields);
-                A.is(self,pd.$fields);
+                A.is(self, pd.$fields);
             }
         }
-        klass=function () {
-            if (! (this instanceof klass)) {
-                var res=Object.create(p);
-                init.apply(res,arguments);
+        _klass = function klass() {
+            if (!(this instanceof _klass)) {
+                var res = Object.create(p);
+                init.apply(res, arguments);
                 checkSchema(res);
                 return res;
             }
-            init.apply(this,arguments);
+            init.apply(this, arguments);
             checkSchema(this);
         };
         if (parent) {
-            klass.super=function () {
-                var a=Array.prototype.slice.call(arguments);
-                var t=a.shift();
-                var n=a.shift();
-                return parent.prototype[n].apply(t,a);
+            _klass.super = function () {
+                var a = Array.prototype.slice.call(arguments);
+                var t = a.shift();
+                var n = a.shift();
+                return parent.prototype[n].apply(t, a);
             };
         }
-        klass.inherit=function (pd) {
-            pd.$parent=klass;
+        _klass.inherit = function (pd) {
+            pd.$parent = _klass;
             return Klass.define(pd);
         };
-        klass.prototype=p;
+        _klass.prototype = p;
         for (var name in pd) {
-            if (name[0]=="$") continue;
-            if (name.substring(0,7)=="static$") {
-                klass[name.substring(7)]=wrapStatic(pd[name]);
+            if (name[0] == "$") continue;
+            if (name.substring(0, 7) == "static$") {
+                _klass[name.substring(7)] = wrapStatic(pd[name]);
             } else {
                 if (isPropDesc(pd[name])) {
-                    Object.defineProperty(p,name,wrap(pd[name]));
+                    Object.defineProperty(p, name, wrap(pd[name]));
                 } else {
-                    p[name]=wrap(pd[name]);
+                    p[name] = wrap(pd[name]);
                 }
             }
         }
         function wrapStatic(m) {
             if (!singletonName) return m;
-            var args=getArgs(m);
-            if (args[0]!==singletonName) return m;
-            return (function () {
-                var a=Array.prototype.slice.call(arguments);
-                a.unshift(klass);
-                return m.apply(klass,a);
-            });
+            var args = getArgs(m);
+            if (args[0] !== singletonName) return m;
+            return function () {
+                var a = Array.prototype.slice.call(arguments);
+                a.unshift(_klass);
+                return m.apply(_klass, a);
+            };
         }
         function wrap(m) {
             if (!thisName) return m;
             if (isPropDesc(m)) {
                 for (var k in m) {
-                    m[k]=wrap(m[k]);
+                    m[k] = wrap(m[k]);
                 }
                 return m;
             }
-            if (typeof m!=="function") return m;
-            var args=getArgs(m);
-            if (args[0]!==thisName) return m;
-            return (function () {
-                var a=Array.prototype.slice.call(arguments);
+            if (typeof m !== "function") return m;
+            var args = getArgs(m);
+            if (args[0] !== thisName) return m;
+            return function () {
+                var a = Array.prototype.slice.call(arguments);
                 a.unshift(this);
-                return m.apply(this,a);
-            });
+                return m.apply(this, a);
+            };
         }
-        p.$=init;
-        Object.defineProperty(p,"$bind",{
-            get: function () {
+        p.$ = init;
+        Object.defineProperty(p, "$bind", {
+            get: function get() {
                 if (!this.__bounded) {
-                    this.__bounded=new Klass.Binder(this);
+                    this.__bounded = new Klass.Binder(this);
                 }
                 return this.__bounded;
             }
         });
-        return klass;
+        return _klass;
     };
     function getArgs(f) {
-        var fpat=/function[^\(]*\(([^\)]*)\)/;
-        var r=fpat.exec(f+"");
+        var fpat = /function[^\(]*\(([^\)]*)\)/;
+        var r = fpat.exec(f + "");
         if (r) {
-            return r[1].replace(/\s/g,"").split(",");
+            return r[1].replace(/\s/g, "").split(",");
         }
         return [];
     }
     function isPropDesc(o) {
-        if (typeof o!=="object") return false;
+        if ((typeof o === "undefined" ? "undefined" : _typeof(o)) !== "object") return false;
         if (!o) return false;
-        var pk={configurable:1,enumerable:1,value:1,writable:1,get:1,set:1};
-        var c=0;
+        var pk = { configurable: 1, enumerable: 1, value: 1, writable: 1, get: 1, set: 1 };
+        var c = 0;
         for (var k in o) {
             if (!pk[k]) return false;
-            c+=pk[k];
+            c += pk[k];
         }
         return c;
     }
-    Klass.Function=function () {throw new Error("Abstract");};
-    Klass.opt=A.opt;
-    Klass.Binder=Klass.define({
-        $this:"t",
-        $:function (t,target) {
-            function addMethod(k){
-                if (typeof target[k]!=="function") return;
-                t[k]=function () {
-                    var a=Array.prototype.slice.call(arguments);
+    Klass.Function = function () {
+        throw new Error("Abstract");
+    };
+    Klass.opt = A.opt;
+    Klass.Binder = Klass.define({
+        $this: "t",
+        $: function $(t, target) {
+            function addMethod(k) {
+                if (typeof target[k] !== "function") return;
+                t[k] = function () {
+                    var a = Array.prototype.slice.call(arguments);
                     //console.log(this, this.__target);
                     //A(this.__target,"target is not set");
-                    return target[k].apply(target,a);
+                    return target[k].apply(target, a);
                 };
             }
-            for (var k in target) addMethod(k);
+            for (var k in target) {
+                addMethod(k);
+            }
         }
     });
     return Klass;
@@ -165,3 +173,4 @@ requirejs(["Klass"],function (k) {
   console.log(p.x,p.y);
 });
 */
+//# sourceMappingURL=Klass.js.map

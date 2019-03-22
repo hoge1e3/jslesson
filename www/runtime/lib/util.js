@@ -2,7 +2,16 @@
 
 /* global global, self */
 (function () {
-    var root = typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : self;
+    // same with root.js
+    function getRoot() {
+        if (typeof window !== "undefined") return window;
+        if (typeof self !== "undefined") return self;
+        if (typeof global !== "undefined") return global;
+        return function () {
+            return this;
+        }();
+    }
+    var root = getRoot();
 
     function getQueryString(key, default_) {
         if (arguments.length === 1) default_ = "";
@@ -191,6 +200,7 @@
     }
     */
     root.Util = {
+        root: root,
         getQueryString: getQueryString,
         endsWith: endsWith, startsWith: startsWith,
         Base64_To_ArrayBuffer: Base64_To_ArrayBuffer,
