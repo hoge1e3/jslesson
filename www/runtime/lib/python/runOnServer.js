@@ -4,7 +4,7 @@ function runOnServer(srcPath) {
     var t=setInterval(function () {
         $('#output').append(".");
     },500);
-    $.ajax(window.controllerPath+'?RunPython/run', {data:{srcPath:srcPath}}).then(
+    $.ajax(window.controllerPath+'?RunPython/run', {data:{srcPath:srcPath,rand:Math.random()}}).then(
         function (r) {
             clearInterval(t);
             r=r.replace(/.*echo off\s*/,'');

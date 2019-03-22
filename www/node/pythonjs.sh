@@ -3,4 +3,9 @@ export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 #env
 cd $(dirname "$0")
-nodejs runpython.js $*
+cnt=`ps -ax|grep "\bpython\b"|wc -l`
+if [ $cnt -lt 10 ] ; then
+    timeout 60 nodejs runpython.js $*
+else
+    echo "Pythonプログラムが多数実行されています。しばらくしてからもう一度実行してください。"
+fi
