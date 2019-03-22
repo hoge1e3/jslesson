@@ -87,6 +87,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,Web
                 dst:{
                     html:dst.rel(name+".html"),
                     js:dst.rel(name+".js"),
+                    //py:dst.rel(name+".py"),
                     map: dst.rel(name+".js.map")
                 }
             });
@@ -136,7 +137,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,Web
         if (runLocal) {
             J(node,anon,{buf:buf,genReqJS:true, pyLibPath:WebSite.runtime+"lib/python/PyLib.js"});
         } else {
-            buf.printf("runOnServer(%s);",    JSON.stringify(f.src.py.path()) );
+            buf.printf("runOnServer2(%s);",    JSON.stringify(f.src.py.text()) );
         }
         buf.close();
 
