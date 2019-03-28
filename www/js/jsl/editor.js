@@ -156,7 +156,7 @@ function ready() {
     	break;
     case "py":
     	requirejs(["PythonBuilder"],setupBuilder);
-        ALWAYS_UPLOAD=UA.isIE; 
+        ALWAYS_UPLOAD=UA.isIE;
     	//helpURL="http://bitarrow.eplang.jp/index.php?dncl_use";
     	break;
     case "tonyu":
@@ -927,6 +927,9 @@ function ready() {
             //prog.setKeyboardHandler(defaultKeyboard);
             if (f.ext()==EXT && lang=="c") {
                 prog.getSession().setMode("ace/mode/c_cpp");
+            }
+            else if (f.ext()==EXT && lang=="py") {
+                prog.getSession().setMode("ace/mode/python");
             }
             else if (f.ext()==EXT) {
                 prog.getSession().setMode("ace/mode/tonyu");

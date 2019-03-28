@@ -82,6 +82,9 @@ requirejs(["Util"],function (Util){
             if (k !=="noconcat") delete localStorage[k];
         }
     }
+    if (window.parent&&window.parent.TESTING) {
+        window.alert=function (m) {console.log(m);};
+    }
     requirejs([run], function(){
         //SplashScreen.hide();
     });
