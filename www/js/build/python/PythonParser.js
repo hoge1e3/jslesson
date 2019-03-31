@@ -203,7 +203,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         block: [":indent",{body:"stmtList"},"dedent"],
         elem: or("symbol","number","array","literal","paren","tuple"),
         paren: ["(",{body:"expr"},")"],
-        tuple: ["(",{body:sep0("arg",",")},")"],
+        tuple: ["(",{body:sep0("expr",",")},")"],
         indent: tk("indent"),
         dedent: tk("dedent"),
         nodent: tk("nodent"),

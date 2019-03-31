@@ -153,7 +153,7 @@ class BATest{
         await this.sleep();
         this.clickByText("OK");
     }
-    async genTestCode() {
+    genTestCode() {
         var num=Math.floor(Math.random()*99999);
         var cont=[
         "#include<stdio.h>",
