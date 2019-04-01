@@ -499,8 +499,10 @@ function ready() {
         if (f.ext()==EXT || f.ext()==HEXT) {
             fileSet(f).forEach(function (e) {
                 if (e.ext()==EXT && !e.exists()) {
-                    e.text((lang=="py"?"# ":"// ")+langList[lang]+"\n");
-                    if(lang=="js") e.text("// "+langList[lang]+"\n// ここで扱われるJavaScriptは通常のJavaScriptとは異なります。詳しくは使用方法をご覧ください。\n");
+                    //e.text((lang=="py"?"# ":"// ")+langList[lang]+"\n");
+                    if(lang=="js") e.text(/*"// "+langList[lang]+"\n*/
+                    "// ここで扱われるJavaScriptは通常のJavaScriptとは異なります。詳しくは使用方法をご覧ください。\n");
+                    else e.text("");
                 } else if (e.ext()==HEXT  && !e.exists()) {
                     e.text("<html>\n\n</html>");
                 } else if (!e.exists()) {
