@@ -12,7 +12,7 @@ f.close()
 #print(conf["sharedAsset"], conf["sharedAsset"]==os.getenv("BAASSETPATH"))
 def resolve(filename):
     if not re.search(r'/',filename):
-        raise Exception("Use personal/file or shared/file  ")
+        raise Exception("Use user/file or class/file  ")
     [context,name]=filename.split("/")
     if re.search(r'\.(php|cgi)$',name):
         raise Exception("Invalid name %s "%(name))
@@ -54,3 +54,7 @@ def _len(*a,**k):
     return len(*a,**k)
 def _type(*a,**k):
     return type(*a,**k)
+def _exit(*a,**k):
+    return exit(*a,**k)
+def _quit(*a,**k):
+    return quit(*a,**k)

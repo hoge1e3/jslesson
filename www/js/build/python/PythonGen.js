@@ -135,7 +135,7 @@ function (Visitor,IndentBuffer,assert) {
         },
         not: function() {
             this.printf("not ");
-        }
+        },
     };
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
       ">","<","=",".",":","+","-","*","/","%","(",")",",",

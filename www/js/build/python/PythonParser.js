@@ -10,9 +10,9 @@ function (Grammar,Pos2RC/*,TError*/) {
         return s;
     }); */
     const reserved=[
-        "class","def","if","else","elif","break",
+        "class","def","if","else","elif","break","continue",
         "for","while","in","return","print","import","as",
-        "and","or","not","global"
+        "and","or","not","global","True","False"
     ];
     const resvh={};for(const r of reserved) resvh[r]=r;
     const puncts=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
@@ -185,6 +185,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         elifPart: ["elif",{cond:"expr"},{then:"block"}],
         elsePart: ["else",{then:"block"}],
         breakStmt: ["break"],
+        continueStmt: ["contine"],
         forStmt: ["for",{var:"symbol"},"in",{set:"expr"},{do:"block"}],
         letStmt: [{left:"lval"},"=",{right:"expr"}],
         globalStmt: ["global",{names:sep1("symbol",",")}],
@@ -221,8 +222,9 @@ function (Grammar,Pos2RC/*,TError*/) {
         index: ["[",{body:sep1("expr",":")},"]"],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: [":indent",{body:"stmtList"},"dedent"],
-        elem: or("symbol","number","array","literal","paren","tuple"),
+        elem: or("symbol","number","bool","array","literal","paren","tuple"),
         paren: ["(",{body:"expr"},")"],
+        bool: or("True","False"),
         tuple: ["(",{body:sep0("expr",",")},")"],
         indent: tk("indent"),
         dedent: tk("dedent"),

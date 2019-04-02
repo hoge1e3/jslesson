@@ -3,6 +3,7 @@ function (Visitor,IndentBuffer,context,PL) {
     var PYLIB="PYLIB";
     const vdef={
         program: function (node) {
+            this.printf("%s.LoopChecker.reset();%n",PYLIB);
             this.visit(node.body);
         },
         classdef: function (node) {
@@ -23,13 +24,13 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         importStmt: function (node) {
             if (node.alias) {
-                this.printf("%s=%s.import('%v');",node.alias,PYLIB,node.name);
+                this.printf("var %s=%s.import('%v');",node.alias,PYLIB,node.name);
             } else {
-                this.printf("%s=%s.import('%v');",node.name,PYLIB,node.name);
+                this.printf("var %s=%s.import('%v');",node.name,PYLIB,node.name);
             }//this.printf("%n");
         },
         exprStmt: function (node) {
-            this.visit(node.expr);
+            this.printf("%v;",node.expr);
         },
         returnStmt: function (node) {
             this.printf("return %v;",node.expr);
@@ -91,6 +92,7 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         block: function (node) {
             this.printf("{%{");
+            this.printf("%s.LoopChecker.check();%n",PYLIB);
             this.visit(node.body);
             this.printf("%}}");
         },
@@ -122,9 +124,15 @@ function (Visitor,IndentBuffer,context,PL) {
                 this.printf("%v || %v",node.left,node.right);
                 return;
             }
-            var o=PL.ops[node.op+""];
-            if (!o) throw new Error("No operator for "+node.op);
-            this.printf("%s.wrap(%v).__%s__(%v)",PYLIB, node.left,o, node.right);
+            var o=PL.ops[node.op+""],io=PL.iops[node.op+""];
+            if (o) {
+                this.printf("%s.wrap(%v).__%s__(%v)",PYLIB, node.left,o, node.right);
+            } else if (io) {
+                this.printf("%v=%s.wrap(%v).__%s__(%v)" ,
+                node.left, PYLIB, node.left, io, node.right);
+            } else {
+                throw new Error("No operator for "+node.op);
+            }
             //this.printf("%v%v%v",node.left,node.op,node.right);
         },
         postfix: function (node) {
@@ -141,7 +149,9 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         or: function (node) {
             this.printf("||");
-        }
+        },
+        True: function () {this.printf("true");},
+        False: function () {this.printf("false");},
     };
     const cmps={">":1,"<":1,"==":1,">=":1,"<=":1,"!=":1};
     function isCmp(node) {

@@ -13,19 +13,30 @@ define([],function () {
     PL.import=function (lib) {
         if (lib==="random") {
             return {
-                random: Math.random
+                random: Math.random,
+                randint: function (a,b) {
+                    return Math.floor(Math.random()*(b-a+1))+a;
+                }
             };
         }
     };
+    PL.lineBuf="";
     PL.print=function () {
         var a=PL.parseArgs(arguments);
         console.log("print",arguments,a);
         var end=a.options.end!=null ? a.options.end: "\n";
-        PL.STDOUT.append(a.join(" ")+end);
+        var out=a.join(" ")+end;
+        PL.lineBuf+=out;
+        var lines=PL.lineBuf.split("\n");
+        if(lines.length>10) {
+            PL.lineBuf=lines.slice(lines.length-5).join("\n");
+        }
+        PL.STDOUT.append($("<span>").text(out));
     };
     PL.input=function (s) {
         if (s) PL.print(s,PL.Option({end:""}));
-        var r=prompt(s||"");
+        var r=prompt(PL.lineBuf);
+        PL.LoopChecker.reset();
         PL.print(r);
         return r;
     };
@@ -33,8 +44,12 @@ define([],function () {
     PL.float=function (s) {return s-0;};
     PL.int=function (s) {return s-0;};
     PL.str=function (s) {return s+"";};
-    PL.quit=function (s) {throw new Error("quit でプログラムが終了しました。");};
-    PL.exit=function (s) {throw new Error("exit でプログラムが終了しました。");};
+    PL.quit=function (s) {PL.exit();};
+    PL.exit=function (s) {
+        var e=new Error("exit でプログラムが終了しました。");
+        e.noTrace=true;
+        throw e;
+    };
     PL.type=function (s) {
         switch (typeof s) {
             case "number":
@@ -43,6 +58,7 @@ define([],function () {
             case "boolean":
             return typeof s;
             default:
+            if (s && s.__getTypeName__) return s.__getTypeName__();
             if (s && s.constructor) return s.constructor;
             return "object";
         }
@@ -155,6 +171,17 @@ define([],function () {
         "==":"eq",
         "**":"pow",
     };
+    PL.iops={};
+    var k;
+    for (k in PL.ops) {
+        if (k.match(/=/)) continue;
+        PL.iops[k+"="]="i"+PL.ops[k];
+    }
+    PL.unwrap=u;
+    function u(v) {
+        if (v instanceof PL.Wrapper) return v.unwrap();
+        return v;
+    }
     PL.Wrapper=PL.class(PL.Object, {
         __init__: function (self,value) {self.value=value;},
         unwrap: function (self) {return self.value;},
@@ -162,26 +189,37 @@ define([],function () {
             var a=Array.prototype.slice.call(arguments,1);
             return self.unwrap().apply(self, a);
         },
-        __add__: function (self,other) { return self.unwrap()+other;},
-        __sub__: function (self,other) { return self.unwrap()-other;},
-        __mul__: function (self,other) { return self.unwrap()*other;},
-        __div__: function (self,other) { return self.unwrap()/other;},
-        __floordiv__: function (self,other) { return Math.floor(self.unwrap()/other);},
-        __mod__: function (self,other) { return self.unwrap()%other;},
-        __gt__: function (self,other) { return self.unwrap()>other;},
-        __lt__: function (self,other) { return self.unwrap()<other;},
-        __ge__: function (self,other) { return self.unwrap()>=other;},
-        __le__: function (self,other) { return self.unwrap()<=other;},
-        __eq__: function (self,other) { return self.unwrap()===other;},
-        __ne__: function (self,other) { return self.unwrap()!==other;},
-        __pow__: function (self,other) { return Math.pow(self.unwrap(),other);},
+        toString: function (self) {return self.value+"";},
+        __add__: function (self,other) { return self.unwrap()+u(other);},
+        __sub__: function (self,other) { return self.unwrap()-u(other);},
+        __mul__: function (self,other) { return self.unwrap()*u(other);},
+        __div__: function (self,other) { return self.unwrap()/u(other);},
+        __floordiv__: function (self,other) { return Math.floor(self.unwrap()/u(other));},
+        __mod__: function (self,other) { return self.unwrap()%u(other);},
+        __gt__: function (self,other) { return self.unwrap()>u(other);},
+        __lt__: function (self,other) { return self.unwrap()<u(other);},
+        __ge__: function (self,other) { return self.unwrap()>=u(other);},
+        __le__: function (self,other) { return self.unwrap()<=u(other);},
+        __eq__: function (self,other) { return self.unwrap()===u(other);},
+        __ne__: function (self,other) { return self.unwrap()!==u(other);},
+        __pow__: function (self,other) { return Math.pow(self.unwrap(),u(other));},
+
+        __iadd__: function (self,other) { self.value=self.unwrap()+u(other);return self;},
+        __isub__: function (self,other) { self.value=self.unwrap()-u(other);return self;},
+        __imul__: function (self,other) { self.value=self.unwrap()*u(other);return self;},
+        __idiv__: function (self,other) { self.value=self.unwrap()/u(other);return self;},
+        __ifloordiv__: function (self,other) { self.value=Math.floor(self.unwrap()/u(other));return self;},
+        __imod__: function (self,other) { self.value=self.unwrap()%u(other);return self;},
+        __ipow__: function (self,other) { self.value=Math.pow(self.unwrap(),u(other));return self;},
+
         //____: function (self,other) { return selfother;},
     });
     PL.wrappers={
         number:PL.class(PL.Wrapper,{
-
+            __getTypeName__: function (){return "<class number>";},
         }),
         string:PL.class(PL.Wrapper,{
+            __getTypeName__: function (){return "<class str>";},
             __mul__: function (self,other) {
                 switch (typeof other) {
                 case "number":
@@ -194,14 +232,29 @@ define([],function () {
             }
         }),
         boolean:PL.class(PL.Wrapper,{
+            __getTypeName__: function (){return "<class boolean>";},
 
         }),
         function:PL.class(PL.Wrapper,{
+            __getTypeName__: function (){return "<class function>";},
 
         })
     };
     PL.invalidOP=function (op,to) {
         throw new Error("Cannot do opration "+op+" to "+to);
+    };
+    PL.LoopChecker={
+        check: function () {
+            if (this.last) {
+                var now=new Date().getTime();
+                if (now-this.last>5000) {
+                    throw new Error("無限ループをストップしました");
+                }
+            }
+        },
+        reset: function () {
+            this.last=new Date().getTime();
+        }
     };
     PL.builtins=["range","input","str","int","float","len","type","quit","exit",
     "fillRect","setColor","setTimeout","clearRect","clear"];

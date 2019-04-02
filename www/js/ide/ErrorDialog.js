@@ -55,12 +55,14 @@ function (Klass,FS,UI,Pos2RC,ua) {
         },
         show: function (t, mesg, src, pos, trace) {
             var appendPos;
+            if (mesg && mesg.noTrace) return;
             if (mesg && mesg.stack) {
                 var tr=t.decodeTrace(mesg);
+                var detail=(mesg.message ? "("+mesg.message+")" : "");
                 for (var i=0;i<tr.length;i++) {
                     if (tr[i].file) {
                         var cve=tr[i].file.name()+"の"+
-                        tr[i].row+"行目"+tr[i].col+"文字目付近でエラーが発生しました";
+                        tr[i].row+"行目"+tr[i].col+"文字目付近でエラーが発生しました"+detail;
                         return t.show(cve,tr[i].file, tr[i] , mesg.stack);
                     }
                 }
@@ -71,7 +73,7 @@ function (Klass,FS,UI,Pos2RC,ua) {
                 pos=mesg.pos;
                 //console.log(mesg,mesg.stack);
                 trace=mesg.stack;
-                mesg=mesg+"";
+                mesg=mesg+"";//detail;
                 appendPos=true;
             }
             var elem=t.createDom();
