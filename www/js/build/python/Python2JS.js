@@ -34,6 +34,9 @@ function (Visitor,IndentBuffer,context,PL) {
         returnStmt: function (node) {
             this.printf("return %v;",node.expr);
         },
+        whileStmt: function (node) {
+            this.printf("while (%v) %v", node.cond,node.do);
+        },
         ifStmt: function (node) {
             this.printf("if (%v) %v", node.cond,node.then);
             this.visit(node.elif);
@@ -107,9 +110,17 @@ function (Visitor,IndentBuffer,context,PL) {
             if (isCmp(node)) {
                 const ec=expandCmps(node);
                 if (ec.length>1) {
-                    this.printf("%j",[" and ",ec]);
+                    this.printf("%j",[" && ",ec]);
                     return;
                 }
+            }
+            if (node.op+""==="and" ) {
+                this.printf("%v && %v",node.left,node.right);
+                return;
+            }
+            if (node.op+""==="or") {
+                this.printf("%v || %v",node.left,node.right);
+                return;
             }
             var o=PL.ops[node.op+""];
             if (!o) throw new Error("No operator for "+node.op);
@@ -124,6 +135,12 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         breakStmt: function (node) {
             this.printf("break");
+        },
+        and: function (node) {
+            this.printf("&&");
+        },
+        or: function (node) {
+            this.printf("||");
         }
     };
     const cmps={">":1,"<":1,"==":1,">=":1,"<=":1,"!=":1};

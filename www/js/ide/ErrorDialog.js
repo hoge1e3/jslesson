@@ -79,7 +79,7 @@ function (Klass,FS,UI,Pos2RC,ua) {
                 mesg//+" 場所："+src.name()+(typeof row=="number"?":"+p.row+":"+p.col:"")
             );
             if (src && pos!=null) {
-                var str=src.text();
+                var str=typeof src==="string"?src:src.text();
                 var p=new Pos2RC(str).getAll(pos);
                 if (appendPos) t.mesgd.append("場所："+src.name()+":"+p.row+":"+p.col);
                 t.srcd.show();

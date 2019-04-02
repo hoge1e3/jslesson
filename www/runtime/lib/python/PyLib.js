@@ -24,13 +24,29 @@ define([],function () {
         PL.STDOUT.append(a.join(" ")+end);
     };
     PL.input=function (s) {
+        if (s) PL.print(s,PL.Option({end:""}));
         var r=prompt(s||"");
+        PL.print(r);
         return r;
     };
     PL.len=function (s) {return s.length;};
     PL.float=function (s) {return s-0;};
     PL.int=function (s) {return s-0;};
     PL.str=function (s) {return s+"";};
+    PL.quit=function (s) {throw new Error("quit でプログラムが終了しました。");};
+    PL.exit=function (s) {throw new Error("exit でプログラムが終了しました。");};
+    PL.type=function (s) {
+        switch (typeof s) {
+            case "number":
+            case "string":
+            case "function":
+            case "boolean":
+            return typeof s;
+            default:
+            if (s && s.constructor) return s.constructor;
+            return "object";
+        }
+    };
     PL.fillRect=function (x,y,w,h){
         var ctx=PL.CANVAS[0].getContext("2d");
         ctx.fillRect(x,y,w,h);
@@ -129,6 +145,7 @@ define([],function () {
         "-":"sub",
         "*":"mul",
         "/":"div",
+        "//":"floordiv",
         "%":"mod",
         ">":"gt",
         "<":"lt",
@@ -149,6 +166,7 @@ define([],function () {
         __sub__: function (self,other) { return self.unwrap()-other;},
         __mul__: function (self,other) { return self.unwrap()*other;},
         __div__: function (self,other) { return self.unwrap()/other;},
+        __floordiv__: function (self,other) { return Math.floor(self.unwrap()/other);},
         __mod__: function (self,other) { return self.unwrap()%other;},
         __gt__: function (self,other) { return self.unwrap()>other;},
         __lt__: function (self,other) { return self.unwrap()<other;},
@@ -185,7 +203,8 @@ define([],function () {
     PL.invalidOP=function (op,to) {
         throw new Error("Cannot do opration "+op+" to "+to);
     };
-    PL.builtins=["range","input","str","int","float","len","fillRect","setColor","setTimeout","clearRect","clear"];
+    PL.builtins=["range","input","str","int","float","len","type","quit","exit",
+    "fillRect","setColor","setTimeout","clearRect","clear"];
     root.PYLIB=PL;
     return PL;
 });

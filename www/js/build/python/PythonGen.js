@@ -36,6 +36,9 @@ function (Visitor,IndentBuffer,assert) {
         returnStmt: function (node) {
             this.printf("return %v",node.expr);
         },
+        whileStmt: function (node) {
+            this.printf("while %v%v", node.cond,node.do);
+        },
         ifStmt: function (node) {
             this.printf("if %v%v", node.cond,node.then);
             this.visit(node.elif);
@@ -134,13 +137,13 @@ function (Visitor,IndentBuffer,assert) {
             this.printf("not ");
         }
     };
-    const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**",
+    const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
       ">","<","=",".",":","+","-","*","/","%","(",")",",",
       "number","literal","and","or"];
     for (const ve of verbs) {
         vdef[ve]=function (node) {
             //console.log("verb",node);
-            this.printf("%s",node+"");
+            this.printf(" %s ",node+"");
         };
     }
     function gen(node,anon,options={}) {

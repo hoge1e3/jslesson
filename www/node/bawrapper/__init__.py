@@ -52,3 +52,5 @@ def _float(*a,**k):
     return float(*a,**k)
 def _len(*a,**k):
     return len(*a,**k)
+def _type(*a,**k):
+    return type(*a,**k)
