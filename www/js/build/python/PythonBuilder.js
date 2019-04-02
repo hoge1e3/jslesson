@@ -127,7 +127,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,Web
                     errSrc=
                     "var e=new Error("+JSON.stringify(e.message)+");"+
                     "e.src={"+
-                        "text: function (){return "+JSON.stringify(pysrcF.text())+";},"+
+                        "text: function (){return "+JSON.stringify(pysrcF.text().replace(/\r/g,""))+";},"+
                         "name: function (){return "+JSON.stringify(pysrcF.name())+";}"+
                     "};"+
                     "e.pos="+pos+";"+

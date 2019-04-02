@@ -145,7 +145,7 @@ function (Visitor,IndentBuffer,assert) {
     };
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
       ">","<","=",".",":","+","-","*","/","%","(",")",",",
-      "number","literal","and","or"];
+      "number","literal","and","or","True","False"];
     for (const ve of verbs) {
         vdef[ve]=function (node) {
             //console.log("verb",node);
