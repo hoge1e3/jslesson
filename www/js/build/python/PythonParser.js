@@ -12,7 +12,7 @@ function (Grammar,Pos2RC/*,TError*/) {
     const reserved=[
         "class","def","if","else","elif","break","continue",
         "for","while","in","return","print","import","as",
-        "and","or","not","global","True","False"
+        "and","or","not","global","True","False","del"
     ];
     const resvh={};for(const r of reserved) resvh[r]=r;
     const puncts=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
@@ -173,10 +173,11 @@ function (Grammar,Pos2RC/*,TError*/) {
         stmtList: rep1("stmt"),
         // why printStmt -> printStmt3?
         // because if parse print(x), as printStmt3, comma remains unparsed.
-        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","letStmt","exprStmt","forStmt","returnStmt","importStmt","globalStmt","nodent"),
+        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","forStmt","returnStmt","delStmt","importStmt","globalStmt","nodent"),
         importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
         packageName: sep1("symbol","."),
         exprStmt: [{expr:"expr"}],
+        delStmt: ["del",{expr:"expr"}],
         returnStmt: ["return",{expr:"expr"}],
         //exprTail: or("block","nodent"),
         ifStmt: ["if",{cond:"expr"},{then:"block"},
@@ -185,7 +186,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         elifPart: ["elif",{cond:"expr"},{then:"block"}],
         elsePart: ["else",{then:"block"}],
         breakStmt: ["break"],
-        continueStmt: ["contine"],
+        continueStmt: ["continue"],
         forStmt: ["for",{var:"symbol"},"in",{set:"expr"},{do:"block"}],
         letStmt: [{left:"lval"},"=",{right:"expr"}],
         globalStmt: ["global",{names:sep1("symbol",",")}],

@@ -33,7 +33,11 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("%v;",node.expr);
         },
         returnStmt: function (node) {
-            this.printf("return %v;",node.expr);
+            if (node.expr) this.printf("return %v;",node.expr);
+            else this.printf("return ;");
+        },
+        delStmt: function (node) {
+            this.printf("delete %v;",node.expr);
         },
         whileStmt: function (node) {
             this.printf("while (%v) %v", node.cond,node.do);
@@ -90,6 +94,14 @@ function (Visitor,IndentBuffer,context,PL) {
             }
             this.visit(node.value);
         },
+        array: function (node) {
+            this.printf("[%j]",[",",node.body]);
+        },
+        index: function (node) {
+            for (const b of node.body) {
+                this.printf("[%v]",b);
+            }
+        },
         block: function (node) {
             this.printf("{%{");
             this.printf("%s.LoopChecker.check();%n",PYLIB);
@@ -143,6 +155,9 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         breakStmt: function (node) {
             this.printf("break");
+        },
+        continueStmt: function (node) {
+            this.printf("continue");
         },
         and: function (node) {
             this.printf("&&");

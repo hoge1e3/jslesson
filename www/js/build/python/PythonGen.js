@@ -36,6 +36,9 @@ function (Visitor,IndentBuffer,assert) {
         returnStmt: function (node) {
             this.printf("return %v",node.expr);
         },
+        delStmt: function (node) {
+            this.printf("del %v",node.expr);
+        },
         whileStmt: function (node) {
             this.printf("while %v%v", node.cond,node.do);
         },
@@ -124,6 +127,9 @@ function (Visitor,IndentBuffer,assert) {
         },
         breakStmt: function () {
             this.printf("break");
+        },
+        continueStmt: function () {
+            this.printf("continue");
         },
         symbol: function (node) {
             var a=this.anon.get(node);

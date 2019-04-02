@@ -122,6 +122,12 @@ const vdef={
     breakStmt: function (node) {
 
     },
+    continueStmt: function (node) {
+
+    },
+    delStmt: function(node) {
+        this.visit(node.expr);
+    },
     printStmt3: function (node) {
         for (const value of node.args.body) {
             this.visit(value);
