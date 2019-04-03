@@ -59,7 +59,7 @@ class TeacherLogController {
           $prevTime=0;
           $prevResult="";
           foreach($logs as $l){
-            if(strpos($l['result'],'Save')===false && ($l['time']-$prevTime>=2 || $prevResult!=$l['result'])){
+            if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false && ($l['time']-$prevTime>=2 || $prevResult!=$l['result'])){
               ?>
               <!--<div><?=$l['filename']?></div>-->
               <div onClick="showLogOneUser.call(this,'<?=$l['id']?>','<?=$l['user']?>','<?=$l['filename']?>');"
@@ -124,6 +124,11 @@ class TeacherLogController {
           </script>
           <?php
         }
+        ?>
+        <script>
+        logs["<?=$teacher?>"]=[];
+        </script>
+        <?php
         foreach($logs as $log){
             if(isset($runcount[$log['user']])){
                 $runcount[$log['user']]++;

@@ -799,6 +799,15 @@ function ready() {
             return;
         }
         errorDialog.show(e);
+        var inf=getCurrentEditorInfo();
+        if (!inf) return;
+        var curFile=inf && inf.file;
+        var curFiles=curFile && fileSet(curFile);
+        var curHTMLFile=curFiles && curFiles[0];
+        var curJSFile=curFiles && curFiles[1];
+        if (curJSFile) {
+            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",e.stack || e,langList[lang]);
+        }
     };
     function close(rm) { // rm or mv
         var i=editors[rm.path()]; //getCurrentEditorInfo();
