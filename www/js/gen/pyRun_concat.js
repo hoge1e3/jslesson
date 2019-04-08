@@ -1782,7 +1782,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         block: [":indent",{body:"stmtList"},"dedent"],
         elem: or("symbol","number","array","literal","paren","tuple"),
         paren: ["(",{body:"expr"},")"],
-        tuple: ["(",{body:sep0("arg",",")},")"],
+        tuple: ["(",{body:sep0("expr",",")},")"],
         indent: tk("indent"),
         dedent: tk("dedent"),
         nodent: tk("nodent"),
@@ -5824,7 +5824,13 @@ function (Visitor,IndentBuffer,assert) {
         },
         printStmt: function (node) {
             if (node.nobr) this.printf("print(%j,end=' ')",[",",node.values]);
-            else this.printf("print(%j)",[",",node.values]);
+            else {
+                if (node.values.length===1 && node.values[0].type==="tuple") {
+                    this.printf("print %v",node.values[0]);
+                } else {
+                    this.printf("print(%j)",[",",node.values]);
+                }
+            }
         },
         printStmt3: function (node) {
             this.printf("print%v",node.args);

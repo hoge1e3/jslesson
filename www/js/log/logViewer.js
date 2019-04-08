@@ -42,20 +42,20 @@ function openFrame(data){
       $("[id='"+displayingId+"ui']").css("display","none");
       $("[id='"+displayingId+"res']").css("display","none");
       $("[id='"+displayingId+"diff']").css("display","none");
-      $("#"+displayingId).css("display","none");
+      $("[id='"+displayingId+"']").css("display","none");
       $("[data-id='"+currentLogId+"']").css("background-color","white");
   }
   displayingId==data.user ? showDiffFlag=true : showDiffFlag=false;
   currentLogId=data.id;
   displayingId=data.user;
   var raw=JSON.parse(data.raw);
-  var code=raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.DNCL;
+  var code=raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.DNCL || raw.code.Python || "";
   //res=data.filename+"\n"+data.result+"\n-------------\n"+data.code.C;
   res=code;
   res=res.replace(/</g,"&lt;");
   res=res.replace(/>/g,"&gt;");
-  $("[id="+displayingId+"ui]").css("display","inline");
-  $("[id="+displayingId+"res]").css("display","inline");
+  $("[id='"+displayingId+"ui']").css("display","inline");
+  $("[id='"+displayingId+"res']").css("display","inline");
   //http://bitarrow.eplang.jp/bitarrowbeta/
   var d = new Date( parseInt(data.time) * 1000 );
   var year  = d.getFullYear();
@@ -69,21 +69,21 @@ function openFrame(data){
   fn=fn.replace(".","__");
   var filehist='<span filename="'+fn+'" onClick="showFileHistory(this.getAttribute('+"'"+'filename'+"'"+'))">'+data.filename+'</span>';
   //var filehist=data.filename;
-  var lang=raw.code.C ?"c" : raw.code.JavaScript ? "js" : raw.code.Dolittle ? "dtl" : raw.code.DNCL ? "dncl" :"unknown";
+  var lang=raw.code.C ?"c" : raw.code.JavaScript ? "js" : raw.code.Dolittle ? "dtl" : raw.code.DNCL ? "dncl" : raw.code.Python ? "py" :"unknown";
   var prjName="Auto_"+lang;
   var runLink=".?r=jsl_edit&dir=/home/"+classID+"/"+teacherID+"/"+prjName+"/&autologexec="+data.id+"&lang="+lang;
   var userid=data.user;
-  $("#"+userid+"res").html("<br>"+logtime+"<br><a target='runCheck' href='"+runLink+"'>実行してみる</a><br>"+filehist+"<br>"+data.result);
-  $("#"+userid).height(30);
-  $("#"+userid).html(res);
-  $("#"+userid).css("display","inline");
+  $("[id='"+userid+"res']").html("<br>"+logtime+"<br><a target='runCheck' href='"+runLink+"'>実行してみる</a><br>"+filehist+"<br>"+data.result);
+  $("[id='"+userid+"']").height(30);
+  $("[id='"+userid+"']").html(res);
+  $("[id='"+userid+"']").css("display","inline");
   //$("#"+userid).width($("#"+userid).parent().width());
-  $("#"+userid).height($("#"+userid).get(0).scrollHeight);
+  $("[id='"+userid+"']").height($("[id='"+userid+"']").get(0).scrollHeight);
   $("[data-id='"+data.id+"']").css("background-color","orange");
   //alert(logid);
   if(showDiffFlag && prevProgram!=code){
     calcDiff(prevProgram,code,userid);
-    $("#"+userid+"diff").css("display","inline");
+    $("[id='"+userid+"diff']").css("display","inline");
   }
   prevProgram=code;
   //console.log("code",code);
@@ -163,10 +163,10 @@ function showLogOneUser(logid,userid,fn){
   if(ind>0){
     getPreviousLog(logsOfOneUser[fn][ind]).done(function(r){
       var curRaw=JSON.parse(r.raw);
-      currentProgram=curRaw.code.C || curRaw.code.JavaScript || curRaw.code.Dolittle;
+      currentProgram=curRaw.code.C || curRaw.code.JavaScript || curRaw.code.Dolittle || curRaw.code.Python;
       getPreviousLog(logsOfOneUser[fn][ind-1]).done(function(result) {
         var raw=JSON.parse(result.raw);
-        var code=raw.code.C || raw.code.JavaScript || raw.code.Dolittle || "";
+        var code=raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.Python || "";
         calcDiff(code,currentProgram,userid);
       }).fail(function(result) {
         console.log("failed get previous log",result);
@@ -189,7 +189,7 @@ function calcDiff(prev,now,id){
   // opcodes is a list of 3-tuples describing what changes should be made to the base text
   // in order to yield the new text
   var opcodes = sm.get_opcodes();
-  var diffoutputdiv = $("#"+id+"diff")[0];
+  var diffoutputdiv = $("[id='"+id+"diff']")[0];
   console.log(sm,opcodes);
   while (diffoutputdiv.firstChild) diffoutputdiv.removeChild(diffoutputdiv.firstChild);
   //var contextSize = $("contextSize").value;

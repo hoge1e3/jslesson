@@ -111,10 +111,10 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,Web
     p.compile=function (f) {
         var pysrcF=f.src.py;
         var runLocal=false,js;
-        var anon,node;
+        var anon,node,errSrc;
         if (!superMode) {
-            node=PP.parse(pysrcF);
             try {
+                node=PP.parse(pysrcF);
                 var vres=S.check(node);
                 //var gen=G(node);
                 if(vres.useInput) {
@@ -122,8 +122,18 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,Web
                 }
                 anon=vres.anon;
             } catch(e) {
-                if (e.node) {
-                    throw TError(e.message,pysrcF,e.node.pos);
+                if (e.node || e.pos) {
+                    var pos=e.node?e.node.pos:e.pos;
+                    errSrc=
+                    "var e=new Error("+JSON.stringify(e.message)+");"+
+                    "e.src={"+
+                        "text: function (){return "+JSON.stringify(pysrcF.text().replace(/\r/g,""))+";},"+
+                        "name: function (){return "+JSON.stringify(pysrcF.name())+";}"+
+                    "};"+
+                    "e.pos="+pos+";"+
+                    "throw e;";
+
+                    //throw TError(e.message,pysrcF,e.node.pos);
 
                 } else {
                     console.log(e.stack);
@@ -134,7 +144,9 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,Web
         //console.log("PPToken",PP.Tokenizer(pysrc).tokenize());
         var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
         buf.setSrcFile(pysrcF);//<-dtl
-        if (runLocal) {
+        if (errSrc) {
+            buf.printf("%s",errSrc);
+        } else if (runLocal) {
             J(node,anon,{buf:buf,genReqJS:true, pyLibPath:WebSite.runtime+"lib/python/PyLib.js"});
         } else {
             buf.printf("runOnServer2(%s);",    JSON.stringify(f.src.py.text()) );

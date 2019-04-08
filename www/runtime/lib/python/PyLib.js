@@ -13,24 +13,59 @@ define([],function () {
     PL.import=function (lib) {
         if (lib==="random") {
             return {
-                random: Math.random
+                random: Math.random,
+                randint: function (a,b) {
+                    return Math.floor(Math.random()*(b-a+1))+a;
+                }
             };
         }
     };
+    PL.lineBuf="";
     PL.print=function () {
         var a=PL.parseArgs(arguments);
         console.log("print",arguments,a);
         var end=a.options.end!=null ? a.options.end: "\n";
-        PL.STDOUT.append(a.join(" ")+end);
+        var out=a.join(" ")+end;
+        PL.lineBuf+=out;
+        var lines=PL.lineBuf.split("\n");
+        if(lines.length>10) {
+            PL.lineBuf=lines.slice(lines.length-5).join("\n");
+        }
+        PL.STDOUT.append($("<span>").text(out));
     };
     PL.input=function (s) {
-        var r=prompt(s||"");
+        if (s) PL.print(s,PL.Option({end:""}));
+        var r=prompt(PL.lineBuf);
+        PL.LoopChecker.reset();
+        PL.print(r);
         return r;
     };
     PL.len=function (s) {return s.length;};
     PL.float=function (s) {return s-0;};
     PL.int=function (s) {return s-0;};
     PL.str=function (s) {return s+"";};
+    PL.quit=function (s) {PL.exit();};
+    PL.exit=function (s) {
+        var e=new Error("exit でプログラムが終了しました。");
+        e.noTrace=true;
+        throw e;
+    };
+    PL.type=function (s) {
+        switch (typeof s) {
+            case "number":
+            case "string":
+            case "function":
+            case "boolean":
+            return typeof s;
+            default:
+            if (s && s.__getTypeName__) return s.__getTypeName__();
+            if (s && s.constructor) return s.constructor;
+            return "object";
+        }
+    };
+    PL.sorted=function (a) {
+        return a.slice().sort();
+    };
     PL.fillRect=function (x,y,w,h){
         var ctx=PL.CANVAS[0].getContext("2d");
         ctx.fillRect(x,y,w,h);
@@ -129,6 +164,7 @@ define([],function () {
         "-":"sub",
         "*":"mul",
         "/":"div",
+        "//":"floordiv",
         "%":"mod",
         ">":"gt",
         "<":"lt",
@@ -138,6 +174,17 @@ define([],function () {
         "==":"eq",
         "**":"pow",
     };
+    PL.iops={};
+    var k;
+    for (k in PL.ops) {
+        if (k.match(/=/)) continue;
+        PL.iops[k+"="]="i"+PL.ops[k];
+    }
+    PL.unwrap=u;
+    function u(v) {
+        if (v instanceof PL.Wrapper) return v.unwrap();
+        return v;
+    }
     PL.Wrapper=PL.class(PL.Object, {
         __init__: function (self,value) {self.value=value;},
         unwrap: function (self) {return self.value;},
@@ -145,25 +192,37 @@ define([],function () {
             var a=Array.prototype.slice.call(arguments,1);
             return self.unwrap().apply(self, a);
         },
-        __add__: function (self,other) { return self.unwrap()+other;},
-        __sub__: function (self,other) { return self.unwrap()-other;},
-        __mul__: function (self,other) { return self.unwrap()*other;},
-        __div__: function (self,other) { return self.unwrap()/other;},
-        __mod__: function (self,other) { return self.unwrap()%other;},
-        __gt__: function (self,other) { return self.unwrap()>other;},
-        __lt__: function (self,other) { return self.unwrap()<other;},
-        __ge__: function (self,other) { return self.unwrap()>=other;},
-        __le__: function (self,other) { return self.unwrap()<=other;},
-        __eq__: function (self,other) { return self.unwrap()===other;},
-        __ne__: function (self,other) { return self.unwrap()!==other;},
-        __pow__: function (self,other) { return Math.pow(self.unwrap(),other);},
+        toString: function (self) {return self.value+"";},
+        __add__: function (self,other) { return self.unwrap()+u(other);},
+        __sub__: function (self,other) { return self.unwrap()-u(other);},
+        __mul__: function (self,other) { return self.unwrap()*u(other);},
+        __div__: function (self,other) { return self.unwrap()/u(other);},
+        __floordiv__: function (self,other) { return Math.floor(self.unwrap()/u(other));},
+        __mod__: function (self,other) { return self.unwrap()%u(other);},
+        __gt__: function (self,other) { return self.unwrap()>u(other);},
+        __lt__: function (self,other) { return self.unwrap()<u(other);},
+        __ge__: function (self,other) { return self.unwrap()>=u(other);},
+        __le__: function (self,other) { return self.unwrap()<=u(other);},
+        __eq__: function (self,other) { return self.unwrap()===u(other);},
+        __ne__: function (self,other) { return self.unwrap()!==u(other);},
+        __pow__: function (self,other) { return Math.pow(self.unwrap(),u(other));},
+
+        __iadd__: function (self,other) { self.value=self.unwrap()+u(other);return self;},
+        __isub__: function (self,other) { self.value=self.unwrap()-u(other);return self;},
+        __imul__: function (self,other) { self.value=self.unwrap()*u(other);return self;},
+        __idiv__: function (self,other) { self.value=self.unwrap()/u(other);return self;},
+        __ifloordiv__: function (self,other) { self.value=Math.floor(self.unwrap()/u(other));return self;},
+        __imod__: function (self,other) { self.value=self.unwrap()%u(other);return self;},
+        __ipow__: function (self,other) { self.value=Math.pow(self.unwrap(),u(other));return self;},
+
         //____: function (self,other) { return selfother;},
     });
     PL.wrappers={
         number:PL.class(PL.Wrapper,{
-
+            __getTypeName__: function (){return "<class number>";},
         }),
         string:PL.class(PL.Wrapper,{
+            __getTypeName__: function (){return "<class str>";},
             __mul__: function (self,other) {
                 switch (typeof other) {
                 case "number":
@@ -173,19 +232,118 @@ define([],function () {
                 default:
                     PL.invalidOP("__mul__",other);
                 }
+            },
+            __mod__: function (self,other) {
+                let args;
+                if (other instanceof Array) args=other;
+                else if (other instanceof PL.Tuple) args=other.elems;
+                else args=[other];
+                return sprintfJS(self.unwrap(),...args);
             }
         }),
         boolean:PL.class(PL.Wrapper,{
+            __getTypeName__: function (){return "<class boolean>";},
 
         }),
         function:PL.class(PL.Wrapper,{
+            __getTypeName__: function (){return "<class function>";},
 
         })
     };
     PL.invalidOP=function (op,to) {
         throw new Error("Cannot do opration "+op+" to "+to);
     };
-    PL.builtins=["range","input","str","int","float","len","fillRect","setColor","setTimeout","clearRect","clear"];
+    PL.Tuple=PL.class({
+        __init__:function (self, elems) {
+            self.elems=elems;
+        },
+        toString: function (self) {
+            return "("+self.elems.join(", ")+")";
+        }
+    });
+    PL.LoopChecker={
+        check: function () {
+            if (this.last) {
+                var now=new Date().getTime();
+                if (now-this.last>5000) {
+                    throw new Error("無限ループをストップしました");
+                }
+            }
+        },
+        reset: function () {
+            this.last=new Date().getTime();
+        }
+    };
+    //--- monkey patch
+    String.prototype.format=function (...args) {
+        return sprintfJS(this, ...args);
+    };
+    //---
+    PL.builtins=["range","input","str","int","float","len","type","quit","exit","sorted",
+    "fillRect","setColor","setTimeout","clearRect","clear"];
     root.PYLIB=PL;
+
+    function sprintfJS() {
+    	//  input -> jsString  output->jsString
+    	// from http://d.hatena.ne.jp/uupaa/20080301/1204380616
+        var rv = [], i = 0, v, width, precision, sign, idx, argv = arguments, next = 0;
+        var unsign = function(val) { return (val >= 0) ? val : val % 0x100000000 + 0x100000000; };
+        var getArg = function() {
+    		if (!idx && next>=argv.length) throw new Error("printfの引数が足りません");
+    		return argv[idx ? idx - 1 : next++];
+    	};
+    	var parseInt2=function (arg) {
+    		var res=0;
+    		if (arg && arg.IS_POINTER) {
+    			return arg.addr||0;
+    		}
+    		switch(typeof arg){
+    		case "number":
+                res=arg-0;
+                break;
+            case "boolean":
+    			res=!!arg;
+    			break;
+    		}
+    		return res;
+    	};
+    	var s = (getArg()+ "     ").split(""); // add dummy 5 chars.
+
+        for (; i < s.length - 5; ++i) {
+          if (s[i] !== "%") { rv.push(s[i]); continue; }
+
+          ++i; idx = 0; precision = undefined;
+
+          // arg-index-specifier
+          if (!isNaN(parseInt(s[i])) && s[i + 1] === "$") { idx = parseInt(s[i]); i += 2; }
+          // sign-specifier
+    	  // sign = (s[i] !== "#") ? false : ++i, true;
+          if (s[i] !== "#") { sign= false; }
+    	  else {++i; sign=true;}
+          // width-specifier
+          width = (isNaN(parseInt(s[i]))) ? 0 : parseInt(s[i++]);
+          // precision-specifier
+          if (s[i] === "." && !isNaN(parseInt(s[i + 1]))) { precision = parseInt(s[i + 1]); i += 2; }
+
+          switch (s[i]) {
+          case "d": v = parseInt2(getArg()).toString(); break;
+          case "u": v = parseInt2(getArg()); if (!isNaN(v)) { v = unsign(v).toString(); } break;
+          case "o": v = parseInt2(getArg()); if (!isNaN(v)) { v = (sign ? "0"  : "") + unsign(v).toString(8); } break;
+          case "x": v = parseInt2(getArg()); if (!isNaN(v)) { v = (sign ? "0x" : "") + unsign(v).toString(16); } break;
+          case "X": v = parseInt2(getArg()); if (!isNaN(v)) { v = (sign ? "0X" : "") + unsign(v).toString(16).toUpperCase(); } break;
+          case "f": v = parseFloat(getArg()).toFixed(precision||6); break;
+          case "c": width = 0; v = getArg(); v = (typeof v === "number") ? String.fromCharCode(v) : NaN; break;
+          case "s": width = 0; v = getArg(); if (precision) { v = v.substring(0, precision); } break;
+          case "%": width = 0; v = s[i]; break;
+          default:  width = 0; v = "%" + ((width) ? width.toString() : "") + s[i].toString(); break;
+          }
+          if (isNaN(v)) { v = v.toString(); }
+      	  if (v.length < width) rv.push(" ".repeat(width - v.length), v); else rv.push(v);
+        }
+        var line=rv.join("");
+    	//console.log("ARGV",next,argv.length);
+    	//if (!idx && next<argv.length) _global.doNotification("printfの引数が多すぎます．");
+    	return line;
+    }
     return PL;
 });

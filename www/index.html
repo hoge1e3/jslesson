@@ -20,7 +20,7 @@
 
 <body>
     <script id="BAVersion">
-var BitArrow={version:"20190103101452",//VERSION_STRING
+var BitArrow={version:"20190303101452",//VERSION_STRING
 checkVer:function () {
     if (!localStorage.BAVer || localStorage.BAVer<this.version) {
         console.log("Version up ",localStorage.BAVer," to ",this.version);
@@ -81,6 +81,9 @@ requirejs(["Util"],function (Util){
         for (var k in localStorage) {
             if (k !=="noconcat") delete localStorage[k];
         }
+    }
+    if (window.parent&&window.parent.TESTING) {
+        window.alert=function (m) {console.log(m);};
     }
     requirejs([run], function(){
         //SplashScreen.hide();

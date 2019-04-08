@@ -156,7 +156,7 @@ function ready() {
     	break;
     case "py":
     	requirejs(["PythonBuilder"],setupBuilder);
-        ALWAYS_UPLOAD=UA.isIE; 
+        ALWAYS_UPLOAD=UA.isIE;
     	//helpURL="http://bitarrow.eplang.jp/index.php?dncl_use";
     	break;
     case "tonyu":
@@ -499,8 +499,10 @@ function ready() {
         if (f.ext()==EXT || f.ext()==HEXT) {
             fileSet(f).forEach(function (e) {
                 if (e.ext()==EXT && !e.exists()) {
-                    e.text((lang=="py"?"# ":"// ")+langList[lang]+"\n");
-                    if(lang=="js") e.text("// "+langList[lang]+"\n// ここで扱われるJavaScriptは通常のJavaScriptとは異なります。詳しくは使用方法をご覧ください。\n");
+                    //e.text((lang=="py"?"# ":"// ")+langList[lang]+"\n");
+                    if(lang=="js") e.text(/*"// "+langList[lang]+"\n*/
+                    "// ここで扱われるJavaScriptは通常のJavaScriptとは異なります。詳しくは使用方法をご覧ください。\n");
+                    else e.text("");
                 } else if (e.ext()==HEXT  && !e.exists()) {
                     e.text("<html>\n\n</html>");
                 } else if (!e.exists()) {
@@ -797,6 +799,15 @@ function ready() {
             return;
         }
         errorDialog.show(e);
+        var inf=getCurrentEditorInfo();
+        if (!inf) return;
+        var curFile=inf && inf.file;
+        var curFiles=curFile && fileSet(curFile);
+        var curHTMLFile=curFiles && curFiles[0];
+        var curJSFile=curFiles && curFiles[1];
+        if (curJSFile) {
+            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",e.stack || e,langList[lang]);
+        }
     };
     function close(rm) { // rm or mv
         var i=editors[rm.path()]; //getCurrentEditorInfo();
@@ -927,6 +938,9 @@ function ready() {
             //prog.setKeyboardHandler(defaultKeyboard);
             if (f.ext()==EXT && lang=="c") {
                 prog.getSession().setMode("ace/mode/c_cpp");
+            }
+            else if (f.ext()==EXT && lang=="py") {
+                prog.getSession().setMode("ace/mode/python");
             }
             else if (f.ext()==EXT) {
                 prog.getSession().setMode("ace/mode/tonyu");

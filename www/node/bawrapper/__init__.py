@@ -12,7 +12,7 @@ f.close()
 #print(conf["sharedAsset"], conf["sharedAsset"]==os.getenv("BAASSETPATH"))
 def resolve(filename):
     if not re.search(r'/',filename):
-        raise Exception("Use personal/file or shared/file  ")
+        raise Exception("Use user/file or class/file  ")
     [context,name]=filename.split("/")
     if re.search(r'\.(php|cgi)$',name):
         raise Exception("Invalid name %s "%(name))
@@ -25,7 +25,7 @@ def resolve(filename):
     else:
         raise Exception("directory %s is not found "%(context))
 
-def _open(filename,mode="r"):
+def _open(filename,mode="r",encoding="UTF-8"):
     rf=resolve(filename)
     if not os.path.exists(os.path.dirname(rf)):
         os.makedirs(os.path.dirname(rf))
@@ -52,3 +52,11 @@ def _float(*a,**k):
     return float(*a,**k)
 def _len(*a,**k):
     return len(*a,**k)
+def _type(*a,**k):
+    return type(*a,**k)
+def _exit(*a,**k):
+    return exit(*a,**k)
+def _quit(*a,**k):
+    return quit(*a,**k)
+def _sorted(*a,**k):
+    return sorted(*a,**k)

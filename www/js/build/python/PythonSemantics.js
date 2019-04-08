@@ -107,6 +107,11 @@ const vdef={
         for (const e of node.elif) this.visit(e);
         if (node.else) this.visit(node.else);
     },
+    whileStmt: function (node) {
+        //console.log("ifStmt", node);
+        this.visit(node.cond);
+        this.visit(node.do);
+    },
     elifPart: function (node) {
         this.visit(node.cond);
         this.visit(node.then);
@@ -116,6 +121,12 @@ const vdef={
     },
     breakStmt: function (node) {
 
+    },
+    continueStmt: function (node) {
+
+    },
+    delStmt: function(node) {
+        this.visit(node.expr);
     },
     printStmt3: function (node) {
         for (const value of node.args.body) {
@@ -183,6 +194,15 @@ const vdef={
             this.visit(b);
         }
     },
+    dict: function (node) {
+        for (const b of node.body) {
+            this.visit(b);
+        }
+    },
+    dictEntry: function (node) {
+        this.visit(node.key);
+        this.visit(node.value);
+    },
     index: function (node) {
         for (const b of node.body) {
             this.visit(b);
@@ -221,8 +241,8 @@ const vdef={
         this.visit(node.body);
     }
 };
-const thru=["nodent",">=","<=","==","!=","+=","-=","*=","/=","%=","**",
-  ">","<","=",".",":","+","-","*","/","%","(",")",",","not","and","or"];
+const thru=["nodent",">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
+  ">","<","=",".",":","+","-","*","/","%","(",")",",","not","and","or","True","False"];
 for (let t of thru) {
     vdef[t]=()=>{};
 }
