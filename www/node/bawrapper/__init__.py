@@ -25,7 +25,7 @@ def resolve(filename):
     else:
         raise Exception("directory %s is not found "%(context))
 
-def _open(filename,mode="r"):
+def _open(filename,mode="r",encoding="UTF-8"):
     rf=resolve(filename)
     if not os.path.exists(os.path.dirname(rf)):
         os.makedirs(os.path.dirname(rf))

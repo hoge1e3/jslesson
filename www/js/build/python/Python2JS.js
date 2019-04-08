@@ -117,6 +117,9 @@ function (Visitor,IndentBuffer,context,PL) {
         paren: function (node) {
             this.printf("(%v)",node.body);
         },
+        tuple: function (node) {
+            this.printf("%s.Tuple([%j])",PYLIB,[",",node.body]);
+        },
         ":indent": function (node) {
             this.printf("%{");
         },
