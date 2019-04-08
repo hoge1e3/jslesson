@@ -84,7 +84,8 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("(");
             this.printf("%j",[",",noname]);
             if (hasname.length) {
-                this.printf(",%s.opt({%j})",PYLIB,[",",hasname]);
+                if (noname.length) this.printf(",");
+                this.printf("%s.opt({%j})",PYLIB,[",",hasname]);
             }
             this.printf(")");
         },

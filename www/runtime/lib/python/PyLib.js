@@ -276,7 +276,25 @@ define([],function () {
     };
     //--- monkey patch
     String.prototype.format=function (...args) {
-        return sprintfJS(this, ...args);
+        const str=this;
+        const o={};
+        let i=0;
+        for (const a of args) {
+            if (a instanceof PL.Option) {
+                Object.assign(o, a );
+            } else {
+                o[i+""]=a;
+            }
+            i++;
+        }
+        i=0;
+        return str.replace(/{([0-9a-zA-Z_]*)}/g, (_,name)=>{
+            if (!name) {
+                return o[i++];
+            } else {
+                return o[name];
+            }
+        });
     };
     //---
     PL.builtins=["range","input","str","int","float","len","type","quit","exit","sorted",
