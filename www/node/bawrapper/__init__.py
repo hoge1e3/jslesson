@@ -58,3 +58,5 @@ def _exit(*a,**k):
     return exit(*a,**k)
 def _quit(*a,**k):
     return quit(*a,**k)
+def _sorted(*a,**k):
+    return sorted(*a,**k)

@@ -63,6 +63,9 @@ define([],function () {
             return "object";
         }
     };
+    PL.sorted=function (a) {
+        return a.slice().sort();
+    };
     PL.fillRect=function (x,y,w,h){
         var ctx=PL.CANVAS[0].getContext("2d");
         ctx.fillRect(x,y,w,h);
@@ -256,7 +259,7 @@ define([],function () {
             this.last=new Date().getTime();
         }
     };
-    PL.builtins=["range","input","str","int","float","len","type","quit","exit",
+    PL.builtins=["range","input","str","int","float","len","type","quit","exit","sorted",
     "fillRect","setColor","setTimeout","clearRect","clear"];
     root.PYLIB=PL;
     return PL;

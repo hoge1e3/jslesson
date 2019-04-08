@@ -16,7 +16,7 @@ function (Grammar,Pos2RC/*,TError*/) {
     ];
     const resvh={};for(const r of reserved) resvh[r]=r;
     const puncts=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
-      ">","<","=",".",":","+","-","*","/","%","(",")","[","]",","];
+      ">","<","=",".",":","+","-","*","/","%","(",")","[","]","{","}",","];
     const tdef={
         tokens: [{"this":tokens.rep0("token")}, /^\s*/ ,P.StringParser.eof],
         //token: tokens.or(...reserved.concat(["quote","symbol","number","qsymbol",":"])),
@@ -47,6 +47,7 @@ function (Grammar,Pos2RC/*,TError*/) {
     //for (const r of reserved) tdef[r]="'"+r;
     //console.log("tdef",tdef);
     tokens.def(tdef);
+    const openPar={"(":1,"[":1,"{":1},closePar={"}":1,"]":1,")":1};
     class Tokenizer {
         constructor(src) {
             this.src=src;
@@ -56,6 +57,7 @@ function (Grammar,Pos2RC/*,TError*/) {
             const src=this.src;
             const ind=/^\s*/;
             const depths=[];
+            let parDepth=0;
             this.tokens=[];
             this.pos=0;
             var lineNo=0;
@@ -64,34 +66,38 @@ function (Grammar,Pos2RC/*,TError*/) {
                 let r=ind.exec(line);
                 const d=r[0].length;
                 //console.log("depth",lineNo+1, d,depths);
-                if (depths.length===0) {
-                    depths.push(d);
-                } else {
-                    const rc=this.pos2rc.getRC(this.pos);
-                    const pd=depths[depths.length-1];
-                    if (d===pd) {
-                        this.tokens.push({type:"nodent",pos:this.pos,len:0,row:rc.row, col: rc.col});
-                    } else if (d>pd){
-                        this.tokens.push({type:"indent",pos:this.pos,len:0,row:rc.row, col: rc.col});
+                if (parDepth==0) {
+                    if (depths.length===0) {
                         depths.push(d);
                     } else {
-                        // dedent
-                        this.tokens.push({type:"nodent",pos:this.pos,len:0,row:rc.row, col: rc.col});
-                        for (let i=depths.length-1;i>=0;i--) {
-                            //console.log("dede",d,depths,i,depths[i]);
-                            if (depths[i]<d) {
-                                throw this.error("インデント幅"+d+"の行が"+(lineNo+1)+"行目より前に存在しません。");
+                        const rc=this.pos2rc.getRC(this.pos);
+                        const pd=depths[depths.length-1];
+                        if (d===pd) {
+                            this.tokens.push({type:"nodent",pos:this.pos,len:0,row:rc.row, col: rc.col});
+                        } else if (d>pd){
+                            this.tokens.push({type:"indent",pos:this.pos,len:0,row:rc.row, col: rc.col});
+                            depths.push(d);
+                        } else {
+                            // dedent
+                            this.tokens.push({type:"nodent",pos:this.pos,len:0,row:rc.row, col: rc.col});
+                            for (let i=depths.length-1;i>=0;i--) {
+                                //console.log("dede",d,depths,i,depths[i]);
+                                if (depths[i]<d) {
+                                    throw this.error("インデント幅"+d+"の行が"+(lineNo+1)+"行目より前に存在しません。");
+                                }
+                                if (depths[i]==d) {
+                                    break;
+                                }
+                                this.tokens.push({type:"dedent",pos:this.pos,len:0,row:rc.row, col: rc.col});
+                                depths.pop();
                             }
-                            if (depths[i]==d) {
-                                break;
-                            }
-                            this.tokens.push({type:"dedent",pos:this.pos,len:0,row:rc.row, col: rc.col});
-                            depths.pop();
                         }
                     }
                 }
                 const tks=this.tokenizeLine(line,lineNo);
                 for (const tk of tks) {
+                    if (openPar[tk.type]) parDepth++;
+                    if (closePar[tk.type]) parDepth--;
                     tk.pos+=this.pos;
                     const rc=this.pos2rc.getRC(tk.pos);
                     tk.row=rc.row;
@@ -220,10 +226,12 @@ function (Grammar,Pos2RC/*,TError*/) {
         memberRef: [".",{name:"symOrResv"}],
         args: ["(",{body:sep0("arg",",")},")"],
         array: ["[",{body:sep0("expr",",")},"]"],
+        dict: ["{",{body:sep0("dictEntry",",")},"}"],
+        dictEntry: [{key:"literal"},":",{value:"expr"}],
         index: ["[",{body:sep1("expr",":")},"]"],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: [":indent",{body:"stmtList"},"dedent"],
-        elem: or("symbol","number","bool","array","literal","paren","tuple"),
+        elem: or("symbol","number","bool","array","dict","literal","paren","tuple"),
         paren: ["(",{body:"expr"},")"],
         bool: or("True","False"),
         tuple: ["(",{body:sep0("expr",",")},")"],

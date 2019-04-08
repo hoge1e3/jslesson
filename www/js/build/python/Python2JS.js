@@ -97,6 +97,12 @@ function (Visitor,IndentBuffer,context,PL) {
         array: function (node) {
             this.printf("[%j]",[",",node.body]);
         },
+        dict: function (node) {
+            this.printf("{%j}",[",",node.body]);
+        },
+        dictEntry: function (node) {
+            this.printf("%v:%v",node.key,node.value);
+        },
         index: function (node) {
             for (const b of node.body) {
                 this.printf("[%v]",b);

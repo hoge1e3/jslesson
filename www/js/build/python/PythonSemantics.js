@@ -194,6 +194,15 @@ const vdef={
             this.visit(b);
         }
     },
+    dict: function (node) {
+        for (const b of node.body) {
+            this.visit(b);
+        }
+    },
+    dictEntry: function (node) {
+        this.visit(node.key);
+        this.visit(node.value);
+    },
     index: function (node) {
         for (const b of node.body) {
             this.visit(b);
