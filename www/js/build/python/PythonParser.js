@@ -12,8 +12,10 @@ function (Grammar,Pos2RC/*,TError*/) {
     const reserved=[
         "class","def","if","else","elif","break","continue",
         "for","while","in","return","print","import","as",
-        "and","or","not","global","True","False","del"
-    ];
+        "and","or","not","global","True","False","del",
+        "finally","is","None","lambda","try","from" ,"nonlocal","with","yield",
+        "assert","pass","except","raise"
+       ];
     const resvh={};for(const r of reserved) resvh[r]=r;
     const puncts=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
       ">","<","=",".",":","+","-","*","/","%","(",")","[","]","{","}",","];
@@ -179,7 +181,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         stmtList: rep1("stmt"),
         // why printStmt -> printStmt3?
         // because if parse print(x), as printStmt3, comma remains unparsed.
-        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","forStmt","returnStmt","delStmt","importStmt","globalStmt","nodent"),
+        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt","globalStmt","nodent"),
         importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
         packageName: sep1("symbol","."),
         exprStmt: [{expr:"expr"}],
@@ -191,6 +193,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         whileStmt: ["while",{cond:"expr"},{do:"block"}],
         elifPart: ["elif",{cond:"expr"},{then:"block"}],
         elsePart: ["else",{then:"block"}],
+        passStmt: ["pass"],
         breakStmt: ["break"],
         continueStmt: ["continue"],
         forStmt: ["for",{var:"symbol"},"in",{set:"expr"},{do:"block"}],

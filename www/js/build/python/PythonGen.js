@@ -137,6 +137,9 @@ function (Visitor,IndentBuffer,assert) {
         continueStmt: function () {
             this.printf("continue");
         },
+        passStmt: function () {
+            this.printf("pass");
+        },
         symbol: function (node) {
             var a=this.anon.get(node);
             if (a.scopeInfo && a.scopeInfo.builtin) {

@@ -24,6 +24,12 @@ const c=sync=>{
     sync(`${src}/runc.js`,dst);
     sync(`${src}/scanf.js`,dst);
 };
+const py=sync=> {
+    const src="www/js/build/python/";
+    const dst="www/runtime/lib/python";
+    sync(`${src}/PyLib.js`,dst);
+
+};
 module.exports=sync=>{
     common(sync);
     c(sync);

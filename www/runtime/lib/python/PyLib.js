@@ -16,6 +16,16 @@ define([],function () {
                 random: Math.random,
                 randint: function (a,b) {
                     return Math.floor(Math.random()*(b-a+1))+a;
+                },
+                shuffle: function (list) {
+                    for (let i=list.length-1; i>=0 ;i--) {
+                        const e=list.splice(this.randint(i),1);
+                        list.push(e[0]);
+                    }
+                    return list;
+                },
+                sample: function (list) {
+                    return this.shuffle(list.slice());
                 }
             };
         }
@@ -29,7 +39,7 @@ define([],function () {
         PL.lineBuf+=out;
         var lines=PL.lineBuf.split("\n");
         if(lines.length>10) {
-            PL.lineBuf=lines.slice(lines.length-5).join("\n");
+            PL.lineBuf=lines.slice(lines.length-10).join("\n");
         }
         PL.STDOUT.append($("<span>").text(out));
     };
@@ -239,6 +249,12 @@ define([],function () {
                 else if (other instanceof PL.Tuple) args=other.elems;
                 else args=[other];
                 return sprintfJS(self.unwrap(),...args);
+            },
+            __add__: function (self,other) {
+                if (typeof u(other)!=="string") {
+                    throw new Error("文字列に文字列以外の値を+で追加できません．str()関数を使って変換してください．");
+                }
+                return PL.Wrapper.prototype.__add__.call(self,other);
             }
         }),
         boolean:PL.class(PL.Wrapper,{
@@ -296,6 +312,7 @@ define([],function () {
             }
         });
     };
+    Array.prototype.append=Array.prototype.push;
     //---
     PL.builtins=["range","input","str","int","float","len","type","quit","exit","sorted",
     "fillRect","setColor","setTimeout","clearRect","clear"];

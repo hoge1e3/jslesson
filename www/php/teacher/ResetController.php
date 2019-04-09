@@ -26,7 +26,7 @@ class ResetController {
     static function forgotPass() {
         ?>
         再発行コードを持っている→  コード入力欄(セッションに保存されていればここに表示)  -> loadRequest
-        
+
         再発行コードを持っていない→  [再発行ボタン]  -> addRequest
 
         <?php
@@ -60,7 +60,7 @@ class ResetController {
           パスワードの再発行を要求しました．
           発行用コードは XXXX です．教員から聞かれたときに答えてください．
           教員から許可があるまで再設定はできません．
-          
+
           再読込リンク
         <?php
     }
@@ -68,8 +68,8 @@ class ResetController {
         //TODO  (教員が操作) 再発行リクエストを許可
         // 該当クラスの教員じゃなかったら拒否
         // パラメタ：
-        // $_POST["pin"] 
-        
+        // $_POST["pin"]
+
     }
     static function resetForm() {
         //TODO
@@ -78,7 +78,7 @@ class ResetController {
         ?>
          新しいパスワード
          新しいパスワード確認  ->doReset
-        <?
+        <?php
     }
     static function doReset() {
         //TODO （学生が操作）セッションに保存されているpin
@@ -89,4 +89,3 @@ class ResetController {
     }
 }
 ?>
-

@@ -164,10 +164,13 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("%v%v",node.op,node.right);
         },
         breakStmt: function (node) {
-            this.printf("break");
+            this.printf("break;");
         },
         continueStmt: function (node) {
-            this.printf("continue");
+            this.printf("continue;");
+        },
+        passStmt: function () {
+            this.printf(";");        
         },
         and: function (node) {
             this.printf("&&");
