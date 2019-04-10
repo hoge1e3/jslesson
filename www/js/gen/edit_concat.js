@@ -5027,6 +5027,8 @@ define('Menu',["UI"], function (UI) {
         }
         if (mainMenuItem.after) {
             $(mainMenuItem.after).closest("li").after(li);
+        } else if (mainMenuItem.before) {
+            $(mainMenuItem.before).closest("li").before(li);
         } else {
             ul1.append(li);
         }
@@ -5040,6 +5042,17 @@ define('Menu',["UI"], function (UI) {
                 Menu.appendSub(mainMenuItem,subMenuItem);
             });
         }
+    };
+    Menu.appendSubRoot=function(mainMenuID) {
+        var ul2=UI("ul",{
+            id:"submenu_"+mainMenuID,
+            "class":"dropdown-menu"
+        });
+        var li=$("#"+mainMenuID).closest("li");
+        li.append(ul2);
+    };
+    Menu.deleteMain=function (menuID) {
+        $("#"+menuID).remove();
     };
     Menu.appendSub=function (mainObj,subMenuItem) {
         var mainID;
@@ -5055,9 +5068,13 @@ define('Menu',["UI"], function (UI) {
         }
         var ul2=$("#submenu_"+mainID);
         if (ul2.length==0) {
-            Menu.appendMain(mainObj);
-            //ul2=$("#submenu_"+mainID);
-            return;
+            if ($("#"+mainID).length==0) {
+                Menu.appendMain(mainObj);
+                //ul2=$("#submenu_"+mainID);
+                return;
+            }
+            this.appendSubRoot(mainID);
+            $("#"+mainID).addClass("dropdown-toggle").attr("data-toggle","dropdown");
         }
         ul2.append(UI("li",
             ["a", {
@@ -11214,12 +11231,14 @@ function (Klass,FS,UI,Pos2RC,ua) {
         },
         show: function (t, mesg, src, pos, trace) {
             var appendPos;
+            if (mesg && mesg.noTrace) return;
             if (mesg && mesg.stack) {
                 var tr=t.decodeTrace(mesg);
+                var detail=(mesg.message ? "("+mesg.message+")" : "");
                 for (var i=0;i<tr.length;i++) {
                     if (tr[i].file) {
                         var cve=tr[i].file.name()+"の"+
-                        tr[i].row+"行目"+tr[i].col+"文字目付近でエラーが発生しました";
+                        tr[i].row+"行目"+tr[i].col+"文字目付近でエラーが発生しました"+detail;
                         return t.show(cve,tr[i].file, tr[i] , mesg.stack);
                     }
                 }
@@ -11230,7 +11249,7 @@ function (Klass,FS,UI,Pos2RC,ua) {
                 pos=mesg.pos;
                 //console.log(mesg,mesg.stack);
                 trace=mesg.stack;
-                mesg=mesg+"";
+                mesg=mesg+"";//detail;
                 appendPos=true;
             }
             var elem=t.createDom();
@@ -11238,7 +11257,7 @@ function (Klass,FS,UI,Pos2RC,ua) {
                 mesg//+" 場所："+src.name()+(typeof row=="number"?":"+p.row+":"+p.col:"")
             );
             if (src && pos!=null) {
-                var str=src.text();
+                var str=typeof src==="string"?src:src.text();
                 var p=new Pos2RC(str).getAll(pos);
                 if (appendPos) t.mesgd.append("場所："+src.name()+":"+p.row+":"+p.col);
                 t.srcd.show();
@@ -11421,6 +11440,7 @@ function ready() {
     var HEXT=".html";
     var opt=curPrj.getOptions();
     var lang=opt.language || "js";
+    var ide={run:run, prj:curPrj};
     switch (lang){
     case "c":
         requirejs(["CBuilder"],function(_){
@@ -11458,7 +11478,7 @@ function ready() {
         $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
         ram=FS.get("/ram/build/");
         FS.mount(ram.path(),"ram");
-        builder=new BuilderClass(curPrj, ram);
+        builder=new BuilderClass(curPrj, ram, ide);
         window.BABuilder=builder;
         builderReady();
     }
@@ -12089,6 +12109,15 @@ function ready() {
             return;
         }
         errorDialog.show(e);
+        var inf=getCurrentEditorInfo();
+        if (!inf) return;
+        var curFile=inf && inf.file;
+        var curFiles=curFile && fileSet(curFile);
+        var curHTMLFile=curFiles && curFiles[0];
+        var curJSFile=curFiles && curFiles[1];
+        if (curJSFile) {
+            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",e.stack || e,langList[lang]);
+        }
     };
     function close(rm) { // rm or mv
         var i=editors[rm.path()]; //getCurrentEditorInfo();

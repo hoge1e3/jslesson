@@ -1589,13 +1589,15 @@ function (Grammar,Pos2RC/*,TError*/) {
         return s;
     }); */
     const reserved=[
-        "class","def","if","else","elif","break",
+        "class","def","if","else","elif","break","continue",
         "for","while","in","return","print","import","as",
-        "and","or","not","global"
-    ];
+        "and","or","not","global","True","False","del",
+        "finally","is","None","lambda","try","from" ,"nonlocal","with","yield",
+        "assert","pass","except","raise"
+       ];
     const resvh={};for(const r of reserved) resvh[r]=r;
-    const puncts=[">=","<=","==","!=","+=","-=","*=","/=","%=","**",
-      ">","<","=",".",":","+","-","*","/","%","(",")","[","]",","];
+    const puncts=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
+      ">","<","=",".",":","+","-","*","/","%","(",")","[","]","{","}",","];
     const tdef={
         tokens: [{"this":tokens.rep0("token")}, /^\s*/ ,P.StringParser.eof],
         //token: tokens.or(...reserved.concat(["quote","symbol","number","qsymbol",":"])),
@@ -1606,12 +1608,27 @@ function (Grammar,Pos2RC/*,TError*/) {
             return r;
         }),
         number: /^[0-9]+[0-9\.]*/,
-        literal: /^r?((\"[^\"]*\")|(\'[^\']*\'))/,
+        /*literal: P.StringParser.reg({exec: function (s) {
+            //var
+    		var head=s.substring(0,1);
+    		if (head!=='"' && head!=="'") return false;
+    		for (var i=1 ;i<s.length ; i++) {
+    			var c=s.substring(i,i+1);
+    			if (c===head) {
+    				return [s.substring(0,i+1)];
+    			} else if (c==="\\") {
+    				i++;
+    			}
+    		}
+    		return false;
+    	}}),*/
+        literal: /^r?(("([^\\"]*(\\.)*)*")|('([^\\']*(\\.)*)*'))/,
     };
     for (let p of puncts) tdef[p]="'"+p;
     //for (const r of reserved) tdef[r]="'"+r;
     //console.log("tdef",tdef);
     tokens.def(tdef);
+    const openPar={"(":1,"[":1,"{":1},closePar={"}":1,"]":1,")":1};
     class Tokenizer {
         constructor(src) {
             this.src=src;
@@ -1621,6 +1638,7 @@ function (Grammar,Pos2RC/*,TError*/) {
             const src=this.src;
             const ind=/^\s*/;
             const depths=[];
+            let parDepth=0;
             this.tokens=[];
             this.pos=0;
             var lineNo=0;
@@ -1629,34 +1647,38 @@ function (Grammar,Pos2RC/*,TError*/) {
                 let r=ind.exec(line);
                 const d=r[0].length;
                 //console.log("depth",lineNo+1, d,depths);
-                if (depths.length===0) {
-                    depths.push(d);
-                } else {
-                    const rc=this.pos2rc.getRC(this.pos);
-                    const pd=depths[depths.length-1];
-                    if (d===pd) {
-                        this.tokens.push({type:"nodent",pos:this.pos,len:0,row:rc.row, col: rc.col});
-                    } else if (d>pd){
-                        this.tokens.push({type:"indent",pos:this.pos,len:0,row:rc.row, col: rc.col});
+                if (parDepth==0) {
+                    if (depths.length===0) {
                         depths.push(d);
                     } else {
-                        // dedent
-                        this.tokens.push({type:"nodent",pos:this.pos,len:0,row:rc.row, col: rc.col});
-                        for (let i=depths.length-1;i>=0;i--) {
-                            //console.log("dede",d,depths,i,depths[i]);
-                            if (depths[i]<d) {
-                                throw new Error("インデント幅"+d+"の行が"+(lineNo+1)+"行目より前に存在しません。");
+                        const rc=this.pos2rc.getRC(this.pos);
+                        const pd=depths[depths.length-1];
+                        if (d===pd) {
+                            this.tokens.push({type:"nodent",pos:this.pos,len:0,row:rc.row, col: rc.col});
+                        } else if (d>pd){
+                            this.tokens.push({type:"indent",pos:this.pos,len:0,row:rc.row, col: rc.col});
+                            depths.push(d);
+                        } else {
+                            // dedent
+                            this.tokens.push({type:"nodent",pos:this.pos,len:0,row:rc.row, col: rc.col});
+                            for (let i=depths.length-1;i>=0;i--) {
+                                //console.log("dede",d,depths,i,depths[i]);
+                                if (depths[i]<d) {
+                                    throw this.error("インデント幅"+d+"の行が"+(lineNo+1)+"行目より前に存在しません。");
+                                }
+                                if (depths[i]==d) {
+                                    break;
+                                }
+                                this.tokens.push({type:"dedent",pos:this.pos,len:0,row:rc.row, col: rc.col});
+                                depths.pop();
                             }
-                            if (depths[i]==d) {
-                                break;
-                            }
-                            this.tokens.push({type:"dedent",pos:this.pos,len:0,row:rc.row, col: rc.col});
-                            depths.pop();
                         }
                     }
                 }
                 const tks=this.tokenizeLine(line,lineNo);
                 for (const tk of tks) {
+                    if (openPar[tk.type]) parDepth++;
+                    if (closePar[tk.type]) parDepth--;
                     tk.pos+=this.pos;
                     const rc=this.pos2rc.getRC(tk.pos);
                     tk.row=rc.row;
@@ -1668,10 +1690,15 @@ function (Grammar,Pos2RC/*,TError*/) {
             }
             return this.tokens;
         }
+        error(mesg) {
+            const e=new Error(mesg);
+            e.pos=this.pos;
+            return e;
+        }
         tokenizeLine(line,lineNo) {
             //console.log("parse token",line);
             const r=tokens.get("tokens").parseStr(line);
-            if (!r.success) throw new Error("Error at "+(lineNo+1)+":"+(r.src.maxPos+1));
+            if (!r.success) throw this.error("字句エラー "+(lineNo+1)+":"+(r.src.maxPos+1));
             //console.log("r",r.result[0]);
             return r.result[0];
         }
@@ -1733,17 +1760,21 @@ function (Grammar,Pos2RC/*,TError*/) {
         stmtList: rep1("stmt"),
         // why printStmt -> printStmt3?
         // because if parse print(x), as printStmt3, comma remains unparsed.
-        stmt: or("define","printStmt","printStmt3","ifStmt","breakStmt","letStmt","exprStmt","forStmt","returnStmt","importStmt","globalStmt","nodent"),
+        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt","globalStmt","nodent"),
         importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
         packageName: sep1("symbol","."),
         exprStmt: [{expr:"expr"}],
+        delStmt: ["del",{expr:"expr"}],
         returnStmt: ["return",{expr:"expr"}],
         //exprTail: or("block","nodent"),
         ifStmt: ["if",{cond:"expr"},{then:"block"},
         {elif:rep0("elifPart")},{else:opt("elsePart")}],
+        whileStmt: ["while",{cond:"expr"},{do:"block"}],
         elifPart: ["elif",{cond:"expr"},{then:"block"}],
         elsePart: ["else",{then:"block"}],
+        passStmt: ["pass"],
         breakStmt: ["break"],
+        continueStmt: ["continue"],
         forStmt: ["for",{var:"symbol"},"in",{set:"expr"},{do:"block"}],
         letStmt: [{left:"lval"},"=",{right:"expr"}],
         globalStmt: ["global",{names:sep1("symbol",",")}],
@@ -1768,7 +1799,7 @@ function (Grammar,Pos2RC/*,TError*/) {
                 ["infixl", or("and")  ] ,
                 ["infixl", or(">=","<=","==","!=",">","<")  ] , //  + -  左結合２項演算子
                 ["infixl", or("+","-")  ] , //  + -  左結合２項演算子
-                ["infixl", or("*","/","%")  ] , //  * 左結合２項演算子
+                ["infixl", or("//","*","/","%")  ] , //  * 左結合２項演算子
                 ["infixl", or("**")],
                 ["prefix",or("not","-")],
                 ["postfix" , or("args" , "memberRef","index") ] , // (a,b)  .x
@@ -1777,11 +1808,14 @@ function (Grammar,Pos2RC/*,TError*/) {
         memberRef: [".",{name:"symOrResv"}],
         args: ["(",{body:sep0("arg",",")},")"],
         array: ["[",{body:sep0("expr",",")},"]"],
+        dict: ["{",{body:sep0("dictEntry",",")},"}"],
+        dictEntry: [{key:"literal"},":",{value:"expr"}],
         index: ["[",{body:sep1("expr",":")},"]"],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: [":indent",{body:"stmtList"},"dedent"],
-        elem: or("symbol","number","array","literal","paren","tuple"),
+        elem: or("symbol","number","bool","array","dict","literal","paren","tuple"),
         paren: ["(",{body:"expr"},")"],
+        bool: or("True","False"),
         tuple: ["(",{body:sep0("expr",",")},")"],
         indent: tk("indent"),
         dedent: tk("dedent"),
@@ -1807,9 +1841,10 @@ function (Grammar,Pos2RC/*,TError*/) {
         try {
             tks=t.tokenize();
         }catch (er) {
-            const e=new Error("字句エラー："+er.message+" "+srcFile.name());
+            er.src=srcFile;
+            //const e=new Error("字句エラー："+er.message+" "+srcFile.name());
             //e.noTrace=true;
-            throw e;
+            throw er;
         }
         //console.log("G.parse.T",tks);
         const s=P.TokensParser.parse(g.get("program"),tks);
@@ -1817,7 +1852,9 @@ function (Grammar,Pos2RC/*,TError*/) {
         if (!s.success) {
             var ert=tks[s.src.maxPos];
             //console.error("Err",s.src.maxPos,ert.row,ert.col);
-            const e=new Error("文法エラー："+srcFile.name()+":"+ert.row+":"+ert.col);//,ert.pos);//+ert.row+":"+ert.col);
+            const e=new Error("文法エラー");//"："+srcFile.name()+":"+ert.row+":"+ert.col);//,ert.pos);//+ert.row+":"+ert.col);
+            e.src=srcFile;
+            e.pos=ert.pos;
             //e.noTrace=true;
             throw e;
         }
@@ -1937,24 +1974,69 @@ define('PyLib',[],function () {
     PL.import=function (lib) {
         if (lib==="random") {
             return {
-                random: Math.random
+                random: Math.random,
+                randint: function (a,b) {
+                    return Math.floor(Math.random()*(b-a+1))+a;
+                },
+                shuffle: function (list) {
+                    for (let i=list.length-1; i>=0 ;i--) {
+                        const e=list.splice(this.randint(i),1);
+                        list.push(e[0]);
+                    }
+                    return list;
+                },
+                sample: function (list) {
+                    return this.shuffle(list.slice());
+                }
             };
         }
     };
+    PL.lineBuf="";
     PL.print=function () {
         var a=PL.parseArgs(arguments);
         console.log("print",arguments,a);
         var end=a.options.end!=null ? a.options.end: "\n";
-        PL.STDOUT.append(a.join(" ")+end);
+        var out=a.join(" ")+end;
+        PL.lineBuf+=out;
+        var lines=PL.lineBuf.split("\n");
+        if(lines.length>10) {
+            PL.lineBuf=lines.slice(lines.length-10).join("\n");
+        }
+        PL.STDOUT.append($("<span>").text(out));
     };
     PL.input=function (s) {
-        var r=prompt(s||"");
+        if (s) PL.print(s,PL.Option({end:""}));
+        var r=prompt(PL.lineBuf);
+        PL.LoopChecker.reset();
+        PL.print(r);
         return r;
     };
     PL.len=function (s) {return s.length;};
     PL.float=function (s) {return s-0;};
     PL.int=function (s) {return s-0;};
     PL.str=function (s) {return s+"";};
+    PL.quit=function (s) {PL.exit();};
+    PL.exit=function (s) {
+        var e=new Error("exit でプログラムが終了しました。");
+        e.noTrace=true;
+        throw e;
+    };
+    PL.type=function (s) {
+        switch (typeof s) {
+            case "number":
+            case "string":
+            case "function":
+            case "boolean":
+            return typeof s;
+            default:
+            if (s && s.__getTypeName__) return s.__getTypeName__();
+            if (s && s.constructor) return s.constructor;
+            return "object";
+        }
+    };
+    PL.sorted=function (a) {
+        return a.slice().sort();
+    };
     PL.fillRect=function (x,y,w,h){
         var ctx=PL.CANVAS[0].getContext("2d");
         ctx.fillRect(x,y,w,h);
@@ -2053,6 +2135,7 @@ define('PyLib',[],function () {
         "-":"sub",
         "*":"mul",
         "/":"div",
+        "//":"floordiv",
         "%":"mod",
         ">":"gt",
         "<":"lt",
@@ -2062,6 +2145,17 @@ define('PyLib',[],function () {
         "==":"eq",
         "**":"pow",
     };
+    PL.iops={};
+    var k;
+    for (k in PL.ops) {
+        if (k.match(/=/)) continue;
+        PL.iops[k+"="]="i"+PL.ops[k];
+    }
+    PL.unwrap=u;
+    function u(v) {
+        if (v instanceof PL.Wrapper) return v.unwrap();
+        return v;
+    }
     PL.Wrapper=PL.class(PL.Object, {
         __init__: function (self,value) {self.value=value;},
         unwrap: function (self) {return self.value;},
@@ -2069,25 +2163,37 @@ define('PyLib',[],function () {
             var a=Array.prototype.slice.call(arguments,1);
             return self.unwrap().apply(self, a);
         },
-        __add__: function (self,other) { return self.unwrap()+other;},
-        __sub__: function (self,other) { return self.unwrap()-other;},
-        __mul__: function (self,other) { return self.unwrap()*other;},
-        __div__: function (self,other) { return self.unwrap()/other;},
-        __mod__: function (self,other) { return self.unwrap()%other;},
-        __gt__: function (self,other) { return self.unwrap()>other;},
-        __lt__: function (self,other) { return self.unwrap()<other;},
-        __ge__: function (self,other) { return self.unwrap()>=other;},
-        __le__: function (self,other) { return self.unwrap()<=other;},
-        __eq__: function (self,other) { return self.unwrap()===other;},
-        __ne__: function (self,other) { return self.unwrap()!==other;},
-        __pow__: function (self,other) { return Math.pow(self.unwrap(),other);},
+        toString: function (self) {return self.value+"";},
+        __add__: function (self,other) { return self.unwrap()+u(other);},
+        __sub__: function (self,other) { return self.unwrap()-u(other);},
+        __mul__: function (self,other) { return self.unwrap()*u(other);},
+        __div__: function (self,other) { return self.unwrap()/u(other);},
+        __floordiv__: function (self,other) { return Math.floor(self.unwrap()/u(other));},
+        __mod__: function (self,other) { return self.unwrap()%u(other);},
+        __gt__: function (self,other) { return self.unwrap()>u(other);},
+        __lt__: function (self,other) { return self.unwrap()<u(other);},
+        __ge__: function (self,other) { return self.unwrap()>=u(other);},
+        __le__: function (self,other) { return self.unwrap()<=u(other);},
+        __eq__: function (self,other) { return self.unwrap()===u(other);},
+        __ne__: function (self,other) { return self.unwrap()!==u(other);},
+        __pow__: function (self,other) { return Math.pow(self.unwrap(),u(other));},
+
+        __iadd__: function (self,other) { self.value=self.unwrap()+u(other);return self;},
+        __isub__: function (self,other) { self.value=self.unwrap()-u(other);return self;},
+        __imul__: function (self,other) { self.value=self.unwrap()*u(other);return self;},
+        __idiv__: function (self,other) { self.value=self.unwrap()/u(other);return self;},
+        __ifloordiv__: function (self,other) { self.value=Math.floor(self.unwrap()/u(other));return self;},
+        __imod__: function (self,other) { self.value=self.unwrap()%u(other);return self;},
+        __ipow__: function (self,other) { self.value=Math.pow(self.unwrap(),u(other));return self;},
+
         //____: function (self,other) { return selfother;},
     });
     PL.wrappers={
         number:PL.class(PL.Wrapper,{
-
+            __getTypeName__: function (){return "<class number>";},
         }),
         string:PL.class(PL.Wrapper,{
+            __getTypeName__: function (){return "<class str>";},
             __mul__: function (self,other) {
                 switch (typeof other) {
                 case "number":
@@ -2097,20 +2203,144 @@ define('PyLib',[],function () {
                 default:
                     PL.invalidOP("__mul__",other);
                 }
+            },
+            __mod__: function (self,other) {
+                let args;
+                if (other instanceof Array) args=other;
+                else if (other instanceof PL.Tuple) args=other.elems;
+                else args=[other];
+                return sprintfJS(self.unwrap(),...args);
+            },
+            __add__: function (self,other) {
+                if (typeof u(other)!=="string") {
+                    throw new Error("文字列に文字列以外の値を+で追加できません．str()関数を使って変換してください．");
+                }
+                return PL.Wrapper.prototype.__add__.call(self,other);
             }
         }),
         boolean:PL.class(PL.Wrapper,{
+            __getTypeName__: function (){return "<class boolean>";},
 
         }),
         function:PL.class(PL.Wrapper,{
+            __getTypeName__: function (){return "<class function>";},
 
         })
     };
     PL.invalidOP=function (op,to) {
         throw new Error("Cannot do opration "+op+" to "+to);
     };
-    PL.builtins=["range","input","str","int","float","len","fillRect","setColor","setTimeout","clearRect","clear"];
+    PL.Tuple=PL.class({
+        __init__:function (self, elems) {
+            self.elems=elems;
+        },
+        toString: function (self) {
+            return "("+self.elems.join(", ")+")";
+        }
+    });
+    PL.LoopChecker={
+        check: function () {
+            if (this.last) {
+                var now=new Date().getTime();
+                if (now-this.last>5000) {
+                    throw new Error("無限ループをストップしました");
+                }
+            }
+        },
+        reset: function () {
+            this.last=new Date().getTime();
+        }
+    };
+    //--- monkey patch
+    String.prototype.format=function (...args) {
+        const str=this;
+        const o={};
+        let i=0;
+        for (const a of args) {
+            if (a instanceof PL.Option) {
+                Object.assign(o, a );
+            } else {
+                o[i+""]=a;
+            }
+            i++;
+        }
+        i=0;
+        return str.replace(/{([0-9a-zA-Z_]*)}/g, (_,name)=>{
+            if (!name) {
+                return o[i++];
+            } else {
+                return o[name];
+            }
+        });
+    };
+    Array.prototype.append=Array.prototype.push;
+    //---
+    PL.builtins=["range","input","str","int","float","len","type","quit","exit","sorted",
+    "fillRect","setColor","setTimeout","clearRect","clear"];
     root.PYLIB=PL;
+
+    function sprintfJS() {
+    	//  input -> jsString  output->jsString
+    	// from http://d.hatena.ne.jp/uupaa/20080301/1204380616
+        var rv = [], i = 0, v, width, precision, sign, idx, argv = arguments, next = 0;
+        var unsign = function(val) { return (val >= 0) ? val : val % 0x100000000 + 0x100000000; };
+        var getArg = function() {
+    		if (!idx && next>=argv.length) throw new Error("printfの引数が足りません");
+    		return argv[idx ? idx - 1 : next++];
+    	};
+    	var parseInt2=function (arg) {
+    		var res=0;
+    		if (arg && arg.IS_POINTER) {
+    			return arg.addr||0;
+    		}
+    		switch(typeof arg){
+    		case "number":
+                res=arg-0;
+                break;
+            case "boolean":
+    			res=!!arg;
+    			break;
+    		}
+    		return res;
+    	};
+    	var s = (getArg()+ "     ").split(""); // add dummy 5 chars.
+
+        for (; i < s.length - 5; ++i) {
+          if (s[i] !== "%") { rv.push(s[i]); continue; }
+
+          ++i; idx = 0; precision = undefined;
+
+          // arg-index-specifier
+          if (!isNaN(parseInt(s[i])) && s[i + 1] === "$") { idx = parseInt(s[i]); i += 2; }
+          // sign-specifier
+    	  // sign = (s[i] !== "#") ? false : ++i, true;
+          if (s[i] !== "#") { sign= false; }
+    	  else {++i; sign=true;}
+          // width-specifier
+          width = (isNaN(parseInt(s[i]))) ? 0 : parseInt(s[i++]);
+          // precision-specifier
+          if (s[i] === "." && !isNaN(parseInt(s[i + 1]))) { precision = parseInt(s[i + 1]); i += 2; }
+
+          switch (s[i]) {
+          case "d": v = parseInt2(getArg()).toString(); break;
+          case "u": v = parseInt2(getArg()); if (!isNaN(v)) { v = unsign(v).toString(); } break;
+          case "o": v = parseInt2(getArg()); if (!isNaN(v)) { v = (sign ? "0"  : "") + unsign(v).toString(8); } break;
+          case "x": v = parseInt2(getArg()); if (!isNaN(v)) { v = (sign ? "0x" : "") + unsign(v).toString(16); } break;
+          case "X": v = parseInt2(getArg()); if (!isNaN(v)) { v = (sign ? "0X" : "") + unsign(v).toString(16).toUpperCase(); } break;
+          case "f": v = parseFloat(getArg()).toFixed(precision||6); break;
+          case "c": width = 0; v = getArg(); v = (typeof v === "number") ? String.fromCharCode(v) : NaN; break;
+          case "s": width = 0; v = getArg(); if (precision) { v = v.substring(0, precision); } break;
+          case "%": width = 0; v = s[i]; break;
+          default:  width = 0; v = "%" + ((width) ? width.toString() : "") + s[i].toString(); break;
+          }
+          if (isNaN(v)) { v = v.toString(); }
+      	  if (v.length < width) rv.push(" ".repeat(width - v.length), v); else rv.push(v);
+        }
+        var line=rv.join("");
+    	//console.log("ARGV",next,argv.length);
+    	//if (!idx && next<argv.length) _global.doNotification("printfの引数が多すぎます．");
+    	return line;
+    }
     return PL;
 });
 
@@ -2251,6 +2481,11 @@ const vdef={
         for (const e of node.elif) this.visit(e);
         if (node.else) this.visit(node.else);
     },
+    whileStmt: function (node) {
+        //console.log("ifStmt", node);
+        this.visit(node.cond);
+        this.visit(node.do);
+    },
     elifPart: function (node) {
         this.visit(node.cond);
         this.visit(node.then);
@@ -2260,6 +2495,12 @@ const vdef={
     },
     breakStmt: function (node) {
 
+    },
+    continueStmt: function (node) {
+
+    },
+    delStmt: function(node) {
+        this.visit(node.expr);
     },
     printStmt3: function (node) {
         for (const value of node.args.body) {
@@ -2327,6 +2568,15 @@ const vdef={
             this.visit(b);
         }
     },
+    dict: function (node) {
+        for (const b of node.body) {
+            this.visit(b);
+        }
+    },
+    dictEntry: function (node) {
+        this.visit(node.key);
+        this.visit(node.value);
+    },
     index: function (node) {
         for (const b of node.body) {
             this.visit(b);
@@ -2365,8 +2615,8 @@ const vdef={
         this.visit(node.body);
     }
 };
-const thru=["nodent",">=","<=","==","!=","+=","-=","*=","/=","%=","**",
-  ">","<","=",".",":","+","-","*","/","%","(",")",",","not","and","or"];
+const thru=["nodent",">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
+  ">","<","=",".",":","+","-","*","/","%","(",")",",","not","and","or","True","False","passStmt"];
 for (let t of thru) {
     vdef[t]=()=>{};
 }
@@ -5802,6 +6052,12 @@ function (Visitor,IndentBuffer,assert) {
         returnStmt: function (node) {
             this.printf("return %v",node.expr);
         },
+        delStmt: function (node) {
+            this.printf("del %v",node.expr);
+        },
+        whileStmt: function (node) {
+            this.printf("while %v%v", node.cond,node.do);
+        },
         ifStmt: function (node) {
             this.printf("if %v%v", node.cond,node.then);
             this.visit(node.elif);
@@ -5850,6 +6106,12 @@ function (Visitor,IndentBuffer,assert) {
         array: function (node) {
             this.printf("[%j]",[",",node.body]);
         },
+        dict: function (node) {
+            this.printf("{%j}",[",",node.body]);
+        },
+        dictEntry: function (node) {
+            this.printf("%v:%v",node.key,node.value);
+        },
         index: function (node) {
             this.printf("[%j]",[":",node.body]);
         },
@@ -5888,6 +6150,12 @@ function (Visitor,IndentBuffer,assert) {
         breakStmt: function () {
             this.printf("break");
         },
+        continueStmt: function () {
+            this.printf("continue");
+        },
+        passStmt: function () {
+            this.printf("pass");
+        },
         symbol: function (node) {
             var a=this.anon.get(node);
             if (a.scopeInfo && a.scopeInfo.builtin) {
@@ -5898,15 +6166,15 @@ function (Visitor,IndentBuffer,assert) {
         },
         not: function() {
             this.printf("not ");
-        }
+        },
     };
-    const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**",
+    const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
       ">","<","=",".",":","+","-","*","/","%","(",")",",",
-      "number","literal","and","or"];
+      "number","literal","and","or","True","False"];
     for (const ve of verbs) {
         vdef[ve]=function (node) {
             //console.log("verb",node);
-            this.printf("%s",node+"");
+            this.printf(" %s ",node+"");
         };
     }
     function gen(node,anon,options={}) {
@@ -5939,6 +6207,7 @@ function (Visitor,IndentBuffer,context,PL) {
     var PYLIB="PYLIB";
     const vdef={
         program: function (node) {
+            this.printf("%s.LoopChecker.reset();%n",PYLIB);
             this.visit(node.body);
         },
         classdef: function (node) {
@@ -5959,16 +6228,23 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         importStmt: function (node) {
             if (node.alias) {
-                this.printf("%s=%s.import('%v');",node.alias,PYLIB,node.name);
+                this.printf("var %s=%s.import('%v');",node.alias,PYLIB,node.name);
             } else {
-                this.printf("%s=%s.import('%v');",node.name,PYLIB,node.name);
+                this.printf("var %s=%s.import('%v');",node.name,PYLIB,node.name);
             }//this.printf("%n");
         },
         exprStmt: function (node) {
-            this.visit(node.expr);
+            this.printf("%v;",node.expr);
         },
         returnStmt: function (node) {
-            this.printf("return %v;",node.expr);
+            if (node.expr) this.printf("return %v;",node.expr);
+            else this.printf("return ;");
+        },
+        delStmt: function (node) {
+            this.printf("delete %v;",node.expr);
+        },
+        whileStmt: function (node) {
+            this.printf("while (%v) %v", node.cond,node.do);
         },
         ifStmt: function (node) {
             this.printf("if (%v) %v", node.cond,node.then);
@@ -6012,7 +6288,8 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("(");
             this.printf("%j",[",",noname]);
             if (hasname.length) {
-                this.printf(",%s.opt({%j})",PYLIB,[",",hasname]);
+                if (noname.length) this.printf(",");
+                this.printf("%s.opt({%j})",PYLIB,[",",hasname]);
             }
             this.printf(")");
         },
@@ -6022,13 +6299,31 @@ function (Visitor,IndentBuffer,context,PL) {
             }
             this.visit(node.value);
         },
+        array: function (node) {
+            this.printf("[%j]",[",",node.body]);
+        },
+        dict: function (node) {
+            this.printf("{%j}",[",",node.body]);
+        },
+        dictEntry: function (node) {
+            this.printf("%v:%v",node.key,node.value);
+        },
+        index: function (node) {
+            for (const b of node.body) {
+                this.printf("[%v]",b);
+            }
+        },
         block: function (node) {
             this.printf("{%{");
+            this.printf("%s.LoopChecker.check();%n",PYLIB);
             this.visit(node.body);
             this.printf("%}}");
         },
         paren: function (node) {
             this.printf("(%v)",node.body);
+        },
+        tuple: function (node) {
+            this.printf("%s.Tuple([%j])",PYLIB,[",",node.body]);
         },
         ":indent": function (node) {
             this.printf("%{");
@@ -6043,13 +6338,27 @@ function (Visitor,IndentBuffer,context,PL) {
             if (isCmp(node)) {
                 const ec=expandCmps(node);
                 if (ec.length>1) {
-                    this.printf("%j",[" and ",ec]);
+                    this.printf("%j",[" && ",ec]);
                     return;
                 }
             }
-            var o=PL.ops[node.op+""];
-            if (!o) throw new Error("No operator for "+node.op);
-            this.printf("%s.wrap(%v).__%s__(%v)",PYLIB, node.left,o, node.right);
+            if (node.op+""==="and" ) {
+                this.printf("%v && %v",node.left,node.right);
+                return;
+            }
+            if (node.op+""==="or") {
+                this.printf("%v || %v",node.left,node.right);
+                return;
+            }
+            var o=PL.ops[node.op+""],io=PL.iops[node.op+""];
+            if (o) {
+                this.printf("%s.wrap(%v).__%s__(%v)",PYLIB, node.left,o, node.right);
+            } else if (io) {
+                this.printf("%v=%s.wrap(%v).__%s__(%v)" ,
+                node.left, PYLIB, node.left, io, node.right);
+            } else {
+                throw new Error("No operator for "+node.op);
+            }
             //this.printf("%v%v%v",node.left,node.op,node.right);
         },
         postfix: function (node) {
@@ -6059,8 +6368,22 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("%v%v",node.op,node.right);
         },
         breakStmt: function (node) {
-            this.printf("break");
-        }
+            this.printf("break;");
+        },
+        continueStmt: function (node) {
+            this.printf("continue;");
+        },
+        passStmt: function () {
+            this.printf(";");        
+        },
+        and: function (node) {
+            this.printf("&&");
+        },
+        or: function (node) {
+            this.printf("||");
+        },
+        True: function () {this.printf("true");},
+        False: function () {this.printf("false");},
     };
     const cmps={">":1,"<":1,"==":1,">=":1,"<=":1,"!=":1};
     function isCmp(node) {
