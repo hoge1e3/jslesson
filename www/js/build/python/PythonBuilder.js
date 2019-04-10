@@ -154,6 +154,16 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,Web
         buf.close();
 
     };
+    /*p.addMenu=function (Menu) {
+        Menu.deleteMain("runMenu");
+        Menu.appendMain(
+            {label:"実行",id:"runPython",after:$("#fileMenu"),sub:
+            [
+                {label:"ブラウザで実行",id:"runBrowser",action: function () {alert("Browser!");} },
+                {label:"サーバで実行",id:"runServer",action: function () {alert("Server!");} }
+            ]}
+        );
+    };*/
     p.upload=function (pub) {
         return Sync.sync(this.dst,pub);
     };
