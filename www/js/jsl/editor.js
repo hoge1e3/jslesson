@@ -131,6 +131,7 @@ function ready() {
     var HEXT=".html";
     var opt=curPrj.getOptions();
     var lang=opt.language || "js";
+    var ide={run:run, prj:curPrj};
     switch (lang){
     case "c":
         requirejs(["CBuilder"],function(_){
@@ -168,7 +169,7 @@ function ready() {
         $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
         ram=FS.get("/ram/build/");
         FS.mount(ram.path(),"ram");
-        builder=new BuilderClass(curPrj, ram);
+        builder=new BuilderClass(curPrj, ram, ide);
         window.BABuilder=builder;
         builderReady();
     }

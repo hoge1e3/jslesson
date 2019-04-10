@@ -1,8 +1,9 @@
 define(["assert","DeferredUtil","wget", "IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator","PythonParser","PythonSemantics","PythonGen","Python2JS","ctrl","root","WebSite","TError"],
 function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,WebSite,TError) {//<-dtl
-    var PythonBuilder=function (prj, dst) {//<-Dtl
+    var PythonBuilder=function (prj, dst,ide) {//<-Dtl
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
+        this.ide=ide;
     };
     var libs=["jquery-1.12.1","require"].map(function (n) {
         return "lib/"+n+".js";
@@ -110,16 +111,16 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,Web
     });
     p.compile=function (f) {
         var pysrcF=f.src.py;
-        var runLocal=false,js;
+        var runLocal=this.runLocal,js;
         var anon,node,errSrc;
         if (!superMode) {
             try {
                 node=PP.parse(pysrcF);
                 var vres=S.check(node);
                 //var gen=G(node);
-                if(vres.useInput) {
+                /*if(vres.useInput) {
                     runLocal=true;
-                }
+                }*/
                 anon=vres.anon;
             } catch(e) {
                 if (e.node || e.pos) {
@@ -154,16 +155,20 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,Web
         buf.close();
 
     };
-    /*p.addMenu=function (Menu) {
+    p.addMenu=function (Menu) {
         Menu.deleteMain("runMenu");
         Menu.appendMain(
             {label:"実行",id:"runPython",after:$("#fileMenu"),sub:
             [
-                {label:"ブラウザで実行",id:"runBrowser",action: function () {alert("Browser!");} },
-                {label:"サーバで実行",id:"runServer",action: function () {alert("Server!");} }
+                {label:"ブラウザで実行",id:"runBrowser",action: ()=>{
+                    this.runLocal=true; this.ide.run();
+                } } ,
+                {label:"サーバで実行",id:"runServer",action: ()=>{
+                    this.runLocal=false; this.ide.run();
+                } }
             ]}
         );
-    };*/
+    };
     p.upload=function (pub) {
         return Sync.sync(this.dst,pub);
     };
