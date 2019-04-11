@@ -4,6 +4,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,Web
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
         this.ide=ide;
+        //this.runLocal=true;
     };
     var libs=["jquery-1.12.1","require"].map(function (n) {
         return "lib/"+n+".js";
@@ -162,9 +163,13 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,Web
             [
                 {label:"ブラウザで実行",id:"runBrowser",action: ()=>{
                     this.runLocal=true; this.ide.run();
+                    $("#runBrowser").text("ブラウザで実行(F9)");
+                    $("#runServer").text("サーバで実行");
                 } } ,
-                {label:"サーバで実行",id:"runServer",action: ()=>{
+                {label:"サーバで実行(F9)",id:"runServer",action: ()=>{
                     this.runLocal=false; this.ide.run();
+                    $("#runServer").text("サーバで実行(F9)");
+                    $("#runBrowser").text("ブラウザで実行");
                 } }
             ]}
         );

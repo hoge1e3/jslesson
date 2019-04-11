@@ -29,6 +29,7 @@ define([],function () {
                 }
             };
         }
+        throw new Error("ライブラリ "+lib+" はインポートできません．(サーバで実行すると動作する可能性があります)");
     };
     PL.lineBuf="";
     PL.print=function () {

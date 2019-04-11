@@ -170,7 +170,7 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("continue;");
         },
         passStmt: function () {
-            this.printf(";");        
+            this.printf(";");
         },
         and: function (node) {
             this.printf("&&");
@@ -178,6 +178,10 @@ function (Visitor,IndentBuffer,context,PL) {
         or: function (node) {
             this.printf("||");
         },
+        not: function (node) {
+            this.printf("!");
+        },
+
         True: function () {this.printf("true");},
         False: function () {this.printf("false");},
     };
