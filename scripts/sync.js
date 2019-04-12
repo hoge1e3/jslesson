@@ -33,4 +33,5 @@ const py=sync=> {
 module.exports=sync=>{
     common(sync);
     c(sync);
+    py(sync);
 };
