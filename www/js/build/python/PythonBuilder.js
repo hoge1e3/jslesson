@@ -28,7 +28,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,Web
     p.genHTML=function (f) {
         this.progress("generate "+f.src.html.name());
         var dp=new DOMParser();
-        var dom=dp.parseFromString(f.src.html.text(),"text/html");
+        var dom=dp.parseFromString(f.src.html.text()||"<html></html>","text/html");
         var html=dom.getElementsByTagName("html")[0];
         var head=dom.getElementsByTagName("head")[0];
         var body=dom.getElementsByTagName("body")[0];

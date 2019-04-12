@@ -27,7 +27,7 @@ function (A,DU,wget,Sync,WebSite,Tonyu,PRC) {
         var d=this.tprj.getDir();
         var curHTMLFile=d.rel(name+".html");
         var dp=new DOMParser();
-        var dom=dp.parseFromString(curHTMLFile.text(),"text/html");
+        var dom=dp.parseFromString(curHTMLFile.text()||"<html></html>","text/html");
         var html=dom.getElementsByTagName("html")[0];
         var head=dom.getElementsByTagName("head")[0];
         var body=dom.getElementsByTagName("body")[0];
