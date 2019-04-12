@@ -23,9 +23,10 @@ class PathUtil {
     //echo "rel end $resPath<BR>";
     return $resPath;
   }
-  static function relPath($path, $base) {
+  static function relPath($path, $base, $counter=0) {
+      //if ($counter>10) throw new Exception("Kowareta $path $base");
       if (substr($path,0,strlen($base))!==$base) {
-          return "../".self::relPath($path, self::up($base));
+          return "../".self::relPath($path, self::up($base), $counter+1);
       }
      return substr($path, strlen($base));
   }

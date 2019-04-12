@@ -98,6 +98,8 @@ define(["UI"], function (UI) {
         }
         if (mainMenuItem.after) {
             $(mainMenuItem.after).closest("li").after(li);
+        } else if (mainMenuItem.before) {
+            $(mainMenuItem.before).closest("li").before(li);
         } else {
             ul1.append(li);
         }
@@ -111,6 +113,17 @@ define(["UI"], function (UI) {
                 Menu.appendSub(mainMenuItem,subMenuItem);
             });
         }
+    };
+    Menu.appendSubRoot=function(mainMenuID) {
+        var ul2=UI("ul",{
+            id:"submenu_"+mainMenuID,
+            "class":"dropdown-menu"
+        });
+        var li=$("#"+mainMenuID).closest("li");
+        li.append(ul2);
+    };
+    Menu.deleteMain=function (menuID) {
+        $("#"+menuID).remove();
     };
     Menu.appendSub=function (mainObj,subMenuItem) {
         var mainID;
@@ -126,9 +139,13 @@ define(["UI"], function (UI) {
         }
         var ul2=$("#submenu_"+mainID);
         if (ul2.length==0) {
-            Menu.appendMain(mainObj);
-            //ul2=$("#submenu_"+mainID);
-            return;
+            if ($("#"+mainID).length==0) {
+                Menu.appendMain(mainObj);
+                //ul2=$("#submenu_"+mainID);
+                return;
+            }
+            this.appendSubRoot(mainID);
+            $("#"+mainID).addClass("dropdown-toggle").attr("data-toggle","dropdown");
         }
         ul2.append(UI("li",
             ["a", {

@@ -3,7 +3,7 @@ class PQuery {
     var $key;
     public function __construct($obj) {
         $this->obj=$obj;
-        if (func_num_args()==1) {    
+        if (func_num_args()==1) {
             $this->key=null;
         } else {
             $this->key=func_get_arg(1);
@@ -30,10 +30,10 @@ class PQuery {
             return self::_exists($this->obj,$this->key);
         }
     }
-    public static function _exists($obj,$key) { 
+    public static function _exists($obj,$key) {
         if (is_array($obj)) {
             return isset($obj[$key]);
-        } else if (is_object($this->obj)) {
+        } else if (is_object($obj)) {
             return isset($obj->$key);
         }
     }
@@ -68,17 +68,17 @@ class PQuery {
         return $this->rel($key)->resolveDef($def);
     }
     public function attr($key,$val) {
-        if (func_num_args()==1) {    
+        if (func_num_args()==1) {
             return $this->rel($key)->resolve();
         } else {
             //self::_val($this->resolve(), $key,$val);
             $this->rel($key)->val($val);
             return $this;
         }
-        
+
     }
     public function val($val) {
-        if (func_num_args()==0) {    
+        if (func_num_args()==0) {
             return $this->resolve();
         } else if ($this->key!=null) {
             $key=$this->key;

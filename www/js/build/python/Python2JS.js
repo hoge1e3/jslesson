@@ -84,7 +84,8 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("(");
             this.printf("%j",[",",noname]);
             if (hasname.length) {
-                this.printf(",%s.opt({%j})",PYLIB,[",",hasname]);
+                if (noname.length) this.printf(",");
+                this.printf("%s.opt({%j})",PYLIB,[",",hasname]);
             }
             this.printf(")");
         },
@@ -163,10 +164,13 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("%v%v",node.op,node.right);
         },
         breakStmt: function (node) {
-            this.printf("break");
+            this.printf("break;");
         },
         continueStmt: function (node) {
-            this.printf("continue");
+            this.printf("continue;");
+        },
+        passStmt: function () {
+            this.printf(";");
         },
         and: function (node) {
             this.printf("&&");
@@ -174,6 +178,10 @@ function (Visitor,IndentBuffer,context,PL) {
         or: function (node) {
             this.printf("||");
         },
+        not: function (node) {
+            this.printf("!");
+        },
+
         True: function () {this.printf("true");},
         False: function () {this.printf("false");},
     };

@@ -87,7 +87,13 @@ class LogFileToDBController {
                 if (!isset($d->lang)) $lang="";
                 else $lang=$d->lang;
                 if (!isset($d->filename)) $filename="";
-                else $filename=PathUtil::relPath($d->filename,$home);
+                else {
+                    if (preg_match("/^\\//",$d->filename)) {
+                        $filename=PathUtil::relPath($d->filename,$home);
+                    } else {
+                        $filename="";                        
+                    }
+                }
                 if (!isset($d->result)) $result="";
                 else $result=$d->result;
                 if (!isset($d->detail)) $detail="";
