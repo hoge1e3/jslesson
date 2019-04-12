@@ -25,7 +25,7 @@ const c=sync=>{
     sync(`${src}/scanf.js`,dst);
 };
 const py=sync=> {
-    const src="www/js/build/python/";
+    const src="www/es5/build/python/";
     const dst="www/runtime/lib/python";
     sync(`${src}/PyLib.js`,dst);
 
