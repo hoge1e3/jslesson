@@ -807,7 +807,9 @@ function ready() {
         var curHTMLFile=curFiles && curFiles[0];
         var curJSFile=curFiles && curFiles[1];
         if (curJSFile) {
-            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",e.stack || e,langList[lang]);
+            var posinfo="";
+            if (e.srcPath && e.pos) posinfo="("+e.srcPath+":"+e.pos+")";
+            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",posinfo+(e.stack || e),langList[lang]);
         }
     };
     function close(rm) { // rm or mv
