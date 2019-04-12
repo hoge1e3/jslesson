@@ -70,6 +70,7 @@ function openFrame(data){
   var filehist='<span filename="'+fn+'" onClick="showFileHistory(this.getAttribute('+"'"+'filename'+"'"+'))">'+data.filename+'</span>';
   //var filehist=data.filename;
   var lang=raw.code.C ?"c" : raw.code.JavaScript ? "js" : raw.code.Dolittle ? "dtl" : raw.code.DNCL ? "dncl" : raw.code.Python ? "py" :"unknown";
+  var detail=raw.detail;
   var prjName="Auto_"+lang;
   var runLink=".?r=jsl_edit&dir=/home/"+classID+"/"+teacherID+"/"+prjName+"/&autologexec="+data.id+"&lang="+lang;
   var userid=data.user;
@@ -80,6 +81,7 @@ function openFrame(data){
   //$("#"+userid).width($("#"+userid).parent().width());
   $("[id='"+userid+"']").height($("[id='"+userid+"']").get(0).scrollHeight);
   $("[data-id='"+data.id+"']").css("background-color","orange");
+  $("[id='"+userid+"detail']").html(detail);
   //alert(logid);
   if(showDiffFlag && prevProgram!=code){
     calcDiff(prevProgram,code,userid);

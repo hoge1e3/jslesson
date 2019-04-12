@@ -59,7 +59,7 @@ class TeacherLogController {
           $prevTime=0;
           $prevResult="";
           foreach($logs as $l){
-            if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false && ($l['time']-$prevTime>=2 || $prevResult!=$l['result'])){
+            if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false && ($l['time']-$prevTime>=0 || $prevResult!=$l['result'])){
               ?>
               <!--<div><?=$l['filename']?></div>-->
               <div onClick="showLogOneUser.call(this,'<?=$l['id']?>','<?=$l['user']?>','<?=$l['filename']?>');"
@@ -85,6 +85,7 @@ class TeacherLogController {
         <div style="float:left; width:30%;">
         <div id="<?=$user?>res"></div><br>
         <textarea id="<?=$user?>" style="width:100%;" onclick="this.select(0,this.value.length)" readonly></textarea>
+        <textarea id="<?=$user?>detail" style="width:100%;" readonly></textarea>
         </div>
         <span id="<?=$user?>diff"></span>
         <?php
