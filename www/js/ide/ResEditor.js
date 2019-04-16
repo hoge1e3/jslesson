@@ -1,5 +1,5 @@
 define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
-        "ImageDetailEditor","Util","Assets","root"],
+"ImageDetailEditor","Util","Assets","root"],
         function (FS, Tonyu, UI,IL,Blob,Auth,WebSite,
                 ImageDetailEditor,Util,Assets,root) {
     var ResEditor=function (prj, mediaType) {
@@ -12,8 +12,8 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                         return r;
                     }
                 },
-                sound:{name:"音声",exts:["mp3","ogg","mp4","m4a","mid","wav"],path:"sounds/",key:"sounds",
-                    extPattern:/\.(mp3|ogg|mp4|m4a|midi?|wav)$/i,contentType:/((audio\/(mp3|ogg|x-m4a|midi?|wav))|(video\/mp4))/,
+                sound:{name:"音声",exts:["mp3","ogg","mp4","m4a","mid","wav","mzo"],path:"sounds/",key:"sounds",
+                    extPattern:/\.(mp3|ogg|mp4|m4a|midi?|wav|mzo)$/i,contentType:/((audio\/(mp3|ogg|x-m4a|midi?|wav|mzo))|(video\/mp4))/,
                     newItem:function (name) {
                         var r={};
                         if (name) r.name="$se_"+name;
@@ -25,101 +25,184 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
         var d=UI("div", {title:mediaInfo.name+"リスト"});
         d.css({height:200+"px", "overflow-v":"scroll"});
         var rsrc=prj.getResource();
+        var items=rsrc[mediaInfo.key];
+        var tempFiles = items.slice();
         var rsrcDir=prj.getDir().rel(mediaInfo.path);
         var itemUIs=[];
         if (!rsrc) prj.setResource({images:[],sounds:[]});
         function convURL(u) {
+            function cvs(u) {
+                return WebSite.urlAliases[u] || u;
+            }
             try {
                 if (Util.endsWith(u,".ogg")) {
-                    u=WebSite.urlAliases["images/sound_ogg.png"];
+                    u=cvs("images/sound_ogg.png");
                 } else if (Util.endsWith(u,".mp3")) {
-                    u=WebSite.urlAliases["images/sound_mp3.png"];
+                    u=cvs("images/sound_mp3.png");
+                } else if (Util.endsWith(u,".mzo")) {
+                    u=cvs("images/sound_mzo.png");
                 } else if (Util.endsWith(u,".mp4")) {
-                    u=WebSite.urlAliases["images/sound_mp4.png"];
+                    u=cvs("images/sound_mp4.png");
                 } else if (Util.endsWith(u,".m4a")) {
-                    u=WebSite.urlAliases["images/sound_m4a.png"];
+                    u=cvs("images/sound_m4a.png");
                 } else if (Util.endsWith(u,".mid") || Util.endsWith(u,".midi")) {
-                    u=WebSite.urlAliases["images/sound_mid.png"];
+                    u=cvs("images/sound_mid.png");
                 } else if (Util.endsWith(u,".wav")) {
-                    u=WebSite.urlAliases["images/sound_wav.png"];
+                    u=cvs("images/sound_wav.png");
                 }
                 return Assets.resolve(u,prj);
             }catch(e) {
                 return WebSite.urlAliases["images/ecl.png"];
             }
         }
-        function reload() {
-            d.empty();
-            var dragMsg="ここに"+mediaInfo.name+"ファイル("+mediaInfo.exts.join("/")+")をドラッグ＆ドロップして追加";
-            var dragPoint=UI("div", {style:"margin:10px; padding:10px; border:solid blue 2px;",
-                on:{dragover: s, dragenter: s, drop:dropAdd}},dragMsg
-            ).appendTo(d);
-            rsrc=prj.getResource();
-            var items=rsrc[mediaInfo.key];
-            itemUIs=[];
-            var itemTbl=UI("div").appendTo(d);
-            items.forEach(function (item){
-                var itemUI=genItemUI(item);
-                itemUIs.push(itemUI);
-                itemUI.appendTo(itemTbl);
-            });
-            d.append(UI("div",{style:"clear:left;"},
-                         ["button", {on:{click:function (){ add();}}}, "追加"],
-                         ["button", {on:{click:function (){ d.dialog("close"); }}}, "完了"]
-            ));
-            function dropAdd(e) {
-                var eo=e.originalEvent;
-                var file = eo.dataTransfer.files[0];
-                var useBlob=WebSite.serverType=="BA" || WebSite.serverType=="GAE" && (file.size>1000*300);
-                if(!file.type.match(mediaInfo.contentType)) {
-                    alert("このファイルは追加できません："+(file.name));
-                    e.stopPropagation();
-                    e.preventDefault();
-                    return false;
-                }
-                var itemName=file.name.replace(mediaInfo.extPattern,"").replace(/\W/g,"_");
-                var itemExt="";
-                if (file.name.match(mediaInfo.extPattern)) {
-                    itemExt=RegExp.lastMatch.toLowerCase();
-                }
-                var v=mediaInfo.newItem(itemName);
-                if (useBlob) {
-                    Auth.assertLogin({
-                        showLoginLink:function (u) {
-                            dragPoint.css("border","solid red 2px").empty().append(
-                                    UI("div","大きい"+mediaInfo.name+"を追加するには，ログインが必要です：",
-                                       ["a",{href:u,target:"login",style:"color: blue;"},"ログインする"])
-                            );
-                        }
-                    }).then(function (u) {
-                        dragPoint.text("アップロード中...");
-                        var prjN=prj.getName()+"/";
-                        var itemFile=rsrcDir.rel(itemName+itemExt);
-                        //Blob.upload=function(userInfo, project, path, file) {
-                        var path=itemFile.relPath(prj.getDir());
-                        Blob.upload(prjN, path , file).then(function (url){
-                            alert(url);
-                            dragPoint.text(dragMsg);
-                            v.url=path;//"${blobPath}/"+u+"/"+prjN+"/"+file.name;
-                            add(v);
-                        },function (e) {
-                            console.log(e);
-                            alert("Error: "+e);
-                        });
+        function reload(action, args) {
+            if (action=="del") { // 削除時（リスト数が多いとhtml生成に時間がかかるためremoveで消す）
+                var delItem = $("#"+args);
+                rsrc=prj.getResource();
+                items=rsrc[mediaInfo.key];
+                tempFiles = items.slice();
+                itemUIs.some(function (itemUI, idx){
+                    if (itemUI[0].id==args) {
+                        itemUIs.splice(idx, 1);
+                        return true;
+                    }
+                });
+                delItem.removeAttr("id");
+                delItem.remove();
+            } else { // 通常reload（全更新。htmlを１から作成）
+                d.empty();
+                rsrc=prj.getResource();
+                items=rsrc[mediaInfo.key];
+                tempFiles = items.slice();
+                itemUIs=[];
+                if (action!="close") { // ウィンドウ閉じるとき（画面更新は要らない）
+                    var dragMsg="ここに"+mediaInfo.name+"ファイル("+mediaInfo.exts.join("/")+")をドラッグ＆ドロップして追加";
+                    var dragPoint=UI("div", {style:"margin:10px; padding:10px; border:solid blue 2px;",
+                        on:{dragover: s, dragenter: s, drop:dropAdd}},dragMsg
+                    ).appendTo(d);
+                    var itemTbl=UI("div").appendTo(d);
+                    items.forEach(function (item){
+                        var itemUI=genItemUI(item, items);
+                        itemUIs.push(itemUI);
+                        itemUI.appendTo(itemTbl);
                     });
-                } else {
-                    var reader = new FileReader();
-                    reader.onload = function(e) {
-                        var fileContent = reader.result;
-                        var itemFile=rsrcDir.rel(itemName+itemExt);
-                        itemFile.setBytes(fileContent);
-                        v.url="ls:"+itemFile.relPath(prj.getDir());// fileContent;
-                        add(v);
-                    };
-                    reader.readAsArrayBuffer(file);
+                    d.append(UI("div",{style:"clear:left;"},
+                                ["button", {on:{click:function (){ add();}}}, "追加"],
+                                ["button", {on:{click:function (){ d.dialog("close"); }}}, "完了"]
+                    ));
                 }
+            }
+            function dropAdd(e) {
                 e.stopPropagation();
                 e.preventDefault();
+                var eo=e.originalEvent;
+                var files = eo.dataTransfer.files;
+                var readFiles = new Array(files.length);
+                var readFileSum = files.length;
+                var notReadFiles = [];
+                var existsFiles = [];
+                for (var i=0; i<files.length; i++) loop(i);
+                function loop(i){
+                    var file = files[i];
+                    var filetype= file.type;
+                    if (file.name.match(/\.mzo$/)) filetype="audio/mzo";
+                    var useBlob=WebSite.serverType=="GAE" && (file.size>1000*300);
+                    if(!filetype.match(mediaInfo.contentType)) {
+                        readFileSum--;
+                        notReadFiles.push(file);
+                        return;//continue;
+                    }
+                    var itemName=file.name.replace(mediaInfo.extPattern,"").replace(/\W/g,"_");
+                    var itemExt="";
+                    if (file.name.match(mediaInfo.extPattern)) {
+                        itemExt=RegExp.lastMatch.toLowerCase();
+                    }
+                    var itemFile=rsrcDir.rel(itemName+itemExt);
+                    var itemRelPath="ls:"+itemFile.relPath(prj.getDir());
+                    var existsFile;
+                    var fileExists=tempFiles.some(function(f){
+                        existsFile=f;
+                        var fNameTemp=f.url.replace(mediaInfo.extPattern,"");
+                        var fName=fNameTemp.substring(fNameTemp.lastIndexOf("/")+1,fNameTemp.length);
+                        return fName==itemName;
+                    });
+                    if (fileExists) {
+                        readFileSum--;
+                        file.existsFile=existsFile;
+                        existsFiles.push(file);
+                        return;//continue;
+                    }
+
+                    var v=mediaInfo.newItem(itemName);
+                    v.url=itemRelPath;
+                    renameUnique(v);
+                    tempFiles.push(v);
+                    if (useBlob) {
+                        Auth.assertLogin({
+                            showLoginLink:function (u) {
+                                dragPoint.css("border","solid red 2px").empty().append(
+                                        UI("div","大きい"+mediaInfo.name+"を追加するには，ログインが必要です：",
+                                           ["a",{href:u,target:"login",style:"color: blue;"},"ログインする"])
+                                );
+                            },success:function (u) {
+                                dragPoint.text("アップロード中...");
+                                var prjN=prj.getName();
+                                Blob.upload(u,prjN,file,{success:function (){
+                                    dragPoint.text(dragMsg);
+                                    v.url="${blobPath}/"+u+"/"+prjN+"/"+file.name;
+                                    add(v);
+                                }});
+                            }
+                        });
+                    } else {
+                        var readCnt = 0;
+                        var reader = new FileReader();
+                        reader.temp_file=file;
+                        reader.temp_itemName=itemName;
+                        reader.temp_itemExt=itemExt;
+                        reader.temp_v=v;
+                        reader.onloadend = function(e) {
+                            var target = e.target;
+                            var fileContent = target.result;
+                            if (target.error==null && fileContent!=null) {
+                                var itemFile=rsrcDir.rel(target.temp_itemName+target.temp_itemExt);
+                                itemFile.setBytes(fileContent);
+                                target.temp_v.url="ls:"+itemFile.relPath(prj.getDir());// fileContent;
+                                for (var i=0;i<files.length;i++) {
+                                    if (files[i]==target.temp_file) {
+                                        readFiles[i]=target.temp_v;
+                                        break;
+                                    }
+                                }
+                            }
+                            readCnt++;
+                            if (readCnt == readFileSum) {
+                                addAry(readFiles);
+                            }
+                        };
+                        reader.readAsArrayBuffer(file);
+                    }
+                }
+                var mes;
+                if (notReadFiles.length>0) {
+                    mes="このファイルは追加できません：\n";
+                    notReadFiles.forEach(function(f){
+                        if (f) mes+=f.name+"\n";
+                    });
+                    alert(mes);
+                }
+                if (existsFiles.length>0) {
+                    mes="同じ名前のファイルが既に登録されています：\n";
+                    existsFiles.forEach(function(f){
+                        if (f) {
+                            var fNameTemp=f.existsFile.url;
+                            var fName=fNameTemp.substring(fNameTemp.lastIndexOf("/")+1,fNameTemp.length);
+                            mes+=f.name+" ⇒ "+fName+"("+f.existsFile.name+") と重複\n";
+                            //mes+=f.name+" ("+f.existsFile.name+")\n";
+                        }
+                    });
+                    alert(mes);
+                }
                 return false;
             }
             function s(e) {
@@ -139,12 +222,19 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                 }
                 function del() {
                     for (var i=items.length-1; i>=0 ; i--) {
-                        if (items[i]===item) {
+                        if (items[i].name==item.name) { // リソース削除時、itemsが更新されてobjectが変わり条件がtrueにならないので、item.nameで比較する
+                            try {
+                                var r=Assets.resolve( items[i].url, prj,{asFile:1});
+                                if (FS.isFile(r) && rsrcDir.contains(r)) {
+                                    console.log(r.path()," is removed.");
+                                    r.rm();
+                                }
+                            } catch(e) {}
                             items.splice(i,1);
                             break;
                         }
                     }
-                    update();
+                    update("del", item.name.substring(1));
                 }
                 function up() {
                     for (var i=items.length-1; i>=1 ; i--) {
@@ -167,7 +257,7 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                     update();
                 }
 
-                var res=UI("div",{style:"float:left;"},
+                var res=UI("div",{style:"float:left;", id:item.name.substring(1)}, // $se_bgmの$を除く
                         ["canvas",{$var:"c",width:100,height:100,"class":"clickable",on:{click: detail}}],
                         ["div",{style:"float:right;"},
                         ["button",{on:{click:del}}, "×"],["br"],
@@ -186,8 +276,29 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                 items.push(v || mediaInfo.newItem());
                 update();
             }
+            function addAry(vAry) {
+                vAry.forEach(function(v){
+                    if (v) items.push(v || mediaInfo.newItem());
+                });
+                update();
+            }
+            function renameUnique(v) {
+                var name=v.name;
+                var rename=name;
+                var cnt=1;
+                for (var i=tempFiles.length-1; i>=0 ; i--) {
+                    var o=tempFiles[i];
+                    if (o.name==rename) {
+                        rename=name+"_"+cnt;
+                        cnt++;
+                        i=tempFiles.length;
+                        continue;
+                    }
+                }
+                v.name=rename;
+            }
         }
-        function update() {
+        function update(action, args) {
             itemUIs.forEach(function (itemUI) {
                 var v=itemUI.$vars;
                 var item=v.data;
@@ -195,36 +306,34 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
             });
             console.log(rsrc);
             prj.setResource(rsrc);
-            reload();
+            reload(action, args);
         }
         function cleanFiles() {
             var items=rsrc[mediaInfo.key];
-            if (WebSite.serverType!=="BA") {
-                Auth.currentUser(function (u,ct) {
-                    if (!u) return;
-                    var rtf=[];
-                    items.forEach(function (item) {
-                        var a=Blob.isBlobURL(item.url),ogg;
-                        if (a) {
-                            rtf.push(a.fileName);
-                            ogg=a.fileName.replace(/\.(mp3|mp4|m4a)$/,".ogg");
-                            if (ogg!=a.fileName) rtf.push(ogg);
-                        }
-                    });
-                    var data={
-                            user:u,
-                            project:prj.getName(),
-                            mediaType:mediaType,
-                            csrfToken:ct,
-                            retainFileNames:JSON.stringify(rtf)
-                    };
-                    console.log("retainBlobs",data);
-                    //TODO: urlchange!
-                    $.ajax({url:WebSite.serverTop+"/retainBlobs",type:"get",
-                        data:data
-                    });
+            Auth.currentUser(function (u,ct) {
+                if (!u) return;
+                var rtf=[];
+                items.forEach(function (item) {
+                    var a=Blob.isBlobURL(item.url),ogg;
+                    if (a) {
+                        rtf.push(a.fileName);
+                        ogg=a.fileName.replace(/\.(mp3|mp4|m4a)$/,".ogg");
+                        if (ogg!=a.fileName) rtf.push(ogg);
+                    }
                 });
-            }
+                var data={
+                        user:u,
+                        project:prj.getName(),
+                        mediaType:mediaType,
+                        csrfToken:ct,
+                        retainFileNames:JSON.stringify(rtf)
+                };
+                console.log("retainBlobs",data);
+                //TODO: urlchange!
+                $.ajax({url:WebSite.serverTop+"/retainBlobs",type:"get",
+                    data:data
+                });
+            });
             var cleanFile={};
             if (rsrcDir.exists()) {
                 rsrcDir.each(function (f) {
@@ -237,25 +346,25 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                 delete cleanFile[item.url.replace(/\.(mp3|mp4|m4a)$/,".ogg")];
             });
             console.log(cleanFile);
-            for (var ci in cleanFile) {
+            /*for (var ci in cleanFile) {
                 var cf=cleanFile[ci];
                 console.log(cf+" is removed");
                 cf.rm();
-            }
+            }*/
         }
         function toi(s) {
             if (!s || s=="") return undefined;
             return parseInt(s);
         }
         reload();
-        d.dialog({
+        return d.dialog({
             modal:true,
             width: 800,
             height: 500,
             close: function () {
-                update();
+                update("close");
                 cleanFiles();
-                if (mediaType=="sound") {
+                if (mediaType=="sound" && rsrcDir.exists()) {
                     root.OggConverter.convert(rsrcDir);
                 }
             }
