@@ -53,13 +53,28 @@ class TeacherLogController {
         $baseInt=DateUtil::toInt($base);
         //echo $day." ".$base." ".$baseInt;
         $logs=$targetUser->getAllLogs($baseInt,$baseInt+86400);
+        if (count($logs)===0) {
+            echo "この日のログはありません．";
+            return;
+        }
         ?>
         <div style="float:left; overflow-y:auto; height:100%; width:20%;">
           <?php
           $prevTime=0;
           $prevResult="";
-          foreach($logs as $l){
-            if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false && ($l['time']-$prevTime>=0 || $prevResult!=$l['result'])){
+          $logs2=Array();
+          foreach($logs as $i=>$l){
+            if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false){
+              if(array_key_exists($i+1,$logs)){
+                if($logs[$i+1]['time']-$l['time']>=3 || ($logs[$i+1]['time']-$l['time']<3 && $l['detail']!="実行しました")) {
+                  array_push($logs2,$l);
+                }
+              }
+            }
+          }
+          array_push($logs2,$l);
+          foreach($logs2 as $l){
+            //if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false && ($l['time']-$prevTime>=0 || $prevResult!=$l['result'])){
               ?>
               <!--<div><?=$l['filename']?></div>-->
               <div onClick="showLogOneUser.call(this,'<?=$l['id']?>','<?=$l['user']?>','<?=$l['filename']?>');"
@@ -70,10 +85,10 @@ class TeacherLogController {
               logsOfOneUser["<?=$l['filename']?>"].push(<?=$l['id']?>);
               </script>
               <?php
-            } else {
+            //} else {
                //echo "Skip l={res=".$l['result']." time=".$l['time']."}, p={T=$prevTime , res=$prevResult},".
                //" [".(strpos($l['result'],'Save')===false)."]  [".($prevTime-$l['time'])."]  [".($prevResult!=$l['result']) ."]<BR>";
-           }
+           //}
             $prevTime=$l['time'];
             $prevResult=$l['result'];
           }
