@@ -173,8 +173,11 @@ function showLogOneUser(logid,userid,fn){
         getPreviousLog(logsOfOneUser[fn][logsOfOneUser[fn].length-1]).done(function(last){
           var lRaw=JSON.parse(last.raw);
           var lastProg=lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
-          calcDiff(code,currentProgram,"[id='"+userid+"diff']","Prev","Current");
-          calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last");
+          var prevDiffData=calcDiff(code,currentProgram,"[id='"+userid+"diff']","Prev","Current");
+          var lastDiffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last");
+          var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
+          var ld=":"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"];
+          $("[id='"+logid+"summary']").html(pd+"-"+ld);
         }).fail(function(last) {
           console.log("failed get last log",last);
         });
@@ -193,7 +196,8 @@ function showLogOneUser(logid,userid,fn){
         var lRaw=JSON.parse(last.raw);
         var lastProg=lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
         calcDiff("最初のプログラム",currentProgram,"[id='"+userid+"diff']","Prev","Current");
-        calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last");
+        var diffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last");
+
       }).fail(function(last) {
         console.log("failed get last log",last);
       });
@@ -218,6 +222,23 @@ function calcDiff(prev,now,id,btn,ntn){
   //var diffoutputdiv = $("[id='"+id+"diff']")[0];
   var diffoutputdiv = $(id)[0];
   console.log(sm,opcodes);
+  var diffData={"insert":0,"delete":0,"replace":0,"equal":0};
+  for(var opti in opcodes){
+    var opt=opcodes[opti];
+    console.log("switch"+opt[0]);
+    switch(opt[0]){
+      case "equal":
+      case "replace":
+      case "delete":
+        diffData[opt[0]]+=(opt[2]-opt[1]);
+        break;
+      case "insert":
+        diffData[opt[0]]+=(opt[4]-opt[3]);
+        break;
+      default:
+        console.log("Unknown state '"+opt[0]+"' discovered.");
+    }
+  }
   while (diffoutputdiv.firstChild) diffoutputdiv.removeChild(diffoutputdiv.firstChild);
   //var contextSize = $("contextSize").value;
   //contextSize = contextSize ? contextSize : null;
@@ -233,7 +254,7 @@ function calcDiff(prev,now,id,btn,ntn){
     contextSize: 5,
     viewType: $("inline").checked ? 1 : 0
   }));
-
+  return diffData;
   // scroll down to the diff view window.
   //location = url + "#diff";
 }

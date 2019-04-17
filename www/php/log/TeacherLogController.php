@@ -79,7 +79,7 @@ class TeacherLogController {
               <!--<div><?=$l['filename']?></div>-->
               <div onClick="showLogOneUser.call(this,'<?=$l['id']?>','<?=$l['user']?>','<?=$l['filename']?>');"
                     id='<?=$l['id']?>'
-                  ><font color="<?=strpos($l['result'],'Error')!==false ? 'red' : 'black'?>"><?=$l['filename']?></font></div>
+                  ><font color="<?=strpos($l['result'],'Error')!==false ? 'red' : 'black'?>"><?=$l['filename']?></font><span id='<?=$l['id']?>summary'></span></div>
               <script>
               if(!logsOfOneUser["<?=$l['filename']?>"]) logsOfOneUser["<?=$l['filename']?>"]=[];
               logsOfOneUser["<?=$l['filename']?>"].push(<?=$l['id']?>);
