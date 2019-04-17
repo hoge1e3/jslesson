@@ -84,7 +84,7 @@ function openFrame(data){
   $("[id='"+userid+"detail']").html(detail);
   //alert(logid);
   if(showDiffFlag && prevProgram!=code){
-    calcDiff(prevProgram,code,userid);
+    calcDiff(prevProgram,code,"[id='"+userid+"diff']","Prev","Current");
     $("[id='"+userid+"diff']").css("display","inline");
   }
   prevProgram=code;
@@ -169,16 +169,40 @@ function showLogOneUser(logid,userid,fn){
       getPreviousLog(logsOfOneUser[fn][ind-1]).done(function(result) {
         var raw=JSON.parse(result.raw);
         var code=raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.Python || "";
-        calcDiff(code,currentProgram,userid);
+        //calcDiff(code,currentProgram,userid);
+        getPreviousLog(logsOfOneUser[fn][logsOfOneUser[fn].length-1]).done(function(last){
+          var lRaw=JSON.parse(last.raw);
+          var lastProg=lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
+          calcDiff(code,currentProgram,"[id='"+userid+"diff']","Prev","Current");
+          calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last");
+        }).fail(function(last) {
+          console.log("failed get last log",last);
+        });
       }).fail(function(result) {
         console.log("failed get previous log",result);
       });
     }).fail(function(r){
       console.log("failed get current log",result);
     });
+  }else{
+    getPreviousLog(logsOfOneUser[fn][ind]).done(function(r){
+      console.log("ind",ind);
+      var curRaw=JSON.parse(r.raw);
+      currentProgram=curRaw.code.C || curRaw.code.JavaScript || curRaw.code.Dolittle || curRaw.code.Python;
+      getPreviousLog(logsOfOneUser[fn][logsOfOneUser[fn].length-1]).done(function(last){
+        var lRaw=JSON.parse(last.raw);
+        var lastProg=lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
+        calcDiff("最初のプログラム",currentProgram,"[id='"+userid+"diff']","Prev","Current");
+        calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last");
+      }).fail(function(last) {
+        console.log("failed get last log",last);
+      });
+    }).fail(function(r){
+      console.log("failed get current log",result);
+    });
   }
 }
-function calcDiff(prev,now,id){
+function calcDiff(prev,now,id,btn,ntn){
   // get the baseText and newText values from the two textboxes, and split them into lines
   var base = difflib.stringAsLines(prev);
   //var newtxt = difflib.stringAsLines($("newText").value);
@@ -191,7 +215,8 @@ function calcDiff(prev,now,id){
   // opcodes is a list of 3-tuples describing what changes should be made to the base text
   // in order to yield the new text
   var opcodes = sm.get_opcodes();
-  var diffoutputdiv = $("[id='"+id+"diff']")[0];
+  //var diffoutputdiv = $("[id='"+id+"diff']")[0];
+  var diffoutputdiv = $(id)[0];
   console.log(sm,opcodes);
   while (diffoutputdiv.firstChild) diffoutputdiv.removeChild(diffoutputdiv.firstChild);
   //var contextSize = $("contextSize").value;
@@ -203,8 +228,8 @@ function calcDiff(prev,now,id){
     newTextLines: newtxt,
     opcodes: opcodes,
     // set the display titles for each resource
-    baseTextName: "Base Text",
-    newTextName: "New Text",
+    baseTextName: btn,
+    newTextName: ntn,
     contextSize: 5,
     viewType: $("inline").checked ? 1 : 0
   }));

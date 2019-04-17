@@ -102,7 +102,10 @@ class TeacherLogController {
         <textarea id="<?=$user?>" style="width:100%;" onclick="this.select(0,this.value.length)" readonly></textarea>
         <textarea id="<?=$user?>detail" style="width:100%;" readonly></textarea>
         </div>
-        <span id="<?=$user?>diff"></span>
+        <div style="float:left;">
+        <span id="<?=$user?>diff"></span><br>
+        <span id="<?=$user?>diffLast"></span>
+      </div>
         <?php
     }
     static function view() {
