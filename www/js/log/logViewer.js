@@ -176,8 +176,8 @@ function showLogOneUser(logid,userid,fn){
           var prevDiffData=calcDiff(code,currentProgram,"[id='"+userid+"diff']","Prev","Current");
           var lastDiffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last");
           var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
-          var ld=":"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"];
-          $("[id='"+logid+"summary']").html(pd+"-"+ld);
+          var ld="-"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"];
+          $("[id='"+logid+"summary']").html(pd+ld);
         }).fail(function(last) {
           console.log("failed get last log",last);
         });
