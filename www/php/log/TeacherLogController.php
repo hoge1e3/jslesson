@@ -58,7 +58,7 @@ class TeacherLogController {
             return;
         }
         ?>
-        <div style="float:left; overflow-y:auto; height:100%; width:20%;">
+        <div style="float:left; overflow-y:auto; height:100%; width:20%; resize:horizontal;">
           <?php
           $prevTime=0;
           $prevResult="";
