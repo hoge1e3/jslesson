@@ -1192,7 +1192,7 @@ root.MinimalParser= function () {
 	                return extend( ["pointer(",right.left,",",right.op.index,",",typeLit(right.vtype),")"] ,
 	                {vtype: T.Pointer(right.vtype),pos:op.pos} );
     	        } else if (right.type==="post" && right.op.type==="arrow") {
-	                return extend( ["pointer(",right.left,",",lit(right.op.vname),")"] ,
+	                return extend( ["pointer(",right.left,".read(),",lit(right.op.vname),")"] ,
 	                {vtype: T.Pointer(right.vtype),pos:op.pos} );
     	        } else if (right.type==="post" && right.op.type==="dot") {
 	                return extend( ["pointer(",right.left,",",lit(right.op.vname),")"] ,
