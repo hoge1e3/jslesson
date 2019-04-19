@@ -8,12 +8,12 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         classdef: function (node) {
             this.ctx.enter({inClass:node},()=>{
-                this.printf("%s.class('%s',{%{%j%}}",PYLIB,node.name,[",",node.body]);
+                this.printf("var %s=%s.class(Object,{%{%j%}});",node.name, PYLIB,[",",node.body]);
             });
         },//
         define: function (node) {
             if (this.ctx.inClass) {
-                this.printf("%n%s: function %s%v{%{%v%}}",node.name,node.params,node.body);
+                this.printf("%n%s: function %v{%{%v%}}",node.name,node.params,node.body);
             } else {
                 this.printf("function %s%v{%{%v%}}%n",node.name,node.params,node.body);
 

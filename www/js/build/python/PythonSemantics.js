@@ -41,6 +41,7 @@ const vdef={
         for (const b of node.body) {
             this.visit(b);
         }
+        this.addScope(node.name , {kind:"class",node});
     },
     define: function (node) {
         //console.log("define",node);
