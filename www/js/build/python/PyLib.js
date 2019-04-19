@@ -314,6 +314,7 @@ define([],function () {
         });
     };
     Array.prototype.append=Array.prototype.push;
+    Array.prototype.__add__=Array.prototype.concat;
     //---
     PL.builtins=["range","input","str","int","float","len","type","quit","exit","sorted",
     "fillRect","setColor","setTimeout","clearRect","clear"];

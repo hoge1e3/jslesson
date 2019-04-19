@@ -2416,6 +2416,7 @@ const vdef={
         for (const b of node.body) {
             this.visit(b);
         }
+        this.addScope(node.name , {kind:"class",node});
     },
     define: function (node) {
         //console.log("define",node);
@@ -6023,7 +6024,7 @@ function (Visitor,IndentBuffer,assert) {
             this.visit(node.body);
         },
         classdef: function (node) {
-            this.printf("class %s%v:%{%v%}",node.name,node.body);
+            this.printf("class %s:%{%v%}",node.name,node.body);
         },
         define: function (node) {
             this.printf("def %s%v:%{%v%}",node.name,node.params,node.body);
@@ -6213,12 +6214,12 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         classdef: function (node) {
             this.ctx.enter({inClass:node},()=>{
-                this.printf("%s.class('%s',{%{%j%}}",PYLIB,node.name,[",",node.body]);
+                this.printf("var %s=%s.class(Object,{%{%j%}});",node.name, PYLIB,[",",node.body]);
             });
         },//
         define: function (node) {
             if (this.ctx.inClass) {
-                this.printf("%n%s: function %s%v{%{%v%}}",node.name,node.params,node.body);
+                this.printf("%n%s: function %v{%{%v%}}",node.name,node.params,node.body);
             } else {
                 this.printf("function %s%v{%{%v%}}%n",node.name,node.params,node.body);
 

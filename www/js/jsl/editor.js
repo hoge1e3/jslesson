@@ -158,7 +158,7 @@ function ready() {
     case "py":
     	requirejs(["PythonBuilder"],setupBuilder);
         ALWAYS_UPLOAD=UA.isIE;
-    	//helpURL="http://bitarrow.eplang.jp/index.php?dncl_use";
+    	helpURL="http://bitarrow.eplang.jp/index.php?python";
     	break;
     case "tonyu":
         ALWAYS_UPLOAD=true;
