@@ -72,6 +72,7 @@ define(function (require) {
     var helpURL;
     var unsaved=false;
     var unsynced=false;
+    var unsavedContent=null, sendUnsavedContentCount=0;
     //var Builder;
     var builder;
     var ram;
@@ -885,8 +886,17 @@ function ready() {
     	    if(mod){
     	        unsaved=true;
     	        unsynced=true;
+                sendUnsavedContentCount++;
+                if (sendUnsavedContentCount%10===0) {
+                    if (unsavedContent!==prog.getValue()) {
+                        unsavedContent=prog.getValue();
+                        logToServer2(curFile.path(),unsavedContent,"",langList[lang]+" Unsaved","未保存の内容",langList[lang]);
+                    }
+                }
     	    }else{
     	        unsaved=false;
+                unsavedContent=null;
+                sendUnsavedContentCount=0;
     	    }
         }catch(e) {
             console.log(e);

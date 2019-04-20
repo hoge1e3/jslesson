@@ -83,7 +83,7 @@ function openFrame(data){
   $("[data-id='"+data.id+"']").css("background-color","orange");
   $("[id='"+userid+"detail']").html(detail);
   //alert(logid);
-  if(showDiffFlag && prevProgram!=code){
+  if(showDiffFlag /*&& prevProgram!=code*/){
     calcDiff(prevProgram,code,"[id='"+userid+"diff']","Prev","Current");
     $("[id='"+userid+"diff']").css("display","inline");
   }
@@ -197,6 +197,9 @@ function showLogOneUser(logid,userid,fn){
         var lastProg=lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
         calcDiff("最初のプログラム",currentProgram,"[id='"+userid+"diff']","Prev","Current");
         var diffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last");
+        var pd=":0:0:0:0";
+        var ld="-"+diffData["delete"]+":"+diffData["insert"]+":"+diffData["replace"]+":"+diffData["equal"];
+        $("[id='"+logid+"summary']").html(pd+ld);
 
       }).fail(function(last) {
         console.log("failed get last log",last);

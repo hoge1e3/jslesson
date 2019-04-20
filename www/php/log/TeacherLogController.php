@@ -72,7 +72,7 @@ class TeacherLogController {
               }
             }
           }
-          array_push($logs2,$l);
+          if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false) array_push($logs2,$l);
           foreach($logs2 as $l){
             //if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false && ($l['time']-$prevTime>=0 || $prevResult!=$l['result'])){
               ?>

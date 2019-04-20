@@ -113,7 +113,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,Web
     p.compile=function (f) {
         var pysrcF=f.src.py;
         var runLocal=this.runLocal,js;
-        var anon,node,errSrc;
+        var anon,node,errSrc,needInput=false;
         if (!superMode) {
             try {
                 node=PP.parse(pysrcF);
@@ -122,6 +122,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,Web
                 /*if(vres.useInput) {
                     runLocal=true;
                 }*/
+                needInput=!!vres.useInput;
                 anon=vres.anon;
             } catch(e) {
                 if (e.node || e.pos) {
@@ -151,7 +152,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,Web
         } else if (runLocal) {
             J(node,anon,{buf:buf,genReqJS:true, pyLibPath:WebSite.runtime+"lib/python/PyLib.js"});
         } else {
-            buf.printf("runOnServer2(%s);",    JSON.stringify(f.src.py.text()) );
+            buf.printf("runOnServer2(%s,%s);",    JSON.stringify(f.src.py.text()),needInput );
         }
         buf.close();
 
