@@ -72,7 +72,7 @@ define(function (require) {
     var helpURL;
     var unsaved=false;
     var unsynced=false;
-    var unsavedContent=null, sendUnsavedContentCount=0;
+    var typingCheckContent=null, sendUnsavedContentCount=0, lastSentUnsavedContent=null;
     //var Builder;
     var builder;
     var ram;
@@ -886,16 +886,22 @@ function ready() {
     	    if(mod){
     	        unsaved=true;
     	        unsynced=true;
-                sendUnsavedContentCount++;
-                if (sendUnsavedContentCount%10===0) {
-                    if (unsavedContent!==prog.getValue()) {
-                        unsavedContent=prog.getValue();
-                        logToServer2(curFile.path(),unsavedContent,"",langList[lang]+" Unsaved","未保存の内容",langList[lang]);
-                    }
+                if (typingCheckContent!==prog.getValue()) {
+                    typingCheckContent=prog.getValue();
+                    sendUnsavedContentCount=0;
+                }
+                if (lastSentUnsavedContent!==prog.getValue()) {
+                    sendUnsavedContentCount++;
+                }
+                if (sendUnsavedContentCount>=10) {
+                    sendUnsavedContentCount=0;
+                    lastSentUnsavedContent=prog.getValue();
+                    logToServer2(curFile.path(),lastSentUnsavedContent,"",langList[lang]+" Unsaved","未保存の内容",langList[lang]);
                 }
     	    }else{
     	        unsaved=false;
-                unsavedContent=null;
+                typingCheckContent=null;
+                lastSentUnsavedContent=null;
                 sendUnsavedContentCount=0;
     	    }
         }catch(e) {
