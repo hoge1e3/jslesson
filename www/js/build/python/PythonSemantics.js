@@ -127,6 +127,33 @@ const vdef={
 
     },
     delStmt: function(node) {
+        var a=expr=>{
+            switch (expr.type) {
+            case "postfix":
+                switch (expr.op.type) {
+                case "memberRef":
+                    this.anon.put(node,{
+                        obj: expr.left,
+                        name: expr.op.name
+                    });
+                    return true;
+                case "index":
+                    this.anon.put(node,{
+                        obj: expr.left,
+                        index: expr.op.body
+                    });
+                    return true;
+                }
+                return false;
+            case "paren":
+                return a(node.expr.body);
+            default:
+                return false;
+            }
+        };
+        if (!a(node.expr)) {
+            this.error("del の後ろは「オブジェクト.属性名」という形式にしてください．"  , node);
+        }
         this.visit(node.expr);
     },
     printStmt3: function (node) {

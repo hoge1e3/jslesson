@@ -37,7 +37,12 @@ function (Visitor,IndentBuffer,context,PL) {
             else this.printf("return ;");
         },
         delStmt: function (node) {
-            this.printf("delete %v;",node.expr);
+            var a=this.anon.get(node);
+            if (a.index) {
+                this.printf("%s.wrap(%v).__delattr__(%v);",PYLIB, a.obj, a.index);
+            } else {
+                this.printf("%s.wrap(%v).__delattr__('%s');",PYLIB, a.obj, a.name);
+            }
         },
         whileStmt: function (node) {
             this.printf("while (%v) %v", node.cond,node.do);

@@ -36,7 +36,7 @@ define([],function () {
         var a=PL.parseArgs(arguments);
         console.log("print",arguments,a);
         var end=a.options.end!=null ? a.options.end: "\n";
-        var out=a.join(" ")+end;
+        var out=a.map(PL.str).join(" ")+end;
         PL.lineBuf+=out;
         var lines=PL.lineBuf.split("\n");
         if(lines.length>10) {
@@ -54,7 +54,10 @@ define([],function () {
     PL.len=function (s) {return s.length;};
     PL.float=function (s) {return s-0;};
     PL.int=function (s) {return s-0;};
-    PL.str=function (s) {return s+"";};
+    PL.str=function (s) {
+        if (s && s.__str__) return s.__str__();
+        return s+"";
+    };
     PL.quit=function (s) {PL.exit();};
     PL.exit=function (s) {
         var e=new Error("exit でプログラムが終了しました。");
@@ -129,6 +132,7 @@ define([],function () {
         return res;
     };
     PL.wrap=function (v) {
+        if (v instanceof Array) return PL.wrappers.array(v);
         var W=PL.wrappers[typeof v];
         if (!W) return v;
         return W(v);
@@ -204,7 +208,16 @@ define([],function () {
             return self.unwrap().apply(self, a);
         },
         toString: function (self) {return self.value+"";},
-        __add__: function (self,other) { return self.unwrap()+u(other);},
+        __str__: function (self) {
+            var ur=self.unwrap();
+            if (ur.__str__) return ur.__str__();// remove when use full-monkey-patch
+            return self+"";
+        },
+        __add__: function (self,other) {
+            var ur=self.unwrap();
+            if (ur.__add__) return ur.__add__(u(other));// remove when use full-monkey-patch
+            return self.unwrap()+u(other);
+        },
         __sub__: function (self,other) { return self.unwrap()-u(other);},
         __mul__: function (self,other) { return self.unwrap()*u(other);},
         __div__: function (self,other) { return self.unwrap()/u(other);},
@@ -226,6 +239,11 @@ define([],function () {
         __imod__: function (self,other) { self.value=self.unwrap()%u(other);return self;},
         __ipow__: function (self,other) { self.value=Math.pow(self.unwrap(),u(other));return self;},
 
+        __delattr__: function (self,name) {
+            var ur=self.unwrap();
+            if (ur.__delattr__) ur.__delattr__(name);// remove when use full-monkey-patch
+            else delete ur[name];
+        },
         //____: function (self,other) { return selfother;},
     });
     PL.wrappers={
@@ -265,6 +283,17 @@ define([],function () {
         function:PL.class(PL.Wrapper,{
             __getTypeName__: function (){return "<class function>";},
 
+        }),
+        object:PL.class(PL.Wrapper,{
+            __getTypeName__: function (){return "<class object>";},
+        }),
+        array:PL.class(PL.Wrapper,{
+            __delattr__(self,i) {
+                self.unwrap().splice(i,1);
+            },
+            __str__(self) {
+                return "["+self+"]";
+            }
         })
     };
     PL.invalidOP=function (op,to) {
@@ -292,6 +321,7 @@ define([],function () {
         }
     };
     //--- monkey patch
+
     String.prototype.format=function (...args) {
         const str=this;
         const o={};
@@ -313,8 +343,26 @@ define([],function () {
             }
         });
     };
-    Array.prototype.append=Array.prototype.push;
-    Array.prototype.__add__=Array.prototype.concat;
+    PL.addMonkeyPatch=function (cl, methods) {
+        var p=cl.prototype;
+        for (var k in methods) {
+            Object.defineProperty(p,k,{
+                value: methods[k],
+                enumerable: false
+            });
+        }
+    };
+    PL.addMonkeyPatch(Array, {
+        append: Array.prototype.push,
+        __add__: Array.prototype.concat,
+        __delattr__(i) {
+            this.splice(i,1);
+        },
+        __str__() {
+            return "["+this.join(", ")+"]";
+        }
+    });
+
     //---
     PL.builtins=["range","input","str","int","float","len","type","quit","exit","sorted",
     "fillRect","setColor","setTimeout","clearRect","clear"];
