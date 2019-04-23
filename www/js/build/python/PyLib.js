@@ -132,10 +132,7 @@ define([],function () {
         return res;
     };
     PL.wrap=function (v) {
-        if (v instanceof Array) return PL.wrappers.array(v);
-        var W=PL.wrappers[typeof v];
-        if (!W) return v;
-        return W(v);
+        return v;
     };
     PL.class=function (parent,defs) {
         if (arguments.length<2) {
@@ -195,107 +192,10 @@ define([],function () {
         if (k.match(/=/)) continue;
         PL.iops[k+"="]="i"+PL.ops[k];
     }
-    PL.unwrap=u;
     function u(v) {
-        if (v instanceof PL.Wrapper) return v.unwrap();
         return v;
     }
-    PL.Wrapper=PL.class(PL.Object, {
-        __init__: function (self,value) {self.value=value;},
-        unwrap: function (self) {return self.value;},
-        __call__: function (self) {
-            var a=Array.prototype.slice.call(arguments,1);
-            return self.unwrap().apply(self, a);
-        },
-        toString: function (self) {return self.value+"";},
-        __str__: function (self) {
-            var ur=self.unwrap();
-            if (ur.__str__) return ur.__str__();// remove when use full-monkey-patch
-            return self+"";
-        },
-        __add__: function (self,other) {
-            var ur=self.unwrap();
-            if (ur.__add__) return ur.__add__(u(other));// remove when use full-monkey-patch
-            return self.unwrap()+u(other);
-        },
-        __sub__: function (self,other) { return self.unwrap()-u(other);},
-        __mul__: function (self,other) { return self.unwrap()*u(other);},
-        __div__: function (self,other) { return self.unwrap()/u(other);},
-        __floordiv__: function (self,other) { return Math.floor(self.unwrap()/u(other));},
-        __mod__: function (self,other) { return self.unwrap()%u(other);},
-        __gt__: function (self,other) { return self.unwrap()>u(other);},
-        __lt__: function (self,other) { return self.unwrap()<u(other);},
-        __ge__: function (self,other) { return self.unwrap()>=u(other);},
-        __le__: function (self,other) { return self.unwrap()<=u(other);},
-        __eq__: function (self,other) { return self.unwrap()===u(other);},
-        __ne__: function (self,other) { return self.unwrap()!==u(other);},
-        __pow__: function (self,other) { return Math.pow(self.unwrap(),u(other));},
 
-        __iadd__: function (self,other) { self.value=self.unwrap()+u(other);return self;},
-        __isub__: function (self,other) { self.value=self.unwrap()-u(other);return self;},
-        __imul__: function (self,other) { self.value=self.unwrap()*u(other);return self;},
-        __idiv__: function (self,other) { self.value=self.unwrap()/u(other);return self;},
-        __ifloordiv__: function (self,other) { self.value=Math.floor(self.unwrap()/u(other));return self;},
-        __imod__: function (self,other) { self.value=self.unwrap()%u(other);return self;},
-        __ipow__: function (self,other) { self.value=Math.pow(self.unwrap(),u(other));return self;},
-
-        __delattr__: function (self,name) {
-            var ur=self.unwrap();
-            if (ur.__delattr__) ur.__delattr__(name);// remove when use full-monkey-patch
-            else delete ur[name];
-        },
-        //____: function (self,other) { return selfother;},
-    });
-    PL.wrappers={
-        number:PL.class(PL.Wrapper,{
-            __getTypeName__: function (){return "<class number>";},
-        }),
-        string:PL.class(PL.Wrapper,{
-            __getTypeName__: function (){return "<class str>";},
-            __mul__: function (self,other) {
-                switch (typeof other) {
-                case "number":
-                    var res="";
-                    for (;other;other--) res+=self.unwrap();
-                    return res;
-                default:
-                    PL.invalidOP("__mul__",other);
-                }
-            },
-            __mod__: function (self,other) {
-                let args;
-                if (other instanceof Array) args=other;
-                else if (other instanceof PL.Tuple) args=other.elems;
-                else args=[other];
-                return sprintfJS(self.unwrap(),...args);
-            },
-            __add__: function (self,other) {
-                if (typeof u(other)!=="string") {
-                    throw new Error("文字列に文字列以外の値を+で追加できません．str()関数を使って変換してください．");
-                }
-                return PL.Wrapper.prototype.__add__.call(self,other);
-            }
-        }),
-        boolean:PL.class(PL.Wrapper,{
-            __getTypeName__: function (){return "<class boolean>";},
-
-        }),
-        function:PL.class(PL.Wrapper,{
-            __getTypeName__: function (){return "<class function>";},
-
-        }),
-        object:PL.class(PL.Wrapper,{
-            __getTypeName__: function (){return "<class object>";},
-        }),
-        array:PL.class(PL.Wrapper,{
-            __delattr__(self,i) {
-                self.unwrap().splice(i,1);
-            },
-            __str__(self) {
-                return "["+self+"]";
-            }
-        })
-    };
     PL.invalidOP=function (op,to) {
         throw new Error("Cannot do opration "+op+" to "+to);
     };
@@ -345,21 +245,105 @@ define([],function () {
     };
     PL.addMonkeyPatch=function (cl, methods) {
         var p=cl.prototype;
-        for (var k in methods) {
+        for (var k in methods) addMethod(k);
+        function addMethod(k) {
+            var m=methods[k];
             Object.defineProperty(p,k,{
-                value: methods[k],
+                value: function () {
+                    var a=Array.prototype.slice.call(arguments);
+                    a.unshift(this);
+                    return m.apply(this,a);
+                },
                 enumerable: false
             });
         }
     };
-    PL.addMonkeyPatch(Array, {
-        append: Array.prototype.push,
-        __add__: Array.prototype.concat,
-        __delattr__(i) {
-            this.splice(i,1);
+    PL.addMonkeyPatch(Object, {
+        __getTypeName__: function (){return "<class object>";},
+        __call__: function (self,...a) {
+            //var a=Array.prototype.slice.call(arguments,1);
+            return self.apply(self, a);
         },
-        __str__() {
-            return "["+this.join(", ")+"]";
+        toString: function (self) {return self.value+"";},
+        __str__: function (self) {
+            return self+"";
+        },
+        __add__: function (self,other) {return self+u(other);
+        },
+        __sub__: function (self,other) { return self-u(other);},
+        __mul__: function (self,other) { return self*u(other);},
+        __div__: function (self,other) { return self/u(other);},
+        __floordiv__: function (self,other) { return Math.floor(self/u(other));},
+        __mod__: function (self,other) { return self%u(other);},
+        __gt__: function (self,other) { return self>u(other);},
+        __lt__: function (self,other) { return self<u(other);},
+        __ge__: function (self,other) { return self>=u(other);},
+        __le__: function (self,other) { return self<=u(other);},
+        __eq__: function (self,other) { return self===u(other);},
+        __ne__: function (self,other) { return self!==u(other);},
+        __pow__: function (self,other) { return Math.pow(self,u(other));},
+
+        __iadd__: function (self,other) { self=self.__add__(other);return self;},
+        __isub__: function (self,other) { self=self.__sub__(other);return self;},
+        __imul__: function (self,other) { self=self.__mul__(other);return self;},
+        __idiv__: function (self,other) { self=self.__div__(other);return self;},
+        __ifloordiv__: function (self,other) { self=self.__floordiv__(other);return self;},
+        __imod__: function (self,other) { self=self.__mod__(other);return self;},
+        __ipow__: function (self,other) { self=self.__pow__(other);return self;},
+
+        __delattr__: function (self,name) {
+            delete self[name];
+        },
+        //____: function (self,other) { return selfother;},
+    });
+    PL.addMonkeyPatch(Number,{
+        __getTypeName__: function (){return "<class number>";},
+    });
+    PL.addMonkeyPatch(String,{
+        __getTypeName__: function (){return "<class str>";},
+        __mul__: function (self,other) {
+            switch (typeof other) {
+            case "number":
+                var res="";
+                for (;other;other--) res+=self;
+                return res;
+            default:
+                PL.invalidOP("__mul__",other);
+            }
+        },
+        __mod__: function (self,other) {
+            let args;
+            if (other instanceof Array) args=other;
+            else if (other instanceof PL.Tuple) args=other.elems;
+            else args=[other];
+            return sprintfJS(self,...args);
+        },
+        __add__: function (self,other) {
+            if (typeof u(other)!=="string") {
+                throw new Error("文字列に文字列以外の値を+で追加できません．str()関数を使って変換してください．");
+            }
+            return Object.prototype.__add__.call(self,other);
+        }
+    });
+    PL.addMonkeyPatch(Boolean,{
+        __getTypeName__: function (){return "<class boolean>";},
+
+    });
+    PL.addMonkeyPatch(Function,{
+        __getTypeName__: function (){return "<class function>";},
+    });
+    PL.addMonkeyPatch(Array, {
+        append(self, ...args) {
+            return self.push(...args);
+        },
+        __add__(self,...args) {
+            return self.concat(...args);
+        },
+        __delattr__(self,i) {
+            self.splice(i,1);
+        },
+        __str__(self) {
+            return "["+self.join(", ")+"]";
         }
     });
 
