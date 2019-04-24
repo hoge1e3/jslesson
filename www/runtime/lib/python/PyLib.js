@@ -55,7 +55,8 @@ define([],function () {
     PL.float=function (s) {return s-0;};
     PL.int=function (s) {return s-0;};
     PL.str=function (s) {
-        if (s && s.__str__) return s.__str__();
+        //  s==false
+        if (s!=null && s.__str__) return s.__str__();
         return s+"";
     };
     PL.quit=function (s) {PL.exit();};
@@ -279,8 +280,8 @@ define([],function () {
         __lt__: function (self,other) { return self<u(other);},
         __ge__: function (self,other) { return self>=u(other);},
         __le__: function (self,other) { return self<=u(other);},
-        __eq__: function (self,other) { return self===u(other);},
-        __ne__: function (self,other) { return self!==u(other);},
+        __eq__: function (self,other) { return self==u(other);/* Number wrapped */},
+        __ne__: function (self,other) { return self!=u(other);/* Number wrapped */},
         __pow__: function (self,other) { return Math.pow(self,u(other));},
 
         __iadd__: function (self,other) { self=self.__add__(other);return self;},
@@ -327,6 +328,10 @@ define([],function () {
     });
     PL.addMonkeyPatch(Boolean,{
         __getTypeName__: function (){return "<class boolean>";},
+        __str__(self) {
+            //  self is wrapped. always trusy
+            return self==true?"True":"False";
+        }
 
     });
     PL.addMonkeyPatch(Function,{

@@ -125,7 +125,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,Web
                 needInput=!!vres.useInput;
                 anon=vres.anon;
             } catch(e) {
-                if (e.node || e.pos) {
+                if (e.node || typeof e.pos==="number") {
                     var pos=e.node?e.node.pos:e.pos;
                     errSrc=
                     "var e=new Error("+JSON.stringify(e.message)+");"+
