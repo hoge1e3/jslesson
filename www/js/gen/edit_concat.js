@@ -11381,6 +11381,7 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','showErrorPos','f
     var helpURL;
     var unsaved=false;
     var unsynced=false;
+    var typingCheckContent=null, sendUnsavedContentCount=0, lastSentUnsavedContent=null;
     //var Builder;
     var builder;
     var ram;
@@ -12194,8 +12195,23 @@ function ready() {
     	    if(mod){
     	        unsaved=true;
     	        unsynced=true;
+                if (typingCheckContent!==prog.getValue()) {
+                    typingCheckContent=prog.getValue();
+                    sendUnsavedContentCount=0;
+                }
+                if (lastSentUnsavedContent!==prog.getValue()) {
+                    sendUnsavedContentCount++;
+                }
+                if (sendUnsavedContentCount>=10) {
+                    sendUnsavedContentCount=0;
+                    lastSentUnsavedContent=prog.getValue();
+                    logToServer2(curFile.path(),lastSentUnsavedContent,"",langList[lang]+" Unsaved","未保存の内容",langList[lang]);
+                }
     	    }else{
     	        unsaved=false;
+                typingCheckContent=null;
+                lastSentUnsavedContent=null;
+                sendUnsavedContentCount=0;
     	    }
         }catch(e) {
             console.log(e);
