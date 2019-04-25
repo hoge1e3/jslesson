@@ -133,7 +133,7 @@ function ready() {
     var opt=curPrj.getOptions();
     var lang=opt.language || "js";
     var ide={run:run, prj:curPrj};
-    root.doTest=doTest;
+    root.openDummyEditor=openDummyEditor;
     switch (lang){
     case "c":
         requirejs(["CBuilder"],function(_){
@@ -158,6 +158,7 @@ function ready() {
     	helpURL="http://bitarrow.eplang.jp/index.php?dncl_use";
     	break;
     case "py":
+        openDummyEditor();// I dont know
         requirejs(["PythonBuilder"],setupBuilder);
         ALWAYS_UPLOAD=UA.isIE;
     	helpURL="http://bitarrow.eplang.jp/index.php?python";
@@ -1075,11 +1076,11 @@ function ready() {
     window.getCurrentEditorInfo=getCurrentEditorInfo;
     SplashScreen.hide();
     window.NotificationDialog=NotificationDialog;
-    function doTest() {
-        var progDOM=$("<pre>").css("height", "500px");
+    function openDummyEditor() {
+        var progDOM=$("<pre>").css("height", "500px").text("#hoge\n'hoge'");
         var prog2=root.ace.edit(progDOM[0]);
         prog2.getSession().setMode("ace/mode/python");
-        progDOM.dialog();
+        //progDOM.dialog();
     }
 }// of ready
 });
