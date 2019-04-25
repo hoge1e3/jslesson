@@ -1,5 +1,7 @@
-define(["assert","DeferredUtil","wget", "IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator","PythonParser","PythonSemantics","PythonGen","Python2JS","ctrl","root","WebSite","TError"],
-function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,WebSite,TError) {//<-dtl
+define(["assert","DeferredUtil","wget", "IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator",
+"PythonParser","PythonSemantics","PythonGen","Python2JS","ctrl","root","WebSite","TError"],
+function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
+    PP,S,G,J,ctrl,root,WebSite,TError) {//<-dtl
     var PythonBuilder=function (prj, dst,ide) {//<-Dtl
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk

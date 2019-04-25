@@ -133,6 +133,7 @@ function ready() {
     var opt=curPrj.getOptions();
     var lang=opt.language || "js";
     var ide={run:run, prj:curPrj};
+    root.doTest=doTest;
     switch (lang){
     case "c":
         requirejs(["CBuilder"],function(_){
@@ -157,10 +158,10 @@ function ready() {
     	helpURL="http://bitarrow.eplang.jp/index.php?dncl_use";
     	break;
     case "py":
-    	requirejs(["PythonBuilder"],setupBuilder);
+        requirejs(["PythonBuilder"],setupBuilder);
         ALWAYS_UPLOAD=UA.isIE;
     	helpURL="http://bitarrow.eplang.jp/index.php?python";
-    	break;
+        break;
     case "tonyu":
         ALWAYS_UPLOAD=true;
         requirejs(["TonyuBuilder"],setupBuilder);
@@ -956,16 +957,19 @@ function ready() {
             //if(desktopEnv.editorMode=="emacs") prog.setKeyboardHandler("ace/keyboard/emacs");
             //prog.setKeyboardHandler(defaultKeyboard);
             if (f.ext()==EXT && lang=="c") {
+                //console.log("mode/c/set");
                 prog.getSession().setMode("ace/mode/c_cpp");
             }
             else if (f.ext()==EXT && lang=="py") {
-                console.log("mode/python/set");
+                //console.log("mode/python/set");
                 prog.getSession().setMode("ace/mode/python");
             }
             else if (f.ext()==EXT) {
+                //console.log("mode/tonyu/set");
                 prog.getSession().setMode("ace/mode/tonyu");
             }
             if (f.ext()==HEXT) {
+                //console.log("mode/html/set");
                 prog.getSession().setMode("ace/mode/html");
             }
             prog.getSession().setUseWrapMode(true);
@@ -1071,5 +1075,11 @@ function ready() {
     window.getCurrentEditorInfo=getCurrentEditorInfo;
     SplashScreen.hide();
     window.NotificationDialog=NotificationDialog;
+    function doTest() {
+        var progDOM=$("<pre>").css("height", "500px");
+        var prog2=root.ace.edit(progDOM[0]);
+        prog2.getSession().setMode("ace/mode/python");
+        progDOM.dialog();
+    }
 }// of ready
 });
