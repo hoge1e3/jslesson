@@ -379,7 +379,7 @@ function ready() {
     onResize();
     var desktopEnv=loadDesktopEnv();
     window.editorTextSize=desktopEnv.editorFontSize||18;
-    var editors={};
+    var editors={};root._editors=editors;
 
     KeyEventChecker.down(document,"bs",F(function (e) {
         A.is(e,"Event");
@@ -959,6 +959,7 @@ function ready() {
                 prog.getSession().setMode("ace/mode/c_cpp");
             }
             else if (f.ext()==EXT && lang=="py") {
+                console.log("mode/python/set");
                 prog.getSession().setMode("ace/mode/python");
             }
             else if (f.ext()==EXT) {
