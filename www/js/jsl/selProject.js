@@ -27,7 +27,7 @@ function ready() {//-------------------------
             ["div",{class:"hero-unit"},
             ["div",{id:"userInfo",css:{float:"right"},margin:"50px"},"ようこそ",["br"],["div","同期中です..."]],
             ["h1", ["img",{src:"images/bitarrow-2.png",css:{"display":"inline"},width:"100px"}],"Bit Arrow"]],
-            ["div",["span",{class:"notice"},"【お知らせ】"],"新しいバージョン(2019_0501)になりました．",
+            ["div","【お知らせ】新しいバージョン",["span",{class:"notice"},"(2019_0501)"],"になりました．",
             ["a",{href:"https://bitarrow.eplang.jp/?change1905",target:"wikiTab"},"主な変更点..."]/*," | ",
             ["a",{href:"https://bitarrow.eplang.jp/2017_0328/",target:"wikiTab"},"以前のバージョン(2017_0328)を使う"]*/],
             ["div",

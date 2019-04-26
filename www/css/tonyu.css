@@ -22,7 +22,7 @@ button.selected {
     font-family: ime_jp_rp, Monaco, Menlo, "Ubuntu Mono", Consolas, source-code-pro, monospace;
 }
 .notice {
-    color: red;
+    color: #f08;
 }
 
 .starter-template {

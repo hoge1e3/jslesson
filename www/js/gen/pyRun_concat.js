@@ -6344,9 +6344,14 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         globalStmt: function (node) {},
         printStmt: function (node) {
-            if (node.nobr) this.printf("%s.print(%j,%s.opt({end:' '}));",
-            PYLIB,[",",node.values],PYLIB);
-            else this.printf("%s.print(%j);",PYLIB,[",",node.values]);
+            if (node.nobr) {
+                this.printf("%s.print(%j,%s.opt({end:' '}));",
+                PYLIB,[",",node.values],PYLIB);
+            } else if (node.values.length==1 && node.values[0].type=="tuple") {
+                this.printf("%s.print(%j);",PYLIB,[",",node.values[0].body]);
+            } else {
+                this.printf("%s.print(%j);",PYLIB,[",",node.values]);
+            }
         },
         printStmt3: function (node) {
             this.printf("%s.print %v;",PYLIB,node.args);
