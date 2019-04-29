@@ -92,3 +92,4 @@ www/js/jsl/editor_comment.js
 www/es5/*
 /www/js/dolittle_old
 data/fs/home/devel_test2/
+*.html
