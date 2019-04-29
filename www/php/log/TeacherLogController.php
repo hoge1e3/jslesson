@@ -59,6 +59,9 @@ class TeacherLogController {
         }
         ?>
         <div style="float:left; overflow-y:auto; height:100%; width:20%; resize:horizontal;">
+          <script>
+          programs=[];
+          </script>
           <?php
           $prevTime=0;
           $prevResult="";
@@ -68,21 +71,62 @@ class TeacherLogController {
               if(array_key_exists($i+1,$logs)){
                 if($logs[$i+1]['time']-$l['time']>=3 || ($logs[$i+1]['time']-$l['time']<3 && $l['detail']!="実行しました")) {
                   array_push($logs2,$l);
+                  ?>
+                  <script>
+                  if(!programs["<?=$l['filename']?>"]) programs["<?=$l['filename']?>"]=[];
+                  programs["<?=$l['filename']?>"].push(<?=$l['raw']?>);
+
+                  </script>
+                  <?php
                 }
               }
             }
           }
           if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false) array_push($logs2,$l);
+          ?>
+          <script>
+          var indexList=[];
+          </script>
+          <?php
           foreach($logs2 as $l){
             //if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false && ($l['time']-$prevTime>=0 || $prevResult!=$l['result'])){
               ?>
               <!--<div><?=$l['filename']?></div>-->
               <div onClick="showLogOneUser.call(this,'<?=$l['id']?>','<?=$l['user']?>','<?=$l['filename']?>');"
                     id='<?=$l['id']?>'
-                  ><font color="<?=strpos($l['result'],'Error')!==false ? 'red' : 'black'?>"><?=$l['filename']?></font><span id='<?=$l['id']?>summary'></span></div>
+                  ><font color="<?=strpos($l['result'],'Error')!==false ? 'red' : 'black'?>"><?=$l['filename']?></font></div>
               <script>
+              var userid='<?=$l['user']?>';
               if(!logsOfOneUser["<?=$l['filename']?>"]) logsOfOneUser["<?=$l['filename']?>"]=[];
               logsOfOneUser["<?=$l['filename']?>"].push(<?=$l['id']?>);
+              var pRaw;
+              if(!indexList["<?=$l['filename']?>"]){
+                indexList["<?=$l['filename']?>"]=0;
+                pRaw=programs["<?=$l['filename']?>"][0];
+              }else{
+                var i=indexList["<?=$l['filename']?>"];
+                pRaw=programs["<?=$l['filename']?>"][i-1];
+                console.log(i-1,pRaw);
+              }
+              indexList["<?=$l['filename']?>"]++;
+              var cRaw=<?=$l['raw']?>;
+              var lRaw=programs["<?=$l['filename']?>"][programs["<?=$l['filename']?>"].length-1];
+              console.log(pRaw,cRaw,lRaw);
+              var prevProg=pRaw.code.C || pRaw.code.JavaScript || pRaw.code.Dolittle || pRaw.code.Python || "";
+              var curProg=cRaw.code.C || cRaw.code.JavaScript || cRaw.code.Dolittle || cRaw.code.Python || "";
+              var lastProg=lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
+              var prevDiffData=calcDiff(prevProg,curProg,"[id='"+userid+"diff']","Prev","Current",false);
+              var lastDiffData=calcDiff(curProg,lastProg,"[id='"+userid+"diffLast']","Current","Last",false);
+              var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
+              var ld="-"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"];
+              console.log("prev",prevProg);
+              console.log("cur",curProg);
+              console.log("diff",prevDiffData);
+
+              var e=document.createElement("span");
+              e.id='<?=$l['id']?>summary';
+              e.innerHTML=pd+ld;
+              document.getElementById('<?=$l['id']?>').appendChild(e);
               </script>
               <?php
             //} else {

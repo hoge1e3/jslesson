@@ -84,7 +84,7 @@ function openFrame(data){
   $("[id='"+userid+"detail']").html(detail);
   //alert(logid);
   if(showDiffFlag /*&& prevProgram!=code*/){
-    calcDiff(prevProgram,code,"[id='"+userid+"diff']","Prev","Current");
+    calcDiff(prevProgram,code,"[id='"+userid+"diff']","Prev","Current",true);
     $("[id='"+userid+"diff']").css("display","inline");
   }
   prevProgram=code;
@@ -173,11 +173,12 @@ function showLogOneUser(logid,userid,fn){
         getPreviousLog(logsOfOneUser[fn][logsOfOneUser[fn].length-1]).done(function(last){
           var lRaw=JSON.parse(last.raw);
           var lastProg=lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
-          var prevDiffData=calcDiff(code,currentProgram,"[id='"+userid+"diff']","Prev","Current");
-          var lastDiffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last");
-          var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
+          var prevDiffData=calcDiff(code,currentProgram,"[id='"+userid+"diff']","Prev","Current",true);
+          var lastDiffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last",true);
+          /*var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
           var ld="-"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"];
           $("[id='"+logid+"summary']").html(pd+ld);
+          */
         }).fail(function(last) {
           console.log("failed get last log",last);
         });
@@ -195,12 +196,12 @@ function showLogOneUser(logid,userid,fn){
       getPreviousLog(logsOfOneUser[fn][logsOfOneUser[fn].length-1]).done(function(last){
         var lRaw=JSON.parse(last.raw);
         var lastProg=lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
-        calcDiff("最初のプログラム",currentProgram,"[id='"+userid+"diff']","Prev","Current");
-        var diffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last");
-        var pd=":0:0:0:0";
+        calcDiff("最初のプログラム",currentProgram,"[id='"+userid+"diff']","Prev","Current",true);
+        var diffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last",true);
+        /*var pd=":0:0:0:0";
         var ld="-"+diffData["delete"]+":"+diffData["insert"]+":"+diffData["replace"]+":"+diffData["equal"];
         $("[id='"+logid+"summary']").html(pd+ld);
-
+        */
       }).fail(function(last) {
         console.log("failed get last log",last);
       });
@@ -209,12 +210,20 @@ function showLogOneUser(logid,userid,fn){
     });
   }
 }
-function calcDiff(prev,now,id,btn,ntn){
+function clearBreak(base){
+  var lines=base.split("\n");
+  var res=lines.filter(function(l){
+    return !l.match(/^(\s)*$/);
+  });
+  return res.join("\n");
+}
+function calcDiff(prev,now,id,btn,ntn,flag){
   // get the baseText and newText values from the two textboxes, and split them into lines
-  var base = difflib.stringAsLines(prev);
+  var cbPrev=clearBreak(prev);
+  var cbNow=clearBreak(now);
+  var base = difflib.stringAsLines(cbPrev);
   //var newtxt = difflib.stringAsLines($("newText").value);
-  var newtxt = difflib.stringAsLines(now);
-
+  var newtxt = difflib.stringAsLines(cbNow);
   // create  a SequenceMatcher instance that diffs the two sets of lines
   var sm = new difflib.SequenceMatcher(base, newtxt);
 
@@ -231,32 +240,36 @@ function calcDiff(prev,now,id,btn,ntn){
     console.log("switch"+opt[0]);
     switch(opt[0]){
       case "equal":
-      case "replace":
       case "delete":
         diffData[opt[0]]+=(opt[2]-opt[1]);
         break;
       case "insert":
         diffData[opt[0]]+=(opt[4]-opt[3]);
         break;
+      case "replace":
+        diffData[opt[0]]+=Math.max(opt[2]-opt[1],opt[4]-opt[3]);
+        break;
       default:
         console.log("Unknown state '"+opt[0]+"' discovered.");
     }
   }
-  while (diffoutputdiv.firstChild) diffoutputdiv.removeChild(diffoutputdiv.firstChild);
-  //var contextSize = $("contextSize").value;
-  //contextSize = contextSize ? contextSize : null;
+  if(flag){
+    while (diffoutputdiv.firstChild) diffoutputdiv.removeChild(diffoutputdiv.firstChild);
+    //var contextSize = $("contextSize").value;
+    //contextSize = contextSize ? contextSize : null;
 
-  // build the diff view and add it to the current DOM
-  diffoutputdiv.appendChild(diffview.buildView({
-    baseTextLines: base,
-    newTextLines: newtxt,
-    opcodes: opcodes,
-    // set the display titles for each resource
-    baseTextName: btn,
-    newTextName: ntn,
-    contextSize: 5,
-    viewType: $("inline").checked ? 1 : 0
-  }));
+    // build the diff view and add it to the current DOM
+    diffoutputdiv.appendChild(diffview.buildView({
+      baseTextLines: base,
+      newTextLines: newtxt,
+      opcodes: opcodes,
+      // set the display titles for each resource
+      baseTextName: btn,
+      newTextName: ntn,
+      contextSize: 5,
+      viewType: $("inline").checked ? 1 : 0
+    }));
+  }
   return diffData;
   // scroll down to the diff view window.
   //location = url + "#diff";
