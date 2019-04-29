@@ -1,5 +1,7 @@
-define(["assert","DeferredUtil","wget", "IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator","PythonParser","PythonSemantics","PythonGen","Python2JS","ctrl","root","WebSite","TError"],
-function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,WebSite,TError) {//<-dtl
+define(["assert","DeferredUtil","wget", "IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator",
+"PythonParser","PythonSemantics","PythonGen","Python2JS","ctrl","root","WebSite","TError"],
+function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
+    PP,S,G,J,ctrl,root,WebSite,TError) {//<-dtl
     var PythonBuilder=function (prj, dst,ide) {//<-Dtl
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
@@ -28,7 +30,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,Web
     p.genHTML=function (f) {
         this.progress("generate "+f.src.html.name());
         var dp=new DOMParser();
-        var dom=dp.parseFromString(f.src.html.text(),"text/html");
+        var dom=dp.parseFromString(f.src.html.text()||"<html></html>","text/html");
         var html=dom.getElementsByTagName("html")[0];
         var head=dom.getElementsByTagName("head")[0];
         var body=dom.getElementsByTagName("body")[0];
@@ -113,7 +115,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,Web
     p.compile=function (f) {
         var pysrcF=f.src.py;
         var runLocal=this.runLocal,js;
-        var anon,node,errSrc;
+        var anon,node,errSrc,needInput=false;
         if (!superMode) {
             try {
                 node=PP.parse(pysrcF);
@@ -122,9 +124,10 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,Web
                 /*if(vres.useInput) {
                     runLocal=true;
                 }*/
+                needInput=!!vres.useInput;
                 anon=vres.anon;
             } catch(e) {
-                if (e.node || e.pos) {
+                if (e.node || typeof e.pos==="number") {
                     var pos=e.node?e.node.pos:e.pos;
                     errSrc=
                     "var e=new Error("+JSON.stringify(e.message)+");"+
@@ -151,7 +154,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,PP,S,G,J,ctrl,root,Web
         } else if (runLocal) {
             J(node,anon,{buf:buf,genReqJS:true, pyLibPath:WebSite.runtime+"lib/python/PyLib.js"});
         } else {
-            buf.printf("runOnServer2(%s);",    JSON.stringify(f.src.py.text()) );
+            buf.printf("runOnServer2(%s,%s);",    JSON.stringify(f.src.py.text()),needInput );
         }
         buf.close();
 

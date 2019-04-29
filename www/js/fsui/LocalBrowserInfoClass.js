@@ -139,7 +139,7 @@ define(["FS","Klass","source-map","DeferredUtil"], function (FS,Klass,S,DU) {
 		},
 		loadNode: function (f) {
             var dp=new DOMParser();
-            var src=dp.parseFromString(f.text(),"text/html");
+            var src=dp.parseFromString(f.text()||"<html></html>","text/html");
             if (this.options.onparse) {
                 src=this.options.onparse(src,document);
             }

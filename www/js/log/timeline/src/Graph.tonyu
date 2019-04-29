@@ -1,5 +1,6 @@
 native console;
 native $;
+native location;
 $.getScript("https://bitarrow.eplang.jp/bitarrow/js/lib/jquery-ui.js");
 "field strict";
 var src:FNlog;
@@ -33,7 +34,13 @@ while(true) {
     if (getkey("mouseleft")==1) {
         var t=y2timeline($mouseY);
         if (t) { 
-            var url="https://bitarrow.eplang.jp/bitarrowbeta/a.php?TeacherLog/view1&user="+t.user+"&day="+floor(btime);
+            var pat=/https?:\/\/bitarrow.eplang.jp\/([^\/]*)\//;
+            var m=pat.exec(location.href);
+            var ver="bitarrow";
+            if (m) {
+                ver=m[1];
+            }
+            var url="https://bitarrow.eplang.jp/"+ver+"/a.php?TeacherLog/view1&user="+t.user+"&day="+floor(btime);
             //print(url);    
             $WebPage.openNewWindow(url);
         }

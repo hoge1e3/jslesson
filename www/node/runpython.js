@@ -64,14 +64,22 @@ function (FS,PP,S,G) {
         //process.env.BAASSETPATH=asset;
         //console.log("Passed",'python '+pySrcF.path());
         process.chdir(workd.path());
-        exec('python '+cvSrcF.path(), (err, stdout, stderr) => {
-            //if (err) { console.log(err+""); }
-            var mesg=stderr+"";
-            mesg=mesg.replace(/line ([0-9]+)/g,function (r,ln) {
-                return "line "+(ln-lineAdjust);
+        var stdin=workd.rel("stdin.txt");
+        var pre=Promise.resolve();
+        if (!stdin.exists()) {
+            pre=stdin.text("\n\n\n\n\n\n\n\n\n");
+        }
+        pre.then(()=>{
+            //console.log(workd.rel("stdin.txt").exists());
+            exec('python "'+cvSrcF.path()+'" < stdin.txt ', (err, stdout, stderr) => {
+                //if (err) { console.log(err+""); }
+                var mesg=stderr+"";
+                mesg=mesg.replace(/line ([0-9]+)/g,function (r,ln) {
+                    return "line "+(ln-lineAdjust);
+                });
+                console.log(mesg);
+                console.log(stdout);
             });
-            console.log(mesg);
-            console.log(stdout);
         });
     } catch(e) {
         if (e.noTrace) {

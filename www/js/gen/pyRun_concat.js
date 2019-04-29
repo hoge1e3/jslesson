@@ -1978,11 +1978,11 @@ define('PyLib',[], function () {
             return this;
         }();
     }
-    var root = getRoot();
-    //test
-    var PL = {};
-    PL.import = function (lib) {
-        if (lib === "random") {
+    var root=getRoot();
+    //test!!
+    var PL={};
+    PL.import=function (lib) {
+        if (lib==="random") {
             return {
                 random: Math.random,
                 randint: function randint(a, b) {
@@ -2000,18 +2000,18 @@ define('PyLib',[], function () {
                 }
             };
         }
-        throw new Error("ライブラリ " + lib + " はインポートできません．(サーバで実行すると動作する可能性があります)");
+        throw new Error("ライブラリ "+lib+" はインポートできません．(サーバで実行すると動作する可能性があります)");
     };
-    PL.lineBuf = "";
-    PL.print = function () {
-        var a = PL.parseArgs(arguments);
-        console.log("print", arguments, a);
-        var end = a.options.end != null ? a.options.end : "\n";
-        var out = a.join(" ") + end;
-        PL.lineBuf += out;
-        var lines = PL.lineBuf.split("\n");
-        if (lines.length > 10) {
-            PL.lineBuf = lines.slice(lines.length - 10).join("\n");
+    PL.lineBuf="";
+    PL.print=function () {
+        var a=PL.parseArgs(arguments);
+        console.log("print",arguments,a);
+        var end=a.options.end!=null ? a.options.end: "\n";
+        var out=a.map(PL.str).join(" ")+end;
+        PL.lineBuf+=out;
+        var lines=PL.lineBuf.split("\n");
+        if(lines.length>10) {
+            PL.lineBuf=lines.slice(lines.length-10).join("\n");
         }
         PL.STDOUT.append($("<span>").text(out));
     };
@@ -2022,24 +2022,18 @@ define('PyLib',[], function () {
         PL.print(r);
         return r;
     };
-    PL.len = function (s) {
-        return s.length;
+    PL.len=function (s) {return s.length;};
+    PL.float=function (s) {return s-0;};
+    PL.int=function (s) {return s-0;};
+    PL.str=function (s) {
+        //  s==false
+        if (s!=null && s.__str__) return s.__str__();
+        return s+"";
     };
-    PL.float = function (s) {
-        return s - 0;
-    };
-    PL.int = function (s) {
-        return s - 0;
-    };
-    PL.str = function (s) {
-        return s + "";
-    };
-    PL.quit = function (s) {
-        PL.exit();
-    };
-    PL.exit = function (s) {
-        var e = new Error("exit でプログラムが終了しました。");
-        e.noTrace = true;
+    PL.quit=function (s) {PL.exit();};
+    PL.exit=function (s) {
+        var e=new Error("exit でプログラムが終了しました。");
+        e.noTrace=true;
         throw e;
     };
     PL.type = function (s) {
@@ -2114,10 +2108,8 @@ define('PyLib',[], function () {
             res.push(b);
         }return res;
     };
-    PL.wrap = function (v) {
-        var W = PL.wrappers[typeof v === "undefined" ? "undefined" : _typeof(v)];
-        if (!W) return v;
-        return W(v);
+    PL.wrap=function (v) {
+        return v;
     };
     PL.class = function (parent, defs) {
         if (arguments.length < 2) {
@@ -2178,137 +2170,12 @@ define('PyLib',[], function () {
         if (k.match(/=/)) continue;
         PL.iops[k + "="] = "i" + PL.ops[k];
     }
-    PL.unwrap = u;
     function u(v) {
-        if (v instanceof PL.Wrapper) return v.unwrap();
         return v;
     }
-    PL.Wrapper = PL.class(PL.Object, {
-        __init__: function __init__(self, value) {
-            self.value = value;
-        },
-        unwrap: function unwrap(self) {
-            return self.value;
-        },
-        __call__: function __call__(self) {
-            var a = Array.prototype.slice.call(arguments, 1);
-            return self.unwrap().apply(self, a);
-        },
-        toString: function toString(self) {
-            return self.value + "";
-        },
-        __add__: function __add__(self, other) {
-            return self.unwrap() + u(other);
-        },
-        __sub__: function __sub__(self, other) {
-            return self.unwrap() - u(other);
-        },
-        __mul__: function __mul__(self, other) {
-            return self.unwrap() * u(other);
-        },
-        __div__: function __div__(self, other) {
-            return self.unwrap() / u(other);
-        },
-        __floordiv__: function __floordiv__(self, other) {
-            return Math.floor(self.unwrap() / u(other));
-        },
-        __mod__: function __mod__(self, other) {
-            return self.unwrap() % u(other);
-        },
-        __gt__: function __gt__(self, other) {
-            return self.unwrap() > u(other);
-        },
-        __lt__: function __lt__(self, other) {
-            return self.unwrap() < u(other);
-        },
-        __ge__: function __ge__(self, other) {
-            return self.unwrap() >= u(other);
-        },
-        __le__: function __le__(self, other) {
-            return self.unwrap() <= u(other);
-        },
-        __eq__: function __eq__(self, other) {
-            return self.unwrap() === u(other);
-        },
-        __ne__: function __ne__(self, other) {
-            return self.unwrap() !== u(other);
-        },
-        __pow__: function __pow__(self, other) {
-            return Math.pow(self.unwrap(), u(other));
-        },
 
-        __iadd__: function __iadd__(self, other) {
-            self.value = self.unwrap() + u(other);return self;
-        },
-        __isub__: function __isub__(self, other) {
-            self.value = self.unwrap() - u(other);return self;
-        },
-        __imul__: function __imul__(self, other) {
-            self.value = self.unwrap() * u(other);return self;
-        },
-        __idiv__: function __idiv__(self, other) {
-            self.value = self.unwrap() / u(other);return self;
-        },
-        __ifloordiv__: function __ifloordiv__(self, other) {
-            self.value = Math.floor(self.unwrap() / u(other));return self;
-        },
-        __imod__: function __imod__(self, other) {
-            self.value = self.unwrap() % u(other);return self;
-        },
-        __ipow__: function __ipow__(self, other) {
-            self.value = Math.pow(self.unwrap(), u(other));return self;
-        }
-
-        //____: function (self,other) { return selfother;},
-    });
-    PL.wrappers = {
-        number: PL.class(PL.Wrapper, {
-            __getTypeName__: function __getTypeName__() {
-                return "<class number>";
-            }
-        }),
-        string: PL.class(PL.Wrapper, {
-            __getTypeName__: function __getTypeName__() {
-                return "<class str>";
-            },
-            __mul__: function __mul__(self, other) {
-                switch (typeof other === "undefined" ? "undefined" : _typeof(other)) {
-                    case "number":
-                        var res = "";
-                        for (; other; other--) {
-                            res += self.unwrap();
-                        }return res;
-                    default:
-                        PL.invalidOP("__mul__", other);
-                }
-            },
-            __mod__: function __mod__(self, other) {
-                var args = void 0;
-                if (other instanceof Array) args = other;else if (other instanceof PL.Tuple) args = other.elems;else args = [other];
-                return sprintfJS.apply(undefined, [self.unwrap()].concat(_toConsumableArray(args)));
-            },
-            __add__: function __add__(self, other) {
-                if (typeof u(other) !== "string") {
-                    throw new Error("文字列に文字列以外の値を+で追加できません．str()関数を使って変換してください．");
-                }
-                return PL.Wrapper.prototype.__add__.call(self, other);
-            }
-        }),
-        boolean: PL.class(PL.Wrapper, {
-            __getTypeName__: function __getTypeName__() {
-                return "<class boolean>";
-            }
-
-        }),
-        function: PL.class(PL.Wrapper, {
-            __getTypeName__: function __getTypeName__() {
-                return "<class function>";
-            }
-
-        })
-    };
-    PL.invalidOP = function (op, to) {
-        throw new Error("Cannot do opration " + op + " to " + to);
+    PL.invalidOP=function (op,to) {
+        throw new Error("Cannot do opration "+op+" to "+to);
     };
     PL.Tuple = PL.class({
         __init__: function __init__(self, elems) {
@@ -2332,42 +2199,16 @@ define('PyLib',[], function () {
         }
     };
     //--- monkey patch
-    String.prototype.format = function () {
-        var str = this;
-        var o = {};
-        var i = 0;
 
-        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-            args[_key] = arguments[_key];
-        }
-
-        var _iteratorNormalCompletion = true;
-        var _didIteratorError = false;
-        var _iteratorError = undefined;
-
-        try {
-            for (var _iterator = args[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                var a = _step.value;
-
-                if (a instanceof PL.Option) {
-                    Object.assign(o, a);
-                } else {
-                    o[i + ""] = a;
-                }
-                i++;
-            }
-        } catch (err) {
-            _didIteratorError = true;
-            _iteratorError = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion && _iterator.return) {
-                    _iterator.return();
-                }
-            } finally {
-                if (_didIteratorError) {
-                    throw _iteratorError;
-                }
+    String.prototype.format=function (...args) {
+        const str=this;
+        const o={};
+        let i=0;
+        for (const a of args) {
+            if (a instanceof PL.Option) {
+                Object.assign(o, a );
+            } else {
+                o[i+""]=a;
             }
         }
 
@@ -2380,7 +2221,114 @@ define('PyLib',[], function () {
             }
         });
     };
-    Array.prototype.append = Array.prototype.push;
+    PL.addMonkeyPatch=function (cl, methods) {
+        var p=cl.prototype;
+        for (var k in methods) addMethod(k);
+        function addMethod(k) {
+            var m=methods[k];
+            Object.defineProperty(p,k,{
+                value: function () {
+                    var a=Array.prototype.slice.call(arguments);
+                    a.unshift(this);
+                    return m.apply(this,a);
+                },
+                enumerable: false
+            });
+        }
+    };
+    PL.addMonkeyPatch(Object, {
+        __getTypeName__: function (){return "<class object>";},
+        __call__: function (self,...a) {
+            //var a=Array.prototype.slice.call(arguments,1);
+            return self.apply(self, a);
+        },
+        toString: function (self) {return self.value+"";},
+        __str__: function (self) {
+            return self+"";
+        },
+        __add__: function (self,other) {return self+u(other);
+        },
+        __sub__: function (self,other) { return self-u(other);},
+        __mul__: function (self,other) { return self*u(other);},
+        __div__: function (self,other) { return self/u(other);},
+        __floordiv__: function (self,other) { return Math.floor(self/u(other));},
+        __mod__: function (self,other) { return self%u(other);},
+        __gt__: function (self,other) { return self>u(other);},
+        __lt__: function (self,other) { return self<u(other);},
+        __ge__: function (self,other) { return self>=u(other);},
+        __le__: function (self,other) { return self<=u(other);},
+        __eq__: function (self,other) { return self==u(other);/* Number wrapped */},
+        __ne__: function (self,other) { return self!=u(other);/* Number wrapped */},
+        __pow__: function (self,other) { return Math.pow(self,u(other));},
+
+        __iadd__: function (self,other) { self=self.__add__(other);return self;},
+        __isub__: function (self,other) { self=self.__sub__(other);return self;},
+        __imul__: function (self,other) { self=self.__mul__(other);return self;},
+        __idiv__: function (self,other) { self=self.__div__(other);return self;},
+        __ifloordiv__: function (self,other) { self=self.__floordiv__(other);return self;},
+        __imod__: function (self,other) { self=self.__mod__(other);return self;},
+        __ipow__: function (self,other) { self=self.__pow__(other);return self;},
+
+        __delattr__: function (self,name) {
+            delete self[name];
+        },
+        //____: function (self,other) { return selfother;},
+    });
+    PL.addMonkeyPatch(Number,{
+        __getTypeName__: function (){return "<class number>";},
+    });
+    PL.addMonkeyPatch(String,{
+        __getTypeName__: function (){return "<class str>";},
+        __mul__: function (self,other) {
+            switch (typeof other) {
+            case "number":
+                var res="";
+                for (;other;other--) res+=self;
+                return res;
+            default:
+                PL.invalidOP("__mul__",other);
+            }
+        },
+        __mod__: function (self,other) {
+            let args;
+            if (other instanceof Array) args=other;
+            else if (other instanceof PL.Tuple) args=other.elems;
+            else args=[other];
+            return sprintfJS(self,...args);
+        },
+        __add__: function (self,other) {
+            if (typeof u(other)!=="string") {
+                throw new Error("文字列に文字列以外の値を+で追加できません．str()関数を使って変換してください．");
+            }
+            return Object.prototype.__add__.call(self,other);
+        }
+    });
+    PL.addMonkeyPatch(Boolean,{
+        __getTypeName__: function (){return "<class boolean>";},
+        __str__(self) {
+            //  self is wrapped. always trusy
+            return self==true?"True":"False";
+        }
+
+    });
+    PL.addMonkeyPatch(Function,{
+        __getTypeName__: function (){return "<class function>";},
+    });
+    PL.addMonkeyPatch(Array, {
+        append(self, ...args) {
+            return self.push(...args);
+        },
+        __add__(self,...args) {
+            return self.concat(...args);
+        },
+        __delattr__(self,i) {
+            self.splice(i,1);
+        },
+        __str__(self) {
+            return "["+self.join(", ")+"]";
+        }
+    });
+
     //---
     PL.builtins = ["range", "input", "str", "int", "float", "len", "type", "quit", "exit", "sorted", "fillRect", "setColor", "setTimeout", "clearRect", "clear"];
     root.PYLIB = PL;
@@ -2562,6 +2510,7 @@ const vdef={
         for (const b of node.body) {
             this.visit(b);
         }
+        this.addScope(node.name , {kind:"class",node});
     },
     define: function (node) {
         //console.log("define",node);
@@ -2647,6 +2596,33 @@ const vdef={
 
     },
     delStmt: function(node) {
+        var a=expr=>{
+            switch (expr.type) {
+            case "postfix":
+                switch (expr.op.type) {
+                case "memberRef":
+                    this.anon.put(node,{
+                        obj: expr.left,
+                        name: expr.op.name
+                    });
+                    return true;
+                case "index":
+                    this.anon.put(node,{
+                        obj: expr.left,
+                        index: expr.op.body
+                    });
+                    return true;
+                }
+                return false;
+            case "paren":
+                return a(node.expr.body);
+            default:
+                return false;
+            }
+        };
+        if (!a(node.expr)) {
+            this.error("del の後ろは「オブジェクト.属性名」という形式にしてください．"  , node);
+        }
         this.visit(node.expr);
     },
     printStmt3: function (node) {
@@ -6169,7 +6145,7 @@ function (Visitor,IndentBuffer,assert) {
             this.visit(node.body);
         },
         classdef: function (node) {
-            this.printf("class %s%v:%{%v%}",node.name,node.body);
+            this.printf("class %s:%{%v%}",node.name,node.body);
         },
         define: function (node) {
             this.printf("def %s%v:%{%v%}",node.name,node.params,node.body);
@@ -6359,12 +6335,12 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         classdef: function (node) {
             this.ctx.enter({inClass:node},()=>{
-                this.printf("%s.class('%s',{%{%j%}}",PYLIB,node.name,[",",node.body]);
+                this.printf("var %s=%s.class(Object,{%{%j%}});",node.name, PYLIB,[",",node.body]);
             });
         },//
         define: function (node) {
             if (this.ctx.inClass) {
-                this.printf("%n%s: function %s%v{%{%v%}}",node.name,node.params,node.body);
+                this.printf("%n%s: function %v{%{%v%}}",node.name,node.params,node.body);
             } else {
                 this.printf("function %s%v{%{%v%}}%n",node.name,node.params,node.body);
 
@@ -6388,7 +6364,12 @@ function (Visitor,IndentBuffer,context,PL) {
             else this.printf("return ;");
         },
         delStmt: function (node) {
-            this.printf("delete %v;",node.expr);
+            var a=this.anon.get(node);
+            if (a.index) {
+                this.printf("%s.wrap(%v).__delattr__(%v);",PYLIB, a.obj, a.index);
+            } else {
+                this.printf("%s.wrap(%v).__delattr__('%s');",PYLIB, a.obj, a.name);
+            }
         },
         whileStmt: function (node) {
             this.printf("while (%v) %v", node.cond,node.do);
@@ -6419,9 +6400,14 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         globalStmt: function (node) {},
         printStmt: function (node) {
-            if (node.nobr) this.printf("%s.print(%j,%s.opt({end:' '}));",
-            PYLIB,[",",node.values],PYLIB);
-            else this.printf("%s.print(%j);",PYLIB,[",",node.values]);
+            if (node.nobr) {
+                this.printf("%s.print(%j,%s.opt({end:' '}));",
+                PYLIB,[",",node.values],PYLIB);
+            } else if (node.values.length==1 && node.values[0].type=="tuple") {
+                this.printf("%s.print(%j);",PYLIB,[",",node.values[0].body]);
+            } else {
+                this.printf("%s.print(%j);",PYLIB,[",",node.values]);
+            }
         },
         printStmt3: function (node) {
             this.printf("%s.print %v;",PYLIB,node.args);

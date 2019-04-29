@@ -8989,7 +8989,7 @@ define('LocalBrowserInfoClass',["FS","Klass","source-map","DeferredUtil"], funct
 		},
 		loadNode: function (f) {
             var dp=new DOMParser();
-            var src=dp.parseFromString(f.text(),"text/html");
+            var src=dp.parseFromString(f.text()||"<html></html>","text/html");
             if (this.options.onparse) {
                 src=this.options.onparse(src,document);
             }
@@ -11381,6 +11381,7 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','showErrorPos','f
     var helpURL;
     var unsaved=false;
     var unsynced=false;
+    var typingCheckContent=null, sendUnsavedContentCount=0, lastSentUnsavedContent=null;
     //var Builder;
     var builder;
     var ram;
@@ -11441,6 +11442,7 @@ function ready() {
     var opt=curPrj.getOptions();
     var lang=opt.language || "js";
     var ide={run:run, prj:curPrj};
+    root.openDummyEditor=openDummyEditor;
     switch (lang){
     case "c":
         requirejs(["CBuilder"],function(_){
@@ -11465,10 +11467,11 @@ function ready() {
     	helpURL="http://bitarrow.eplang.jp/index.php?dncl_use";
     	break;
     case "py":
-    	requirejs(["PythonBuilder"],setupBuilder);
+        openDummyEditor();// I dont know
+        requirejs(["PythonBuilder"],setupBuilder);
         ALWAYS_UPLOAD=UA.isIE;
-    	//helpURL="http://bitarrow.eplang.jp/index.php?dncl_use";
-    	break;
+    	helpURL="http://bitarrow.eplang.jp/index.php?python";
+        break;
     case "tonyu":
         ALWAYS_UPLOAD=true;
         requirejs(["TonyuBuilder"],setupBuilder);
@@ -11687,7 +11690,7 @@ function ready() {
     onResize();
     var desktopEnv=loadDesktopEnv();
     window.editorTextSize=desktopEnv.editorFontSize||18;
-    var editors={};
+    var editors={};root._editors=editors;
 
     KeyEventChecker.down(document,"bs",F(function (e) {
         A.is(e,"Event");
@@ -12116,7 +12119,9 @@ function ready() {
         var curHTMLFile=curFiles && curFiles[0];
         var curJSFile=curFiles && curFiles[1];
         if (curJSFile) {
-            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",e.stack || e,langList[lang]);
+            var posinfo="";
+            if (e.srcPath && e.pos) posinfo="("+e.srcPath+":"+e.pos+")";
+            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",posinfo+(e.stack || e),langList[lang]);
         }
     };
     function close(rm) { // rm or mv
@@ -12192,8 +12197,23 @@ function ready() {
     	    if(mod){
     	        unsaved=true;
     	        unsynced=true;
+                if (typingCheckContent!==prog.getValue()) {
+                    typingCheckContent=prog.getValue();
+                    sendUnsavedContentCount=0;
+                }
+                if (lastSentUnsavedContent!==prog.getValue()) {
+                    sendUnsavedContentCount++;
+                }
+                if (sendUnsavedContentCount>=10) {
+                    sendUnsavedContentCount=0;
+                    lastSentUnsavedContent=prog.getValue();
+                    logToServer2(curFile.path(),lastSentUnsavedContent,"",langList[lang]+" Unsaved","未保存の内容",langList[lang]);
+                }
     	    }else{
     	        unsaved=false;
+                typingCheckContent=null;
+                lastSentUnsavedContent=null;
+                sendUnsavedContentCount=0;
     	    }
         }catch(e) {
             console.log(e);
@@ -12247,15 +12267,19 @@ function ready() {
             //if(desktopEnv.editorMode=="emacs") prog.setKeyboardHandler("ace/keyboard/emacs");
             //prog.setKeyboardHandler(defaultKeyboard);
             if (f.ext()==EXT && lang=="c") {
+                //console.log("mode/c/set");
                 prog.getSession().setMode("ace/mode/c_cpp");
             }
             else if (f.ext()==EXT && lang=="py") {
+                //console.log("mode/python/set");
                 prog.getSession().setMode("ace/mode/python");
             }
             else if (f.ext()==EXT) {
+                //console.log("mode/tonyu/set");
                 prog.getSession().setMode("ace/mode/tonyu");
             }
             if (f.ext()==HEXT) {
+                //console.log("mode/html/set");
                 prog.getSession().setMode("ace/mode/html");
             }
             prog.getSession().setUseWrapMode(true);
@@ -12361,6 +12385,12 @@ function ready() {
     window.getCurrentEditorInfo=getCurrentEditorInfo;
     SplashScreen.hide();
     window.NotificationDialog=NotificationDialog;
+    function openDummyEditor() {
+        var progDOM=$("<pre>").css("height", "500px").text("#hoge\n'hoge'");
+        var prog2=root.ace.edit(progDOM[0]);
+        prog2.getSession().setMode("ace/mode/python");
+        //progDOM.dialog();
+    }
 }// of ready
 });
 

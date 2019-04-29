@@ -6,7 +6,7 @@ function (Visitor,IndentBuffer,assert) {
             this.visit(node.body);
         },
         classdef: function (node) {
-            this.printf("class %s%v:%{%v%}",node.name,node.body);
+            this.printf("class %s:%{%v%}",node.name,node.body);
         },
         define: function (node) {
             this.printf("def %s%v:%{%v%}",node.name,node.params,node.body);

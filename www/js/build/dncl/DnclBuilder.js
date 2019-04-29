@@ -44,7 +44,7 @@ function (A,DU,wget,dnclParser,IndentBuffer,Sync,FS,SplashScreen,ABG,root,WebSit
         this.progress("generate "+f.src.html.name());
         //var curHTMLFile=d.rel(name+".html");
         var dp=new DOMParser();
-        var dom=dp.parseFromString(f.src.html.text(),"text/html");
+        var dom=dp.parseFromString(f.src.html.text()||"<html></html>","text/html");
         var html=dom.getElementsByTagName("html")[0];
         var head=dom.getElementsByTagName("head")[0];
         var body=dom.getElementsByTagName("body")[0];

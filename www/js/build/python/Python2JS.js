@@ -8,12 +8,12 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         classdef: function (node) {
             this.ctx.enter({inClass:node},()=>{
-                this.printf("%s.class('%s',{%{%j%}}",PYLIB,node.name,[",",node.body]);
+                this.printf("var %s=%s.class(Object,{%{%j%}});",node.name, PYLIB,[",",node.body]);
             });
         },//
         define: function (node) {
             if (this.ctx.inClass) {
-                this.printf("%n%s: function %s%v{%{%v%}}",node.name,node.params,node.body);
+                this.printf("%n%s: function %v{%{%v%}}",node.name,node.params,node.body);
             } else {
                 this.printf("function %s%v{%{%v%}}%n",node.name,node.params,node.body);
 
@@ -37,7 +37,12 @@ function (Visitor,IndentBuffer,context,PL) {
             else this.printf("return ;");
         },
         delStmt: function (node) {
-            this.printf("delete %v;",node.expr);
+            var a=this.anon.get(node);
+            if (a.index) {
+                this.printf("%s.wrap(%v).__delattr__(%v);",PYLIB, a.obj, a.index);
+            } else {
+                this.printf("%s.wrap(%v).__delattr__('%s');",PYLIB, a.obj, a.name);
+            }
         },
         whileStmt: function (node) {
             this.printf("while (%v) %v", node.cond,node.do);
@@ -68,9 +73,14 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         globalStmt: function (node) {},
         printStmt: function (node) {
-            if (node.nobr) this.printf("%s.print(%j,%s.opt({end:' '}));",
-            PYLIB,[",",node.values],PYLIB);
-            else this.printf("%s.print(%j);",PYLIB,[",",node.values]);
+            if (node.nobr) {
+                this.printf("%s.print(%j,%s.opt({end:' '}));",
+                PYLIB,[",",node.values],PYLIB);
+            } else if (node.values.length==1 && node.values[0].type=="tuple") {
+                this.printf("%s.print(%j);",PYLIB,[",",node.values[0].body]);
+            } else {
+                this.printf("%s.print(%j);",PYLIB,[",",node.values]);
+            }
         },
         printStmt3: function (node) {
             this.printf("%s.print %v;",PYLIB,node.args);

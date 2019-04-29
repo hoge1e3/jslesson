@@ -66,6 +66,7 @@ class RunPythonController {
                 "asset"=>self::convHomes($homes)
             ))
         );
+        $workDir->rel("stdin.txt")->text(param("stdin","\n\n\n\n\n\n\n\n"));
         $cmd=PYTHON_PATH." \"$copiedScriptPath\"";
         $res=system_ex($cmd);
         if ($res["return"]==0) self::convOut($res["stdout"]);
