@@ -7,7 +7,7 @@ define([], function () {
     var Assertion = function Assertion(failMesg) {
         this.failMesg = flatten(failMesg || "Assertion failed: ");
     };
-    var $a; //test
+    var $a;
     Assertion.prototype = {
         _regedType: {},
         registerType: function registerType(name, t) {

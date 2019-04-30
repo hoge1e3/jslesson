@@ -53,17 +53,19 @@ function (A,DU,wget,Sync,WebSite,Tonyu,PRC) {
             $(head).append($("<script>").text("window.BitArrow="+JSON.stringify(ba)+";"));
         }
         $(head).append($("<script>").text("window.$LASTPOS=0;window.runtimePath='"+WebSite.runtime+"';"));
-        var nn=document.createElement("script");
-        nn.setAttribute("charset","utf-8");
-        nn.setAttribute("src",WebSite.runtime+"lib/tjs/documentWrite.js");
-        head.appendChild(nn);
+        ["lib/polyfill.js","lib/tjs/documentWrite.js"].forEach(function (src) {
+            var nn=document.createElement("script");
+            nn.setAttribute("charset","utf-8");
+            nn.setAttribute("src",WebSite.runtime+src);
+            head.appendChild(nn);
+        });
 
-        nn=document.createElement("script");
+        /*nn=document.createElement("script");
         nn.setAttribute("charset","utf-8");
         nn.setAttribute("src",WebSite.runtime+"lib/plotly-latest.min.js");
-        head.appendChild(nn);
+        head.appendChild(nn);*/
 
-        ["lib/jquery-1.12.1.js","lib/require.js","lib/tjs/run.js"].forEach(function (src) {
+        ["lib/plotly-latest.min.js","lib/jquery-1.12.1.js","lib/require.js","lib/tjs/run.js"].forEach(function (src) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
             var url=WebSite.runtime+src;
@@ -73,7 +75,7 @@ function (A,DU,wget,Sync,WebSite,Tonyu,PRC) {
             nn.setAttribute("src",url);
             body.appendChild(nn);
         });
-        nn=document.createElement("script");
+        var nn=document.createElement("script");
         nn.setAttribute("charset","utf-8");
         var ns=this.tprj.getNamespace();
         nn.appendChild(document.createTextNode("run('"+ns+"."+name+"');"));

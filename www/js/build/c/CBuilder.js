@@ -7,7 +7,7 @@ function (A,DU,wget,compile,IndentBuffer,Sync,
         this.dst=dst;// SFile in ramdisk
     };
     root.CBuilder=CBuilder;
-    var libs=["jquery-1.12.1","require"].map(function (n) {
+    var libs=["polyfill","jquery-1.12.1","require"].map(function (n) {
         return "lib/"+n+".js";
     });
     /*var clibs=["scanf","lib","util","ctype","x","AsyncByGenerator","AsyncByGeneratorRaw"].map(

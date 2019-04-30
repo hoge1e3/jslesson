@@ -5,7 +5,7 @@ function (A,DU,wget,dnclParser,IndentBuffer,Sync,FS,SplashScreen,ABG,root,WebSit
         this.dst=dst;// SFile in ramdisk
     };
     root.DnclBuilder=DnclBuilder;
-    var libs=["jquery-1.12.1","require","AsyncByGenerator"].map(function (n) {
+    var libs=["polyfill","jquery-1.12.1","require","AsyncByGenerator"].map(function (n) {
         return "lib/"+n+".js";
     });
     var dtlibs=["promise","mt","lib","polyk","calibration","devicemotion",

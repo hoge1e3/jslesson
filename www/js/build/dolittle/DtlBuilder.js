@@ -22,7 +22,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG,UI,root,WebS
     "tnu.ico", "tonbo.gif", "tonyu.png", "trumpet.png",
     "tulip.png", "ui-icons_888888_256x240.png", "undo.png", "usa.gif"].map(
         function (n) {return "images/"+n;});*/
-    var libs=["jquery-1.12.1","require","AsyncByGenerator"].map(function (n) {
+    var libs=["polyfill","jquery-1.12.1","require","AsyncByGenerator"].map(function (n) {
         return "lib/"+n+".js";
     });
     var dtlibs=["promise","mt","lib",
