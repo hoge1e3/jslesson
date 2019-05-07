@@ -227,7 +227,7 @@ define([],function () {
         const str=this;
         const o={};
         let i=0;
-        for (const a of args) {
+        for (let a of args) {
             if (a instanceof PL.Option) {
                 Object.assign(o, a );
             } else {

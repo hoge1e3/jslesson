@@ -115,7 +115,7 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("%v:%v",node.key,node.value);
         },
         index: function (node) {
-            for (const b of node.body) {
+            for (let b of node.body) {
                 this.printf("[%v]",b);
             }
         },
@@ -211,7 +211,7 @@ function (Visitor,IndentBuffer,context,PL) {
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=",
       ">","<","=",".",":","+","-","*","/","%","(",")",",","!",
       "number","symbol","literal"];
-    for (const ve of verbs) {
+    for (let ve of verbs) {
         vdef[ve]=function (node) {
             //console.log("verb",node);
             this.printf("%s",node+"");
@@ -224,7 +224,7 @@ function (Visitor,IndentBuffer,context,PL) {
         v.def=function (node) {
             var v=this;
             if (node instanceof Array) {
-                for (const n of node) v.visit(n);
+                for (let n of node) v.visit(n);
             } else {
                 this.printf("%s(%s)",node+"",(node ? node.type+"": "UNDEF"));
                 //throw new Error("Visiting undef "+(node && node.type));
@@ -239,7 +239,7 @@ function (Visitor,IndentBuffer,context,PL) {
             options.pyLibPath=options.pyLibPath||"PyLib";
             v.printf("requirejs(['%s'], function (%s) {%{",options.pyLibPath,PYLIB);
         }
-        for (const n of PL.builtins) {
+        for (let n of PL.builtins) {
             v.printf("var %s=%s.%s;%n",n,PYLIB,n);
         }
         v.visit(node);

@@ -25,7 +25,7 @@ class ScopeInfo {
 }
 const vdef={
     program: function (node) {
-        for (const b of node.body) {
+        for (let b of node.body) {
             this.visit(b);
         }
     },
@@ -38,7 +38,7 @@ const vdef={
     },
     classdef: function (node) {
         //console.log("classDef",node);
-        for (const b of node.body) {
+        for (let b of node.body) {
             this.visit(b);
         }
         this.addScope(node.name , {kind:"class",node});
@@ -47,10 +47,10 @@ const vdef={
         //console.log("define",node);
         this.addScope(node.name,{kind:"function",node});
         this.newScope(()=>{
-            for (const p of node.params.body) {
+            for (let p of node.params.body) {
                 this.addScope(p+"",{kind:"local",node:p});
             }
-            for (const b of node.body) {
+            for (let b of node.body) {
                 this.visit(b);
             }
         });
@@ -59,7 +59,7 @@ const vdef={
         this.visit(node.expr);
     },
     globalStmt: function (node) {
-        for (const name of node.names) {
+        for (let name of node.names) {
             this.addScope(name+"",{kind:"global",node:name});
         }
     },
@@ -93,7 +93,7 @@ const vdef={
             }
             */
         } else if (node.left.type==="tupleLval") {
-            for (const sym of node.left.body) {
+            for (let sym of node.left.body) {
                 procLElem(sym);
             }
         } else {
@@ -105,7 +105,7 @@ const vdef={
         //console.log("ifStmt", node);
         this.visit(node.cond);
         this.visit(node.then);
-        for (const e of node.elif) this.visit(e);
+        for (let e of node.elif) this.visit(e);
         if (node.else) this.visit(node.else);
     },
     whileStmt: function (node) {
@@ -157,18 +157,18 @@ const vdef={
         this.visit(node.expr);
     },
     printStmt3: function (node) {
-        for (const value of node.args.body) {
+        for (let value of node.args.body) {
             this.visit(value);
         }
     },
     printStmt: function (node) {
         //console.log("PStm",node);
-        for (const value of node.values) {
+        for (let value of node.values) {
             this.visit(value);
         }
     },
     block: function (node) {
-        for (const b of node.body) {
+        for (let b of node.body) {
             this.visit(b);
         }
     },
@@ -208,22 +208,22 @@ const vdef={
     args: function (node) {
         // node.arg
         //console.log("args", args);
-        for (const b of node.body) {
+        for (let b of node.body) {
             this.visit(b);
         }
     },
     tuple: function (node) {
-        for (const b of node.body) {
+        for (let b of node.body) {
             this.visit(b);
         }
     },
     array: function (node) {
-        for (const b of node.body) {
+        for (let b of node.body) {
             this.visit(b);
         }
     },
     dict: function (node) {
-        for (const b of node.body) {
+        for (let b of node.body) {
             this.visit(b);
         }
     },
@@ -232,7 +232,7 @@ const vdef={
         this.visit(node.value);
     },
     index: function (node) {
-        for (const b of node.body) {
+        for (let b of node.body) {
             this.visit(b);
         }
     },
@@ -288,7 +288,7 @@ const Semantics= {
             return this.ctx.enter(...args);
         };
         v.rootScope={};
-        for (const b of builtins) {
+        for (let b of builtins) {
             v.rootScope[b]=new ScopeInfo(v.rootScope,b,"function");
             v.rootScope[b].builtin=true;
         }
