@@ -16,7 +16,8 @@ function (Grammar,Pos2RC/*,TError*/) {
         "finally","is","None","lambda","try","from" ,"nonlocal","with","yield",
         "assert","pass","except","raise"
        ];
-    const resvh={};for(const r of reserved) resvh[r]=r;
+    const resvh={};
+    for(let r of reserved) resvh[r]=r;
     const puncts=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
       ">","<","=",".",":","+","-","*","/","%","(",")","[","]","{","}",","];
     const tdef={
