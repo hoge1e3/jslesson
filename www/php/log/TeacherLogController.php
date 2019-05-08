@@ -46,6 +46,7 @@ class TeacherLogController {
             logsOfOneUser=[];
         </script>
         <script src="js/log/logViewer.js"></script>
+        <script src="js/log/getlog.js"></script>
         <?php
         //$now=DateUtil::now();
         //"Y-m-d H:i:s"
@@ -106,7 +107,7 @@ class TeacherLogController {
               }else{
                 var i=indexList["<?=$l['filename']?>"];
                 pRaw=programs["<?=$l['filename']?>"][i-1];
-                console.log(i-1,pRaw);
+                //console.log(i-1,pRaw);
               }
               indexList["<?=$l['filename']?>"]++;
               var cRaw=<?=$l['raw']?>;
