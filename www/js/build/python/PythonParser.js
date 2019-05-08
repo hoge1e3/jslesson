@@ -16,7 +16,8 @@ function (Grammar,Pos2RC/*,TError*/) {
         "finally","is","None","lambda","try","from" ,"nonlocal","with","yield",
         "assert","pass","except","raise"
        ];
-    const resvh={};for(const r of reserved) resvh[r]=r;
+    const resvh={};
+    for(let r of reserved) resvh[r]=r;
     const puncts=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
       ">","<","=",".",":","+","-","*","/","%","(",")","[","]","{","}",","];
     const tdef={
@@ -46,7 +47,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         literal: /^r?(("([^\\"]*(\\.)*)*")|('([^\\']*(\\.)*)*'))/,
     };
     for (let p of puncts) tdef[p]="'"+p;
-    //for (const r of reserved) tdef[r]="'"+r;
+    //for (let r of reserved) tdef[r]="'"+r;
     //console.log("tdef",tdef);
     tokens.def(tdef);
     const openPar={"(":1,"[":1,"{":1},closePar={"}":1,"]":1,")":1};
@@ -97,7 +98,7 @@ function (Grammar,Pos2RC/*,TError*/) {
                     }
                 }
                 const tks=this.tokenizeLine(line,lineNo);
-                for (const tk of tks) {
+                for (let tk of tks) {
                     if (openPar[tk.type]) parDepth++;
                     if (closePar[tk.type]) parDepth--;
                     tk.pos+=this.pos;
@@ -243,10 +244,10 @@ function (Grammar,Pos2RC/*,TError*/) {
         nodent: tk("nodent"),
         symOrResv: or(...reserved.concat(["symbol"])),
     };
-    for (const k in tdef) {
+    for (let k in tdef) {
         if (!k.match(/^\$/) && !gdef[k]) gdef[k]=tk(k);
     }
-    for (const k of reserved) {
+    for (let k of reserved) {
         if (!gdef[k]) gdef[k]=tk(k);
     }
 

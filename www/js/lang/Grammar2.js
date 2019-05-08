@@ -35,7 +35,7 @@ class Grammar {
             var names=this.defs[k].names;
             if (names && names.length) {
                 buf+=k+": function (node) {\n";
-                for (const n of names) {
+                for (let n of names) {
                     if (n) buf+="    this.visit(node."+n+");\n";
                 }
                 buf+="},\n";
@@ -137,7 +137,7 @@ class Grammar {
 const methods=["opt","rep0","rep1","sep0","sep1","except"];
 const p=Grammar.prototype;
 Grammar.P=P;
-for (const m of methods) {
+for (let m of methods) {
     Object.defineProperty(p,m,{
         get: function () {
             const g=this;
@@ -151,7 +151,7 @@ for (const m of methods) {
     });
 }
 const chainMethods=["and","or"];
-for (const m of chainMethods) {
+for (let m of chainMethods) {
     Object.defineProperty(p,m,{
         get: function () {
             const g=this;
