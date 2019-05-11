@@ -1480,6 +1480,8 @@ extern char* strstr(char *h,char *n);
   extern double log(double n);
   extern double max(double a,double b);
   extern double min(double a,double b);
+  extern double fmax(double a,double b);
+  extern double fmin(double a,double b);
   extern double pow(double a,double b);
   extern double random(void);
   extern double round(double n);

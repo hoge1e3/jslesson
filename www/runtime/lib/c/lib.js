@@ -318,6 +318,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 			_global[k] = f.bind(Math);
 		}
 	});
+	_global.fmax = _global.max;
+	_global.fmin = _global.min;
 	// -------- 文字列関数はchr_arrayを想定していたが、本当はpointerが通じるようにしないといかん
 	function pointerize(s) {
 		if (s.IS_POINTER) return s;

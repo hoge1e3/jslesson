@@ -1209,7 +1209,7 @@ class Grammar {
             var names=this.defs[k].names;
             if (names && names.length) {
                 buf+=k+": function (node) {\n";
-                for (const n of names) {
+                for (let n of names) {
                     if (n) buf+="    this.visit(node."+n+");\n";
                 }
                 buf+="},\n";
@@ -1311,7 +1311,7 @@ class Grammar {
 const methods=["opt","rep0","rep1","sep0","sep1","except"];
 const p=Grammar.prototype;
 Grammar.P=P;
-for (const m of methods) {
+for (let m of methods) {
     Object.defineProperty(p,m,{
         get: function () {
             const g=this;
@@ -1325,7 +1325,7 @@ for (const m of methods) {
     });
 }
 const chainMethods=["and","or"];
-for (const m of chainMethods) {
+for (let m of chainMethods) {
     Object.defineProperty(p,m,{
         get: function () {
             const g=this;
@@ -1625,7 +1625,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         literal: /^r?(("([^\\"]*(\\.)*)*")|('([^\\']*(\\.)*)*'))/,
     };
     for (let p of puncts) tdef[p]="'"+p;
-    //for (const r of reserved) tdef[r]="'"+r;
+    //for (let r of reserved) tdef[r]="'"+r;
     //console.log("tdef",tdef);
     tokens.def(tdef);
     const openPar={"(":1,"[":1,"{":1},closePar={"}":1,"]":1,")":1};
@@ -1676,7 +1676,7 @@ function (Grammar,Pos2RC/*,TError*/) {
                     }
                 }
                 const tks=this.tokenizeLine(line,lineNo);
-                for (const tk of tks) {
+                for (let tk of tks) {
                     if (openPar[tk.type]) parDepth++;
                     if (closePar[tk.type]) parDepth--;
                     tk.pos+=this.pos;
@@ -1822,10 +1822,10 @@ function (Grammar,Pos2RC/*,TError*/) {
         nodent: tk("nodent"),
         symOrResv: or(...reserved.concat(["symbol"])),
     };
-    for (const k in tdef) {
+    for (let k in tdef) {
         if (!k.match(/^\$/) && !gdef[k]) gdef[k]=tk(k);
     }
-    for (const k of reserved) {
+    for (let k of reserved) {
         if (!gdef[k]) gdef[k]=tk(k);
     }
 
@@ -2205,7 +2205,7 @@ define('PyLib',[], function () {
         const str=this;
         const o={};
         let i=0;
-        for (const a of args) {
+        for (let a of args) {
             if (a instanceof PL.Option) {
                 Object.assign(o, a );
             } else {
@@ -2496,7 +2496,7 @@ class ScopeInfo {
 }
 const vdef={
     program: function (node) {
-        for (const b of node.body) {
+        for (let b of node.body) {
             this.visit(b);
         }
     },
@@ -2509,7 +2509,7 @@ const vdef={
     },
     classdef: function (node) {
         //console.log("classDef",node);
-        for (const b of node.body) {
+        for (let b of node.body) {
             this.visit(b);
         }
         this.addScope(node.name , {kind:"class",node});
@@ -2518,10 +2518,10 @@ const vdef={
         //console.log("define",node);
         this.addScope(node.name,{kind:"function",node});
         this.newScope(()=>{
-            for (const p of node.params.body) {
+            for (let p of node.params.body) {
                 this.addScope(p+"",{kind:"local",node:p});
             }
-            for (const b of node.body) {
+            for (let b of node.body) {
                 this.visit(b);
             }
         });
@@ -2530,7 +2530,7 @@ const vdef={
         this.visit(node.expr);
     },
     globalStmt: function (node) {
-        for (const name of node.names) {
+        for (let name of node.names) {
             this.addScope(name+"",{kind:"global",node:name});
         }
     },
@@ -2564,7 +2564,7 @@ const vdef={
             }
             */
         } else if (node.left.type==="tupleLval") {
-            for (const sym of node.left.body) {
+            for (let sym of node.left.body) {
                 procLElem(sym);
             }
         } else {
@@ -2576,7 +2576,7 @@ const vdef={
         //console.log("ifStmt", node);
         this.visit(node.cond);
         this.visit(node.then);
-        for (const e of node.elif) this.visit(e);
+        for (let e of node.elif) this.visit(e);
         if (node.else) this.visit(node.else);
     },
     whileStmt: function (node) {
@@ -2628,18 +2628,18 @@ const vdef={
         this.visit(node.expr);
     },
     printStmt3: function (node) {
-        for (const value of node.args.body) {
+        for (let value of node.args.body) {
             this.visit(value);
         }
     },
     printStmt: function (node) {
         //console.log("PStm",node);
-        for (const value of node.values) {
+        for (let value of node.values) {
             this.visit(value);
         }
     },
     block: function (node) {
-        for (const b of node.body) {
+        for (let b of node.body) {
             this.visit(b);
         }
     },
@@ -2679,22 +2679,22 @@ const vdef={
     args: function (node) {
         // node.arg
         //console.log("args", args);
-        for (const b of node.body) {
+        for (let b of node.body) {
             this.visit(b);
         }
     },
     tuple: function (node) {
-        for (const b of node.body) {
+        for (let b of node.body) {
             this.visit(b);
         }
     },
     array: function (node) {
-        for (const b of node.body) {
+        for (let b of node.body) {
             this.visit(b);
         }
     },
     dict: function (node) {
-        for (const b of node.body) {
+        for (let b of node.body) {
             this.visit(b);
         }
     },
@@ -2703,7 +2703,7 @@ const vdef={
         this.visit(node.value);
     },
     index: function (node) {
-        for (const b of node.body) {
+        for (let b of node.body) {
             this.visit(b);
         }
     },
@@ -2759,7 +2759,7 @@ const Semantics= {
             return this.ctx.enter(...args);
         };
         v.rootScope={};
-        for (const b of builtins) {
+        for (let b of builtins) {
             v.rootScope[b]=new ScopeInfo(v.rootScope,b,"function");
             v.rootScope[b].builtin=true;
         }
@@ -6296,7 +6296,7 @@ function (Visitor,IndentBuffer,assert) {
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
       ">","<","=",".",":","+","-","*","/","%","(",")",",",
       "number","literal","and","or","True","False"];
-    for (const ve of verbs) {
+    for (let ve of verbs) {
         vdef[ve]=function (node) {
             //console.log("verb",node);
             this.printf(" %s ",node+"");
@@ -6310,7 +6310,7 @@ function (Visitor,IndentBuffer,assert) {
         v.def=function (node) {
             var v=this;
             if (node instanceof Array) {
-                for (const n of node) v.visit(n);
+                for (let n of node) v.visit(n);
             } else {
                 this.printf("%s(%s)",node+"",(node ? node.type+"": "UNDEF"));
                 //throw new Error("Visiting undef "+(node && node.type));
@@ -6444,7 +6444,7 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("%v:%v",node.key,node.value);
         },
         index: function (node) {
-            for (const b of node.body) {
+            for (let b of node.body) {
                 this.printf("[%v]",b);
             }
         },
@@ -6540,7 +6540,7 @@ function (Visitor,IndentBuffer,context,PL) {
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=",
       ">","<","=",".",":","+","-","*","/","%","(",")",",","!",
       "number","symbol","literal"];
-    for (const ve of verbs) {
+    for (let ve of verbs) {
         vdef[ve]=function (node) {
             //console.log("verb",node);
             this.printf("%s",node+"");
@@ -6553,7 +6553,7 @@ function (Visitor,IndentBuffer,context,PL) {
         v.def=function (node) {
             var v=this;
             if (node instanceof Array) {
-                for (const n of node) v.visit(n);
+                for (let n of node) v.visit(n);
             } else {
                 this.printf("%s(%s)",node+"",(node ? node.type+"": "UNDEF"));
                 //throw new Error("Visiting undef "+(node && node.type));
@@ -6568,7 +6568,7 @@ function (Visitor,IndentBuffer,context,PL) {
             options.pyLibPath=options.pyLibPath||"PyLib";
             v.printf("requirejs(['%s'], function (%s) {%{",options.pyLibPath,PYLIB);
         }
-        for (const n of PL.builtins) {
+        for (let n of PL.builtins) {
             v.printf("var %s=%s.%s;%n",n,PYLIB,n);
         }
         v.visit(node);

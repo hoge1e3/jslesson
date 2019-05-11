@@ -155,7 +155,7 @@ function (Visitor,IndentBuffer,assert) {
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
       ">","<","=",".",":","+","-","*","/","%","(",")",",",
       "number","literal","and","or","True","False"];
-    for (const ve of verbs) {
+    for (let ve of verbs) {
         vdef[ve]=function (node) {
             //console.log("verb",node);
             this.printf(" %s ",node+"");
@@ -169,7 +169,7 @@ function (Visitor,IndentBuffer,assert) {
         v.def=function (node) {
             var v=this;
             if (node instanceof Array) {
-                for (const n of node) v.visit(n);
+                for (let n of node) v.visit(n);
             } else {
                 this.printf("%s(%s)",node+"",(node ? node.type+"": "UNDEF"));
                 //throw new Error("Visiting undef "+(node && node.type));
