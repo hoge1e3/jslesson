@@ -1595,7 +1595,8 @@ function (Grammar,Pos2RC/*,TError*/) {
         "finally","is","None","lambda","try","from" ,"nonlocal","with","yield",
         "assert","pass","except","raise"
        ];
-    const resvh={};for(const r of reserved) resvh[r]=r;
+    const resvh={};
+    for(let r of reserved) resvh[r]=r;
     const puncts=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
       ">","<","=",".",":","+","-","*","/","%","(",")","[","]","{","}",","];
     const tdef={
@@ -2226,7 +2227,7 @@ define('PyLib',[],function () {
             //var a=Array.prototype.slice.call(arguments,1);
             return self.apply(self, a);
         },
-        toString: function (self) {return self.value+"";},
+        //toString: function (self) {return self.value+"";},
         __str__: function (self) {
             return self+"";
         },
