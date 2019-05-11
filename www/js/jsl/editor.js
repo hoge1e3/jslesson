@@ -158,7 +158,7 @@ function ready() {
     	helpURL="http://bitarrow.eplang.jp/index.php?dncl_use";
     	break;
     case "py":
-        openDummyEditor();// I dont know
+        //openDummyEditor();// I dont know
         requirejs(["PythonBuilder"],setupBuilder);
         ALWAYS_UPLOAD=UA.isIE;
     	helpURL="http://bitarrow.eplang.jp/index.php?python";
