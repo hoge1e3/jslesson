@@ -168,5 +168,7 @@ function howto(){
 	console.log("Step 3. Use 'downloadAll()' to download csv file(s)");
 	console.log("Use 'howto()' if you want to see this information again.");
 }
-setup();
-howto();
+$(function(){
+	setup();
+	howto();
+});
