@@ -157,22 +157,23 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
             buf.printf("runOnServer2(%s,%s);",    JSON.stringify(f.src.py.text()),needInput );
         }
         buf.close();
-
+        // always run local default
+        this.runLocal=true;
     };
     p.addMenu=function (Menu) {
         Menu.deleteMain("runMenu");
         Menu.appendMain(
             {label:"実行",id:"runPython",after:$("#fileMenu"),sub:
             [
-                {label:"ブラウザで実行",id:"runBrowser",action: ()=>{
+                {label:"ブラウザで実行(F9)",id:"runBrowser",action: ()=>{
                     this.runLocal=true; this.ide.run();
-                    $("#runBrowser").text("ブラウザで実行(F9)");
-                    $("#runServer").text("サーバで実行");
+                    //$("#runBrowser").text("ブラウザで実行(F9)");
+                    //$("#runServer").text("サーバで実行");
                 } } ,
-                {label:"サーバで実行(F9)",id:"runServer",action: ()=>{
+                {label:"サーバで実行",id:"runServer",action: ()=>{
                     this.runLocal=false; this.ide.run();
-                    $("#runServer").text("サーバで実行(F9)");
-                    $("#runBrowser").text("ブラウザで実行");
+                    //$("#runServer").text("サーバで実行(F9)");
+                    //$("#runBrowser").text("ブラウザで実行");
                 } }
             ]}
         );
