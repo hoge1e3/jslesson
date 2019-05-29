@@ -29,7 +29,7 @@ function (Grammar,Pos2RC/*,TError*/) {
             if (resvh[r]) r.type=resvh[r];
             return r;
         }),
-        number: /^[0-9]+[0-9\.]*/,
+        number: /^[0-9]+[0-9\.]*(e[\+\-][0-9]+)?/,
         /*literal: P.StringParser.reg({exec: function (s) {
             //var
     		var head=s.substring(0,1);

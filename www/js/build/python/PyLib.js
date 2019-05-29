@@ -14,6 +14,9 @@ define([],function () {
         if (lib==="random") {
             return {
                 random: Math.random,
+                randrange: function (...args) {
+                    return this.choice(PL.range(...args));
+                },
                 randint: function (a,b) {
                     return Math.floor(Math.random()*(b-a+1))+a;
                 },
@@ -26,6 +29,9 @@ define([],function () {
                 },
                 sample: function (list) {
                     return this.shuffle(list.slice());
+                },
+                choice: function (seq) {
+                    return seq[this.randint(0,seq.length-1)];
                 }
             };
         }
@@ -126,10 +132,10 @@ define([],function () {
         return res;
     };
     PL.opt=PL.Option;
-    PL.range=function (b,e) {
+    PL.range=function (b,e,s=1) {
         if (e==null) {e=b;b=0;}
         var res=[];
-        for (;b<e;b++) res.push(b);
+        for (;b<e;b+=s) res.push(b);
         return res;
     };
     PL.wrap=function (v) {

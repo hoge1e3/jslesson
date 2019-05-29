@@ -12,6 +12,7 @@ const importable={
     re:true,
     requests:true,//SPECIAL
     json:true,//SPECIAL
+    sys:{wrapper:true},
     matplotlib:{wrapper:true},
     numpy:{wrapper:true},
     os:{wrapper:true}

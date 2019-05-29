@@ -27,6 +27,9 @@ function (Visitor,IndentBuffer,assert) {
             }
             //this.printf("%n");
         },
+        globalStmt: function (node) {
+            this.printf("global %j",[",",node.names]);
+        },
         packageName: function (node) {
             this.printf("%j",[".",node]);
         },
