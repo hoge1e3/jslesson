@@ -131,6 +131,9 @@ function (Visitor,IndentBuffer,context,PL) {
         tuple: function (node) {
             this.printf("%s.Tuple([%j])",PYLIB,[",",node.body]);
         },
+        tupleLval: function (node) {
+            this.printf("[%j]",[",",node.body]);
+        },
         ":indent": function (node) {
             this.printf("%{");
         },
@@ -191,7 +194,15 @@ function (Visitor,IndentBuffer,context,PL) {
         not: function (node) {
             this.printf("!");
         },
-
+        literal: function (node) {
+            let s=(node+"");
+            if (s.match(/^r/)) {
+                s=s.replace(/^r/,"").
+                replace(/^["']/,"/").
+                replace(/["']$/,"/");
+            }
+            this.printf("%s",s);
+        },
         True: function () {this.printf("true");},
         False: function () {this.printf("false");},
     };
@@ -210,7 +221,7 @@ function (Visitor,IndentBuffer,context,PL) {
     }
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=",
       ">","<","=",".",":","+","-","*","/","%","(",")",",","!",
-      "number","symbol","literal"];
+      "number","symbol"];
     for (let ve of verbs) {
         vdef[ve]=function (node) {
             //console.log("verb",node);
