@@ -3,8 +3,8 @@
 }*/
 
 define(["Parser","root"], function (Parser,root) {
-// parser.js の補助ライブラリ．式の解析を担当する
-var ExpressionParser=function () {
+	// parser.js の補助ライブラリ．式の解析を担当する
+const ExpressionParser=function () {
 	var $={};
 	var EXPSTAT="EXPSTAT";
 	//  first 10     *  +  <>  &&  ||  =     0  later
@@ -56,6 +56,15 @@ var ExpressionParser=function () {
 		element.add(e);
 	};
 	$.getElement=function () {return element.get();};
+	$._prioToNodeType=[];
+	$.prioToNodeType=function (prio,name,Class) {
+		if (arguments.length===1) return $._prioToNodeType[prio];
+		$._prioToNodeType[prio]={name,Class};
+	};
+	$.prioToNodeTypeName=function (prio) {
+		const r=$.prioToNodeType(prio);
+		return r&&r.name;
+	};
 	$.prefix=function (prio, pre) {
 		prefixOrElement.reg("prefix", prio, pre);
 	};
@@ -82,45 +91,51 @@ var ExpressionParser=function () {
 	$.mkInfix=function (f) {
 		$.mkInfix.def=f;
 	};
-	$.mkInfix.def=function (left,op,right) {
-		return Parser.setRange({type:"infix", op:op, left: left, right: right});
+	$.mkInfix.def=function (left,op,right,prio) {
+		return Parser.setRange({type:$.prioToNodeTypeName(prio)||"infix",
+		op:op, left: left, right: right,prio});
 	};
 	$.mkInfixl=function (f) {
 		$.mkInfixl.def=f;
 	};
-	$.mkInfixl.def=function (left, op , right) {
-		return Parser.setRange({type:"infixl",op:op ,left:left, right:right});
+	$.mkInfixl.def=function (left, op , right,prio) {
+		return Parser.setRange({type:$.prioToNodeTypeName(prio)||"infixl",
+		op:op ,left:left, right:right,prio});
 	};
 	$.mkInfixr=function (f) {
 		$.mkInfixr.def=f;
 	};
-	$.mkInfixr.def=function (left, op , right) {
-		return Parser.setRange({type:"infixr",op:op ,left:left, right:right});
+	$.mkInfixr.def=function (left, op , right,prio) {
+		return Parser.setRange({type:$.prioToNodeTypeName(prio)||"infixr",
+		op:op ,left:left, right:right,prio});
 	};
 	$.mkPrefix=function (f) {
 		$.mkPrefix.def=f;
 	};
-	$.mkPrefix.def=function (op , right) {
-		return Parser.setRange({type:"prefix", op:op, right:right});
+	$.mkPrefix.def=function (op , right,prio) {
+		return Parser.setRange({type:$.prioToNodeTypeName(prio)||"prefix",
+		op:op, right:right,prio});
 	};
 	$.mkPostfix=function (f) {
 		$.mkPostfix.def=f;
 	};
-	$.mkPostfix.def=function (left, op) {
-		return Parser.setRange({type:"postfix", left:left, op:op});
+	$.mkPostfix.def=function (left, op,prio) {
+		return Parser.setRange({type:$.prioToNodeTypeName(prio)||"postfix",
+		left:left, op:op,prio});
 	};
 	$.mkTrifixr=function(f) {
 		$.mkTrifixr.def=f;
 	};
-	$.mkTrifixr.def=function (left, op1, mid, op2, right) {
-		return Parser.setRange({type:"trifixr", left:left, op1:op1, mid:mid, op2:op2, right:right});
+	$.mkTrifixr.def=function (left, op1, mid, op2, right,prio) {
+		return Parser.setRange({type:$.prioToNodeTypeName(prio)||"trifixr",
+		left:left, op1:op1, mid:mid, op2:op2, right:right,prio});
 	};
 	$.build= function () {
 		//postfixOrInfix.build();
 		//prefixOrElement.build();
 		$.built= Parser.create(function (st) {
 			return parse(0,st);
-		}).setName("ExpBuilt");
+		}).firstIsSameAs(prefixOrElement.get()).setName("ExpBuilt");
 		return $.built;
 	};
 	function dump(st, lbl) {
@@ -130,7 +145,7 @@ var ExpressionParser=function () {
 				" opType="+ st.opType+"  Succ = "+st.isSuccess()+" res="+st.result[0]);*/
 	}
 	function parse(minPrio, st) {
-		var stat=0, res=st ,  opt,/*const*/pex,inf;
+		var stat=0, res=st, opt, pex, inf;
 		dump(st," start minprio= "+minPrio);
 		st=prefixOrElement.parse(st);
 		dump(st," prefixorelem "+minPrio);
@@ -147,7 +162,7 @@ var ExpressionParser=function () {
 				return st;
 			}
 				// st: Expr    st.pos = -elem^
-			pex=$.mkPrefix.def(pre, st.result[0]);
+			pex=$.mkPrefix.def(pre, st.result[0],opt.prio());
 			res=st.clone();  //  res:Expr
 			res.result=[pex]; // res:prefixExpr  res.pos= -elem^
 			if (!st.nextPostfixOrInfix) {
@@ -174,7 +189,7 @@ var ExpressionParser=function () {
 			// assert st:postfixOrInfix  res:Expr
 			if (opt.type("postfix")) {
 				// st:postfix
-				pex=$.mkPostfix.def(res.result[0],st.result[0]);
+				pex=$.mkPostfix.def(res.result[0],st.result[0],opt.prio());
 				res=st.clone();
 				res.result=[pex]; // res.pos= expr++^
 				dump(st, "185");
@@ -190,7 +205,7 @@ var ExpressionParser=function () {
 					return res;
 				}
 				// st: expr   st.pos=  expr+expr^
-				pex=$.mkInfixl.def(res.result[0], inf , st.result[0]);
+				pex=$.mkInfixl.def(res.result[0], inf , st.result[0],opt.prio());
 				res=st.clone();
 				res.result=[pex]; //res:infixlExpr
 				if (!st.nextPostfixOrInfix) {
@@ -205,7 +220,7 @@ var ExpressionParser=function () {
 					return res;
 				}
 				// st: expr   st.pos=  a=b=c^
-				pex=$.mkInfixr.def(res.result[0], inf , st.result[0]);
+				pex=$.mkInfixr.def(res.result[0], inf , st.result[0],opt.prio());
 				res=st.clone();
 				res.result=[pex]; //res:infixrExpr
 				if (!st.nextPostfixOrInfix) {
@@ -234,7 +249,7 @@ var ExpressionParser=function () {
 				}
 				var right=st.result[0];
 				// st=right      st.pos= left?mid:right^;
-				pex=$.mkTrifixr.def(left, inf1 , mid, inf2, right);
+				pex=$.mkTrifixr.def(left, inf1 , mid, inf2, right,opt.prio());
 				res=st.clone();
 				res.result=[pex]; //res:infixrExpr
 				if (!st.nextPostfixOrInfix) {
@@ -249,7 +264,7 @@ var ExpressionParser=function () {
 					return res;
 				}
 				// st: expr   st.pos=  expr+expr^
-				pex=$.mkInfix.def(res.result[0], inf , st.result[0]);
+				pex=$.mkInfix.def(res.result[0], inf , st.result[0],opt.prio());
 				res=st.clone();
 				res.result=[pex]; //res:infixExpr
 				if (!st.nextPostfixOrInfix) {
