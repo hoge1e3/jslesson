@@ -1,5 +1,6 @@
 /* global self,global*/
-define([],function () {
+define(function (require,exports,module) {
+    //var PyX=require("./PyX.js");
     // same with root.js
     function getRoot(){
         if (typeof window!=="undefined") return window;
@@ -11,32 +12,34 @@ define([],function () {
     //test!!
     var PL={};
     PL.import=function (lib) {
-        if (lib==="random") {
-            return {
-                random: Math.random,
-                randrange: function (...args) {
-                    return this.choice(PL.range(...args));
-                },
-                randint: function (a,b) {
-                    return Math.floor(Math.random()*(b-a+1))+a;
-                },
-                shuffle: function (list) {
-                    for (let i=list.length-1; i>=0 ;i--) {
-                        const e=list.splice(this.randint(i),1);
-                        list.push(e[0]);
-                    }
-                    return list;
-                },
-                sample: function (list) {
-                    return this.shuffle(list.slice());
-                },
-                choice: function (seq) {
-                    return seq[this.randint(0,seq.length-1)];
-                }
-            };
-        }
+        if (PL.import.libs[lib]) return PL.import.libs[lib];
         throw new Error("ライブラリ "+lib+" はインポートできません．(サーバで実行すると動作する可能性があります)");
     };
+    PL.import.libs={
+        random:{
+            random: Math.random,
+            randrange: function (...args) {
+                return this.choice(PL.range(...args));
+            },
+            randint: function (a,b) {
+                return Math.floor(Math.random()*(b-a+1))+a;
+            },
+            shuffle: function (list) {
+                for (let i=list.length-1; i>=0 ;i--) {
+                    const e=list.splice(this.randint(i),1);
+                    list.push(e[0]);
+                }
+                return list;
+            },
+            sample: function (list) {
+                return this.shuffle(list.slice());
+            },
+            choice: function (seq) {
+                return seq[this.randint(0,seq.length-1)];
+            }
+        },
+    };
+    //PyX.install(PL);
     PL.lineBuf="";
     PL.print=function () {
         var a=PL.parseArgs(arguments);
@@ -87,24 +90,25 @@ define([],function () {
     PL.sorted=function (a) {
         return a.slice().sort();
     };
-    PL.fillRect=function (x,y,w,h){
-        var ctx=PL.CANVAS[0].getContext("2d");
-        ctx.fillRect(x,y,w,h);
+    PL.loop_start2=function loop_start2(){
+        //if (_global.parent) _global.parent.dialogClosed=false;
+        PL.startTime=new Date().getTime();
     };
-    PL.clearRect=function(x,y,w,h){
-        var ctx=PL.CANVAS[0].getContext("2d");
-        ctx.clearRect(x,y,w,h);
+    PL.loop_chk2=function loop_chk2() {
+        if (root.parent && root.parent.dialogClosed) {
+            var e=new Error("ダイアログが閉じられたので実行を停止しました");
+            e.type="dialogClosed";
+            throw e;
+        }
+        var now=new Date().getTime();
+        if (now-PL.startTime>5000) {
+            //console.log(_global.parent, _global.opener);
+            var b=confirm("ループが５秒以上続いています。\n実行を停止するにはOKを押してください。");
+    	    if(b){throw new Error("実行を停止しました。");}
+    		else PL.loop_start2();
+        }
     };
-    PL.clear=function(){
-        PL.clearRect(0,0,PL.CANVAS.width(),PL.CANVAS.height());
-    };
-    PL.setColor=function (r,g,b){
-        var ctx=PL.CANVAS[0].getContext("2d");
-        ctx.fillStyle="rgb("+r+","+g+","+b+")";
-    };
-    PL.setTimeout=function (f,t){
-        setTimeout(f,t);
-    };
+
     PL.STDOUT={
         append: function (s) {
             console.log(s);
