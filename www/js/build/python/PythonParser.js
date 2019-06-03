@@ -166,6 +166,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         if (r.after===r.before) return r;
     });
     const tk=P.TokensParser.token;
+    const tailC=opt(",");
     const gdef={
         //$space: spc,
         program: [{body:rep0(or("stmt","classdef"))},P.TokensParser.eof],
@@ -198,20 +199,26 @@ function (Grammar,Pos2RC/*,TError*/) {
         breakStmt: ["break"],
         continueStmt: ["continue"],
         forStmt: ["for",{var:"symbol"},"in",{set:"expr"},{do:"block"}],
-        letStmt: [{left:"lval"},"=",{right:"expr"}],
+        letStmt: [{left:"lval"},"=",{right:"exprList"}],
         globalStmt: ["global",{names:sep1("symbol",",")}],
         // print(x,y) parsed as: printStmt(2) with tuple
         printStmt: ["print",{values:sep1("expr",",")},{nobr:opt(",")}],
         // print(x,end="") parsed as: printStmt3
         printStmt3: ["print", {args:"args"}],
-        lval: or("singleLval","tupleLval"),
         singleLval: g.expr({
             element: "symbol",
             operators: [
                 ["postfix" , or("args" , "memberRef", "index") ] // (a,b)  .x
             ]
         }),
-        tupleLval: ["(",{body:sep1("singleLval",",")},")"],
+        lvalList: g.toParser( [{body:sep1("singleLval",",")},{t:tailC}] ).ret(
+            (r)=>r.body.length==1&&!r.t ? r.body[1]:r
+        ),
+        parenLval: ["(",{this:"lvalList"},")"],
+        lval: or("parenLval","lvalList"),
+        exprList: g.toParser( [{body:sep1("expr",",")},{t:tailC}]).ret(
+            (r)=>r.body.length==1&&!r.t ? r.body[1]:r
+        ),
         expr: g.expr({
             element: "elem",
             operators: [
@@ -239,9 +246,8 @@ function (Grammar,Pos2RC/*,TError*/) {
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: [":indent",{body:"stmtList"},"dedent"],
         elem: or("symbol","number","bool","array","dict","literal","paren","tuple"),
-        paren: ["(",{body:"expr"},")"],
+        paren: ["(",{this:"exprList"},")"],
         bool: or("True","False"),
-        tuple: ["(",{body:sep0("expr",",")},")"],
         indent: tk("indent"),
         dedent: tk("dedent"),
         nodent: tk("nodent"),
