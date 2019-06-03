@@ -4,19 +4,19 @@ function (Visitor,context,PyLib,Annotation) {
 const builtins=PyLib.builtins;//["print","range","int","str","float","input","len"];
 builtins.push("open");
 const importable={
-    datetime:true,
-    random:true,
-    math:true,
-    jp:true,
-    fs:true,
-    re:true,
-    x:true,
-    requests:true,//SPECIAL
-    json:true,//SPECIAL
-    sys:{wrapper:true},
-    matplotlib:{wrapper:true},
-    numpy:{wrapper:true},
-    os:{wrapper:true}
+    datetime:{server:true},
+    random:{browser:true,server:true},
+    math:{server:true},
+    //jp:true,
+    //fs:{wrapper:true,server:true},
+    re:{server:true},
+    g:{browser:true},
+    requests:{server:true},//SPECIAL
+    json:{server:true},//SPECIAL
+    sys:{wrapper:true,server:true},
+    matplotlib:{wrapper:true,server:true},
+    numpy:{wrapper:true,server:true},
+    os:{wrapper:true,server:true}
 };
 //-----
 class ScopeInfo {
@@ -36,7 +36,14 @@ const vdef={
     importStmt: function (node) {
         const nameHead=node.name[0];
         if (!importable[nameHead]) {
-            this.error(nameHead+" はインポートできません",node);
+            this.error(nameHead+" はインポートできません",nameHead);
+        }
+        if (this.options.runAt && !importable[nameHead][this.options.runAt]) {
+            let hint="．";
+            //console.log("IMP",node);
+            if (importable[nameHead].browser) hint="(「ブラウザで実行」するとインポートできます)．";
+            if (importable[nameHead].server) hint="(「サーバで実行」するとインポートできます)．";
+            this.error(nameHead+" はインポートできません"+hint,nameHead);
         }
         this.addScope(node.alias || nameHead,{kind:"module",vtype:importable[nameHead],node});
     },
@@ -279,10 +286,12 @@ for (let t of thru) {
     vdef[t]=()=>{};
 }
 const Semantics= {
-    check: function (node,srcF) {
+    check: function (node,options) {
+        options=options||{};
         const v=Visitor(vdef);
         v.ctx=context();
         v.anon=new Annotation();
+        v.options=options;
         v.def=function (node) {
             if (node==null) console.log("Semantics.check.def","NULL");
             else console.log("Semantics.check.def",node.type, node);
@@ -315,7 +324,7 @@ const Semantics= {
         };
         v.curScope=function () {return this.ctx.scope;};
         v.error=function (mesg,node) {
-            if (srcF) mesg+=":"+srcF.name();
+            if (options.srcFile) mesg+=":"+options.srcFile.name();
             if (node.row && node.col) mesg+=":"+node.row+":"+node.col;
             var e=new Error(mesg);
             e.node=node;

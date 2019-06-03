@@ -119,7 +119,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         if (!superMode) {
             try {
                 node=PP.parse(pysrcF);
-                var vres=S.check(node);
+                var vres=S.check(node,{srcFile:pysrcF, runAt: runLocal?"browser":"server"});
                 //var gen=G(node);
                 /*if(vres.useInput) {
                     runLocal=true;

@@ -1,7 +1,7 @@
 /* global self, global */
 define([],function () {
     function install(PL) {
-        var lib=PL.import.libs.x={};
+        var lib=PL.import.libs.g={};
         // same with root.js
         function getRoot(){
             if (typeof window!=="undefined") return window;
