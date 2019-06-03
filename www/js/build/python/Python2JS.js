@@ -23,10 +23,13 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("(%j)",[",",node.body]);
         },
         importStmt: function (node) {
+            var url=this.options.pyLibPath+"/py_"+node.name+".js";
             if (node.alias) {
-                this.printf("var %s=%s.import('%v');",node.alias,PYLIB,node.name);
+                this.printf("var %s=require('%s').install(%s);", node.alias, url, PYLIB);
+                //this.printf("var %s=%s.import('%v');",node.alias,PYLIB,node.name);
             } else {
-                this.printf("var %s=%s.import('%v');",node.name,PYLIB,node.name);
+                this.printf("var %s=require('%s').install(%s);", node.name, url, PYLIB);
+                //this.printf("var %s=%s.import('%v');",node.name,PYLIB,node.name);
             }//this.printf("%n");
         },
         exprStmt: function (node) {
@@ -241,21 +244,24 @@ function (Visitor,IndentBuffer,context,PL) {
                 //throw new Error("Visiting undef "+(node && node.type));
             }
         };
+        v.options=options;
         v.ctx=context();
         const buf=options.buf||IndentBuffer();
         buf.visitor=v;
         v.printf=buf.printf.bind(buf);
         v.buf=buf;
         if (options.genReqJS) {
-            options.pyLibPath=options.pyLibPath||"PyLib";
-            v.printf("requirejs(['%s'], function (%s) {%{",options.pyLibPath,PYLIB);
+            options.pyLibPath=options.pyLibPath||".";//"PyLib";
+            v.printf("define('__main__',function (require,exports,module) {%{");
+            v.printf("var %s=require('%s/PyLib.js');%n",PYLIB,options.pyLibPath);
         }
         for (let n of PL.builtins) {
             v.printf("var %s=%s.%s;%n",n,PYLIB,n);
         }
         v.visit(node);
         if (options.genReqJS) {
-            v.printf("%}});");
+            v.printf("%}});%n");
+            v.printf("requirejs(['__main__'],function(){});%n");
         }
         //console.log("pgen res",buf.buf);
         return buf.buf;

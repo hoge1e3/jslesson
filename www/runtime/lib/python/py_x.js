@@ -204,6 +204,7 @@ define([],function () {
         lib.setTimeout=function (f,t){
             setTimeout(f,t);
         };
+        return lib;
     }
     return {install};
 });
