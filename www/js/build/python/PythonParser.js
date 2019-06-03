@@ -202,7 +202,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         letStmt: [{left:"lval"},"=",{right:"exprList"}],
         globalStmt: ["global",{names:sep1("symbol",",")}],
         // print(x,y) parsed as: printStmt(2) with tuple
-        printStmt: ["print",{values:sep1("expr",",")},{nobr:opt(",")}],
+        printStmt: ["print",{values:"exprList"}],
         // print(x,end="") parsed as: printStmt3
         printStmt3: ["print", {args:"args"}],
         singleLval: g.expr({
@@ -246,7 +246,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: [":indent",{body:"stmtList"},"dedent"],
         elem: or("symbol","number","bool","array","dict","literal","paren","tuple"),
-        paren: ["(",{this:"exprList"},")"],
+        paren: ["(",{body:"exprList"},")"],
         bool: or("True","False"),
         indent: tk("indent"),
         dedent: tk("dedent"),

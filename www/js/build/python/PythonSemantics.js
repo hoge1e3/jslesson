@@ -105,7 +105,8 @@ const vdef={
                 this.anon.put(node,{needVar:true});
             }
             */
-        } else if (node.left.type==="tupleLval") {
+        } else if (node.left.type==="lvalList" || node.left.type==="tupleLval") {
+            // tupleLval is deprecated
             for (let sym of node.left.body) {
                 procLElem(sym);
             }
@@ -175,10 +176,11 @@ const vdef={
         }
     },
     printStmt: function (node) {
+        this.visit(node.values);
         //console.log("PStm",node);
-        for (let value of node.values) {
+        /*for (let value of node.values.body) {
             this.visit(value);
-        }
+        }*/
     },
     block: function (node) {
         for (let b of node.body) {
@@ -225,6 +227,12 @@ const vdef={
             this.visit(b);
         }
     },
+    exprList: function (node) {
+        for (let b of node.body) {
+            this.visit(b);
+        }
+    },
+    // deprecated?
     tuple: function (node) {
         for (let b of node.body) {
             this.visit(b);

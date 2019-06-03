@@ -66,6 +66,26 @@ function (Visitor,IndentBuffer,assert) {
             //this.printf("%n");
         },
         printStmt: function (node) {
+            // print 3   -> node.values=3
+            // print 3,5  -> node.values=eList{body=[3,5]}
+            // print 3,  -> node.values=eList{body=[3],t=true}
+            // print (3)  -> node.values=par{body=3}
+            // print (3,) -> node.values=par{body=eList{body=[3],t=true}}
+            // print (3,5) -> node.values=par{body=eList{body=[3,5]}}
+            // print (3,), -> node.values=eList{body=[par{body=eList{body=3,t=true}},t=true}
+            var va=node.values;
+            var nobr=true;
+            while(va.type==="paren") {
+                va=va.body;
+                nobr=false;
+            }
+            if (va.type==="exprList") {
+                nobr=nobr && va.t;
+                this.printf("print(%j)",[",",va.body]);
+            } else {
+                this.printf("print(%s)",va);
+            }
+
             if (node.nobr) this.printf("print(%j,end=' ')",[",",node.values]);
             else {
                 if (node.values.length===1 && node.values[0].type==="tuple") {
