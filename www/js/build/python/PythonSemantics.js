@@ -29,6 +29,7 @@ class ScopeInfo {
 }
 const vdef={
     program: function (node) {
+        this.preScanDefs(node.body);
         for (let b of node.body) {
             this.visit(b);
         }
@@ -56,11 +57,12 @@ const vdef={
     },
     define: function (node) {
         //console.log("define",node);
-        this.addScope(node.name,{kind:"function",node});
+        //this.addScope(node.name,{kind:"function",node});
         this.newScope(()=>{
             for (let p of node.params.body) {
                 this.addScope(p+"",{kind:"local",node:p});
             }
+            this.preScanDefs(node.body);
             for (let b of node.body) {
                 this.visit(b);
             }
@@ -330,6 +332,13 @@ const Semantics= {
             e.node=node;
             //e.noTrace=true;
             throw e;
+        };
+        v.preScanDefs=function (stmtList) {
+            for (let node of stmtList) {
+                if (node.type==="define") {
+                    this.addScope(node.name,{kind:"function",node});
+                }
+            }
         };
         v.newScope(()=>v.visit(node));
         return v;
