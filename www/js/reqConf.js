@@ -280,6 +280,7 @@ var reqConf={
             Python2JS:"build/python/Python2JS",
             pyRun:"build/python/pyRun",
             PyLib: "../runtime/lib/python/PyLib",
+            PyX: "../runtime/lib/python/PyX",
             CBuilder:"build/c/CBuilder",
             TonyuBuilder:"build/tonyu/TonyuBuilder",
             wget:"fs2/wget",
