@@ -76,13 +76,12 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         globalStmt: function (node) {},
         printStmt: function (node) {
-            if (node.nobr) {
+            var a=this.anon.get(node);
+            if (a.nobr) {
                 this.printf("%s.print(%j,%s.opt({end:' '}));",
-                PYLIB,[",",node.values],PYLIB);
-            } else if (node.values.length==1 && node.values[0].type=="tuple") {
-                this.printf("%s.print(%j);",PYLIB,[",",node.values[0].body]);
+                PYLIB,[",",a.values],PYLIB);
             } else {
-                this.printf("%s.print(%j);",PYLIB,[",",node.values]);
+                this.printf("%s.print(%j);",PYLIB,[",",a.values]);
             }
         },
         printStmt3: function (node) {
@@ -131,11 +130,20 @@ function (Visitor,IndentBuffer,context,PL) {
         paren: function (node) {
             this.printf("(%v)",node.body);
         },
-        tuple: function (node) {
-            this.printf("%s.Tuple([%j])",PYLIB,[",",node.body]);
+        exprList: function (node) {
+            const a=this.anon.get(node);
+            if (a.isTuple) {
+                this.printf("%s.Tuple([%j])",PYLIB,[",",node.body]);
+            } else {
+                this.printf("%v",node.body[0]);
+            }
         },
-        tupleLval: function (node) {
-            this.printf("[%j]",[",",node.body]);
+        lvalList: function (node) {
+            if (node.body.length===1) {
+                this.printf("%j",node.body[0]);
+            } else {
+                this.printf("[%j]",[",",node.body]);
+            }
         },
         ":indent": function (node) {
             this.printf("%{");

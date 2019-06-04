@@ -78,11 +78,18 @@ const vdef={
     },
     letStmt: function (node) {
         var v=this;
-        function procLElem(left) {
-            if (left.type==="symbol") {
-                procSym(left);
-            } else {
-                v.visit(left);
+        function procLElem(node) {
+            switch (node.type) {
+                case "symbol":
+                procSym(node);
+                break;
+                case "lvalList":
+                for (let sym of node.body) {
+                    procLElem(sym);
+                }
+                break;
+                default:
+                this.visit(node);
             }
         }
         function procSym(sym) {
@@ -94,25 +101,7 @@ const vdef={
                 v.anon.put(node,{needVar:true});
             }
         }
-        if (node.left.type==="symbol") {
-            procSym(node.left);
-            /*
-            const info=this.getScope(node.left+"");
-            if (info && info.kind==="global") {
-
-            } else if (!info || info.scope!==this.curScope()) {
-                this.addScope(node.left+"",{kind:"local",node});
-                this.anon.put(node,{needVar:true});
-            }
-            */
-        } else if (node.left.type==="lvalList" || node.left.type==="tupleLval") {
-            // tupleLval is deprecated
-            for (let sym of node.left.body) {
-                procLElem(sym);
-            }
-        } else {
-            this.visit(node.left);
-        }
+        procLElem(node.left);
         this.visit(node.right);
     },
     ifStmt: function (node) {
@@ -160,7 +149,7 @@ const vdef={
                 }
                 return false;
             case "paren":
-                return a(node.expr.body);
+                return a(expr.body);
             default:
                 return false;
             }
@@ -176,11 +165,24 @@ const vdef={
         }
     },
     printStmt: function (node) {
-        this.visit(node.values);
-        //console.log("PStm",node);
-        /*for (let value of node.values.body) {
-            this.visit(value);
-        }*/
+        // print 3
+        // print 3,5
+        // print 3,
+        // print (3),
+        // print (3)
+        // print (3,)
+        // print (3,5)
+        // print (3,)
+        // print ((3,5)) #Tuple
+
+        //this.visit(node.values); <- avoid to marked as Tuple
+        for (let b of node.values.body) {
+            this.visit(b);
+        }
+        this.anon.put(node,{values:node.values.body});
+        if (node.values.t) {
+            this.anon.put(node,{nobr:true});
+        }
     },
     block: function (node) {
         for (let b of node.body) {
@@ -228,12 +230,9 @@ const vdef={
         }
     },
     exprList: function (node) {
-        for (let b of node.body) {
-            this.visit(b);
+        if (node.body.length>1 || node.t) {
+            this.anon.put(node,{isTuple:true});
         }
-    },
-    // deprecated?
-    tuple: function (node) {
         for (let b of node.body) {
             this.visit(b);
         }

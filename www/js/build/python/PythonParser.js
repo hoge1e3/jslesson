@@ -211,14 +211,14 @@ function (Grammar,Pos2RC/*,TError*/) {
                 ["postfix" , or("args" , "memberRef", "index") ] // (a,b)  .x
             ]
         }),
-        lvalList: g.toParser( [{body:sep1("singleLval",",")},{t:tailC}] ).ret(
+        lvalList: g.toParser( [{body:sep1("singleLval",",")},{t:tailC}] ),/*.ret(
             (r)=>r.body.length==1&&!r.t ? r.body[1]:r
-        ),
+        )*/
         parenLval: ["(",{this:"lvalList"},")"],
         lval: or("parenLval","lvalList"),
-        exprList: g.toParser( [{body:sep1("expr",",")},{t:tailC}]).ret(
+        exprList: g.toParser( [{body:sep1("expr",",")},{t:tailC}]),/*.ret(
             (r)=>r.body.length==1&&!r.t ? r.body[1]:r
-        ),
+        )*/
         expr: g.expr({
             element: "elem",
             operators: [
