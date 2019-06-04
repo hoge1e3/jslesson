@@ -1,0 +1,36 @@
+define('__main__',function (require,exports,module) {
+  var PYLIB=require('http://localhost/runtime/lib/python/PyLib.js');
+  var range=PYLIB.range;
+  var input=PYLIB.input;
+  var str=PYLIB.str;
+  var int=PYLIB.int;
+  var float=PYLIB.float;
+  var len=PYLIB.len;
+  var type=PYLIB.type;
+  var quit=PYLIB.quit;
+  var exit=PYLIB.exit;
+  var sorted=PYLIB.sorted;
+  var fillRect=PYLIB.fillRect;
+  var setColor=PYLIB.setColor;
+  var setTimeout=PYLIB.setTimeout;
+  var clearRect=PYLIB.clearRect;
+  var clear=PYLIB.clear;
+  var open=PYLIB.open;
+  PYLIB.LoopChecker.reset();
+  var plt=require('http://localhost/runtime/lib/python/py_matplotlib,pyplot.js').install(PYLIB);
+  var zouka=0.01;
+  var capacity=1000;
+  var n=[10];
+  var i;
+  for (i of range(1000)) {
+    PYLIB.LoopChecker.check();
+    var zoukasuu=PYLIB.wrap(n[i]).__mul__(zouka);
+    var gensyousuu=PYLIB.wrap(PYLIB.wrap(n[i]).__mul__((PYLIB.wrap(n[i]).__div__(capacity)))).__mul__(zouka);
+    n.append(PYLIB.wrap(n[i]).__add__((PYLIB.wrap(zoukasuu).__sub__(gensyousuu))));
+  }plt.plot(n);
+  plt.title("number of life");
+  plt.xlabel("time");
+  plt.ylabel("number");
+  plt.show();
+});
+requirejs(['__main__'],function(){});
