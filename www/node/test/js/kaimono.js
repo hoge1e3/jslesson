@@ -22,6 +22,6 @@ define('__main__',function (require,exports,module) {
   var tofu=99;
   var total=PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(tomato).__mul__(3)).__add__(PYLIB.wrap(cheese).__mul__(2))).__add__(PYLIB.wrap(tofu).__mul__(5));
   var price=PYLIB.wrap(total).__mul__(0.8);
-  PYLIB.print((price));
+  PYLIB.print(price);
 });
 requirejs(['__main__'],function(){});

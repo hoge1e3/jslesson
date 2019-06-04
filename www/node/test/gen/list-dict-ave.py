@@ -6,4 +6,4 @@ total= 0
 for p in test_list:
   total=total + p[ "国語" ]
 ave=total / bawrapper._len(test_list)
-print((ave))
+print(ave)

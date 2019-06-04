@@ -5,7 +5,7 @@ def show_next_olympic(year):
   year2=year + i
   
   s= "{0}年の次のオリンピックは{1}年" .format(year,year2)
-  print((s))
+  print(s)
 
 
 show_next_olympic( 2016 )

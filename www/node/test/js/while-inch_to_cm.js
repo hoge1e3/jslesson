@@ -17,15 +17,15 @@ define('__main__',function (require,exports,module) {
   var clear=PYLIB.clear;
   var open=PYLIB.open;
   PYLIB.LoopChecker.reset();
-  PYLIB.print(("インチからセンチへの変換"));
-  PYLIB.print(("プログラムを終わるには,[Ctrl]+[C]キーを押します。"));
+  PYLIB.print("インチからセンチへの変換");
+  PYLIB.print("プログラムを終わるには,[Ctrl]+[C]キーを押します。");
   
   while (true) {
     PYLIB.LoopChecker.check();
-    PYLIB.print((" --- "));
+    PYLIB.print(" --- ");
     var inch=float(input("インチは？"));
     var cm=PYLIB.wrap(inch).__mul__(2.54);
-    PYLIB.print((PYLIB.wrap(str(cm)).__add__("センチです")));
+    PYLIB.print(PYLIB.wrap(str(cm)).__add__("センチです"));
   }
 });
 requirejs(['__main__'],function(){});

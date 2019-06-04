@@ -18,7 +18,7 @@ define('__main__',function (require,exports,module) {
   var open=PYLIB.open;
   PYLIB.LoopChecker.reset();
   
-  PYLIB.print((tasu(3,5)));
+  PYLIB.print(tasu(3,5));
   
   
   function tasu(a,b){

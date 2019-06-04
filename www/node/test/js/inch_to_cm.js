@@ -19,6 +19,6 @@ define('__main__',function (require,exports,module) {
   PYLIB.LoopChecker.reset();
   var inch=input("何インチ？");
   var cm=PYLIB.wrap(float(inch)).__mul__(2.54);
-  PYLIB.print((PYLIB.wrap(PYLIB.wrap("答えは...").__add__(str(cm))).__add__("cmです")));
+  PYLIB.print(PYLIB.wrap(PYLIB.wrap("答えは...").__add__(str(cm))).__add__("cmです"));
 });
 requirejs(['__main__'],function(){});

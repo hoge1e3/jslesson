@@ -19,7 +19,7 @@ define('__main__',function (require,exports,module) {
   PYLIB.LoopChecker.reset();
   
   function main(){
-    PYLIB.print((tasu(3,5)));
+    PYLIB.print(tasu(3,5));
     sub1();
     sub2();
   }
@@ -29,10 +29,10 @@ define('__main__',function (require,exports,module) {
     return PYLIB.wrap(a).__add__(b);
   }
   function sub1(){
-    PYLIB.print(("sub1"));
+    PYLIB.print("sub1");
   }
   function sub2(){
-    PYLIB.print(("sub2"));
+    PYLIB.print("sub2");
   }
   
   

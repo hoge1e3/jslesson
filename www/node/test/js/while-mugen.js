@@ -17,13 +17,13 @@ define('__main__',function (require,exports,module) {
   var clear=PYLIB.clear;
   var open=PYLIB.open;
   PYLIB.LoopChecker.reset();
-  PYLIB.print(("開始"));
+  PYLIB.print("開始");
   var i=0;
   var v=0;
   while (PYLIB.wrap(i).__le__(10)) {
     PYLIB.LoopChecker.check();
-    PYLIB.print((i));
+    PYLIB.print(i);
     v=PYLIB.wrap(v).__add__(i);
-  }PYLIB.print(("終わり"));
+  }PYLIB.print("終わり");
 });
 requirejs(['__main__'],function(){});

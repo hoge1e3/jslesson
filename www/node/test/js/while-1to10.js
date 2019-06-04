@@ -21,10 +21,10 @@ define('__main__',function (require,exports,module) {
   var i=1;
   while (PYLIB.wrap(i).__le__(10)) {
     PYLIB.LoopChecker.check();
-    PYLIB.print((PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(str(v)).__add__("+")).__add__(str(i))).__add__("=")).__add__(str(PYLIB.wrap(v).__add__(i)))));
+    PYLIB.print(PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(str(v)).__add__("+")).__add__(str(i))).__add__("=")).__add__(str(PYLIB.wrap(v).__add__(i))));
     v=PYLIB.wrap(v).__add__(i);
     i=PYLIB.wrap(i).__add__(1);
-  }PYLIB.print(("---"));
-  PYLIB.print((PYLIB.wrap("合計=").__add__(str(v))));
+  }PYLIB.print("---");
+  PYLIB.print(PYLIB.wrap("合計=").__add__(str(v)));
 });
 requirejs(['__main__'],function(){});

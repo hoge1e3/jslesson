@@ -22,6 +22,6 @@ define('__main__',function (require,exports,module) {
   var s2=PYLIB.wrap(PYLIB.wrap("ある日、").__add__(name)).__add__("が歩いていると...\n");
   var s3="盗賊が現れた！\n";
   var s4=PYLIB.wrap(PYLIB.wrap("しかし、").__add__(name)).__add__("は強かったので撃退した。\n");
-  PYLIB.print((PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(s1).__add__(s2)).__add__(s3)).__add__(s4)));
+  PYLIB.print(PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(s1).__add__(s2)).__add__(s3)).__add__(s4));
 });
 requirejs(['__main__'],function(){});

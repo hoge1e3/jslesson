@@ -20,7 +20,7 @@ define('__main__',function (require,exports,module) {
   var i=1;
   while (PYLIB.wrap(i).__le__(5)) {
     PYLIB.LoopChecker.check();
-    PYLIB.print((PYLIB.wrap(PYLIB.wrap("*** ").__add__(str(i))).__add__(" ***")));
+    PYLIB.print(PYLIB.wrap(PYLIB.wrap("*** ").__add__(str(i))).__add__(" ***"));
     i=PYLIB.wrap(i).__add__(1);
   }
 });

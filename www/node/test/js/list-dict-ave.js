@@ -26,6 +26,6 @@ define('__main__',function (require,exports,module) {
     PYLIB.LoopChecker.check();
     total=PYLIB.wrap(total).__add__(p["国語"]);
   }var ave=PYLIB.wrap(total).__div__(len(test_list));
-  PYLIB.print((ave));
+  PYLIB.print(ave);
 });
 requirejs(['__main__'],function(){});

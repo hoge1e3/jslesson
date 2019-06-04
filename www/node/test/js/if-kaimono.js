@@ -24,16 +24,16 @@ define('__main__',function (require,exports,module) {
   if (PYLIB.wrap(total).__ge__(5000)) {
     PYLIB.LoopChecker.check();
     total=int(PYLIB.wrap(total).__mul__(0.9));
-    PYLIB.print(("- 1割引適用"));
+    PYLIB.print("- 1割引適用");
   }
   if (PYLIB.wrap(total).__lt__(10000)) {
     PYLIB.LoopChecker.check();
     total=PYLIB.wrap(total).__add__(1500);
-    PYLIB.print(("+ 送料1500円"));
+    PYLIB.print("+ 送料1500円");
   }else {
     PYLIB.LoopChecker.check();
-    PYLIB.print(("- 送料無料適用"));
+    PYLIB.print("- 送料無料適用");
   }
-  PYLIB.print((PYLIB.wrap(PYLIB.wrap("支払い金額は、").__add__(str(total))).__add__("円です")));
+  PYLIB.print(PYLIB.wrap(PYLIB.wrap("支払い金額は、").__add__(str(total))).__add__("円です"));
 });
 requirejs(['__main__'],function(){});

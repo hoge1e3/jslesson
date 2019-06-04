@@ -21,6 +21,6 @@ define('__main__',function (require,exports,module) {
   var dvd=2200;
   var total=PYLIB.wrap(dvd).__mul__(3);
   var usd=PYLIB.wrap(total).__div__(rate);
-  PYLIB.print((usd));
+  PYLIB.print(usd);
 });
 requirejs(['__main__'],function(){});

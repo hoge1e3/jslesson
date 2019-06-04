@@ -245,7 +245,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         slicePart: [":",{value:opt("expr")}],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: [":indent",{body:"stmtList"},"dedent"],
-        elem: or("symbol","number","bool","array","dict","literal","paren","tuple"),
+        elem: or("symbol","number","bool","array","dict","literal","paren"),
         paren: ["(",{body:"exprList"},")"],
         bool: or("True","False"),
         indent: tk("indent"),

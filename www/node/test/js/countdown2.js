@@ -25,7 +25,7 @@ define('__main__',function (require,exports,module) {
     var target=datetime.date(y,m,d);
     var days=(PYLIB.wrap(olympic).__sub__(target)).days;
     var s=PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(str(y)).__add__("/")).__add__(str(m))).__add__("/")).__add__(str(d))).__add__("から");
-    PYLIB.print((PYLIB.wrap(PYLIB.wrap(s).__add__(str(days))).__add__("日後")));
+    PYLIB.print(PYLIB.wrap(PYLIB.wrap(s).__add__(str(days))).__add__("日後"));
   }
   
   

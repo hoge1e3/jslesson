@@ -17,8 +17,8 @@ define('__main__',function (require,exports,module) {
   var clear=PYLIB.clear;
   var open=PYLIB.open;
   PYLIB.LoopChecker.reset();
-  PYLIB.print(('Hello.'));
-  PYLIB.print(('こんにちは。'));
-  PYLIB.print(('Bonjour'));
+  PYLIB.print('Hello.');
+  PYLIB.print('こんにちは。');
+  PYLIB.print('Bonjour');
 });
 requirejs(['__main__'],function(){});

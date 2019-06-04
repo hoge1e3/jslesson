@@ -20,7 +20,7 @@ define('__main__',function (require,exports,module) {
   var np=require('http://localhost/runtime/lib/python/py_numpy.js').install(PYLIB);
   var rd=require('http://localhost/runtime/lib/python/py_numpy,random.js').install(PYLIB);
   var saikoro=rd.randint(1,PYLIB.wrap(6).__add__(1),100);
-  PYLIB.print((saikoro));
+  PYLIB.print(saikoro);
   var deme=[];
   var i;
   for (i of range(6)) {

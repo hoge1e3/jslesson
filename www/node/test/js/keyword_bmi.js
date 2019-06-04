@@ -24,9 +24,9 @@ define('__main__',function (require,exports,module) {
   
   
   var bmi1=calc_bmi(PYLIB.opt({weight:65,height:150}));
-  PYLIB.print((PYLIB.wrap("bmi1=").__add__(str(bmi1))));
+  PYLIB.print(PYLIB.wrap("bmi1=").__add__(str(bmi1)));
   
   var bmi2=calc_bmi(PYLIB.opt({height:150,weight:65}));
-  PYLIB.print((PYLIB.wrap("bmi2=").__add__(str(bmi2))));
+  PYLIB.print(PYLIB.wrap("bmi2=").__add__(str(bmi2)));
 });
 requirejs(['__main__'],function(){});

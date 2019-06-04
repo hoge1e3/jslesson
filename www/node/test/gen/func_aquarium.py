@@ -15,7 +15,7 @@ def calc_fee(age,is_monday):
   return fee
 
 
-print((calc_fee( 18 , False )))
-print((calc_fee( 20 , True )))
-print((calc_fee( 2 , False )))
-print((calc_fee( 70 , True )))
+print(calc_fee( 18 , False ))
+print(calc_fee( 20 , True ))
+print(calc_fee( 2 , False ))
+print(calc_fee( 70 , True ))

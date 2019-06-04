@@ -29,25 +29,25 @@ define('__main__',function (require,exports,module) {
   var quiz;
   for (quiz of quiz_list) {
     PYLIB.LoopChecker.check();
-    PYLIB.print(("[問題]"));
-    PYLIB.print((quiz[0]));
+    PYLIB.print("[問題]");
+    PYLIB.print(quiz[0]);
     
     var i;
     for (i of range(3)) {
       PYLIB.LoopChecker.check();
       var no=PYLIB.wrap(i).__add__(1);
-      PYLIB.print((PYLIB.wrap(PYLIB.wrap(str(no)).__add__(": ")).__add__(quiz[no])));
+      PYLIB.print(PYLIB.wrap(PYLIB.wrap(str(no)).__add__(": ")).__add__(quiz[no]));
     }
     var user=int(input("答えは? "));
     
     var ans=quiz[4];
     if (PYLIB.wrap(user).__eq__(ans)) {
       PYLIB.LoopChecker.check();
-      PYLIB.print(("正解！"));
+      PYLIB.print("正解！");
     }else {
       PYLIB.LoopChecker.check();
-      PYLIB.print((PYLIB.wrap("ハズレ ... 答えは ").__add__(quiz[ans])));
-    }PYLIB.print((" --- "));
+      PYLIB.print(PYLIB.wrap("ハズレ ... 答えは ").__add__(quiz[ans]));
+    }PYLIB.print(" --- ");
   }
 });
 requirejs(['__main__'],function(){});

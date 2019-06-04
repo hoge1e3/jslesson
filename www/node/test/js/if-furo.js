@@ -20,10 +20,10 @@ define('__main__',function (require,exports,module) {
   var ondo=37;
   if (PYLIB.wrap(ondo).__le__(40)) {
     PYLIB.LoopChecker.check();
-    PYLIB.print(("点火処理"));
+    PYLIB.print("点火処理");
   }else {
     PYLIB.LoopChecker.check();
-    PYLIB.print(("消化処理"));
+    PYLIB.print("消化処理");
   }
 });
 requirejs(['__main__'],function(){});

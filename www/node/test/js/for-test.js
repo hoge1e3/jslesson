@@ -20,7 +20,7 @@ define('__main__',function (require,exports,module) {
   var i;
   for (i of range(5)) {
     PYLIB.LoopChecker.check();
-    PYLIB.print(("ワン。"));
+    PYLIB.print("ワン。");
   }
 });
 requirejs(['__main__'],function(){});

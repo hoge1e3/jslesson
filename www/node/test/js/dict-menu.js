@@ -27,7 +27,7 @@ define('__main__',function (require,exports,module) {
     PYLIB.LoopChecker.check();
     var v1=menu_dict[key];
     var v2=math.ceil(PYLIB.wrap(v1).__mul__(1.3));
-    PYLIB.print((PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(key).__add__(" : ")).__add__(str(v1))).__add__("→")).__add__(str(v2))).__add__("円")));
+    PYLIB.print(PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(key).__add__(" : ")).__add__(str(v1))).__add__("→")).__add__(str(v2))).__add__("円"));
   }
 });
 requirejs(['__main__'],function(){});

@@ -23,13 +23,13 @@ define('__main__',function (require,exports,module) {
   PYLIB.print("r=",r);
   if (PYLIB.wrap(a).__eq__(r)) {
     PYLIB.LoopChecker.check();
-    PYLIB.print((" 当たり "));
+    PYLIB.print(" 当たり ");
   }else if (PYLIB.wrap(a).__gt__(r)) {
     PYLIB.LoopChecker.check();
-    PYLIB.print(("a の方が大きい "));
+    PYLIB.print("a の方が大きい ");
   }else if (PYLIB.wrap(a).__lt__(r)) {
     PYLIB.LoopChecker.check();
-    PYLIB.print(("a の方が小さい "));
+    PYLIB.print("a の方が小さい ");
   }
 });
 requirejs(['__main__'],function(){});

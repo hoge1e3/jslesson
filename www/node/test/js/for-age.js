@@ -22,7 +22,7 @@ define('__main__',function (require,exports,module) {
   for (i of range(100)) {
     PYLIB.LoopChecker.check();
     var y=PYLIB.wrap(base_year).__sub__(i);
-    PYLIB.print((PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(PYLIB.wrap("西暦").__add__(str(y))).__add__("年 = 満")).__add__(str(i))).__add__("歳")));
+    PYLIB.print(PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(PYLIB.wrap("西暦").__add__(str(y))).__add__("年 = 満")).__add__(str(i))).__add__("歳"));
   }
 });
 requirejs(['__main__'],function(){});

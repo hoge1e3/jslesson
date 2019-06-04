@@ -27,6 +27,6 @@ define('__main__',function (require,exports,module) {
   }
   var a=[56,3,62,17,87,22,36,83,21,12];
   var sum=listsum(a);
-  PYLIB.print((sum));
+  PYLIB.print(sum);
 });
 requirejs(['__main__'],function(){});

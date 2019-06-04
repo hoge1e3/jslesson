@@ -23,6 +23,6 @@ define('__main__',function (require,exports,module) {
   for (i of range(0,10,1)) {
     PYLIB.LoopChecker.check();
     sum=PYLIB.wrap(sum).__add__(a[i]);
-  }PYLIB.print((sum));
+  }PYLIB.print(sum);
 });
 requirejs(['__main__'],function(){});

@@ -140,7 +140,7 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         lvalList: function (node) {
             if (node.body.length===1) {
-                this.printf("%j",node.body[0]);
+                this.printf("%v",node.body[0]);
             } else {
                 this.printf("[%j]",[",",node.body]);
             }

@@ -21,10 +21,10 @@ define('__main__',function (require,exports,module) {
   var i=int(s);
   if (PYLIB.wrap(PYLIB.wrap(i).__mod__(2)).__eq__(0)) {
     PYLIB.LoopChecker.check();
-    PYLIB.print(("偶数"));
+    PYLIB.print("偶数");
   }else {
     PYLIB.LoopChecker.check();
-    PYLIB.print(("奇数"));
+    PYLIB.print("奇数");
   }
 });
 requirejs(['__main__'],function(){});

@@ -7,7 +7,7 @@ def calc_days(y,m,d):
   target=datetime.date(y,m,d)
   days=(olympic - target).days
   s=bawrapper._str(y) +  "/"  + bawrapper._str(m) +  "/"  + bawrapper._str(d) +  "から" 
-  print((s + bawrapper._str(days) +  "日後" ))
+  print(s + bawrapper._str(days) +  "日後" )
 
 
 calc_days( 2017 , 12 , 1 )

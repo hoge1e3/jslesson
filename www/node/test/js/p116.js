@@ -20,10 +20,10 @@ define('__main__',function (require,exports,module) {
   var x=40;
   if (PYLIB.wrap(x).__ge__(60)) {
     PYLIB.LoopChecker.check();
-    PYLIB.print((" 合格 "));
+    PYLIB.print(" 合格 ");
   }else {
     PYLIB.LoopChecker.check();
-    PYLIB.print((" 不合格 "));
+    PYLIB.print(" 不合格 ");
   }
 });
 requirejs(['__main__'],function(){});

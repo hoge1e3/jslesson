@@ -22,7 +22,7 @@ define('__main__',function (require,exports,module) {
   for (key of test_dict) {
     PYLIB.LoopChecker.check();
     var value=test_dict[key];
-    PYLIB.print((PYLIB.wrap(PYLIB.wrap(key).__add__("=")).__add__(str(value))));
+    PYLIB.print(PYLIB.wrap(PYLIB.wrap(key).__add__("=")).__add__(str(value)));
   }
 });
 requirejs(['__main__'],function(){});

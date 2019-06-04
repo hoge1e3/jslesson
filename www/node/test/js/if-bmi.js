@@ -23,18 +23,18 @@ define('__main__',function (require,exports,module) {
   
   
   var bmi=PYLIB.wrap(w).__div__(PYLIB.wrap((PYLIB.wrap(h).__div__(100))).__pow__(2));
-  PYLIB.print((PYLIB.wrap("BMI=").__add__(str(bmi))));
+  PYLIB.print(PYLIB.wrap("BMI=").__add__(str(bmi)));
   
   
   if (PYLIB.wrap(bmi).__lt__(18.5)) {
     PYLIB.LoopChecker.check();
-    PYLIB.print(("痩せ型"));
+    PYLIB.print("痩せ型");
   }else if (PYLIB.wrap(18.5).__le__(bmi) && PYLIB.wrap(bmi).__lt__(25)) {
     PYLIB.LoopChecker.check();
-    PYLIB.print(("普通体重"));
+    PYLIB.print("普通体重");
   }else if (PYLIB.wrap(bmi).__ge__(25)) {
     PYLIB.LoopChecker.check();
-    PYLIB.print(("肥満"));
+    PYLIB.print("肥満");
   }
 });
 requirejs(['__main__'],function(){});

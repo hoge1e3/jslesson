@@ -23,8 +23,8 @@ define('__main__',function (require,exports,module) {
   }
   
   
-  PYLIB.print((tasu(2,5)));
-  PYLIB.print((tasu(10,30)));
-  PYLIB.print((tasu(500,240)));
+  PYLIB.print(tasu(2,5));
+  PYLIB.print(tasu(10,30));
+  PYLIB.print(tasu(500,240));
 });
 requirejs(['__main__'],function(){});

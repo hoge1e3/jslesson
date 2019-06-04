@@ -20,10 +20,10 @@ define('__main__',function (require,exports,module) {
   var age=int(input("年齢は？"));
   if (PYLIB.wrap(age).__ge__(6) && PYLIB.wrap(age).__lt__(60)) {
     PYLIB.LoopChecker.check();
-    PYLIB.print(("1100円"));
+    PYLIB.print("1100円");
   }else {
     PYLIB.LoopChecker.check();
-    PYLIB.print(("500円"));
+    PYLIB.print("500円");
   }
 });
 requirejs(['__main__'],function(){});

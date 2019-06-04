@@ -20,16 +20,16 @@ define('__main__',function (require,exports,module) {
   var value=30;
   
   function hoge1(){
-    PYLIB.print((value));
+    PYLIB.print(value);
   }
   
   function hoge2(){
     var value=999;
-    PYLIB.print((value));
+    PYLIB.print(value);
   }
   
   hoge1();
   hoge2();
-  PYLIB.print((value));
+  PYLIB.print(value);
 });
 requirejs(['__main__'],function(){});

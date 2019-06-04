@@ -11,7 +11,7 @@ def calc_days(y,m,d):
   days=(olympic - target) // perday
   
   s= "{0}/{1}/{2}から{3}日後" .format(y,m,d,bawrapper._int(days))
-  print((s))
+  print(s)
 
 
 calc_days( 2017 , 12 , 1 )

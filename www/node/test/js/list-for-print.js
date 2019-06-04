@@ -21,7 +21,7 @@ define('__main__',function (require,exports,module) {
   var v;
   for (v of nums) {
     PYLIB.LoopChecker.check();
-    PYLIB.print((PYLIB.wrap(PYLIB.wrap("--- ").__add__(str(v))).__add__(" ---")));
+    PYLIB.print(PYLIB.wrap(PYLIB.wrap("--- ").__add__(str(v))).__add__(" ---"));
   }
 });
 requirejs(['__main__'],function(){});

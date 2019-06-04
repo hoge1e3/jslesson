@@ -28,7 +28,7 @@ define('__main__',function (require,exports,module) {
   }
   
   
-  PYLIB.print((tasu(2,3)));
-  PYLIB.print((kakeru(2,3)));
+  PYLIB.print(tasu(2,3));
+  PYLIB.print(kakeru(2,3));
 });
 requirejs(['__main__'],function(){});

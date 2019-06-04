@@ -20,6 +20,6 @@ define('__main__',function (require,exports,module) {
   var a=[56,3,62,17,87,22,36,83,21,12];
   var sum=0;
   sum=PYLIB.wrap(a[3]).__add__(a[7]);
-  PYLIB.print((sum));
+  PYLIB.print(sum);
 });
 requirejs(['__main__'],function(){});

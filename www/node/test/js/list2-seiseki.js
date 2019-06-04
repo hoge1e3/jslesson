@@ -33,8 +33,8 @@ define('__main__',function (require,exports,module) {
   }
   
   var ninzu=len(p_list);
-  PYLIB.print((PYLIB.wrap("国語=").__add__(str(PYLIB.wrap(kokugo).__div__(ninzu)))));
-  PYLIB.print((PYLIB.wrap("算数=").__add__(str(PYLIB.wrap(sansu).__div__(ninzu)))));
-  PYLIB.print((PYLIB.wrap("社会=").__add__(str(PYLIB.wrap(syakai).__div__(ninzu)))));
+  PYLIB.print(PYLIB.wrap("国語=").__add__(str(PYLIB.wrap(kokugo).__div__(ninzu))));
+  PYLIB.print(PYLIB.wrap("算数=").__add__(str(PYLIB.wrap(sansu).__div__(ninzu))));
+  PYLIB.print(PYLIB.wrap("社会=").__add__(str(PYLIB.wrap(syakai).__div__(ninzu))));
 });
 requirejs(['__main__'],function(){});

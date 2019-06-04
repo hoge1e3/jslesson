@@ -23,7 +23,7 @@ define('__main__',function (require,exports,module) {
     var year2=PYLIB.wrap(year).__add__(i);
     
     var s="{0}年の次のオリンピックは{1}年".format(year,year2);
-    PYLIB.print((s));
+    PYLIB.print(s);
   }
   
   

@@ -29,7 +29,7 @@ define('__main__',function (require,exports,module) {
     var days=PYLIB.wrap((PYLIB.wrap(olympic).__sub__(target))).__floordiv__(perday);
     
     var s="{0}/{1}/{2}から{3}日後".format(y,m,d,int(days));
-    PYLIB.print((s));
+    PYLIB.print(s);
   }
   
   

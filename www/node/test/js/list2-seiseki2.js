@@ -36,7 +36,7 @@ define('__main__',function (require,exports,module) {
       total=PYLIB.wrap(total).__add__(v);
     }
     var ave=PYLIB.wrap(total).__div__(len(p_list));
-    PYLIB.print((PYLIB.wrap(PYLIB.wrap(sub_list[i]).__add__("=")).__add__(str(ave))));
+    PYLIB.print(PYLIB.wrap(PYLIB.wrap(sub_list[i]).__add__("=")).__add__(str(ave)));
   }
 });
 requirejs(['__main__'],function(){});

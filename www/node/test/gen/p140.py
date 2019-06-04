@@ -11,6 +11,6 @@ for i in bawrapper._range(totalcount):
     plt.scatter(x,y,c= "red" )
   else:
     plt.scatter(x,y,c= "blue" )
-print ( " 円周率 :" ,incount *  4.0  / totalcount)
+print( " 円周率 :" ,incount *  4.0  / totalcount)
 plt.title( "Monte Carlo method" )
 plt.show()

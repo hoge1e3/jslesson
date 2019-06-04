@@ -19,6 +19,6 @@ define('__main__',function (require,exports,module) {
   PYLIB.LoopChecker.reset();
   var m=input("何メートル？");
   var cm=PYLIB.wrap(float(m)).__mul__(100);
-  PYLIB.print((PYLIB.wrap(PYLIB.wrap("答えは...").__add__(str(cm))).__add__("cmです")));
+  PYLIB.print(PYLIB.wrap(PYLIB.wrap("答えは...").__add__(str(cm))).__add__("cmです"));
 });
 requirejs(['__main__'],function(){});

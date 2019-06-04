@@ -14,4 +14,4 @@ for i in bawrapper._range( 3 ):
     total=total + v
   
   ave=total / bawrapper._len(p_list)
-  print((sub_list[i] +  "="  + bawrapper._str(ave)))
+  print(sub_list[i] +  "="  + bawrapper._str(ave))

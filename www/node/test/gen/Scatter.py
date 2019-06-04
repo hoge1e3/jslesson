@@ -9,7 +9,7 @@ Ys=[]
 for line in f:
   line=re.sub( r'\n' , "" ,line)
   
-  (x,y)=line.split( "\t" )
+  x,y=line.split( "\t" )
   
   plt.scatter(bawrapper._int(x),bawrapper._int(y))
   Xs.append(bawrapper._int(x))

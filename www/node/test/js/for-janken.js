@@ -27,30 +27,30 @@ define('__main__',function (require,exports,module) {
   var i;
   for (i of range(3)) {
     PYLIB.LoopChecker.check();
-    PYLIB.print((PYLIB.wrap(PYLIB.wrap("■じゃんけん").__add__(str(PYLIB.wrap(i).__add__(1)))).__add__("回目")));
-    PYLIB.print(("> 0:グー、1:チョキ、2:パー"));
+    PYLIB.print(PYLIB.wrap(PYLIB.wrap("■じゃんけん").__add__(str(PYLIB.wrap(i).__add__(1)))).__add__("回目"));
+    PYLIB.print("> 0:グー、1:チョキ、2:パー");
     
     var com=random.randint(0,2);
     
     var you=int(input("あなたの手は? "));
     
-    PYLIB.print((PYLIB.wrap("コンピュータの手=").__add__(str(com))));
+    PYLIB.print(PYLIB.wrap("コンピュータの手=").__add__(str(com)));
     
     var n=PYLIB.wrap((PYLIB.wrap(PYLIB.wrap(com).__sub__(you)).__add__(3))).__mod__(3);
     if (PYLIB.wrap(n).__eq__(0)) {
       PYLIB.LoopChecker.check();
-      PYLIB.print(("→あいこ"));
+      PYLIB.print("→あいこ");
       draw=PYLIB.wrap(draw).__add__(1);
     }else if (PYLIB.wrap(n).__eq__(1)) {
       PYLIB.LoopChecker.check();
-      PYLIB.print(("→勝ち (^v^)y"));
+      PYLIB.print("→勝ち (^v^)y");
       win=PYLIB.wrap(win).__add__(1);
     }else {
       PYLIB.LoopChecker.check();
-      PYLIB.print(("→負け (ToT)m"));
-    }PYLIB.print(("---"));
+      PYLIB.print("→負け (ToT)m");
+    }PYLIB.print("---");
   }
   
-  PYLIB.print((PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(PYLIB.wrap("結果=3戦").__add__(str(win))).__add__("勝")).__add__(str(draw))).__add__("引分")));
+  PYLIB.print(PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(PYLIB.wrap("結果=3戦").__add__(str(win))).__add__("勝")).__add__(str(draw))).__add__("引分"));
 });
 requirejs(['__main__'],function(){});

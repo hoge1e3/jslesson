@@ -27,7 +27,7 @@ define('__main__',function (require,exports,module) {
   var s2=PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(PYLIB.wrap("年齢は").__add__(age)).__add__("才で、趣味は")).__add__(hobby)).__add__("です。\n");
   var s3=PYLIB.wrap(PYLIB.wrap("ぜひ、").__add__(nickname)).__add__("と呼んでください。\n");
   var s4="みんなと仲良くなりたいです。";
-  PYLIB.print(("--------"));
-  PYLIB.print((PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(s1).__add__(s2)).__add__(s3)).__add__(s4)));
+  PYLIB.print("--------");
+  PYLIB.print(PYLIB.wrap(PYLIB.wrap(PYLIB.wrap(s1).__add__(s2)).__add__(s3)).__add__(s4));
 });
 requirejs(['__main__'],function(){});

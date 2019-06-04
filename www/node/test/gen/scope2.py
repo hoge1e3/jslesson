@@ -2,12 +2,12 @@ import bawrapper
 value= 30 
 
 def hoge1():
-  print((value))
+  print(value)
 
 def hoge2():
   value= 999 
-  print((value))
+  print(value)
 
 hoge1()
 hoge2()
-print((value))
+print(value)

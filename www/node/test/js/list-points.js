@@ -26,10 +26,10 @@ define('__main__',function (require,exports,module) {
   for (pt of points) {
     PYLIB.LoopChecker.check();
     total=PYLIB.wrap(total).__add__(pt);
-  }PYLIB.print((PYLIB.wrap("合計点=").__add__(str(total))));
+  }PYLIB.print(PYLIB.wrap("合計点=").__add__(str(total)));
   
   
   var ave=PYLIB.wrap(total).__div__(len(points));
-  PYLIB.print((PYLIB.wrap("平均点=").__add__(str(ave))));
+  PYLIB.print(PYLIB.wrap("平均点=").__add__(str(ave)));
 });
 requirejs(['__main__'],function(){});

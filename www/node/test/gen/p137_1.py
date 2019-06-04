@@ -4,4 +4,4 @@ riritsu= 0.05
 for i in bawrapper._range( 10 ):
   risoku=yokin * riritsu
   yokin=yokin + risoku
-  print (i +  1 , " 年目 :" ,yokin)
+  print(i +  1 , " 年目 :" ,yokin)

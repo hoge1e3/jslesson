@@ -18,7 +18,7 @@ define('__main__',function (require,exports,module) {
   var open=PYLIB.open;
   PYLIB.LoopChecker.reset();
   var sys=require('http://localhost/runtime/lib/python/py_sys.js').install(PYLIB);
-  PYLIB.print((sys.path));
+  PYLIB.print(sys.path);
   
   var x=3;
   var f=open("myfile.txt");

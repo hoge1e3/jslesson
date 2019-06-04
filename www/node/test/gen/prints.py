@@ -1,0 +1,20 @@
+import bawrapper
+def a():
+  print( "---" )
+  
+a()
+print( 3 )
+a()
+print( 3 , 5 )
+a()
+print( 3 ,end=' ')
+a()
+print( 3 )
+a()
+print( 3 )
+a()
+print( 3 , 5 )
+a()
+print( 3 ,end=' ')
+a()
+print(( 3 , 5 ))

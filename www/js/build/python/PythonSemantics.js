@@ -89,7 +89,7 @@ const vdef={
                 }
                 break;
                 default:
-                this.visit(node);
+                v.visit(node);
             }
         }
         function procSym(sym) {
@@ -176,10 +176,18 @@ const vdef={
         // print ((3,5)) #Tuple
 
         //this.visit(node.values); <- avoid to marked as Tuple
-        for (let b of node.values.body) {
+        let values;
+        if (node.values.body.length===1 && node.values.body[0].type==="paren") {
+            // print (3,5) -> node.values=exprList{body=[paren{body=[exprList{body=[3,5]}]}]}
+            const paren=node.values.body[0];
+            values=paren.body.body;
+        } else {
+            values=node.values.body;
+        }
+        for (let b of values) {
             this.visit(b);
         }
-        this.anon.put(node,{values:node.values.body});
+        this.anon.put(node,{values});
         if (node.values.t) {
             this.anon.put(node,{nobr:true});
         }

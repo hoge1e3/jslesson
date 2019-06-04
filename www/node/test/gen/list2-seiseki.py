@@ -13,6 +13,6 @@ for p in p_list:
 
 
 ninzu=bawrapper._len(p_list)
-print(( "国語="  + bawrapper._str(kokugo / ninzu)))
-print(( "算数="  + bawrapper._str(sansu / ninzu)))
-print(( "社会="  + bawrapper._str(syakai / ninzu)))
+print( "国語="  + bawrapper._str(kokugo / ninzu))
+print( "算数="  + bawrapper._str(sansu / ninzu))
+print( "社会="  + bawrapper._str(syakai / ninzu))
