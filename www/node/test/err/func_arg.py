@@ -10,6 +10,6 @@ def calc35(f):
     return f(3, 5)
 
 # 関数を呼びだし
-print(c!!HERE!!alc35(lambda a, b: a + b)) # --- (*2)
+print(calc35!!HERE!!(lambda a, b: a + b)) # --- (*2)
 print(calc35(lambda a, b: a * b)) # --- (*3)
 

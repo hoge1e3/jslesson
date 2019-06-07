@@ -14,7 +14,7 @@ url = "http://weather.livedoor.com/forecast/webservice/json/v1"
 url += "?city=130010"
 
 # Webから天気情報を取得する --- (*2)
-im!!HERE!!port urllib.request as req
+import !!HERE!!urllib.request as req
 res = req.urlopen(url)
 json_data = res.read()
 

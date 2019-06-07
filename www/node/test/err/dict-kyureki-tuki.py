@@ -15,7 +15,7 @@ kyureki = {
 # 繰り返しユーザーに尋ねる
 while True:
     tuki = input("旧暦の月名を入力> ")
-    if tuki == "" or t!!HERE!!uki == "q": break
+    if tuki == "" or tuki == "q"!!HERE!!: break
     if tuki in kyureki:
         print(str(kyureki[tuki]) + "月です")
     else:

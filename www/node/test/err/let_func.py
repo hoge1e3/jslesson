@@ -10,7 +10,7 @@ def tasu(a, b):
     return a + b
 
 # lambdaで関数の定義 --- (*2)
-!!HERE!!hiku = lambda a, b: a - b
+hiku !!HERE!!= lambda a, b: a - b
 
 # 変数に関数を代入 -- (*3)
 add = tasu

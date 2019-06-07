@@ -29,7 +29,7 @@ function (FS,PP,S,G,J) {
 
         } catch(e) {
             const pos=e.pos||(e.node && e.node.pos);
-            let src=pySrcF.text();
+            let src=pySrcF.text().replace(/\r/g,"");
             if (pos) {
                 src=src.substring(0,pos)+"!!HERE!!"+src.substring(pos);
             }

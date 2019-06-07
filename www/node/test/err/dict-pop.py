@@ -8,8 +8,8 @@ Error: 字句エラー 2:7
     at Object.loop (C:\bin\Dropbox\workspace\jslesson\www\js\fs2\FS.js:756:28)
     at C:\bin\Dropbox\workspace\jslesson\www\js\fs2\FS.js:761:46
     at <anonymous>
-# 今回集計するデータ --- (*1)!!HERE!!
-s = """
+# 今回集計するデータ --- (*1)
+!!HERE!!s = """
 サンマ,カツオ,サンマ,サンマ,マグロ,フグ,マグロ,マグロ,マグロ,サンマ,ニシン,イワシ,サンマ,サンマ,カツオ,サンマ,カツオ,サンマ,カツオ,サンマ,マグロ,マグロ,マグロ,ニシン
 """
 

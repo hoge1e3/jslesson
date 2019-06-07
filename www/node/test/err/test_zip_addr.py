@@ -10,7 +10,7 @@ Error: zip_addr はインポートできません:2:7
     at Object.v.newScope (C:\bin\Dropbox\workspace\jslesson\www\js\build\python\PythonSemantics.js:329:25)
     at Object.check (C:\bin\Dropbox\workspace\jslesson\www\js\build\python\PythonSemantics.js:358:11)
 # 郵便番号モジュールを取り込む
-import!!HERE!! zip_addr
+import !!HERE!!zip_addr
 print(zip_addr.get_addr("110-0006"))
 
 

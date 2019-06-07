@@ -11,7 +11,7 @@ Error: time はインポートできません:3:6
     at Object.check (C:\bin\Dropbox\workspace\jslesson\www\js\build\python\PythonSemantics.js:358:11)
 # ライブラリを使うことを宣言 --- (*1)
 import random
-impor!!HERE!!t time
+import !!HERE!!time
 
 # 変数を初期化 --- (*2)
 a = 0

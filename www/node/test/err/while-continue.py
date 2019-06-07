@@ -9,6 +9,6 @@ i = 0
 while i < 5:
     i = i + 1 
     print("--> " + str(i))
-    if i % 2 !!HERE!!== 0: continue # --- (*1)
+    if i % 2 == 0!!HERE!!: continue # --- (*1)
     print("<-- " + str(i))
 

@@ -7,7 +7,7 @@ Error: 文法エラー
     at C:\bin\Dropbox\workspace\jslesson\www\js\fs2\FS.js:2859:23
     at <anonymous>
 # 消費カロリーを計算して表示する関数 --- (*1)
-def show_calorie(min,!!HERE!! weight = 50):
+def show_calorie(min, !!HERE!!weight = 50):
     kcal = weight * 2 * (min / 60) * 1.05
     msg = "体重{0}kgの人が{1}分歩くと{2}kcal消費"
     s = msg.format(weight, min, kcal)

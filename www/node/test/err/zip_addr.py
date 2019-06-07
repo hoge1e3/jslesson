@@ -10,7 +10,7 @@ yubin_api = "http://api.aoikujira.com/zip/json/"
 
 # URLからJSONデータをダウンロードする関数 --- (*2)
 def get_json(url):
-    import urllib.reques!!HERE!!t as req, json
+    import urllib.request as !!HERE!!req, json
     res = req.urlopen(url) # データをダウンロード
     json_data = res.read()
     return json.loads(json_data) # JSONデータを変換

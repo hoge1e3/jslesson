@@ -17,8 +17,8 @@ for p in test_list:
     p["合計"] = p["国語"] + p["算数"] + p["社会"]
 
 # 合計点で生徒を並び替える --- (*2)
-test_list = sorted(test_list,!!HERE!!
-        key=lambda v: v["合計"], 
+test_list = sorted(test_list,
+        key!!HERE!!=lambda v: v["合計"], 
         reverse=True)
 
 # 結果を表示

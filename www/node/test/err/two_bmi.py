@@ -9,7 +9,7 @@ Error: 文法エラー
 def calc_bmi(weight, height):
     bmi = weight / (height / 100) ** 2
     res = "普通"
-    if bmi < !!HERE!!18.5: res = "痩せ型"
+    if bmi < 18.5!!HERE!!: res = "痩せ型"
     if bmi >= 25: res = "肥満"
     return bmi, res # 二つの値を返す --- (*1)
 

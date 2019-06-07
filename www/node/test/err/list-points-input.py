@@ -11,7 +11,7 @@ points = []
 # 繰り返し点数を入力する --- (*2)
 while True:
     s = input("点数は? ")
-    if (s == "") or (s =!!HERE!!= "q"): break
+    if (s == "") or (s == "q")!!HERE!!: break
     v = int(s)
     points.append(v) # --- (*3)
 

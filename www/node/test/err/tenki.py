@@ -12,7 +12,7 @@ Error: urllib はインポートできません:4:9
 # 天気予報を取得するモジュール
 # URLからJSONデータをダウンロードする関数 --- (*1)
 def get_json(url):
-    impo!!HERE!!rt urllib.request as req
+    import !!HERE!!urllib.request as req
     import json
     # データをダウンロード
     res = req.urlopen(url)

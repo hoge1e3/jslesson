@@ -10,7 +10,7 @@ Error: keisan はインポートできません:2:7
     at Object.v.newScope (C:\bin\Dropbox\workspace\jslesson\www\js\build\python\PythonSemantics.js:329:25)
     at Object.check (C:\bin\Dropbox\workspace\jslesson\www\js\build\python\PythonSemantics.js:358:11)
 # モジュールの利用を宣言
-import!!HERE!! keisan
+import !!HERE!!keisan
 
 # モジュール内の関数を使う
 print(keisan.tasu(3, 5))

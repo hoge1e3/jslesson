@@ -6,7 +6,7 @@ Error: 文法エラー
     at C:\bin\Dropbox\workspace\jslesson\www\js\fs2\FS.js:761:46
     at <anonymous>
 # 引数すべてを足し合わせる関数を定義 --- (*1)
-def tas!!HERE!!u(*args):
+def tasu!!HERE!!(*args):
     r = 0
     for v in args:
         r += v
