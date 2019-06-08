@@ -52,6 +52,11 @@ class BigData {
     static function looksLikeNum($s) {
         return preg_match('/^[\\+\\-]?[0-9\\.]+$/',$s);
     }
+    static function isSample($class, $group, $practice) {
+        if ($class!=="ba_samples" && $group==="sample" && $practice==="thermo") {
+            return array("ba_samples",$group,$practice);
+        }
+    }
     static function find(){
         $args=func_get_args();
         $class=self::getClass();
@@ -59,6 +64,10 @@ class BigData {
         $practice=array_shift($args);
         //$name=array_shift($args);
         $placeholders=array($class->id, $group, $practice);
+        $iss=self::isSample($class->id, $group,$practice);
+        if ($iss) {
+            $placeholders=$iss;
+        }
         $conds=array("`class` = ?", "`group` = ?", "practice = ?");
         // "<100", "<=100", "=100", "100", "hoge" , "%hoge%"
         foreach ($args as $i=>$e) {
