@@ -648,7 +648,9 @@ function ready() {
     }
     //var curName,runURL;
     $("#fullScr").click(runFullScr);
-    function runFullScr() {
+    function runFullScr(options) {
+            options=options||{};
+            options.fullScr=true;
             var inf=getCurrentEditorInfo();
             if (!inf) {
                 alert("実行したいファイルを選んでください");
@@ -666,7 +668,8 @@ function ready() {
                 SplashScreen.show();
                 Auth.publishedDir(curPrj.getName()+"/").then(function (_p) {
                     pub=_p;
-                    return builder.build({mainFile:curLogicFile});
+                    options.mainFile=curLogicFile;
+                    return builder.build(options);
                 }).then(function () {
                     return builder.upload(pub);
                 }).then(function () {
@@ -695,7 +698,8 @@ function ready() {
             }
     }
     //\run
-    function run() {//run!!
+    function run(options) {//run!!
+        options=options||{};
         var inf=getCurrentEditorInfo();
         if (!inf) {
             alert("実行したいファイルを開いてください。");
@@ -708,9 +712,9 @@ function ready() {
         var curFile=inf.file;
         var curFiles=fileSet(curFile);
         var curHTMLFile=curFiles[0];
-        var curJSFile=curFiles[1];
+        var curLogicFile=curFiles[1];
 	    window.sendResult=function(resDetail){
-            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Run",resDetail,"C");
+            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),"C Run",resDetail,"C");
         };
         stop();
         save();
@@ -721,7 +725,8 @@ function ready() {
                 SplashScreen.show();
     	        $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
                 DU.timeout(0).then(function () {
-                    var b=builder.build({mainFile:curJSFile});
+                    options.mainFile=curLogicFile;
+                    var b=builder.build(options);
                     if (ALWAYS_UPLOAD) {
                         return b.then(function () {
                             return Auth.publishedDir(curProjectDir.name());
@@ -732,7 +737,7 @@ function ready() {
                     }
                     return b;
                 }).then(function () {
-                    logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Run","実行しました",langList[lang]);
+                    logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Run","実行しました",langList[lang]);
                     if (ALWAYS_UPLOAD) {
                         return Auth.publishedURL(curProjectDir.name()).then(function (pub) {
                             var runURL=pub+(lang=="tonyu"?"index.html": curHTMLFile.name());
@@ -750,7 +755,7 @@ function ready() {
                     console.log(e.stack);
                     if (e.isTError) {
                         showErrorPos($("#errorPos"),e);
-                        logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),lang.toUpperCase()+" Compile Error",e.src+":"+e.pos+"\n"+e.mesg,langList[lang]);
+                        logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),lang.toUpperCase()+" Compile Error",e.src+":"+e.pos+"\n"+e.mesg,langList[lang]);
                     } else {
                         EC.handleException(e);
                     }

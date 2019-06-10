@@ -10,3 +10,9 @@ def sum(*a,**k):
     return n.sum(*a,**k)
 def argsort(*a,**k):
     return n.argsort(*a,**k)
+def arange(*a,**k):
+    return n.arange(*a,**k)
+def sin(*a,**k):
+    return n.sin(*a,**k)
+def cos(*a,**k):
+    return n.cos(*a,**k)

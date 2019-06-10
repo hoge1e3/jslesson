@@ -74,6 +74,9 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
     }
     p.build=function (options) {
         options=options||{};
+        let runLocal=(options.runLocal!==false);
+        if (options.fullScr) runLocal=(this.prevRunLocal!==false);
+        else this.prevRunLocal=runLocal;
         var mainFilePath=options.mainFile && options.mainFile.path();
         var curPrj=this.prj;
         var dst=this.dst;
@@ -101,7 +104,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
                 t.progress("Transpile "+f.src.py.name());//<-dtl
                 var isMainFile=(f.src.py.path()==mainFilePath);//<-dtl
                 if (!isMainFile && isNewer(f.dst.js, f.src.py) && isNewer(f.dst.html, f.src.html)) return SplashScreen.waitIfBusy();//<-dtl
-                t.compile(f);
+                t.compile(f,runLocal);
                 t.genHTML(f);
                 return SplashScreen.waitIfBusy();
             });
@@ -112,9 +115,9 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         superMode=r-0;
         console.log("superMode",superMode);
     });
-    p.compile=function (f) {
+    p.compile=function (f,runLocal) {
         var pysrcF=f.src.py;
-        var runLocal=this.runLocal,js;
+        var js;
         var anon,node,errSrc,needInput=false;
         if (!superMode) {
             try {
@@ -157,8 +160,8 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
             buf.printf("runOnServer2(%s,%s);",    JSON.stringify(f.src.py.text()),needInput );
         }
         buf.close();
-        // always run local default
-        this.runLocal=true;
+        // always run local default is not good for betupe-ji jikkou
+        // this.runLocal=true;
     };
     p.addMenu=function (Menu) {
         Menu.deleteMain("runMenu");
@@ -166,12 +169,12 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
             {label:"実行",id:"runPython",after:$("#fileMenu"),sub:
             [
                 {label:"ブラウザで実行(F9)",id:"runBrowser",action: ()=>{
-                    this.runLocal=true; this.ide.run();
+                    this.ide.run({runLocal:true});
                     //$("#runBrowser").text("ブラウザで実行(F9)");
                     //$("#runServer").text("サーバで実行");
                 } } ,
                 {label:"サーバで実行",id:"runServer",action: ()=>{
-                    this.runLocal=false; this.ide.run();
+                    this.ide.run({runLocal:false});
                     //$("#runServer").text("サーバで実行(F9)");
                     //$("#runBrowser").text("ブラウザで実行");
                 } }
