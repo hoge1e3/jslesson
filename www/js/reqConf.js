@@ -259,7 +259,7 @@ var reqConf={
             plugins:"plugins/plugins",
             exceptionCatcher:"lib/exceptionCatcher",
             "assert":"lib/assert",
-            Message:"lib/Message",
+            Message:"lib/message",
             md5:"lib/md5",
             FS:"fs/fs2stub",
             FSLib:"fs2/FS",
