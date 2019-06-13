@@ -1,0 +1,155 @@
+CREATE TABLE `accessToken` (
+  `class` varchar(32) DEFAULT NULL,
+  `user` varchar(32) DEFAULT NULL,
+  `token` varchar(32) DEFAULT NULL
+) DEFAULT CHARSET=utf8;
+
+CREATE TABLE `assignment` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `class` varchar(32) DEFAULT NULL,
+  `name` varchar(32) DEFAULT NULL,
+  `description` text,
+  `files` text,
+  `criteria` text,
+  `time` int(11) DEFAULT NULL,
+  `deadline` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) DEFAULT CHARSET=utf8;
+
+CREATE TABLE `bigdata` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `time` int(11) DEFAULT NULL,
+  `class` varchar(32) DEFAULT NULL,
+  `user` varchar(32) DEFAULT NULL,
+  `device` varchar(32) DEFAULT NULL,
+  `location` varchar(32) DEFAULT NULL,
+  `address` varchar(32) DEFAULT NULL,
+  `group` varchar(32) DEFAULT NULL,
+  `practice` varchar(32) DEFAULT NULL,
+  `str1` varchar(50) DEFAULT NULL,
+  `num1` double DEFAULT NULL,
+  `str2` varchar(50) DEFAULT NULL,
+  `num2` double DEFAULT NULL,
+  `str3` varchar(50) DEFAULT NULL,
+  `num3` double DEFAULT NULL,
+  `str4` varchar(50) DEFAULT NULL,
+  `num4` double DEFAULT NULL,
+  `content` text,
+  PRIMARY KEY (`id`)
+) DEFAULT CHARSET=utf8;
+
+CREATE TABLE `class` (
+  `id` varchar(255) CHARACTER SET latin1 COLLATE latin1_bin DEFAULT NULL,
+  `pass` varchar(255) CHARACTER SET latin1 COLLATE latin1_bin DEFAULT NULL,
+  `options` text,
+  UNIQUE KEY `id` (`id`)
+) DEFAULT CHARSET=utf8;
+
+CREATE TABLE `errorSeq` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `head` int(11) DEFAULT NULL,
+  `tail` int(11) DEFAULT NULL,
+  `recovery` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) DEFAULT CHARSET=utf8;
+
+CREATE TABLE `keyvalue` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `class` varchar(32) DEFAULT NULL,
+  `user` varchar(32) DEFAULT NULL,
+  `key` varchar(128) DEFAULT NULL,
+  `value` mediumtext,
+  `group` varchar(50) DEFAULT NULL,
+  `time` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) DEFAULT CHARSET=utf8;
+
+CREATE TABLE `log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `time` int(11) DEFAULT NULL,
+  `class` varchar(32) DEFAULT NULL,
+  `user` varchar(32) DEFAULT NULL,
+  `lang` varchar(10) DEFAULT NULL,
+  `filename` varchar(255) DEFAULT NULL,
+  `result` varchar(40) DEFAULT NULL,
+  `detail` text,
+  `raw` text,
+  `errorType` varchar(255) DEFAULT NULL,
+  `errorPos` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `log_by_class_time` (`class`,`time`)
+) DEFAULT CHARSET=utf8;
+
+CREATE TABLE `logtag` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `log` int(11) DEFAULT NULL,
+  `name` varchar(32) DEFAULT NULL,
+  `value` varchar(255) DEFAULT NULL,
+  `detection` text,
+  `options` text,
+  `detail` text,
+  PRIMARY KEY (`id`)
+) DEFAULT CHARSET=utf8;
+
+CREATE TABLE `mailToken` (
+  `token` varchar(50) DEFAULT NULL,
+  `mail` text,
+  `class` varchar(50) DEFAULT NULL,
+  `user` varchar(50) DEFAULT NULL,
+  `purpose` varchar(20) DEFAULT NULL
+) DEFAULT CHARSET=utf8;
+
+CREATE TABLE `mark` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `time` int(11) DEFAULT NULL,
+  `submission` int(11) DEFAULT NULL,
+  `result` varchar(32) DEFAULT NULL,
+  `manual` int(11) DEFAULT NULL,
+  `read` int(11) DEFAULT NULL,
+  `comment` text,
+  PRIMARY KEY (`id`)
+) DEFAULT CHARSET=utf8;
+
+CREATE TABLE `mysession` (
+  `id` varchar(50) DEFAULT NULL,
+  `time` int(11) DEFAULT NULL,
+  `data` text
+) DEFAULT CHARSET=utf8;
+
+CREATE TABLE `published` (
+  `url` varchar(32) DEFAULT NULL,
+  `class` varchar(32) DEFAULT NULL,
+  `user` varchar(32) DEFAULT NULL,
+  `project` varchar(32) DEFAULT NULL
+) DEFAULT CHARSET=utf8;
+
+CREATE TABLE `role` (
+  `user` varchar(255) DEFAULT NULL,
+  `class` varchar(255) DEFAULT NULL,
+  `type` varchar(255) DEFAULT NULL,
+  `options` text
+) DEFAULT CHARSET=utf8;
+
+CREATE TABLE `submission` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `time` int(11) DEFAULT NULL,
+  `assignment` int(11) DEFAULT NULL,
+  `user` varchar(32) DEFAULT NULL,
+  `files` text,
+  `source` varchar(32) DEFAULT NULL,
+  `output` text,
+  PRIMARY KEY (`id`)
+) DEFAULT CHARSET=utf8;
+
+CREATE TABLE `teacher` (
+  `name` varchar(255) DEFAULT NULL,
+  `pass` varchar(255) DEFAULT NULL,
+  `options` varchar(255) DEFAULT NULL
+) DEFAULT CHARSET=utf8;
+
+CREATE TABLE `user` (
+  `class` varchar(255) DEFAULT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `pass` varchar(255) DEFAULT NULL,
+  `options` text
+) DEFAULT CHARSET=utf8;

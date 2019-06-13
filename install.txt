@@ -2,6 +2,7 @@
 
 www dir: /var/www/html/bitarrow
 data dir: /var/www/data/bitarrow
+homepage: http://example.com/bitarrow
 
 (setting for SELinux )
 % cd /var/www/data/bitarrow
@@ -19,28 +20,65 @@ download zip, copy to ~
 % unzip jslesson-babel.zip
 % cd /var/www/html/bitarrow
 % cp -R ~/jslesson-babel/www/* .
+% chmod 755 node/pythonjs.sh
+% vi node/pythonjs.sh
+(環境により nodejs を nodeに変える)
 % vi config/config.php
 <?php
 
 //   You must set BA_DATA to data directory, it is recommended that BA_DATA cannot access via http
 define("BA_DATA", "/var/www/data/bitarrow");
-//define("BA_DATA", dirname(__DIR__));
+define("BA_WWW", "/var/www/html/bitarrow");
+define("BA_TOP_URL", "http://example.com/bitarrow";
+define("BA_PUB_URL", BA_TOP_URL."/fs/pub");
 
 define("BA_LOG", BA_DATA."/log");
 define("BA_FS",  BA_DATA."/fs");
+define("PYTHON_HOME", BA_WWW."/node");
+define("PYTHON_WORK", BA_DATA."/pythonwork");
+define("PYTHON_PATH", PYTHON_HOME."/pythonjs.sh");
+
 define("BA_HOME",BA_FS."/home");
 define("BA_PUB", BA_FS."/pub");
-
-$ba_top_url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-$ba_top_url = preg_replace("/\\?.*/","",$ba_top_url);
-$ba_top_url = preg_replace("/[^\\/]*$/","",$ba_top_url);
-// ^This method is not perfect. It is recommeded that you set the URL directly.
-//$ba_top_url="https://example.com/path/to/ba/";
-define("BA_TOP_URL", $ba_top_url);
-define("BA_PUB_URL", $ba_top_url."/fs/pub");
 
 // You should define PDO_* in BA_DATA/config.php to protect passowrd
 require_once(BA_DATA."/config.php");
 
 
  ?>
+
+setup db  (user=bauser/ dbname=bitarrow / pass=XXXX )
+% mysql -u root -p
+# CREATE DATABASE bitarrow DEFAULT CHARACTER SET utf8;
+# CREATE USER bauser IDENTIFIED BY 'XXXX';
+# grant all on bitarrow.* to bauser;
+
+% mysql -u bauser -p bitarrow < ~/jslesson-babel/data/schema.db
+
+% cd /var/www/data/bitarrow/
+% vi config.php
+
+<?php
+define("PDO_DSN","mysql:host=localhost;dbname=bitarrow;charset=utf8mb4");
+define("PDO_USER","bauser");
+define("PDO_PASS","XXXX");
+?>
+
+% mkdir fs log pythonwork
+% cp -R ~/jslesson-babel/data/fs/scripts/ fs
+% sudo chown apache fs log pythonwork
+
+% mysql -u bauser -p bitarrow
+mysql> insert into teacher values ("teacher@example.com","XXXX",NULL);
+mysql> insert into role values("teacher@example.com",NULL,"sysad",NULL);
+
+(↓Gitから解凍したら入っていなかった)
+% vi .htaccess
+DirectoryIndex a.php
+
+http://path.to/bitarrow/?Teacher/home
+
+
+TODO:
+runDtl.php やめる
+a.php のあるなしをオプションで指定
