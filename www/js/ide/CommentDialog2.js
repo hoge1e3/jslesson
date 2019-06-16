@@ -2,7 +2,7 @@
 define(["UI","Klass","root","WebSite"],function (UI,Klass,root,WebSite) {
     //var res={};
     root.CommentDialog2=Klass.define({
-        $this: "t",
+        $this: true,
         $: ["prj"],
         getComment: function (t,file) {
             var path=t.prj.getDir().name()+file.name();

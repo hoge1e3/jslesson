@@ -1,7 +1,7 @@
-define(["UI","Klass","DeferredUtil","WebSite"],
-function (UI,Klass,DU,WebSite){
+define(["UI","Klass","DeferredUtil","WebSite","jshint"],
+function (UI,Klass,DU,WebSite,jshint){
     var SubmitDialog=Klass.define({
-        $this:"t",
+        $this:true,
         $: function (t,prj) {
             t.prj=prj;
         },
@@ -35,7 +35,7 @@ function (UI,Klass,DU,WebSite){
         },
         createDOM:function (t) {
             t.dom=UI("div",{title:"課題の提出"},
-            ["form",{action:"javascript:;",$var:"form"},
+            ["form",{action:jshint.scriptURL(";"),$var:"form"},
                 ["div",
                     ["label",{for:"name"},"課題名"],
                     ["select",{name:"name"}],

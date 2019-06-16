@@ -128,14 +128,19 @@ define(["assert"], function (A) {
                 return this.__bounded;
             }
         });
-        if (false && warn) {
-            console.warn("This declaration style may malfunction when minified");
+        if (warn) {
+            //console.warn("This declaration style may malfunction when minified");
             if (!wrapCancelled) {
                 console.warn("Use $this:true instead");
             } else {
                 console.warn("Use python style in all methods and Use $this:true instead");
             }
-            console.warn(pd);
+            try {
+                throw new Error("Stakku");
+            } catch (e) {
+                console.log(e.stack);
+            }
+            //console.warn(pd);
         }
         return _klass;
     };
@@ -163,7 +168,7 @@ define(["assert"], function (A) {
     };
     Klass.opt = A.opt;
     Klass.Binder = Klass.define({
-        $this: "t",
+        $this: true,
         $: function $(t, target) {
             function addMethod(k) {
                 if (typeof target[k] !== "function") return;

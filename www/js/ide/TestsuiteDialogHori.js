@@ -2,7 +2,7 @@ define(["Klass","UI","assert","DateUtil","DeferredUtil"],
 function (Klass,UI,A,DateUtil,DU) {
     var colon=":";
     var TestsuiteDialog=Klass.define({
-        $this:"t",
+        $this:true,
         controller: "Testcase",
         dialogParam: {
             width:500,

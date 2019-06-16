@@ -17,7 +17,7 @@ function (Klass,FS,UI,Pos2RC,ua) {
         }
     };
     return Klass.define({
-        $this:"t",
+        $this:true,
         decodeTrace: function (t,e) {
             var stack=e.stack+"";
             if (ua.isChrome) {

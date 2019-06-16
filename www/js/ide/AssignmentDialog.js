@@ -2,7 +2,7 @@ define(["Klass","UI","assert","DateUtil","DeferredUtil","TestsuiteDialog","WebSi
 function (Klass,UI,A,DateUtil,DU,TestsuiteDialog,WebSite) {
     var colon=":";
     var AssignmentDialog=Klass.define({
-        $this:"t",
+        $this:true,
         $:["prj"],
         dialogParam: {
             width:600,

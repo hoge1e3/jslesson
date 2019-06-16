@@ -2,7 +2,7 @@ define(["Klass","UI","ctrl","WebSite","DragDrop","root"],
 function (Klass,UI,ctrl,WebSite,DragDrop,root) {
     //var res={};
     root.AssetDialog=Klass.define({
-        $this: "t",
+        $this: true,
         $: ["prj"],
         show: function (t) {
             t.createDOM();

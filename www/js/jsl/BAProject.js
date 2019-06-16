@@ -1,10 +1,10 @@
 define(["Klass","DeferredUtil"],function (Klass,DU) {
     return Klass.define({
-        $this: "TPR",
+        $this: true,
         $: ["dir"],
-        getDir:function () {return this.dir;},
-        getName: function () { return this.dir.name().replace(/\/$/,""); },
-    	getOptionsFile: function () {
+        getDir:function (TPR) {return this.dir;},
+        getName: function (TPR) { return this.dir.name().replace(/\/$/,""); },
+    	getOptionsFile: function (TPR) {
     		var resFile=this.dir.rel("options.json");
     		return resFile;
     	},
@@ -24,7 +24,7 @@ define(["Klass","DeferredUtil"],function (Klass,DU) {
     	setOptions: function (TPR,opt) {
     		TPR.getOptionsFile().obj(opt);
     	}, // ADDJSL
-    	fixOptions: function (opt) {
+    	fixOptions: function (TPR,opt) {
     		if (!opt.compiler) opt.compiler={};
     	},
         getPublishedURL: function (TPR) {//ADDBA
@@ -52,7 +52,7 @@ define(["Klass","DeferredUtil"],function (Klass,DU) {
             }
             return res;
         },
-        sourceDirs: function () {//ADDJSL  myNsp==null => All
+        sourceDirs: function (TPR) {//ADDJSL  myNsp==null => All
     		return [this.dir];
     	}
     });
