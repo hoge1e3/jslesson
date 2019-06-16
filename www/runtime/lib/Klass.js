@@ -32,6 +32,7 @@ define(["assert"], function (A) {
             }
         };
         var fldinit;
+        var warn, wrapped, wrapCancelled;
         //var check;
         if (init instanceof Array) {
             fldinit = init;
@@ -103,8 +104,15 @@ define(["assert"], function (A) {
                 return m;
             }
             if (typeof m !== "function") return m;
-            var args = getArgs(m);
-            if (args[0] !== thisName) return m;
+            if (thisName !== true) {
+                var args = getArgs(m);
+                if (args[0] !== thisName) {
+                    wrapCancelled = true;
+                    return m;
+                }
+                warn = true;
+            }
+            wrapped = true;
             return function () {
                 var a = Array.prototype.slice.call(arguments);
                 a.unshift(this);
@@ -120,6 +128,15 @@ define(["assert"], function (A) {
                 return this.__bounded;
             }
         });
+        if (false && warn) {
+            console.warn("This declaration style may malfunction when minified");
+            if (!wrapCancelled) {
+                console.warn("Use $this:true instead");
+            } else {
+                console.warn("Use python style in all methods and Use $this:true instead");
+            }
+            console.warn(pd);
+        }
         return _klass;
     };
     function getArgs(f) {
