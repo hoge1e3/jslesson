@@ -85,14 +85,33 @@ class Auth {
 	        return "クラスIDかパスワードが間違っています。";
         }
     }
+
+    static function logAuthErr($mesg) {
+        req("DateUtil");
+        $line=DateUtil::toString(DateUtil::now()).": $mesg\n";
+        $logFile=BA_LOG."/authErr.log";
+        $fp=fopen($logFile,"a");
+        fwrite($fp,$line);
+        fclose($fp);
+    }
     static function loginTeacher2($name,$pass,$ignoreNonexistent=false) {
 	    $json = new Services_JSON();
         if (!$name)return "メールアドレスを入力してください。";
 	    if (!$pass)return "パスワードを入力してください。";
 	    $pdo = pdo();
-    	$sth=$pdo->prepare("select * from teacher where name = ? and pass = ?");
+
+        $sth=$pdo->prepare("select * from teacher where name = ? and pass = ?");
     	$sth->execute(array($name,$pass));
-    	if (count($sth->fetchAll())==0){
+        $sth_c=count($sth->fetchAll());
+
+        $shadow=BATeacher::pass2shadow($pass);
+        $sth2=$pdo->prepare("select * from teacher where name = ? and shadow = ?");
+    	$sth2->execute(array($name,$shadow));
+        $sth2_c=count($sth2->fetchAll());
+        if ($sth_c!==$sth2_c) {
+            self::logAuthErr(" pass!=shadow on Teacher $name pass=$sth_c, shadow=$sth2_c ");
+        }
+    	if ($sth_c==0){
 	        return "メールアドレスかパスワードが間違っています。";
     	}else{
 	        // Success
