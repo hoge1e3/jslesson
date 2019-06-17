@@ -5055,6 +5055,7 @@ define('Klass',["assert"],function (A) {
             }
         };
         var fldinit;
+        var warn,wrapped,wrapCancelled;
         //var check;
         if (init instanceof Array) {
             fldinit=init;
@@ -5126,8 +5127,15 @@ define('Klass',["assert"],function (A) {
                 return m;
             }
             if (typeof m!=="function") return m;
-            var args=getArgs(m);
-            if (args[0]!==thisName) return m;
+            if (thisName!==true) {
+                var args=getArgs(m);
+                if (args[0]!==thisName) {
+                    wrapCancelled=true;
+                    return m;
+                }
+                warn=true;
+            }
+            wrapped=true;
             return (function () {
                 var a=Array.prototype.slice.call(arguments);
                 a.unshift(this);
@@ -5143,6 +5151,20 @@ define('Klass',["assert"],function (A) {
                 return this.__bounded;
             }
         });
+        if (warn) {
+            //console.warn("This declaration style may malfunction when minified");
+            if (!wrapCancelled) {
+                console.warn("Use $this:true instead");
+            } else {
+                console.warn("Use python style in all methods and Use $this:true instead");
+            }
+            try {
+                throw new Error("Stakku");
+            } catch (e) {
+                console.log(e.stack);
+            }
+            //console.warn(pd);
+        }
         return klass;
     };
     function getArgs(f) {
@@ -5167,7 +5189,7 @@ define('Klass',["assert"],function (A) {
     Klass.Function=function () {throw new Error("Abstract");};
     Klass.opt=A.opt;
     Klass.Binder=Klass.define({
-        $this:"t",
+        $this:true,
         $:function (t,target) {
             function addMethod(k){
                 if (typeof target[k]!=="function") return;
@@ -5195,11 +5217,11 @@ requirejs(["Klass"],function (k) {
 ;
 define('BAProject',["Klass","DeferredUtil"],function (Klass,DU) {
     return Klass.define({
-        $this: "TPR",
+        $this: true,
         $: ["dir"],
-        getDir:function () {return this.dir;},
-        getName: function () { return this.dir.name().replace(/\/$/,""); },
-    	getOptionsFile: function () {
+        getDir:function (TPR) {return this.dir;},
+        getName: function (TPR) { return this.dir.name().replace(/\/$/,""); },
+    	getOptionsFile: function (TPR) {
     		var resFile=this.dir.rel("options.json");
     		return resFile;
     	},
@@ -5219,7 +5241,7 @@ define('BAProject',["Klass","DeferredUtil"],function (Klass,DU) {
     	setOptions: function (TPR,opt) {
     		TPR.getOptionsFile().obj(opt);
     	}, // ADDJSL
-    	fixOptions: function (opt) {
+    	fixOptions: function (TPR,opt) {
     		if (!opt.compiler) opt.compiler={};
     	},
         getPublishedURL: function (TPR) {//ADDBA
@@ -5247,7 +5269,7 @@ define('BAProject',["Klass","DeferredUtil"],function (Klass,DU) {
             }
             return res;
         },
-        sourceDirs: function () {//ADDJSL  myNsp==null => All
+        sourceDirs: function (TPR) {//ADDJSL  myNsp==null => All
     		return [this.dir];
     	}
     });

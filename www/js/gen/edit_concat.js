@@ -8710,6 +8710,7 @@ define('Klass',["assert"],function (A) {
             }
         };
         var fldinit;
+        var warn,wrapped,wrapCancelled;
         //var check;
         if (init instanceof Array) {
             fldinit=init;
@@ -8781,8 +8782,15 @@ define('Klass',["assert"],function (A) {
                 return m;
             }
             if (typeof m!=="function") return m;
-            var args=getArgs(m);
-            if (args[0]!==thisName) return m;
+            if (thisName!==true) {
+                var args=getArgs(m);
+                if (args[0]!==thisName) {
+                    wrapCancelled=true;
+                    return m;
+                }
+                warn=true;
+            }
+            wrapped=true;
             return (function () {
                 var a=Array.prototype.slice.call(arguments);
                 a.unshift(this);
@@ -8798,6 +8806,20 @@ define('Klass',["assert"],function (A) {
                 return this.__bounded;
             }
         });
+        if (warn) {
+            //console.warn("This declaration style may malfunction when minified");
+            if (!wrapCancelled) {
+                console.warn("Use $this:true instead");
+            } else {
+                console.warn("Use python style in all methods and Use $this:true instead");
+            }
+            try {
+                throw new Error("Stakku");
+            } catch (e) {
+                console.log(e.stack);
+            }
+            //console.warn(pd);
+        }
         return klass;
     };
     function getArgs(f) {
@@ -8822,7 +8844,7 @@ define('Klass',["assert"],function (A) {
     Klass.Function=function () {throw new Error("Abstract");};
     Klass.opt=A.opt;
     Klass.Binder=Klass.define({
-        $this:"t",
+        $this:true,
         $:function (t,target) {
             function addMethod(k){
                 if (typeof target[k]!=="function") return;
@@ -10106,7 +10128,7 @@ define('TestsuiteDialog',["Klass","UI","assert","DateUtil","DeferredUtil"],
 function (Klass,UI,A,DateUtil,DU) {
     var colon=":";
     var TestsuiteDialog=Klass.define({
-        $this:"t",
+        $this:true,
         controller: "Testcase",
         dialogParam: {
             width:500,
@@ -10280,7 +10302,7 @@ define('AssignmentDialog',["Klass","UI","assert","DateUtil","DeferredUtil","Test
 function (Klass,UI,A,DateUtil,DU,TestsuiteDialog,WebSite) {
     var colon=":";
     var AssignmentDialog=Klass.define({
-        $this:"t",
+        $this:true,
         $:["prj"],
         dialogParam: {
             width:600,
@@ -10499,10 +10521,21 @@ function (Klass,UI,A,DateUtil,DU,TestsuiteDialog,WebSite) {
     return AssignmentDialog;
 });
 
-define('SubmitDialog',["UI","Klass","DeferredUtil","WebSite"],
-function (UI,Klass,DU,WebSite){
+define('jshint',[],function () {
+    var colon=":";
+    return {
+        Function: Function,
+        use: function () {},
+        scriptURL: function (url) {
+            return "javascript"+colon+url;
+        }
+    };
+});
+
+define('SubmitDialog',["UI","Klass","DeferredUtil","WebSite","jshint"],
+function (UI,Klass,DU,WebSite,jshint){
     var SubmitDialog=Klass.define({
-        $this:"t",
+        $this:true,
         $: function (t,prj) {
             t.prj=prj;
         },
@@ -10536,7 +10569,7 @@ function (UI,Klass,DU,WebSite){
         },
         createDOM:function (t) {
             t.dom=UI("div",{title:"課題の提出"},
-            ["form",{action:"javascript:;",$var:"form"},
+            ["form",{action:jshint.scriptURL(";"),$var:"form"},
                 ["div",
                     ["label",{for:"name"},"課題名"],
                     ["select",{name:"name"}],
@@ -10582,7 +10615,7 @@ function (UI,Klass,DU,WebSite){
 define('CommentDialog2',["UI","Klass","root","WebSite"],function (UI,Klass,root,WebSite) {
     //var res={};
     root.CommentDialog2=Klass.define({
-        $this: "t",
+        $this: true,
         $: ["prj"],
         getComment: function (t,file) {
             var path=t.prj.getDir().name()+file.name();
@@ -10615,11 +10648,11 @@ define('CommentDialog2',["UI","Klass","root","WebSite"],function (UI,Klass,root,
 
 define('BAProject',["Klass","DeferredUtil"],function (Klass,DU) {
     return Klass.define({
-        $this: "TPR",
+        $this: true,
         $: ["dir"],
-        getDir:function () {return this.dir;},
-        getName: function () { return this.dir.name().replace(/\/$/,""); },
-    	getOptionsFile: function () {
+        getDir:function (TPR) {return this.dir;},
+        getName: function (TPR) { return this.dir.name().replace(/\/$/,""); },
+    	getOptionsFile: function (TPR) {
     		var resFile=this.dir.rel("options.json");
     		return resFile;
     	},
@@ -10639,7 +10672,7 @@ define('BAProject',["Klass","DeferredUtil"],function (Klass,DU) {
     	setOptions: function (TPR,opt) {
     		TPR.getOptionsFile().obj(opt);
     	}, // ADDJSL
-    	fixOptions: function (opt) {
+    	fixOptions: function (TPR,opt) {
     		if (!opt.compiler) opt.compiler={};
     	},
         getPublishedURL: function (TPR) {//ADDBA
@@ -10667,7 +10700,7 @@ define('BAProject',["Klass","DeferredUtil"],function (Klass,DU) {
             }
             return res;
         },
-        sourceDirs: function () {//ADDJSL  myNsp==null => All
+        sourceDirs: function (TPR) {//ADDJSL  myNsp==null => All
     		return [this.dir];
     	}
     });
@@ -10991,7 +11024,7 @@ define('AssetDialog',["Klass","UI","ctrl","WebSite","DragDrop","root"],
 function (Klass,UI,ctrl,WebSite,DragDrop,root) {
     //var res={};
     root.AssetDialog=Klass.define({
-        $this: "t",
+        $this: true,
         $: ["prj"],
         show: function (t) {
             t.createDOM();
@@ -11193,7 +11226,7 @@ function (Klass,FS,UI,Pos2RC,ua) {
         }
     };
     return Klass.define({
-        $this:"t",
+        $this:true,
         decodeTrace: function (t,e) {
             var stack=e.stack+"";
             if (ua.isChrome) {
@@ -11957,7 +11990,9 @@ function ready() {
     }
     //var curName,runURL;
     $("#fullScr").click(runFullScr);
-    function runFullScr() {
+    function runFullScr(options) {
+            options=options||{};
+            options.fullScr=true;
             var inf=getCurrentEditorInfo();
             if (!inf) {
                 alert("実行したいファイルを選んでください");
@@ -11975,7 +12010,8 @@ function ready() {
                 SplashScreen.show();
                 Auth.publishedDir(curPrj.getName()+"/").then(function (_p) {
                     pub=_p;
-                    return builder.build({mainFile:curLogicFile});
+                    options.mainFile=curLogicFile;
+                    return builder.build(options);
                 }).then(function () {
                     return builder.upload(pub);
                 }).then(function () {
@@ -12004,7 +12040,8 @@ function ready() {
             }
     }
     //\run
-    function run() {//run!!
+    function run(options) {//run!!
+        options=options||{};
         var inf=getCurrentEditorInfo();
         if (!inf) {
             alert("実行したいファイルを開いてください。");
@@ -12017,9 +12054,9 @@ function ready() {
         var curFile=inf.file;
         var curFiles=fileSet(curFile);
         var curHTMLFile=curFiles[0];
-        var curJSFile=curFiles[1];
+        var curLogicFile=curFiles[1];
 	    window.sendResult=function(resDetail){
-            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),"C Run",resDetail,"C");
+            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),"C Run",resDetail,"C");
         };
         stop();
         save();
@@ -12030,7 +12067,8 @@ function ready() {
                 SplashScreen.show();
     	        $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
                 DU.timeout(0).then(function () {
-                    var b=builder.build({mainFile:curJSFile});
+                    options.mainFile=curLogicFile;
+                    var b=builder.build(options);
                     if (ALWAYS_UPLOAD) {
                         return b.then(function () {
                             return Auth.publishedDir(curProjectDir.name());
@@ -12041,7 +12079,7 @@ function ready() {
                     }
                     return b;
                 }).then(function () {
-                    logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Run","実行しました",langList[lang]);
+                    logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Run","実行しました",langList[lang]);
                     if (ALWAYS_UPLOAD) {
                         return Auth.publishedURL(curProjectDir.name()).then(function (pub) {
                             var runURL=pub+(lang=="tonyu"?"index.html": curHTMLFile.name());
@@ -12059,7 +12097,7 @@ function ready() {
                     console.log(e.stack);
                     if (e.isTError) {
                         showErrorPos($("#errorPos"),e);
-                        logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),lang.toUpperCase()+" Compile Error",e.src+":"+e.pos+"\n"+e.mesg,langList[lang]);
+                        logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),lang.toUpperCase()+" Compile Error",e.src+":"+e.pos+"\n"+e.mesg,langList[lang]);
                     } else {
                         EC.handleException(e);
                     }

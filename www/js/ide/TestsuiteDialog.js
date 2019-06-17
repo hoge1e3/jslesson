@@ -1,7 +1,7 @@
 define(["Klass","UI","assert","DateUtil","DeferredUtil","WebSite"],
 function (Klass,UI,A,DateUtil,DU,WebSite) {
     var TestsuiteDialog=Klass.define({
-        $this:"t",
+        $this:true,
         controller: "Testcase",
         dialogParam: {
             width:500,
