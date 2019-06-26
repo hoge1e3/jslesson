@@ -111,10 +111,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         }));
     };
     var superMode=false;
-    ctrl.post("RunPython/isSuper").then(function (r) {
-        superMode=r-0;
-        console.log("superMode",superMode);
-    });
+
     p.compile=function (f,runLocal) {
         var pysrcF=f.src.py;
         var js;
@@ -148,6 +145,8 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
                     throw e;
                 }
             }
+        } else {
+            runLocal=false;
         }
         //console.log("PPToken",PP.Tokenizer(pysrc).tokenize());
         var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
@@ -163,23 +162,35 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         // always run local default is not good for betupe-ji jikkou
         // this.runLocal=true;
     };
+    function checkSuperMode(){
+        if (typeof superMode==="number") return DU.resolve(superMode);
+        return ctrl.post("RunPython/isSuper").then(function (r) {
+            superMode=r-0;
+            console.log("superMode",superMode);
+            return superMode;
+        });
+    }
     p.addMenu=function (Menu) {
-        Menu.deleteMain("runMenu");
-        Menu.appendMain(
-            {label:"実行",id:"runPython",after:$("#fileMenu"),sub:
-            [
-                {label:"ブラウザで実行(F9)",id:"runBrowser",action: ()=>{
-                    this.ide.run({runLocal:true});
-                    //$("#runBrowser").text("ブラウザで実行(F9)");
-                    //$("#runServer").text("サーバで実行");
-                } } ,
-                {label:"サーバで実行",id:"runServer",action: ()=>{
-                    this.ide.run({runLocal:false});
-                    //$("#runServer").text("サーバで実行(F9)");
-                    //$("#runBrowser").text("ブラウザで実行");
-                } }
-            ]}
-        );
+        var t=this;
+        checkSuperMode().then(function (superMode) {
+            if (superMode) return;
+            Menu.deleteMain("runMenu");
+            Menu.appendMain(
+                {label:"実行",id:"runPython",after:$("#fileMenu"),sub:
+                [
+                    {label:"ブラウザで実行(F9)",id:"runBrowser",action: ()=>{
+                        t.ide.run({runLocal:true});
+                        //$("#runBrowser").text("ブラウザで実行(F9)");
+                        //$("#runServer").text("サーバで実行");
+                    } } ,
+                    {label:"サーバで実行",id:"runServer",action: ()=>{
+                        t.ide.run({runLocal:false});
+                        //$("#runServer").text("サーバで実行(F9)");
+                        //$("#runBrowser").text("ブラウザで実行");
+                    } }
+                ]}
+            );
+        });
     };
     p.upload=function (pub) {
         return Sync.sync(this.dst,pub);

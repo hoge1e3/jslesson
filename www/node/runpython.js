@@ -1,4 +1,5 @@
 /*global require, process*/
+const ngword=null; // /\b(open|eval|getattr|setattr|sys|os)\b/;
 const JS="../js/";
 const exec = require('child_process').exec;
 const requirejs=require("./r.js");//../node_modules/requirejs/bin/r.js");
@@ -59,6 +60,12 @@ function (FS,PP,S,G) {
             //console.log("GCode",code);
         } else {
             cvSrcF=pySrcF;
+            if (ngword) {
+                if (ngword.exec(cvSrcF.text())) {
+                    throw new Error("このプログラムはセキュリティの都合上実行できません．");
+                }
+            }
+
         }
         process.env.PYTHONPATH=process.cwd()+(process.cwd().indexOf("\\")>=0?";":":")+process.env.PYTHONPATH;
         //process.env.BAASSETPATH=asset;
