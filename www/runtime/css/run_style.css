@@ -27,3 +27,7 @@ button:active {/*押したとき*/
     box-shadow: none;
     text-shadow: none;
 }
+
+#output {
+    font-family: "Courier New", monospace;
+}
