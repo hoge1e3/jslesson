@@ -202,7 +202,10 @@ define([],function () {
         };
         lib.wait=function () {};
         lib.setTimeout=function (f,t){
-            setTimeout(f,t);
+            setTimeout(function () {
+                PL.LoopChecker.reset();
+                f();
+            },t);
         };
         return lib;
     }
