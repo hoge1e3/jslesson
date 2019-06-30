@@ -44,7 +44,7 @@ def _range(*a,**k):
     return range(*a,**k)
 def _input(*a,**k):
     r=input(*a,**k)
-    print (r)
+    #print (r)
     return r
 def _str(*a,**k):
     return str(*a,**k)

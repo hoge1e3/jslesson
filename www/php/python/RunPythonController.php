@@ -129,6 +129,11 @@ class RunPythonController {
             return 0;
         }
     }
+    static function test() {
+        $r=system_ex("echo hoge");
+        print ("<pre>[".$r["stdout"]."]</pre>");
+    }
+
 }
 function system_ex($cmd, $stdin = "")
 {
