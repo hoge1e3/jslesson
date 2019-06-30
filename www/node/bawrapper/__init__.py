@@ -43,7 +43,9 @@ def _open(filename,mode="r",encoding="UTF-8"):
 def _range(*a,**k):
     return range(*a,**k)
 def _input(*a,**k):
-    return input(*a,**k)
+    r=input(*a,**k)
+    print (r)
+    return r
 def _str(*a,**k):
     return str(*a,**k)
 def _int(*a,**k):

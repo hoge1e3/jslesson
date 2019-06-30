@@ -86,10 +86,6 @@ class RunPythonController {
             return;
         }
         $npath=$s->nativePath();
-        /*if (strpos($npath,"\\")!==FALSE){
-            $npath=preg_replace("/\\//","\\",$npath);
-        }*/
-        //echo "npath = $npath";
         $s=new SFile($nfs,$npath);
         $sp=self::isSuper(1);
         $wpath=self::workDirPath();
@@ -98,29 +94,13 @@ class RunPythonController {
         $d->copyFrom($s);
         $copiedScriptPath=$d->nativePath();
         $homes=Asset::homes();
-        /*$apath=$homes["shared"]["file"];
-        $apath=$apath->nativePath();
-        $apath=preg_replace('/\\\\$/',"",$apath);*/
         $workDir->rel("config.json")->text(
             json_encode(array(
                 "super"=>$sp,
-                "asset"=>self::convHomes($homes)/*array(
-                    "user"=>array(
-                        "file"=>$homes["user"]["file"]->nativePath(),
-                        "url"=>$homes["user"]["url"]
-                    ),
-                    "class"=>array(
-                        "file"=>$homes["class"]["file"]->nativePath(),
-                        "url"=>$homes["class"]["url"]
-                    )
-                )*///,
-                //"sharedAsset"=>$apath,
+                "asset"=>self::convHomes($homes)
             ))
         );
-        //$cmd=PYTHON_PATH." \"$npath\" $sp \"$wpath\" \"$apath\"";
         $cmd=PYTHON_PATH." \"$copiedScriptPath\"";
-        //echo "CMD = $cmd\n";
-        //return;
         $res=system_ex($cmd);
         if ($res["return"]==0) self::convOut($res["stdout"]);
         else {
