@@ -82,6 +82,9 @@ define(function (require, exports, module) {
         if (s != null && s.__str__) return s.__str__();
         return s + "";
     };
+    PL.abs = function (s) {
+        return Math.abs(s);
+    };
     PL.quit = function (s) {
         PL.exit();
     };
