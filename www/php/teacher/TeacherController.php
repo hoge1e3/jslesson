@@ -142,6 +142,10 @@ class TeacherController {
             echo "$name を登録しました．";
         }
     }
+    static function shadowize() {
+        BATeacher::shadowize();
+        echo "DONE";
+    }
 }
 
 ?>
