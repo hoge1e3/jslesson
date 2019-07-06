@@ -23,7 +23,8 @@ function runOnServerWithStdin(str,stdin) {
     $.post(window.controllerPath+'?RunPython/runStr', {str:str,rand:Math.random(),stdin:stdin}).then(
         function (r) {
             clearInterval(t);
-            r=r.replace(/.*echo off\s*/,'');
+            parent.window.echooff=r;
+            r=r.replace(/^[\s\S]*echo off\s*\n?/,'');
             var spl="["+Math.random()+"]";
             var imgs=[];
             r=r.replace(/<img src='[^']+'\/>/g, function (_) {
