@@ -70,7 +70,8 @@ class TeacherLogController {
           foreach($logs as $i=>$l){
             if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false){
               if(array_key_exists($i+1,$logs)){
-                if($logs[$i+1]['time']-$l['time']>=3 || ($logs[$i+1]['time']-$l['time']<3 && $l['detail']!="実行しました")) {
+                //if($logs[$i+1]['time']-$l['time']>=3 || ($logs[$i+1]['time']-$l['time']<3 && $l['detail']!="実行しました")) {
+                if($l['detail']!="実行しました" && !($l['time']-$prevTime<=1 && $l['result']==$prevResult && strpos($l['result'],'runtime')!==false)) {
                   array_push($logs2,$l);
                   ?>
                   <script>
@@ -81,6 +82,8 @@ class TeacherLogController {
                   <?php
                 }
               }
+              $prevTime=$l['time'];
+              $prevResult=$l['result'];
             }
           }
           if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false) array_push($logs2,$l);
