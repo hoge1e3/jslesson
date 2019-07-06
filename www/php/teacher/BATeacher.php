@@ -30,8 +30,8 @@ class BATeacher {
     function changePass($pass){
         $pdo = pdo();
         $shadow=self::pass2shadow($pass);
-        $sth=$pdo->prepare("update teacher set pass = ?, shadow=? where name = ?");
-    	$sth->execute(array($pass,$shadow, $this->id));
+        $sth=$pdo->prepare("update teacher set shadow=? where name = ?");
+    	$sth->execute(array($shadow, $this->id));
     	if ($sth->rowCount()==0){
 	        return false;
     	}else{

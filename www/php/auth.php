@@ -108,10 +108,10 @@ class Auth {
         $sth2=$pdo->prepare("select * from teacher where name = ? and shadow = ?");
     	$sth2->execute(array($name,$shadow));
         $sth2_c=count($sth2->fetchAll());
-        if ($sth_c!==$sth2_c) {
+        /*if ($sth_c!==$sth2_c) {
             self::logAuthErr(" pass!=shadow on Teacher $name pass=$sth_c, shadow=$sth2_c ");
-        }
-    	if ($sth_c==0){
+        }*/
+    	if ($sth_c==0 && $sth2_c==0){
 	        return "メールアドレスかパスワードが間違っています。";
     	}else{
 	        // Success
