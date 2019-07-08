@@ -51,10 +51,10 @@ class BAUser {
     }
     function getPass(){
         $pdo = pdo();
-        $sth=$pdo->prepare("select pass from user where class = ? and name = ?");
+        $sth=$pdo->prepare("select pass from user where class = ? and name = ?");//ENC
         $sth->execute(array($this->_class->id,$this->name));
         $p=$sth->fetchAll();
-        return $p[0]["pass"];
+        return $p[0]["pass"];//ENC
     }
     function setPass($pass) {
         //TODO
@@ -85,8 +85,8 @@ class BAUser {
             throw new Exception($this->name."はすでに存在します");
         }
         $pdo = pdo();
-	    $sth=$pdo->prepare("insert into user(class,name,pass,options) values( ? , ? , ? , ? )");
-	    $sth->execute(array($this->_class->id,$this->name,$this->password,$this->options));
+	    $sth=$pdo->prepare("insert into user(class,name,pass,options) values( ? , ? , ? , ? )");//ENC
+	    $sth->execute(array($this->_class->id,$this->name,$this->password,$this->options));//ENC
 
     }
     // update
@@ -95,8 +95,8 @@ class BAUser {
             throw new Exception($this->name."は登録されていません");
         }
         $pdo = pdo();
-	    $sth=$pdo->prepare("update user set pass = ? , options = ? where class = ? and name = ?");
-	    $sth->execute(array($this->password,$this->options,$this->_class->id,$this->name));
+	    $sth=$pdo->prepare("update user set pass = ? , options = ? where class = ? and name = ?");//ENC
+	    $sth->execute(array($this->password,$this->options,$this->_class->id,$this->name));//ENC
 
     }
     function update() {

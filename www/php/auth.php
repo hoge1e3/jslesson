@@ -134,8 +134,8 @@ class Auth {
     static function loginUser($class,$user,$pass){
         //TODO
 	    $pdo = pdo();
-    	$sth=$pdo->prepare("select * from user where class = ? and name = ? and pass = ?");
-    	$sth->execute(array($class,$user,$pass));
+    	$sth=$pdo->prepare("select * from user where class = ? and name = ? and pass = ?");//ENC
+    	$sth->execute(array($class,$user,$pass));//ENC
     	if (count($sth->fetchAll())==0){
     	    return false;
     	}else{
