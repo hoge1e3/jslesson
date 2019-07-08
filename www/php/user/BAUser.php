@@ -5,6 +5,40 @@ class BAUser {
     var $name;
     var $password;
     var $options;
+    static function pass2enc($pass) {
+        return openssl_encrypt($pass, 'AES-128-ECB', ENC_KEY);
+    }
+    static function enc2pass($enc) {
+        return openssl_decrypt($enc, 'AES-128-ECB', ENC_KEY);
+    }
+    static function enc() {
+        $ts=pdo_select("select * from user ");
+        foreach ($ts as $t) {
+            if (strlen( $t->pass )>0 ) {
+                $t->passenc=self::pass2enc($t->pass);
+                if ($t->pass===self::enc2pass($t->passenc)) {
+                    pdo_update2("user",
+                    array("class"=>$t->class,"name"=>$t->name),
+                    array("passenc"=>$t->passenc) );
+                } else {
+                    echo "No match ".$t->class.":".$t->name."<BR>";
+                }
+            }
+        }
+    }
+    static function encv() {
+        $ts=pdo_select("select * from user ");
+        foreach ($ts as $t) {
+            if (strlen( $t->pass )>0 ) {
+                if ( $t->passenc===self::pass2enc($t->pass) &&
+                     $t->pass===self::enc2pass($t->passenc)) {
+                } else {
+                    echo "No match ".$t->class.":".$t->name."<BR>";
+                }
+            }
+        }
+    }
+
     function __construct($class,$name) {
         if (!$class instanceof BAClass) {
             throw new Exception("class should be BAClass");
