@@ -713,8 +713,10 @@ function ready() {
         var curFiles=fileSet(curFile);
         var curHTMLFile=curFiles[0];
         var curLogicFile=curFiles[1];
-	    window.sendResult=function(resDetail){
-            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),"C Run",resDetail,"C");
+	    window.sendResult=function(resDetail, lang){
+            lang=lang||"C";
+            //console.log("sendResult",resDetail,lang);
+            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),lang+" Run",resDetail,lang);
         };
         stop();
         save();

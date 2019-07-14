@@ -40,7 +40,9 @@ function runOnServerWithStdin(str,stdin) {
                     out.append($(imgs.shift()));
                 }
             });
-
+            if (typeof parent!=="undefined" && parent.sendResult) {
+                parent.sendResult(r,"Python");
+            }
         },
         function (e){
             clearInterval(t);
