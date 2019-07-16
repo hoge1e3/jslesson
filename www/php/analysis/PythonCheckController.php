@@ -57,6 +57,9 @@ class PythonCheckController {
                 fwrite($fp, "<h1>$u</h1>");
                 $pre=$u;
             }
+            if (strlen($det)>10000) {
+                $det=substr($det,0,10000);
+            }
             fwrite($fp,  "<div class='log'>");
             fwrite($fp,  "<div class='time'>".DateUtil::toString($r->time)."</div>");
             fwrite($fp,  "<div class='file'>".htmlspecialchars($r->filename)."</div>");
