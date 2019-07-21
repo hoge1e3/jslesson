@@ -13,7 +13,10 @@ class PythonCheckController {
         $fp=null;
         echo "Please wait...<br />\n";
         echo str_pad(" ",4096)."<br />\n";
-
+        $idx=fopen("$outdir/index.html","w");
+        fwrite($idx, "<script src='jquery.js'></script>");
+        fwrite($idx, "<script src='all.js'></script>");
+        fwrite($idx, "<link rel='stylesheet' href='style.css'/>");
         //ob_end_flush();
         //ob_start('mb_output_handler');
         foreach (pdo_select_iter("select * from log where class=? order by user, time ",$c->id) as $r) {
@@ -21,6 +24,7 @@ class PythonCheckController {
             if (!isset($r->user)) continue;
             if (!isset($r->time)) continue;
             if (!isset($r->filename)) continue;
+            if (!isset($r->raw)) continue;
             $d=json_decode($r->raw);
             if (!$d) continue;
             if (!isset($d->lang)) continue;
@@ -28,7 +32,8 @@ class PythonCheckController {
             if (!isset($d->detail)) continue;
             if (!isset($d->result)) continue;
             if ($d->result!==$d->lang." Run" &&
-                $d->result!==$d->lang." Compile Error") continue;
+                $d->result!==$d->lang." Compile Error" &&
+                $d->result!==$d->lang." Runtime Error") continue;
             $det=$d->detail;
             if (is_string($det)) {
                 if ($det==="保存しました") continue;
@@ -37,6 +42,7 @@ class PythonCheckController {
                 //echo print_r($det);
                 if (!isset($det->stack)) continue;
                 $det=$det->stack;
+                //echo "<pre>".htmlspecialchars($r->raw)."</pre>\n";
             } else continue;
             if (!isset($d->code)) continue;
             $code=$d->code;
@@ -50,11 +56,12 @@ class PythonCheckController {
                     flush();
                     fclose($fp);
                 }
+                fwrite($idx, "<a target='user' class='ulink' href='$u.html'>$u</a><br/>");
                 $fp=fopen("$outdir/$u.html","w");
                 fwrite($fp, "<script src='jquery.js'></script>");
                 fwrite($fp, "<script src='index.js'></script>");
                 fwrite($fp, "<link rel='stylesheet' href='style.css'/>");
-                fwrite($fp, "<h1>$u</h1>");
+                fwrite($fp, "<h1 class='user'>$u</h1>");
                 $pre=$u;
             }
             if (strlen($det)>10000) {
@@ -77,6 +84,7 @@ class PythonCheckController {
             ob_flush();
             flush();
         }
+        fclose($idx);
         //RunPythonController::runStr2();
 
     }
