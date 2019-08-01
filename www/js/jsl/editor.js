@@ -123,6 +123,19 @@ define(function (require) {
     });
 
 function ready() {
+    if (!Auth.teacher) {
+        curPrj.getDir().each(function (f) {
+            console.log(f.name());
+            if (f.name().match(/Readme/)) {
+                var timeFmt=/OPEN AT:(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\+\d\d:\d\d)/;
+                var timeM=timeFmt.exec(f.text());
+                if (timeM && new Date().getTime()<new Date(timeM[1]).getTime()) {
+                    alert("このプロジェクトはまだ見られません");
+                    location.href=".";
+                }
+            }
+        });
+    }
     var F=EC.f;
     var JS_NOP="javascriptCOLON;".replace(/COLON/,":");
     root.$LASTPOS=0;
