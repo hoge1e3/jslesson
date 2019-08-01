@@ -133,6 +133,30 @@ class RunPythonController {
         $r=system_ex("echo hoge");
         print ("<pre>[".$r["stdout"]."]</pre>");
     }
+    static function runStr2($str,$stdin=""){
+        $nfs=new NativeFS();
+        $fs=Auth::getFS();
+        $sp=self::isSuper(1);
+        $wpath=self::workDirPath();
+        $workDir=new SFile($nfs,$wpath);
+        $d=$workDir->rel("src.py");
+        $d->text($str);
+        $copiedScriptPath=$d->nativePath();
+        $homes=Asset::homes();
+        $workDir->rel("config.json")->text(
+            json_encode(array(
+                "super"=>$sp,
+                "asset"=>self::convHomes($homes)
+            ))
+        );
+        $workDir->rel("stdin.txt")->text($stdin);
+        $cmd=PYTHON_PATH." \"$copiedScriptPath\"";
+        $res=system_ex($cmd);
+        if ($res["return"]==0) return ($res["stdout"]);
+        else {
+            return ($res["stderr"]);
+        }
+    }
 
 }
 function system_ex($cmd, $stdin = "")

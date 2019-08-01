@@ -20,7 +20,7 @@ function ready() {//-------------------------
     console.log("AUth",Auth.user,Auth.class);
     if(!Auth.loggedIn()) {
         alert("ログインしていません。ログインページに移動します。");
-        location.href=".?Login/form";
+        location.href=".?Login/form"; // special-change
         return;
     }
     $("body").append(UI("div",

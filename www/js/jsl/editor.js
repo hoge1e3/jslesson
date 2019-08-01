@@ -123,6 +123,19 @@ define(function (require) {
     });
 
 function ready() {
+    if (!Auth.teacher) {
+        curPrj.getDir().each(function (f) {
+            console.log(f.name());
+            if (f.name().match(/Readme/)) {
+                var timeFmt=/OPEN AT:(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\+\d\d:\d\d)/;
+                var timeM=timeFmt.exec(f.text());
+                if (timeM && new Date().getTime()<new Date(timeM[1]).getTime()) {
+                    alert("このプロジェクトはまだ見られません");
+                    location.href=".";
+                }
+            }
+        });
+    }
     var F=EC.f;
     var JS_NOP="javascriptCOLON;".replace(/COLON/,":");
     root.$LASTPOS=0;
@@ -713,8 +726,10 @@ function ready() {
         var curFiles=fileSet(curFile);
         var curHTMLFile=curFiles[0];
         var curLogicFile=curFiles[1];
-	    window.sendResult=function(resDetail){
-            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),"C Run",resDetail,"C");
+	    window.sendResult=function(resDetail, lang){
+            lang=lang||"C";
+            //console.log("sendResult",resDetail,lang);
+            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),lang+" Run",resDetail,lang);
         };
         stop();
         save();
@@ -842,6 +857,7 @@ function ready() {
         }
     }
     function fixEditorIndent(prog) {
+        //if (lang==="c") return; // special-change
         if (lang==="dncl" || lang==="py") return;// bad know-how!
         A.is(prog,"AceEditor");
         var prev=prog.getValue();
