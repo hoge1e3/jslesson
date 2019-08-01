@@ -51,10 +51,18 @@ class BAUser {
     }
     function getPass(){
         $pdo = pdo();
-        $sth=$pdo->prepare("select pass from user where class = ? and name = ?");//ENC
-        $sth->execute(array($this->_class->id,$this->name));
-        $p=$sth->fetchAll();
-        return $p[0]["pass"];//ENC
+        $enc=(defined("ENC_PASS") && ENC_PASS);
+        if ($enc) {
+            $sth=$pdo->prepare("select passenc from user where class = ? and name = ?");//ENC
+            $sth->execute(array($this->_class->id,$this->name));
+            $p=$sth->fetchAll();
+            return BAUser::enc2pass( $p[0]["passenc"] );//ENC
+        } else {
+            $sth=$pdo->prepare("select pass from user where class = ? and name = ?");//ENC
+            $sth->execute(array($this->_class->id,$this->name));
+            $p=$sth->fetchAll();
+            return $p[0]["pass"];//ENC
+        }
     }
     function setPass($pass) {
         //TODO
@@ -85,8 +93,14 @@ class BAUser {
             throw new Exception($this->name."はすでに存在します");
         }
         $pdo = pdo();
-	    $sth=$pdo->prepare("insert into user(class,name,pass,options) values( ? , ? , ? , ? )");//ENC
-	    $sth->execute(array($this->_class->id,$this->name,$this->password,$this->options));//ENC
+        $enc=(defined("ENC_PASS") && ENC_PASS);
+        if ($enc) {
+            $sth=$pdo->prepare("insert into user(class,name,passenc,options) values( ? , ? , ? , ? )");//ENC
+    	    $sth->execute(array($this->_class->id,$this->name,BAUser::pass2enc($this->password),$this->options));//ENC
+        } else {
+            $sth=$pdo->prepare("insert into user(class,name,pass,options) values( ? , ? , ? , ? )");//ENC
+    	    $sth->execute(array($this->_class->id,$this->name,$this->password,$this->options));//ENC
+        }
 
     }
     // update
@@ -95,9 +109,14 @@ class BAUser {
             throw new Exception($this->name."は登録されていません");
         }
         $pdo = pdo();
-	    $sth=$pdo->prepare("update user set pass = ? , options = ? where class = ? and name = ?");//ENC
-	    $sth->execute(array($this->password,$this->options,$this->_class->id,$this->name));//ENC
-
+        $enc=(defined("ENC_PASS") && ENC_PASS);
+        if ($enc) {
+	        $sth=$pdo->prepare("update user set passenc = ? , options = ? where class = ? and name = ?");//ENC
+	        $sth->execute(array(BAUser::pass2enc($this->password),$this->options,$this->_class->id,$this->name));//ENC
+        } else {
+            $sth=$pdo->prepare("update user set pass = ? , options = ? where class = ? and name = ?");//ENC
+            $sth->execute(array($this->password,$this->options,$this->_class->id,$this->name));//ENC
+        }
     }
     function update() {
         $this->edit();
