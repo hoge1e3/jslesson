@@ -77,7 +77,7 @@ EOF
         if (!$r) die("Token $token is invalid");
         $u=self::theUser($r->mail);
         $name=$r->mail;
-        $u->password=$pass;
+        $u->password=$pass;//ENC(at BAUser::make)
         $u->setOptions("name",$name);
         $u->make();
         $uid=$u->name;
@@ -152,7 +152,7 @@ EOF
         $r=MailToken::get($token);
         if (!$r) die("Token $token is invalid");
         $u=self::theUser($r->mail);
-        $u->password=$pass;
+        $u->password=$pass;//ENC(at BAUser::update)
         $u->update();
         $uid=$u->name;
         MailToken::clean($token);
