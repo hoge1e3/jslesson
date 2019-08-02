@@ -69,6 +69,8 @@ www/db/*
 www/mei_*
 private
 /data/db/*
+/data/mark/*
+/data/pythonwork/
 /data/fs/Tonyu/Projects/JSLKer/js/concat_old.js
 /data/fs/pub
 /data/fs/home/Nodepad
@@ -89,6 +91,12 @@ fszone.txt
 superpython
 __pycache__
 data/pythonwork
+www/node/conv.py
 www/js/jsl/editor_comment.js
 dolittle_old
 devel_test2
+www/es5/*
+/www/js/dolittle_old
+data/fs/home/devel_test2/
+www/js/lib/ace-noconflict/test.html
+enc.patch
