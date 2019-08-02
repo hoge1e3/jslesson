@@ -145,11 +145,14 @@ CREATE TABLE `teacher` (
   `name` varchar(255) DEFAULT NULL,
   `pass` varchar(255) DEFAULT NULL,
   `options` varchar(255) DEFAULT NULL
+  `shadow` text
 ) DEFAULT CHARSET=utf8;
 
 CREATE TABLE `user` (
   `class` varchar(255) DEFAULT NULL,
   `name` varchar(255) DEFAULT NULL,
   `pass` varchar(255) DEFAULT NULL,
-  `options` text
+  `options` text,
+  `shadow` text,
+  `passenc` text
 ) DEFAULT CHARSET=utf8;
