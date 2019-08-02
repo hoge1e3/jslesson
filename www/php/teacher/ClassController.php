@@ -369,12 +369,12 @@ class ClassController {
         echo "$id";
         $u=new BAUser(Auth::curClass2(),$id);
         if(!$u->exists()){
-            $u->password=$pass;
+            $u->password=$pass;//ENC(at BAUser::make)
             $u->setOptions("name",$name);
             $u->make();
             echo "登録しました<br>";
         }else{
-            $u->password=$pass;
+            $u->password=$pass;//ENC(at BAUser::edit)
             $u->setOptions("name",$name);
             $u->edit();
             echo "登録済ユーザの情報を更新しました<br>";

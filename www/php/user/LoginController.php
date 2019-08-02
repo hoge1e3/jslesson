@@ -198,7 +198,7 @@ class LoginController {
             }else{
                 $pass=$_POST["password"];
             }
-            $u->password=$pass;
+            $u->password=$pass;//ENC(at BAUser::make)
             $u->make();
             $mesg=Auth::loginUser($class,$user,$pass);
         } else {
