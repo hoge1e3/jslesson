@@ -135,14 +135,20 @@ class TeacherController {
         }
         $name=param("mail");
         $pass=param("pass");
+        $shadow=BATeacher::pass2shadow($pass);
         $r=pdo_select1("select * from teacher where name=?",$name);
         if ($r) echo "$name はすでに登録されています．";
         else {
-            pdo_insert("teacher",array("name"=>$name, "pass"=>$pass));
+            pdo_insert("teacher",array("name"=>$name, "shadow"=>$shadow));
             echo "$name を登録しました．";
         }
     }
     static function shadowize() {
+        $teacher=Auth::isTeacher2();
+        if (!$teacher || !$teacher->isSysAd()) {
+            header("Location: a.php?Teacher/login");
+            return;
+        }
         BATeacher::shadowize();
         echo "DONE";
     }
