@@ -170,6 +170,29 @@ class TeacherController {
         BAUser::encv();
         echo "DONE";
     }
+    static function nullenc() {
+        $teacher=Auth::isTeacher2();
+        if (!$teacher || !$teacher->isSysAd()) {
+            header("Location: a.php?Teacher/login");
+            return;
+        }
+
+        $e=BAUser::pass2enc(null);
+        echo "strlen(null)=".strlen(null)."<BR>";
+        echo "enc(NULL)=$e<BR>";
+        echo "dec(NULL)=".(BAUser::enc2pass(null)===false?"false":"?")."<BR>";
+        echo "enc('')=".BAUser::pass2enc('')."<BR>";
+        echo "dec($e)=".(BAUser::enc2pass($e)===''?"''":"?")."<BR>";
+        echo "is ''<BR>";
+        foreach (pdo_select("select pass from user where pass='' ") as $r) {
+            echo ($r->pass===null?"null":"not null")."<BR>";
+        }
+        echo "is null<BR>";
+        foreach (pdo_select("select pass from user where pass is null ") as $r) {
+            echo ($r->pass===null?"null":"not null")."<BR>";
+        }
+
+    }
 
 }
 

@@ -14,7 +14,7 @@ class BAUser {
     static function enc() {
         $ts=pdo_select("select * from user ");
         foreach ($ts as $t) {
-            if (strlen( $t->pass )>0 ) {
+            //if (strlen( $t->pass )>0 ) {
                 $t->passenc=self::pass2enc($t->pass);
                 if ($t->pass===self::enc2pass($t->passenc)) {
                     pdo_update2("user",
@@ -23,19 +23,19 @@ class BAUser {
                 } else {
                     echo "No match ".$t->class.":".$t->name."<BR>";
                 }
-            }
+            //}
         }
     }
     static function encv() {
         $ts=pdo_select("select * from user ");
         foreach ($ts as $t) {
-            if (strlen( $t->pass )>0 ) {
+            //if (strlen( $t->pass )>0 ) {
                 if ( $t->passenc===self::pass2enc($t->pass) &&
                      $t->pass===self::enc2pass($t->passenc)) {
                 } else {
                     echo "No match ".$t->class.":".$t->name."<BR>";
                 }
-            }
+            //}
         }
     }
 
