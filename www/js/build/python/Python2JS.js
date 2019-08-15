@@ -7,8 +7,13 @@ function (Visitor,IndentBuffer,context,PL) {
             this.visit(node.body);
         },
         classdef: function (node) {
+            const sp=b=>node.extends? this.visit(node.extends.super) : b.printf("Object");
             this.ctx.enter({inClass:node},()=>{
-                this.printf("var %s=%s.class(Object,{%{%j%}});",node.name, PYLIB,[",",node.body]);
+                this.printf("var %s=%s.class(%f,{%{"+
+                    "%s:'%s',%j"+
+                "%}});",
+                node.name, PYLIB,sp,
+                    "CLASSNAME",node.name, [",",node.body]);
             });
         },//
         define: function (node) {
@@ -195,6 +200,9 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         passStmt: function () {
             this.printf(";");
+        },
+        superCall: function () {
+            this.printf("%s.super(this.__class__, this)",PYLIB);
         },
         and: function (node) {
             this.printf("&&");

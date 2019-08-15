@@ -62,3 +62,9 @@ def _quit(*a,**k):
     return quit(*a,**k)
 def _sorted(*a,**k):
     return sorted(*a,**k)
+def _abs(*a,**k):
+    return abs(*a,**k)
+def _min(*a,**k):
+    return min(*a,**k)
+def _max(*a,**k):
+    return max(*a,**k)

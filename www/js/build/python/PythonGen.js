@@ -141,6 +141,9 @@ function (Visitor,IndentBuffer,assert) {
         passStmt: function () {
             this.printf("pass");
         },
+        superCall: function () {
+            this.printf("super()");
+        },
         symbol: function (node) {
             var a=this.anon.get(node);
             if (a.scopeInfo && a.scopeInfo.builtin) {
@@ -155,7 +158,7 @@ function (Visitor,IndentBuffer,assert) {
     };
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
       ">","<","=",".",":","+","-","*","/","%","(",")",",",
-      "number","literal","and","or","True","False"];
+      "number","literal","and","or","True","False","None"];
     for (let ve of verbs) {
         vdef[ve]=function (node) {
             //console.log("verb",node);

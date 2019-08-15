@@ -4,21 +4,28 @@ import os
 seq=0
 
 def title(*a,**k):
-    p.title(*a,**k)
+    return p.title(*a,**k)
 def xlabel(*a,**k):
-    p.xlabel(*a,**k)
+    return p.xlabel(*a,**k)
 def ylabel(*a,**k):
-    p.ylabel(*a,**k)
+    return p.ylabel(*a,**k)
+def xticks(*a,**k):
+    return p.xticks(*a,**k)
+def yticks(*a,**k):
+    return p.yticks(*a,**k)
 def clf(*a,**k):
-    p.clf(*a,**k)
+    return p.clf(*a,**k)
 def bar(*a,**k):
-    p.bar(*a,**k)
+    return p.bar(*a,**k)
 def scatter(*a,**k):
-    p.scatter(*a,**k)
+    return p.scatter(*a,**k)
 def plot(*a,**k):
-    p.plot(*a,**k)
+    return p.plot(*a,**k)
+subplots=p.subplots
+#def subplots(*a,**k):
+#    return p.subplots(*a,**k)
 def axis(*a,**k):
-    p.axis(*a,**k)
+    return p.axis(*a,**k)
 def show():
     global seq
     seq+=1

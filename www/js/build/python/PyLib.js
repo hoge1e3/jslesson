@@ -38,6 +38,11 @@ define(function (require,exports,module) {
                 return seq[this.randint(0,seq.length-1)];
             }
         },
+        math:{
+            fabs:Math.abs.bind(Math),
+            ceil:Math.ceil.bind(Math),
+            floor:Math.floor.bind(Math),
+        }
     };
     //PyX.install(PL);
     PL.lineBuf="";
@@ -79,14 +84,13 @@ define(function (require,exports,module) {
     };
     PL.type=function (s) {
         switch (typeof s) {
-            case "number":
-            case "string":
-            case "function":
-            case "boolean":
-            return typeof s;
+            case "number":return Number;
+            case "string":return String;
+            case "function":return Function;
+            case "boolean":return Boolean;
             default:
-            if (s && s.__getTypeName__) return s.__getTypeName__();
-            if (s && s.constructor) return s.constructor;
+            //if (s && s.__getTypeName__) return s.__getTypeName__();
+            if (s && s.__class__) return s.__class__;
             return "object";
         }
     };
@@ -151,7 +155,7 @@ define(function (require,exports,module) {
     PL.class=function (parent,defs) {
         if (arguments.length<2) {
             defs=parent;
-            parent=PL.Object;
+            parent=PL.Object||Object;
         }
         var nw=defs.__new__ || function (cls) {
             var self=Object.create(cls.prototype,{});
@@ -162,21 +166,63 @@ define(function (require,exports,module) {
             var a=Array.prototype.slice.call(arguments);
             a.unshift(res);
             var self=nw.apply(null,a);
-            self.__init__.apply(self,arguments);
+            if (self.__init__) self.__init__.apply(self,arguments);
             return self;
         };
         res.prototype=Object.create(parent.prototype,{});
         function addMethod(k) {
             var m=defs[k];
-            res.prototype[k]=function () {
-                var a=Array.prototype.slice.call(arguments);
-                a.unshift(this);
-                return m.apply(this,a);
-            };
+            if (typeof m==="function") {
+                res.prototype[k]=function () {
+                    var a=Array.prototype.slice.call(arguments);
+                    a.unshift(this);
+                    return m.apply(this,a);
+                };
+            } else {
+                res.prototype[k]=m;
+            }
         }
+        res.__name__=defs.CLASSNAME;
+        res.prototype.constructor=res;
+        res.prototype.__class__=res;
+        res.__str__=()=>`<class '__main__.${res.__name__}'>`;
+        res.__bases__=PL.Tuple && PL.Tuple(parent?[parent]:[]);
         for (var k in defs) addMethod(k);
         return res;
     };
+    PL.super=function(klass,self) {
+        //console.log("klass,self",klass,self);
+        //console.log("klass.prototype.CLASSNAME",klass.prototype.CLASSNAME);
+        const superclass=klass.__bases__.elems[0];
+        if (!superclass) {
+            throw new Error("superclass not found");
+        }
+        const superprot=superclass.prototype;
+        if (superprot===klass.prototype) {
+            console.log(self,self.CLASSNAME);
+            console.log(klass,klass.prototype.CLASSNAME);
+            console.log(superclass,superclass.prototype.CLASSNAME);
+            console.log(superprot,superprot.CLASSNAME);
+            throw new Error("SAME!");
+        }
+        //console.log("superprot",superprot.CLASSNAME);
+        const res={};
+        for (var meth in superprot) {
+            if (typeof superprot[meth]!=="function") continue;
+            res[meth]=superprot[meth].bind(self);
+        }
+        return res;
+    };
+    PL.Tuple=PL.class({
+        __init__:function (self, elems) {
+            self.elems=elems;
+            for (let i=0;i<elems.length;i++) self[i]=elems[i];
+        },
+        toString: function (self) {
+            return "("+self.elems.join(", ")+")";
+        }
+    });
+    PL.Tuple.__bases__=PL.Tuple([]);
     PL.invoke=function (self,name,args) {
         var m=self[name];
         if (typeof m==="function") return m.apply(self, args);
@@ -213,14 +259,7 @@ define(function (require,exports,module) {
     PL.invalidOP=function (op,to) {
         throw new Error("Cannot do opration "+op+" to "+to);
     };
-    PL.Tuple=PL.class({
-        __init__:function (self, elems) {
-            self.elems=elems;
-        },
-        toString: function (self) {
-            return "("+self.elems.join(", ")+")";
-        }
-    });
+
     PL.LoopChecker={
         check: function () {
             if (this.last) {
@@ -366,7 +405,8 @@ define(function (require,exports,module) {
     });
 
     //---
-    PL.builtins=["range","input","str","int","float","len","type","quit","exit","sorted",
+    PL.builtins=["range","input","str","int","float","len","type","quit","exit","sorted","abs",
+    "min","max",
     "fillRect","setColor","setTimeout","clearRect","clear"];
     root.PYLIB=PL;
 

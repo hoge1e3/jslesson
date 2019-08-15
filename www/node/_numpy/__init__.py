@@ -16,3 +16,5 @@ def sin(*a,**k):
     return n.sin(*a,**k)
 def cos(*a,**k):
     return n.cos(*a,**k)
+def linspace(*a,**k):
+    return n.linspace(*a,**k)

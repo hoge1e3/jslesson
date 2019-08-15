@@ -50,6 +50,9 @@ const vdef={
     },
     classdef: function (node) {
         //console.log("classDef",node);
+        if (node.extends) {
+            this.visit(node.extends.super);
+        }
         for (let b of node.body) {
             this.visit(b);
         }
@@ -77,7 +80,7 @@ const vdef={
         }
     },
     letStmt: function (node) {
-        var v=this;
+        /*var v=this;
         function procLElem(node) {
             switch (node.type) {
                 case "symbol":
@@ -101,7 +104,8 @@ const vdef={
                 v.anon.put(node,{needVar:true});
             }
         }
-        procLElem(node.left);
+        procLElem(node.left);*/
+        this.procLeft(node);
         this.visit(node.right);
     },
     ifStmt: function (node) {
@@ -298,7 +302,8 @@ const vdef={
     }
 };
 const thru=["nodent",">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
-  ">","<","=",".",":","+","-","*","/","%","(",")",",","not","and","or","True","False","passStmt"];
+  ">","<","=",".",":","+","-","*","/","%","(",")",",","not","and","or","True","False","None",
+  "passStmt","superCall"];
 for (let t of thru) {
     vdef[t]=()=>{};
 }
@@ -353,7 +358,37 @@ const Semantics= {
                 if (node.type==="define") {
                     this.addScope(node.name,{kind:"function",node});
                 }
+                if (node.type==="letStmt") {
+                    this.procLeft(node);
+                }
             }
+        };
+        v.procLeft=function (letStmt) {
+            const node=letStmt;
+            var v=this;
+            function procLElem(node) {
+                switch (node.type) {
+                    case "symbol":
+                    procSym(node);
+                    break;
+                    case "lvalList":
+                    for (let sym of node.body) {
+                        procLElem(sym);
+                    }
+                    break;
+                    default:
+                    v.visit(node);
+                }
+            }
+            function procSym(sym) {
+                const info=v.getScope(sym+"");
+                if (info && info.kind==="global") {
+                } else if (!info || info.scope!==v.curScope()) {
+                    v.addScope(sym+"",{kind:"local",node});
+                    v.anon.put(node,{needVar:true});
+                }
+            }
+            procLElem(node.left);
         };
         v.newScope(()=>v.visit(node));
         return v;

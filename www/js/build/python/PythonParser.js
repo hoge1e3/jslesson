@@ -14,7 +14,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         "for","while","in","return","print","import","as",
         "and","or","not","global","True","False","del",
         "finally","is","None","lambda","try","from" ,"nonlocal","with","yield",
-        "assert","pass","except","raise"
+        "assert","pass","except","raise","super"
        ];
     const resvh={};
     for(let r of reserved) resvh[r]=r;
@@ -170,9 +170,10 @@ function (Grammar,Pos2RC/*,TError*/) {
     const gdef={
         //$space: spc,
         program: [{body:rep0(or("stmt","classdef"))},P.TokensParser.eof],
-        classdef: ["class",{name:"symbol"},":indent",
+        classdef: ["class",{name:"symbol"},{"extends":opt("extends")},":indent",
             {body:"stmtList"},
         "dedent"],
+        extends: ["(",{super:"expr"},")"],
         define: ["def",{name:"symbol"},{params:"paramList"},":indent",
             {body:"stmtList"},
         "dedent"],
@@ -245,7 +246,8 @@ function (Grammar,Pos2RC/*,TError*/) {
         slicePart: [":",{value:opt("expr")}],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: [":indent",{body:"stmtList"},"dedent"],
-        elem: or("symbol","number","bool","array","dict","literal","paren"),
+        elem: or("symbol","number","None","bool","array","dict","literal","paren","superCall"),
+        superCall: ["super","(",")"],
         paren: ["(",{body:"exprList"},")"],
         bool: or("True","False"),
         indent: tk("indent"),
