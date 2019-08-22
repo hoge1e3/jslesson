@@ -152,7 +152,7 @@ class TeacherController {
         BATeacher::shadowize();
         echo "DONE";
     }
-    static function enc() {
+    /*static function enc() {
         $teacher=Auth::isTeacher2();
         if (!$teacher || !$teacher->isSysAd()) {
             header("Location: a.php?Teacher/login");
@@ -160,7 +160,7 @@ class TeacherController {
         }
         BAUser::enc();
         echo "DONE";
-    }
+    }*/
     static function encv() {
         $teacher=Auth::isTeacher2();
         if (!$teacher || !$teacher->isSysAd()) {

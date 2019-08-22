@@ -75,7 +75,7 @@ class LogFileToDBController {
 	    "values( ?  , ?   , ?  , ?  ,?       ,?     ,?     ,?  ,?        ,?);");
         foreach ($files as $file) {
             $user=self::getUserName($c,$file->name());
-            #print "$c $user<BR>\n";//ob_flush ();
+            print "$c $user<BR>\n";//ob_flush ();
             $lines=$file->lines();
             $home=PathUtil::rel("/home/","$c/$user/");
             foreach ($lines as $raw) {
@@ -91,7 +91,7 @@ class LogFileToDBController {
                     if (preg_match("/^\\//",$d->filename)) {
                         $filename=PathUtil::relPath($d->filename,$home);
                     } else {
-                        $filename="";                        
+                        $filename="";
                     }
                 }
                 if (!isset($d->result)) $result="";
@@ -111,16 +111,16 @@ class LogFileToDBController {
                         }
                         $detail=json_encode($detail);
                     }
+                    //echo DateUtil::toString($time);
+                    $a=array(
+            	        $time,$c,$user,$lang,substr($filename,0,250),
+                        $result,
+                        mb_substr($detail,0,20000),
+                        mb_substr($raw,0,20000),$errorType,$errorPos
+        	        );
+                    //var_dump($a);
+            	    $sth->execute($a);
                 } catch(Exception $e) {}
-                //echo DateUtil::toString($time);
-                $a=array(
-        	        $time,$c,$user,$lang,substr($filename,0,250),
-                    $result,
-                    mb_substr($detail,0,20000),
-                    mb_substr($raw,0,20000),$errorType,$errorPos
-    	        );
-                //var_dump($a);
-        	    $sth->execute($a);
     	        //break;
             }
             $file->appendTo($arc->rel($file->name()) );
