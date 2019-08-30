@@ -1615,7 +1615,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         "for","while","in","return","print","import","as",
         "and","or","not","global","True","False","del",
         "finally","is","None","lambda","try","from" ,"nonlocal","with","yield",
-        "assert","pass","except","raise"
+        "assert","pass","except","raise","super"
        ];
     const resvh={};
     for(let r of reserved) resvh[r]=r;
@@ -1771,9 +1771,10 @@ function (Grammar,Pos2RC/*,TError*/) {
     const gdef={
         //$space: spc,
         program: [{body:rep0(or("stmt","classdef"))},P.TokensParser.eof],
-        classdef: ["class",{name:"symbol"},":indent",
+        classdef: ["class",{name:"symbol"},{"extends":opt("extends")},":indent",
             {body:"stmtList"},
         "dedent"],
+        extends: ["(",{super:"expr"},")"],
         define: ["def",{name:"symbol"},{params:"paramList"},":indent",
             {body:"stmtList"},
         "dedent"],
@@ -1846,7 +1847,8 @@ function (Grammar,Pos2RC/*,TError*/) {
         slicePart: [":",{value:opt("expr")}],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: [":indent",{body:"stmtList"},"dedent"],
-        elem: or("symbol","number","bool","array","dict","literal","paren"),
+        elem: or("symbol","number","None","bool","array","dict","literal","paren","superCall"),
+        superCall: ["super","(",")"],
         paren: ["(",{body:"exprList"},")"],
         bool: or("True","False"),
         indent: tk("indent"),
@@ -2038,6 +2040,11 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             choice: function choice(seq) {
                 return seq[this.randint(0, seq.length - 1)];
             }
+        },
+        math: {
+            fabs: Math.abs.bind(Math),
+            ceil: Math.ceil.bind(Math),
+            floor: Math.floor.bind(Math)
         }
     };
     //PyX.install(PL);
@@ -2078,6 +2085,27 @@ define('PyLib',['require','exports','module'],function (require, exports, module
     PL.abs = function (s) {
         return Math.abs(s);
     };
+    PL.min = function () {
+        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+        }
+
+        if (args[0][Symbol.iterator]) {
+            return Math.min.apply(Math, _toConsumableArray(Array.from(args[0])));
+        }
+        return Math.min.apply(Math, args);
+    };
+    PL.max = function () {
+        for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+            args[_key2] = arguments[_key2];
+        }
+
+        if (args[0][Symbol.iterator]) {
+            return Math.max.apply(Math, _toConsumableArray(Array.from(args[0])));
+        }
+        return Math.max.apply(Math, args);
+    };
+
     PL.quit = function (s) {
         PL.exit();
     };
@@ -2089,13 +2117,16 @@ define('PyLib',['require','exports','module'],function (require, exports, module
     PL.type = function (s) {
         switch (typeof s === "undefined" ? "undefined" : _typeof(s)) {
             case "number":
+                return Number;
             case "string":
+                return String;
             case "function":
+                return Function;
             case "boolean":
-                return typeof s === "undefined" ? "undefined" : _typeof(s);
+                return Boolean;
             default:
-                if (s && s.__getTypeName__) return s.__getTypeName__();
-                if (s && s.constructor) return s.constructor;
+                //if (s && s.__getTypeName__) return s.__getTypeName__();
+                if (s && s.__class__) return s.__class__;
                 return "object";
         }
     };
@@ -2168,7 +2199,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
     PL.class = function (parent, defs) {
         if (arguments.length < 2) {
             defs = parent;
-            parent = PL.Object;
+            parent = PL.Object || Object;
         }
         var nw = defs.__new__ || function (cls) {
             var self = Object.create(cls.prototype, {});
@@ -2179,22 +2210,68 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             var a = Array.prototype.slice.call(arguments);
             a.unshift(_res);
             var self = nw.apply(null, a);
-            self.__init__.apply(self, arguments);
+            if (self.__init__) self.__init__.apply(self, arguments);
             return self;
         };
         _res.prototype = Object.create(parent.prototype, {});
         function addMethod(k) {
             var m = defs[k];
-            _res.prototype[k] = function () {
-                var a = Array.prototype.slice.call(arguments);
-                a.unshift(this);
-                return m.apply(this, a);
-            };
+            if (typeof m === "function") {
+                _res.prototype[k] = function () {
+                    var a = Array.prototype.slice.call(arguments);
+                    a.unshift(this);
+                    return m.apply(this, a);
+                };
+            } else {
+                _res.prototype[k] = m;
+            }
         }
+        _res.__name__ = defs.CLASSNAME;
+        _res.prototype.constructor = _res;
+        _res.prototype.__class__ = _res;
+        _res.__str__ = function () {
+            return "<class '__main__." + _res.__name__ + "'>";
+        };
+        _res.__bases__ = PL.Tuple && PL.Tuple(parent ? [parent] : []);
         for (var k in defs) {
             addMethod(k);
         }return _res;
     };
+    PL.super = function (klass, self) {
+        //console.log("klass,self",klass,self);
+        //console.log("klass.prototype.CLASSNAME",klass.prototype.CLASSNAME);
+        var superclass = klass.__bases__.elems[0];
+        if (!superclass) {
+            throw new Error("superclass not found");
+        }
+        var superprot = superclass.prototype;
+        if (superprot === klass.prototype) {
+            console.log(self, self.CLASSNAME);
+            console.log(klass, klass.prototype.CLASSNAME);
+            console.log(superclass, superclass.prototype.CLASSNAME);
+            console.log(superprot, superprot.CLASSNAME);
+            throw new Error("SAME!");
+        }
+        //console.log("superprot",superprot.CLASSNAME);
+        var res = {};
+        for (var meth in superprot) {
+            if (typeof superprot[meth] !== "function") continue;
+            res[meth] = superprot[meth].bind(self);
+        }
+        return res;
+    };
+    PL.Tuple = PL.class({
+        __init__: function __init__(self, elems) {
+            self.elems = elems;
+            for (var i = 0; i < elems.length; i++) {
+                self[i] = elems[i];
+            }
+        },
+        toString: function toString(self) {
+            return "(" + self.elems.join(", ") + ")";
+        }
+    });
+    PL.Tuple.__bases__ = PL.Tuple([]);
     PL.invoke = function (self, name, args) {
         var m = self[name];
         if (typeof m === "function") return m.apply(self, args);
@@ -2231,14 +2308,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
     PL.invalidOP = function (op, to) {
         throw new Error("Cannot do opration " + op + " to " + to);
     };
-    PL.Tuple = PL.class({
-        __init__: function __init__(self, elems) {
-            self.elems = elems;
-        },
-        toString: function toString(self) {
-            return "(" + self.elems.join(", ") + ")";
-        }
-    });
+
     PL.LoopChecker = {
         check: function check() {
             if (this.last) {
@@ -2259,8 +2329,8 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         var o = {};
         var i = 0;
 
-        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-            args[_key] = arguments[_key];
+        for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+            args[_key3] = arguments[_key3];
         }
 
         var _iteratorNormalCompletion = true;
@@ -2323,8 +2393,8 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             return "<class object>";
         },
         __call__: function __call__(self) {
-            for (var _len2 = arguments.length, a = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-                a[_key2 - 1] = arguments[_key2];
+            for (var _len4 = arguments.length, a = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+                a[_key4 - 1] = arguments[_key4];
             }
 
             //var a=Array.prototype.slice.call(arguments,1);
@@ -2449,15 +2519,15 @@ define('PyLib',['require','exports','module'],function (require, exports, module
     });
     PL.addMonkeyPatch(Array, {
         append: function append(self) {
-            for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-                args[_key3 - 1] = arguments[_key3];
+            for (var _len5 = arguments.length, args = Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
+                args[_key5 - 1] = arguments[_key5];
             }
 
             return self.push.apply(self, args);
         },
         __add__: function __add__(self) {
-            for (var _len4 = arguments.length, args = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
-                args[_key4 - 1] = arguments[_key4];
+            for (var _len6 = arguments.length, args = Array(_len6 > 1 ? _len6 - 1 : 0), _key6 = 1; _key6 < _len6; _key6++) {
+                args[_key6 - 1] = arguments[_key6];
             }
 
             return self.concat.apply(self, args);
@@ -2471,7 +2541,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
     });
 
     //---
-    PL.builtins = ["range", "input", "str", "int", "float", "len", "type", "quit", "exit", "sorted", "fillRect", "setColor", "setTimeout", "clearRect", "clear"];
+    PL.builtins = ["range", "input", "str", "int", "float", "len", "type", "quit", "exit", "sorted", "abs", "min", "max", "fillRect", "setColor", "setTimeout", "clearRect", "clear"];
     root.PYLIB = PL;
 
     function sprintfJS() {
@@ -2660,6 +2730,9 @@ const vdef={
     },
     classdef: function (node) {
         //console.log("classDef",node);
+        if (node.extends) {
+            this.visit(node.extends.super);
+        }
         for (let b of node.body) {
             this.visit(b);
         }
@@ -2687,7 +2760,7 @@ const vdef={
         }
     },
     letStmt: function (node) {
-        var v=this;
+        /*var v=this;
         function procLElem(node) {
             switch (node.type) {
                 case "symbol":
@@ -2711,7 +2784,8 @@ const vdef={
                 v.anon.put(node,{needVar:true});
             }
         }
-        procLElem(node.left);
+        procLElem(node.left);*/
+        this.procLeft(node);
         this.visit(node.right);
     },
     ifStmt: function (node) {
@@ -2908,7 +2982,8 @@ const vdef={
     }
 };
 const thru=["nodent",">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
-  ">","<","=",".",":","+","-","*","/","%","(",")",",","not","and","or","True","False","passStmt"];
+  ">","<","=",".",":","+","-","*","/","%","(",")",",","not","and","or","True","False","None",
+  "passStmt","superCall"];
 for (let t of thru) {
     vdef[t]=()=>{};
 }
@@ -2963,7 +3038,37 @@ const Semantics= {
                 if (node.type==="define") {
                     this.addScope(node.name,{kind:"function",node});
                 }
+                if (node.type==="letStmt") {
+                    this.procLeft(node);
+                }
             }
+        };
+        v.procLeft=function (letStmt) {
+            const node=letStmt;
+            var v=this;
+            function procLElem(node) {
+                switch (node.type) {
+                    case "symbol":
+                    procSym(node);
+                    break;
+                    case "lvalList":
+                    for (let sym of node.body) {
+                        procLElem(sym);
+                    }
+                    break;
+                    default:
+                    v.visit(node);
+                }
+            }
+            function procSym(sym) {
+                const info=v.getScope(sym+"");
+                if (info && info.kind==="global") {
+                } else if (!info || info.scope!==v.curScope()) {
+                    v.addScope(sym+"",{kind:"local",node});
+                    v.anon.put(node,{needVar:true});
+                }
+            }
+            procLElem(node.left);
         };
         v.newScope(()=>v.visit(node));
         return v;
@@ -6458,6 +6563,9 @@ function (Visitor,IndentBuffer,assert) {
         passStmt: function () {
             this.printf("pass");
         },
+        superCall: function () {
+            this.printf("super()");
+        },
         symbol: function (node) {
             var a=this.anon.get(node);
             if (a.scopeInfo && a.scopeInfo.builtin) {
@@ -6472,7 +6580,7 @@ function (Visitor,IndentBuffer,assert) {
     };
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
       ">","<","=",".",":","+","-","*","/","%","(",")",",",
-      "number","literal","and","or","True","False"];
+      "number","literal","and","or","True","False","None"];
     for (let ve of verbs) {
         vdef[ve]=function (node) {
             //console.log("verb",node);
@@ -6513,8 +6621,13 @@ function (Visitor,IndentBuffer,context,PL) {
             this.visit(node.body);
         },
         classdef: function (node) {
+            const sp=b=>node.extends? this.visit(node.extends.super) : b.printf("Object");
             this.ctx.enter({inClass:node},()=>{
-                this.printf("var %s=%s.class(Object,{%{%j%}});",node.name, PYLIB,[",",node.body]);
+                this.printf("var %s=%s.class(%f,{%{"+
+                    "%s:'%s',%j"+
+                "%}});",
+                node.name, PYLIB,sp,
+                    "CLASSNAME",node.name, [",",node.body]);
             });
         },//
         define: function (node) {
@@ -6701,6 +6814,9 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         passStmt: function () {
             this.printf(";");
+        },
+        superCall: function () {
+            this.printf("%s.super(this.__class__, this)",PYLIB);
         },
         and: function (node) {
             this.printf("&&");
