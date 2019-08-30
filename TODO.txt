@@ -1,3 +1,10 @@
+* 自動インデント:コメントは対象外
+* ログ
+   ファイル別検索
+* config.php
+  - Pythonのプロセス個数＆時間
+* docker対応
+  - branch docker
 * 作品一覧
 * OK personalクラス
 

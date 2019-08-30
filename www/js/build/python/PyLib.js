@@ -76,6 +76,19 @@ define(function (require,exports,module) {
     PL.abs=function (s) {
         return Math.abs(s);
     };
+    PL.min=function (...args) {
+        if (args[0][Symbol.iterator]) {
+            return Math.min(...Array.from(args[0]));
+        }
+        return Math.min(...args);
+    };
+    PL.max=function (...args) {
+        if (args[0][Symbol.iterator]) {
+            return Math.max(...Array.from(args[0]));
+        }
+        return Math.max(...args);
+    };
+
     PL.quit=function (s) {PL.exit();};
     PL.exit=function (s) {
         var e=new Error("exit でプログラムが終了しました。");

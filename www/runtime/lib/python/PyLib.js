@@ -90,6 +90,27 @@ define(function (require, exports, module) {
     PL.abs = function (s) {
         return Math.abs(s);
     };
+    PL.min = function () {
+        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+        }
+
+        if (args[0][Symbol.iterator]) {
+            return Math.min.apply(Math, _toConsumableArray(Array.from(args[0])));
+        }
+        return Math.min.apply(Math, args);
+    };
+    PL.max = function () {
+        for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+            args[_key2] = arguments[_key2];
+        }
+
+        if (args[0][Symbol.iterator]) {
+            return Math.max.apply(Math, _toConsumableArray(Array.from(args[0])));
+        }
+        return Math.max.apply(Math, args);
+    };
+
     PL.quit = function (s) {
         PL.exit();
     };
@@ -313,8 +334,8 @@ define(function (require, exports, module) {
         var o = {};
         var i = 0;
 
-        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-            args[_key] = arguments[_key];
+        for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+            args[_key3] = arguments[_key3];
         }
 
         var _iteratorNormalCompletion = true;
@@ -377,8 +398,8 @@ define(function (require, exports, module) {
             return "<class object>";
         },
         __call__: function __call__(self) {
-            for (var _len2 = arguments.length, a = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-                a[_key2 - 1] = arguments[_key2];
+            for (var _len4 = arguments.length, a = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+                a[_key4 - 1] = arguments[_key4];
             }
 
             //var a=Array.prototype.slice.call(arguments,1);
@@ -503,15 +524,15 @@ define(function (require, exports, module) {
     });
     PL.addMonkeyPatch(Array, {
         append: function append(self) {
-            for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-                args[_key3 - 1] = arguments[_key3];
+            for (var _len5 = arguments.length, args = Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
+                args[_key5 - 1] = arguments[_key5];
             }
 
             return self.push.apply(self, args);
         },
         __add__: function __add__(self) {
-            for (var _len4 = arguments.length, args = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
-                args[_key4 - 1] = arguments[_key4];
+            for (var _len6 = arguments.length, args = Array(_len6 > 1 ? _len6 - 1 : 0), _key6 = 1; _key6 < _len6; _key6++) {
+                args[_key6 - 1] = arguments[_key6];
             }
 
             return self.concat.apply(self, args);
