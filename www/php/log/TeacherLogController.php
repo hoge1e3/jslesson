@@ -64,6 +64,7 @@ class TeacherLogController {
           programs=[];
           </script>
           <?php
+          $all=param("all",false);
           $prevTime=0;
           $prevResult="";
           $logs2=Array();
@@ -71,7 +72,7 @@ class TeacherLogController {
             if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false){
               if(array_key_exists($i+1,$logs)){
                 //if($logs[$i+1]['time']-$l['time']>=3 || ($logs[$i+1]['time']-$l['time']<3 && $l['detail']!="実行しました")) {
-                if($l['detail']!="実行しました" && !($l['time']-$prevTime<=1 && $l['result']==$prevResult && strpos($l['result'],'runtime')!==false)) {
+                if(($l['detail']!="実行しました" || $all) && !($l['time']-$prevTime<=1 && $l['result']==$prevResult && strpos(mb_strtolower($l['result']),'runtime')!==false)) {
                   array_push($logs2,$l);
                   ?>
                   <script>
@@ -123,13 +124,14 @@ class TeacherLogController {
               var lastDiffData=calcDiff(curProg,lastProg,"[id='"+userid+"diffLast']","Current","Last",false);
               var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
               var ld="-"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"];
+              var sameLines=":"+lastDiffData["equal"];
               console.log("prev",prevProg);
               console.log("cur",curProg);
               console.log("diff",prevDiffData);
 
               var e=document.createElement("span");
               e.id='<?=$l['id']?>summary';
-              e.innerHTML=pd+ld;
+              e.innerHTML=sameLines;
               document.getElementById('<?=$l['id']?>').appendChild(e);
               </script>
               <?php
