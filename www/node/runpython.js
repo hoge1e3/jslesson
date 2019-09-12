@@ -1,5 +1,6 @@
 /*global require, process*/
 const ngword=null; // /\b(open|eval|getattr|setattr|sys|os)\b/;
+//const ngword=/\b(breakpoint|compile|exec|globals|__builtins__|subprocess|pathlib|glob|open|eval|getattr|setattr|sys|os)\b/;  // special-change
 const JS="../js/";
 const exec = require('child_process').exec;
 const requirejs=require("./r.js");//../node_modules/requirejs/bin/r.js");
@@ -54,6 +55,7 @@ function (FS,PP,S,G) {
         }
         pre.then(()=>{
             //console.log(workd.rel("stdin.txt").exists());
+            //exec('python3.5 "'+cvSrcF.path()+'" < stdin.txt ', (err, stdout, stderr) => {// special-change
             exec('python "'+cvSrcF.path()+'" < stdin.txt ', (err, stdout, stderr) => {
                 //if (err) { console.log(err+""); }
                 var mesg=stderr+"";
