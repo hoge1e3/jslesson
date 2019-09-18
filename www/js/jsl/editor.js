@@ -861,7 +861,14 @@ function ready() {
         if (lang==="dncl" || lang==="py") return;// bad know-how!
         A.is(prog,"AceEditor");
         var prev=prog.getValue();
-        var fixed=fixIndent( prev ).replace(/　/g,"  ");
+        let fixed;
+        if (builder.getIndentFixer) {
+            fixed=builder.getIndentFixer().fix(prev);
+        } else {
+            fixed=fixIndent( prev );
+        }
+        fixed=fixed.replace(/　/g,"  ");
+
         if (fixed!==prev) {
             var cur=prog.getCursorPosition();
             prog.setValue(fixed);

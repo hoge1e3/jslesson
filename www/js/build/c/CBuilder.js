@@ -1,7 +1,7 @@
 define(["assert","DeferredUtil","wget", "cCompiler","IndentBuffer","Sync",
-"FS","SplashScreen","FileBrowser","root","WebSite"],
+"FS","SplashScreen","FileBrowser","root","WebSite","CAndDtlTokenizer","IndentFixer"],
 function (A,DU,wget,compile,IndentBuffer,Sync,
-    FS,SplashScreen,FileBrowser,root,WebSite) {
+    FS,SplashScreen,FileBrowser,root,WebSite,Tokenizer,IndentFixer) {
     var CBuilder=function (prj, dst) {
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
@@ -188,7 +188,19 @@ function (A,DU,wget,compile,IndentBuffer,Sync,
         }
         FileBrowser.show(cjsFileHome() ,{l:true});
     };
-
+    p.getTokenizer=function () {
+        return {
+            parse(str) {
+                return Tokenizer.tokenizer(str).tokenize();
+            }
+        };
+    };
+    p.getIndentFixer=function () {
+        const t=this.getTokenizer();
+        t.isOpen=t=>t.type==="open";
+        t.isClose=t=>t.type==="close";
+        return new IndentFixer(t);
+    };
 
 
     return CBuilder;

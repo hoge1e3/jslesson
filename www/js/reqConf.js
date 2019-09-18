@@ -296,6 +296,9 @@ var reqConf={
             ImageRect: "build/tonyu/graphics/ImageRect",
             ImageDetailEditor: "build/tonyu/ImageDetailEditor",
             DateUtil: "lib/",
+            IndentFixer: "lang/IndentFixer",
+            GenericTokenizer: "lang/GenericTokenizer",
+            CAndDtlTokenizer: "build/CAndDtlTokenizer",
 
             "foo":"bar"
         },
