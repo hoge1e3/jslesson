@@ -653,7 +653,8 @@ root.MinimalParser= function () {
 	            newError2(op,"'{1}'はポインタ型に使用できない演算子です．",op);
 	        }
 	    }
-	    return extend(["(",CD(left),op,CD(right),")"],{vtype:t});
+        // cast?
+	    return extend(["cast(",typeLit(t),",",CD(left),op,CD(right),")"],{vtype:t});
 	}
 	function CD(e) {
 	    return extend(["checkDust(",e,")"],{});
