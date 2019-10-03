@@ -27,7 +27,7 @@ class Docker {
         $user=Published::getURL($this->className, $this->userName, "assets");
         $class=Published::getURL($this->className, "class", "assets");
         
-        return array("user"=>BA_PUB.$user , "class"=>BA_PUB.$class);
+        return array("user"=>BA_PUB."/".$user , "class"=>BA_PUB."/".$class);
         //return array("user"=>BA_PUB."8d8b0d06", "class"=>BA_PUB."5007133d");//TODO
     }
     
@@ -51,8 +51,9 @@ class Docker {
             $varg=implode( " ",array_map(function ($vol) {
                return '-v "'.$vol[0].':'.$vol[1].'"';
             },$volumes) );
+            $img=DOCKER_IMAGE;
             //print "docker run $varg -i --name \"$name\" python:3.6 sh $guestHome/run.sh";
-            $r=system_ex("docker run $varg -i --name \"$name\" python:3.6 sh $guestHome/run.sh");
+            $r=system_ex("docker run $varg -i --name \"$name\" $img sh $guestHome/run.sh");
             //print_r($r);
         }
     }

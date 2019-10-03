@@ -15,8 +15,9 @@ class RunPythonController {
         }
         return $wpath;
     }
-    static function copyImg($path) {
-        $w=MySession::get("PYTHON_WORK");
+    static function copyImg($path, $plotBase=null) {
+        if (!PathUtil::isAbsolute($path) && $plotBase) $path=$plotBase->rel($path)->path();
+        $w="python_img";//MySession::get("PYTHON_WORK");
         $pubFilePath=BA_PUB."/$w";
         if (!file_exists($pubFilePath)) mkdir($pubFilePath);
         $ext=PathUtil::ext($path);
@@ -57,8 +58,8 @@ class RunPythonController {
         
         $d=Docker::init($class->id, $user->name);
  	    $d->initProject($projectName);
-     	$res=$d->exec("cd /host/$projectName ; python $fileName");
-     	if ($res["return"]==0) self::convOut($res["stdout"]);
+     	$res=$d->exec("cd /host/$projectName ; export MPLBACKEND=\"module://mybackend\" ; python $fileName");
+     	if ($res["return"]==0) self::convOut($res["stdout"],$d->hostHome()->rel("$projectName/") );
         else {
             http_response_code(500);
             print($res["stdout"]."\n".$res["stderr"]);
@@ -124,11 +125,11 @@ class RunPythonController {
             print($res["stderr"]);
         }
     }
-    static function convOut($out) {
+    static function convOut($out, $plotBase=null) {
         foreach (explode("\n",$out) as $line) {
             $line=preg_replace("/\\r/","",$line);
             if (preg_match("/##PLOT##(.*)/",$line,$m)) {
-                $src=self::copyImg($m[1]);
+                $src=self::copyImg($m[1],$plotBase);
                 echo "<img src='$src'/>\n";
             } else {
                 echo "$line\n";
