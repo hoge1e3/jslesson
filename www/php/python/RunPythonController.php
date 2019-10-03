@@ -1,5 +1,5 @@
 <?php
-req("param","auth","MySession","AssetController");
+req("param","auth","MySession","AssetController","Docker","Process");
 class RunPythonController {
     static function workDirPath() {
         if (MySession::has("PYTHON_WORK")) {
@@ -48,6 +48,22 @@ class RunPythonController {
         } else {
             return $homes;
         }
+    }
+    static function runInDocker() {
+        $projectName=param("prj");
+        $fileName=param("file");
+        $class=Auth::curClass2();
+        $user=Auth::curUser2();
+        
+        $d=Docker::init($class->id, $user->name);
+ 	    $d->initProject($projectName);
+     	$res=$d->exec("cd /host/$projectName ; python $fileName");
+     	if ($res["return"]==0) self::convOut($res["stdout"]);
+        else {
+            http_response_code(500);
+            print($res["stdout"]."\n".$res["stderr"]);
+        }
+ 	    //print_r($r);
     }
     static function runStr(){
         $nfs=new NativeFS();
@@ -159,41 +175,5 @@ class RunPythonController {
         }
     }
 
-}
-function system_ex($cmd, $stdin = "")
-{
-    $descriptorspec = array(
-        0 => array("pipe", "r"),
-        1 => array("pipe", "w"),
-        2 => array("pipe", "w")
-        );
-
-    $process = proc_open($cmd, $descriptorspec, $pipes);
-    $result_message = "";
-    $error_message = "";
-    $return = null;
-    if (is_resource($process))
-    {
-        fputs($pipes[0], $stdin);
-        fclose($pipes[0]);
-
-        while ($error = fgets($pipes[2])){
-            $error_message .= $error;
-        }
-        while ($result = fgets($pipes[1])){
-            $result_message .= $result;
-        }
-        foreach ($pipes as $k=>$_rs){
-            if (is_resource($_rs)){
-                fclose($_rs);
-            }
-        }
-        $return = proc_close($process);
-    }
-    return array(
-        'return' => $return,
-        'stdout' => $result_message,
-        'stderr' => $error_message,
-        );
 }
  ?>

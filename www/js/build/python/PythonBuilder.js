@@ -156,7 +156,12 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         } else if (runLocal) {
             J(node,anon,{buf:buf,genReqJS:true, pyLibPath:WebSite.runtime+"lib/python"});
         } else {
-            buf.printf("runOnServer2(%s,%s);",    JSON.stringify(f.src.py.text()),needInput );
+            const pyFile=f.src.py;
+            const name=pyFile.name();
+            const prj=pyFile.up().name().replace(/\/$/,"");
+            
+            buf.printf("runOnServer3('%s','%s',%s);",    prj, name ,needInput );
+            //buf.printf("runOnServer2(%s,%s);",    JSON.stringify(f.src.py.text()),needInput );
         }
         buf.close();
         // always run local default is not good for betupe-ji jikkou
