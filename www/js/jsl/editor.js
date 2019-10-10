@@ -606,7 +606,15 @@ function ready() {
             name= name.substring(0,1).toUpperCase()+name.substring(1);
             upcased=true;
         }*/
-        if (name.match(/^[A-Za-z_][a-zA-Z0-9_]*$/)) {
+        var pat={
+            reg:/^[A-Za-z_][a-zA-Z0-9_]*$/, error:"名前は，半角英数字とアンダースコア(_)のみが使えます．"
+        };
+        if (lang==="c") {
+            pat={
+                reg:/^[A-Za-z_][\-a-zA-Z0-9_]*$/, error:"名前は，半角英数字とアンダースコア(_)，ハイフン(-)のみが使えます．"
+            };
+        }
+        if (name.match(pat.reg)) {
             if (sourceFiles[name]) {
                 return {ok:false, reason:name+"は存在します"};
             }
@@ -615,7 +623,7 @@ function ready() {
             }
             return {ok:true, file: curProjectDir.rel(name+EXT)};
         } else {
-            return {ok:false, reason:"名前は，半角英数字とアンダースコア(_)のみが使えます．先頭は英大文字にしてください．"};
+            return {ok:false, reason:pat.error};//"名前は，半角英数字とアンダースコア(_)のみが使えます．"};//"先頭は英大文字にしてください．"};
         }
     }
     function getCurrentEditorInfo() {
