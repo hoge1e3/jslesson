@@ -14,7 +14,7 @@ class AssetController {
         }
         copy($_FILES['acceptImage']['tmp_name'], $s->nativePath());
         //echo $_FILES['acceptImage']['tmp_name']." ".$s->nativePath();
-        echo preg_replace("/\/+/","/", $s->relPath(self::pub()) );
+        //echo preg_replace("/\/+/","/", $s->relPath(self::pub()) ); //self::pub??
     }
     static function list() {
         $context=param("context","user");

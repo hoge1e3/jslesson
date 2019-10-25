@@ -1,36 +1,70 @@
 <?php
 /*
-create table published (
-	url varchar(32),
-	class varchar(32),
-	user varchar(32),
-	project varchar(32)
+TODO: select * from published where project='assets';
+
+-- see also: ~/badb/addpub.php
+CREATE TABLE `pub_class` (
+  `url` varchar(32) DEFAULT NULL, -- ends /
+  `class` varchar(32) DEFAULT NULL
+) DEFAULT CHARSET=utf8;
+CREATE TABLE `pub_user` (
+  `url` varchar(32) DEFAULT NULL, -- ends /
+  `class` varchar(32) DEFAULT NULL, -- join on  =pub_class.class
+  `user` varchar(32) DEFAULT NULL,
+  `project` varchar(32) DEFAULT NULL -- ends /
+) DEFAULT CHARSET=utf8;
 );*/
+req("UniqID");
 class Published {
+    static function getURLOfClass($classID) {
+        $cr=pdo_select1("select * from pub_class where `class`=? ",$classID);
+        if ($cr) {
+            $urlC=$cr->url;
+        } else {
+            $urlC=pdo_uniqID("pub_class","url")."/";
+            pdo_insert("pub_class",array("url"=>$urlC, "class"=>$classID));
+        }
+        return $urlC;
+    }
     static function getURL($classID,$userName,$projectName) {
-        $r=pdo_select1("select * from published where `class`=? and `user`=? and `project`=? ",
+        $urlC=self::getURLOfClass($classID);
+        $ur=pdo_select1("select * from pub_user where `class`=? and `user`=? and `project`=? ",
             $classID,$userName,$projectName);
-        if ($r) {
-            return $r->url;
+        if ($ur) {
+            $urlU=$ur->url;
+        } else {
+            $urlU=UniqID::find(function ($url) use($classID) {
+                return pdo_select1("select * from pub_user where url=? and class=?", $url, $classID);
+            },500,100);
+            $urlU.="/";
+            pdo_insert("pub_user",array("url"=>$urlU, "class"=>$classID, "user"=>$userName, "project"=>$projectName));
         }
-        $url=substr(md5("$classID/$userName/$projectName"),0,8)."/";
-        pdo_insert("published",array("url"=>$url, "class"=>$classID, "user"=>$userName, "project"=>$projectName));
-        return $url;
+        return "$urlC$urlU";
     }
-    static function getRecord($url) {
-        $url=preg_replace("/\\?.*/","",$url);
-        if (preg_match("/([0-9a-fA-F]+\\/)[^\\/]*$/",$url,$m)) {
-            $url=$m[1];
+
+    static function getRecord($url) {// full url
+        //                  \?.*
+        $url=preg_replace("/\\?.*/","",$url); // trim params
+        //               ([0-9]+/)([0-9]+/)[^/]*$
+        if (preg_match("/([0-9]+\\/)([0-9]+\\/)[^\\/]*$/",$url,$m)) {
+            $urlC=$m[1];
+            $urlU=$m[2];
+            $cr=pdo_select1("select * from pub_class where url=?",$urlC);
+            return pdo_select1("select * from pub_user where url=? and class=?",$urlU, $cr->class);
         }
-        return pdo_select1("select * from published where url=?",$url);
+        return null;
     }
-    static function getClass($url) {
+    static function getClass($url) {// full url
         $r=self::getRecord($url);
         if ($r) return $r->class;
         return null;
     }
-    static function listProjects($classID,$projectName) {
-        return pdo_select("select * from published where `class`=? and `project`=? ",$classID,$projectName);
+    static function listProjects($classID,$projectName=null) {// Why projectName? -> list of specified project for all users
+        if ($projectName) {
+            return pdo_select("select * from pub_class where `class`=? and `project`=? ",$classID,$projectName);
+        } else {
+            return pdo_select("select * from pub_class where `class`=? ",$classID);
+        }
     }
 }
 
