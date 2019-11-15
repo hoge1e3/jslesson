@@ -1,8 +1,6 @@
 <?php
 /*
-TODO: select * from published where project='assets';
-
--- see also: ~/badb/addpub.php
+TODO:  ~/badb/migratepub.php
 CREATE TABLE `pub_class` (
   `url` varchar(32) DEFAULT NULL, -- ends /
   `class` varchar(32) DEFAULT NULL
