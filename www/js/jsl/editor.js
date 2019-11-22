@@ -33,6 +33,7 @@ define(function (require) {
     var ErrorDialog=require("ErrorDialog");
     var BAProject=require("BAProject");
     var UA=require("UserAgent");
+    const SocializeDialog=require("SocializeDialog");
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
         A.setMode(A.MODE_STRICT);
@@ -145,7 +146,7 @@ function ready() {
     var HEXT=".html";
     var opt=curPrj.getOptions();
     var lang=opt.language || "js";
-    var ide={run:run, prj:curPrj};
+    var ide={run:run, prj:curPrj,getCurrentEditorInfo};
     root.openDummyEditor=openDummyEditor;
     switch (lang){
     case "c":
@@ -958,6 +959,7 @@ function ready() {
     });
     setInterval(watchModified,1000);
     var curDOM;
+    const socializeDialog=SocializeDialog(ide);
     function open(f) {
 	// do not call directly !!  it doesnt change fl.curFile. use fl.select instead
         A.is(f,"SFile");
@@ -1001,7 +1003,8 @@ function ready() {
                 prog.getSession().setMode("ace/mode/html");
             }
             prog.getSession().setUseWrapMode(true);
-            editors[f.path()]={file:f , editor: prog, dom:progDOM};
+            inf={file:f , editor: prog, dom:progDOM};
+            editors[f.path()]=inf;
             progDOM.click(F(function () {
                 displayMode("edit");
             }));
@@ -1027,6 +1030,7 @@ function ready() {
             }
         }).catch(DU.E);
         $("#curFileLabel").text(f.truncExt());
+        socializeDialog.show(inf.file);
     }
     root.d=function () {
         root.Tonyu.currentProject.dumpJS.apply(this,arguments);

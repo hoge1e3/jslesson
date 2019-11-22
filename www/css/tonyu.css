@@ -9,7 +9,14 @@ body {
 button.selected {
     background-color: #f08;
 }
-
+.socializePopup {
+    z-index:100;
+    width: 500px;
+    padding: 10px;
+    font-size: 20px;
+    position: absolute;
+    background-color: #ffe;
+}
 /* IME Fix */
 @font-face {
     font-family: 'ime_jp_rp';
