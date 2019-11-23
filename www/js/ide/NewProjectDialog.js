@@ -1,4 +1,4 @@
-define(["UI","BAProject","FS"], function (UI,BAProject,FS) {
+define(["UI","FS","ProjectFactory"], function (UI,FS,F) {
     var res={};
 	res.show=function (prjInfo, onOK,options) {
     	var d=res.embed(prjInfo,onOK,options);
@@ -83,7 +83,7 @@ define(["UI","BAProject","FS"], function (UI,BAProject,FS) {
 	    console.log(model);
 	    var prjDir=projectsDir.rel(model.name+"/");
         prjDir.mkdir();
-        new BAProject(prjDir).setOptions({
+        F.create("ba",{dir:prjDir}).setOptions({
             compiler:{
                 namespace:"user",
                 outputFile:"js/concat.js",

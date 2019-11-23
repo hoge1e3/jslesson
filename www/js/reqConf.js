@@ -99,6 +99,9 @@ var reqConf={
                 deps:["Parser","ExpressionParser","context"],
                 exports:"dncl2js"
             },
+            Tonyu:{
+                exports:"Tonyu"
+            },
             AsyncByGenerator: {
                 exports: "AsyncByGenerator"
             }/*,
@@ -120,7 +123,7 @@ var reqConf={
             jsl_selProject_concat: 'gen/selPrj_concat',
             jsl_edit: "jsl/editor",
             jsl_edit_concat: 'gen/edit_concat',
-            BAProject: "jsl/BAProject",
+            ProjectFactory: "ide/ProjectFactory",
             Sync: "fs2/sync2",
             root:"lib/root",
             jshint: "lib/jshint",
@@ -197,9 +200,9 @@ var reqConf={
             "TonyuLang": "lang/parse_tonyu2",
             "Visitor": "lang/Visitor",
             "XMLBuffer": "lang/XMLBuffer",
-            "Tonyu": "runtime/TonyuLib",
-            "Tonyu.Thread":"runtime/TonyuThread",
-            "Tonyu.Iterator": "runtime/TonyuIterator",
+            "Tonyu": "runtime/TonyuRuntime",
+            //"Tonyu.Thread":"runtime/TonyuThread",
+            //"Tonyu.Iterator": "runtime/TonyuIterator",
             //"Tonyu.Iterator": "runtime/Iterator",
             "Tonyu.Compiler": "lang/compiler",
             "Tonyu.Compiler.JSGenerator": "lang/JSGenerator",
@@ -297,6 +300,7 @@ var reqConf={
             ImageDetailEditor: "build/tonyu/ImageDetailEditor",
             DateUtil: "lib/",
             IndentFixer: "lang/IndentFixer",
+            BuilderClient: "lang/BuilderClient",
             GenericTokenizer: "lang/GenericTokenizer",
             CAndDtlTokenizer: "build/CAndDtlTokenizer",
 

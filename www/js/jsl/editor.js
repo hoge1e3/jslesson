@@ -31,7 +31,7 @@ define(function (require) {
     var AssetDialog=require("AssetDialog");
     var root=require("root");
     var ErrorDialog=require("ErrorDialog");
-    var BAProject=require("BAProject");
+    var PF=require("ProjectFactory");
     var UA=require("UserAgent");
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -48,7 +48,7 @@ define(function (require) {
         return;
     }
     var curProjectDir=FS.get(dir);
-    var curPrj=BAProject(curProjectDir);
+    var curPrj=PF.create("ba",{dir:curProjectDir});
     /*
     getEXT
     getOptions
@@ -661,57 +661,52 @@ function ready() {
     }
     //var curName,runURL;
     $("#fullScr").click(runFullScr);
-    function runFullScr(options) {
-            options=options||{};
-            options.fullScr=true;
-            var inf=getCurrentEditorInfo();
-            if (!inf) {
-                alert("実行したいファイルを選んでください");
-            }
-            save();
-            sync();
-            if (builder && inf) {
+    async function runFullScr(options) {
+        options=options||{};
+        options.fullScr=true;
+        var inf=getCurrentEditorInfo();
+        if (!inf) {
+            alert("実行したいファイルを選んでください");
+        }
+        save();
+        sync();
+        if (builder && inf) {
+            try {
                 var curFile=inf.file;
                 var curFiles=fileSet(curFile);
                 var curHTMLFile=curFiles[0];
                 var curLogicFile=curFiles[1];
-
                 var pub;
                 //var pub=Auth.remotePublics()/*FS.get("/public/")*/.rel(curProjectDir.name());
                 SplashScreen.show();
-                Auth.publishedDir(curPrj.getName()+"/").then(function (_p) {
-                    pub=_p;
-                    options.mainFile=curLogicFile;
-                    return builder.build(options);
-                }).then(function () {
-                    return builder.upload(pub);
-                }).then(function () {
-                    console.log("tonyu upl done");
-                    SplashScreen.hide();
-                    return Auth.publishedURL(curPrj.getName()+"/");
-                }).then(function (_u) {
-                    var cv=$("<div>");
-                    cv.dialog();
-                    var runURL=_u+(lang=="tonyu"?"index.html":curHTMLFile.name());
-                    cv.append($("<div>").append(
-                        $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
-                    ));
-                    cv.append($("<div>").qrcode({width:200,height:200,text:runURL}));
-                    if (builder.qrDialog) builder.qrDialog({
-                        dialogJQ:cv,
-                        editorInfo:getCurrentEditorInfo(),
-                        rerun:runFullScr
-                    });
-                    return sync();
-                }).fail(function (e) {
-                    //console.log("betupe-ji fail",e);
-                    EC.handleException(e);
-                    SplashScreen.hide();
+                pub=await Auth.publishedDir(curPrj.getName()+"/");
+                options.mainFile=curLogicFile;
+                await builder.build(options);
+                await builder.upload(pub);
+                console.log("tonyu upl done");
+                SplashScreen.hide();
+                const _u=await Auth.publishedURL(curPrj.getName()+"/");
+                var cv=$("<div>");
+                cv.dialog();
+                var runURL=_u+(lang=="tonyu"?"index.html":curHTMLFile.name());
+                cv.append($("<div>").append(
+                    $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
+                ));
+                cv.append($("<div>").qrcode({width:200,height:200,text:runURL}));
+                if (builder.qrDialog) builder.qrDialog({
+                    dialogJQ:cv,
+                    editorInfo:getCurrentEditorInfo(),
+                    rerun:runFullScr
                 });
+                return sync();
+            }catch(e) {
+                EC.handleException(e);
+                SplashScreen.hide();
             }
+        }
     }
     //\run
-    function run(options) {//run!!
+    async function run(options) {//run!!
         options=options||{};
         var inf=getCurrentEditorInfo();
         if (!inf) {
@@ -736,52 +731,40 @@ function ready() {
         // display=none
         $("[name=runtimeErrorDialog]").parent().css("display","none");
         displayMode("run");
-    	    try {
-                SplashScreen.show();
-    	        $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
-                DU.timeout(0).then(function () {
-                    options.mainFile=curLogicFile;
-                    var b=builder.build(options);
-                    if (ALWAYS_UPLOAD) {
-                        return b.then(function () {
-                            return Auth.publishedDir(curProjectDir.name());
-                        }).then(function (pub) {
-                            console.log("Upload comp",pub);
-                            return builder.upload(pub);
-                        });
-                    }
-                    return b;
-                }).then(function () {
-                    logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Run","実行しました",langList[lang]);
-                    if (ALWAYS_UPLOAD) {
-                        return Auth.publishedURL(curProjectDir.name()).then(function (pub) {
-                            var runURL=pub+(lang=="tonyu"?"index.html": curHTMLFile.name());
-                            return IframeDialog.show(runURL,{width:600,height:400});
-                        });
-                    }
-                    var indexF=ram.rel(curHTMLFile.name());
-                    return RunDialog2.show(indexF,{
-                        window:newwnd,
-                        height:RunDialog2.geom.height||screenH-50,
-                        toEditor:focusToEditor,
-                        font:desktopEnv.editorFontSize||18
-                    });
-                }).fail(function (e) {
-                    console.log(e.stack);
-                    if (e.isTError) {
-                        showErrorPos($("#errorPos"),e);
-                        logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),lang.toUpperCase()+" Compile Error",e.src+":"+e.pos+"\n"+e.mesg,langList[lang]);
-                    } else {
-                        EC.handleException(e);
-                    }
-                }).always(function () {
-                    SplashScreen.hide();
-                    return sync();
+    	try {
+            SplashScreen.show();
+    	    $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
+            options.mainFile=curLogicFile;
+            var b=await builder.build(options);
+            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Run","実行しました",langList[lang]);
+            if (ALWAYS_UPLOAD) {
+                const pubd=await Auth.publishedDir(curProjectDir.name());
+                console.log("Upload comp",pubd);
+                await builder.upload(pubd);
+                const pub=await Auth.publishedURL(curProjectDir.name());
+                var runURL=pub+(lang=="tonyu"?"index.html": curHTMLFile.name());
+                return IframeDialog.show(runURL,{width:600,height:400});
+            } else {
+                var indexF=ram.rel(curHTMLFile.name());
+                return RunDialog2.show(indexF,{
+                    window:newwnd,
+                    height:RunDialog2.geom.height||screenH-50,
+                    toEditor:focusToEditor,
+                    font:desktopEnv.editorFontSize||18
                 });
-            }catch(e) {
-	            if(e) console.log(e.stack);
-                SplashScreen.hide();
             }
+        }catch(e) {
+            console.log(e.stack);
+            if (e.isTError) {
+                showErrorPos($("#errorPos"),e);
+                logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),lang.toUpperCase()+" Compile Error",e.src+":"+e.pos+"\n"+e.mesg,langList[lang]);
+            } else {
+                EC.handleException(e);
+            }
+        } finally {
+            SplashScreen.hide();
+            return sync();
+        }
     }
     window.moveFromFrame=function (name) {
         A.is(name,String);

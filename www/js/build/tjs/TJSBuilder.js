@@ -1,9 +1,30 @@
 /*global requirejs*/
-define(["assert","DeferredUtil","wget","Sync","WebSite","Tonyu","ProjectCompiler"],
-function (A,DU,wget,Sync,WebSite,Tonyu,PRC) {
+define(["assert","DeferredUtil","wget","Sync","WebSite","Tonyu","BuilderClient","Util","FS","ProjectFactory"],
+function (A,DU,wget,Sync,WebSite,Tonyu,BuilderClient,Util,FS,F) {
+    const langMod=BuilderClient.langMod;
+    F.addDependencyResolver((prj, spec)=> {
+        if (spec.namespace==="jslker") {
+            return F.create("compiled",{namespace:spec.namespace, url:WebSite.JSLKer});
+        }
+    });
     var TJSBuilder=function (prj, dst) {
         this.prj=prj;// TPRC from BA
-        this.tprj=PRC(prj.getDir());// Tonyu-lang dependent
+        const ns2depspec= {
+            jslker: {namespace:"jslker", url: WebSite.JSLKer}
+        };
+        Util.extend(prj, langMod);// TODO .include(langMod);
+        prj.getOutputFile=function () {//override
+            const opt=this.getOptions();
+            const dir=this.getDir();
+            if (opt.compiler.outputFile) return FS.resolve(opt.compiler.outputFile,dir.path());
+            return dir.rel("js/concat.js");
+        };
+        const tprj=new BuilderClient(prj ,{
+            worker: {ns2depspec, url: "BuilderWorker.js"/*WORKER_URL*/}
+        });//PRC(prj.getDir());// Tonyu-lang dependent
+        Util.extend(tprj, prj);// TODO .include(langMod);
+
+        this.tprj=tprj;
         this.dst=dst;// SFile in ramdisk
         Tonyu.globals.$currentProject=this.tprj;
         Tonyu.currentProject=this.tprj;
@@ -11,7 +32,7 @@ function (A,DU,wget,Sync,WebSite,Tonyu,PRC) {
     var p=TJSBuilder.prototype;
     p.dlFiles=function () {
         var dst=this.dst;
-        var urls=["lib/tjs/TonyuLib.js",
+        var urls=["lib/tjs/TonyuRuntime.js",
         "lib/jquery-1.12.1.js","lib/tjs/kernel.js",
         "lib/require.js","lib/tjs/run.js",
         "images/neko1.png","images/ball.png"];
@@ -83,36 +104,33 @@ function (A,DU,wget,Sync,WebSite,Tonyu,PRC) {
         var dstHTMLF=dst.rel(curHTMLFile.name());
         dstHTMLF.text("<html>"+html.innerHTML+"</html>");
     };
-    p.build=function () {
-        var curPrj=this.tprj;
-        var opt=curPrj.getOptions();
+    p.build=async function () {
+        const tprj=this.tprj;
+        var opt=tprj.getOptions();
         console.log("opT",opt);
         if (opt.compiler &&
         opt.compiler.dependingProjects &&
         opt.compiler.dependingProjects[0]){
             if (opt.compiler.dependingProjects[0].compiledURL=="${JSLKer}/js/concat.js") {
                 opt.compiler.dependingProjects[0].compiledURL="${JSLKer}";
-                curPrj.setOptions(opt);
+                tprj.setOptions(opt);
             }
         }
         var dst=this.dst;
         var t=this;
-        return /*this.dlFiles()*/$.when().then(function () {
-            return curPrj.loadClasses();
-        }).then(function() {
-            var concat=curPrj.getOutputFile();
-            dst.rel("user.js").copyFrom(concat);
-            // source-map  concat.js.map(in user.js) this is not good
-            var mapfile=concat.sibling(concat.name()+".map");
-            if (mapfile.exists()) {
-                dst.rel("concat.js.map").copyFrom(mapfile);
-            } else {
-                console.log("NOTE",mapfile.path(),"not exists");
-            }
-            curPrj.dir.each(function (f) {
-                if (f.ext()!=".html")  return;
-                t.genHTML(f.truncExt());
-            });
+        await tprj.clean();
+        var concat=tprj.getOutputFile();
+        dst.rel("user.js").copyFrom(concat);
+        // source-map  concat.js.map(in user.js) this is not good
+        var mapfile=concat.sibling(concat.name()+".map");
+        if (mapfile.exists()) {
+            dst.rel("concat.js.map").copyFrom(mapfile);
+        } else {
+            console.log("NOTE",mapfile.path(),"not exists");
+        }
+        tprj.getDir().each(function (f) {
+            if (f.ext()!=".html")  return;
+            t.genHTML(f.truncExt());
         });
     };
     p.upload=function (pub) {
