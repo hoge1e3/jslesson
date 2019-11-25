@@ -234,7 +234,7 @@ var reqConf={
             JSONCol: "lib/JSONCol",
             genROM: "build/genROM",
             Log:"ide/log",
-            StackTrace:"runtime/StackTrace",
+            //StackTrace:"runtime/StackTrace",
             Shell2:"fsui/ShellUI",
             ShellUI:"fsui/ShellUI",
             //Shell2:"fsui/Shell2",
@@ -284,6 +284,7 @@ var reqConf={
             pyRun:"build/python/pyRun",
             PyLib: "../runtime/lib/python/PyLib",
             PyX: "../runtime/lib/python/PyX",
+            SysDebugger_concat:"../runtime/lib/tonyu/SysDebugger_concat",
             CBuilder:"build/c/CBuilder",
             TonyuBuilder:"build/tonyu/TonyuBuilder",
             wget:"fs2/wget",
@@ -303,6 +304,7 @@ var reqConf={
             BuilderClient: "lang/BuilderClient",
             GenericTokenizer: "lang/GenericTokenizer",
             CAndDtlTokenizer: "build/CAndDtlTokenizer",
+            stacktrace:"lang/",
 
             "foo":"bar"
         },

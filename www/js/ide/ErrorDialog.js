@@ -1,8 +1,8 @@
-define(["Klass","FS","UI","Pos2RC","UserAgent"],
-function (Klass,FS,UI,Pos2RC,ua) {
-    var regrc=/:([0-9]+):([0-9]+)/;
+define(["Klass","FS","UI","Pos2RC","UserAgent","stacktrace"],
+function (Klass,FS,UI,Pos2RC,ua,StackTrace) {
+    //var regrc=/:([0-9]+):([0-9]+)/;
     //function unknownF(){return "不明";}
-    var bytes=function(s) {
+    /*var bytes=function(s) {
         try {
             var r="",noconv;
             for(var i=0;i<s.length;i++) {
@@ -15,55 +15,42 @@ function (Klass,FS,UI,Pos2RC,ua) {
             console.log(e, s);
             return s;
         }
-    };
+    };*/
     return Klass.define({
         $this:true,
-        decodeTrace: function (t,e) {
-            var stack=e.stack+"";
-            if (ua.isChrome) {
-                stack=(""+stack).split("\n").map(bytes).join("\n");
-            }
-            if (ua.isFirefox) {
-                stack=(e+"\n"+stack).replace(/\\u([0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])/g,function (_,c) {
-                    return String.fromCharCode("0x"+c);
-                });
-            }
-            return stack.split("\n").map(function (line) {
-                var r=regrc.exec(line);
-                var res={line:line};
-                if (r) {
-                    res.row=r[1];
-                    res.col=r[2];
-                    var before=line.substring(0,r.index);
-                    var pathCand;
-                    for (var i=before.length-1; i>=0;i--) {
-                        if (before[i]==="/" || before[i]==="\\") {
-                            var path=before.substring(i);
-                            try {
-                                if (FS.get(path).exists()) {
-                                    pathCand=path;
-                                }
-                            } catch(e){console.error(e);}
+        convertPath: function (e) {return e;},// replaced with BuilderClient.convertFromWorkerPath
+        decodeTrace: async function (t,e) {
+            try {
+                const tr=await StackTrace.fromError(e,{offline:true});
+                tr.forEach(tre=>{
+                    try {
+                        const fn=t.convertPath(tre.fileName);
+                        if (FS.get(fn).exists()) {
+                            tre.file=FS.get(fn);
                         }
+                        tre.row=tre.lineNumber-0;
+                        tre.col=tre.columnNumber-0;
+                    } catch(e) {
                     }
-                    if (pathCand) {
-                        res.file=FS.get(pathCand);
-                    }
-                }
-                return res;
-            });
+                });
+                return tr;
+            } catch(e2) {
+                var stack=e.stack+"";
+                return stack.split("\n");
+            }
         },
-        show: function (t, mesg, src, pos, trace) {
+        show: async function (t, mesg, src, pos, trace) {
             var appendPos;
+            console.log("ERRD",mesg);
             if (mesg && mesg.noTrace) return;
             if (mesg && mesg.stack) {
-                var tr=t.decodeTrace(mesg);
+                var tr=await t.decodeTrace(mesg);
                 var detail=(mesg.message ? "("+mesg.message+")" : "");
                 for (var i=0;i<tr.length;i++) {
                     if (tr[i].file) {
                         var cve=tr[i].file.name()+"の"+
                         tr[i].row+"行目"+tr[i].col+"文字目付近でエラーが発生しました"+detail;
-                        return t.show(cve,tr[i].file, tr[i] , mesg.stack);
+                        return await t.show(cve,tr[i].file, tr[i] , mesg.stack);
                     }
                 }
                 src=mesg.src;
@@ -73,7 +60,7 @@ function (Klass,FS,UI,Pos2RC,ua) {
                 pos=mesg.pos;
                 //console.log(mesg,mesg.stack);
                 trace=mesg.stack;
-                mesg=mesg+"";//detail;
+                mesg=(mesg.message||mesg)+"";//detail;
                 appendPos=true;
             }
             var elem=t.createDom();
@@ -100,6 +87,9 @@ function (Klass,FS,UI,Pos2RC,ua) {
                 t.traced.text(trace);
             }
             elem.dialog({width:600,height:400});
+        },
+        close: function (t) {
+            if (t.dom) t.dom.dialog("close");
         },
         createDom: function (t) {
             if (t.dom) return t.dom;

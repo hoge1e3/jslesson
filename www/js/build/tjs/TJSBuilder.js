@@ -12,22 +12,25 @@ function (A,DU,wget,Sync,WebSite,Tonyu,BuilderClient,Util,FS,F) {
         const ns2depspec= {
             jslker: {namespace:"jslker", url: WebSite.JSLKer}
         };
-        Util.extend(prj, langMod);// TODO .include(langMod);
+        prj.include(langMod);
+        //Util.extend(prj, langMod);// TODO .include(langMod);
         prj.getOutputFile=function () {//override
             const opt=this.getOptions();
             const dir=this.getDir();
             if (opt.compiler.outputFile) return FS.resolve(opt.compiler.outputFile,dir.path());
             return dir.rel("js/concat.js");
         };
-        const tprj=new BuilderClient(prj ,{
+        const builder=new BuilderClient(prj ,{
             worker: {ns2depspec, url: "BuilderWorker.js"/*WORKER_URL*/}
         });//PRC(prj.getDir());// Tonyu-lang dependent
-        Util.extend(tprj, prj);// TODO .include(langMod);
+        //Util.extend(tprj, prj);// TODO .include(langMod);
 
-        this.tprj=tprj;
+        this.builder=builder;//tprj=tprj;
+        this.convertPath=p=>builder.convertFromWorkerPath(p);
+        prj.builder=builder;
         this.dst=dst;// SFile in ramdisk
-        Tonyu.globals.$currentProject=this.tprj;
-        Tonyu.currentProject=this.tprj;
+        Tonyu.globals.$currentProject=this.prj;
+        Tonyu.currentProject=this.prj;
     };
     var p=TJSBuilder.prototype;
     p.dlFiles=function () {
@@ -45,7 +48,7 @@ function (A,DU,wget,Sync,WebSite,Tonyu,BuilderClient,Util,FS,F) {
     };
     p.genHTML=function (name) {
         var dst=this.dst;
-        var d=this.tprj.getDir();
+        var d=this.prj.getDir();
         var curHTMLFile=d.rel(name+".html");
         var dp=new DOMParser();
         var dom=dp.parseFromString(curHTMLFile.text()||"<html></html>","text/html");
@@ -98,28 +101,28 @@ function (A,DU,wget,Sync,WebSite,Tonyu,BuilderClient,Util,FS,F) {
         });
         var nn=document.createElement("script");
         nn.setAttribute("charset","utf-8");
-        var ns=this.tprj.getNamespace();
+        var ns=this.prj.getNamespace();
         nn.appendChild(document.createTextNode("run('"+ns+"."+name+"');"));
         body.appendChild(nn);
         var dstHTMLF=dst.rel(curHTMLFile.name());
         dstHTMLF.text("<html>"+html.innerHTML+"</html>");
     };
     p.build=async function () {
-        const tprj=this.tprj;
-        var opt=tprj.getOptions();
+        const prj=this.prj, builder=this.builder;
+        var opt=prj.getOptions();
         console.log("opT",opt);
         if (opt.compiler &&
         opt.compiler.dependingProjects &&
         opt.compiler.dependingProjects[0]){
             if (opt.compiler.dependingProjects[0].compiledURL=="${JSLKer}/js/concat.js") {
                 opt.compiler.dependingProjects[0].compiledURL="${JSLKer}";
-                tprj.setOptions(opt);
+                prj.setOptions(opt);
             }
         }
         var dst=this.dst;
         var t=this;
-        await tprj.clean();
-        var concat=tprj.getOutputFile();
+        await builder.clean();
+        var concat=prj.getOutputFile();
         dst.rel("user.js").copyFrom(concat);
         // source-map  concat.js.map(in user.js) this is not good
         var mapfile=concat.sibling(concat.name()+".map");
@@ -128,7 +131,7 @@ function (A,DU,wget,Sync,WebSite,Tonyu,BuilderClient,Util,FS,F) {
         } else {
             console.log("NOTE",mapfile.path(),"not exists");
         }
-        tprj.getDir().each(function (f) {
+        prj.getDir().each(function (f) {
             if (f.ext()!=".html")  return;
             t.genHTML(f.truncExt());
         });

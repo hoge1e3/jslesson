@@ -4,7 +4,7 @@ define(function (require) {
     var FS=require("FS");
     var FileList=require("FileList");
     var FileMenu=require("FileMenu");
-    var showErrorPos=require("showErrorPos");
+    //var showErrorPos=require("showErrorPos");
     var fixIndent=require("fixIndent");
     var sh=require("Shell");
     var KeyEventChecker=require("KeyEventChecker");
@@ -195,6 +195,7 @@ function ready() {
         autoexec();
         autologexec();
         autosubexec();
+        if (builder.convertPath) errorDialog.convertPath=builder.convertPath;
     }
     function autoexec() {
         var autoexec=Util.getQueryString("autoexec",null);
@@ -635,7 +636,8 @@ function ready() {
         switch(mode) {
         case "run":
             if (prog) prog.blur();
-            showErrorPos($("#errorPos"));
+            errorDialog.close();
+            //showErrorPos($("#errorPos"));
             break;
         case "compile_error":
             SplashScreen.hide();
@@ -754,9 +756,9 @@ function ready() {
                 });
             }
         }catch(e) {
-            console.log(e.stack);
+            console.log(e,e.stack);
             if (e.isTError) {
-                showErrorPos($("#errorPos"),e);
+                errorDialog.show(e);//showErrorPos($("#errorPos"),e);
                 logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),lang.toUpperCase()+" Compile Error",e.src+":"+e.pos+"\n"+e.mesg,langList[lang]);
             } else {
                 EC.handleException(e);

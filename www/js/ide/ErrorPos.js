@@ -8,7 +8,7 @@ return function showErrorPos(elem, err) {
     }
     var row,col;
     if (err.isTError) {
-        mesg=err.mesg;
+        mesg=err.mesg||err.message;
         src=err.src;
         pos=err.pos;
         row=err.row+1;
