@@ -1,4 +1,4 @@
-define(["ImageRect","Content"],function (IR,Content) {
+define(["ImageRect"],function (IR) {
     var TN={};
     var createThumbnail;
     var NAME="$icon_thumbnail";

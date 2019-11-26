@@ -18,11 +18,11 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace) {
     };*/
     return Klass.define({
         $this:true,
-        convertPath: function (e) {return e;},// replaced with BuilderClient.convertFromWorkerPath
+        convertPath: function (t,e) {return e;},// replaced with BuilderClient.convertFromWorkerPath
         decodeTrace: async function (t,e) {
             try {
-                const tr=await StackTrace.fromError(e,{offline:true});
-                tr.forEach(tre=>{
+                const tr=(e.stack && e.stack[0] && e.stack[0].fileName) ? e.stack : await StackTrace.fromError(e,{offline:true});
+                for (let tre of tr) {
                     try {
                         const fn=t.convertPath(tre.fileName);
                         if (FS.get(fn).exists()) {
@@ -30,9 +30,9 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace) {
                         }
                         tre.row=tre.lineNumber-0;
                         tre.col=tre.columnNumber-0;
-                    } catch(e) {
+                    } catch(e1) {
                     }
-                });
+                }
                 return tr;
             } catch(e2) {
                 var stack=e.stack+"";

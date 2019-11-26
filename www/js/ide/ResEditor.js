@@ -309,6 +309,8 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
             reload(action, args);
         }
         function cleanFiles() {
+            if (true) return;
+            // TODO
             var items=rsrc[mediaInfo.key];
             Auth.currentUser(function (u,ct) {
                 if (!u) return;

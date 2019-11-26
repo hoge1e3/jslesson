@@ -1,23 +1,90 @@
-define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditor","TonyuProject"],
-        function (FS,Util,WebSite,plugins,sh,Tonyu,Sync,ResEditor,TPRC) {
+define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditor","BuilderClient","ProjectFactory","sysMod","root","exceptionCatcher"],
+        function (FS,Util,WebSite,plugins,sh,Tonyu,Sync,ResEditor,BuilderClient,F,sysMod,root,EC) {
+    const langMod=BuilderClient.langMod;
+    const runtimeDir=FS.get(WebSite.runtime);
+    const tonyuLibDir=runtimeDir.rel("lib/tonyu/");
+
+    const kernelURL=tonyuLibDir.rel("kernel.js").path();
+    root.onTonyuDebuggerReady=d=>{
+        d.on("runtimeError",e=> {
+            console.log("runtimeError",e);
+            EC.handleException(e);
+            d.stop();
+        });
+    };
+    F.addDependencyResolver((prj, spec)=> {
+        if (spec.namespace==="kernel") {
+            return F.create("compiled",{
+                namespace:spec.namespace,
+                url:kernelURL });
+        }
+    });
     var MkRun=function (prj, dst) {
         Tonyu.defaultOptions={
-            compiler: { defaultSuperClass: "Actor"},
-            run: {mainClass: "Main", bootClass: "Boot"},
-            kernelEditable: false
+            "compiler":{
+                "namespace":"user",
+                "outputFile":"js/concat.js",
+                "defaultSuperClass":"kernel.Actor",
+                "dependingProjects":[{"namespace":"kernel"}]
+            },
+            "language":"tonyu",
+            "run":{
+                "mainClass":"user.Main",
+                "bootClass":"kernel.Boot"
+            }
         };
-
+        const ns2depspec= {
+            kernel: {namespace:"kernel", url: kernelURL}
+        };
         this.prj=prj;// BitArrow-based
         this.dst=dst;// SFile in ramdisk
-        this.tprj=TPRC(prj.getDir()); // Tonyu-based
-        Tonyu.globals.$currentProject=this.tprj;
-        Tonyu.currentProject=this.tprj;
+        const builder=new BuilderClient(prj ,{
+            worker: {ns2depspec, url: "BuilderWorker.js"/*WORKER_URL*/}
+        });
+        this.builderClient=builder;
+        this.convertPath=p=>builder.convertFromWorkerPath(p);
+        prj.include(langMod).include(sysMod);
+        Tonyu.globals.$currentProject=this.prj;
+        Tonyu.currentProject=this.prj;
         //prj.getPublishedURL()
     };
     var p=MkRun.prototype;
-    p.build=function (options) {
+    p.build=async function (options) {
+        if (options.fullScr) return await p.mkrun(options);
+        const c=this.builderClient;
+        await c.clean();
+        const opt=this.prj.getOptions();
+        //const main=opt.run.mainClass;
+        this.removeThumbnail();
+        const aliases=this.genUrlAliases();
+        this.dst.rel("index.html").text(this.debugHTML(this.prj.getDir().path(),aliases));
+    };
+    p.removeThumbnail=function () {
+        const prj=this.prj;
+        const resc=prj.getResource();
+        if (resc.images) {
+            const cnt=resc.images.length;
+            resc.images=resc.images.filter(item=>item.name!=="$icon_thumbnail");
+            if (resc.images.length<cnt) prj.setResource(resc);
+        }
+    };
+    p.genUrlAliases=function () {
+        const prj=this.prj;
+        const resc=prj.getResource();
+        const res={};
+        const publishedURL=root.BitArrow.publishedURL;
+        gen(resc.images);
+        gen(resc.sounds);
+        return res;
+        function gen(items) {
+            for (let item of items) {
+                res[item.url]=publishedURL+item.url;
+            }
+        }
+    };
+    p.mkrun=function(options) {
         FS.mount(location.protocol+"//"+location.host+"/", "web");
-        var prj=this.tprj;
+        var prj=this.prj;
         var dest=this.dst;
         options=options||{};
         var prjDir=prj.getDir();
@@ -25,8 +92,6 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditor","Tony
         var opt=prj.getOptions();
         console.log("TB.OPT",opt);
         var loadFilesBuf="function loadFiles(dir){\n";
-        var runtimeDir=FS.get(WebSite.runtime);
-        var tonyuLibDir=runtimeDir.rel("lib/tonyu/");
         if (options.copySrc) copySrc();
         return prj.loadClasses().then(function() {
             return $.when(
@@ -151,10 +216,46 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditor","Tony
     p.showImageList=function () {
         var t=this;
         t.prj.getPublishedURL().then(function (r) {
-            t.tprj._publishedURL=r;
-            ResEditor(t.tprj,"image");
+            t.prj._publishedURL=r;
+            ResEditor(t.prj,"image");
         }).catch(console.error.bind(console));
     };
+    p.debugHTML=(prj,aliases)=>{
+        return `<!DOCTYPE html>
+<html>
+<head>
+<script>
+WebSite_runType="manual";
+WebSite=parent.WebSite;
+WebSite.serverType="BA";
+WebSite.urlAliases= {
+        "images/base.png":WebSite.runtime+"images/base.png",
+        "images/Sample.png":WebSite.runtime+"images/Sample.png",
+        "images/neko.png":WebSite.runtime+"images/neko.png",
+        "images/mapchip.png":WebSite.runtime+"images/mapchip.png",
+        "images/sound.png":WebSite.runtime+"images/sound.png",
+        "images/sound_ogg.png":WebSite.runtime+"images/sound_ogg.png",
+        "images/sound_mp3.png":WebSite.runtime+"images/sound_mp3.png",
+        "images/sound_mp4.png":WebSite.runtime+"images/sound_mp4.png",
+        "images/sound_m4a.png":WebSite.runtime+"images/sound_m4a.png",
+        "images/sound_mid.png":WebSite.runtime+"images/sound_mid.png",
+        "images/sound_wav.png":WebSite.runtime+"images/sound_wav.png",
+        "images/ecl.png":WebSite.runtime+"images/ecl.png",
 
+};
+Object.assign(WebSite.urlAliases,${JSON.stringify(aliases)});
+Tonyu_StartProject='${prj}';
+</script>
+<script src="js/lib/jquery-1.12.1.js" type="text/javascript"></script>
+<script src="js/lib/require.js"></script>
+<script src="js/reqConf.js"></script>
+<script>
+    requirejs.config(reqConf);
+    requirejs(["SysDebugger_concat"],function () {});
+</script></head>
+<body><div id='splash' style='position:relative; height: 100%;'><div class='progress'></div></div></body>
+</html>
+`;
+    };
     return MkRun;
 });

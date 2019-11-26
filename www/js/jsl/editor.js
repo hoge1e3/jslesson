@@ -177,7 +177,7 @@ function ready() {
     	helpURL="http://bitarrow.eplang.jp/index.php?python";
         break;
     case "tonyu":
-        ALWAYS_UPLOAD=true;
+        //ALWAYS_UPLOAD=true;
         requirejs(["TonyuBuilder"],setupBuilder);
         break;
     }
@@ -195,7 +195,14 @@ function ready() {
         autoexec();
         autologexec();
         autosubexec();
-        if (builder.convertPath) errorDialog.convertPath=builder.convertPath;
+        if (builder.convertPath) {
+            errorDialog.convertPath=p=>{
+                const res=builder.convertPath(p);
+                //console.log("CVP",p,res);
+                return res;
+            };
+            //console.log("CVP set");
+        }
     }
     function autoexec() {
         var autoexec=Util.getQueryString("autoexec",null);
@@ -747,7 +754,7 @@ function ready() {
                 var runURL=pub+(lang=="tonyu"?"index.html": curHTMLFile.name());
                 return IframeDialog.show(runURL,{width:600,height:400});
             } else {
-                var indexF=ram.rel(curHTMLFile.name());
+                var indexF=ram.rel(lang=="tonyu"?"index.html":curHTMLFile.name());
                 return RunDialog2.show(indexF,{
                     window:newwnd,
                     height:RunDialog2.geom.height||screenH-50,
@@ -801,7 +808,7 @@ function ready() {
         if (!e) return;
         return EC.handleException(e);
     };
-    var errorDialog=new ErrorDialog();
+    const errorDialog=new ErrorDialog();
     EC.handleException=function (e) {
         if (e.type==="dialogClosed") {
             console.log(e.stack);
