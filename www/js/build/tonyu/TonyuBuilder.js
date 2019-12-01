@@ -212,12 +212,22 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditor","Buil
             {label:"ツール",id:"tool",after:$("#config")},
             {label:"画像リスト",id:"imageList",action:this.showImageList.bind(this)}
         );
+        Menu.appendSub("tool",
+            {label:"音声リスト",id:"soundList",action:this.showSoundList.bind(this)},
+        );
     };
     p.showImageList=function () {
         var t=this;
         t.prj.getPublishedURL().then(function (r) {
             t.prj._publishedURL=r;
             ResEditor(t.prj,"image");
+        }).catch(console.error.bind(console));
+    };
+    p.showSoundList=function () {
+        var t=this;
+        t.prj.getPublishedURL().then(function (r) {
+            t.prj._publishedURL=r;
+            ResEditor(t.prj,"sound");
         }).catch(console.error.bind(console));
     };
     p.debugHTML=(prj,aliases)=>{
@@ -228,6 +238,8 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditor","Buil
 WebSite_runType="manual";
 WebSite=parent.WebSite;
 WebSite.serverType="BA";
+WebSite.surpressCreateThumbnail=true;
+WebSite.doResize=true;
 WebSite.urlAliases= {
         "images/base.png":WebSite.runtime+"images/base.png",
         "images/Sample.png":WebSite.runtime+"images/Sample.png",
@@ -243,6 +255,7 @@ WebSite.urlAliases= {
         "images/ecl.png":WebSite.runtime+"images/ecl.png",
 
 };
+WebSite.pluginTop=WebSite.runtime+"lib/tonyu/plugins";
 Object.assign(WebSite.urlAliases,${JSON.stringify(aliases)});
 Tonyu_StartProject='${prj}';
 </script>
