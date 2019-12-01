@@ -106,7 +106,7 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                     var file = files[i];
                     var filetype= file.type;
                     if (file.name.match(/\.mzo$/)) filetype="audio/mzo";
-                    var useBlob=WebSite.serverType=="GAE" && (file.size>1000*300);
+                    var useBlob=WebSite.serverType=="BA"||WebSite.serverType=="GAE" && (file.size>1000*300);
                     if(!filetype.match(mediaInfo.contentType)) {
                         readFileSum--;
                         notReadFiles.push(file);
@@ -118,7 +118,7 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                         itemExt=RegExp.lastMatch.toLowerCase();
                     }
                     var itemFile=rsrcDir.rel(itemName+itemExt);
-                    var itemRelPath="ls:"+itemFile.relPath(prj.getDir());
+                    var itemRelPath=(useBlob?"":"ls:")+itemFile.relPath(prj.getDir());
                     var existsFile;
                     var fileExists=tempFiles.some(function(f){
                         existsFile=f;
@@ -144,14 +144,17 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                                         UI("div","大きい"+mediaInfo.name+"を追加するには，ログインが必要です：",
                                            ["a",{href:u,target:"login",style:"color: blue;"},"ログインする"])
                                 );
-                            },success:function (u) {
+                            },success:async function (u) {
                                 dragPoint.text("アップロード中...");
-                                var prjN=prj.getName();
-                                Blob.upload(u,prjN,file,{success:function (){
+                                var prjN=prj.getName()+"/";
+                                console.log("uploading", prjN, v.url);
+                                const r=await Blob.upload(prjN, v.url ,file);/*,{success:function (){
                                     dragPoint.text(dragMsg);
                                     v.url="${blobPath}/"+u+"/"+prjN+"/"+file.name;
                                     add(v);
-                                }});
+                                }});*/
+                                console.log(r);
+                                add(v);
                             }
                         });
                     } else {
