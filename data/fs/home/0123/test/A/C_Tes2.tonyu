@@ -1,0 +1,5 @@
+#include<stdio.h>
+int main(void){
+    int x=52322;
+    printf("%d",x*2);
+}
