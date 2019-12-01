@@ -1,5 +1,7 @@
+// http://localhost/?r=test/bitarrow
+// class: 0123  user: test
 define(function (require,module,exports) {
-const SLP=500;
+const SLP=1000;
 window.TESTING=true;
 class BATest{
     async run() {
@@ -9,8 +11,10 @@ class BATest{
         //var projectSelURL='http://klab.eplang.jp/jslesson/';
         //var projectSelURL='http://localhost/?noconcat=true';
         this.projectSelURL='http://localhost/';
+        const width=$(window).width()-50;
+        const height=$(window).height()-100;
         const ifrmjq=$("<iframe>").attr({
-            /*src:this.projectSelURL,*/width:600,height:600
+            /*src:this.projectSelURL,*/width,height
         }).appendTo("body");
         window.SplashScreen.hide();
         this.iframe=ifrmjq[0];
@@ -49,8 +53,12 @@ class BATest{
     async testC() {
         const c=this.createdCCode=this.genTestCode();
         await this.sleep(1000);
-        this.selectLinkByText("Ctes");
+        await this.deleteProjectIfExists("Ctes");
         await this.sleep(1000);
+        await this.createProject("Ctes","c");
+        await this.sleep(1000);
+        //this.selectLinkByText("Ctes");
+        //await this.sleep(1000);
         await this.createFile("Test1");
         await this.inputAndRunCode(c);
     // - open existing File 'Test2' and run
@@ -129,6 +137,15 @@ class BATest{
         const $=w.$;
         return $(...args);
     }
+    async deleteProjectIfExists(name) {
+        const prjItem=this.findByText(name).closest(".project");
+        if (!prjItem.length) {
+            console.log("Project ",name," did not exist.");
+            return;
+        }
+        prjItem.find(".cmd_del")[0].click();
+        await this.sleep();
+    }
     async createProject(name, lang) {
         const w=this.contentWindow();
         const $=w.$;
@@ -136,17 +153,24 @@ class BATest{
         await this.sleep();
         $('#prjName').val(name);
         await this.sleep();
+        $('#prjLang').val(lang);
+        await this.sleep();
         this.clickByText("OK");
         await this.sleep();
     }
+    toggleMenu() {
+        const q=".navbar-toggle";
+        if (!$(q)[0]) return;
+        this.clickByQuery(q);
+    }
     async createFile(name) {
-        this.clickByQuery(".navbar-toggle");
+        this.toggleMenu();
         await this.sleep();
         this.selectLinkByText("ファイル");
         await this.sleep();
         this.selectLinkByText("新規");
         await this.sleep();
-        this.clickByQuery(".navbar-toggle");
+        this.toggleMenu();
         const w=this.contentWindow();
         const $=w.$;
         $("#inputDialog").val(name);
@@ -170,8 +194,10 @@ class BATest{
         await this.runCode(c.expect);
     }
     async runCode(expect) {
-    	this.clickByID("runMenu");
-        await this.sleep();
+    	this.toggleMenu();
+        this.clickByID("runMenu");
+        this.toggleMenu();
+        await this.sleep(3000);
         const tx=this.getConsoleOutput();
     	console.log("The output", tx);
     	console.log(tx,expect);
@@ -232,17 +258,21 @@ class BATest{
         if (!e) throw new Error(`clickByQuery ${q} fail `);
         e.click();
     }
-    clickByText(t) {
+    findByText(t) {
         let sel,len;
         this.$(`:contains('${t}')`).each(function () {
             const e=$(this);
-            if (!sel || e.text().length<len) {
-                len=e.text().length;
+            if (!sel || e.html().length<len) {
+                len=e.html().length;
                 sel=this;
             }
         });
         //const e=this.$(`:contains('${t}')`).get(0);
-        if (!sel) throw new Error(`clickByText ${t} fail `);
+        return $(sel);
+    }
+    clickByText(t) {
+        const sel=this.findByText(t);
+        if (!sel.length) throw new Error(`clickByText ${t} fail `);
         console.log("Clicked",sel);
         sel.click();
     }
