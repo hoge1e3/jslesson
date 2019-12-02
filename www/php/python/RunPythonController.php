@@ -56,10 +56,9 @@ class RunPythonController {
         $class=Auth::curClass2();
         $user=Auth::curUser2();
         
-        $d=Docker::init($class->id, $user->name);
- 	    $d->initProject($projectName);
-     	$res=$d->exec("cd /host/$projectName ; export MPLBACKEND=\"module://mybackend\" ; python $fileName");
-     	if ($res["return"]==0) self::convOut($res["stdout"],$d->hostHome()->rel("$projectName/") );
+        $d=Docker::init($class->id);
+     	$res=$d->execInProject($user->name, $projectName, "export MPLBACKEND=\"module://mybackend\" \n python $fileName");
+     	if ($res["stderr"]=="") self::convOut($res["stdout"], $d->hostWork()->rel($user->name."/")->rel("$projectName/") );
         else {
             http_response_code(500);
             print($res["stdout"]."\n".$res["stderr"]);

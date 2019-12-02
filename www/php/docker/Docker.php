@@ -2,80 +2,111 @@
 
 req("SFile","NativeFS","Process","Published");
 class Docker {
-    static function init($className, $userName) {
-        return new Docker($className, $userName);
+    static function init($className) {
+        return new Docker($className);
     }
     function BAHome() {
         $className=$this->className;
-        $userName=$this->userName;
         $fs=new SFile(new NativeFS(),BA_HOME);
-        return $fs->rel("$className/")->rel("$userName/");
+        return $fs->rel("$className/");
     }
-    function hostHome() {
+    function hostWork() {
         $className=$this->className;
-        $userName=$this->userName;
         $fs=new SFile(new NativeFS(),DOCKER_WORK);
-        return $fs->rel("$className/")->rel("$userName/");    
+        return $fs->rel("$className/");
     }
     function name(){
         $className=$this->className;
-        $userName=$this->userName;
-        $userName=preg_replace("/@/", "-",$userName);
-        return "$className-$userName";
+        return "$className";
     }
-    function filesPath() {
-        $user=Published::getURL($this->className, $this->userName, "assets");
-        $class=Published::getURL($this->className, "class", "assets");
-        
-        return array("user"=>BA_PUB."/".$user , "class"=>BA_PUB."/".$class);
-        //return array("user"=>BA_PUB."8d8b0d06", "class"=>BA_PUB."5007133d");//TODO
+
+    function hostAsset() {
+        $url=Published::getURLOfClass($this->className);
+        $fs=new SFile(new NativeFS(),BA_PUB);
+        return $fs->rel("$url/");
     }
+    function guestWorkPath() {return "/host/";}
+    function guestAssetPath() {return "/asset/";}
     
-    function __construct($className, $userName) {
+    function __construct($className) {
         $this->className=$className;
-        $this->userName=$userName;
-        //$this->home=$home;
-        $hostHome=$this->hostHome();
-        $hostHomePath=$hostHome->path();
-        $hostHome->rel("run.sh")->text("");
-        $guestHome="/host";
+
+        $hostWork=$this->hostWork();
+        $hostWorkPath=$hostWork->path();
+        $guestWorkPath=$this->guestWorkPath();
+        $guestAssetPath=$this->guestAssetPath();
+        $hostAssetPath=$this->hostAsset()->path();
         $name=$this->name();
         $r=system_ex("docker container ls -a | grep $name");
         //print_r($r);
         if (! $r["stdout"]) {
-            $f=$this->filesPath();
-            $volumes=array(array($hostHomePath, $guestHome));
-            foreach ($f as $k=>$v) {
-                array_push($volumes, array( $v, "$guestHome-$k") );
-            }
-            $varg=implode( " ",array_map(function ($vol) {
-               return '-v "'.$vol[0].':'.$vol[1].'"';
-            },$volumes) );
             $img=DOCKER_IMAGE;
-            //print "docker run $varg -i --name \"$name\" python:3.6 sh $guestHome/run.sh";
-            $r=system_ex("docker run $varg -i --name \"$name\" $img sh $guestHome/run.sh");
+            $work=DOCKER_WORK;
+            $taskrun=DOCKER_TASKRUN;
+            $cmd="python $taskrun $guestWorkPath";
+            $dc="docker run -d -v $hostWorkPath:$guestWorkPath -v $hostAssetPath:$guestAssetPath --name $name $img $cmd";
+            //print($dc);
+            $r=system_ex($dc);
             //print_r($r);
         }
     }
-    function initProject($projectName) {
-        $dst=$this->hostHome()->rel("$projectName/");
-        $src=$this->BAHome()->rel("$projectName/");
-        self::sync($src,$dst);
-        $dstPath=$dst->path();
-        $guestHome="/host";
-        $f=$this->filesPath();
+    function filesPath( $userName) {
+        $res=array();
+        $res["user"]=Published::getURLUserPart($this->className, $userName, "assets");
+        $res["class"]=Published::getURLUserPart($this->className, "class", "assets");
+        return $res;
+    }
+    function execInProject($userName, $projectName, $cmd) {
+        $hostHomePrj=$this->BAHome()->rel("$userName/")->rel("$projectName/");
+        $hostWorkPrj=$this->hostWork()->rel("$userName/")->rel("$projectName/");
+        self::sync($hostHomePrj,$hostWorkPrj);
+        $guestWorkPrjPath=$this->guestWorkPath()."$userName/$projectName/";
+        $guestAssetPath=$this->guestAssetPath();
+        
+        $cmds="";
+        $f=$this->filesPath( $userName);
         foreach ($f as $k=>$v) {
             //print "ln -s $guestHome-$k $guestHome/$projectName/$k";
-            $lnkdst="$guestHome/$projectName/$k";
-            $r=$this->exec("if [ ! -L $lnkdst ] ;then\n   ln -s $guestHome-$k $lnkdst\nfi");
+            $lnksrc=$guestAssetPath.$v;
+            $lnkdst=$guestWorkPrjPath.$k;
+            $cmds.=
+            "if [ ! -L $lnkdst ] ;then\n".
+            "   ln -s $lnksrc $lnkdst\n".
+            "fi\n";
             //print_r($r);
         }
+        $cmds.="cd $guestWorkPrjPath\n";
+        $cmds.=$cmd;
+        //print "Run cmd $cmds";
+        return $this->exec($cmds);
     }
     function exec($cmd) {
-        $hostHome=$this->hostHome();
-        $hostHome->rel("run.sh")->text($cmd);
-        $name=$this->name();
-        return system_ex("docker start $name -a");
+        $hostWork=$this->hostWork();
+        $tasks=$hostWork->rel("tasks/");
+        $req=$tasks->rel("req/");
+        $id=UniqID::find(function ($id) use ($req, $tasks) {
+            return $req->rel("$id.sh")->exists() || $tasks->rel("$id/")->exists();
+        });
+        $req->rel("$id.sh")->text($cmd);
+        $task=$tasks->rel("$id/");
+        $stdoutf=$task->rel("stdout.txt");
+        $stderrf=$task->rel("stderr.txt");
+        $cnt=0;
+        do {
+            sleep(1);
+            if ($cnt++>10) {
+                print "Timeout"; break;
+            }
+        } while (!$stdoutf->exists() || !$stderrf->exists());
+        $res=array("stdout"=>$stdoutf->text(), "stderr"=>$stderrf->text());
+        self::clean($task);
+        return $res;
+    }
+    static function clean($dir) {
+        $dir->rel("run.sh")->rm();
+        $dir->rel("stdout.txt")->rm();
+        $dir->rel("stderr.txt")->rm();
+        rmdir($dir->path());
     }
     static function sync($src,$dst) {
         foreach ($src->listFiles() as $sf) {

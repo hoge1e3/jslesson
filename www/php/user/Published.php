@@ -26,8 +26,7 @@ class Published {
         }
         return $urlC;
     }
-    static function getURL($classID,$userName,$projectName) {
-        $urlC=self::getURLOfClass($classID);
+    static function getURLUserPart($classID,$userName,$projectName) {
         $ur=pdo_select1("select * from pub_user where `class`=? and `user`=? and `project`=? ",
             $classID,$userName,$projectName);
         if ($ur) {
@@ -39,6 +38,11 @@ class Published {
             $urlU.="/";
             pdo_insert("pub_user",array("url"=>$urlU, "class"=>$classID, "user"=>$userName, "project"=>$projectName));
         }
+    	return $urlU;
+    }
+    static function getURL($classID,$userName,$projectName) {
+        $urlC=self::getURLOfClass($classID);
+        $urlU=self::getURLUserPart($classID,$userName,$projectName);
         return "$urlC$urlU";
     }
 
