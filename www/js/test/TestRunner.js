@@ -1,4 +1,5 @@
 define(function (require,exports,module) {
+    const WebSite=require("WebSite");
     module.exports=class {
         constructor(options) {
             options=options||{};
@@ -8,7 +9,7 @@ define(function (require,exports,module) {
             options.userName=options.userName||"test";
         }
         async run() {
-            this.projectSelURL='http://localhost/';
+            this.projectSelURL=WebSite.serverTop;//'http://localhost/';
             const width=$(window).width()-50;
             const height=$(window).height()-100;
             const ifrmjq=$("<iframe>").attr({
@@ -16,7 +17,7 @@ define(function (require,exports,module) {
             }).appendTo("body");
             window.SplashScreen.hide();
             this.iframe=ifrmjq[0];
-            this.loginURL='http://localhost/?Login/';
+            this.loginURL=WebSite.serverTop+'?Login/';
             //var projectSelURL='http://klab.eplang.jp/jslesson/'
             this.loggedin=false;
         }
