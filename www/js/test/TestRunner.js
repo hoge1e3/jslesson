@@ -1,10 +1,11 @@
 define(function (require,exports,module) {
     module.exports=class {
         constructor(options) {
-            this.options=options||{};
-            this.defaultSleepTime=this.defaultSleepTime||1000;
-            this.className=this.className||"0123";
-            this.userName=this.userName||"test";
+            options=options||{};
+            this.options=options;
+            options.defaultSleepTime=options.defaultSleepTime||1000;
+            options.className=options.className||"0123";
+            options.userName=options.userName||"test";
         }
         async run() {
             this.projectSelURL='http://localhost/';
@@ -127,7 +128,13 @@ define(function (require,exports,module) {
         }
         async runCode(testCase) {
         	await this.toggleMenu();
-            await this.clickByID("runMenu");
+            if (this.$("#runMenu").length) {
+                await this.clickByID("runMenu");
+            } else if (this.$("#runPython").length) {
+                await this.clickByID("runPython");
+                await this.sleep();
+                await this.clickByID("runServer");
+            }
             await this.toggleMenu();
             await this.sleep(testCase.sleepTime||3000);
             const tx=this.getOutputBodyText();
@@ -172,9 +179,9 @@ define(function (require,exports,module) {
                 this.sleep();
             }
         }
-        findByText(t) {
+        findByText(t, filter="") {
             let sel,len;
-            this.$(`:contains('${t}')`).each(function () {
+            this.$(`${filter}:contains('${t}')`).each(function () {
                 const e=$(this);
                 if (!sel || e.html().length<len) {
                     len=e.html().length;
@@ -184,9 +191,9 @@ define(function (require,exports,module) {
             //const e=this.$(`:contains('${t}')`).get(0);
             return $(sel);
         }
-        async clickByText(t) {
+        async clickByText(t,filter="") {
             const sel=await this.retry(()=>{
-                const sel=this.findByText(t);
+                const sel=this.findByText(t,filter);
                 if (!sel.length) throw new Error(`clickByText ${t} fail `);
                 return sel;
             });
@@ -205,6 +212,23 @@ define(function (require,exports,module) {
                 ()=>this.$(`a:contains('${t}')`).get(0),
                 `selectLinkByText ${t} fail `);
             e.click();
+        }
+        async setValueFollowing(text, value) {
+            const e=await this.retryGet(
+                ()=>this.findInputFollowing(text),
+                `setValueFollowing:${text} not found`
+            );
+            e.val(value);
+        }
+        findInputFollowing(text) {
+            let e=this.findByText(text);
+            while(true) {
+                e=this.nextElement(e);
+                if (!e) return null;
+                if (e[0].tagName==="input" || e[0].tagName==="textarea") {
+                    return e;
+                }
+            }
         }
         sleep(t) {
             return new Promise(s=>setTimeout(s,t||this.options.defaultSleepTime));
@@ -233,6 +257,22 @@ define(function (require,exports,module) {
                 }
             }
             throw ex;
+        }
+        nextElement(e,noChild=false) {
+            const c=e.children();
+            if (c.length==0) noChild=true;
+            if (noChild) {
+                const n=e.next();
+                if (!n.length) {
+                    const p=e.parent();
+                    if (!p.length) return null;
+                    return this.nextElement(p,true);
+                } else {
+                    return n;
+                }
+            } else {
+                return $(c[0]);
+            }
         }
     };
 });
