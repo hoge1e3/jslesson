@@ -1,25 +1,36 @@
 define(function (require,module,exports) {
-    const TestRunner=require("test/TestRunner");
+    const BATestRunner=require("test/BATestRunner");
+    const Util=require("Util");
     window.TESTING=true;
-    class PythonBench extends TestRunner {
+    class PythonBench extends BATestRunner {
         async run() {
             super.run();
             await this.openProjectSel();
-            await this.sleep(1000);
-            await this.prepareEmptyProject("pyBench","py");
-            await this.sleep(3000);
-            await this.createAndTest({
-                fileName: "Test",
-                content: `
-for i in range(10):
-    for j in range(10):
+            await this.waitForText("新規プロジェクト");
+            await this.prepareEmptyProject(Util.getQueryString("prj","pyBench"),"py");
+            await this.waitBuidlerReady();
+            while(true) {
+                const r=Math.floor(Math.random()*5+3);
+                const c=Math.floor(Math.random()*5+3);
+                const sec=(Math.random()*10+5)*1000;
+                const seci=Math.floor(sec/1000);
+                await this.createAndTest({
+                    fileName: "Test",
+                    content: `
+for i in range(${r}):
+    for j in range(${c}):
         print (i*j, end=" ")
     print()
+print("Waiting for ",${seci}," Sec.")
 `,
-
-            });
+                });
+                console.log("Waiting for ",seci," sec.");
+                await this.sleep(sec-1000);
+                await this.clickByText("閉じる");
+                await this.sleep(1000);
+            }
         }
     }
-    window.baTest=new PythonBench();
+    window.baTest=new PythonBench({defaultSleepTime:100});
     window.baTest.run().then(r=>console.log(r),e=>console.error(e));
 });
