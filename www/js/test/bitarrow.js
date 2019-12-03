@@ -1,10 +1,10 @@
 // http://localhost/?r=test/bitarrow
 // class: 0123  user: test
 define(function (require,module,exports) {
-const TestRunner=require("test/TestRunner");
+const BATestRunner=require("test/BATestRunner");
 const SLP=1000;
 window.TESTING=true;
-class BATest extends TestRunner {
+class BATest extends BATestRunner {
     constructor() {
         super({defaultSleepTime:SLP, className:"0123",userName:"test"});
     }
