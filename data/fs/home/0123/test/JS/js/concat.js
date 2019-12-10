@@ -56,5 +56,45 @@ Tonyu.klass.define({
   },
   decls: {"methods":{"main":{"nowait":false}},"fields":{"i":{}}}
 });
+Tonyu.klass.define({
+  fullName: 'user.hoge',
+  shortName: 'hoge',
+  namespace: 'user',
+  superclass: Tonyu.classes.jslker.Parent,
+  includes: [],
+  methods: function (__superClass) {
+    return {
+      main :function _trc_hoge_main() {
+        "use strict";
+        var _this=this;
+        
+        _this.setText("x",2+3);
+      },
+      fiber$main :function _trc_hoge_f_main(_thread) {
+        "use strict";
+        var _this=this;
+        //var _arguments=Tonyu.A(arguments);
+        var __pc=0;
+        
+        
+        _thread.enter(function _trc_hoge_ent_main(_thread) {
+          if (_thread.lastEx) __pc=_thread.catchPC;
+          for(var __cnt=100 ; __cnt--;) {
+            switch (__pc) {
+            case 0:
+              _this.fiber$setText(_thread, "x", 2+3);
+              __pc=1;return;
+            case 1:
+              
+              _thread.exit(_this);return;
+            }
+          }
+        });
+      },
+      __dummy: false
+    };
+  },
+  decls: {"methods":{"main":{"nowait":false}},"fields":{}}
+});
 
 //# sourceMappingURL=concat.js.map
