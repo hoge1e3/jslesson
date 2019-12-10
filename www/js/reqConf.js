@@ -251,7 +251,7 @@ var reqConf={
             AsyncByGeneratorRaw: "ctrans/AsyncByGeneratorRaw",
             AsyncByGenerator: "ctrans/AsyncByGenerator",
             requestFragment: "fs/requestFragment",
-            Blob: "fs/blob",
+            Blob: "fs/Blob",
             exportToExe: "social/exportToExe",
             exportToJsdoit: "social/exportToJsdoit",
             exportAsScriptTags: "social/exportAsScriptTags",

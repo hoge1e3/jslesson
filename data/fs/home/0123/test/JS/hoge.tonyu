@@ -1,2 +1,2 @@
 // ここで扱われるJavaScriptは通常のJavaScriptとは異なります。詳しくは使用方法をご覧ください。
-setText("x",2+3);
+setTexto("x",2+3);
