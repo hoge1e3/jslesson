@@ -10010,11 +10010,11 @@ define('ctrl',[], function () {
 define('jsl_selProject',["FS","Shell","Shell2",
            "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog","RenameProjectDialog",
            "assert","DeferredUtil","RemoteProject","SplashScreen",
-       "ctrl"],
+       "ctrl","root"],
     function(FS, sh,sh2,
            NPD, UI, Auth,zip,Sync,NSD,RPD,
            A,DU,RemoteProject,SplashScreen,
-       ctrl) {
+       ctrl,root) {
     if (location.href.match(/localhost/)) {
         A.setMode(A.MODE_STRICT);
     } else {
@@ -10128,10 +10128,10 @@ function ready() {//-------------------------
             var u=UI("div", {"class":"project"},
                     ["a", {href:"?r=jsl_edit&dir="+f.path()},
                      ["img",{$var:"t",src:FS.expandPath("${sampleImg}/"+(e.language||"js")+".png")}],
-                     ["div", name]],
+                     ["div",{class:"name"}, name]],
                      ["div",
-                      ["a",{on:{click:ren(name)}},"名前変更"], ["span"," "],
-                      ["a",{on:{click:del(name)}},"削除"]]
+                      ["a",{class:"cmd_ren",on:{click:ren(name)}},"名前変更"], ["span"," "],
+                      ["a",{class:"cmd_del",on:{click:del(name)}},"削除"]]
                   );
             u.appendTo("#prjItemList");
         }
@@ -10159,7 +10159,7 @@ function ready() {//-------------------------
     }
     function del(name) {// not endswidth /
         return function () {
-            if (confirm(name+"を削除しますか？")) {
+            if ((root.parent && root.parent.TESTING) || confirm(name+"を削除しますか？")) {
                 RemoteProject.delete(name).then(function () {
                     var d=projectsInfo.findProject(name).dir;
                     if (d.exists()) d.rm({r:true});

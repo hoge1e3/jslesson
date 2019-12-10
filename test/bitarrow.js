@@ -4,7 +4,7 @@ define(["DU"],function (DU) {
 
 //var projectSelURL='http://klab.eplang.jp/jslesson/';
 //var projectSelURL='http://localhost/?noconcat=true';
-var projectSelURL='http://localhost/'
+var projectSelURL='http://localhost/';
 //var projectSelURL='http://klab.eplang.jp/jslesson/'
 var loggedin=false;
 var SLP=500;
