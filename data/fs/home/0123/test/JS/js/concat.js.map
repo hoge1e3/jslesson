@@ -1,0 +1,1 @@
+{"version":3,"sources":["/prj/user/Test.tonyu"],"names":[],"mappings":";;;;;;;;;;;;SACC,AAAI,OAAC,CAAC,SAAE,OAAC,CAAC,KAAG,OAAC;;WAAI;aACd;aACA;;;;;;;;;;;;;;;;eAFJ,AAAI,OAAC,CAAC;;qBAAE,OAAC,CAAC;;;;;;;;;;eAAG,OAAC","sourcesContent":["// ここで扱われるJavaScriptは通常のJavaScriptとは異なります。詳しくは使用方法をご覧ください。\nfor(i=0;i<10;i++) {\n    setText(\"a\",i);\n    wait(500);\n}"]}

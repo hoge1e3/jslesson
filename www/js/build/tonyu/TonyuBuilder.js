@@ -31,12 +31,17 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditor","Buil
             "run":{
                 "mainClass":"user.Main",
                 "bootClass":"kernel.Boot"
-            }
+            },
+            "plugins":[]
         };
         const ns2depspec= {
             kernel: {namespace:"kernel", url: kernelURL}
         };
         this.prj=prj;// BitArrow-based
+        const opt=prj.getOptions();
+        if (!opt.compiler || !opt.compiler.namespace) {
+            prj.setOptions(Tonyu.defaultOptions);
+        }
         this.dst=dst;// SFile in ramdisk
         const builder=new BuilderClient(prj ,{
             worker: {ns2depspec, url: "BuilderWorker.js"/*WORKER_URL*/}
@@ -46,13 +51,25 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditor","Buil
         prj.include(langMod).include(sysMod);
         Tonyu.globals.$currentProject=this.prj;
         Tonyu.currentProject=this.prj;
+        if (!prj.getResourceFile().exists()) {
+            prj.setResource({
+	            images:[
+    	            {name:"$pat_base", url: "${runtime}images/base.png", pwidth:32, pheight:32},
+    	            {name:"$pat_sample", url: "${runtime}images/Sample.png"},
+    	            {name:"$pat_neko", url: "${runtime}images/neko.png", pwidth:32, pheight:32},
+    	            {name:"$pat_mapchip", url: "${runtime}images/mapchip.png", pwidth:32, pheight:32}
+    	        ],
+	            sounds:[]
+            });
+        }
+
         //prj.getPublishedURL()
     };
     var p=MkRun.prototype;
     p.build=async function (options) {
-        if (options.fullScr) return await p.mkrun(options);
         const c=this.builderClient;
         await c.clean();
+        if (options.fullScr) return await this.mkrun(options);
         const opt=this.prj.getOptions();
         //const main=opt.run.mainClass;
         this.removeThumbnail();
@@ -93,21 +110,18 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditor","Buil
         console.log("TB.OPT",opt);
         var loadFilesBuf="function loadFiles(dir){\n";
         if (options.copySrc) copySrc();
-        return prj.loadClasses().then(function() {
-            return $.when(
-                //convertLSURL(resc.images),
-                //convertLSURL(resc.sounds),
-                genFilesJS(),
-                copyScripts(),
-                copyPlugins(),
-                copyLibs(),
-                //copyResources("images/"),
-                //copyResources("sounds/"),
-                copyIndexHtml(),
-                genReadme()
-            );
-        });
-
+        return $.when(
+            //convertLSURL(resc.images),
+            //convertLSURL(resc.sounds),
+            genFilesJS(),
+            copyScripts(),
+            copyPlugins(),
+            copyLibs(),
+            //copyResources("images/"),
+            //copyResources("sounds/"),
+            copyIndexHtml(),
+            genReadme()
+        );
         function genReadme() {
             dest.rel("Readme.txt").text(
                     "このフォルダは、Webサーバにアップロードしないと正常に動作しない可能性があります。\n"+
@@ -131,7 +145,38 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditor","Buil
         }
         function copyIndexHtml() {
             //  runtime\lib\tonyu\index.html
-            return tonyuLibDir.rel("index.html").copyTo(dest);
+            const src=`<!DOCTYPE html>
+<html><head>
+<title>Tonyu System 2</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script>window.runtimePath="${WebSite.runtime}/";</script>
+<script>
+WebSite={};
+WebSite.urlAliases={};
+WebSite.runtime="${WebSite.runtime}";
+WebSite_runType="manual";
+WebSite.serverType="BA";
+WebSite.surpressCreateThumbnail=true;
+WebSite.doResize=true;
+WebSite.tonyuHome="/Tonyu/";
+WebSite.compiledKernel=WebSite.runtime+"lib/tonyu/kernel.js";
+WebSite.pluginTop=WebSite.runtime+"lib/tonyu/plugins";
+</script>
+<script src="${WebSite.runtime}lib/require.js"></script>
+<script>
+reqConf={
+	paths: {
+
+	}
+};
+</script>
+<script src="${WebSite.runtime}lib/jquery-1.12.1.js" type="text/javascript" data-nocat="true"></script>
+<script src="js/files.js"></script>
+<script src="${WebSite.runtime}lib/tonyu/runScript2_concat.min.js"></script>
+</head>
+<body></body>
+</html>`;
+            return dest.rel("index.html").text(src);//tonyuLibDir.rel("index.html").copyTo(dest);
         }
         function copyScripts() {
             var usrjs=prjDir.rel("js/concat.js");

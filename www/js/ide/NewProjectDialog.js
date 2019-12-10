@@ -84,7 +84,7 @@ define(["UI","FS","ProjectFactory"], function (UI,FS,F) {
 	    var prjDir=projectsDir.rel(model.name+"/");
         prjDir.mkdir();
         F.create("ba",{dir:prjDir}).setOptions({
-            compiler:{
+            /*compiler:{
                 namespace:"user",
                 outputFile:"js/concat.js",
                 defaultSuperClass:"jslker.Parent",
@@ -92,7 +92,7 @@ define(["UI","FS","ProjectFactory"], function (UI,FS,F) {
                      {"namespace":"jslker", "compiledURL":"${JSLKer}"}
                     // {"namespace":"jslker", "compiledURL":"${JSLKer}/js/concat.js"}
                 ]
-            },
+            },*/ // moved to TJSBuilder
     		language:model.lang
         });
     };

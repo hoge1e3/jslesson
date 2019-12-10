@@ -9,6 +9,18 @@ function (A,DU,wget,Sync,WebSite,Tonyu,BuilderClient,Util,FS,F) {
     });
     var TJSBuilder=function (prj, dst) {
         this.prj=prj;// TPRC from BA
+        const opt=prj.getOptions();
+        if (!opt.compiler || !opt.compiler.namespace) {
+            opt.compiler={
+                namespace:"user",
+                outputFile:"js/concat.js",
+                defaultSuperClass:"jslker.Parent",
+                dependingProjects:[
+                    {"namespace":"jslker", "compiledURL":"${JSLKer}"}
+                ]
+            };
+            prj.setOptions(opt);
+        }
         const ns2depspec= {
             jslker: {namespace:"jslker", url: WebSite.JSLKer}
         };
