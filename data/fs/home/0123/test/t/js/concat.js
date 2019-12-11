@@ -12,6 +12,10 @@ Tonyu.klass.define({
         
         _this.x=100;
         _this.y=200;
+        new Tonyu.classes.kernel.Button({top: 300,onClick: (function anonymous_43() {
+          
+          Tonyu.globals.$sound.playSE(Tonyu.globals.$se_land);
+        })});
       },
       fiber$main :function _trc_Main_f_main(_thread) {
         "use strict";
@@ -21,6 +25,10 @@ Tonyu.klass.define({
         
         _this.x=100;
         _this.y=200;
+        new Tonyu.classes.kernel.Button({top: 300,onClick: (function anonymous_43() {
+          
+          Tonyu.globals.$sound.playSE(Tonyu.globals.$se_land);
+        })});
         
         _thread.retVal=_this;return;
       },

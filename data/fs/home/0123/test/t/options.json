@@ -1,1 +1,1 @@
-{"compiler":{"namespace":"user","outputFile":"js/concat.js","defaultSuperClass":"kernel.Actor","dependingProjects":[{"namespace":"kernel"}]},"language":"tonyu","run":{"mainClass":"user.Main","bootClass":"kernel.Boot"}}
+{"compiler":{"namespace":"user","outputFile":"js/concat.js","defaultSuperClass":"kernel.Actor","dependingProjects":[{"namespace":"kernel"}]},"language":"tonyu","run":{"mainClass":"user.Main","bootClass":"kernel.Boot"},"plugins":{"Mezonet":1}}

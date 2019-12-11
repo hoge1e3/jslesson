@@ -1,4 +1,6 @@
 * Tonyu
+ - OK music icon
+ - OK Mezonetプラグイン
  - 実行メニュー
  - リサイズ
  - OK 新規作成でこわれる

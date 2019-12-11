@@ -7,9 +7,9 @@ define(["WebSite","Util","Tonyu","FS"],function (WebSite,Util,Tonyu,FS) {
             return WebSite[name];
         });
         if (WebSite.urlAliases[url]) url=WebSite.urlAliases[url];
-        else if (prj._publishedURL && !url.match(/^https?:/)) {
+        /*else if (prj._publishedURL && !url.match(/^https?:/)) {
             url=prj._publishedURL+url;
-        }
+        }*/
         if (Util.startsWith(url,"ls:")) {
             var rel=url.substring("ls:".length);
             if (!baseDir) throw new Error("Basedir not specified");

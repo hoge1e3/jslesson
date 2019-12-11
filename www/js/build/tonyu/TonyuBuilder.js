@@ -1,5 +1,5 @@
-define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditor","BuilderClient","ProjectFactory","sysMod","root","exceptionCatcher"],
-        function (FS,Util,WebSite,plugins,sh,Tonyu,Sync,ResEditor,BuilderClient,F,sysMod,root,EC) {
+define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","BuilderClient","ProjectFactory","sysMod","root","exceptionCatcher"],
+        function (FS,Util,WebSite,plugins,sh,Tonyu,Sync,ResEditors,BuilderClient,F,sysMod,root,EC) {
     const langMod=BuilderClient.langMod;
     const runtimeDir=FS.get(WebSite.runtime);
     const tonyuLibDir=runtimeDir.rel("lib/tonyu/");
@@ -32,7 +32,7 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditor","Buil
                 "mainClass":"user.Main",
                 "bootClass":"kernel.Boot"
             },
-            "plugins":[]
+            "plugins":{}
         };
         const ns2depspec= {
             kernel: {namespace:"kernel", url: kernelURL}
@@ -62,8 +62,11 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditor","Buil
 	            sounds:[]
             });
         }
-
-        //prj.getPublishedURL()
+        this.resEditors=new ResEditors(this.prj);
+        this.prj.getPublishedURL().then(function (r) {
+            WebSite.pubURLOfPrj=r;
+        });
+        //prj.getPublishedURL() // why delete?
     };
     var p=MkRun.prototype;
     p.build=async function (options) {
@@ -161,6 +164,7 @@ WebSite.doResize=true;
 WebSite.tonyuHome="/Tonyu/";
 WebSite.compiledKernel=WebSite.runtime+"lib/tonyu/kernel.js";
 WebSite.pluginTop=WebSite.runtime+"lib/tonyu/plugins";
+WebSite.pubURLOfPrj="./";
 </script>
 <script src="${WebSite.runtime}lib/require.js"></script>
 <script>
@@ -264,15 +268,17 @@ reqConf={
     p.showImageList=function () {
         var t=this;
         t.prj.getPublishedURL().then(function (r) {
-            t.prj._publishedURL=r;
-            ResEditor(t.prj,"image");
+            WebSite.pubURLOfPrj=r;
+            //t.prj._publishedURL=r;
+            t.resEditors.open("image");
         }).catch(console.error.bind(console));
     };
     p.showSoundList=function () {
         var t=this;
         t.prj.getPublishedURL().then(function (r) {
-            t.prj._publishedURL=r;
-            ResEditor(t.prj,"sound");
+            WebSite.pubURLOfPrj=r;
+            //t.prj._publishedURL=r;
+            t.resEditors.open("sound");
         }).catch(console.error.bind(console));
     };
     p.debugHTML=(prj,aliases)=>{
@@ -297,6 +303,7 @@ WebSite.urlAliases= {
         "images/sound_m4a.png":WebSite.runtime+"images/sound_m4a.png",
         "images/sound_mid.png":WebSite.runtime+"images/sound_mid.png",
         "images/sound_wav.png":WebSite.runtime+"images/sound_wav.png",
+        "images/sound_mzo.png":WebSite.runtime+"images/sound_mzo.png",
         "images/ecl.png":WebSite.runtime+"images/ecl.png",
 
 };

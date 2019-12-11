@@ -166,6 +166,8 @@ var reqConf={
             DiagAdjuster:"ui/DiagAdjuster",
             ImageResEditor: "ide/ImageResEditor",
             ResEditor: "ide/ResEditor",
+            ResEditors: "build/tonyu/ResEditors",
+            OggConverter: "build/tonyu/OggConverter",
             reqConf: "reqConf",
             dumpScript: "build/dumpScript",
             buildAll: "build/buildAll",

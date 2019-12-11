@@ -8969,10 +8969,10 @@ define('NewProjectDialog',["UI","FS","ProjectFactory"], function (UI,FS,F) {
                 	 res.d.done();
                  }}}, "OK"]
             );
-            if (localStorage.noconcat) {
+            //if (localStorage.noconcat) {
                 //res.d.$vars.lang.append(UI("option",{value:"py"},"Python"));
                 res.d.$vars.lang.append(UI("option",{value:"tonyu"},"Tonyu"));
-            }
+            //}
         }
         var d=res.d;
         var model={name:options.defName||"",lang:"select"};
