@@ -27,7 +27,7 @@ class Docker {
     }
     function guestWorkPath() {return "/host/";}
     function guestAssetPath() {return "/asset/";}
-    
+
     function __construct($className) {
         $this->className=$className;
 
@@ -62,7 +62,7 @@ class Docker {
         self::sync($hostHomePrj,$hostWorkPrj);
         $guestWorkPrjPath=$this->guestWorkPath()."$userName/$projectName/";
         $guestAssetPath=$this->guestAssetPath();
-        
+
         $cmds="";
         $f=$this->filesPath( $userName);
         foreach ($f as $k=>$v) {
@@ -92,9 +92,11 @@ class Docker {
         $stdoutf=$task->rel("stdout.txt");
         $stderrf=$task->rel("stderr.txt");
         $cnt=0;
+        $timeout=10;
+        if (defined("DOCKER_TIMEOUT")) $timeout=DOCKER_TIMEOUT;
         do {
             sleep(1);
-            if ($cnt++>10) {
+            if ($cnt++>$timeout) {
                 print "Timeout"; break;
             }
         } while (!$stdoutf->exists() || !$stderrf->exists());
