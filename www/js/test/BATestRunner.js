@@ -17,6 +17,8 @@ define(function (require,exports,module) {
         }
         async openProjectSel() {
             await this.open(this.projectSelURL);
+            await this.waitForText("Bit Arrow");
+            console.log("Bit Arrow!");
             await this.sleep(1000);
             //if (this.loggedin) return;
             //driver.wait.until(webdriver.ExpectedConditions.alertIsPresent());

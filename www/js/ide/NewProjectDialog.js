@@ -1,4 +1,4 @@
-define(["UI","BAProject","FS"], function (UI,BAProject,FS) {
+define(["UI","FS","ProjectFactory"], function (UI,FS,F) {
     var res={};
 	res.show=function (prjInfo, onOK,options) {
     	var d=res.embed(prjInfo,onOK,options);
@@ -43,10 +43,10 @@ define(["UI","BAProject","FS"], function (UI,BAProject,FS) {
                 	 res.d.done();
                  }}}, "OK"]
             );
-            if (localStorage.noconcat) {
+            //if (localStorage.noconcat) {
                 //res.d.$vars.lang.append(UI("option",{value:"py"},"Python"));
                 res.d.$vars.lang.append(UI("option",{value:"tonyu"},"Tonyu"));
-            }
+            //}
         }
         var d=res.d;
         var model={name:options.defName||"",lang:"select"};
@@ -83,8 +83,8 @@ define(["UI","BAProject","FS"], function (UI,BAProject,FS) {
 	    console.log(model);
 	    var prjDir=projectsDir.rel(model.name+"/");
         prjDir.mkdir();
-        new BAProject(prjDir).setOptions({
-            compiler:{
+        F.create("ba",{dir:prjDir}).setOptions({
+            /*compiler:{
                 namespace:"user",
                 outputFile:"js/concat.js",
                 defaultSuperClass:"jslker.Parent",
@@ -92,7 +92,7 @@ define(["UI","BAProject","FS"], function (UI,BAProject,FS) {
                      {"namespace":"jslker", "compiledURL":"${JSLKer}"}
                     // {"namespace":"jslker", "compiledURL":"${JSLKer}/js/concat.js"}
                 ]
-            },
+            },*/ // moved to TJSBuilder
     		language:model.lang
         });
     };

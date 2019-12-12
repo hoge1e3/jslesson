@@ -61,6 +61,7 @@ define([], function () {
 			"images/sound_m4a.png":WS.runtime+"images/sound_m4a.png",
 			"images/sound_mid.png":WS.runtime+"images/sound_mid.png",
 			"images/sound_wav.png":WS.runtime+"images/sound_wav.png",
+			"images/sound_mzo.png":WS.runtime+"images/sound_mzo.png",
 			"images/ecl.png":WS.runtime+"images/ecl.png"
 	};
 	WS.compiledKernel=WS.runtime+"/lib/tonyu/kernel.js";
@@ -72,5 +73,17 @@ define([], function () {
 		}
 	}*///DELJSL
 	WS.tonyuKernel=WS.tonyuHome+"Kernel/";
+	setDefaultResource(WS);
+	function setDefaultResource(WebSite) {
+		WebSite.defaultResource={
+	       images:[
+	          {name:"$pat_base", url: "images/base.png", pwidth:32, pheight:32},
+	          {name:"$pat_sample", url: "images/Sample.png"},
+	          {name:"$pat_neko", url: "images/neko.png", pwidth:32, pheight:32},
+	          {name:"$pat_mapchip", url: "images/mapchip.png", pwidth:32, pheight:32}
+	       ],
+	       sounds:[]
+	    };
+	}
 	return WS;
 });

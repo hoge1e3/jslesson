@@ -1,3 +1,4 @@
+:loop
 cd /d %~dp0
 rem use scripts/copyKer.sh to copy kernels
 rem should betupe-ji jikkou
@@ -14,3 +15,4 @@ call babel www\js\gen\selPrj_concat.js --out-file www\es5\gen\selPrj_concat.js
 call babel www\js\gen\pyRun_concat.js --out-file www\es5\gen\pyRun_concat.js
 cd www\js
 pause
+goto loop
