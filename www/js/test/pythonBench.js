@@ -5,9 +5,14 @@ define(function (require,module,exports) {
     class PythonBench extends BATestRunner {
         async run() {
             super.run();
+            let prjName=sessionStorage.testprj;
+            if (!prjName) {
+                prjName=("test"+Math.random()).replace(/[^\w\d]/g,"").substring(0,10);
+                sessionStorage.testprj=prjName;
+            }
             await this.openProjectSel();
             await this.waitForText("新規プロジェクト");
-            await this.prepareEmptyProject(Util.getQueryString("prj","pyBench"),"py");
+            await this.prepareEmptyProject(prjName,"py");
             await this.waitBuidlerReady();
             while(true) {
                 const r=Math.floor(Math.random()*5+3);
