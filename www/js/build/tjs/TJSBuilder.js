@@ -1,6 +1,6 @@
 /*global requirejs*/
-define(["assert","DeferredUtil","wget","Sync","WebSite","Tonyu","BuilderClient","Util","FS","ProjectFactory"],
-function (A,DU,wget,Sync,WebSite,Tonyu,BuilderClient,Util,FS,F) {
+define(["assert","DeferredUtil","wget","Sync","WebSite","Tonyu","BuilderClient","Util","FS","ProjectFactory","root"],
+function (A,DU,wget,Sync,WebSite,Tonyu,BuilderClient,Util,FS,F,root) {
     const langMod=BuilderClient.langMod;
     F.addDependencyResolver((prj, spec)=> {
         if (spec.namespace==="jslker") {
@@ -32,8 +32,10 @@ function (A,DU,wget,Sync,WebSite,Tonyu,BuilderClient,Util,FS,F) {
             if (opt.compiler.outputFile) return FS.resolve(opt.compiler.outputFile,dir.path());
             return dir.rel("js/concat.js");
         };
+        const workerURL=(root.reqConf.baseUrl.match(/es5/)?
+        	"BuilderWorker.es5.js":"BuilderWorker.js");
         const builder=new BuilderClient(prj ,{
-            worker: {ns2depspec, url: "BuilderWorker.js"/*WORKER_URL*/}
+            worker: {ns2depspec, url: workerURL}
         });//PRC(prj.getDir());// Tonyu-lang dependent
         //Util.extend(tprj, prj);// TODO .include(langMod);
 

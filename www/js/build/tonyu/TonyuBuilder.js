@@ -43,8 +43,10 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","Bui
             prj.setOptions(Tonyu.defaultOptions);
         }
         this.dst=dst;// SFile in ramdisk
+        const workerURL=(root.reqConf.baseUrl.match(/es5/)?
+        	"BuilderWorker.es5.js":"BuilderWorker.js");
         const builder=new BuilderClient(prj ,{
-            worker: {ns2depspec, url: "BuilderWorker.js"/*WORKER_URL*/}
+            worker: {ns2depspec, url: workerURL}
         });
         this.builderClient=builder;
         this.convertPath=p=>builder.convertFromWorkerPath(p);

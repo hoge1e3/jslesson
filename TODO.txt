@@ -1,4 +1,5 @@
 * Tonyu
+ - IE support?(TJS only)
  - OK music icon
  - OK Mezonetプラグイン
  - クラス名前変更
