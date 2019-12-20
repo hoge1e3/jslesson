@@ -6,6 +6,12 @@ define([], function () {
 	}
 	var loc=document.location.href;
 	var WS=window.WebSite={};
+	WS.builtinAssetNames={
+		"base.png":{name:"$pat_base", url: "${runtime}images/base.png", pwidth:32, pheight:32},
+		"Sample.png":{name:"$pat_sample", url: "${runtime}images/Sample.png"},
+		"neko.png":{name:"$pat_neko", url: "${runtime}images/neko.png", pwidth:32, pheight:32},
+		"mapchip.png":{name:"$pat_mapchip", url: "${runtime}images/mapchip.png", pwidth:32, pheight:32}
+	};
 	// from https://w3g.jp/blog/js_browser_sniffing2015
 	var u=window.navigator.userAgent.toLowerCase();
 	WS.tablet=(u.indexOf("windows") != -1 && u.indexOf("touch") != -1)

@@ -8,7 +8,7 @@ function (ResEditor,Klass,OggConverter,WebSite) {
                 if (name) r.name="$pat_"+name;
                 return r;
             },
-            builtins:WebSite.defaultResource.images
+            builtins:WebSite.builtinAssetNames
         },
         sound:{name:"音声",exts:["mp3","ogg","mp4","m4a","mid","wav","mzo"],path:"sounds/",key:"sounds",
             extPattern:/\.(mp3|ogg|mp4|m4a|midi?|wav|mzo)$/i,contentType:/((audio\/(mp3|ogg|x-m4a|midi?|wav|mzo))|(video\/mp4))/,

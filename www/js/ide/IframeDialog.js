@@ -33,6 +33,10 @@ function (UI ,DA) {
             }
         }
     };
+    res.close=function () {
+        if (!res.d)return;
+        res.d.dialog("close");
+    };
     res.embed=function (url, options) {
         res.url=url;
         options=options||{};

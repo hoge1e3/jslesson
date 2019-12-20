@@ -1,8 +1,10 @@
 define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
-"ImageDetailEditor","Util","Assets","root"],
+"ImageDetailEditor","Util","Assets","root","jshint","IframeDialog"],
         function (FS, Tonyu, UI,IL,Blob,Auth,WebSite,
-                ImageDetailEditor,Util,Assets,root) {
+                ImageDetailEditor,Util,Assets,root,jshint,IframeDialog) {
+    const HNOP=jshint.scriptURL("");
     var ResEditor=function (prj, mediaInfo) {
+        let buttons;
         var d=UI("div", {title:mediaInfo.name+"リスト"});
         d.css({height:200+"px", "overflow-v":"scroll"});
         var rsrc=prj.getResource();
@@ -68,11 +70,52 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                         itemUIs.push(itemUI);
                         itemUI.appendTo(itemTbl);
                     });
-                    d.append(UI("div",{style:"clear:left;"},
-                                ["button", {on:{click:function (){ add();}}}, "追加"],
-                                ["button", {on:{click:function (){ d.dialog("close"); }}}, "完了"]
-                    ));
+                    buttons=UI("div",{style:"clear:left;"},
+                        (mediaInfo.builtins?
+                            ["span",{class:"dropdown"},
+                                ["button",{
+                                    //href:HNOP,
+                                    class:"submenu",
+                                    on:{click:addBuiltin}},"追加"],
+                                ["span",{$var:"addMenu",class:"dropdown-content"}]
+                            ]:""),
+                        ["button", {on:{click:function (){ d.dialog("close"); }}}, "完了"]
+                    );
+                    d.append(buttons);
                 }
+            }
+            function addBuiltin() {
+                //const menus=[];
+                const addMenu=buttons.$vars.addMenu;
+                addMenu.empty();
+                const addF=item=>()=>{
+                    addMenu.removeClass("show");
+                    add(item);
+                };
+                for (let k in mediaInfo.builtins) {
+                    const item=mediaInfo.builtins[k];
+                    addMenu.append(
+                        UI("a",{href:HNOP,class:"submenu",on:{click:addF(item)}},k)
+                    );
+                }
+                if (WebSite.serverType==="BA") {
+                    addMenu.append(
+                        UI("a",{href:HNOP,class:"submenu",on:{click:addFromImageList}},"その他...")
+                    );
+                }
+                addMenu.toggleClass("show");
+                //const m=UI("ul",{class:"dropdown"},...menus).appendTo(d);
+                //m.offset($(btn).position());
+            }
+            function addFromImageList() {
+                root.onImageSelected=n=> {
+                    const pn=n.replace(/\.(gif|png|jpg)$/,"");
+                    add({
+                        name:`$pat_${pn}`,type:"single",url:"${runtime}images/"+n
+                    });
+                    IframeDialog.close();
+                };
+                IframeDialog.show(WebSite.runtime+"images/index.php?fromTonyu=1");
             }
             _dropAdd=dropAdd;
             function dropAdd(e) {

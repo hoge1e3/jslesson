@@ -14,6 +14,7 @@ function imageSelected(t) {
     if (window.parent && window.parent.onImageSelected) window.parent.onImageSelected(url);
 }
 </script>
+<?php if (!isset($_GET["fromTonyu"])) { ?>
 <h1> Bit Arrow で使用可能な画像ファイル一覧</h1>
 <h3>使用例：HTML/JavaScript</h3>
 <pre>&lt;img src="images/99.png"/&gt;</pre>
@@ -21,6 +22,7 @@ function imageSelected(t) {
 <pre>かめた＝タートル！作る．
 かめた！作る "99.png" 変身する．</pre>
 <?php
+}
 $excludes=array(
     "Sample.png"=>1,
     "base.png"=>1,
