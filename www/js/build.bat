@@ -17,5 +17,6 @@ cd www\js
 rem cd ..
 rem call babel BuilderWorker.js --out-file BuilderWorker.es5.js
 rem insert importScripts("polyfill.js"); into 1st line of BuilderWorker.es5.js
+rem cd js
 pause
 goto loop

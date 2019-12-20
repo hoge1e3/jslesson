@@ -19,7 +19,7 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","Bui
                 url:kernelURL });
         }
     });
-    var MkRun=function (prj, dst) {
+    var MkRun=function (prj, dst, ide) {
         Tonyu.defaultOptions={
             "compiler":{
                 "namespace":"user",
@@ -37,6 +37,7 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","Bui
         const ns2depspec= {
             kernel: {namespace:"kernel", url: kernelURL}
         };
+        this.ide=ide;
         this.prj=prj;// BitArrow-based
         const opt=prj.getOptions();
         if (!opt.compiler || !opt.compiler.namespace) {
@@ -76,9 +77,13 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","Bui
         await c.clean();
         if (options.fullScr) return await this.mkrun(options);
         const opt=this.prj.getOptions();
+        if (options.mainClass && opt.run && opt.run.mainClass!==options.mainClass) {
+            opt.run.mainClass=options.mainClass;
+            this.prj.setOptions(opt);
+        }
         //const main=opt.run.mainClass;
         this.removeThumbnail();
-        const aliases=this.genUrlAliases();
+        const aliases={};//this.genUrlAliases();
         this.dst.rel("index.html").text(this.debugHTML(this.prj.getDir().path(),aliases));
     };
     p.removeThumbnail=function () {
@@ -266,6 +271,11 @@ reqConf={
         Menu.appendSub("tool",
             {label:"音声リスト",id:"soundList",action:this.showSoundList.bind(this)},
         );
+        Menu.deleteMain("runMenu");
+        Menu.appendMain(
+            {label:"実行",id:"runTonyu",after:$("#fileMenu"),sub:[]}
+        );
+        this.refreshRunMenu();
     };
     p.showImageList=function () {
         var t=this;
@@ -282,6 +292,63 @@ reqConf={
             //t.prj._publishedURL=r;
             t.resEditors.open("sound");
         }).catch(console.error.bind(console));
+    };
+    p.refreshRunMenu=function () {
+        const EXT=".tonyu";
+        const ide=this.ide;
+        const prj=this.prj;
+        const curPrjDir=prj.getDir();
+        const runMenuOrd=ide.desktopEnv.runMenuOrd || [];
+        const NSP_USR=prj.getNamespace();
+        curPrjDir.each(function (f) {
+            if (f.endsWith(EXT)) {
+                var n=f.truncExt(EXT);
+                if (runMenuOrd.indexOf(n)<0) {
+                    runMenuOrd.push(n);
+                }
+            }
+        });
+        let i;
+        for (i=runMenuOrd.length-1; i>=0 ; i--) {
+            var f=curPrjDir.rel(runMenuOrd[i]+EXT);
+            if (!f.exists()) {
+                runMenuOrd.splice(i,1);
+            }
+        }
+        $("#submenu_runTonyu").empty();
+        i=0;
+        runMenuOrd.forEach(n=>{
+            var ii=i;
+            if (typeof n!="string") {console.log(n); alert("not a string: "+n);}
+            //if (ii>=15) return;
+            $("#submenu_runTonyu").append(
+                $("<li>").append(
+                    $("<a>").attr("href","#").text(n+"を実行"+(i==0?"(F9)":"")).click(()=>{
+                        if (typeof n!="string") {console.log(n); alert("not a string2: "+n);}
+                        ide.run({mainClass:`${NSP_USR}.${n}`, mainFile:curPrjDir.rel(`${n}${EXT}`) });
+                        if (ii>0) {
+                            runMenuOrd.splice(ii, 1);
+                            runMenuOrd.unshift(n);
+                            this.refreshRunMenu();
+                            ide.saveDesktopEnv();
+                        }
+                    })
+                )
+            );
+            i++;
+        });
+        /*$("#runMenu").append(
+                $("<li>").append(
+                        $("<a>").attr("href","#").text("停止(F2)").click(F(function () {
+                            stop();
+                        }))));
+        $("#runMenu").append(
+                $("<li>").append(
+                        $("<a>").attr("href","#").text("実行するファイルを選択...").click(F(dialogs.selectMain))
+                    ));*/
+    };
+    p.afterCreateContent=function () {
+        this.refreshRunMenu();
     };
     p.debugHTML=(prj,aliases)=>{
         return `<!DOCTYPE html>
