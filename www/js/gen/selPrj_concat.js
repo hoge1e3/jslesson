@@ -3714,6 +3714,12 @@ define('WebSite',[], function () {
 	}
 	var loc=document.location.href;
 	var WS=window.WebSite={};
+	WS.builtinAssetNames={
+		"base.png":{name:"$pat_base", url: "${runtime}images/base.png", pwidth:32, pheight:32},
+		"Sample.png":{name:"$pat_sample", url: "${runtime}images/Sample.png"},
+		"neko.png":{name:"$pat_neko", url: "${runtime}images/neko.png", pwidth:32, pheight:32},
+		"mapchip.png":{name:"$pat_mapchip", url: "${runtime}images/mapchip.png", pwidth:32, pheight:32}
+	};
 	// from https://w3g.jp/blog/js_browser_sniffing2015
 	var u=window.navigator.userAgent.toLowerCase();
 	WS.tablet=(u.indexOf("windows") != -1 && u.indexOf("touch") != -1)
@@ -10368,8 +10374,8 @@ function ready() {//-------------------------
             ["div",{class:"hero-unit"},
             ["div",{id:"userInfo",css:{float:"right"},margin:"50px"},"ようこそ",["br"],["div","同期中です..."]],
             ["h1", ["img",{src:"images/bitarrow-2.png",css:{"display":"inline"},width:"100px"}],"Bit Arrow"]],
-            ["div","【お知らせ】新しいバージョン",["span",{class:"notice"},"(2019_0901)"],"になりました．",
-            ["a",{href:"https://bitarrow.eplang.jp/?change1909",target:"wikiTab"},"主な変更点..."]/*," | ",
+            ["div","【お知らせ】新しいバージョン",["span",{class:"notice"},"(2020_0101)"],"になりました．",
+            ["a",{href:"https://bitarrow.eplang.jp/?change2001",target:"wikiTab"},"主な変更点..."]/*," | ",
             ["a",{href:"https://bitarrow.eplang.jp/2017_0328/",target:"wikiTab"},"以前のバージョン(2017_0328)を使う"]*/],
             ["div",
 	            ["a",{href:"https://bitarrow.eplang.jp/",target:"wikiTab"},"Bit Arrow解説ページ"],
