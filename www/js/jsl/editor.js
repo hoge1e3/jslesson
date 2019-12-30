@@ -179,6 +179,7 @@ function ready() {
     case "tonyu":
         //ALWAYS_UPLOAD=true;
         requirejs(["TonyuBuilder"],setupBuilder);
+        helpURL="http://bitarrow.eplang.jp/index.php?tonyu";
         break;
     }
     function setupBuilder(BuilderClass) {
