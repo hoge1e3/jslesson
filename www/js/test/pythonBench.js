@@ -26,7 +26,7 @@ define(function (require,module,exports) {
 #「実行」→「サーバで実行」を選んでください
 import numpy.random as rd # 乱数を発生させる関数の呼び出し
 import matplotlib.pyplot as plt # グラフプロットの呼び出し
-totalcount = 2000 # ランダムに打つ点の総数
+totalcount = 200 # ランダムに打つ点の総数
 incount = 0 # 円に入った点の数
 for i in range(totalcount):
   x = rd.random() #0-1 の範囲の値

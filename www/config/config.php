@@ -3,7 +3,9 @@
 //   You must set BA_DATA to data directory, it is recommended that BA_DATA cannot access via http
 define("BA_DATA", "/var/www/data/bitarrow");
 define("DOCKER_WORK", "/var/www/data/dpy/work");
-define("DOCKER_IMAGE", "matplotlib2");
+define("DOCKER_IMAGE", "matplotlib5");
+define("DOCKER_TASKRUN", "/dpy/taskrun.py");
+define("DOCKER_TIMEOUT", 30);
 //define("BA_DATA", dirname(__DIR__)."/../data");
 //define("BA_DATA", dirname(__DIR__));
 
