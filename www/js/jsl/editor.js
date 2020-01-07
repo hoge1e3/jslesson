@@ -145,7 +145,7 @@ function ready() {
     var HEXT=".html";
     var opt=curPrj.getOptions();
     var lang=opt.language || "js";
-    var ide={run:run, prj:curPrj};
+    const ide={run, prj:curPrj,saveDesktopEnv};
     root.openDummyEditor=openDummyEditor;
     switch (lang){
     case "c":
@@ -179,6 +179,7 @@ function ready() {
     case "tonyu":
         //ALWAYS_UPLOAD=true;
         requirejs(["TonyuBuilder"],setupBuilder);
+        helpURL="http://bitarrow.eplang.jp/index.php?tonyu";
         break;
     }
     function setupBuilder(BuilderClass) {
@@ -400,7 +401,8 @@ function ready() {
         $("#fileItemList").height(h);
     }
     onResize();
-    var desktopEnv=loadDesktopEnv();
+    const desktopEnv=loadDesktopEnv();
+    ide.desktopEnv=desktopEnv;
     window.editorTextSize=desktopEnv.editorFontSize||18;
     var editors={};root._editors=editors;
 
@@ -484,6 +486,7 @@ function ready() {
                 if (olds[i].equals(old)) ci=i;
                 if (olds[i].exists() && !news[i].exists()) {
                     news[i].copyFrom(olds[i]);
+                    if (builder.afterCreateContent)builder.afterCreateContent(news[i]);
                 }
             }
             A.is(ci,Number);
@@ -537,6 +540,7 @@ function ready() {
         } else if (!f.exists()) {
             f.text("");
         }
+        if (builder.afterCreateContent)builder.afterCreateContent(f);
     };
     FM.on.displayName=function (f) {
         A.is(f,String);
@@ -682,14 +686,14 @@ function ready() {
         options=options||{};
         options.fullScr=true;
         var inf=getCurrentEditorInfo();
-        if (!inf) {
+        if (!inf && !options.mainFile) {
             alert("実行したいファイルを選んでください");
         }
         save();
         sync();
         if (builder && inf) {
             try {
-                var curFile=inf.file;
+                var curFile=inf ? inf.file : options.mainFile;
                 var curFiles=fileSet(curFile);
                 var curHTMLFile=curFiles[0];
                 var curLogicFile=curFiles[1];
@@ -725,8 +729,8 @@ function ready() {
     //\run
     async function run(options) {//run!!
         options=options||{};
-        var inf=getCurrentEditorInfo();
-        if (!inf) {
+        const inf=getCurrentEditorInfo();
+        if (!inf && !options.mainFile) {
             alert("実行したいファイルを開いてください。");
             return;
         }
@@ -734,7 +738,7 @@ function ready() {
         if (RunDialog2.hasLocalBrowserWindow()) {
             newwnd=window.open("about:blank","LocalBrowserWindow"+Math.random(),"menubar=no,toolbar=no,width=500,height=500");
         }
-        var curFile=inf.file;
+        var curFile=inf ? inf.file : options.mainFile;
         var curFiles=fileSet(curFile);
         var curHTMLFile=curFiles[0];
         var curLogicFile=curFiles[1];
@@ -1040,7 +1044,7 @@ function ready() {
             res={};
         }
         if (!res.runMenuOrd) res.runMenuOrd=[];
-        desktopEnv=res;
+        //desktopEnv=res;
         return res;
     }
     function saveDesktopEnv() {
