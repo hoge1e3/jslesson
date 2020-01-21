@@ -350,7 +350,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
        console.log(str.read());
        if (i>100) break;
    }*/
-			if (!str.read()) {
+			if (!z && !str.read()) {
 				z = true;
 			}
 			if (z) {
