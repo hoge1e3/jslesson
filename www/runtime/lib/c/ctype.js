@@ -236,6 +236,23 @@ define(["Klass", "assert"], function (Klass, assert) {
         sizeOf: function sizeOf() {
             if (this.length == null) return 4;
             return this.e.sizeOf() * this.length;
+        },
+        cast: function cast(v) {
+            if (v.IS_POINTER && typeof this.length == "number") {
+                var res = [];
+                for (var i = 0; i < this.length; i++) {
+                    var o = v.offset(i);
+                    if (o.isValidBorder()) {
+                        res.push(o.read());
+                    }
+                }
+                if (res.length == this.length) return v;
+                while (res.length < this.length) {
+                    res.push(_global.dustValue());
+                }
+                return res;
+            }
+            return v;
         }
         /*binOpable: function (op,right) {
             if (right instanceof t.Number && (op+""==="+" || op+""==="-" || op+""==="===" || op+""==="!==")) return true;
