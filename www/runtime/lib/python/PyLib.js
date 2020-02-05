@@ -80,7 +80,7 @@ define(function (require, exports, module) {
         return s - 0;
     };
     PL.int = function (s) {
-        return s - 0;
+        return parseInt(s - 0);
     };
     PL.str = function (s) {
         //  s==false
