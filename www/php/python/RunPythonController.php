@@ -53,6 +53,7 @@ class RunPythonController {
     static function runInDocker() {
         $projectName=param("prj");
         $fileName=param("file");
+        $stdin=param("stdin","\n\n\n\n\n\n\n\n");
         $class=Auth::curClass2();
         $user=Auth::curUser2();
         
@@ -62,7 +63,10 @@ class RunPythonController {
             $prjDir=$d->BAHome()->rel($user->name)->rel($projectName);
             self::pushSource($prjDir, $fileName, $source );
         }
-     	$res=$d->execInProject($user->name, $projectName, "export MPLBACKEND=\"module://mybackend\" \n python $fileName");
+        $prjDesc=$d->openProject($user->name, $projectName);
+        $stdinfile="__STDIN.txt";
+     	$prjDesc["work"]["host"]->rel($stdinfile)->text($stdin);
+     	$res=$d->execInProject($prjDesc, "export MPLBACKEND=\"module://mybackend\" \n python $fileName < $stdinfile");
      	if ($res["stderr"]=="") self::convOut($res["stdout"], $d->hostWork()->rel($user->name."/")->rel("$projectName/") );
         else {
             http_response_code(500);

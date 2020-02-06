@@ -56,11 +56,29 @@ class Docker {
         $res["class"]=Published::getURLUserPart($this->className, "class", "assets");
         return $res;
     }
-    function execInProject($userName, $projectName, $cmd) {
+    function openProject($userName, $projectName) {
         $hostHomePrj=$this->BAHome()->rel("$userName/")->rel("$projectName/");
         $hostWorkPrj=$this->hostWork()->rel("$userName/")->rel("$projectName/");
         self::sync($hostHomePrj,$hostWorkPrj);
         $guestWorkPrjPath=$this->guestWorkPath()."$userName/$projectName/";
+        return array( "userName"=>$userName, "projectName"=>$projectName , 
+			"work"=> array(
+				"host"=> $hostWorkPrj,
+				"guestPath"=> $guestWorkPrjPath
+	     	)
+	    );
+    }
+    function execInProject_old($userName, $projectName, $cmd) {
+        $prjDesc=$this->openProject($userName, $projectName);
+        /*$hostHomePrj=$this->BAHome()->rel("$userName/")->rel("$projectName/");
+        $hostWorkPrj=$this->hostWork()->rel("$userName/")->rel("$projectName/");
+        self::sync($hostHomePrj,$hostWorkPrj);
+        $guestWorkPrjPath=$this->guestWorkPath()."$userName/$projectName/";*/
+        return $this->execInProject2($prjDesc,$cmd);
+    }
+    function execInProject($prjDesc, $cmd) {
+        $userName=$prjDesc["userName"];
+        $guestWorkPrjPath=$prjDesc["work"]["guestPath"];
         $guestAssetPath=$this->guestAssetPath();
 
         $cmds="";
