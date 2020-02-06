@@ -57,6 +57,11 @@ class RunPythonController {
         $user=Auth::curUser2();
         
         $d=Docker::init($class->id);
+        $source=param("source",null);
+        if ($source) {
+            $prjDir=$d->BAHome()->rel($user->name)->rel($projectName);
+            self::pushSource($prjDir, $fileName, $source );
+        }
      	$res=$d->execInProject($user->name, $projectName, "export MPLBACKEND=\"module://mybackend\" \n python $fileName");
      	if ($res["stderr"]=="") self::convOut($res["stdout"], $d->hostWork()->rel($user->name."/")->rel("$projectName/") );
         else {
@@ -64,6 +69,14 @@ class RunPythonController {
             print($res["stdout"]."\n".$res["stderr"]);
         }
  	    //print_r($r);
+    }
+    static function pushSource($prjDir, $fileName, $source) {
+        if (!$prjDir->exists()) {
+            $prjDir->mkdir();
+            $options=$prjDir->rel("options.json");
+            $options->text(json_encode(array("language"=>"py")));
+        }
+        $prjDir->rel($fileName)->text($source);
     }
     static function runStr(){
         $nfs=new NativeFS();
