@@ -1,5 +1,5 @@
 #include<stdio.h>
 int main(void){
-    int x=66331;
+    int x=34641;
     printf("%d",x*2);
 }

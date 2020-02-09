@@ -30,8 +30,14 @@ const py=sync=> {
     sync(`${src}/PyLib.js`,dst);
 
 };
+const tjs=sync=> {
+    const src="www/es5/runtime/";
+    const dst="www/runtime/lib/tjs";
+    sync("www/es5/runtime/TonyuRuntime.js",dst);
+};
 module.exports=sync=>{
     common(sync);
     c(sync);
     py(sync);
+    tjs(sync);
 };

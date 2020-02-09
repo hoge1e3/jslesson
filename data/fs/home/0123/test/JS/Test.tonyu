@@ -1,0 +1,5 @@
+// ここで扱われるJavaScriptは通常のJavaScriptとは異なります。詳しくは使用方法をご覧ください。
+for(i=0;i<10;i++) {
+    setText("a",i);
+    wait(50);
+}

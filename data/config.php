@@ -13,6 +13,8 @@ define("ENC_PASS",1);
 define("ENC_ALGO","openssl:AES-128-ECB");
 define("ENC_KEY","fugahoge");
 
+define("PAUTH_SERVER","http://localhost/sakumon/?Login/responsePAuth");
+
 //define("PDO_USER","");
 //define("PDO_PASS","");
 

@@ -17,9 +17,9 @@ function run(className) {
           "assert": R+"lib/assert",
           "FS": R+"lib/FS",
           "DeferredUtil": R+"lib/DeferredUtil",
-          "Tonyu": R+"lib/tjs/TonyuLib",
-          "Tonyu.Thread": R+"lib/tjs/TonyuThread",
-          "Tonyu.Iterator": R+"lib/tjs/TonyuIterator",
+          "Tonyu": R+"lib/tjs/TonyuRuntime",
+          //"Tonyu.Thread": R+"lib/tjs/TonyuThread",
+          //"Tonyu.Iterator": R+"lib/tjs/TonyuIterator",
           "kernel": R+"lib/tjs/kernel",
       },
       urlArgs: requirejs.version=="2.1.9"? "": function (id,url) {

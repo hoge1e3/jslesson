@@ -1,27 +1,10 @@
 define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
-"ImageDetailEditor","Util","Assets","root"],
+"ImageDetailEditor","Util","Assets","root","jshint","IframeDialog"],
         function (FS, Tonyu, UI,IL,Blob,Auth,WebSite,
-                ImageDetailEditor,Util,Assets,root) {
-    var ResEditor=function (prj, mediaType) {
-        var mediaInfos={
-                image:{name:"画像",exts:["png","gif","jpg"],path:"images/",key:"images",
-                    extPattern:/\.(png|gif|jpe?g)$/i,contentType:/image\/(png|gif|jpe?g)/,
-                    newItem:function (name) {
-                        var r={type:"single"};//pwidth:32,pheight:32};
-                        if (name) r.name="$pat_"+name;
-                        return r;
-                    }
-                },
-                sound:{name:"音声",exts:["mp3","ogg","mp4","m4a","mid","wav","mzo"],path:"sounds/",key:"sounds",
-                    extPattern:/\.(mp3|ogg|mp4|m4a|midi?|wav|mzo)$/i,contentType:/((audio\/(mp3|ogg|x-m4a|midi?|wav|mzo))|(video\/mp4))/,
-                    newItem:function (name) {
-                        var r={};
-                        if (name) r.name="$se_"+name;
-                        return r;
-                    }
-                }
-        };
-        var mediaInfo=mediaInfos[mediaType||"image"];
+                ImageDetailEditor,Util,Assets,root,jshint,IframeDialog) {
+    const HNOP=jshint.scriptURL("");
+    var ResEditor=function (prj, mediaInfo) {
+        let buttons;
         var d=UI("div", {title:mediaInfo.name+"リスト"});
         d.css({height:200+"px", "overflow-v":"scroll"});
         var rsrc=prj.getResource();
@@ -29,6 +12,7 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
         var tempFiles = items.slice();
         var rsrcDir=prj.getDir().rel(mediaInfo.path);
         var itemUIs=[];
+        var _dropAdd;
         if (!rsrc) prj.setResource({images:[],sounds:[]});
         function convURL(u) {
             function cvs(u) {
@@ -86,12 +70,54 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                         itemUIs.push(itemUI);
                         itemUI.appendTo(itemTbl);
                     });
-                    d.append(UI("div",{style:"clear:left;"},
-                                ["button", {on:{click:function (){ add();}}}, "追加"],
-                                ["button", {on:{click:function (){ d.dialog("close"); }}}, "完了"]
-                    ));
+                    buttons=UI("div",{style:"clear:left;"},
+                        (mediaInfo.builtins?
+                            ["span",{class:"dropdown"},
+                                ["button",{
+                                    //href:HNOP,
+                                    class:"submenu",
+                                    on:{click:addBuiltin}},"追加"],
+                                ["span",{$var:"addMenu",class:"dropdown-content"}]
+                            ]:""),
+                        ["button", {on:{click:function (){ d.dialog("close"); }}}, "完了"]
+                    );
+                    d.append(buttons);
                 }
             }
+            function addBuiltin() {
+                //const menus=[];
+                const addMenu=buttons.$vars.addMenu;
+                addMenu.empty();
+                const addF=item=>()=>{
+                    addMenu.removeClass("show");
+                    add(item);
+                };
+                for (let k in mediaInfo.builtins) {
+                    const item=mediaInfo.builtins[k];
+                    addMenu.append(
+                        UI("a",{href:HNOP,class:"submenu",on:{click:addF(item)}},k)
+                    );
+                }
+                if (WebSite.serverType==="BA") {
+                    addMenu.append(
+                        UI("a",{href:HNOP,class:"submenu",on:{click:addFromImageList}},"その他...")
+                    );
+                }
+                addMenu.toggleClass("show");
+                //const m=UI("ul",{class:"dropdown"},...menus).appendTo(d);
+                //m.offset($(btn).position());
+            }
+            function addFromImageList() {
+                root.onImageSelected=n=> {
+                    const pn=n.replace(/\.(gif|png|jpg)$/,"");
+                    add({
+                        name:`$pat_${pn}`,type:"single",url:"${runtime}images/"+n
+                    });
+                    IframeDialog.close();
+                };
+                IframeDialog.show(WebSite.runtime+"images/index.php?fromTonyu=1");
+            }
+            _dropAdd=dropAdd;
             function dropAdd(e) {
                 e.stopPropagation();
                 e.preventDefault();
@@ -106,7 +132,7 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                     var file = files[i];
                     var filetype= file.type;
                     if (file.name.match(/\.mzo$/)) filetype="audio/mzo";
-                    var useBlob=WebSite.serverType=="GAE" && (file.size>1000*300);
+                    var useBlob=WebSite.serverType=="BA"||WebSite.serverType=="GAE" && (file.size>1000*300);
                     if(!filetype.match(mediaInfo.contentType)) {
                         readFileSum--;
                         notReadFiles.push(file);
@@ -118,7 +144,7 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                         itemExt=RegExp.lastMatch.toLowerCase();
                     }
                     var itemFile=rsrcDir.rel(itemName+itemExt);
-                    var itemRelPath="ls:"+itemFile.relPath(prj.getDir());
+                    var itemRelPath=(useBlob?"":"ls:")+itemFile.relPath(prj.getDir());
                     var existsFile;
                     var fileExists=tempFiles.some(function(f){
                         existsFile=f;
@@ -144,14 +170,18 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                                         UI("div","大きい"+mediaInfo.name+"を追加するには，ログインが必要です：",
                                            ["a",{href:u,target:"login",style:"color: blue;"},"ログインする"])
                                 );
-                            },success:function (u) {
+                            },success:async function (u) {
                                 dragPoint.text("アップロード中...");
-                                var prjN=prj.getName();
-                                Blob.upload(u,prjN,file,{success:function (){
+                                var prjN=prj.getName()+"/";
+                                console.log("uploading", prjN, v.url,u);
+                                const r=await Blob.upload(prjN, v.url ,file);/*,{success:function (){
                                     dragPoint.text(dragMsg);
                                     v.url="${blobPath}/"+u+"/"+prjN+"/"+file.name;
                                     add(v);
-                                }});
+                                }});*/
+                                console.log(r);
+                                v.url="${pubURLOfPrj}"+v.url;
+                                add(v);
                             }
                         });
                     } else {
@@ -212,7 +242,7 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
             }
             function genItemUI(item) {
                 function detail() {
-                    if (mediaType=="sound") return;
+                    if (mediaInfo.key=="sounds") return;
                     ImageDetailEditor.show(item, prj, item.name, {
                         onclose: function () {
                             prj.setResource(rsrc);
@@ -309,6 +339,8 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
             reload(action, args);
         }
         function cleanFiles() {
+            if (true) return;
+            // TODO
             var items=rsrc[mediaInfo.key];
             Auth.currentUser(function (u,ct) {
                 if (!u) return;
@@ -324,7 +356,7 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                 var data={
                         user:u,
                         project:prj.getName(),
-                        mediaType:mediaType,
+                        mediaType:mediaInfo.key,
                         csrfToken:ct,
                         retainFileNames:JSON.stringify(rtf)
                 };
@@ -356,19 +388,33 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
             if (!s || s=="") return undefined;
             return parseInt(s);
         }
-        reload();
-        return d.dialog({
-            modal:true,
-            width: 800,
-            height: 500,
+        return {
+            dropAdd:function (e) {
+                _dropAdd(e);
+            },
+            open: function () {
+                reload();
+                d.dialog({
+                    modal:true,
+                    width: 800,
+                    height: 500,
+                    close: function () {
+                        update("close");
+                        //cleanFiles();
+                        if (typeof mediaInfo.close==="function") {
+                            mediaInfo.close({
+                                items:items,
+                                resourceDir:rsrcDir,
+                                project:prj
+                            });
+                        }
+                    }
+                });
+            },
             close: function () {
-                update("close");
-                cleanFiles();
-                if (mediaType=="sound" && rsrcDir.exists()) {
-                    root.OggConverter.convert(rsrcDir);
-                }
+                d.dialog("close");
             }
-        });
+        };
     };
     function draw(img, canvas) {
         if (typeof img=="string") {

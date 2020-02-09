@@ -39,10 +39,33 @@ var Calibratable={
     }
 };
 
+root.sensorNotWorking=function(){
+    if(typeof DeviceOrientationEvent.requestPermission!=="function"){
+        alert("お使いの端末はセンサ情報を取得できないようです。");
+        return;
+    }
+    var div=$("<div>");
+    div.appendTo($("body"));
+    div.css("background-color","rgba(0,0,0,0.1)").css("width","100%").css("height","100%").hide();
+    div.css("position","absolute");
+    var text1=$("<h3>").html("センサ情報が取得できていないようです。");
+    var text2=$("<h3>").html("以下のボタンからセンサ情報へのアクセスを許可していただくと、改善する可能性があります");
+    div.append(text1).append(text2);
+    var btn=$("<button>").addClass("btn").addClass("btn-default");
+    btn.css("width","20em").css("height","5em").html("センサ情報へのアクセスを許可");
+    btn.click(function(){
+        DeviceOrientationEvent.requestPermission();
+        div.hide();
+    });
+    div.append(btn);
+    div.show();
+};
+
 root.accelerationSensor=root.create();
 root.accelerationSensor.x=0;
 root.accelerationSensor.y=0;
 root.accelerationSensor.z=0;
+root.accelerationSensor.working=false;
 root.accelerationSensor.action=(function(){});
 root.accelerationSensor.initialized=false;
 root.accelerationSensor.initialize=function(){
@@ -74,9 +97,15 @@ root.accelerationSensor.init=function(){
 			self.x=c.x;self.y=-c.y;
 			self.z=z;
 			self.action.execute(self.x,self.y,self.z);
+            self.working=self.working||(self.x!==0||self.y!==0||self.z!==0);
 		},true);
-		this.initialized=true;
-		return this;
+
+        setTimeout(function(){
+            if(!self.working)root.sensorNotWorking();
+        }.bind(self),500);
+
+		self.initialized=true;
+		return self;
 	});
 };
 
@@ -148,6 +177,7 @@ root.加速度センサー=root.加速度センサ;*/
 
 root.compass=root.create();
 root.compass.direction=0;
+root.compass.working=false;
 root.compass.action=(function(){});
 root.compass.initialized=false;
 root.compass.initialize=function(){
@@ -161,11 +191,15 @@ root.compass.use=function(){
 root.compass.init=function(){
 	if(this.initialized)return this;
 	var self=this;
+    setTimeout(function(){
+        if(!self.working)root.sensorNotWorking();
+    }.bind(self),1000);
 	window.$(function(){
-		window.ondeviceorientation=function(evt){
+		window.addEventListener('deviceorientation',function(evt){
 			self.direction=(evt.webkitCompassHeading || 0);
 			self.action.execute(self.direction);
-		};
+            self.working=self.working||(self.direction!==0);
+		},true);
 	});
 	this.initialized=true;
 	return this;
@@ -332,6 +366,7 @@ root.gyroSensor=root.create();
 root.gyroSensor.x=0;
 root.gyroSensor.y=0;
 root.gyroSensor.z=0;
+root.gyroSensor.working=false;
 root.gyroSensor.action=(function(){});
 root.gyroSensor.initialized=false;
 root.gyroSensor.initialize=function(){
@@ -348,6 +383,9 @@ root.gyroSensor.init=function(){
 	this.z=0;
 	var self=this;
 	window.$(function(){
+        setTimeout(function(){
+            if(!self.working)root.sensorNotWorking();
+        }.bind(self),1000);
 		window.addEventListener("deviceorientation",function(evt){
 			var x=evt.beta || 0;
 			var y=evt.gamma || 0;
@@ -358,6 +396,7 @@ root.gyroSensor.init=function(){
 			self.y=-self.calibrated.pitch;
 			self.z=self.calibrated.yaw;
 			self.action.execute(self.x,self.y,self.z);
+            self.working=self.working||(self.x!==0||self.y!==0||self.z!==0);
 		},true);
 	});
 	this.initialized=true;

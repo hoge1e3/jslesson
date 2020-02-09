@@ -229,5 +229,13 @@ class LoginController {
         Auth::logout();
         header("Location: .?Login/form");
     }
+    static function fromPAuth() {
+        $token=param("token");
+    	$res = file_get_contents( PAUTH_SERVER."&token=$token");
+        echo $res;
+        $res = json_decode($res);
+        MySession::set("class",$res->class);
+        MySession::set("user",$res->user);
+    }
 }
 ?>

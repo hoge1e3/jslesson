@@ -1,3 +1,15 @@
+* Tonyu
+ - OK IE support?(TJS only)
+ - OK music icon
+ - OK Mezonetプラグイン
+ - クラス名前変更
+ - Zip dl/up
+ - OK 実行メニュー
+ - リサイズ
+ - OK 新規作成でこわれる
+ - OK サムネ作らない設定
+ - OK 画像追加できない
+ - OK 別ページ実行
 * 自動インデント:コメントは対象外
 * ログ
    ファイル別検索
