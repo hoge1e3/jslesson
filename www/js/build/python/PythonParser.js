@@ -199,7 +199,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         passStmt: ["pass"],
         breakStmt: ["break"],
         continueStmt: ["continue"],
-        forStmt: ["for",{var:"symbol"},"in",{set:"expr"},{do:"block"}],
+        forStmt: ["for",{vars:sep1("symbol",",")},"in",{set:"expr"},{do:"block"}],
         letStmt: [{left:"lval"},"=",{right:"exprList"}],
         globalStmt: ["global",{names:sep1("symbol",",")}],
         // print(x,y) parsed as: printStmt(2) with tuple
