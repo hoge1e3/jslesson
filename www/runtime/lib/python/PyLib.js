@@ -194,7 +194,7 @@ define(function (require, exports, module) {
             e = b;b = 0;
         }
         var res = [];
-        for (; b < e; b += s) {
+        for (; s > 0 && b < e || s < 0 && b > e; b += s) {
             res.push(b);
         }return res;
     };
