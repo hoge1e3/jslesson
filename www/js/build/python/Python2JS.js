@@ -67,7 +67,7 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("else %v",node.then);
         },
         forStmt: function (node) {
-            this.printf("var %v;%nfor (%v of %v) %v", node.var,node.var, node.set, node.do);
+            this.printf("var %j;%nfor (%v of %v) %v", [",",node.vars],node.vars[0], node.set, node.do);
         },
         letStmt: function (node) {
             if (this.anon.get(node).needVar) {

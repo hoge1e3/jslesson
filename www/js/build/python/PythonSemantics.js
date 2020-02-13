@@ -203,9 +203,11 @@ const vdef={
     },
     forStmt: function (node) {
         //console.log("forStmt", node);
-        var loopVar=node.var;
+        var loopVars=node.vars;
         this.visit(node.set);
-        this.addScope(loopVar,{kind:"local",node:loopVar});
+        for(let loopVar of loopVars){
+          this.addScope(loopVar,{kind:"local",node:loopVar});
+        }
         this.visit(node.do);
         /*this.newScope(()=>{
             this.addScope(loopVar,{type:"local"});

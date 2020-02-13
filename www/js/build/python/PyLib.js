@@ -159,7 +159,7 @@ define(function (require,exports,module) {
     PL.range=function (b,e,s=1) {
         if (e==null) {e=b;b=0;}
         var res=[];
-        for (;b<e;b+=s) res.push(b);
+        for (; s>0&&b<e || s<0&&b>e ;b+=s) res.push(b);
         return res;
     };
     PL.wrap=function (v) {
@@ -236,6 +236,13 @@ define(function (require,exports,module) {
         }
     });
     PL.Tuple.__bases__=PL.Tuple([]);
+    PL.Slice=PL.class({
+        __init__:function (self, start,end, step=1) {
+            self.start=start;
+            self.end=end;
+            self.step=step;
+        },
+    });
     PL.invoke=function (self,name,args) {
         var m=self[name];
         if (typeof m==="function") return m.apply(self, args);

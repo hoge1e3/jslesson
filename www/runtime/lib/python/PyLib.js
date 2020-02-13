@@ -194,7 +194,7 @@ define(function (require, exports, module) {
             e = b;b = 0;
         }
         var res = [];
-        for (; b < e; b += s) {
+        for (; s > 0 && b < e || s < 0 && b > e; b += s) {
             res.push(b);
         }return res;
     };
@@ -277,6 +277,15 @@ define(function (require, exports, module) {
         }
     });
     PL.Tuple.__bases__ = PL.Tuple([]);
+    PL.Slice = PL.class({
+        __init__: function __init__(self, start, end) {
+            var step = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
+
+            self.start = start;
+            self.end = end;
+            self.step = step;
+        }
+    });
     PL.invoke = function (self, name, args) {
         var m = self[name];
         if (typeof m === "function") return m.apply(self, args);
