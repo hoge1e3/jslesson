@@ -11,5 +11,8 @@ class NoteController {
         $file=param("file");// varchar(250), -- file path or null (for other externalized)
         $content=param("content");// text, -- empty on just a fav
         $favs=param("favs");// integer, -- 0 or 1?
+        //$id=;
+        pdo_insert(
+        );
     }
 }
