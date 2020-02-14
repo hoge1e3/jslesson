@@ -97,6 +97,8 @@ $mod_aliases=array(
     'PersonalController' => 'php/user/PersonalController.php',
     'Published' => 'php/user/Published.php',
     'RunPythonController' => 'php/python/',
+    "NoteController"=>"php/user/",
+    "UniqID"=>"php/data/",
     //----/AUTOGEN
     'Auth' => 'php/auth.php',
     "config"=>"config/config.php",

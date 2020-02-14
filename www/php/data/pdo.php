@@ -138,6 +138,15 @@ function pdo_update2($tbl,$keys,$vals) {
     $sth=$pdo->prepare($q);
     $sth->execute($vary);
 }
+function pdo_uniqID($table, $column) {
+    req("UniqID");
+    $cr=pdo_select1("select count(*) as c from $table");
+    $count=$cr->c;
+    $uid=UniqID::find(function ($id) use($table, $column) {
+        return pdo_select1("select * from `$table` where `$column`=?", $id);
+    },$count*2+10,0);
+    return $uid;
+}
 class RecordIterator implements Iterator
 {
     private $current;
