@@ -16,7 +16,10 @@ define(function (require,exports,module) {
     up.reserve=f=>up.queue.push(f);
     setInterval(up,20);
     function CommentPopup(com) {
-        const like=UI("span","❤0").css({float:"right"});
+        const likeButton=UI("span",{on:{click:addLike}},"❤");
+        const likeCount=UI("span",com.favsHaving||"0");
+
+        const like=UI("span",likeButton, likeCount).css({float:"right"});
         const elem=UI("div",{class:"socializePopup"},com.content,like).
         appendTo("body");
         let at;
@@ -39,6 +42,10 @@ define(function (require,exports,module) {
             elem.remove();
             const i=popups.indexOf(self);
             popups.splice(i,1);
+        }
+        async function addLike() {
+            await ctrl.get("Note/addLike",{id:com.id});
+            likeCount.text(likeCount.text()-(-1));
         }
         const self={show,hide,moveBy};
 
