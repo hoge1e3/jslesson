@@ -9,6 +9,9 @@ body {
 button.selected {
     background-color: #f08;
 }
+.faved {
+    color: red;
+}
 .socializePopup {
     z-index:100;
     width: 500px;

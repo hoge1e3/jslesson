@@ -16,10 +16,11 @@ define(function (require,exports,module) {
     up.reserve=f=>up.queue.push(f);
     setInterval(up,20);
     function CommentPopup(com) {
-        const likeButton=UI("span",{on:{click:addLike}},"❤");
-        const likeCount=UI("span",com.favsHaving||"0");
+        const favButton=UI("span",{on:{click:toggleFav}},"❤");
+        if (com.favByMyself) favButton.addClass("faved");
+        const favCount=UI("span",com.favsHaving||"0");
 
-        const like=UI("span",likeButton, likeCount).css({float:"right"});
+        const like=UI("span",favButton, favCount).css({float:"right"});
         const elem=UI("div",{class:"socializePopup"},com.content,like).
         appendTo("body");
         let at;
@@ -43,9 +44,18 @@ define(function (require,exports,module) {
             const i=popups.indexOf(self);
             popups.splice(i,1);
         }
-        async function addLike() {
-            await ctrl.get("Note/addLike",{id:com.id});
-            likeCount.text(likeCount.text()-(-1));
+        async function toggleFav() {
+            if (com.favByMyself) {
+                await ctrl.get("Note/rmFav",{id:com.favByMyself});
+                favCount.text(favCount.text()-1);
+                favButton.removeClass("faved");
+                com.favByMyself=false;
+            } else {
+                await ctrl.get("Note/addFav",{id:com.id});
+                favCount.text(favCount.text()-0+1);
+                favButton.addClass("faved");
+                com.favByMyself=true;
+            }
         }
         const self={show,hide,moveBy};
 
@@ -56,7 +66,7 @@ define(function (require,exports,module) {
         up.queue=[];
     };
     module.exports=(ide)=>{
-        const elem=UI("div",{title:"について気づいたこと"},
+        const elem=UI("div",{title:"についてのノート"},
             ["input", {$var:"cont", size:60,on:{enterkey:send}}],
             ["button", {$var:"OKButton", on:{click: send}},"送信"]
         );

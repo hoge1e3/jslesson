@@ -38,6 +38,7 @@ class NoteController {
         echo $id;
     }
     public static function get() {
+        $user=Auth::curUser2();
         $file=param("file",null);
         $target=param("target",null);
         $since=param("since",0);
@@ -62,29 +63,37 @@ class NoteController {
 
         */
         if ($file) {
-            $r=pdo_select("select * from note where file=? and time>?",$file,$since);
-            header("Content-type: text/json");
-
-            $rf=pdo_select(
-                "select n1.id, sum(n2.favs) as favs from ".
-                "note n1 inner join note n2 ".
+            $rf=pdo_select("select n1.*, ".
+                "n2.id as c_id, ".
+                "n2.class as c_class, n2.user as c_user, ".
+                "n2.content as c_content, n2.favs as c_favs ".
+                "from ".
+                "note n1 left join note n2 ".
                 "on n2.target=n1.id ".
-                "where n1.file=? and n1.time>? ".
-                "group by n1.id"
-            ,$file,$since);
-            $rfh=array();
-            foreach ($rf as $rfe) {
-                $rfh[$rfe->id]=$rfe->favs;
-            }
-            foreach ($r as $e) {
-                if (array_key_exists($e->id,$rfh)) {
-                    $e->favsHaving=$rfh[$e->id];
+                "where n1.class=? and n1.file=? and n1.time>? ",
+                $user->_class->id,$file,$since);
+            $r=array();
+            $ra=array();
+            foreach ($rf as $e) {
+                if (!isset($r[$e->id])) {
+                    $r[$e->id]=$e;
+                    $r[$e->id]->favsHaving=0;
+                    array_push($ra,$e);
+                }
+                if ($e->c_favs) {
+                    $r[$e->id]->favsHaving+=$e->c_favs;
+                    if ($e->c_class===$user->_class->id &&
+                        $e->c_user===$user->name ) {
+                            $r[$e->id]->favByMyself=$e->c_id;
+                    }
                 }
             }
-            echo json_encode($r);
+            header("Content-type: text/json");
+            echo json_encode($ra);
+            //return $ra;
         }
     }
-    public static function addLike() {
+    public static function addFav() {
         $user=Auth::curUser2();
         $time=DateUtil::now();
         $target=param("id");
@@ -100,5 +109,9 @@ class NoteController {
             //"content"=>$content,
             "favs"=>$favs
         ));
+    }
+    public static function rmFav() {
+        $id=param("id");
+        pdo_exec("delete from note where id=? ",$id);
     }
 }
