@@ -141,6 +141,7 @@ var reqConf={
             T2MediaLib: "lib/T2MediaLib",
             AssignmentDialog:"ide/",
             SubmitDialog:"ide/",
+            SocializeDialog:"ide/SocializeDialog",
             TestsuiteDialog:"ide/TestsuiteDialogHori",
             KernelDiffDialog: "ide/KernelDiffDialog",
             NotificationDialog: "ide/NotificationDialog",

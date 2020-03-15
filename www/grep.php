@@ -1,10 +1,11 @@
 <?php
 
+require_once __DIR__."/php/Modules.php";
 require_once __DIR__."/php/auth.php";
 require_once __DIR__."/php/fs/NativeFS.php";
 require_once __DIR__."/php/json.php";
 require_once __DIR__."/php/analysis/LogUtil.php";
-if (!Auth::isTeacher()) {
+if (!Auth::isTeacher2()) {
     echo ("Study more!");
     exit(0);
 }
