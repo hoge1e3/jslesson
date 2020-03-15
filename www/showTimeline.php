@@ -14,7 +14,7 @@ require_once __DIR__."/php/auth.php";
 require_once __DIR__."/php/fs/NativeFS.php";
 require_once __DIR__."/php/fs/PathUtil.php";
 require_once __DIR__."/php/analysis/LogUtil.php";
-if (!Auth::isTeacher()) {
+if (!Auth::isTeacher2()) {
     echo ("<script>alert('study more!');</script>");
     exit(0);
 }
