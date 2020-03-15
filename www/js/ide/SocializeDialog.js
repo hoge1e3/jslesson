@@ -45,8 +45,10 @@ define(function (require,exports,module) {
         if (note.favByMyself) favButton.addClass("faved");
         const favCount=UI("span",note.favsHaving||"0");
         const closeButton=UI("span",{on:{click:hide}},"x");
+        const repButton=UI("span",{on:{click:showReplies}},"💭");
+        const repCount=UI("span",note.repliesHaving||"0");
 
-        const like=UI("span",favButton, favCount, closeButton).css({float:"right"});
+        const like=UI("span",repButton, repCount, favButton, favCount, closeButton).css({float:"right"});
         const elem=UI("div",{class:"socializePopup"},note.content,like).
         appendTo("body");
         let at,bottomMax;
@@ -125,9 +127,47 @@ define(function (require,exports,module) {
             }
         }
         function position(){return at;}
+        let repHolder;
+        async function showReplies() {
+            if (repHolder) return;
+            repHolder=Replies(note ,UI("blockquote").appendTo(elem));
+        }
         const self={note,show,hide,moveBy,refresh,position,drop,dimension};
 
         return self;
+    }
+    function Replies(target,elem) {
+        let last=0;
+        const writeElem=UI("div",
+            ["input",{$var:"input",on:{enterkey:add}}],
+            ["button",{on:{click:add}},"返信"]
+        );writeElem.appendTo(elem);
+        let input=writeElem.$vars.input;
+        let list;
+        get();
+        async function add(){
+            const content=input.val();
+            input.val("");
+            await ctrl.get("Note/addReply",{
+                target:target.id,content
+            });
+            addToList({content});
+        }
+        async function get(){
+            const reps=await ctrl.get("Note/get",{
+                target:target.id,since:last}
+            );
+            console.log("Reps", reps);
+            let cnt=0;
+            for (let rep of reps) {
+                addToList(rep);
+                if (cnt++>=5) break;
+            }
+        }
+        function addToList(rep) {
+            list=list||UI("div").appendTo(elem);
+            list.append(UI("div",rep.content));
+        }
     }
     NotePopup.clear=()=>{
         while (popups.length) popups[0].hide();
@@ -151,9 +191,17 @@ define(function (require,exports,module) {
                 newFav=(this.entries[note.id].favsHaving||0)+note.favsHaving;
                 console.log("newFav",newFav);
             }
+            let newRep;
+            if (note.repliesHaving) {
+                newRep=(this.entries[note.id].repliesHaving||0)+note.repliesHaving;
+                console.log("newRep",newRep);
+            }
             Object.assign(this.entries[note.id], note);
             if (newFav!==null) {
                 this.entries[note.id].favsHaving=newFav;
+            }
+            if (newRep!==null) {
+                this.entries[note.id].repliesHaving=newRep;
             }
             if (note.time>this.last) this.last=note.time;
             if (note.c_time>this.last) this.last=note.c_time;
@@ -187,12 +235,18 @@ define(function (require,exports,module) {
             return notesByFiles[filepath];
         }
     }
+    let focusing=false;
     module.exports=(ide)=>{
         const elem=UI("div",{title:"についてのノート"},
             ["input", {$var:"cont", size:60,on:{enterkey:send}}],
             ["button", {$var:"OKButton", on:{click: send}},"送信"]
         );
         const vars=elem.$vars;
+        vars.cont.on("focus",()=>focusing=true);
+        vars.cont.on("blur",()=>{
+            //NotePopup.clear();
+            focusing=false;
+        });
         let file;
         async function send() {
             const cont=vars.cont.val();
@@ -231,17 +285,21 @@ define(function (require,exports,module) {
                     for (let c of popups) c.refresh();
                 }
                 //console.log("EX",except);
-                if (popups.length<5) {
-                    const except={};
-                    for (let c of popups) except[c.note.id]=c;
-                    const com=n.pick(except);
-                    if (com) {
-                        const o=elem.offset();
-                        o.top-=50;
-                        NotePopup(com).show(o);
-                    }
+                if (popups.length<(focusing?5:0)) {
+                    popup1();
                 }
                 timer=setTimeout(loop,1000);
+            }
+            popup1();
+            function popup1() {
+                const except={};
+                for (let c of popups) except[c.note.id]=c;
+                const com=n.pick(except);
+                if (com) {
+                    const o=elem.offset();
+                    o.top-=50;
+                    NotePopup(com).show(o);
+                }
             }
             loop();
 

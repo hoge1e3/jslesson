@@ -62,43 +62,63 @@ class NoteController {
                 where file=? and time>? ;
 
         */
+        $select="select n1.*, ".
+            "n2.id as c_id, n2.time as c_time, ".
+            "n2.class as c_class, n2.user as c_user, ".
+            "n2.content as c_content, n2.favs as c_favs ";
+        $from=" from ".
+        "note n1 left join note n2 ".
+        "on n2.target=n1.id ";
         if ($file) {
-            $rf=pdo_select("select n1.*, ".
-                "n2.id as c_id, n2.time as c_time, ".
-                "n2.class as c_class, n2.user as c_user, ".
-                "n2.content as c_content, n2.favs as c_favs ".
-                "from ".
-                "note n1 left join note n2 ".
-                "on n2.target=n1.id ".
+            $rf=pdo_select($select.$from.
                 "where n1.content<>'' and n1.class=? and n1.file=? and (n1.time>? or n2.time>?)",
                 $user->_class->id,$file,$since,$since);
-            $rh=array();
-            $ra=array();
-            foreach ($rf as $e) {
-                if (isset($rh[$e->id])) {
-                    $r=$rh[$e->id];
-                } else {
-                    $r=$e;
-                    $rh[$e->id]=$r;
-                    $r->favsHaving=0;
-                    $r->commentsHaving=array();
-                    array_push($ra,$r);
-                }
-                if ($e->c_favs) {
-                    $r->favsHaving+=$e->c_favs;
-                    if ($e->c_class===$user->_class->id &&
-                        $e->c_user===$user->name ) {
-                        $r->favByMyself=$e->c_id;
-                    }
-                }
-                if ($e->c_content) {
-                    array_push($r->commentsHaving, $e);
-                }
-            }
+            $ra=self::procResult($rf);
             header("Content-type: text/json");
             echo json_encode($ra);
             //return $ra;
+        } else if ($target) {
+            $rf=pdo_select($select.$from.
+                "where n1.content<>'' and n1.target=? and (n1.time>? or n2.time>?)",
+                $target,$since,$since);
+            $ra=self::procResult($rf);
+            header("Content-type: text/json");
+            echo json_encode($ra);
         }
+    }
+    static function procResult($rf) {
+        $user=Auth::curUser2();
+        /*
+        select n1.*,
+            "n2.id as c_id, n2.time as c_time, ".
+            "n2.class as c_class, n2.user as c_user, ".
+            "n2.content as c_content, n2.favs as c_favs
+        */
+        $rh=array();
+        $ra=array();
+        foreach ($rf as $e) {
+            if (isset($rh[$e->id])) {
+                $r=$rh[$e->id];
+            } else {
+                $r=$e;
+                $rh[$e->id]=$r;
+                $r->favsHaving=0;
+                $r->repliesHaving=0;//array();
+                array_push($ra,$r);
+            }
+            if ($e->c_favs) {
+                $r->favsHaving+=$e->c_favs;
+                if ($e->c_class===$user->_class->id &&
+                    $e->c_user===$user->name ) {
+                    $r->favByMyself=$e->c_id;
+                }
+            }
+            if ($e->c_content) {
+                $r->repliesHaving++;
+                //array_push($r->commentsHaving, $e);
+            }
+        }
+        return $ra;
     }
     public static function addFav() {
         $user=Auth::curUser2();
@@ -115,6 +135,24 @@ class NoteController {
             //"file"=>$file,
             //"content"=>$content,
             "favs"=>$favs
+        ));
+        echo $id;
+    }
+    public static function addReply() {
+        $user=Auth::curUser2();
+        $time=DateUtil::now();
+        $target=param("target");
+        $content=param("content");
+        $id=pdo_uniqID("note","id");
+        pdo_insert("note",array(
+            "id"=>$id,
+            "class"=>$user->_class->id,
+            "user"=>$user->name,
+            "target"=>$target,
+            "time"=>$time,
+            //"file"=>$file,
+            "content"=>$content,
+            "favs"=>0
         ));
         echo $id;
     }
