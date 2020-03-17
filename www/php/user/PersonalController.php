@@ -31,6 +31,7 @@ class PersonalController {
 
 https://bitarrow.eplang.jp/bitarrow/?Personal/regForm&token=$token
 EOF
+,array("From"=>"bitarrow@eplang.jp")
 );
         header("Location: ?Personal/regMailSent&mail=$mail");
     }
