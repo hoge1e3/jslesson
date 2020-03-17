@@ -367,6 +367,12 @@ define(function (require,exports,module) {
         __delattr__: function (self,name) {
             delete self[name];
         },
+        __getitem__:function (self, key) {
+            return self[key];
+        },
+        __setitem__:function (self,key, value) {
+            self[key]=value;
+        }
         //____: function (self,other) { return selfother;},
     });
     PL.addMonkeyPatch(Number,{
@@ -421,7 +427,17 @@ define(function (require,exports,module) {
         },
         __str__(self) {
             return "["+self.join(", ")+"]";
-        }
+        },
+        __getitem__:function (self, key) {
+            if (key<0) key=self.length+key;
+            if (key>=self.length) throw new Error("Index "+key+" is out of range");
+            return self[key];
+        },
+        __setitem__:function (self,key, value) {
+            if (key<0) key=self.length+key;
+            if (key>=self.length) throw new Error("Index "+key+" is out of range");
+            self[key]=value;
+        },
     });
 
     //---
