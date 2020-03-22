@@ -37,6 +37,10 @@ function (Visitor,IndentBuffer,context,PL) {
                 //this.printf("var %s=%s.import('%v');",node.name,PYLIB,node.name);
             }//this.printf("%n");
         },
+        fromImportStmt: function (node) {
+            var url=this.options.pyLibPath+"/py_"+node.name+".js";
+            this.printf("var {%j}=require('%s').install(%s);", [",",node.localNames], url, PYLIB);
+        },
         exprStmt: function (node) {
             this.printf("%v;",node.expr);
         },

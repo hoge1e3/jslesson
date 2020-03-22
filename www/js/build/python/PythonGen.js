@@ -17,15 +17,28 @@ function (Visitor,IndentBuffer,assert) {
         importStmt: function (node) {
             const nameHead=node.name[0];
             const inf=this.importable[nameHead+""];
-            if (inf && inf.wrapper) {
+            const useWrapper=(inf && inf.wrapper);
+            const localName=node.alias || node.name;
+            this.printf("import %s%v", useWrapper?"_":"", node.name);
+            if (node.alias || useWrapper) {
+                this.printf(" as %v", localName);
+            }
+            /*if (inf && inf.wrapper) {
                 this.printf("import _%v",node.name);
                 if (node.alias) this.printf(" as %v",node.alias);
                 else this.printf(" as %v",node.name);
             } else {
                 this.printf("import %v",node.name);
                 if (node.alias) this.printf(" as %v",node.alias);
-            }
+            }*/
             //this.printf("%n");
+        },
+        fromImportStmt: function (node) {
+            const nameHead=node.name[0];
+            const inf=this.importable[nameHead+""];
+            const useWrapper=(inf && inf.wrapper);
+            this.printf("from %s%v import %j",useWrapper?"_":"",node.name,
+            [",", node.localNames]);
         },
         globalStmt: function (node) {
             this.printf("global %j",[",",node.names]);
