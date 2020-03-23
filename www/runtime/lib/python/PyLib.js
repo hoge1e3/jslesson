@@ -568,6 +568,12 @@ define(function (require, exports, module) {
             if (key < 0) key = self.length + key;
             if (key >= self.length) throw new Error("Index " + key + " is out of range");
             self[key] = value;
+        },
+        copy: function copy(self) {
+            return self.slice();
+        },
+        sorted: function sorted(self) {
+            return self.slice().sort();
         }
     });
 

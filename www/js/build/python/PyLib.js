@@ -438,6 +438,12 @@ define(function (require,exports,module) {
             if (key>=self.length) throw new Error("Index "+key+" is out of range");
             self[key]=value;
         },
+        copy: function (self) {
+            return self.slice();
+        },
+        sorted: function (self) {
+            return self.slice().sort();
+        }
     });
 
     //---
