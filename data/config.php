@@ -12,6 +12,7 @@ define("SHADOW_SALT","hogefuga");
 define("ENC_PASS",1);
 define("ENC_ALGO","openssl:AES-128-ECB");
 define("ENC_KEY","fugahoge");
+define("MAIL_FROM","bitarrow@eplang.jp");
 
 define("PAUTH_SERVER","http://localhost/sakumon/?Login/responsePAuth");
 
