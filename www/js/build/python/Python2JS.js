@@ -37,6 +37,10 @@ function (Visitor,IndentBuffer,context,PL) {
                 //this.printf("var %s=%s.import('%v');",node.name,PYLIB,node.name);
             }//this.printf("%n");
         },
+        fromImportStmt: function (node) {
+            var url=this.options.pyLibPath+"/py_"+node.name+".js";
+            this.printf("var {%j}=require('%s').install(%s);", [",",node.localNames], url, PYLIB);
+        },
         exprStmt: function (node) {
             this.printf("%v;",node.expr);
         },
@@ -73,11 +77,24 @@ function (Visitor,IndentBuffer,context,PL) {
             if (this.anon.get(node).needVar) {
                 this.printf("var ");
             }
-            this.visit(node.left);
-            this.printf("=");
-            this.visit(node.right);
-            this.printf(";");
-            //this.printf("%n");
+            console.log("NODEL",node.left);//lvallist
+            const firstBody=node.left.body && node.left.body[0];
+            if (firstBody &&
+                firstBody.type==="postfix" &&
+                firstBody.op.type==="index") {
+                // TODO: [x[5],y]=[2,3]  -> x.__setitem__(5,2), y=3
+                const object=firstBody.left;
+                const index=firstBody.op;
+                console.log("NODEL2",object,index);
+                this.printf("%v.__setitem__(%v, %v);",object, index.body,node.right );
+            } else {
+                //if (node.left.type)
+                this.visit(node.left);
+                this.printf("=");
+                this.visit(node.right);
+                this.printf(";");
+                //this.printf("%n");
+            }
         },
         globalStmt: function (node) {},
         printStmt: function (node) {
@@ -123,7 +140,8 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         index: function (node) {
             for (let b of node.body) {
-                this.printf("[%v]",b);
+                this.printf(".__getitem__(%v)",b);
+                //this.printf("[%v]",b);
             }
         },
         block: function (node) {
@@ -221,6 +239,10 @@ function (Visitor,IndentBuffer,context,PL) {
                 replace(/["']$/,"/");
             }
             this.printf("%s",s);
+        },
+        literal3: function (node) {
+            var cont=node.text.substring(3,node.text.length-3);
+            this.printf("%s",JSON.stringify(cont));            
         },
         True: function () {this.printf("true");},
         False: function () {this.printf("false");},

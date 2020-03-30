@@ -31,6 +31,7 @@ class PersonalController {
 
 https://bitarrow.eplang.jp/bitarrow/?Personal/regForm&token=$token
 EOF
+,array("From"=>MAIL_FROM)
 );
         header("Location: ?Personal/regMailSent&mail=$mail");
     }
@@ -90,6 +91,9 @@ EOF
     }
 
     static function resetReqForm($mesg="") {
+        if (!Mail::available()) {
+            echo "!TEST!<BR>";
+        }
         ?>
         <h1>個人ユーザパスワード再発行フォーム</h1>
         メールアドレスを入れてください
@@ -111,7 +115,7 @@ EOF
 
 https://bitarrow.eplang.jp/bitarrow/?Personal/resetForm&token=$token
 EOF
-);
+,array("From"=>MAIL_FROM));
         }
         header("Location: ?Personal/resetMailSent&mail=$mail");
     }
