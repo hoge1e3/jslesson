@@ -305,6 +305,9 @@ const vdef={
     "literal": function (node) {
 
     },
+    "literal3": function (node) {
+
+    },
     "returnStmt": function (node) {
         this.visit(node.expr);
     },

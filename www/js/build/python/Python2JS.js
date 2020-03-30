@@ -240,6 +240,10 @@ function (Visitor,IndentBuffer,context,PL) {
             }
             this.printf("%s",s);
         },
+        literal3: function (node) {
+            var cont=node.text.substring(3,node.text.length-3);
+            this.printf("%s",JSON.stringify(cont));            
+        },
         True: function () {this.printf("true");},
         False: function () {this.printf("false");},
     };
