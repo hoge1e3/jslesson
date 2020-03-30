@@ -159,7 +159,7 @@ define(function (require,exports,module) {
     PL.range=function (b,e,s=1) {
         if (e==null) {e=b;b=0;}
         var res=[];
-        for (;b<e;b+=s) res.push(b);
+        for (; s>0&&b<e || s<0&&b>e ;b+=s) res.push(b);
         return res;
     };
     PL.wrap=function (v) {
