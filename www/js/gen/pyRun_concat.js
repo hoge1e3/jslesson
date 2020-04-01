@@ -1800,7 +1800,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         passStmt: ["pass"],
         breakStmt: ["break"],
         continueStmt: ["continue"],
-        forStmt: ["for",{var:"symbol"},"in",{set:"expr"},{do:"block"}],
+        forStmt: ["for",{vars:sep1("symbol",",")},"in",{set:"expr"},{do:"block"}],
         letStmt: [{left:"lval"},"=",{right:"exprList"}],
         globalStmt: ["global",{names:sep1("symbol",",")}],
         // print(x,y) parsed as: printStmt(2) with tuple
@@ -2075,7 +2075,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         return s - 0;
     };
     PL.int = function (s) {
-        return s - 0;
+        return parseInt(s - 0);
     };
     PL.str = function (s) {
         //  s==false
@@ -2189,7 +2189,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             e = b;b = 0;
         }
         var res = [];
-        for (; b < e; b += s) {
+        for (; s > 0 && b < e || s < 0 && b > e; b += s) {
             res.push(b);
         }return res;
     };
@@ -2272,6 +2272,15 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         }
     });
     PL.Tuple.__bases__ = PL.Tuple([]);
+    PL.Slice = PL.class({
+        __init__: function __init__(self, start, end) {
+            var step = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
+
+            self.start = start;
+            self.end = end;
+            self.step = step;
+        }
+    });
     PL.invoke = function (self, name, args) {
         var m = self[name];
         if (typeof m === "function") return m.apply(self, args);
@@ -2883,9 +2892,11 @@ const vdef={
     },
     forStmt: function (node) {
         //console.log("forStmt", node);
-        var loopVar=node.var;
+        var loopVars=node.vars;
         this.visit(node.set);
-        this.addScope(loopVar,{kind:"local",node:loopVar});
+        for(let loopVar of loopVars){
+          this.addScope(loopVar,{kind:"local",node:loopVar});
+        }
         this.visit(node.do);
         /*this.newScope(()=>{
             this.addScope(loopVar,{type:"local"});
@@ -6479,7 +6490,7 @@ function (Visitor,IndentBuffer,assert) {
             this.printf("else%v",node.then);
         },
         forStmt: function (node) {
-            this.printf("for %v in %v%v", node.var, node.set, node.do);
+            this.printf("for %j in %v%v", [",",node.vars], node.set, node.do);
         },
         letStmt: function (node) {
             this.visit(node.left);
@@ -6681,7 +6692,7 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("else %v",node.then);
         },
         forStmt: function (node) {
-            this.printf("var %v;%nfor (%v of %v) %v", node.var,node.var, node.set, node.do);
+            this.printf("var %j;%nfor (%v of %v) %v", [",",node.vars],node.vars[0], node.set, node.do);
         },
         letStmt: function (node) {
             if (this.anon.get(node).needVar) {
