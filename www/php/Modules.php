@@ -97,6 +97,7 @@ $mod_aliases=array(
     'PersonalController' => 'php/user/PersonalController.php',
     'Published' => 'php/user/Published.php',
     'RunPythonController' => 'php/python/',
+    'OAuthController' => 'php/user',
     //----/AUTOGEN
     'Auth' => 'php/auth.php',
     "config"=>"config/config.php",
