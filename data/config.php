@@ -16,6 +16,16 @@ define("MAIL_FROM","bitarrow@eplang.jp");
 
 define("PAUTH_SERVER","http://localhost/sakumon/?Login/responsePAuth");
 
+require(__DIR__."/config.shadow.php");
+/*
+define('CONSUMER_KEY', 'XXX');
+define('CONSUMER_SECRET', 'YYY');
+define('TOKEN_URL', 'https://accounts.google.com/o/oauth2/token');
+define('AUTH_URL', 'https://accounts.google.com/o/oauth2/auth');
+define('INFO_URL', 'https://www.googleapis.com/oauth2/v1/userinfo');
+define('CALLBACK_URL', 'http://localhost/?OAuth/login');
+*/
+
 //define("PDO_USER","");
 //define("PDO_PASS","");
 

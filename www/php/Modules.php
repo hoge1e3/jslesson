@@ -101,6 +101,7 @@ $mod_aliases=array(
     'Docker' => 'php/docker/Docker.php',
     'NoteController' => 'php/user/',
     'UniqID' => 'php/data/',
+    'OAuthController' => 'php/user',
     //----/AUTOGEN
     'Auth' => 'php/auth.php',
     "config"=>"config/config.php",

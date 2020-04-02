@@ -36,7 +36,10 @@ class LoginController {
             <li><a href="?Personal/resetReqForm">パスワード再発行</a></li>
             <li><a href="?Login/form">クラス単位での利用の方はこちら</a></li>
         <?php } ?>
-    	</ul>
+        <?php if(defined("CONSUMER_KEY")) { ?>
+            <li><a href="?OAuth/start">Gmailからログイン</a></li>
+        <?php } ?>
+        </ul>
     	<a href="index.html">戻る</a><br>
     	<a href="?Teacher/login">教員の方はこちら</a>
     <?php

@@ -77,7 +77,10 @@ define(["Klass","assert"],function (Klass,assert) {
         },
         binOpable: function (op,right) {
             if (right instanceof t.Number) {
-                if (!bitWiseOp[op+""] ) return this;
+                if (!bitWiseOp[op+""] ) {
+                    if (right.numOrd>this.numOrd) return right;
+                    return this;
+                }
             }
             return t.Number.super(this,"binOpable",op,right);
         },
@@ -105,9 +108,9 @@ define(["Klass","assert"],function (Klass,assert) {
     t.IntNum=t.Number.inherit({
         binOpable: function (op,right) {
             if (right instanceof t.IntNum) return this;
-            if (right instanceof t.Number &&
-                !bitWiseOp[op+""] ) return this;
-            return t.Number.super(this,"binOpable",op,right);
+            /*if (right instanceof t.Number &&
+                !bitWiseOp[op+""] ) return this;*/
+            return t.IntNum.super(this,"binOpable",op,right);
         }
     });
     t.Char=t.IntNum.inherit({name:"char",numOrd:1,max:0xff,_sizeOf:1});
