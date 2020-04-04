@@ -23,7 +23,7 @@ function (Grammar,Pos2RC/*,TError*/) {
     const tdef={
         tokens: [{"this":tokens.rep0("token")}, /^\s*/ ,P.StringParser.eof],
         //token: tokens.or(...reserved.concat(["quote","symbol","number","qsymbol",":"])),
-        token: tokens.or(...["literal","symbol","number"].concat(puncts)),
+        token: tokens.or(...["literal3","literal","symbol","number"].concat(puncts)),
         symbol: tokens.toParser(/^[a-zA-Z$_][a-zA-Z$_0-9]*/).ret((r)=>{
             //console.log("RDS",r);
             if (resvh[r]) r.type=resvh[r];
@@ -45,6 +45,7 @@ function (Grammar,Pos2RC/*,TError*/) {
     		return false;
     	}}),*/
         literal: /^r?(("([^\\"]*(\\.)*)*")|('([^\\']*(\\.)*)*'))/,
+        literal3: /^""".*/,
     };
     for (let p of puncts) tdef[p]="'"+p;
     //for (let r of reserved) tdef[r]="'"+r;
@@ -64,7 +65,23 @@ function (Grammar,Pos2RC/*,TError*/) {
             this.tokens=[];
             this.pos=0;
             var lineNo=0;
+            let literal3=false; // """ ... """
+            const literal3End=/"""/;
             for (let line of src.split("\n")) {
+                if (literal3) {
+                    const m=literal3End.exec(line);
+                    if (m) {
+                        const pre=line.substring(0,m.index+3);
+                        const post=line.substring(m.index+3);
+                        literal3.text+="\n"+pre;
+                        line=post;
+                        //console.log("literal3",literal3,pre,post);
+                        literal3=null;
+                    } else {
+                        literal3.text+="\n"+line;
+                        continue;
+                    }
+                }
                 line=line.replace("\r","");
                 let r=ind.exec(line);
                 const d=r[0].length;
@@ -105,6 +122,9 @@ function (Grammar,Pos2RC/*,TError*/) {
                     const rc=this.pos2rc.getRC(tk.pos);
                     tk.row=rc.row;
                     tk.col=rc.col;
+                }
+                if (tks[tks.length-1] && tks[tks.length-1].type==="literal3") {
+                    literal3=tks[tks.length-1];
                 }
                 this.tokens=this.tokens.concat(tks);
                 this.pos+=line.length+1;
@@ -184,7 +204,8 @@ function (Grammar,Pos2RC/*,TError*/) {
         stmtList: rep1("stmt"),
         // why printStmt -> printStmt3?
         // because if parse print(x), as printStmt3, comma remains unparsed.
-        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt","globalStmt","nodent"),
+        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt","fromImportStmt","globalStmt","nodent"),
+        fromImportStmt: ["from",{name:"packageName"},"import",{localNames:sep1("symbol",",")}],
         importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
         packageName: sep1("symbol","."),
         exprStmt: [{expr:"expr"}],
@@ -246,7 +267,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         slicePart: [":",{value:opt("expr")}],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: [":indent",{body:"stmtList"},"dedent"],
-        elem: or("symbol","number","None","bool","array","dict","literal","paren","superCall"),
+        elem: or("symbol","number","None","bool","array","dict","literal3","literal","paren","superCall"),
         superCall: ["super","(",")"],
         paren: ["(",{body:"exprList"},")"],
         bool: or("True","False"),

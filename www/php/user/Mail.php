@@ -18,6 +18,7 @@ class Mail {
             $options["Subject"]=$sub;
             $name=time();
             $fp=fopen ("/tmp/mail_$name.txt","w");
+            if (!$fp) die("Send fail");
             foreach ($options as $k=>$v) {
                 fwrite($fp,"$k: $v\n");
             }

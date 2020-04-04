@@ -99,6 +99,7 @@ $mod_aliases=array(
     'RunPythonController' => 'php/python/',
     "NoteController"=>"php/user/",
     "UniqID"=>"php/data/",
+    'OAuthController' => 'php/user',
     //----/AUTOGEN
     'Auth' => 'php/auth.php',
     "config"=>"config/config.php",

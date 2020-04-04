@@ -482,6 +482,12 @@ define(function (require, exports, module) {
 
         __delattr__: function __delattr__(self, name) {
             delete self[name];
+        },
+        __getitem__: function __getitem__(self, key) {
+            return self[key];
+        },
+        __setitem__: function __setitem__(self, key, value) {
+            self[key] = value;
         }
         //____: function (self,other) { return selfother;},
     });
@@ -551,6 +557,23 @@ define(function (require, exports, module) {
         },
         __str__: function __str__(self) {
             return "[" + self.join(", ") + "]";
+        },
+
+        __getitem__: function __getitem__(self, key) {
+            if (key < 0) key = self.length + key;
+            if (key >= self.length) throw new Error("Index " + key + " is out of range");
+            return self[key];
+        },
+        __setitem__: function __setitem__(self, key, value) {
+            if (key < 0) key = self.length + key;
+            if (key >= self.length) throw new Error("Index " + key + " is out of range");
+            self[key] = value;
+        },
+        copy: function copy(self) {
+            return self.slice();
+        },
+        sorted: function sorted(self) {
+            return self.slice().sort();
         }
     });
 
