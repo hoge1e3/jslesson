@@ -308,6 +308,7 @@ function ready() {
             if (r.useAssignment==="yes") {
                 Menu.appendMain({after:"#save",label:"提出",id:"submit",action:submit});
             }
+            disableNote=!!r.disableNote;
         });
         showDistMenu();
         Menu.appendMain({label:"使用方法",id:"openHelp"});
@@ -964,6 +965,7 @@ function ready() {
     setInterval(watchModified,1000);
     var curDOM;
     const socializeDialog=SocializeDialog(ide);
+    let disableNote;
     function open(f) {
 	// do not call directly !!  it doesnt change fl.curFile. use fl.select instead
         A.is(f,"SFile");
@@ -1034,7 +1036,7 @@ function ready() {
             }
         }).catch(DU.E);
         $("#curFileLabel").text(f.truncExt());
-        socializeDialog.show(inf.file);
+        if (disableNote===false) socializeDialog.show(inf.file);
     }
     root.d=function () {
         root.Tonyu.currentProject.dumpJS.apply(this,arguments);
