@@ -242,7 +242,7 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         literal3: function (node) {
             var cont=node.text.substring(3,node.text.length-3);
-            this.printf("%s",JSON.stringify(cont));            
+            this.printf("%s",JSON.stringify(cont));
         },
         True: function () {this.printf("true");},
         False: function () {this.printf("false");},
@@ -299,7 +299,11 @@ function (Visitor,IndentBuffer,context,PL) {
         v.visit(node);
         if (options.genReqJS) {
             v.printf("%}});%n");
-            v.printf("requirejs(['__main__'],function(){});%n");
+            const SEND_LOG=`
+            if (window.parent && window.parent.sendResult) {
+                window.parent.sendResult($("#output").text(),"py");
+            }`;
+            v.printf("requirejs(['__main__'],function(){%s});%n",SEND_LOG);
         }
         //console.log("pgen res",buf.buf);
         return buf.buf;
