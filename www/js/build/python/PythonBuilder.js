@@ -199,5 +199,12 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
     p.upload=function (pub) {
         return Sync.sync(this.dst,pub);
     };
+    p.getIndentFixer=function () {
+        return {
+            fix(t) {
+                return t.replace(/[”“„]/g,'"');
+            }
+        };
+    };
     return PythonBuilder;//<-Dtl
 });
