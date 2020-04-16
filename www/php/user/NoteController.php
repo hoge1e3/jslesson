@@ -12,7 +12,7 @@ create table note(
     `options` text
 );
 */
-req("auth","DateUtil");
+req("auth","DateUtil","Note");
 class NoteController {
     public static function put() {
         $user=Auth::curUser2();
@@ -42,26 +42,10 @@ class NoteController {
         $file=param("file",null);
         $target=param("target",null);
         $since=param("since",0);
+        $ra=Note::get($user,$file,$target,$since);
+        header("Content-type: text/json");
+        echo json_encode($ra);
         /*
-        select n1.*,
-            n2.class as c_class, n2.user as c_user,
-            n2.content as c_content, n2.favs as c_favs
-            from
-            note n1 left join note n2
-            on n2.target=n1.id
-            where file=? and time>?
-
-            select n1.*, sum(n2.favs) from
-                note n1 inner join note n2
-                on n2.target=n1.id
-                group by n1.id;
-
-            select n1.*, sum(n2.favs) from
-                note n1 inner join note n2
-                on n2.target=n1.id;
-                where file=? and time>? ;
-
-        */
         $select="select n1.*, ".
             "n2.id as c_id, n2.time as c_time, ".
             "n2.class as c_class, n2.user as c_user, ".
@@ -84,16 +68,10 @@ class NoteController {
             $ra=self::procResult($rf);
             header("Content-type: text/json");
             echo json_encode($ra);
-        }
+        }*/
     }
-    static function procResult($rf) {
+    /*static function procResult($rf) {
         $user=Auth::curUser2();
-        /*
-        select n1.*,
-            "n2.id as c_id, n2.time as c_time, ".
-            "n2.class as c_class, n2.user as c_user, ".
-            "n2.content as c_content, n2.favs as c_favs
-        */
         $rh=array();
         $ra=array();
         foreach ($rf as $e) {
@@ -119,7 +97,7 @@ class NoteController {
             }
         }
         return $ra;
-    }
+    }*/
     public static function addFav() {
         $user=Auth::curUser2();
         $time=DateUtil::now();
@@ -159,5 +137,36 @@ class NoteController {
     public static function rmFav() {
         $id=param("id");
         pdo_exec("delete from note where id=? ",$id);
+    }
+    public static function showAll(){
+        $class=Auth::curClass2();
+        if(!Auth::isTeacherOf($class)){
+            return redirect("Teacher/login");
+        }
+        $it=pdo_select_iter("select distinct file from note where class=? and file is not null order by file ",$class->id);
+        $p=null;
+        foreach ($it as $e) {
+            $file=$e->file;
+            $ra=Note::get($class,$file,null, 0, true);
+            echo"<h1>$file に関するノート</h1>\n<ul>";
+            foreach ($ra as $e) {
+                $reps=$e->repliesHaving;
+                ?><li>
+                    ♥<?=$e->favsHaving?> <?= $e->content ?> by <?= $e->user ?> at <?= DateUtil::toString($e->time) ?>
+                    <?php if (count($reps)>0) {
+                        echo "<ul>";
+                        foreach($reps as $rep) {
+                            ?>
+                            <li>
+                                <?= $rep->c_content ?> by <?= $rep->c_user ?> at <?= DateUtil::toString($rep->c_time) ?>
+                            </li>
+                            <?php
+                        }
+                        echo "</ul>";
+                    } ?>
+                </li><?php
+            }
+            echo "</ul>";
+        }
     }
 }

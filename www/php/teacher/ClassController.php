@@ -52,6 +52,9 @@ class ClassController {
             <div class="assignment"><a href="a.php?Mark/notMarked">未採点の課題</a></div>
             <div class="assignment"><a href="a.php?Assignment/matrix">採点状況</a></div>
         <?php } ?>
+        <?php if (!$class->getOption("disableNote")) { ?>
+            <div class="note"><a href="a.php?Note/showAll">学生の全ノートを見る</a></div>
+        <?php } ?>
         <hr>
         <a href="." target="student">演習画面へ</a><hr>
         <?php
