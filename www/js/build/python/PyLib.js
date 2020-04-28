@@ -186,11 +186,19 @@ define(function (require,exports,module) {
         function addMethod(k) {
             var m=defs[k];
             if (typeof m==="function") {
-                res.prototype[k]=function () {
+                /*res.prototype[k]=function () {
                     var a=Array.prototype.slice.call(arguments);
                     a.unshift(this);
                     return m.apply(this,a);
-                };
+                }; ^ this cannot override in subclasses */
+                Object.defineProperty(res.prototype,k,{
+                    value: function () {
+                        var a=Array.prototype.slice.call(arguments);
+                        a.unshift(this);
+                        return m.apply(this,a);
+                    },
+                    enumerable: false
+                });
             } else {
                 res.prototype[k]=m;
             }
@@ -200,7 +208,9 @@ define(function (require,exports,module) {
         res.prototype.__class__=res;
         res.__str__=()=>`<class '__main__.${res.__name__}'>`;
         res.__bases__=PL.Tuple && PL.Tuple(parent?[parent]:[]);
-        for (var k in defs) addMethod(k);
+        for (var k in defs) {
+            if (defs.hasOwnProperty(k)) addMethod(k);
+        }
         return res;
     };
     PL.super=function(klass,self) {
@@ -318,7 +328,9 @@ define(function (require,exports,module) {
     };
     PL.addMonkeyPatch=function (cl, methods) {
         var p=cl.prototype;
-        for (var k in methods) addMethod(k);
+        for (var k in methods) {
+            if (methods.hasOwnProperty(k)) addMethod(k);
+        }
         function addMethod(k) {
             var m=methods[k];
             Object.defineProperty(p,k,{
