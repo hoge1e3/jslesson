@@ -745,7 +745,7 @@ function ready() {
 	    window.sendResult=function(resDetail, lang){
             lang=lang||"C";
             //console.log("sendResult",resDetail,lang);
-            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),lang+" Run",resDetail,lang);
+            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Run",resDetail,langList[lang]);
         };
         stop();
         save();
@@ -778,7 +778,7 @@ function ready() {
             console.log(e,e.stack);
             if (e.isTError) {
                 errorDialog.show(e);//showErrorPos($("#errorPos"),e);
-                logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),lang.toUpperCase()+" Compile Error",e.src+":"+e.pos+"\n"+e.mesg,langList[lang]);
+                logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Compile Error",e.src+":"+e.pos+"\n"+e.mesg,langList[lang]);
             } else {
                 EC.handleException(e);
             }

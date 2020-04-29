@@ -1624,10 +1624,11 @@ function (Grammar,Pos2RC/*,TError*/) {
     const tdef={
         tokens: [{"this":tokens.rep0("token")}, /^\s*/ ,P.StringParser.eof],
         //token: tokens.or(...reserved.concat(["quote","symbol","number","qsymbol",":"])),
-        token: tokens.or(...["literal","symbol","number"].concat(puncts)),
+        token: tokens.or(...["literal3","literal","symbol","number"].concat(puncts)),
         symbol: tokens.toParser(/^[a-zA-Z$_][a-zA-Z$_0-9]*/).ret((r)=>{
             //console.log("RDS",r);
-            if (resvh[r]) r.type=resvh[r];
+            // resvh[r] <- __getitem__ always true
+            if (resvh.hasOwnProperty(r)) r.type=resvh[r];
             return r;
         }),
         number: /^[0-9]+[0-9\.]*(e[\+\-][0-9]+)?/,
@@ -1646,6 +1647,7 @@ function (Grammar,Pos2RC/*,TError*/) {
     		return false;
     	}}),*/
         literal: /^r?(("([^\\"]*(\\.)*)*")|('([^\\']*(\\.)*)*'))/,
+        literal3: /^""".*/,
     };
     for (let p of puncts) tdef[p]="'"+p;
     //for (let r of reserved) tdef[r]="'"+r;
@@ -1665,7 +1667,23 @@ function (Grammar,Pos2RC/*,TError*/) {
             this.tokens=[];
             this.pos=0;
             var lineNo=0;
+            let literal3=false; // """ ... """
+            const literal3End=/"""/;
             for (let line of src.split("\n")) {
+                if (literal3) {
+                    const m=literal3End.exec(line);
+                    if (m) {
+                        const pre=line.substring(0,m.index+3);
+                        const post=line.substring(m.index+3);
+                        literal3.text+="\n"+pre;
+                        line=post;
+                        //console.log("literal3",literal3,pre,post);
+                        literal3=null;
+                    } else {
+                        literal3.text+="\n"+line;
+                        continue;
+                    }
+                }
                 line=line.replace("\r","");
                 let r=ind.exec(line);
                 const d=r[0].length;
@@ -1706,6 +1724,9 @@ function (Grammar,Pos2RC/*,TError*/) {
                     const rc=this.pos2rc.getRC(tk.pos);
                     tk.row=rc.row;
                     tk.col=rc.col;
+                }
+                if (tks[tks.length-1] && tks[tks.length-1].type==="literal3") {
+                    literal3=tks[tks.length-1];
                 }
                 this.tokens=this.tokens.concat(tks);
                 this.pos+=line.length+1;
@@ -1785,7 +1806,8 @@ function (Grammar,Pos2RC/*,TError*/) {
         stmtList: rep1("stmt"),
         // why printStmt -> printStmt3?
         // because if parse print(x), as printStmt3, comma remains unparsed.
-        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt","globalStmt","nodent"),
+        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt","fromImportStmt","globalStmt","nodent"),
+        fromImportStmt: ["from",{name:"packageName"},"import",{localNames:sep1("symbol",",")}],
         importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
         packageName: sep1("symbol","."),
         exprStmt: [{expr:"expr"}],
@@ -1800,7 +1822,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         passStmt: ["pass"],
         breakStmt: ["break"],
         continueStmt: ["continue"],
-        forStmt: ["for",{var:"symbol"},"in",{set:"expr"},{do:"block"}],
+        forStmt: ["for",{vars:sep1("symbol",",")},"in",{set:"expr"},{do:"block"}],
         letStmt: [{left:"lval"},"=",{right:"exprList"}],
         globalStmt: ["global",{names:sep1("symbol",",")}],
         // print(x,y) parsed as: printStmt(2) with tuple
@@ -1847,7 +1869,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         slicePart: [":",{value:opt("expr")}],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: [":indent",{body:"stmtList"},"dedent"],
-        elem: or("symbol","number","None","bool","array","dict","literal","paren","superCall"),
+        elem: or("symbol","number","None","bool","array","dict","literal3","literal","paren","superCall"),
         superCall: ["super","(",")"],
         paren: ["(",{body:"exprList"},")"],
         bool: or("True","False"),
@@ -2075,7 +2097,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         return s - 0;
     };
     PL.int = function (s) {
-        return s - 0;
+        return parseInt(s - 0);
     };
     PL.str = function (s) {
         //  s==false
@@ -2189,7 +2211,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             e = b;b = 0;
         }
         var res = [];
-        for (; b < e; b += s) {
+        for (; s > 0 && b < e || s < 0 && b > e; b += s) {
             res.push(b);
         }return res;
     };
@@ -2217,11 +2239,19 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         function addMethod(k) {
             var m = defs[k];
             if (typeof m === "function") {
-                _res.prototype[k] = function () {
-                    var a = Array.prototype.slice.call(arguments);
+                /*res.prototype[k]=function () {
+                    var a=Array.prototype.slice.call(arguments);
                     a.unshift(this);
-                    return m.apply(this, a);
-                };
+                    return m.apply(this,a);
+                }; ^ this cannot override in subclasses */
+                Object.defineProperty(_res.prototype, k, {
+                    value: function value() {
+                        var a = Array.prototype.slice.call(arguments);
+                        a.unshift(this);
+                        return m.apply(this, a);
+                    },
+                    enumerable: false
+                });
             } else {
                 _res.prototype[k] = m;
             }
@@ -2234,8 +2264,9 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         };
         _res.__bases__ = PL.Tuple && PL.Tuple(parent ? [parent] : []);
         for (var k in defs) {
-            addMethod(k);
-        }return _res;
+            if (defs.hasOwnProperty(k)) addMethod(k);
+        }
+        return _res;
     };
     PL.super = function (klass, self) {
         //console.log("klass,self",klass,self);
@@ -2272,6 +2303,15 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         }
     });
     PL.Tuple.__bases__ = PL.Tuple([]);
+    PL.Slice = PL.class({
+        __init__: function __init__(self, start, end) {
+            var step = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
+
+            self.start = start;
+            self.end = end;
+            self.step = step;
+        }
+    });
     PL.invoke = function (self, name, args) {
         var m = self[name];
         if (typeof m === "function") return m.apply(self, args);
@@ -2375,8 +2415,9 @@ define('PyLib',['require','exports','module'],function (require, exports, module
     PL.addMonkeyPatch = function (cl, methods) {
         var p = cl.prototype;
         for (var k in methods) {
-            addMethod(k);
-        }function addMethod(k) {
+            if (methods.hasOwnProperty(k)) addMethod(k);
+        }
+        function addMethod(k) {
             var m = methods[k];
             Object.defineProperty(p, k, {
                 value: function value() {
@@ -2468,6 +2509,12 @@ define('PyLib',['require','exports','module'],function (require, exports, module
 
         __delattr__: function __delattr__(self, name) {
             delete self[name];
+        },
+        __getitem__: function __getitem__(self, key) {
+            return self[key];
+        },
+        __setitem__: function __setitem__(self, key, value) {
+            self[key] = value;
         }
         //____: function (self,other) { return selfother;},
     });
@@ -2537,6 +2584,23 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         },
         __str__: function __str__(self) {
             return "[" + self.join(", ") + "]";
+        },
+
+        __getitem__: function __getitem__(self, key) {
+            if (key < 0) key = self.length + key;
+            if (key >= self.length) throw new Error("Index " + key + " is out of range");
+            return self[key];
+        },
+        __setitem__: function __setitem__(self, key, value) {
+            if (key < 0) key = self.length + key;
+            if (key >= self.length) throw new Error("Index " + key + " is out of range");
+            self[key] = value;
+        },
+        copy: function copy(self) {
+            return self.slice();
+        },
+        sorted: function sorted(self) {
+            return self.slice().sort();
         }
     });
 
@@ -2698,6 +2762,7 @@ const importable={
     numpy:{wrapper:true,server:true},
     os:{wrapper:true,server:true}
 };
+
 //-----
 class ScopeInfo {
     constructor(scope,name,kind,declarator) {
@@ -2716,7 +2781,8 @@ const vdef={
     },
     importStmt: function (node) {
         const nameHead=node.name[0];
-        if (!importable[nameHead]) {
+        this.checkImportable(nameHead);
+        /*if (!importable[nameHead]) {
             this.error(nameHead+" はインポートできません",nameHead);
         }
         if (this.options.runAt && !importable[nameHead][this.options.runAt]) {
@@ -2725,8 +2791,15 @@ const vdef={
             if (importable[nameHead].browser) hint="(「ブラウザで実行」するとインポートできます)．";
             if (importable[nameHead].server) hint="(「サーバで実行」するとインポートできます)．";
             this.error(nameHead+" はインポートできません"+hint,nameHead);
-        }
+        }*/
         this.addScope(node.alias || nameHead,{kind:"module",vtype:importable[nameHead],node});
+    },
+    fromImportStmt: function (node) {
+        const nameHead=node.name[0];
+        this.checkImportable(nameHead);
+        for (let localName of node.localNames) {
+            this.addScope(localName,{kind:"local",localName});
+        }
     },
     classdef: function (node) {
         //console.log("classDef",node);
@@ -2883,9 +2956,11 @@ const vdef={
     },
     forStmt: function (node) {
         //console.log("forStmt", node);
-        var loopVar=node.var;
+        var loopVars=node.vars;
         this.visit(node.set);
-        this.addScope(loopVar,{kind:"local",node:loopVar});
+        for(let loopVar of loopVars){
+          this.addScope(loopVar,{kind:"local",node:loopVar});
+        }
         this.visit(node.do);
         /*this.newScope(()=>{
             this.addScope(loopVar,{type:"local"});
@@ -2974,6 +3049,9 @@ const vdef={
     "literal": function (node) {
 
     },
+    "literal3": function (node) {
+
+    },
     "returnStmt": function (node) {
         this.visit(node.expr);
     },
@@ -3032,6 +3110,19 @@ const Semantics= {
             e.node=node;
             //e.noTrace=true;
             throw e;
+        };
+        v.checkImportable=function (nameHead) {
+            //const nameHead=node.name[0];
+            if (!importable[nameHead]) {
+                this.error(nameHead+" はインポートできません",nameHead);
+            }
+            if (this.options.runAt && !importable[nameHead][this.options.runAt]) {
+                let hint="．";
+                //console.log("IMP",node);
+                if (importable[nameHead].browser) hint="(「ブラウザで実行」するとインポートできます)．";
+                if (importable[nameHead].server) hint="(「サーバで実行」するとインポートできます)．";
+                this.error(nameHead+" はインポートできません"+hint,nameHead);
+            }
         };
         v.preScanDefs=function (stmtList) {
             for (let node of stmtList) {
@@ -6439,15 +6530,28 @@ function (Visitor,IndentBuffer,assert) {
         importStmt: function (node) {
             const nameHead=node.name[0];
             const inf=this.importable[nameHead+""];
-            if (inf && inf.wrapper) {
+            const useWrapper=(inf && inf.wrapper);
+            const localName=node.alias || node.name;
+            this.printf("import %s%v", useWrapper?"_":"", node.name);
+            if (node.alias || useWrapper) {
+                this.printf(" as %v", localName);
+            }
+            /*if (inf && inf.wrapper) {
                 this.printf("import _%v",node.name);
                 if (node.alias) this.printf(" as %v",node.alias);
                 else this.printf(" as %v",node.name);
             } else {
                 this.printf("import %v",node.name);
                 if (node.alias) this.printf(" as %v",node.alias);
-            }
+            }*/
             //this.printf("%n");
+        },
+        fromImportStmt: function (node) {
+            const nameHead=node.name[0];
+            const inf=this.importable[nameHead+""];
+            const useWrapper=(inf && inf.wrapper);
+            this.printf("from %s%v import %j",useWrapper?"_":"",node.name,
+            [",", node.localNames]);
         },
         globalStmt: function (node) {
             this.printf("global %j",[",",node.names]);
@@ -6479,7 +6583,7 @@ function (Visitor,IndentBuffer,assert) {
             this.printf("else%v",node.then);
         },
         forStmt: function (node) {
-            this.printf("for %v in %v%v", node.var, node.set, node.do);
+            this.printf("for %j in %v%v", [",",node.vars], node.set, node.do);
         },
         letStmt: function (node) {
             this.visit(node.left);
@@ -6580,7 +6684,7 @@ function (Visitor,IndentBuffer,assert) {
     };
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
       ">","<","=",".",":","+","-","*","/","%","(",")",",",
-      "number","literal","and","or","True","False","None"];
+      "number","literal3","literal","and","or","True","False","None"];
     for (let ve of verbs) {
         vdef[ve]=function (node) {
             //console.log("verb",node);
@@ -6651,6 +6755,10 @@ function (Visitor,IndentBuffer,context,PL) {
                 //this.printf("var %s=%s.import('%v');",node.name,PYLIB,node.name);
             }//this.printf("%n");
         },
+        fromImportStmt: function (node) {
+            var url=this.options.pyLibPath+"/py_"+node.name+".js";
+            this.printf("var {%j}=require('%s').install(%s);", [",",node.localNames], url, PYLIB);
+        },
         exprStmt: function (node) {
             this.printf("%v;",node.expr);
         },
@@ -6681,17 +6789,30 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("else %v",node.then);
         },
         forStmt: function (node) {
-            this.printf("var %v;%nfor (%v of %v) %v", node.var,node.var, node.set, node.do);
+            this.printf("var %j;%nfor (%v of %v) %v", [",",node.vars],node.vars[0], node.set, node.do);
         },
         letStmt: function (node) {
             if (this.anon.get(node).needVar) {
                 this.printf("var ");
             }
-            this.visit(node.left);
-            this.printf("=");
-            this.visit(node.right);
-            this.printf(";");
-            //this.printf("%n");
+            console.log("NODEL",node.left);//lvallist
+            const firstBody=node.left.body && node.left.body[0];
+            if (firstBody &&
+                firstBody.type==="postfix" &&
+                firstBody.op.type==="index") {
+                // TODO: [x[5],y]=[2,3]  -> x.__setitem__(5,2), y=3
+                const object=firstBody.left;
+                const index=firstBody.op;
+                console.log("NODEL2",object,index);
+                this.printf("%v.__setitem__(%v, %v);",object, index.body,node.right );
+            } else {
+                //if (node.left.type)
+                this.visit(node.left);
+                this.printf("=");
+                this.visit(node.right);
+                this.printf(";");
+                //this.printf("%n");
+            }
         },
         globalStmt: function (node) {},
         printStmt: function (node) {
@@ -6737,7 +6858,8 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         index: function (node) {
             for (let b of node.body) {
-                this.printf("[%v]",b);
+                this.printf(".__getitem__(%v)",b);
+                //this.printf("[%v]",b);
             }
         },
         block: function (node) {
@@ -6836,6 +6958,10 @@ function (Visitor,IndentBuffer,context,PL) {
             }
             this.printf("%s",s);
         },
+        literal3: function (node) {
+            var cont=node.text.substring(3,node.text.length-3);
+            this.printf("%s",JSON.stringify(cont));
+        },
         True: function () {this.printf("true");},
         False: function () {this.printf("false");},
     };
@@ -6891,7 +7017,11 @@ function (Visitor,IndentBuffer,context,PL) {
         v.visit(node);
         if (options.genReqJS) {
             v.printf("%}});%n");
-            v.printf("requirejs(['__main__'],function(){});%n");
+            const SEND_LOG=`
+            if (window.parent && window.parent.sendResult) {
+                window.parent.sendResult($("#output").text(),"py");
+            }`;
+            v.printf("requirejs(['__main__'],function(){%s});%n",SEND_LOG);
         }
         //console.log("pgen res",buf.buf);
         return buf.buf;
@@ -6985,6 +7115,9 @@ function (PP,S,G,J,PL,TError,jshint) {
             console.log(genj);
             var f=new jshint.Function(genj);
             console.log(f());
+            if (window.parent && window.parent.sendResult) {
+                window.parent.sendResult($("#output").text(),"py");                
+            }
         } catch(e) {
             if (e.node) {
                 throw TError(e.message,srcF,e.node.pos);
