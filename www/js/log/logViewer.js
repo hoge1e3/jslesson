@@ -36,6 +36,9 @@ function getLog(logid,userid){
 function getOneUsersLogId(userid,pon){
   showFrame(logs[userid],userid,pon);
 }
+function getCode(raw) {
+    return raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.DNCL || raw.code.Python || raw.code.py || "";
+}
 function openFrame(data){
   console.log(data);
   if(displayingId!==""){
@@ -49,7 +52,7 @@ function openFrame(data){
   currentLogId=data.id;
   displayingId=data.user;
   var raw=JSON.parse(data.raw);
-  var code=raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.DNCL || raw.code.Python || "";
+  var code=getCode(raw);//.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.DNCL || raw.code.Python || "";
   //res=data.filename+"\n"+data.result+"\n-------------\n"+data.code.C;
   res=code;
   res=res.replace(/</g,"&lt;");
@@ -165,14 +168,14 @@ function showLogOneUser(logid,userid,fn){
   if(ind>0){
     getPreviousLog(logsOfOneUser[fn][ind]).done(function(r){
       var curRaw=JSON.parse(r.raw);
-      currentProgram=curRaw.code.C || curRaw.code.JavaScript || curRaw.code.Dolittle || curRaw.code.Python;
+      currentProgram=getCode(curRaw);//.code.C || curRaw.code.JavaScript || curRaw.code.Dolittle || curRaw.code.Python;
       getPreviousLog(logsOfOneUser[fn][ind-1]).done(function(result) {
         var raw=JSON.parse(result.raw);
-        var code=raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.Python || "";
+        var code=getCode(raw);//raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.Python || "";
         //calcDiff(code,currentProgram,userid);
         getPreviousLog(logsOfOneUser[fn][logsOfOneUser[fn].length-1]).done(function(last){
           var lRaw=JSON.parse(last.raw);
-          var lastProg=lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
+          var lastProg=getCode(lRaw);//lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
           var prevDiffData=calcDiff(code,currentProgram,"[id='"+userid+"diff']","Prev","Current",true);
           var lastDiffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last",true);
           /*var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
@@ -192,10 +195,10 @@ function showLogOneUser(logid,userid,fn){
     getPreviousLog(logsOfOneUser[fn][ind]).done(function(r){
       console.log("ind",ind);
       var curRaw=JSON.parse(r.raw);
-      currentProgram=curRaw.code.C || curRaw.code.JavaScript || curRaw.code.Dolittle || curRaw.code.Python || curRaw.code.py;
+      currentProgram=getCode(curRaw);//.code.C || curRaw.code.JavaScript || curRaw.code.Dolittle || curRaw.code.Python || curRaw.code.py;
       getPreviousLog(logsOfOneUser[fn][logsOfOneUser[fn].length-1]).done(function(last){
         var lRaw=JSON.parse(last.raw);
-        var lastProg=lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || curRaw.code.py || "";
+        var lastProg=getCode(lRaw);//.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || curRaw.code.py || "";
         calcDiff("最初のプログラム",currentProgram,"[id='"+userid+"diff']","Prev","Current",true);
         var diffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last",true);
         /*var pd=":0:0:0:0";
