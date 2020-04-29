@@ -1627,7 +1627,8 @@ function (Grammar,Pos2RC/*,TError*/) {
         token: tokens.or(...["literal3","literal","symbol","number"].concat(puncts)),
         symbol: tokens.toParser(/^[a-zA-Z$_][a-zA-Z$_0-9]*/).ret((r)=>{
             //console.log("RDS",r);
-            if (resvh[r]) r.type=resvh[r];
+            // resvh[r] <- __getitem__ always true
+            if (resvh.hasOwnProperty(r)) r.type=resvh[r];
             return r;
         }),
         number: /^[0-9]+[0-9\.]*(e[\+\-][0-9]+)?/,
@@ -2238,11 +2239,19 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         function addMethod(k) {
             var m = defs[k];
             if (typeof m === "function") {
-                _res.prototype[k] = function () {
-                    var a = Array.prototype.slice.call(arguments);
+                /*res.prototype[k]=function () {
+                    var a=Array.prototype.slice.call(arguments);
                     a.unshift(this);
-                    return m.apply(this, a);
-                };
+                    return m.apply(this,a);
+                }; ^ this cannot override in subclasses */
+                Object.defineProperty(_res.prototype, k, {
+                    value: function value() {
+                        var a = Array.prototype.slice.call(arguments);
+                        a.unshift(this);
+                        return m.apply(this, a);
+                    },
+                    enumerable: false
+                });
             } else {
                 _res.prototype[k] = m;
             }
@@ -2255,8 +2264,9 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         };
         _res.__bases__ = PL.Tuple && PL.Tuple(parent ? [parent] : []);
         for (var k in defs) {
-            addMethod(k);
-        }return _res;
+            if (defs.hasOwnProperty(k)) addMethod(k);
+        }
+        return _res;
     };
     PL.super = function (klass, self) {
         //console.log("klass,self",klass,self);
@@ -2405,8 +2415,9 @@ define('PyLib',['require','exports','module'],function (require, exports, module
     PL.addMonkeyPatch = function (cl, methods) {
         var p = cl.prototype;
         for (var k in methods) {
-            addMethod(k);
-        }function addMethod(k) {
+            if (methods.hasOwnProperty(k)) addMethod(k);
+        }
+        function addMethod(k) {
             var m = methods[k];
             Object.defineProperty(p, k, {
                 value: function value() {
