@@ -192,10 +192,10 @@ function showLogOneUser(logid,userid,fn){
     getPreviousLog(logsOfOneUser[fn][ind]).done(function(r){
       console.log("ind",ind);
       var curRaw=JSON.parse(r.raw);
-      currentProgram=curRaw.code.C || curRaw.code.JavaScript || curRaw.code.Dolittle || curRaw.code.Python;
+      currentProgram=curRaw.code.C || curRaw.code.JavaScript || curRaw.code.Dolittle || curRaw.code.Python || curRaw.code.py;
       getPreviousLog(logsOfOneUser[fn][logsOfOneUser[fn].length-1]).done(function(last){
         var lRaw=JSON.parse(last.raw);
-        var lastProg=lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
+        var lastProg=lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || curRaw.code.py || "";
         calcDiff("最初のプログラム",currentProgram,"[id='"+userid+"diff']","Prev","Current",true);
         var diffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last",true);
         /*var pd=":0:0:0:0";
