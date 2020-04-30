@@ -743,7 +743,7 @@ function ready() {
         var curHTMLFile=curFiles[0];
         var curLogicFile=curFiles[1];
 	    window.sendResult=function(resDetail, lang){
-            lang=lang||"C";
+            lang=lang||"c";
             //console.log("sendResult",resDetail,lang);
             logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Run",resDetail,langList[lang]);
         };
