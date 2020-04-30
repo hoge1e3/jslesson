@@ -117,9 +117,9 @@ class TeacherLogController {
               var cRaw=<?=$l['raw']?>;
               var lRaw=programs["<?=$l['filename']?>"][programs["<?=$l['filename']?>"].length-1];
               console.log(pRaw,cRaw,lRaw);
-              var prevProg=pRaw.code.C || pRaw.code.JavaScript || pRaw.code.Dolittle || pRaw.code.Python || "";
-              var curProg=cRaw.code.C || cRaw.code.JavaScript || cRaw.code.Dolittle || cRaw.code.Python || "";
-              var lastProg=lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
+              var prevProg=getCode(pRaw);//.code.C || pRaw.code.JavaScript || pRaw.code.Dolittle || pRaw.code.Python || "";
+              var curProg=getCode(cRaw);//.code.C || cRaw.code.JavaScript || cRaw.code.Dolittle || cRaw.code.Python || "";
+              var lastProg=getCode(lRaw);//.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
               var prevDiffData=calcDiff(prevProg,curProg,"[id='"+userid+"diff']","Prev","Current",false);
               var lastDiffData=calcDiff(curProg,lastProg,"[id='"+userid+"diffLast']","Current","Last",false);
               var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];

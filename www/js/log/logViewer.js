@@ -155,7 +155,7 @@ function getPreviousLog(logid){
   });
 }
 var prevLog;
-function showLogOneUser(logid,userid,fn){
+async function showLogOneUser(logid,userid,fn){
     console.log("SLO",this,arguments);
     if (prevLog) $(prevLog).css({background:"#fff"});
     $(this).css({background:"#ff0"});
@@ -166,51 +166,47 @@ function showLogOneUser(logid,userid,fn){
   var cururl=location.href.replace(/&logid=[0-9]+/,"")+"&logid="+logid;
   history.replaceState(null,null,cururl);
   if(ind>0){
-    getPreviousLog(logsOfOneUser[fn][ind]).done(function(r){
-      var curRaw=JSON.parse(r.raw);
-      currentProgram=getCode(curRaw);//.code.C || curRaw.code.JavaScript || curRaw.code.Dolittle || curRaw.code.Python;
-      getPreviousLog(logsOfOneUser[fn][ind-1]).done(function(result) {
-        var raw=JSON.parse(result.raw);
-        var code=getCode(raw);//raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.Python || "";
+    try {
+        const r=await getPreviousLog(logsOfOneUser[fn][ind]);//.done(function(r){
+        const curRaw=JSON.parse(r.raw);
+        currentProgram=getCode(curRaw);//.code.C || curRaw.code.JavaScript || curRaw.code.Dolittle || curRaw.code.Python;
+
+        const result=await getPreviousLog(logsOfOneUser[fn][ind-1]);//.done(function(result) {
+        const raw=JSON.parse(result.raw);
+        const code=getCode(raw);//raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.Python || "";
         //calcDiff(code,currentProgram,userid);
-        getPreviousLog(logsOfOneUser[fn][logsOfOneUser[fn].length-1]).done(function(last){
-          var lRaw=JSON.parse(last.raw);
-          var lastProg=getCode(lRaw);//lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
-          var prevDiffData=calcDiff(code,currentProgram,"[id='"+userid+"diff']","Prev","Current",true);
-          var lastDiffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last",true);
-          /*var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
-          var ld="-"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"];
-          $("[id='"+logid+"summary']").html(pd+ld);
-          */
-        }).fail(function(last) {
-          console.log("failed get last log",last);
-        });
-      }).fail(function(result) {
-        console.log("failed get previous log",result);
-      });
-    }).fail(function(r){
-      console.log("failed get current log",result);
-    });
+
+        const last=await getPreviousLog(logsOfOneUser[fn][logsOfOneUser[fn].length-1]);//.done(function(last){
+        const lRaw=JSON.parse(last.raw);
+        const lastProg=getCode(lRaw);//lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
+        const prevDiffData=calcDiff(code,currentProgram,"[id='"+userid+"diff']","Prev","Current",true);
+        const lastDiffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last",true);
+        /*var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
+            var ld="-"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"];
+            $("[id='"+logid+"summary']").html(pd+ld);
+         */
+    }catch(e) {
+        console.log("failed get last log",e);
+    }
   }else{
-    getPreviousLog(logsOfOneUser[fn][ind]).done(function(r){
-      console.log("ind",ind);
-      var curRaw=JSON.parse(r.raw);
-      currentProgram=getCode(curRaw);//.code.C || curRaw.code.JavaScript || curRaw.code.Dolittle || curRaw.code.Python || curRaw.code.py;
-      getPreviousLog(logsOfOneUser[fn][logsOfOneUser[fn].length-1]).done(function(last){
-        var lRaw=JSON.parse(last.raw);
-        var lastProg=getCode(lRaw);//.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || curRaw.code.py || "";
+    try {
+        const r=await getPreviousLog(logsOfOneUser[fn][ind]);//.done(function(r){
+        console.log("ind",ind);
+        const curRaw=JSON.parse(r.raw);
+        currentProgram=getCode(curRaw);//.code.C || curRaw.code.JavaScript || curRaw.code.Dolittle || curRaw.code.Python || curRaw.code.py;
+
+        const last=await getPreviousLog(logsOfOneUser[fn][logsOfOneUser[fn].length-1]);//.done(function(last){
+        const lRaw=JSON.parse(last.raw);
+        const lastProg=getCode(lRaw);//.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || curRaw.code.py || "";
         calcDiff("最初のプログラム",currentProgram,"[id='"+userid+"diff']","Prev","Current",true);
-        var diffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last",true);
+        const diffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last",true);
         /*var pd=":0:0:0:0";
         var ld="-"+diffData["delete"]+":"+diffData["insert"]+":"+diffData["replace"]+":"+diffData["equal"];
         $("[id='"+logid+"summary']").html(pd+ld);
         */
-      }).fail(function(last) {
-        console.log("failed get last log",last);
-      });
-    }).fail(function(r){
-      console.log("failed get current log",result);
-    });
+    }catch(e) {
+        console.log("failed get last log",e);
+    }
   }
 }
 function clearBreak(base){
@@ -236,11 +232,11 @@ function calcDiff(prev,now,id,btn,ntn,flag){
   var opcodes = sm.get_opcodes();
   //var diffoutputdiv = $("[id='"+id+"diff']")[0];
   var diffoutputdiv = $(id)[0];
-  console.log(sm,opcodes);
+  //console.log(sm,opcodes);
   var diffData={"insert":0,"delete":0,"replace":0,"equal":0};
   for(var opti in opcodes){
     var opt=opcodes[opti];
-    console.log("switch"+opt[0]);
+    //console.log("switch"+opt[0]);
     switch(opt[0]){
       case "equal":
       case "delete":
