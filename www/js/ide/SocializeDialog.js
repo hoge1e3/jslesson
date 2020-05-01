@@ -41,14 +41,15 @@ define(function (require,exports,module) {
     }
     function NotePopup(note) {
         note.favsHaving=note.favsHaving||0;
-        const favButton=UI("span",{on:{click:toggleFav}},"❤");
+        const favButton=UI("span",{on:{click:toggleFav},css:{cursor:"pointer"}},"❤");
         if (note.favByMyself) favButton.addClass("faved");
         const favCount=UI("span",note.favsHaving||"0");
-        const closeButton=UI("span",{on:{click:hide}},"x");
-        const repButton=UI("span",{on:{click:showReplies}},"💭");
+        const closeButton=UI("span",{on:{click:hide},css:{cursor:"pointer"}},"x");
+        const repButton=UI("span",{on:{click:showReplies},css:{cursor:"pointer"}},"💭");
         const repCount=UI("span",note.repliesHaving||"0");
+        const SPC=["span",{css:{padding:"5px"}}];
 
-        const like=UI("span",repButton, repCount, favButton, favCount, closeButton).css({float:"right"});
+        const like=UI("span",SPC,repButton, repCount, SPC,favButton, favCount, SPC,closeButton).css({float:"right"});
         const elem=UI("div",{class:"socializePopup"},note.content,like).
         appendTo("body");
         let at,bottomMax;
@@ -312,7 +313,11 @@ define(function (require,exports,module) {
             }*/
         }
         function show(f) {
-            elem.dialog({width:800,height:100,position: { my: "center bottom", at: "center bottom"},});
+            elem.dialog({
+                width:800,height:100,
+                position: { my: "center bottom", at: "center bottom"},
+                close: ()=>NotePopup.clear()
+            });
             if (f) changeFile(f);
         }
         return {changeFile,show};
