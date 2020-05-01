@@ -26,7 +26,8 @@ function (Grammar,Pos2RC/*,TError*/) {
         token: tokens.or(...["literal3","literal","symbol","number"].concat(puncts)),
         symbol: tokens.toParser(/^[a-zA-Z$_][a-zA-Z$_0-9]*/).ret((r)=>{
             //console.log("RDS",r);
-            if (resvh[r]) r.type=resvh[r];
+            // resvh[r] <- __getitem__ always true
+            if (resvh.hasOwnProperty(r)) r.type=resvh[r];
             return r;
         }),
         number: /^[0-9]+[0-9\.]*(e[\+\-][0-9]+)?/,
