@@ -54,6 +54,12 @@ class Note {
             return $ra;
             //header("Content-type: text/json");
             //echo json_encode($ra);
+        } else if ($user) {
+            $rf=pdo_select($select.$from.
+                "where n1.content<>'' and n1.user=? and (n1.time>? or n2.time>?)",
+                $user->name,$since,$since);
+            $ra=self::procResult($user, $rf,$repliesByArray);
+            return $ra;
         }
     }
     static function procResult($user, $rf,$repliesByArray=false) {
