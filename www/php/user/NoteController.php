@@ -169,4 +169,7 @@ class NoteController {
             echo "</ul>";
         }
     }
+    public static function myNotes() {
+        
+    }
 }
