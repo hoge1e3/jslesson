@@ -6,7 +6,7 @@ builtins.push("open");
 const importable={
     datetime:{server:true},
     random:{browser:true,server:true},
-    math:{server:true},
+    math:{browser:true, server:true},
     //jp:true,
     //fs:{wrapper:true,server:true},
     re:{server:true},
