@@ -66,7 +66,7 @@ class RunPythonController {
         $prjDesc=$d->openProject($user->name, $projectName);
         $stdinfile="__STDIN.txt";
      	$prjDesc["work"]["host"]->rel($stdinfile)->text($stdin);
-     	$res=$d->execInProject($prjDesc, "export MPLBACKEND=\"module://mybackend\" \n python $fileName < $stdinfile");
+     	$res=$d->execInProject($prjDesc, "export MPLBACKEND=\"module://mybackend\" \n timeout 1 python $fileName < $stdinfile");
      	if ($res["stderr"]=="") self::convOut($res["stdout"], $d->hostWork()->rel($user->name."/")->rel("$projectName/") );
         else {
             http_response_code(500);
@@ -100,7 +100,7 @@ class RunPythonController {
             ))
         );
         $workDir->rel("stdin.txt")->text(param("stdin","\n\n\n\n\n\n\n\n"));
-        $cmd=PYTHON_PATH." \"$copiedScriptPath\"";
+        $cmd="timeout 1 ".PYTHON_PATH." \"$copiedScriptPath\"";
         $res=system_ex($cmd);
         if ($res["return"]==0) self::convOut($res["stdout"]);
         else {
@@ -133,7 +133,7 @@ class RunPythonController {
                 "asset"=>self::convHomes($homes)
             ))
         );
-        $cmd=PYTHON_PATH." \"$copiedScriptPath\"";
+        $cmd="timeout 1 ".PYTHON_PATH." \"$copiedScriptPath\"";
         $res=system_ex($cmd);
         if ($res["return"]==0) self::convOut($res["stdout"]);
         else {
