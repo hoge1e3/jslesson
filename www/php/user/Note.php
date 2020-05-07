@@ -56,7 +56,7 @@ class Note {
             //echo json_encode($ra);
         } else if ($user) {
             $rf=pdo_select($select.$from.
-                "where n1.content<>'' and n1.user=? and (n1.time>? or n2.time>?)",
+                "where n1.content<>'' and n1.user=? and (n1.file is not null) and (n1.time>? or n2.time>?)",
                 $user->name,$since,$since);
             $ra=self::procResult($user, $rf,$repliesByArray);
             return $ra;
@@ -92,12 +92,15 @@ class Note {
             }
             if ($e->c_content) {
                 if ($repliesByArray) {
+                    //echo "PUSH";
                     array_push($r->repliesHaving, $e);
                 } else {
                     $r->repliesHaving++;
                 }
             }
         }
+        //echo "END".json_encode($ra);
+
         return $ra;
     }
 }
