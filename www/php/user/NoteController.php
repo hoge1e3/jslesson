@@ -45,59 +45,7 @@ class NoteController {
         $ra=Note::get($user,$file,$target,$since);
         header("Content-type: text/json");
         echo json_encode($ra);
-        /*
-        $select="select n1.*, ".
-            "n2.id as c_id, n2.time as c_time, ".
-            "n2.class as c_class, n2.user as c_user, ".
-            "n2.content as c_content, n2.favs as c_favs ";
-        $from=" from ".
-        "note n1 left join note n2 ".
-        "on n2.target=n1.id ";
-        if ($file) {
-            $rf=pdo_select($select.$from.
-                "where n1.content<>'' and n1.class=? and n1.file=? and (n1.time>? or n2.time>?)",
-                $user->_class->id,$file,$since,$since);
-            $ra=self::procResult($rf);
-            header("Content-type: text/json");
-            echo json_encode($ra);
-            //return $ra;
-        } else if ($target) {
-            $rf=pdo_select($select.$from.
-                "where n1.content<>'' and n1.target=? and (n1.time>? or n2.time>?)",
-                $target,$since,$since);
-            $ra=self::procResult($rf);
-            header("Content-type: text/json");
-            echo json_encode($ra);
-        }*/
     }
-    /*static function procResult($rf) {
-        $user=Auth::curUser2();
-        $rh=array();
-        $ra=array();
-        foreach ($rf as $e) {
-            if (isset($rh[$e->id])) {
-                $r=$rh[$e->id];
-            } else {
-                $r=$e;
-                $rh[$e->id]=$r;
-                $r->favsHaving=0;
-                $r->repliesHaving=0;//array();
-                array_push($ra,$r);
-            }
-            if ($e->c_favs) {
-                $r->favsHaving+=$e->c_favs;
-                if ($e->c_class===$user->_class->id &&
-                    $e->c_user===$user->name ) {
-                    $r->favByMyself=$e->c_id;
-                }
-            }
-            if ($e->c_content) {
-                $r->repliesHaving++;
-                //array_push($r->commentsHaving, $e);
-            }
-        }
-        return $ra;
-    }*/
     public static function addFav() {
         $user=Auth::curUser2();
         $time=DateUtil::now();
@@ -170,6 +118,44 @@ class NoteController {
         }
     }
     public static function myNotes() {
-        
+        $stats=param("stats",false);
+        $user=Auth::curUser2();
+        //header("Content-type: text/json");
+        $ra=(Note::get($user,null,null,0,true));
+        if ($stats) {
+            $f=0;$coms=0;
+            foreach ($ra as $e) {
+                $f+=$e->favsHaving;
+                $coms++;
+            }
+            header ("Content-type: text/json");
+            echo json_encode(array("favs"=>$f, "count"=>$coms));
+            return;
+        }
+        usort($ra,function ($a,$b) {
+            if ($b->favsHaving>$a->favsHaving) return 1;
+            if ($b->favsHaving<$a->favsHaving) return -1;
+            return  ($b->time-$a->time);
+        });
+        echo"<h1>".$user->name." が書いたノート</h1>\n";
+        echo "<ul>";
+        foreach ($ra as $e) {
+            $reps=$e->repliesHaving;
+            ?><li>
+                ♥<?=$e->favsHaving?> <?= $e->content ?> for <?= $e->file ?> at <?= DateUtil::toString($e->time) ?>
+                <?php if (count($reps)>0) {
+                    echo "<ul>";
+                    foreach($reps as $rep) {
+                        ?>
+                        <li>
+                            <?= $rep->c_content ?> at <?= DateUtil::toString($rep->c_time) ?>
+                        </li>
+                        <?php
+                    }
+                    echo "</ul>";
+                } ?>
+            </li><?php
+        }
+        echo "</ul>";
     }
 }

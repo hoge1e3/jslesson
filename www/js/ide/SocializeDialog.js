@@ -240,7 +240,8 @@ define(function (require,exports,module) {
     module.exports=(ide)=>{
         const elem=UI("div",{title:"についてのノート"},
             ["input", {$var:"cont", size:60,on:{enterkey:send}}],
-            ["button", {$var:"OKButton", on:{click: send}},"送信"]
+            ["button", {$var:"OKButton", on:{click: send}},"送信"],
+            ["a",{$var:"gotfavs",href:ctrl.url("Note/myNotes"),target:"notes"},"獲得♥:"]
         );
         const vars=elem.$vars;
         vars.cont.on("focus",()=>focusing=true);
@@ -303,7 +304,7 @@ define(function (require,exports,module) {
                 }
             }
             loop();
-
+            updateFavs();
             /*const coms=await ctrl.get("Note/get",{file:filePath});
             console.log("coms",coms);
             for (let com of coms) {
@@ -319,6 +320,10 @@ define(function (require,exports,module) {
                 close: ()=>NotePopup.clear()
             });
             if (f) changeFile(f);
+        }
+        async function updateFavs() {
+            const res=await ctrl.get("Note/myNotes",{stats:1});
+            vars.gotfavs.text("獲得♥:"+res.favs);
         }
         return {changeFile,show};
     };

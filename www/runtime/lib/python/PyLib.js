@@ -23,6 +23,7 @@ define(function (require, exports, module) {
         if (PL.import.libs[lib]) return PL.import.libs[lib];
         throw new Error("ライブラリ " + lib + " はインポートできません．(サーバで実行すると動作する可能性があります)");
     };
+    // It seems to be old: add to PythonSemantics and create runtime/lib/python/py_***.js
     PL.import.libs = {
         random: {
             random: Math.random,
@@ -49,7 +50,8 @@ define(function (require, exports, module) {
         math: {
             fabs: Math.abs.bind(Math),
             ceil: Math.ceil.bind(Math),
-            floor: Math.floor.bind(Math)
+            floor: Math.floor.bind(Math),
+            sqrt: Math.sqrt.bind(Math)
         }
     };
     //PyX.install(PL);
