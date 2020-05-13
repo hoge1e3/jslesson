@@ -10,8 +10,6 @@ if (!$fs) {
    print '{"NOT_LOGGED_IN":1}';
    exit;
 }
-$json=new Services_JSON;
-
 if (!isset($_GET["base"])) {
     die("Specify base");
 }
@@ -22,7 +20,7 @@ require_once "php/getDirInfoLib.php";
     $inf=getDirInfo($base, $base);
     $inf["user"]=Auth::curUser();
     $inf["class"]=Auth::curClass();
-    print $json->encode( $inf );
+    print json_encode( $inf );
 /*}catch(Exception $e) {
     die($e);
 }*/

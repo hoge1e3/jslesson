@@ -6,7 +6,6 @@ require_once "php/auth.php";
 require_once "php/ErrorHandler.php";
 
 $fs=Auth::getFS();
-$json=new Services_JSON;
 
 if (!isset($_POST["base"])) {
     die("Specify base");
@@ -15,7 +14,7 @@ $base=$_POST["base"];
 if (!isset($_POST["paths"])) {
     die("Specify paths");
 }
-$paths=$json->decode($_POST["paths"]);
+$paths=json_decode($_POST["paths"]);
 $data=array();
 foreach ($paths as $path) {
     $fp=PathUtil::rel($base, $path);
@@ -29,6 +28,6 @@ foreach ($paths as $path) {
     $data[$path]=$info;
 }
 header("Content-type: text/json");
-print $json->encode(array("base"=>$base, "data"=>$data));
+print json_encode(array("base"=>$base, "data"=>$data));
 
 ?>
