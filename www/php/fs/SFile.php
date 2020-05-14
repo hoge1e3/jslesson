@@ -151,12 +151,10 @@ class SFile{
         return PathUtil::fixSep($res);
     }
     public function getObj() {
-        $j=new Services_JSON;
-        return $j->decode($this->getText());
+        return json_decode($this->getText());
     }
     public function setObj($obj) {
-        $j=new Services_JSON;
-        return $this->setText($j->encode($obj));
+        return $this->setText(json_encode($obj));
     }
     public function obj() {
         if (func_num_args()==0) {
