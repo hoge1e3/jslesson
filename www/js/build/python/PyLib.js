@@ -114,6 +114,13 @@ define(function (require,exports,module) {
             return "object";
         }
     };
+    PL.isinstance=function (obj,klass) {
+        const ocl=obj && obj.__class__;
+        return !!ocl &&
+        (ocl===klass ||
+            PL.isinstance(Object.getPrototypeOf(ocl.prototype),klass)
+        );
+    };
     PL.sorted=function (a) {
         return a.slice().sort();
     };
@@ -312,27 +319,6 @@ define(function (require,exports,module) {
     };
     //--- monkey patch
 
-    String.prototype.format=function (...args) {
-        const str=this;
-        const o={};
-        let i=0;
-        for (let a of args) {
-            if (a instanceof PL.Option) {
-                Object.assign(o, a );
-            } else {
-                o[i+""]=a;
-            }
-            i++;
-        }
-        i=0;
-        return str.replace(/{([0-9a-zA-Z_]*)}/g, (_,name)=>{
-            if (!name) {
-                return o[i++];
-            } else {
-                return o[name];
-            }
-        });
-    };
     PL.addMonkeyPatch=function (cl, methods) {
         var p=cl.prototype;
         for (var k in methods) {
@@ -341,16 +327,17 @@ define(function (require,exports,module) {
         function addMethod(k) {
             var m=methods[k];
             Object.defineProperty(p,k,{
-                value: function () {
+                value: (k==="__class__"?m:function () {
                     var a=Array.prototype.slice.call(arguments);
                     a.unshift(this);
                     return m.apply(this,a);
-                },
+                }),
                 enumerable: false
             });
         }
     };
     PL.addMonkeyPatch(Object, {
+        __class__:Object,
         __getTypeName__: function (){return "<class object>";},
         __call__: function (self,...a) {
             //var a=Array.prototype.slice.call(arguments,1);
@@ -395,9 +382,11 @@ define(function (require,exports,module) {
         //____: function (self,other) { return selfother;},
     });
     PL.addMonkeyPatch(Number,{
+        __class__:Number,
         __getTypeName__: function (){return "<class number>";},
     });
     PL.addMonkeyPatch(String,{
+        __class__:String,
         __getTypeName__: function (){return "<class str>";},
         __mul__: function (self,other) {
             switch (typeof other) {
@@ -421,6 +410,27 @@ define(function (require,exports,module) {
                 throw new Error("文字列に文字列以外の値を+で追加できません．str()関数を使って変換してください．");
             }
             return Object.prototype.__add__.call(self,other);
+        },
+        format: function (self,...args) {
+            const str=self;
+            const o={};
+            let i=0;
+            for (let a of args) {
+                if (a instanceof PL.Option) {
+                    Object.assign(o, a );
+                } else {
+                    o[i+""]=a;
+                }
+                i++;
+            }
+            i=0;
+            return str.replace(/{([0-9a-zA-Z_]*)}/g, (_,name)=>{
+                if (!name) {
+                    return o[i++];
+                } else {
+                    return o[name];
+                }
+            });
         }
     });
     PL.addMonkeyPatch(Boolean,{
@@ -435,6 +445,7 @@ define(function (require,exports,module) {
         __getTypeName__: function (){return "<class function>";},
     });
     PL.addMonkeyPatch(Array, {
+        __class__:PL.list,
         append(self, ...args) {
             return self.push(...args);
         },
@@ -467,7 +478,7 @@ define(function (require,exports,module) {
 
     //---
     PL.builtins=["range","input","str","int","float","len","type","quit","exit","sorted","abs",
-    "min","max",
+    "min","max","list","isinstance",
     "fillRect","setColor","setTimeout","clearRect","clear"];
     root.PYLIB=PL;
 
