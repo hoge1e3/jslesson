@@ -9,7 +9,6 @@ if (!$fs) {
    print '{"NOT_LOGGED_IN":1}';
    exit;
 }
-$json=new Services_JSON;
 $lessonDir="/home/lesson_samples/lesson_samples/";
 if (!isset($_GET["src"]) || !isset($_GET["dst"])) {
     $res=array();
@@ -20,7 +19,7 @@ if (!isset($_GET["src"]) || !isset($_GET["dst"])) {
             array_push($res, $prj);
         }
     }
-    print $json->encode($res);
+    print json_encode($res);
     exit();
 }
 $dstdir=Auth::homeDir().$_GET["dst"]."/";
@@ -39,6 +38,6 @@ function copyFiles($sd,$dd) {
         }
     }
 }
-print $json->encode('{"DONE":1}');
+print json_encode('{"DONE":1}');
 
 ?>

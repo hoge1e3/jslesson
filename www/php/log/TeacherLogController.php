@@ -199,10 +199,8 @@ class TeacherLogController {
         </script>
         <?php
         foreach($logs as $log){
-            if(isset($runcount[$log['user']])){
-                $runcount[$log['user']]++;
-            }else{
-                $runcount[$log['user']]=1;
+            if(!isset($runcount[$log['user']])){
+                $runcount[$log['user']]=0;
             }
             if(!isset($runhistory[$log['user']])){
                 $runhistory[$log['user']]='<span id="'.$log['user'].'hist">';
@@ -210,6 +208,7 @@ class TeacherLogController {
             $fnid=str_replace("/","__",$log['filename']);
             $fnid=str_replace(".","__",$fnid);
             if(strpos($log['result'],'Error')!==false){
+				$runcount[$log['user']]++;
                 if(isset($errcount[$log['user']])){
                     $errcount[$log['user']]++;
                 }else{
@@ -217,9 +216,12 @@ class TeacherLogController {
                 }
                 $runhistory[$log['user']].='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));"><font color="red">E</font></span>';
             }else if(strpos($log['result'],'Run')!==false){
+				$runcount[$log['user']]++;
                 $runhistory[$log['user']].='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">R</span>';
             }else if(strpos($log['result'],'Save')!==false){
                 $runhistory[$log['user']].='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">S</span>';
+            }else if(strpos($log['result'],'Unsaved')!==false){
+                $runhistory[$log['user']].='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">U</span>';
             }
             if(!isset($errcount[$log['user']])){
                 $errcount[$log['user']]=0;
