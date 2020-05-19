@@ -74,7 +74,7 @@ function (Visitor,IndentBuffer,assert) {
         },
         letStmt: function (node) {
             this.visit(node.left);
-            this.printf("=");
+            this.printf("%s",node.op);
             this.visit(node.right);
             //this.printf("%n");
         },

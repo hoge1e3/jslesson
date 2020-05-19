@@ -382,6 +382,9 @@ const Semantics= {
         };
         v.preScanDefs=function (stmtList) {
             for (let node of stmtList) {
+                if (node.type==="globalStmt") {
+                    v.visit(node);
+                }
                 if (node.type==="define") {
                     this.addScope(node.name,{kind:"function",node});
                 }

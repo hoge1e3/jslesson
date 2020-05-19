@@ -70,6 +70,11 @@ define(function (require,exports,module) {
     PL.len=function (s) {return s.length;};
     PL.float=function (s) {return s-0;};
     PL.int=function (s) {return parseInt(s-0);};
+    PL.list=(iter)=>{
+        const res=[];
+        for (let x in iter) res.push(x);
+        return res;
+    };
     PL.str=function (s) {
         //  s==false
         if (s!=null && s.__str__) return s.__str__();

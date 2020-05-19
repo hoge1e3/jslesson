@@ -84,6 +84,12 @@ define(function (require, exports, module) {
     PL.int = function (s) {
         return parseInt(s - 0);
     };
+    PL.list = function (iter) {
+        var res = [];
+        for (var x in iter) {
+            res.push(x);
+        }return res;
+    };
     PL.str = function (s) {
         //  s==false
         if (s != null && s.__str__) return s.__str__();
