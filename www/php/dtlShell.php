@@ -13,13 +13,12 @@ if ($argc==0) {
 }
 $f=new NativeFS();
 $scr=$f->getContent($argv[1]);
-$j=new Services_JSON;
-$vmc=$j->decode($scr);
+$vmc=json_decode($scr, JSON_OBJECT_AS_ARRAY);
 $root=Dtl::createEmptyRoot();
 Dtl::initRoot($root);
 $root->Shell=new DtlShell();
 //DtlFS::initRoot($root);
 
-echo $j->encode( DtlUtil::unwrap( Dtl::run($root,$vmc) ) ); 
+echo json_encode( DtlUtil::unwrap( Dtl::run($root,$vmc) ) );
 
 ?>
