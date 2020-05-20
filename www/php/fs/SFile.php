@@ -151,7 +151,7 @@ class SFile{
         return PathUtil::fixSep($res);
     }
     public function getObj() {
-        return json_decode($this->getText());
+        return json_decode($this->getText(), JSON_OBJECT_AS_ARRAY);
     }
     public function setObj($obj) {
         return $this->setText(json_encode($obj));
