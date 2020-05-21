@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__."/php/Modules.php";
 require_once __DIR__."/php/dtl/Dtl.php";
-require_once __DIR__."/php/json.php";
 require_once __DIR__."/php/dtlfs/DtlFS.php";
 require_once __DIR__."/php/dtlfs/DtlSys.php";
 require_once __DIR__."/php/dtlfs/DtlParam.php";

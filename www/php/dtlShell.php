@@ -1,7 +1,6 @@
 <?php
 
 require_once __DIR__."/dtl/Dtl.php";
-require_once __DIR__."/json.php";
 //require_once __DIR__."/dtlfs/DtlFS.php";
 require_once __DIR__."/ErrorHandler.php";
 require_once __DIR__."/dtlfs/DtlShell.php";

@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__."/../json.php";
+
 class SFile{
     private $_path, $fs;
     public function __construct($fs, $path) {

@@ -1,6 +1,5 @@
 <?php
 require_once "php/Modules.php";
-require_once "php/json.php";
 require_once "php/fs/NativeFS.php";
 require_once "php/auth.php";
 $fs=Auth::getFS();
