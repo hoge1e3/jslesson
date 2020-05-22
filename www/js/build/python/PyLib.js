@@ -15,6 +15,7 @@ define(function (require,exports,module) {
         if (PL.import.libs[lib]) return PL.import.libs[lib];
         throw new Error("ライブラリ "+lib+" はインポートできません．(サーバで実行すると動作する可能性があります)");
     };
+    // It seems to be old: add to PythonSemantics and create runtime/lib/python/py_***.js
     PL.import.libs={
         random:{
             random: Math.random,
@@ -42,6 +43,7 @@ define(function (require,exports,module) {
             fabs:Math.abs.bind(Math),
             ceil:Math.ceil.bind(Math),
             floor:Math.floor.bind(Math),
+            sqrt:Math.sqrt.bind(Math),
         }
     };
     //PyX.install(PL);
@@ -68,6 +70,11 @@ define(function (require,exports,module) {
     PL.len=function (s) {return s.length;};
     PL.float=function (s) {return s-0;};
     PL.int=function (s) {return parseInt(s-0);};
+    PL.list=(iter)=>{
+        const res=[];
+        for (let x in iter) res.push(x);
+        return res;
+    };
     PL.str=function (s) {
         //  s==false
         if (s!=null && s.__str__) return s.__str__();
@@ -106,6 +113,13 @@ define(function (require,exports,module) {
             if (s && s.__class__) return s.__class__;
             return "object";
         }
+    };
+    PL.isinstance=function (obj,klass) {
+        const ocl=obj && obj.__class__;
+        return !!ocl &&
+        (ocl===klass ||
+            PL.isinstance(Object.getPrototypeOf(ocl.prototype),klass)
+        );
     };
     PL.sorted=function (a) {
         return a.slice().sort();
@@ -305,27 +319,6 @@ define(function (require,exports,module) {
     };
     //--- monkey patch
 
-    String.prototype.format=function (...args) {
-        const str=this;
-        const o={};
-        let i=0;
-        for (let a of args) {
-            if (a instanceof PL.Option) {
-                Object.assign(o, a );
-            } else {
-                o[i+""]=a;
-            }
-            i++;
-        }
-        i=0;
-        return str.replace(/{([0-9a-zA-Z_]*)}/g, (_,name)=>{
-            if (!name) {
-                return o[i++];
-            } else {
-                return o[name];
-            }
-        });
-    };
     PL.addMonkeyPatch=function (cl, methods) {
         var p=cl.prototype;
         for (var k in methods) {
@@ -334,16 +327,17 @@ define(function (require,exports,module) {
         function addMethod(k) {
             var m=methods[k];
             Object.defineProperty(p,k,{
-                value: function () {
+                value: (k==="__class__"?m:function () {
                     var a=Array.prototype.slice.call(arguments);
                     a.unshift(this);
                     return m.apply(this,a);
-                },
+                }),
                 enumerable: false
             });
         }
     };
     PL.addMonkeyPatch(Object, {
+        __class__:Object,
         __getTypeName__: function (){return "<class object>";},
         __call__: function (self,...a) {
             //var a=Array.prototype.slice.call(arguments,1);
@@ -388,9 +382,11 @@ define(function (require,exports,module) {
         //____: function (self,other) { return selfother;},
     });
     PL.addMonkeyPatch(Number,{
+        __class__:Number,
         __getTypeName__: function (){return "<class number>";},
     });
     PL.addMonkeyPatch(String,{
+        __class__:String,
         __getTypeName__: function (){return "<class str>";},
         __mul__: function (self,other) {
             switch (typeof other) {
@@ -414,6 +410,27 @@ define(function (require,exports,module) {
                 throw new Error("文字列に文字列以外の値を+で追加できません．str()関数を使って変換してください．");
             }
             return Object.prototype.__add__.call(self,other);
+        },
+        format: function (self,...args) {
+            const str=self;
+            const o={};
+            let i=0;
+            for (let a of args) {
+                if (a instanceof PL.Option) {
+                    Object.assign(o, a );
+                } else {
+                    o[i+""]=a;
+                }
+                i++;
+            }
+            i=0;
+            return str.replace(/{([0-9a-zA-Z_]*)}/g, (_,name)=>{
+                if (!name) {
+                    return o[i++];
+                } else {
+                    return o[name];
+                }
+            });
         }
     });
     PL.addMonkeyPatch(Boolean,{
@@ -428,6 +445,7 @@ define(function (require,exports,module) {
         __getTypeName__: function (){return "<class function>";},
     });
     PL.addMonkeyPatch(Array, {
+        __class__:PL.list,
         append(self, ...args) {
             return self.push(...args);
         },
@@ -460,7 +478,7 @@ define(function (require,exports,module) {
 
     //---
     PL.builtins=["range","input","str","int","float","len","type","quit","exit","sorted","abs",
-    "min","max",
+    "min","max","list","isinstance",
     "fillRect","setColor","setTimeout","clearRect","clear"];
     root.PYLIB=PL;
 

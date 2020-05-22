@@ -79,14 +79,29 @@ function (Visitor,IndentBuffer,context,PL) {
             }
             console.log("NODEL",node.left);//lvallist
             const firstBody=node.left.body && node.left.body[0];
+            const io=PL.iops[node.op+""];
             if (firstBody &&
                 firstBody.type==="postfix" &&
                 firstBody.op.type==="index") {
                 // TODO: [x[5],y]=[2,3]  -> x.__setitem__(5,2), y=3
                 const object=firstBody.left;
                 const index=firstBody.op;
+                const value=node.right;
                 console.log("NODEL2",object,index);
-                this.printf("%v.__setitem__(%v, %v);",object, index.body,node.right );
+                if (io) {
+                    this.printf("%v.__setitem__(%v, "+
+                        "%s.wrap( %v.__getitem__(%v) ).__%s__(%v)"+
+                    ");",
+                        object, index.body,
+                        PYLIB, object, index.body, io, value
+                    );
+                } else {
+                    this.printf("%v.__setitem__(%v, %v);",object, index.body,value );
+                }
+            } else if (io) {
+                const value=node.right;
+                this.printf("%v=%s.wrap(%v).__%s__(%v)" ,
+                node.left, PYLIB, node.left, io, value);
             } else {
                 //if (node.left.type)
                 this.visit(node.left);

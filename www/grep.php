@@ -53,7 +53,7 @@ function plain($file) {
 }
 function json($file) {
     global $fs,$word,$around;
-    $j=new Services_JSON;
+
     $a=explode("T",$word);
     $date=preg_replace("/-/","/",$a[0]);
     $time=$a[1];
@@ -63,7 +63,7 @@ function json($file) {
     $around=$around/10;
     $found=false;
     foreach($lines as $line) {
-        $e=$j->decode($line);
+        $e=json_decode($line);
         if ($e) {
             $a[]=toHTML($e);//echo $e["date"]." ".$e["time"]. "<BR>";
             if ($found) {

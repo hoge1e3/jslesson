@@ -6,7 +6,7 @@ builtins.push("open");
 const importable={
     datetime:{server:true},
     random:{browser:true,server:true},
-    math:{server:true},
+    math:{browser:true, server:true},
     //jp:true,
     //fs:{wrapper:true,server:true},
     re:{server:true},
@@ -382,6 +382,9 @@ const Semantics= {
         };
         v.preScanDefs=function (stmtList) {
             for (let node of stmtList) {
+                if (node.type==="globalStmt") {
+                    v.visit(node);
+                }
                 if (node.type==="define") {
                     this.addScope(node.name,{kind:"function",node});
                 }

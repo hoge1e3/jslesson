@@ -222,7 +222,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         breakStmt: ["break"],
         continueStmt: ["continue"],
         forStmt: ["for",{vars:sep1("symbol",",")},"in",{set:"expr"},{do:"block"}],
-        letStmt: [{left:"lval"},"=",{right:"exprList"}],
+        letStmt: [{left:"lval"},{op:or("+=","-=","*=","/=","%=","=")},{right:"exprList"}],
         globalStmt: ["global",{names:sep1("symbol",",")}],
         // print(x,y) parsed as: printStmt(2) with tuple
         printStmt: ["print",{values:"exprList"}],
@@ -246,7 +246,7 @@ function (Grammar,Pos2RC/*,TError*/) {
             element: "elem",
             operators: [
                 //["infixr", "="  ] , //  = 右結合２項演算子
-                ["infixl", or("+=","-=","*=","/=","%=")],
+                //["infixl", or("+=","-=","*=","/=","%=")],
                 ["infixl", or("or")  ] ,
                 ["infixl", or("and")  ] ,
                 ["infixl", or(">=","<=","==","!=",">","<")  ] , //  + -  左結合２項演算子

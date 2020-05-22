@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__."/../config/config.php";
 require_once __DIR__."/fs/NativeFS.php";
-require_once __DIR__."/json.php";
 require_once __DIR__."/MySession.php";
 require_once __DIR__."/fs/AuthInfo.php";
 require_once __DIR__."/fs/Permission.php";
@@ -68,8 +67,7 @@ class Auth {
         return $classList;
     }
     static function loginTeacher($class,$pass,$ignoreNonexistent=false) {//旧
-	    $json = new Services_JSON();
-        if (!$class)return "クラス名を入力してください。";
+	    if (!$class)return "クラス名を入力してください。";
 	    if (!$pass)return "パスワードを入力してください。";
     	if (!file_exists(BA_FS."/home/$class") && !$ignoreNonexistent){
                return "存在しないクラスIDが入力されています。";
@@ -95,8 +93,7 @@ class Auth {
         fclose($fp);
     }
     static function loginTeacher2($name,$pass,$ignoreNonexistent=false) {
-	    $json = new Services_JSON();
-        if (!$name)return "メールアドレスを入力してください。";
+	    if (!$name)return "メールアドレスを入力してください。";
 	    if (!$pass)return "パスワードを入力してください。";
 	    $pdo = pdo();
 
