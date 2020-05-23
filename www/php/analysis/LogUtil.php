@@ -1,5 +1,4 @@
 <?php
-require_once __DIR__."/../json.php";
 require_once __DIR__."/../PQuery.php";
 class LogUtil {
     static $verbose=0;
@@ -75,7 +74,7 @@ class LogUtil {
     static function readJSONLines($file) {
         $res=array();
         foreach ($file->lines() as $line) {
-            if ($line) $res[]=json2array($line);
+            if ($line) $res[]=decode_json($line,JSON_OBJECT_AS_ARRAY);
         }
         return $res;//array_map("json2array",$file->lines());
     }

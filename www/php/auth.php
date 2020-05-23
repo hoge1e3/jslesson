@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__."/../config/config.php";
 require_once __DIR__."/fs/NativeFS.php";
-require_once __DIR__."/json.php";
 require_once __DIR__."/MySession.php";
 require_once __DIR__."/fs/AuthInfo.php";
 require_once __DIR__."/fs/Permission.php";

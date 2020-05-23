@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__."/../json.php";
+
 class SFile{
     private $_path, $fs;
     public function __construct($fs, $path) {
@@ -151,7 +151,7 @@ class SFile{
         return PathUtil::fixSep($res);
     }
     public function getObj() {
-        return json_decode($this->getText());
+        return json_decode($this->getText(), JSON_OBJECT_AS_ARRAY);
     }
     public function setObj($obj) {
         return $this->setText(json_encode($obj));

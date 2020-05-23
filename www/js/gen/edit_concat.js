@@ -15469,14 +15469,15 @@ define('SocializeDialog',['require','exports','module','UI','ctrl'],function (re
     }
     function NotePopup(note) {
         note.favsHaving=note.favsHaving||0;
-        const favButton=UI("span",{on:{click:toggleFav}},"❤");
+        const favButton=UI("span",{on:{click:toggleFav},css:{cursor:"pointer"}},"❤");
         if (note.favByMyself) favButton.addClass("faved");
         const favCount=UI("span",note.favsHaving||"0");
-        const closeButton=UI("span",{on:{click:hide}},"x");
-        const repButton=UI("span",{on:{click:showReplies}},"💭");
+        const closeButton=UI("span",{on:{click:hide},css:{cursor:"pointer"}},"x");
+        const repButton=UI("span",{on:{click:showReplies},css:{cursor:"pointer"}},"💭");
         const repCount=UI("span",note.repliesHaving||"0");
+        const SPC=["span",{css:{padding:"5px"}}];
 
-        const like=UI("span",repButton, repCount, favButton, favCount, closeButton).css({float:"right"});
+        const like=UI("span",SPC,repButton, repCount, SPC,favButton, favCount, SPC,closeButton).css({float:"right"});
         const elem=UI("div",{class:"socializePopup"},note.content,like).
         appendTo("body");
         let at,bottomMax;
@@ -15667,7 +15668,8 @@ define('SocializeDialog',['require','exports','module','UI','ctrl'],function (re
     module.exports=(ide)=>{
         const elem=UI("div",{title:"についてのノート"},
             ["input", {$var:"cont", size:60,on:{enterkey:send}}],
-            ["button", {$var:"OKButton", on:{click: send}},"送信"]
+            ["button", {$var:"OKButton", on:{click: send}},"送信"],
+            ["a",{$var:"gotfavs",href:ctrl.url("Note/myNotes"),target:"notes"},"獲得♥:"]
         );
         const vars=elem.$vars;
         vars.cont.on("focus",()=>focusing=true);
@@ -15730,7 +15732,7 @@ define('SocializeDialog',['require','exports','module','UI','ctrl'],function (re
                 }
             }
             loop();
-
+            updateFavs();
             /*const coms=await ctrl.get("Note/get",{file:filePath});
             console.log("coms",coms);
             for (let com of coms) {
@@ -15740,8 +15742,16 @@ define('SocializeDialog',['require','exports','module','UI','ctrl'],function (re
             }*/
         }
         function show(f) {
-            elem.dialog({width:800,height:100,position: { my: "center bottom", at: "center bottom"},});
+            elem.dialog({
+                width:800,height:100,
+                position: { my: "center bottom", at: "center bottom"},
+                close: ()=>NotePopup.clear()
+            });
             if (f) changeFile(f);
+        }
+        async function updateFavs() {
+            const res=await ctrl.get("Note/myNotes",{stats:1});
+            vars.gotfavs.text("獲得♥:"+res.favs);
         }
         return {changeFile,show};
     };
@@ -16057,6 +16067,7 @@ function ready() {
             if (r.useAssignment==="yes") {
                 Menu.appendMain({after:"#save",label:"提出",id:"submit",action:submit});
             }
+            disableNote=!!r.disableNote;
         });
         showDistMenu();
         Menu.appendMain({label:"使用方法",id:"openHelp"});
@@ -16493,7 +16504,7 @@ function ready() {
         var curHTMLFile=curFiles[0];
         var curLogicFile=curFiles[1];
 	    window.sendResult=function(resDetail, lang){
-            lang=lang||"C";
+            lang=lang||"c";
             //console.log("sendResult",resDetail,lang);
             logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Run",resDetail,langList[lang]);
         };
@@ -16713,6 +16724,7 @@ function ready() {
     setInterval(watchModified,1000);
     var curDOM;
     const socializeDialog=SocializeDialog(ide);
+    let disableNote;
     function open(f) {
 	// do not call directly !!  it doesnt change fl.curFile. use fl.select instead
         A.is(f,"SFile");
@@ -16783,7 +16795,7 @@ function ready() {
             }
         }).catch(DU.E);
         $("#curFileLabel").text(f.truncExt());
-        socializeDialog.show(inf.file);
+        if (disableNote===false) socializeDialog.show(inf.file);
     }
     root.d=function () {
         root.Tonyu.currentProject.dumpJS.apply(this,arguments);
