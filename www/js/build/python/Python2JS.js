@@ -73,6 +73,11 @@ function (Visitor,IndentBuffer,context,PL) {
         forStmt: function (node) {
             this.printf("var %j;%nfor (%v of %v) %v", [",",node.vars],node.vars[0], node.set, node.do);
         },
+        listComprehension: function (node) {
+            const vn=node.vars[0];
+            this.printf("%s.listComprehension(%s=>%v, %v)",
+                       PYLIB, vn, node.elem, node.set);
+        },
         letStmt: function (node) {
             if (this.anon.get(node).needVar) {
                 this.printf("var ");
