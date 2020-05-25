@@ -75,6 +75,11 @@ define(function (require,exports,module) {
         for (let x in iter) res.push(x);
         return res;
     };
+    PL.listComprehension=(elem, gen)=>{
+        const res=[];
+        for (let e of gen) res.push(elem(e));
+        return res;
+    };
     PL.str=function (s) {
         //  s==false
         if (s!=null && s.__str__) return s.__str__();

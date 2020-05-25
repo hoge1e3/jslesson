@@ -223,6 +223,17 @@ const vdef={
             this.visit(node.do);
         });*/
     },
+    listComprehension: function (node) {
+        //console.log("forStmt", node);
+        var loopVars=node.vars;
+        this.visit(node.set);
+        this.newScope(() => {
+            for(let loopVar of loopVars){
+                this.addScope(loopVar,{kind:"local",node:loopVar});
+            }
+            this.visit(node.elem);
+        });
+    },
     infixr: function(node) {
         // node.left node.op node.right
         this.visit(node.left);
