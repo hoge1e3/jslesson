@@ -144,7 +144,7 @@ function pdo_uniqID($table, $column) {
     $count=$cr->c;
     $uid=UniqID::find(function ($id) use($table, $column) {
         return pdo_select1("select * from `$table` where `$column`=?", $id);
-    },$count*2+10,0);
+    },$count*2+10,1);
     return $uid;
 }
 class RecordIterator implements Iterator

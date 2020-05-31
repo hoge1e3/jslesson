@@ -32,7 +32,7 @@ class Published {
             $urlU=$ur->url;
         } else {
             $urlU=UniqID::find(function ($url) use($classID) {
-                return pdo_select1("select * from pub_user where url=? and class=?", $url, $classID);
+                return pdo_select1("select * from pub_user where url=? and class=?", "$url/", $classID);
             },500,100);
             $urlU.="/";
             pdo_insert("pub_user",array("url"=>$urlU, "class"=>$classID, "user"=>$userName, "project"=>$projectName));
