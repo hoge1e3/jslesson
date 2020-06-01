@@ -37,6 +37,10 @@ function (Visitor,IndentBuffer,context,PL) {
                 //this.printf("var %s=%s.import('%v');",node.name,PYLIB,node.name);
             }//this.printf("%n");
         },
+        fromImportStmt: function (node) {
+            var url=this.options.pyLibPath+"/py_"+node.name+".js";
+            this.printf("var {%j}=require('%s').install(%s);", [",",node.localNames], url, PYLIB);
+        },
         exprStmt: function (node) {
             this.printf("%v;",node.expr);
         },
@@ -67,17 +71,50 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("else %v",node.then);
         },
         forStmt: function (node) {
-            this.printf("var %v;%nfor (%v of %v) %v", node.var,node.var, node.set, node.do);
+            this.printf("var %j;%nfor (%v of %v) %v", [",",node.vars],node.vars[0], node.set, node.do);
+        },
+        listComprehension: function (node) {
+            const vn=node.vars[0];
+            this.printf("%s.listComprehension(%s=>%v, %v)",
+                       PYLIB, vn, node.elem, node.set);
         },
         letStmt: function (node) {
             if (this.anon.get(node).needVar) {
                 this.printf("var ");
             }
-            this.visit(node.left);
-            this.printf("=");
-            this.visit(node.right);
-            this.printf(";");
-            //this.printf("%n");
+            console.log("NODEL",node.left);//lvallist
+            const firstBody=node.left.body && node.left.body[0];
+            const io=PL.iops[node.op+""];
+            if (firstBody &&
+                firstBody.type==="postfix" &&
+                firstBody.op.type==="index") {
+                // TODO: [x[5],y]=[2,3]  -> x.__setitem__(5,2), y=3
+                const object=firstBody.left;
+                const index=firstBody.op;
+                const value=node.right;
+                console.log("NODEL2",object,index);
+                if (io) {
+                    this.printf("%v.__setitem__(%v, "+
+                        "%s.wrap( %v.__getitem__(%v) ).__%s__(%v)"+
+                    ");",
+                        object, index.body,
+                        PYLIB, object, index.body, io, value
+                    );
+                } else {
+                    this.printf("%v.__setitem__(%v, %v);",object, index.body,value );
+                }
+            } else if (io) {
+                const value=node.right;
+                this.printf("%v=%s.wrap(%v).__%s__(%v)" ,
+                node.left, PYLIB, node.left, io, value);
+            } else {
+                //if (node.left.type)
+                this.visit(node.left);
+                this.printf("=");
+                this.visit(node.right);
+                this.printf(";");
+                //this.printf("%n");
+            }
         },
         globalStmt: function (node) {},
         printStmt: function (node) {
@@ -123,7 +160,8 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         index: function (node) {
             for (let b of node.body) {
-                this.printf("[%v]",b);
+                this.printf(".__getitem__(%v)",b);
+                //this.printf("[%v]",b);
             }
         },
         block: function (node) {
@@ -222,6 +260,10 @@ function (Visitor,IndentBuffer,context,PL) {
             }
             this.printf("%s",s);
         },
+        literal3: function (node) {
+            var cont=node.text.substring(3,node.text.length-3);
+            this.printf("%s",JSON.stringify(cont));
+        },
         True: function () {this.printf("true");},
         False: function () {this.printf("false");},
     };
@@ -277,7 +319,11 @@ function (Visitor,IndentBuffer,context,PL) {
         v.visit(node);
         if (options.genReqJS) {
             v.printf("%}});%n");
-            v.printf("requirejs(['__main__'],function(){});%n");
+            const SEND_LOG=`
+            if (window.parent && window.parent.sendResult) {
+                window.parent.sendResult($("#output").text(),"py");
+            }`;
+            v.printf("requirejs(['__main__'],function(){%s});%n",SEND_LOG);
         }
         //console.log("pgen res",buf.buf);
         return buf.buf;

@@ -6,7 +6,7 @@ builtins.push("open");
 const importable={
     datetime:{server:true},
     random:{browser:true,server:true},
-    math:{server:true},
+    math:{browser:true, server:true},
     //jp:true,
     //fs:{wrapper:true,server:true},
     re:{server:true},
@@ -18,6 +18,7 @@ const importable={
     numpy:{wrapper:true,server:true},
     os:{wrapper:true,server:true}
 };
+
 //-----
 class ScopeInfo {
     constructor(scope,name,kind,declarator) {
@@ -36,7 +37,8 @@ const vdef={
     },
     importStmt: function (node) {
         const nameHead=node.name[0];
-        if (!importable[nameHead]) {
+        this.checkImportable(nameHead);
+        /*if (!importable[nameHead]) {
             this.error(nameHead+" はインポートできません",nameHead);
         }
         if (this.options.runAt && !importable[nameHead][this.options.runAt]) {
@@ -45,8 +47,15 @@ const vdef={
             if (importable[nameHead].browser) hint="(「ブラウザで実行」するとインポートできます)．";
             if (importable[nameHead].server) hint="(「サーバで実行」するとインポートできます)．";
             this.error(nameHead+" はインポートできません"+hint,nameHead);
-        }
+        }*/
         this.addScope(node.alias || nameHead,{kind:"module",vtype:importable[nameHead],node});
+    },
+    fromImportStmt: function (node) {
+        const nameHead=node.name[0];
+        this.checkImportable(nameHead);
+        for (let localName of node.localNames) {
+            this.addScope(localName,{kind:"local",localName});
+        }
     },
     classdef: function (node) {
         //console.log("classDef",node);
@@ -203,14 +212,27 @@ const vdef={
     },
     forStmt: function (node) {
         //console.log("forStmt", node);
-        var loopVar=node.var;
+        var loopVars=node.vars;
         this.visit(node.set);
-        this.addScope(loopVar,{kind:"local",node:loopVar});
+        for(let loopVar of loopVars){
+          this.addScope(loopVar,{kind:"local",node:loopVar});
+        }
         this.visit(node.do);
         /*this.newScope(()=>{
             this.addScope(loopVar,{type:"local"});
             this.visit(node.do);
         });*/
+    },
+    listComprehension: function (node) {
+        //console.log("forStmt", node);
+        var loopVars=node.vars;
+        this.visit(node.set);
+        this.newScope(() => {
+            for(let loopVar of loopVars){
+                this.addScope(loopVar,{kind:"local",node:loopVar});
+            }
+            this.visit(node.elem);
+        });
     },
     infixr: function(node) {
         // node.left node.op node.right
@@ -294,6 +316,9 @@ const vdef={
     "literal": function (node) {
 
     },
+    "literal3": function (node) {
+
+    },
     "returnStmt": function (node) {
         this.visit(node.expr);
     },
@@ -353,8 +378,24 @@ const Semantics= {
             //e.noTrace=true;
             throw e;
         };
+        v.checkImportable=function (nameHead) {
+            //const nameHead=node.name[0];
+            if (!importable[nameHead]) {
+                this.error(nameHead+" はインポートできません",nameHead);
+            }
+            if (this.options.runAt && !importable[nameHead][this.options.runAt]) {
+                let hint="．";
+                //console.log("IMP",node);
+                if (importable[nameHead].browser) hint="(「ブラウザで実行」するとインポートできます)．";
+                if (importable[nameHead].server) hint="(「サーバで実行」するとインポートできます)．";
+                this.error(nameHead+" はインポートできません"+hint,nameHead);
+            }
+        };
         v.preScanDefs=function (stmtList) {
             for (let node of stmtList) {
+                if (node.type==="globalStmt") {
+                    v.visit(node);
+                }
                 if (node.type==="define") {
                     this.addScope(node.name,{kind:"function",node});
                 }

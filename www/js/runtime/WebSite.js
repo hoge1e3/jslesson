@@ -6,6 +6,12 @@ define([], function () {
 	}
 	var loc=document.location.href;
 	var WS=window.WebSite={};
+	WS.builtinAssetNames={
+		"base.png":{name:"$pat_base", url: "${runtime}images/base.png", pwidth:32, pheight:32},
+		"Sample.png":{name:"$pat_sample", url: "${runtime}images/Sample.png"},
+		"neko.png":{name:"$pat_neko", url: "${runtime}images/neko.png", pwidth:32, pheight:32},
+		"mapchip.png":{name:"$pat_mapchip", url: "${runtime}images/mapchip.png", pwidth:32, pheight:32}
+	};
 	// from https://w3g.jp/blog/js_browser_sniffing2015
 	var u=window.navigator.userAgent.toLowerCase();
 	WS.tablet=(u.indexOf("windows") != -1 && u.indexOf("touch") != -1)
@@ -61,6 +67,7 @@ define([], function () {
 			"images/sound_m4a.png":WS.runtime+"images/sound_m4a.png",
 			"images/sound_mid.png":WS.runtime+"images/sound_mid.png",
 			"images/sound_wav.png":WS.runtime+"images/sound_wav.png",
+			"images/sound_mzo.png":WS.runtime+"images/sound_mzo.png",
 			"images/ecl.png":WS.runtime+"images/ecl.png"
 	};
 	WS.compiledKernel=WS.runtime+"/lib/tonyu/kernel.js";
@@ -72,5 +79,17 @@ define([], function () {
 		}
 	}*///DELJSL
 	WS.tonyuKernel=WS.tonyuHome+"Kernel/";
+	setDefaultResource(WS);
+	function setDefaultResource(WebSite) {
+		WebSite.defaultResource={
+	       images:[
+	          {name:"$pat_base", url: "images/base.png", pwidth:32, pheight:32},
+	          {name:"$pat_sample", url: "images/Sample.png"},
+	          {name:"$pat_neko", url: "images/neko.png", pwidth:32, pheight:32},
+	          {name:"$pat_mapchip", url: "images/mapchip.png", pwidth:32, pheight:32}
+	       ],
+	       sounds:[]
+	    };
+	}
 	return WS;
 });

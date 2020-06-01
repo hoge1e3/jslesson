@@ -62,10 +62,20 @@ class BAClass{
         }
         return json_decode($c[0]["options"]);
     }
+    function getOption($key) {
+        $opts=$this->getOptions();
+        if (!isset($opts->{$key})) return null;
+        return $opts->{$key};
+    }
     function setOptions($opts){
         $pdo=pdo();
         $sth=$pdo->prepare("update class set options = ? where id = ?");;
         $sth->execute(array(json_encode($opts),$this->id));
+    }
+    function setOption($key, $value) {
+        $opts=$this->getOptions();
+        $opts->{$key}=$value;
+        $this->setOptions($opts);
     }
     function setPasswordPolicy($p){
         $opts=$this->getOptions();

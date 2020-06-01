@@ -1,8 +1,10 @@
 // This is kowareta! because r.js does not generate module name:
 //   define("FSLib",[], function () { ...
-//(function (global) {
-//var useGlobal=(typeof global.define!="function");
-//var define=(useGlobal ? define=function(_,f){f();} : global.define);
+/*
+(function (d,f) {
+module.exports=f();
+}) 
+*/
 define([],function () {
     var define,requirejs;
 	var R={};
@@ -337,6 +339,12 @@ PathUtil={
     AbsDir:AbsDir,
     SEP: SEP,
     endsWith: endsWith, startsWith:startsWith,
+    isChildOf: function(child, parent) {
+        return this.startsWith( this.normalize(child), this.normalize(parent));
+    },
+    normalize: function (path) {
+        return this.fixSep(path,"/").replace(/\/+$/,"/");
+    },
     hasDriveLetter: function (path) {
         return driveLetter.exec(path);
     },
@@ -878,6 +886,11 @@ function (extend, P, M,assert,DU){
             // succ : [type],
             stub("getContent");
         },
+        size: function (path) {
+            var c=this.getContent(path,{type:ArrayBuffer});
+            var l=c.toBin().byteLength;
+            return l;
+        },
         getContentAsync: function (path, options) {
             if (!this.supportsSync()) stub("getContentAsync");
             return DU.resolve(this.getContent.apply(this,arguments));
@@ -1191,7 +1204,7 @@ function privatize(o){
     return res;
 }
 function extend(d,s) {
-    for (var i in (s||{})) {d[i]=s[i];} 
+    for (var i in (s||{})) {d[i]=s[i];}
     return d;
 }
 return {
@@ -1210,7 +1223,7 @@ return {
 * License : https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md (MIT)
 * source  : http://purl.eligrey.com/github/FileSaver.js
 */
-
+define('FileSaver',[],function (){
 
 // The one and only way of getting global scope in all environments
 // https://stackoverflow.com/q/3277182/1008999
@@ -1365,8 +1378,8 @@ _global.saveAs = saveAs.saveAs = saveAs
 if (typeof module !== 'undefined') {
   module.exports = saveAs;
 }
-;
-define("FileSaver", function(){});
+return saveAs;
+});
 
 define('Content',["assert","Util","FileSaver"],function (assert,Util,saveAs) {
     var Content=function () {};
@@ -1413,7 +1426,7 @@ define('Content',["assert","Util","FileSaver"],function (assert,Util,saveAs) {
         } else if (bin && Content.isBuffer(bin.buffer)) {
             // in node.js v8.9.1 ,
             ///  bin is Buffer, bin.buffer is ArrayBuffer
-            //   and bin.buffer is content of different file(memory leak?) 
+            //   and bin.buffer is content of different file(memory leak?)
             b.bufType="array1";
             b.arrayBuffer=bin.buffer;
         } else {
@@ -1708,18 +1721,25 @@ define('Content',["assert","Util","FileSaver"],function (assert,Util,saveAs) {
     return Content;
 });
 
+/*global process, global, Buffer, requirejs, require*/
 define('NativeFS',["FSClass","assert","PathUtil","extend","Content"],
         function (FS,A,P,extend,Content) {
-    var available=(typeof process=="object"/* && process.__node_webkit*/);
-    if (!available) {
+    var assert=A,fs;
+    const requireTries=[
+        ()=>require("fs"),()=>requirejs.nodeRequire("fs"),()=>global.require("fs")
+    ];
+    for (let fsf of requireTries) {
+        try {
+            fs=fsf();
+            fs.existsSync('test.txt');
+            process.cwd();// fails here in NW.js Worker( fs is OK, process is absent)
+            break;
+        } catch(e){fs=null;}
+    }
+    if (!fs) {
         return function () {
             throw new Error("This system not support native FS");
         };
-    }
-    var assert=A;
-    var fs=require("fs");
-    if (!fs) {
-        fs=requirejs.nodeRequire("fs");
     }
     var NativeFS=function (rootPoint) {
         if (rootPoint) {
@@ -1730,8 +1750,8 @@ define('NativeFS',["FSClass","assert","PathUtil","extend","Content"],
     var hasDriveLetter=P.hasDriveLetter(process.cwd());
     NativeFS.available=true;
     var SEP=P.SEP;
-    var json=JSON; // JSON changes when page changes, if this is node module, JSON is original JSON
-    var Pro=NativeFS.prototype=new FS;
+    //var json=JSON; // JSON changes when page changes, if this is node module, JSON is original JSON
+    var Pro=NativeFS.prototype=new FS();
     Pro.toNativePath = function (path) {
         // rootPoint: on NativePath   C:/jail/
         // mountPoint: on VirtualFS   /mnt/natfs/
@@ -1758,14 +1778,16 @@ define('NativeFS',["FSClass","assert","PathUtil","extend","Content"],
     NativeFS.prototype.inMyFS=function (path) {
         //console.log("inmyfs",path);
         if (this.mountPoint) {
-            return P.startsWith(path, this.mountPoint)
+            return P.startsWith(path, this.mountPoint);
         } else {
 //            console.log(path, hasDriveLetter , P.hasDriveLetter(path));
             return !( !!hasDriveLetter ^ !!P.hasDriveLetter(path));
         }
     };
+    function E(r){return r;}
     FS.delegateMethods(NativeFS.prototype, {
         getReturnTypes: function(path, options) {
+            E(path,options);
             assert.is(arguments,[String]);
             return {
                 getContent: ArrayBuffer, opendir:[String]
@@ -1781,6 +1803,11 @@ define('NativeFS',["FSClass","assert","PathUtil","extend","Content"],
             } else {*/
                 return Content.bin( fs.readFileSync(np) , this.getContentType(path));
             //}
+        },
+        size: function(path) {
+            var np=this.toNativePath(path);
+            var st=fs.statSync(np);
+            return st.size;
         },
         setContent: function (path,content) {
             A.is(arguments,[P.Absolute,Content]);
@@ -1813,12 +1840,13 @@ define('NativeFS',["FSClass","assert","PathUtil","extend","Content"],
             return s;
         },
         setMetaInfo: function(path, info, options) {
-
+            E(path, info, options);
             //options.lastUpdate
 
             //TODO:
         },
         isReadOnly: function (path) {
+            E(path);
             // TODO:
             return false;
         },
@@ -1828,6 +1856,7 @@ define('NativeFS',["FSClass","assert","PathUtil","extend","Content"],
             return fs.statSync(np);
         },
         mkdir: function(path, options) {
+            options=options||{};
             assert.is(arguments,[P.Absolute]);
             if (this.exists(path)){
                 if (this.isDir(path)) {
@@ -1873,6 +1902,7 @@ define('NativeFS',["FSClass","assert","PathUtil","extend","Content"],
         // mv: is Difficult, should check dst.fs==src.fs
         //     and both have not subFileSystems
         exists: function (path, options) {
+            options=options||{};
             var np=this.toNativePath(path);
             return fs.existsSync(np);
         },
@@ -2461,14 +2491,9 @@ function (extend,A,P,Util,Content,FSClass,saveAs,DU) {
 
 var SFile=function (rootFS, path) {
     A.is(path, P.Absolute);
-    //A(fs && fs.getReturnTypes, fs);
     this._path=path;
     this.rootFS=rootFS;
     this.fs=rootFS.resolveFS(path);
-    /*this.act={};// path/fs after follwed symlink
-    this.act.path=this.fs.resolveLink(path);
-    this.act.fs=rootFS.resolveFS(this.act.path);
-    A.is(this.act, {fs:FSClass, path:P.Absolute});*/
     if (this.isDir() && !P.isDir(path)) {
         this._path+=P.SEP;
     }
@@ -2476,14 +2501,14 @@ var SFile=function (rootFS, path) {
 SFile.is=function (path) {
     return path && typeof (path.isSFile)=="function" && path.isSFile();
 };
-function getPath(f) {
+/*function getPath(f) {
     if (SFile.is(f)) {
         return f.path();
     } else {
         A.is(f,P.Absolute);
         return f;
     }
-}
+}*/
 SFile.prototype={
     isSFile: function (){return true;},
     setPolicy: function (p) {
@@ -2491,7 +2516,7 @@ SFile.prototype={
         this.policy=p;
         return this._clone();
     },
-    getPolicy: function (p) {
+    getPolicy: function (/*p*/) {
         return this.policy;
     },
     _clone: function (){
@@ -2676,12 +2701,12 @@ SFile.prototype={
         if (ct!==null && !ct.match(/^text/) && Content.looksLikeDataURL(t)) {
             // bad knowhow: if this is a binary file apparently, convert to URL
             return DU.throwNowIfRejected(this.setContent(Content.url(t)));
-            return DU.resolve(this.act.fs.setContent(this.act.path, Content.url(t)));
+            //return DU.resolve(this.act.fs.setContent(this.act.path, Content.url(t)));
         } else {
             // if use fs.setContentAsync, the error should be handled by .fail
             // setText should throw error immediately (Why? maybe old style of text("foo") did it so...)
             return DU.throwNowIfRejected(this.setContent(Content.plainText(t)));
-            return DU.resolve(this.act.fs.setContent(this.act.path, Content.plainText(t)));
+            //return DU.resolve(this.act.fs.setContent(this.act.path, Content.plainText(t)));
         }
     },
     appendText:function (t) {
@@ -2702,20 +2727,17 @@ SFile.prototype={
         if (this.isDir()) {
             throw new Error("Cannot write to directory: "+this.path());
         }
+        // why setContentAsync? AsyncでもDU.resolveはsyncをサポートしていればsyncでやってくれる...はず，Promiseだと遅延するからだめ．今までJQばっかりだったから問題が起きていなかった．
+        // なので，fs2/promise.jsを追加．
         return this.act.fs.setContentAsync(this.act.path,c);
     },
 
     getText:function (f) {
     	if (typeof f==="function") {
-    		var t=this;
+    		//var t=this;
     	    return this.getContent(forceText).then(f);
     	}
         return forceText(this.act.fs.getContent(this.act.path));
-        /*if (this.isText()) {
-            return this.act.fs.getContent(this.act.path).toPlainText();
-        } else {
-            return this.act.fs.getContent(this.act.path).toURL();
-        }*/
         function forceText(c) {
 	    	//if (t.isText()) {
             try {
@@ -2787,7 +2809,7 @@ SFile.prototype={
     copyTo: function (dst, options) {
         A(dst && dst.isSFile(),dst+" is not a file");
         var src=this;
-        var options=options||{};
+        options=options||{};
         var srcIsDir=src.isDir();
         var dstIsDir=dst.isDir();
         if (!srcIsDir && dstIsDir) {
@@ -2818,7 +2840,7 @@ SFile.prototype={
                 return DU.resolve(r).then(function () {
                     return dstf.copyFrom(s, options);
                 });
-            });
+            },options);
         }
         //file.text(src.text());
         //if (options.a) file.metaInfo(src.metaInfo());
@@ -2845,14 +2867,6 @@ SFile.prototype={
         A.is(this.path(),P.Dir);
         return this;
     },
-    /*files:function (f,options) {
-        var dir=this.assertDir();
-        var res=[];
-        this.each(function (f) {
-            res.add(f);
-        },options);
-        return res;
-    },*/
     each:function (f,options) {
         var dir=this.assertDir();
         return dir.listFilesAsync(options).then(function (ls) {
@@ -2876,7 +2890,7 @@ SFile.prototype={
     _listFiles:function (options,async) {
         A(options==null || typeof options=="object");
         var dir=this.assertDir();
-        var path=this.path();
+        //var path=this.path();
         var ord;
         options=dir.convertOptions(options);
         if (!ord) ord=options.order;
@@ -2901,31 +2915,9 @@ SFile.prototype={
     },
     listFilesAsync:function (options) {
         return this._listFiles(options,true);
-        /*
-        A(options==null || typeof options=="object");
-        var dir=this.assertDir();
-        var path=this.path();
-        var ord;
-        options=dir.convertOptions(options);
-        if (!ord) ord=options.order;
-        return this.act.fs.opendirAsync(this.act.path, options).
-        then(function (di) {
-            var res=[];
-            for (var i=0;i<di.length; i++) {
-                var name=di[i];
-                //if (!options.includeTrashed && dinfo[i].trashed) continue;
-                var f=dir.rel(name);
-                if (options.excludesF(f) ) continue;
-                res.push(f);
-            }
-            if (typeof ord=="function" && res.sort) res.sort(ord);
-            return res;
-        });*/
     },
     listFiles:function (options) {
         return this._listFiles(options,false);
-        /*var args=Array.prototype.slice.call(arguments);
-        return DU.assertResolved(this.listFilesAsync.apply(this,args));*/
     },
     ls:function (options) {
         A(options==null || typeof options=="object");
@@ -2940,7 +2932,7 @@ SFile.prototype={
     },
     convertOptions:function(o) {
         var options=Util.extend({},o);
-        var dir=this.assertDir();
+        /*var dir=*/this.assertDir();
         var pathR=this.path();
         var excludes=options.excludes || {};
         if (typeof excludes==="function") {
@@ -2990,7 +2982,7 @@ SFile.prototype={
     },
     setBlob: function (blob) {
         var t=this;
-        return DU.promise(function (succ,err) {
+        return DU.promise(function (succ/*,err*/) {
             var reader = new FileReader();
             reader.addEventListener("loadend", function() {
                 // reader.result contains the contents of blob as a typed array
@@ -2999,9 +2991,25 @@ SFile.prototype={
             reader.readAsArrayBuffer(blob);
         });
     },
+    size: function (f) {
+        if (!f) {
+            if (!this.isDir()) {
+                return this.act.fs.size(this.act.path);
+                //return this.getBytes().byteLength;
+            } else {
+                var sum=0;
+                this.each(function (f) {
+                    sum+=f.size();
+                });
+                return sum;
+            }
+        } else {
+            //TODO: async
+        }
+    },
     download: function () {
         if (this.isDir()) throw new Error(this+": Download dir is not support yet. Use 'zip' instead.");
-        saveAs(this.getBlob(),this.name());;
+        saveAs(this.getBlob(),this.name());
     },
     err: function () {
         var a=Array.prototype.slice.call(arguments);
@@ -3017,9 +3025,9 @@ SFile.prototype={
         var req={base:base.path(),data:data};
         return req;
     },
-    importFromObject: function (data, options) {
+    importFromObject: function (data/*, options*/) {
         if (typeof data==="string") data=JSON.parse(data);
-        var data=data.data;
+        data=data.data;
         for (var k in data) {
             this.rel(k).text(data[k]);
         }
@@ -3137,7 +3145,7 @@ define('RootFS',["assert","FSClass","PathUtil","SFile"], function (assert,FS,P,S
             notifyChanged: function (path,metaInfo) {
                 if (!this.observers) return;
                 this.observers.forEach(function (ob) {
-                    if (P.startsWith(path,ob.path)) {
+                    if (P.isChildOf(path,ob.path)) {
                         ob.handler(path,metaInfo);
                     }
                 });
@@ -3182,7 +3190,7 @@ function (SFile,/*JSZip,*/fsv,Util,DU) {
                         });
                     }
                 });
-            });
+            },options);
         }
         return loop(jszip, dir).then(function () {
             return DU.resolve(jszip.generateAsync({
@@ -3261,13 +3269,323 @@ function (SFile,/*JSZip,*/fsv,Util,DU) {
     return zip;
 });
 
-define('FS',["FSClass","NativeFS","LSFS", "WebFS", "PathUtil","Env","assert","SFile","RootFS","Content","zip","DeferredUtil"],
-        function (FSClass,NativeFS,LSFS,WebFS, P,Env,A,SFile,RootFS,Content,zip,DU) {
+/*(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+	(factory());
+}(this, (function () { 'use strict';*/
+// modified from https://github.com/taylorhakes/promise-polyfill/blob/master/dist/polyfill.js
+// if promise resolved immediately, it will run f of then(f)
+// P.resolve(5).then(e=>console.log(e)); console.log(3)  ->  show 5 3, while original is 3 5
+define('promise',[], function() {
+
+/**
+ * @this {Promise}
+ */
+function finallyConstructor(callback) {
+  var constructor = this.constructor;
+  return this.then(
+    function(value) {
+      // @ts-ignore
+      return constructor.resolve(callback()).then(function() {
+        return value;
+      });
+    },
+    function(reason) {
+      // @ts-ignore
+      return constructor.resolve(callback()).then(function() {
+        // @ts-ignore
+        return constructor.reject(reason);
+      });
+    }
+  );
+}
+
+// Store setTimeout reference so promise-polyfill will be unaffected by
+// other code modifying setTimeout (like sinon.useFakeTimers())
+var setTimeoutFunc = setTimeout;
+
+function isArray(x) {
+  return Boolean(x && typeof x.length !== 'undefined');
+}
+
+function noop() {}
+
+// Polyfill for Function.prototype.bind
+function bind(fn, thisArg) {
+  return function() {
+    fn.apply(thisArg, arguments);
+  };
+}
+
+/**
+ * @constructor
+ * @param {Function} fn
+ */
+function Promise(fn) {
+  if (!(this instanceof Promise))
+    throw new TypeError('Promises must be constructed via new');
+  if (typeof fn !== 'function') throw new TypeError('not a function');
+  /** @type {!number} */
+  this._state = 0;
+  /** @type {!boolean} */
+  this._handled = false;
+  /** @type {Promise|undefined} */
+  this._value = undefined;
+  /** @type {!Array<!Function>} */
+  this._deferreds = [];
+
+  doResolve(fn, this);
+}
+
+function handle(self, deferred) {
+  while (self._state === 3) {
+    self = self._value;
+  }
+  if (self._state === 0) {
+    self._deferreds.push(deferred);
+    return;
+  }
+  self._handled = true;
+  Promise._immediateFn(function() {
+    var cb = self._state === 1 ? deferred.onFulfilled : deferred.onRejected;
+    if (cb === null) {
+      (self._state === 1 ? resolve : reject)(deferred.promise, self._value);
+      return;
+    }
+    var ret;
+    try {
+      ret = cb(self._value);
+    } catch (e) {
+      reject(deferred.promise, e);
+      return;
+    }
+    resolve(deferred.promise, ret);
+  });
+}
+
+function resolve(self, newValue) {
+  try {
+    // Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
+    if (newValue === self)
+      throw new TypeError('A promise cannot be resolved with itself.');
+    if (
+      newValue &&
+      (typeof newValue === 'object' || typeof newValue === 'function')
+    ) {
+      var then = newValue.then;
+      if (newValue instanceof Promise) {
+        self._state = 3;
+        self._value = newValue;
+        finale(self);
+        return;
+      } else if (typeof then === 'function') {
+        doResolve(bind(then, newValue), self);
+        return;
+      }
+    }
+    self._state = 1;
+    self._value = newValue;
+    finale(self);
+  } catch (e) {
+    reject(self, e);
+  }
+}
+
+function reject(self, newValue) {
+  self._state = 2;
+  self._value = newValue;
+  finale(self);
+}
+
+function finale(self) {
+  if (self._state === 2 && self._deferreds.length === 0) {
+    Promise._immediateFn(function() {
+      if (!self._handled) {
+        Promise._unhandledRejectionFn(self._value);
+      }
+    });
+  }
+
+  for (var i = 0, len = self._deferreds.length; i < len; i++) {
+    handle(self, self._deferreds[i]);
+  }
+  self._deferreds = null;
+}
+
+/**
+ * @constructor
+ */
+function Handler(onFulfilled, onRejected, promise) {
+  this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
+  this.onRejected = typeof onRejected === 'function' ? onRejected : null;
+  this.promise = promise;
+}
+
+/**
+ * Take a potentially misbehaving resolver function and make sure
+ * onFulfilled and onRejected are only called once.
+ *
+ * Makes no guarantees about asynchrony.
+ */
+function doResolve(fn, self) {
+  var done = false;
+  try {
+    fn(
+      function(value) {
+        if (done) return;
+        done = true;
+        resolve(self, value);
+      },
+      function(reason) {
+        if (done) return;
+        done = true;
+        reject(self, reason);
+      }
+    );
+  } catch (ex) {
+    if (done) return;
+    done = true;
+    reject(self, ex);
+  }
+}
+
+Promise.prototype['catch'] = function(onRejected) {
+  return this.then(null, onRejected);
+};
+
+Promise.prototype.then = function(onFulfilled, onRejected) {
+  // @ts-ignore
+  var prom = new this.constructor(noop);
+
+  handle(this, new Handler(onFulfilled, onRejected, prom));
+  return prom;
+};
+
+Promise.prototype['finally'] = finallyConstructor;
+
+Promise.all = function(arr) {
+  return new Promise(function(resolve, reject) {
+    if (!isArray(arr)) {
+      return reject(new TypeError('Promise.all accepts an array'));
+    }
+
+    var args = Array.prototype.slice.call(arr);
+    if (args.length === 0) return resolve([]);
+    var remaining = args.length;
+
+    function res(i, val) {
+      try {
+        if (val && (typeof val === 'object' || typeof val === 'function')) {
+          var then = val.then;
+          if (typeof then === 'function') {
+            then.call(
+              val,
+              function(val) {
+                res(i, val);
+              },
+              reject
+            );
+            return;
+          }
+        }
+        args[i] = val;
+        if (--remaining === 0) {
+          resolve(args);
+        }
+      } catch (ex) {
+        reject(ex);
+      }
+    }
+
+    for (var i = 0; i < args.length; i++) {
+      res(i, args[i]);
+    }
+  });
+};
+
+Promise.resolve = function(value) {
+  if (value && typeof value === 'object' && value.constructor === Promise) {
+    return value;
+  }
+
+  return new Promise(function(resolve) {
+    resolve(value);
+  });
+};
+
+Promise.reject = function(value) {
+  return new Promise(function(resolve, reject) {
+    reject(value);
+  });
+};
+
+Promise.race = function(arr) {
+  return new Promise(function(resolve, reject) {
+    if (!isArray(arr)) {
+      return reject(new TypeError('Promise.race accepts an array'));
+    }
+
+    for (var i = 0, len = arr.length; i < len; i++) {
+      Promise.resolve(arr[i]).then(resolve, reject);
+    }
+  });
+};
+
+// Use polyfill for setImmediate for performance gains
+Promise._immediateFn = function (fn) {fn();};/*
+  // @ts-ignore
+  (typeof setImmediate === 'function' &&
+    function(fn) {
+      // @ts-ignore
+      setImmediate(fn);
+    }) ||
+  function(fn) {
+    setTimeoutFunc(fn, 0);
+  };
+*/
+
+Promise._unhandledRejectionFn = function _unhandledRejectionFn(/*err*/) {
+  if (typeof console !== 'undefined' && console) {
+    //console.warn('Possible Unhandled Promise Rejection:', err); // eslint-disable-line no-console
+  }
+};
+/** @suppress {undefinedVars} */
+/*
+var globalNS = (function() {
+  // the only reliable means to get the global object is
+  // `Function('return this')()`
+  // However, this causes CSP violations in Chrome apps.
+  if (typeof self !== 'undefined') {
+    return self;
+  }
+  if (typeof window !== 'undefined') {
+    return window;
+  }
+  if (typeof global !== 'undefined') {
+    return global;
+  }
+  throw new Error('unable to locate global object');
+})();
+
+if (!('Promise' in globalNS)) {
+  globalNS['Promise'] = Promise;
+} else if (!globalNS.Promise.prototype['finally']) {
+  globalNS.Promise.prototype['finally'] = finallyConstructor;
+}*/
+return Promise;
+});
+
+define('FS',["FSClass","NativeFS","LSFS", "WebFS", "PathUtil","Env","assert","SFile","RootFS","Content","zip","DeferredUtil","promise"],
+        function (FSClass,NativeFS,LSFS,WebFS, P,Env,A,SFile,RootFS,Content,zip,DU,PR) {
     var FS={};
     FS.assert=A;
     FS.Content=Content;
     FS.Class=FSClass;
     FS.DeferredUtil=DU;
+    if (!DU.config.useJQ) {
+        DU.external.Promise=PR;
+    }
     FS.Env=Env;
     FS.LSFS=LSFS;
     FS.NativeFS=NativeFS;
@@ -3308,12 +3626,13 @@ define('FS',["FSClass","NativeFS","LSFS", "WebFS", "PathUtil","Env","assert","SF
     FS.init=function (fs) {
         if (rootFS) return;
         if (!fs) {
-            if (typeof process=="object") {
+            if (NativeFS.available) {
                 fs=new NativeFS();
             } else if (typeof localStorage==="object") {
                 fs=new LSFS(localStorage);
             } else if (typeof importScripts==="function") {
                 // Worker
+                /* global self*/
                 self.addEventListener("message", function (e) {
                     var data=e.data;
                     if (typeof data==="string") {

@@ -170,27 +170,26 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
             return superMode;
         });
     }
-    p.addMenu=function (Menu) {
+    p.addMenu=async function (Menu) {
         var t=this;
-        checkSuperMode().then(function (superMode) {
-            if (superMode) return;
-            Menu.deleteMain("runMenu");
-            Menu.appendMain(
-                {label:"実行",id:"runPython",after:$("#fileMenu"),sub:
-                [
-                    {label:"ブラウザで実行(F9)",id:"runBrowser",action: ()=>{
-                        t.ide.run({runLocal:true});
-                        //$("#runBrowser").text("ブラウザで実行(F9)");
-                        //$("#runServer").text("サーバで実行");
-                    } } ,
-                    {label:"サーバで実行",id:"runServer",action: ()=>{
-                        t.ide.run({runLocal:false});
-                        //$("#runServer").text("サーバで実行(F9)");
-                        //$("#runBrowser").text("ブラウザで実行");
-                    } }
-                ]}
-            );
-        });
+        const superMode=await checkSuperMode();
+        if (superMode) return;
+        Menu.deleteMain("runMenu");
+        Menu.appendMain(
+            {label:"実行",id:"runPython",after:$("#fileMenu"),sub:
+            [
+                {label:"ブラウザで実行(F9)",id:"runBrowser",action: async ()=>{
+                    await t.ide.run({runLocal:true});
+                    //$("#runBrowser").text("ブラウザで実行(F9)");
+                    //$("#runServer").text("サーバで実行");
+                } } ,
+                {label:"サーバで実行",id:"runServer",action: async ()=>{
+                    await t.ide.run({runLocal:false});
+                    //$("#runServer").text("サーバで実行(F9)");
+                    //$("#runBrowser").text("ブラウザで実行");
+                } }
+            ]}
+        );
     };
     p.upload=function (pub) {
         return Sync.sync(this.dst,pub);

@@ -25,6 +25,7 @@ if (isset($argv[1]) && $argv[1]!="") {
     $qs=$_SERVER["QUERY_STRING"];
 }
 $action=preg_replace("/&.*/","",$qs);
+$action=preg_replace("/%2f/i","/",$action);
 
 if (isset($_POST["action"])) $action=$_POST["action"];
 if (preg_match("/=/",$action)) {

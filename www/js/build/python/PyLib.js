@@ -15,6 +15,7 @@ define(function (require,exports,module) {
         if (PL.import.libs[lib]) return PL.import.libs[lib];
         throw new Error("ライブラリ "+lib+" はインポートできません．(サーバで実行すると動作する可能性があります)");
     };
+    // It seems to be old: add to PythonSemantics and create runtime/lib/python/py_***.js
     PL.import.libs={
         random:{
             random: Math.random,
@@ -42,6 +43,7 @@ define(function (require,exports,module) {
             fabs:Math.abs.bind(Math),
             ceil:Math.ceil.bind(Math),
             floor:Math.floor.bind(Math),
+            sqrt:Math.sqrt.bind(Math),
         }
     };
     //PyX.install(PL);
@@ -67,7 +69,17 @@ define(function (require,exports,module) {
     };
     PL.len=function (s) {return s.length;};
     PL.float=function (s) {return s-0;};
-    PL.int=function (s) {return s-0;};
+    PL.int=function (s) {return parseInt(s-0);};
+    PL.list=(iter)=>{
+        const res=[];
+        for (let x in iter) res.push(x);
+        return res;
+    };
+    PL.listComprehension=(elem, gen)=>{
+        const res=[];
+        for (let e of gen) res.push(elem(e));
+        return res;
+    };
     PL.str=function (s) {
         //  s==false
         if (s!=null && s.__str__) return s.__str__();
@@ -106,6 +118,13 @@ define(function (require,exports,module) {
             if (s && s.__class__) return s.__class__;
             return "object";
         }
+    };
+    PL.isinstance=function (obj,klass) {
+        const ocl=obj && obj.__class__;
+        return !!ocl &&
+        (ocl===klass ||
+            PL.isinstance(Object.getPrototypeOf(ocl.prototype),klass)
+        );
     };
     PL.sorted=function (a) {
         return a.slice().sort();
@@ -159,7 +178,7 @@ define(function (require,exports,module) {
     PL.range=function (b,e,s=1) {
         if (e==null) {e=b;b=0;}
         var res=[];
-        for (;b<e;b+=s) res.push(b);
+        for (; s>0&&b<e || s<0&&b>e ;b+=s) res.push(b);
         return res;
     };
     PL.wrap=function (v) {
@@ -186,11 +205,19 @@ define(function (require,exports,module) {
         function addMethod(k) {
             var m=defs[k];
             if (typeof m==="function") {
-                res.prototype[k]=function () {
+                /*res.prototype[k]=function () {
                     var a=Array.prototype.slice.call(arguments);
                     a.unshift(this);
                     return m.apply(this,a);
-                };
+                }; ^ this cannot override in subclasses */
+                Object.defineProperty(res.prototype,k,{
+                    value: function () {
+                        var a=Array.prototype.slice.call(arguments);
+                        a.unshift(this);
+                        return m.apply(this,a);
+                    },
+                    enumerable: false
+                });
             } else {
                 res.prototype[k]=m;
             }
@@ -200,7 +227,9 @@ define(function (require,exports,module) {
         res.prototype.__class__=res;
         res.__str__=()=>`<class '__main__.${res.__name__}'>`;
         res.__bases__=PL.Tuple && PL.Tuple(parent?[parent]:[]);
-        for (var k in defs) addMethod(k);
+        for (var k in defs) {
+            if (defs.hasOwnProperty(k)) addMethod(k);
+        }
         return res;
     };
     PL.super=function(klass,self) {
@@ -236,6 +265,13 @@ define(function (require,exports,module) {
         }
     });
     PL.Tuple.__bases__=PL.Tuple([]);
+    PL.Slice=PL.class({
+        __init__:function (self, start,end, step=1) {
+            self.start=start;
+            self.end=end;
+            self.step=step;
+        },
+    });
     PL.invoke=function (self,name,args) {
         var m=self[name];
         if (typeof m==="function") return m.apply(self, args);
@@ -288,43 +324,25 @@ define(function (require,exports,module) {
     };
     //--- monkey patch
 
-    String.prototype.format=function (...args) {
-        const str=this;
-        const o={};
-        let i=0;
-        for (let a of args) {
-            if (a instanceof PL.Option) {
-                Object.assign(o, a );
-            } else {
-                o[i+""]=a;
-            }
-            i++;
-        }
-        i=0;
-        return str.replace(/{([0-9a-zA-Z_]*)}/g, (_,name)=>{
-            if (!name) {
-                return o[i++];
-            } else {
-                return o[name];
-            }
-        });
-    };
     PL.addMonkeyPatch=function (cl, methods) {
         var p=cl.prototype;
-        for (var k in methods) addMethod(k);
+        for (var k in methods) {
+            if (methods.hasOwnProperty(k)) addMethod(k);
+        }
         function addMethod(k) {
             var m=methods[k];
             Object.defineProperty(p,k,{
-                value: function () {
+                value: (k==="__class__"?m:function () {
                     var a=Array.prototype.slice.call(arguments);
                     a.unshift(this);
                     return m.apply(this,a);
-                },
+                }),
                 enumerable: false
             });
         }
     };
     PL.addMonkeyPatch(Object, {
+        __class__:Object,
         __getTypeName__: function (){return "<class object>";},
         __call__: function (self,...a) {
             //var a=Array.prototype.slice.call(arguments,1);
@@ -360,12 +378,20 @@ define(function (require,exports,module) {
         __delattr__: function (self,name) {
             delete self[name];
         },
+        __getitem__:function (self, key) {
+            return self[key];
+        },
+        __setitem__:function (self,key, value) {
+            self[key]=value;
+        }
         //____: function (self,other) { return selfother;},
     });
     PL.addMonkeyPatch(Number,{
+        __class__:Number,
         __getTypeName__: function (){return "<class number>";},
     });
     PL.addMonkeyPatch(String,{
+        __class__:String,
         __getTypeName__: function (){return "<class str>";},
         __mul__: function (self,other) {
             switch (typeof other) {
@@ -389,6 +415,27 @@ define(function (require,exports,module) {
                 throw new Error("文字列に文字列以外の値を+で追加できません．str()関数を使って変換してください．");
             }
             return Object.prototype.__add__.call(self,other);
+        },
+        format: function (self,...args) {
+            const str=self;
+            const o={};
+            let i=0;
+            for (let a of args) {
+                if (a instanceof PL.Option) {
+                    Object.assign(o, a );
+                } else {
+                    o[i+""]=a;
+                }
+                i++;
+            }
+            i=0;
+            return str.replace(/{([0-9a-zA-Z_]*)}/g, (_,name)=>{
+                if (!name) {
+                    return o[i++];
+                } else {
+                    return o[name];
+                }
+            });
         }
     });
     PL.addMonkeyPatch(Boolean,{
@@ -403,6 +450,7 @@ define(function (require,exports,module) {
         __getTypeName__: function (){return "<class function>";},
     });
     PL.addMonkeyPatch(Array, {
+        __class__:PL.list,
         append(self, ...args) {
             return self.push(...args);
         },
@@ -414,12 +462,28 @@ define(function (require,exports,module) {
         },
         __str__(self) {
             return "["+self.join(", ")+"]";
+        },
+        __getitem__:function (self, key) {
+            if (key<0) key=self.length+key;
+            if (key>=self.length) throw new Error("Index "+key+" is out of range");
+            return self[key];
+        },
+        __setitem__:function (self,key, value) {
+            if (key<0) key=self.length+key;
+            if (key>=self.length) throw new Error("Index "+key+" is out of range");
+            self[key]=value;
+        },
+        copy: function (self) {
+            return self.slice();
+        },
+        sorted: function (self) {
+            return self.slice().sort();
         }
     });
 
     //---
     PL.builtins=["range","input","str","int","float","len","type","quit","exit","sorted","abs",
-    "min","max",
+    "min","max","list","isinstance",
     "fillRect","setColor","setTimeout","clearRect","clear"];
     root.PYLIB=PL;
 

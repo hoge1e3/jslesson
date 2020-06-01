@@ -9,6 +9,9 @@ function (PP,S,G,J,PL,TError,jshint) {
             console.log(genj);
             var f=new jshint.Function(genj);
             console.log(f());
+            if (window.parent && window.parent.sendResult) {
+                window.parent.sendResult($("#output").text(),"py");                
+            }
         } catch(e) {
             if (e.node) {
                 throw TError(e.message,srcF,e.node.pos);

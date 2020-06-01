@@ -95,7 +95,7 @@ _global.fprintf=function fprintf() {
 _global.fscanf=function fscanf() {
 	var args=Array.prototype.slice.call(arguments);
 	var fp=args.shift();
-	if (!fp||!fp.isFP) throw new Error("fscanf: 第1引数がファイルではありません");
+    if (!fp||!fp.isFP) throw new Error("fscanf: 第1引数がファイルではありません");
 	if (fp.closed) throw new Error("fscanf: このファイルはすでに閉じられています");
 	if (fp.mode.indexOf("w")>=0) throw new Error("書き込み中のファイルにfscanfはできません");
 	var input;
@@ -309,7 +309,7 @@ function fillStr(str,n) {
             console.log(str.read());
             if (i>100) break;
         }*/
-        if (!str.read()) {
+        if (!z && !str.read()) {
             z=true;
         }
         if (z) {

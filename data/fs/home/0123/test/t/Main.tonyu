@@ -1,0 +1,6 @@
+x=100;
+y=200;
+new Button{top:300,onClick:\{
+        $sound.playSE($se_land); 
+        
+}};

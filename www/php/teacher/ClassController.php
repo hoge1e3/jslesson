@@ -98,7 +98,8 @@ class ClassController {
             $class->useAssignment($value);
             break;
             default:
-            die ("$name is not a option name");
+            $class->setOption($name, $value);
+            //die ("$name is not a option name");
         }
         redirect("Class/config");
     }

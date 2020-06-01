@@ -17,15 +17,28 @@ function (Visitor,IndentBuffer,assert) {
         importStmt: function (node) {
             const nameHead=node.name[0];
             const inf=this.importable[nameHead+""];
-            if (inf && inf.wrapper) {
+            const useWrapper=(inf && inf.wrapper);
+            const localName=node.alias || node.name;
+            this.printf("import %s%v", useWrapper?"_":"", node.name);
+            if (node.alias || useWrapper) {
+                this.printf(" as %v", localName);
+            }
+            /*if (inf && inf.wrapper) {
                 this.printf("import _%v",node.name);
                 if (node.alias) this.printf(" as %v",node.alias);
                 else this.printf(" as %v",node.name);
             } else {
                 this.printf("import %v",node.name);
                 if (node.alias) this.printf(" as %v",node.alias);
-            }
+            }*/
             //this.printf("%n");
+        },
+        fromImportStmt: function (node) {
+            const nameHead=node.name[0];
+            const inf=this.importable[nameHead+""];
+            const useWrapper=(inf && inf.wrapper);
+            this.printf("from %s%v import %j",useWrapper?"_":"",node.name,
+            [",", node.localNames]);
         },
         globalStmt: function (node) {
             this.printf("global %j",[",",node.names]);
@@ -57,11 +70,11 @@ function (Visitor,IndentBuffer,assert) {
             this.printf("else%v",node.then);
         },
         forStmt: function (node) {
-            this.printf("for %v in %v%v", node.var, node.set, node.do);
+            this.printf("for %j in %v%v", [",",node.vars], node.set, node.do);
         },
         letStmt: function (node) {
             this.visit(node.left);
-            this.printf("=");
+            this.printf("%s",node.op);
             this.visit(node.right);
             //this.printf("%n");
         },
@@ -158,7 +171,7 @@ function (Visitor,IndentBuffer,assert) {
     };
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
       ">","<","=",".",":","+","-","*","/","%","(",")",",",
-      "number","literal","and","or","True","False","None"];
+      "number","literal3","literal","and","or","True","False","None"];
     for (let ve of verbs) {
         vdef[ve]=function (node) {
             //console.log("verb",node);

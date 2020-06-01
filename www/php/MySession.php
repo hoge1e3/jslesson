@@ -25,8 +25,14 @@ class MySession {
         } while (pdo_select1("select id from mysession where id=?",$id));
         return $id;
     }
-    public static function get($key) {
+    public static function get() {
         self::start();
+        $a=func_get_args();
+        $key=$a[0];
+        if (count($a)===2) {
+            $default=$a[1];
+            if (!self::has($key)) return $default;
+        }
         return self::$data->{$key};
     }
     public static function has($key) {

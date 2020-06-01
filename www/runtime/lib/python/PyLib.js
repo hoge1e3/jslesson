@@ -23,6 +23,7 @@ define(function (require, exports, module) {
         if (PL.import.libs[lib]) return PL.import.libs[lib];
         throw new Error("ライブラリ " + lib + " はインポートできません．(サーバで実行すると動作する可能性があります)");
     };
+    // It seems to be old: add to PythonSemantics and create runtime/lib/python/py_***.js
     PL.import.libs = {
         random: {
             random: Math.random,
@@ -49,7 +50,8 @@ define(function (require, exports, module) {
         math: {
             fabs: Math.abs.bind(Math),
             ceil: Math.ceil.bind(Math),
-            floor: Math.floor.bind(Math)
+            floor: Math.floor.bind(Math),
+            sqrt: Math.sqrt.bind(Math)
         }
     };
     //PyX.install(PL);
@@ -80,7 +82,41 @@ define(function (require, exports, module) {
         return s - 0;
     };
     PL.int = function (s) {
-        return s - 0;
+        return parseInt(s - 0);
+    };
+    PL.list = function (iter) {
+        var res = [];
+        for (var x in iter) {
+            res.push(x);
+        }return res;
+    };
+    PL.listComprehension = function (elem, gen) {
+        var res = [];
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+            for (var _iterator = gen[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var e = _step.value;
+                res.push(elem(e));
+            }
+        } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                    _iterator.return();
+                }
+            } finally {
+                if (_didIteratorError) {
+                    throw _iteratorError;
+                }
+            }
+        }
+
+        return res;
     };
     PL.str = function (s) {
         //  s==false
@@ -134,6 +170,10 @@ define(function (require, exports, module) {
                 if (s && s.__class__) return s.__class__;
                 return "object";
         }
+    };
+    PL.isinstance = function (obj, klass) {
+        var ocl = obj && obj.__class__;
+        return !!ocl && (ocl === klass || PL.isinstance(Object.getPrototypeOf(ocl.prototype), klass));
     };
     PL.sorted = function (a) {
         return a.slice().sort();
@@ -194,7 +234,7 @@ define(function (require, exports, module) {
             e = b;b = 0;
         }
         var res = [];
-        for (; b < e; b += s) {
+        for (; s > 0 && b < e || s < 0 && b > e; b += s) {
             res.push(b);
         }return res;
     };
@@ -222,11 +262,19 @@ define(function (require, exports, module) {
         function addMethod(k) {
             var m = defs[k];
             if (typeof m === "function") {
-                _res.prototype[k] = function () {
-                    var a = Array.prototype.slice.call(arguments);
+                /*res.prototype[k]=function () {
+                    var a=Array.prototype.slice.call(arguments);
                     a.unshift(this);
-                    return m.apply(this, a);
-                };
+                    return m.apply(this,a);
+                }; ^ this cannot override in subclasses */
+                Object.defineProperty(_res.prototype, k, {
+                    value: function value() {
+                        var a = Array.prototype.slice.call(arguments);
+                        a.unshift(this);
+                        return m.apply(this, a);
+                    },
+                    enumerable: false
+                });
             } else {
                 _res.prototype[k] = m;
             }
@@ -239,8 +287,9 @@ define(function (require, exports, module) {
         };
         _res.__bases__ = PL.Tuple && PL.Tuple(parent ? [parent] : []);
         for (var k in defs) {
-            addMethod(k);
-        }return _res;
+            if (defs.hasOwnProperty(k)) addMethod(k);
+        }
+        return _res;
     };
     PL.super = function (klass, self) {
         //console.log("klass,self",klass,self);
@@ -277,6 +326,15 @@ define(function (require, exports, module) {
         }
     });
     PL.Tuple.__bases__ = PL.Tuple([]);
+    PL.Slice = PL.class({
+        __init__: function __init__(self, start, end) {
+            var step = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
+
+            self.start = start;
+            self.end = end;
+            self.step = step;
+        }
+    });
     PL.invoke = function (self, name, args) {
         var m = self[name];
         if (typeof m === "function") return m.apply(self, args);
@@ -329,62 +387,15 @@ define(function (require, exports, module) {
     };
     //--- monkey patch
 
-    String.prototype.format = function () {
-        var str = this;
-        var o = {};
-        var i = 0;
-
-        for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-            args[_key3] = arguments[_key3];
-        }
-
-        var _iteratorNormalCompletion = true;
-        var _didIteratorError = false;
-        var _iteratorError = undefined;
-
-        try {
-            for (var _iterator = args[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                var a = _step.value;
-
-                if (a instanceof PL.Option) {
-                    Object.assign(o, a);
-                } else {
-                    o[i + ""] = a;
-                }
-                i++;
-            }
-        } catch (err) {
-            _didIteratorError = true;
-            _iteratorError = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion && _iterator.return) {
-                    _iterator.return();
-                }
-            } finally {
-                if (_didIteratorError) {
-                    throw _iteratorError;
-                }
-            }
-        }
-
-        i = 0;
-        return str.replace(/{([0-9a-zA-Z_]*)}/g, function (_, name) {
-            if (!name) {
-                return o[i++];
-            } else {
-                return o[name];
-            }
-        });
-    };
     PL.addMonkeyPatch = function (cl, methods) {
         var p = cl.prototype;
         for (var k in methods) {
-            addMethod(k);
-        }function addMethod(k) {
+            if (methods.hasOwnProperty(k)) addMethod(k);
+        }
+        function addMethod(k) {
             var m = methods[k];
             Object.defineProperty(p, k, {
-                value: function value() {
+                value: k === "__class__" ? m : function () {
                     var a = Array.prototype.slice.call(arguments);
                     a.unshift(this);
                     return m.apply(this, a);
@@ -394,12 +405,13 @@ define(function (require, exports, module) {
         }
     };
     PL.addMonkeyPatch(Object, {
+        __class__: Object,
         __getTypeName__: function __getTypeName__() {
             return "<class object>";
         },
         __call__: function __call__(self) {
-            for (var _len4 = arguments.length, a = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
-                a[_key4 - 1] = arguments[_key4];
+            for (var _len3 = arguments.length, a = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+                a[_key3 - 1] = arguments[_key3];
             }
 
             //var a=Array.prototype.slice.call(arguments,1);
@@ -473,15 +485,23 @@ define(function (require, exports, module) {
 
         __delattr__: function __delattr__(self, name) {
             delete self[name];
+        },
+        __getitem__: function __getitem__(self, key) {
+            return self[key];
+        },
+        __setitem__: function __setitem__(self, key, value) {
+            self[key] = value;
         }
         //____: function (self,other) { return selfother;},
     });
     PL.addMonkeyPatch(Number, {
+        __class__: Number,
         __getTypeName__: function __getTypeName__() {
             return "<class number>";
         }
     });
     PL.addMonkeyPatch(String, {
+        __class__: String,
         __getTypeName__: function __getTypeName__() {
             return "<class str>";
         },
@@ -506,6 +526,54 @@ define(function (require, exports, module) {
                 throw new Error("文字列に文字列以外の値を+で追加できません．str()関数を使って変換してください．");
             }
             return Object.prototype.__add__.call(self, other);
+        },
+        format: function format(self) {
+            var str = self;
+            var o = {};
+            var i = 0;
+
+            for (var _len4 = arguments.length, args = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+                args[_key4 - 1] = arguments[_key4];
+            }
+
+            var _iteratorNormalCompletion2 = true;
+            var _didIteratorError2 = false;
+            var _iteratorError2 = undefined;
+
+            try {
+                for (var _iterator2 = args[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                    var _a = _step2.value;
+
+                    if (_a instanceof PL.Option) {
+                        Object.assign(o, _a);
+                    } else {
+                        o[i + ""] = _a;
+                    }
+                    i++;
+                }
+            } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                        _iterator2.return();
+                    }
+                } finally {
+                    if (_didIteratorError2) {
+                        throw _iteratorError2;
+                    }
+                }
+            }
+
+            i = 0;
+            return str.replace(/{([0-9a-zA-Z_]*)}/g, function (_, name) {
+                if (!name) {
+                    return o[i++];
+                } else {
+                    return o[name];
+                }
+            });
         }
     });
     PL.addMonkeyPatch(Boolean, {
@@ -523,6 +591,7 @@ define(function (require, exports, module) {
         }
     });
     PL.addMonkeyPatch(Array, {
+        __class__: PL.list,
         append: function append(self) {
             for (var _len5 = arguments.length, args = Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
                 args[_key5 - 1] = arguments[_key5];
@@ -542,11 +611,28 @@ define(function (require, exports, module) {
         },
         __str__: function __str__(self) {
             return "[" + self.join(", ") + "]";
+        },
+
+        __getitem__: function __getitem__(self, key) {
+            if (key < 0) key = self.length + key;
+            if (key >= self.length) throw new Error("Index " + key + " is out of range");
+            return self[key];
+        },
+        __setitem__: function __setitem__(self, key, value) {
+            if (key < 0) key = self.length + key;
+            if (key >= self.length) throw new Error("Index " + key + " is out of range");
+            self[key] = value;
+        },
+        copy: function copy(self) {
+            return self.slice();
+        },
+        sorted: function sorted(self) {
+            return self.slice().sort();
         }
     });
 
     //---
-    PL.builtins = ["range", "input", "str", "int", "float", "len", "type", "quit", "exit", "sorted", "abs", "min", "max", "fillRect", "setColor", "setTimeout", "clearRect", "clear"];
+    PL.builtins = ["range", "input", "str", "int", "float", "len", "type", "quit", "exit", "sorted", "abs", "min", "max", "list", "isinstance", "fillRect", "setColor", "setTimeout", "clearRect", "clear"];
     root.PYLIB = PL;
 
     function sprintfJS() {

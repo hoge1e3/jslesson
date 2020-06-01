@@ -117,9 +117,9 @@ class TeacherLogController {
               var cRaw=<?=$l['raw']?>;
               var lRaw=programs["<?=$l['filename']?>"][programs["<?=$l['filename']?>"].length-1];
               console.log(pRaw,cRaw,lRaw);
-              var prevProg=pRaw.code.C || pRaw.code.JavaScript || pRaw.code.Dolittle || pRaw.code.Python || "";
-              var curProg=cRaw.code.C || cRaw.code.JavaScript || cRaw.code.Dolittle || cRaw.code.Python || "";
-              var lastProg=lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
+              var prevProg=getCode(pRaw);//.code.C || pRaw.code.JavaScript || pRaw.code.Dolittle || pRaw.code.Python || "";
+              var curProg=getCode(cRaw);//.code.C || cRaw.code.JavaScript || cRaw.code.Dolittle || cRaw.code.Python || "";
+              var lastProg=getCode(lRaw);//.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
               var prevDiffData=calcDiff(prevProg,curProg,"[id='"+userid+"diff']","Prev","Current",false);
               var lastDiffData=calcDiff(curProg,lastProg,"[id='"+userid+"diffLast']","Current","Last",false);
               var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
@@ -199,10 +199,8 @@ class TeacherLogController {
         </script>
         <?php
         foreach($logs as $log){
-            if(isset($runcount[$log['user']])){
-                $runcount[$log['user']]++;
-            }else{
-                $runcount[$log['user']]=1;
+            if(!isset($runcount[$log['user']])){
+                $runcount[$log['user']]=0;
             }
             if(!isset($runhistory[$log['user']])){
                 $runhistory[$log['user']]='<span id="'.$log['user'].'hist">';
@@ -210,6 +208,7 @@ class TeacherLogController {
             $fnid=str_replace("/","__",$log['filename']);
             $fnid=str_replace(".","__",$fnid);
             if(strpos($log['result'],'Error')!==false){
+				$runcount[$log['user']]++;
                 if(isset($errcount[$log['user']])){
                     $errcount[$log['user']]++;
                 }else{
@@ -217,9 +216,12 @@ class TeacherLogController {
                 }
                 $runhistory[$log['user']].='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));"><font color="red">E</font></span>';
             }else if(strpos($log['result'],'Run')!==false){
+				$runcount[$log['user']]++;
                 $runhistory[$log['user']].='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">R</span>';
             }else if(strpos($log['result'],'Save')!==false){
                 $runhistory[$log['user']].='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">S</span>';
+            }else if(strpos($log['result'],'Unsaved')!==false){
+                $runhistory[$log['user']].='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">U</span>';
             }
             if(!isset($errcount[$log['user']])){
                 $errcount[$log['user']]=0;
@@ -333,7 +335,8 @@ class TeacherLogController {
                 $timecaution="white";
             }
             ?>
-            <tr><td><a href="a.php?TeacherLog/view1&user=<?=$k?>&day=<?=$max?>" target="view1"><?=$k?></a></td><td data-rate="<?=$rate?>" bgcolor=<?=$errcaution?>><?=$errcount[$k]?>/<?=$v?>(<?=$rate?>%)</td>
+            <tr><td><a href="a.php?TeacherLog/view1&user=<?=$k?>&day=<?=$max?>" target="view1"><?=$k?></a></td>
+            <td data-rate="<?=$rate?>" bgcolor=<?=$errcaution?>><?=$errcount[$k]?>/<?=$v?>(<?=$rate?>%)</td>
             <td bgcolor=<?=$timecaution?>><?=str_pad($time['h'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['m'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['s'],2,0,STR_PAD_LEFT)?></td>
             <td><?=$latestfile[$k]?></td><td><?=$runhistory[$k]?></td>
             </tr>

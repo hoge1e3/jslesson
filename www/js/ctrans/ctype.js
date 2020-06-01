@@ -77,7 +77,10 @@ define(["Klass","assert"],function (Klass,assert) {
         },
         binOpable: function (op,right) {
             if (right instanceof t.Number) {
-                if (!bitWiseOp[op+""] ) return this;
+                if (!bitWiseOp[op+""] ) {
+                    if (right.numOrd>this.numOrd) return right;
+                    return this;
+                }
             }
             return t.Number.super(this,"binOpable",op,right);
         },
@@ -105,9 +108,9 @@ define(["Klass","assert"],function (Klass,assert) {
     t.IntNum=t.Number.inherit({
         binOpable: function (op,right) {
             if (right instanceof t.IntNum) return this;
-            if (right instanceof t.Number &&
-                !bitWiseOp[op+""] ) return this;
-            return t.Number.super(this,"binOpable",op,right);
+            /*if (right instanceof t.Number &&
+                !bitWiseOp[op+""] ) return this;*/
+            return t.IntNum.super(this,"binOpable",op,right);
         }
     });
     t.Char=t.IntNum.inherit({name:"char",numOrd:1,max:0xff,_sizeOf:1});
@@ -230,6 +233,23 @@ define(["Klass","assert"],function (Klass,assert) {
         sizeOf: function () {
             if (this.length==null) return 4;
             return this.e.sizeOf()*this.length;
+        },
+        cast: function (v) {
+            if (v.IS_POINTER && typeof this.length=="number") {
+                var res=[];
+                for (var i=0;i<this.length;i++) {
+                    var o=v.offset(i);
+                    if (o.isValidBorder()) {
+                        res.push( o.read() );
+                    }
+                }
+                if (res.length==this.length) return v;
+                while(res.length<this.length) {
+                    res.push(_global.dustValue());
+                }
+                return res;
+            }
+            return v;
         }
         /*binOpable: function (op,right) {
             if (right instanceof t.Number && (op+""==="+" || op+""==="-" || op+""==="===" || op+""==="!==")) return true;
