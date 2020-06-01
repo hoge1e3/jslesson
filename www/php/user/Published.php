@@ -1,8 +1,6 @@
 <?php
 /*
-TODO: select * from published where project='assets';
-
--- see also: ~/badb/addpub.php
+TODO:  ~/badb/migratepub.php
 CREATE TABLE `pub_class` (
   `url` varchar(32) DEFAULT NULL, -- ends /
   `class` varchar(32) DEFAULT NULL
@@ -33,7 +31,7 @@ class Published {
             $urlU=$ur->url;
         } else {
             $urlU=UniqID::find(function ($url) use($classID) {
-                return pdo_select1("select * from pub_user where url=? and class=?", $url, $classID);
+                return pdo_select1("select * from pub_user where url=? and class=?", "$url/", $classID);
             },500,100);
             $urlU.="/";
             pdo_insert("pub_user",array("url"=>$urlU, "class"=>$classID, "user"=>$userName, "project"=>$projectName));
