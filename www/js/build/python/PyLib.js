@@ -449,6 +449,7 @@ define(function (require,exports,module) {
     PL.addMonkeyPatch(Function,{
         __getTypeName__: function (){return "<class function>";},
     });
+    const orig_sort=Array.prototype.sort;
     PL.addMonkeyPatch(Array, {
         __class__:PL.list,
         append(self, ...args) {
@@ -478,6 +479,10 @@ define(function (require,exports,module) {
         },
         sorted: function (self) {
             return self.slice().sort();
+        },
+        sort: function (self, comp) {
+            comp=comp||((a,b)=>(a>b?1:a<b?-1:0));
+            return orig_sort.apply(self, [comp]);
         }
     });
 

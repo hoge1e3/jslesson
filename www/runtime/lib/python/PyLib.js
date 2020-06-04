@@ -590,6 +590,7 @@ define(function (require, exports, module) {
             return "<class function>";
         }
     });
+    var orig_sort = Array.prototype.sort;
     PL.addMonkeyPatch(Array, {
         __class__: PL.list,
         append: function append(self) {
@@ -628,6 +629,12 @@ define(function (require, exports, module) {
         },
         sorted: function sorted(self) {
             return self.slice().sort();
+        },
+        sort: function sort(self, comp) {
+            comp = comp || function (a, b) {
+                return a > b ? 1 : a < b ? -1 : 0;
+            };
+            return orig_sort.apply(self, [comp]);
         }
     });
 
