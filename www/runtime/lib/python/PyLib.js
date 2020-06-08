@@ -569,9 +569,9 @@ define(function (require, exports, module) {
             i = 0;
             return str.replace(/{([0-9a-zA-Z_]*)}/g, function (_, name) {
                 if (!name) {
-                    return o[i++];
+                    return PL.str(o[i++]);
                 } else {
-                    return o[name];
+                    return PL.str(o[name]);
                 }
             });
         }
