@@ -635,7 +635,8 @@ define(function (require, exports, module) {
                 return a > b ? 1 : a < b ? -1 : 0;
             };
             return orig_sort.apply(self, [comp]);
-        }
+        },
+        __contains__: function __contains__() {}
     });
 
     //---

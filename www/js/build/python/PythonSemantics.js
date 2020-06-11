@@ -11,6 +11,7 @@ const importable={
     //fs:{wrapper:true,server:true},
     re:{server:true},
     g:{browser:true},
+    turtle:{browser:true},
     requests:{server:true},//SPECIAL
     json:{server:true},//SPECIAL
     sys:{wrapper:true,server:true},
@@ -326,7 +327,7 @@ const vdef={
         this.visit(node.body);
     }
 };
-const thru=["nodent",">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
+const thru=["nodent","in",">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
   ">","<","=",".",":","+","-","*","/","%","(",")",",","not","and","or","True","False","None",
   "passStmt","superCall"];
 for (let t of thru) {
@@ -395,6 +396,9 @@ const Semantics= {
             for (let node of stmtList) {
                 if (node.type==="globalStmt") {
                     v.visit(node);
+                }
+                if (node.type==="classdef") {
+                    this.addScope(node.name,{kind:"class",node});
                 }
                 if (node.type==="define") {
                     this.addScope(node.name,{kind:"function",node});

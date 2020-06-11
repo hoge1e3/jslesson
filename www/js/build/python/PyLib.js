@@ -483,6 +483,9 @@ define(function (require,exports,module) {
         sort: function (self, comp) {
             comp=comp||((a,b)=>(a>b?1:a<b?-1:0));
             return orig_sort.apply(self, [comp]);
+        },
+        __contains__: function () {
+            
         }
     });
 

@@ -219,6 +219,9 @@ function (Visitor,IndentBuffer,context,PL) {
             } else if (io) {
                 this.printf("%v=%s.wrap(%v).__%s__(%v)" ,
                 node.left, PYLIB, node.left, io, node.right);
+            } else if (node.op+""==="in") {
+                this.printf("%s.wrap(%v).__contains__(%v)" ,
+                    PYLIB, node.right, node.left);
             } else {
                 throw new Error("No operator for "+node.op);
             }
