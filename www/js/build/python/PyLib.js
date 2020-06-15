@@ -202,6 +202,7 @@ define(function (require,exports,module) {
             return self;
         };
         res.prototype=Object.create(parent.prototype,{});
+        const methodNames=[];
         function addMethod(k) {
             var m=defs[k];
             if (typeof m==="function") {
@@ -218,13 +219,18 @@ define(function (require,exports,module) {
                     },
                     enumerable: false
                 });
+                methodNames.push(k);
             } else {
                 res.prototype[k]=m;
             }
         }
         res.__name__=defs.CLASSNAME;
         res.prototype.constructor=res;
-        res.prototype.__class__=res;
+        Object.defineProperty(res.prototype,"__class__",{
+            value:res,
+            enumerable: false
+        });
+        res.__methodnames__=methodNames;
         res.__str__=()=>`<class '__main__.${res.__name__}'>`;
         res.__bases__=PL.Tuple && PL.Tuple(parent?[parent]:[]);
         for (var k in defs) {
@@ -235,9 +241,13 @@ define(function (require,exports,module) {
     PL.super=function(klass,self) {
         //console.log("klass,self",klass,self);
         //console.log("klass.prototype.CLASSNAME",klass.prototype.CLASSNAME);
+        if (!klass.__bases__) {
+            console.log(klass);
+            throw new Error(`superclass of ${klass.prototype.CLASSNAME} not found`);
+        }
         const superclass=klass.__bases__.elems[0];
         if (!superclass) {
-            throw new Error("superclass not found");
+            throw new Error(`superclass of ${klass.prototype.CLASSNAME} not found`);
         }
         const superprot=superclass.prototype;
         if (superprot===klass.prototype) {
@@ -249,7 +259,7 @@ define(function (require,exports,module) {
         }
         //console.log("superprot",superprot.CLASSNAME);
         const res={};
-        for (var meth in superprot) {
+        for (var meth of klass.__methodnames__) {
             if (typeof superprot[meth]!=="function") continue;
             res[meth]=superprot[meth].bind(self);
         }
@@ -485,7 +495,7 @@ define(function (require,exports,module) {
             return orig_sort.apply(self, [comp]);
         },
         __contains__: function () {
-            
+
         }
     });
 
