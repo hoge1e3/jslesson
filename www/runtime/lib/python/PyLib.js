@@ -298,7 +298,7 @@ define(function (require, exports, module) {
         return _res;
     };
     PL.super = function (klass, self) {
-        //console.log("klass,self",klass,self);
+        //console.log("klass,self, name",klass,self, klass.__name__);
         //console.log("klass.prototype.CLASSNAME",klass.prototype.CLASSNAME);
         if (!klass.__bases__) {
             console.log(klass);
@@ -308,6 +308,7 @@ define(function (require, exports, module) {
         if (!superclass) {
             throw new Error("superclass of " + klass.prototype.CLASSNAME + " not found");
         }
+        //console.log("superclass", superclass, superclass.__name__, klass.__methodnames__, superclass.__methodnames__);
         var superprot = superclass.prototype;
         if (superprot === klass.prototype) {
             console.log(self, self.CLASSNAME);
@@ -327,7 +328,7 @@ define(function (require, exports, module) {
                 var meth = _step2.value;
 
                 if (typeof superprot[meth] !== "function") continue;
-                res[meth] = superprot[meth].bind(self);
+                Object.defineProperty(res, meth, { value: superprot[meth].bind(self) });
             }
         } catch (err) {
             _didIteratorError2 = true;
