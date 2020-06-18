@@ -7243,7 +7243,7 @@ function (PP,S,G,J,PL,TError,jshint) {
             var f=new jshint.Function(genj);
             console.log(f());
             if (window.parent && window.parent.sendResult) {
-                window.parent.sendResult($("#output").text(),"py");
+                window.parent.sendResult($("#output").text(),"py");                
             }
         } catch(e) {
             if (e.node) {
