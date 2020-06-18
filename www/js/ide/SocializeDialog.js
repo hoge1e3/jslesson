@@ -313,12 +313,21 @@ define(function (require,exports,module) {
                 CommentPopup(com).show(o);
             }*/
         }
+        let shownOnce=false;
         function show(f) {
-            elem.dialog({
-                width:800,height:100,
-                position: { my: "center bottom", at: "center bottom"},
-                close: ()=>NotePopup.clear()
-            });
+            if (!shownOnce) {
+                elem.dialog({
+                    width:800,height:100,
+                    position: { my: "center bottom", at: "center bottom"},
+                    close: ()=>NotePopup.clear()
+                });
+                shownOnce=true;
+            } else {
+                console.log("2nd show");
+                elem.dialog({
+                    close: ()=>NotePopup.clear()
+                });
+            }
             if (f) changeFile(f);
         }
         async function updateFavs() {
