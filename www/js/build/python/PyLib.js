@@ -75,6 +75,11 @@ define(function (require,exports,module) {
         for (let x in iter) res.push(x);
         return res;
     };
+    PL.listComprehension=(elem, gen)=>{
+        const res=[];
+        for (let e of gen) res.push(elem(e));
+        return res;
+    };
     PL.str=function (s) {
         //  s==false
         if (s!=null && s.__str__) return s.__str__();
@@ -197,6 +202,7 @@ define(function (require,exports,module) {
             return self;
         };
         res.prototype=Object.create(parent.prototype,{});
+        const methodNames=[];
         function addMethod(k) {
             var m=defs[k];
             if (typeof m==="function") {
@@ -213,13 +219,18 @@ define(function (require,exports,module) {
                     },
                     enumerable: false
                 });
+                methodNames.push(k);
             } else {
                 res.prototype[k]=m;
             }
         }
         res.__name__=defs.CLASSNAME;
         res.prototype.constructor=res;
-        res.prototype.__class__=res;
+        Object.defineProperty(res.prototype,"__class__",{
+            value:res,
+            enumerable: false
+        });
+        res.__methodnames__=methodNames;
         res.__str__=()=>`<class '__main__.${res.__name__}'>`;
         res.__bases__=PL.Tuple && PL.Tuple(parent?[parent]:[]);
         for (var k in defs) {
@@ -228,12 +239,17 @@ define(function (require,exports,module) {
         return res;
     };
     PL.super=function(klass,self) {
-        //console.log("klass,self",klass,self);
+        //console.log("klass,self, name",klass,self, klass.__name__);
         //console.log("klass.prototype.CLASSNAME",klass.prototype.CLASSNAME);
+        if (!klass.__bases__) {
+            console.log(klass);
+            throw new Error(`superclass of ${klass.prototype.CLASSNAME} not found`);
+        }
         const superclass=klass.__bases__.elems[0];
         if (!superclass) {
-            throw new Error("superclass not found");
+            throw new Error(`superclass of ${klass.prototype.CLASSNAME} not found`);
         }
+        //console.log("superclass", superclass, superclass.__name__, klass.__methodnames__, superclass.__methodnames__);
         const superprot=superclass.prototype;
         if (superprot===klass.prototype) {
             console.log(self,self.CLASSNAME);
@@ -244,9 +260,9 @@ define(function (require,exports,module) {
         }
         //console.log("superprot",superprot.CLASSNAME);
         const res={};
-        for (var meth in superprot) {
+        for (var meth of klass.__methodnames__) {
             if (typeof superprot[meth]!=="function") continue;
-            res[meth]=superprot[meth].bind(self);
+            Object.defineProperty(res,meth,{value:superprot[meth].bind(self)});
         }
         return res;
     };
@@ -426,9 +442,9 @@ define(function (require,exports,module) {
             i=0;
             return str.replace(/{([0-9a-zA-Z_]*)}/g, (_,name)=>{
                 if (!name) {
-                    return o[i++];
+                    return PL.str(o[i++]);
                 } else {
-                    return o[name];
+                    return PL.str(o[name]);
                 }
             });
         }
@@ -444,6 +460,7 @@ define(function (require,exports,module) {
     PL.addMonkeyPatch(Function,{
         __getTypeName__: function (){return "<class function>";},
     });
+    const orig_sort=Array.prototype.sort;
     PL.addMonkeyPatch(Array, {
         __class__:PL.list,
         append(self, ...args) {
@@ -473,6 +490,13 @@ define(function (require,exports,module) {
         },
         sorted: function (self) {
             return self.slice().sort();
+        },
+        sort: function (self, comp) {
+            comp=comp||((a,b)=>(a>b?1:a<b?-1:0));
+            return orig_sort.apply(self, [comp]);
+        },
+        __contains__: function () {
+
         }
     });
 

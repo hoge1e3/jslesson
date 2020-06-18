@@ -73,6 +73,11 @@ function (Visitor,IndentBuffer,context,PL) {
         forStmt: function (node) {
             this.printf("var %j;%nfor (%v of %v) %v", [",",node.vars],node.vars[0], node.set, node.do);
         },
+        listComprehension: function (node) {
+            const vn=node.vars[0];
+            this.printf("%s.listComprehension(%s=>%v, %v)",
+                       PYLIB, vn, node.elem, node.set);
+        },
         letStmt: function (node) {
             if (this.anon.get(node).needVar) {
                 this.printf("var ");
@@ -214,6 +219,9 @@ function (Visitor,IndentBuffer,context,PL) {
             } else if (io) {
                 this.printf("%v=%s.wrap(%v).__%s__(%v)" ,
                 node.left, PYLIB, node.left, io, node.right);
+            } else if (node.op+""==="in") {
+                this.printf("%s.wrap(%v).__contains__(%v)" ,
+                    PYLIB, node.right, node.left);
             } else {
                 throw new Error("No operator for "+node.op);
             }
