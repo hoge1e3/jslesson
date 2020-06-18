@@ -1823,7 +1823,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         breakStmt: ["break"],
         continueStmt: ["continue"],
         forStmt: ["for",{vars:sep1("symbol",",")},"in",{set:"expr"},{do:"block"}],
-        letStmt: [{left:"lval"},"=",{right:"exprList"}],
+        letStmt: [{left:"lval"},{op:or("+=","-=","*=","/=","%=","=")},{right:"exprList"}],
         globalStmt: ["global",{names:sep1("symbol",",")}],
         // print(x,y) parsed as: printStmt(2) with tuple
         printStmt: ["print",{values:"exprList"}],
@@ -1847,10 +1847,10 @@ function (Grammar,Pos2RC/*,TError*/) {
             element: "elem",
             operators: [
                 //["infixr", "="  ] , //  = 右結合２項演算子
-                ["infixl", or("+=","-=","*=","/=","%=")],
+                //["infixl", or("+=","-=","*=","/=","%=")],
                 ["infixl", or("or")  ] ,
                 ["infixl", or("and")  ] ,
-                ["infixl", or(">=","<=","==","!=",">","<")  ] , //  + -  左結合２項演算子
+                ["infixl", or("in",">=","<=","==","!=",">","<")  ] , //  + -  左結合２項演算子
                 ["infixl", or("+","-")  ] , //  + -  左結合２項演算子
                 ["infixl", or("//","*","/","%")  ] , //  * 左結合２項演算子
                 ["infixl", or("**")],
@@ -1860,6 +1860,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         }),
         memberRef: [".",{name:"symOrResv"}],
         args: ["(",{body:sep0("arg",",")},")"],
+        listComprehension: ["[",{elem:"expr"},"for",{vars:sep1("symbol",",")},"in",{set:"expr"},"]"],
         array: ["[",{body:sep0("expr",",")},"]"],
         dict: ["{",{body:sep0("dictEntry",",")},"}"],
         dictEntry: [{key:"literal"},":",{value:"expr"}],
@@ -1869,7 +1870,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         slicePart: [":",{value:opt("expr")}],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: [":indent",{body:"stmtList"},"dedent"],
-        elem: or("symbol","number","None","bool","array","dict","literal3","literal","paren","superCall"),
+        elem: or("symbol","number","None","bool","listComprehension","array","dict","literal3","literal","paren","superCall"),
         superCall: ["super","(",")"],
         paren: ["(",{body:"exprList"},")"],
         bool: or("True","False"),
@@ -2040,6 +2041,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         if (PL.import.libs[lib]) return PL.import.libs[lib];
         throw new Error("ライブラリ " + lib + " はインポートできません．(サーバで実行すると動作する可能性があります)");
     };
+    // It seems to be old: add to PythonSemantics and create runtime/lib/python/py_***.js
     PL.import.libs = {
         random: {
             random: Math.random,
@@ -2066,7 +2068,8 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         math: {
             fabs: Math.abs.bind(Math),
             ceil: Math.ceil.bind(Math),
-            floor: Math.floor.bind(Math)
+            floor: Math.floor.bind(Math),
+            sqrt: Math.sqrt.bind(Math)
         }
     };
     //PyX.install(PL);
@@ -2098,6 +2101,40 @@ define('PyLib',['require','exports','module'],function (require, exports, module
     };
     PL.int = function (s) {
         return parseInt(s - 0);
+    };
+    PL.list = function (iter) {
+        var res = [];
+        for (var x in iter) {
+            res.push(x);
+        }return res;
+    };
+    PL.listComprehension = function (elem, gen) {
+        var res = [];
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+            for (var _iterator = gen[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var e = _step.value;
+                res.push(elem(e));
+            }
+        } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                    _iterator.return();
+                }
+            } finally {
+                if (_didIteratorError) {
+                    throw _iteratorError;
+                }
+            }
+        }
+
+        return res;
     };
     PL.str = function (s) {
         //  s==false
@@ -2151,6 +2188,10 @@ define('PyLib',['require','exports','module'],function (require, exports, module
                 if (s && s.__class__) return s.__class__;
                 return "object";
         }
+    };
+    PL.isinstance = function (obj, klass) {
+        var ocl = obj && obj.__class__;
+        return !!ocl && (ocl === klass || PL.isinstance(Object.getPrototypeOf(ocl.prototype), klass));
     };
     PL.sorted = function (a) {
         return a.slice().sort();
@@ -2236,6 +2277,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             return self;
         };
         _res.prototype = Object.create(parent.prototype, {});
+        var methodNames = [];
         function addMethod(k) {
             var m = defs[k];
             if (typeof m === "function") {
@@ -2252,13 +2294,18 @@ define('PyLib',['require','exports','module'],function (require, exports, module
                     },
                     enumerable: false
                 });
+                methodNames.push(k);
             } else {
                 _res.prototype[k] = m;
             }
         }
         _res.__name__ = defs.CLASSNAME;
         _res.prototype.constructor = _res;
-        _res.prototype.__class__ = _res;
+        Object.defineProperty(_res.prototype, "__class__", {
+            value: _res,
+            enumerable: false
+        });
+        _res.__methodnames__ = methodNames;
         _res.__str__ = function () {
             return "<class '__main__." + _res.__name__ + "'>";
         };
@@ -2269,12 +2316,17 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         return _res;
     };
     PL.super = function (klass, self) {
-        //console.log("klass,self",klass,self);
+        //console.log("klass,self, name",klass,self, klass.__name__);
         //console.log("klass.prototype.CLASSNAME",klass.prototype.CLASSNAME);
+        if (!klass.__bases__) {
+            console.log(klass);
+            throw new Error("superclass of " + klass.prototype.CLASSNAME + " not found");
+        }
         var superclass = klass.__bases__.elems[0];
         if (!superclass) {
-            throw new Error("superclass not found");
+            throw new Error("superclass of " + klass.prototype.CLASSNAME + " not found");
         }
+        //console.log("superclass", superclass, superclass.__name__, klass.__methodnames__, superclass.__methodnames__);
         var superprot = superclass.prototype;
         if (superprot === klass.prototype) {
             console.log(self, self.CLASSNAME);
@@ -2285,10 +2337,32 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         }
         //console.log("superprot",superprot.CLASSNAME);
         var res = {};
-        for (var meth in superprot) {
-            if (typeof superprot[meth] !== "function") continue;
-            res[meth] = superprot[meth].bind(self);
+        var _iteratorNormalCompletion2 = true;
+        var _didIteratorError2 = false;
+        var _iteratorError2 = undefined;
+
+        try {
+            for (var _iterator2 = klass.__methodnames__[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                var meth = _step2.value;
+
+                if (typeof superprot[meth] !== "function") continue;
+                Object.defineProperty(res, meth, { value: superprot[meth].bind(self) });
+            }
+        } catch (err) {
+            _didIteratorError2 = true;
+            _iteratorError2 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                    _iterator2.return();
+                }
+            } finally {
+                if (_didIteratorError2) {
+                    throw _iteratorError2;
+                }
+            }
         }
+
         return res;
     };
     PL.Tuple = PL.class({
@@ -2364,54 +2438,6 @@ define('PyLib',['require','exports','module'],function (require, exports, module
     };
     //--- monkey patch
 
-    String.prototype.format = function () {
-        var str = this;
-        var o = {};
-        var i = 0;
-
-        for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-            args[_key3] = arguments[_key3];
-        }
-
-        var _iteratorNormalCompletion = true;
-        var _didIteratorError = false;
-        var _iteratorError = undefined;
-
-        try {
-            for (var _iterator = args[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                var a = _step.value;
-
-                if (a instanceof PL.Option) {
-                    Object.assign(o, a);
-                } else {
-                    o[i + ""] = a;
-                }
-                i++;
-            }
-        } catch (err) {
-            _didIteratorError = true;
-            _iteratorError = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion && _iterator.return) {
-                    _iterator.return();
-                }
-            } finally {
-                if (_didIteratorError) {
-                    throw _iteratorError;
-                }
-            }
-        }
-
-        i = 0;
-        return str.replace(/{([0-9a-zA-Z_]*)}/g, function (_, name) {
-            if (!name) {
-                return o[i++];
-            } else {
-                return o[name];
-            }
-        });
-    };
     PL.addMonkeyPatch = function (cl, methods) {
         var p = cl.prototype;
         for (var k in methods) {
@@ -2420,7 +2446,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         function addMethod(k) {
             var m = methods[k];
             Object.defineProperty(p, k, {
-                value: function value() {
+                value: k === "__class__" ? m : function () {
                     var a = Array.prototype.slice.call(arguments);
                     a.unshift(this);
                     return m.apply(this, a);
@@ -2430,12 +2456,13 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         }
     };
     PL.addMonkeyPatch(Object, {
+        __class__: Object,
         __getTypeName__: function __getTypeName__() {
             return "<class object>";
         },
         __call__: function __call__(self) {
-            for (var _len4 = arguments.length, a = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
-                a[_key4 - 1] = arguments[_key4];
+            for (var _len3 = arguments.length, a = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+                a[_key3 - 1] = arguments[_key3];
             }
 
             //var a=Array.prototype.slice.call(arguments,1);
@@ -2519,11 +2546,13 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         //____: function (self,other) { return selfother;},
     });
     PL.addMonkeyPatch(Number, {
+        __class__: Number,
         __getTypeName__: function __getTypeName__() {
             return "<class number>";
         }
     });
     PL.addMonkeyPatch(String, {
+        __class__: String,
         __getTypeName__: function __getTypeName__() {
             return "<class str>";
         },
@@ -2548,6 +2577,54 @@ define('PyLib',['require','exports','module'],function (require, exports, module
                 throw new Error("文字列に文字列以外の値を+で追加できません．str()関数を使って変換してください．");
             }
             return Object.prototype.__add__.call(self, other);
+        },
+        format: function format(self) {
+            var str = self;
+            var o = {};
+            var i = 0;
+
+            for (var _len4 = arguments.length, args = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+                args[_key4 - 1] = arguments[_key4];
+            }
+
+            var _iteratorNormalCompletion3 = true;
+            var _didIteratorError3 = false;
+            var _iteratorError3 = undefined;
+
+            try {
+                for (var _iterator3 = args[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                    var _a = _step3.value;
+
+                    if (_a instanceof PL.Option) {
+                        Object.assign(o, _a);
+                    } else {
+                        o[i + ""] = _a;
+                    }
+                    i++;
+                }
+            } catch (err) {
+                _didIteratorError3 = true;
+                _iteratorError3 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                        _iterator3.return();
+                    }
+                } finally {
+                    if (_didIteratorError3) {
+                        throw _iteratorError3;
+                    }
+                }
+            }
+
+            i = 0;
+            return str.replace(/{([0-9a-zA-Z_]*)}/g, function (_, name) {
+                if (!name) {
+                    return PL.str(o[i++]);
+                } else {
+                    return PL.str(o[name]);
+                }
+            });
         }
     });
     PL.addMonkeyPatch(Boolean, {
@@ -2564,7 +2641,9 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             return "<class function>";
         }
     });
+    var orig_sort = Array.prototype.sort;
     PL.addMonkeyPatch(Array, {
+        __class__: PL.list,
         append: function append(self) {
             for (var _len5 = arguments.length, args = Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
                 args[_key5 - 1] = arguments[_key5];
@@ -2601,11 +2680,18 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         },
         sorted: function sorted(self) {
             return self.slice().sort();
-        }
+        },
+        sort: function sort(self, comp) {
+            comp = comp || function (a, b) {
+                return a > b ? 1 : a < b ? -1 : 0;
+            };
+            return orig_sort.apply(self, [comp]);
+        },
+        __contains__: function __contains__() {}
     });
 
     //---
-    PL.builtins = ["range", "input", "str", "int", "float", "len", "type", "quit", "exit", "sorted", "abs", "min", "max", "fillRect", "setColor", "setTimeout", "clearRect", "clear"];
+    PL.builtins = ["range", "input", "str", "int", "float", "len", "type", "quit", "exit", "sorted", "abs", "min", "max", "list", "isinstance", "fillRect", "setColor", "setTimeout", "clearRect", "clear"];
     root.PYLIB = PL;
 
     function sprintfJS() {
@@ -2750,11 +2836,12 @@ builtins.push("open");
 const importable={
     datetime:{server:true},
     random:{browser:true,server:true},
-    math:{server:true},
+    math:{browser:true, server:true},
     //jp:true,
     //fs:{wrapper:true,server:true},
     re:{server:true},
     g:{browser:true},
+    turtle:{browser:true},
     requests:{server:true},//SPECIAL
     json:{server:true},//SPECIAL
     sys:{wrapper:true,server:true},
@@ -2967,6 +3054,17 @@ const vdef={
             this.visit(node.do);
         });*/
     },
+    listComprehension: function (node) {
+        //console.log("forStmt", node);
+        var loopVars=node.vars;
+        this.visit(node.set);
+        this.newScope(() => {
+            for(let loopVar of loopVars){
+                this.addScope(loopVar,{kind:"local",node:loopVar});
+            }
+            this.visit(node.elem);
+        });
+    },
     infixr: function(node) {
         // node.left node.op node.right
         this.visit(node.left);
@@ -3059,7 +3157,7 @@ const vdef={
         this.visit(node.body);
     }
 };
-const thru=["nodent",">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
+const thru=["nodent","in",">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
   ">","<","=",".",":","+","-","*","/","%","(",")",",","not","and","or","True","False","None",
   "passStmt","superCall"];
 for (let t of thru) {
@@ -3126,6 +3224,12 @@ const Semantics= {
         };
         v.preScanDefs=function (stmtList) {
             for (let node of stmtList) {
+                if (node.type==="globalStmt") {
+                    v.visit(node);
+                }
+                if (node.type==="classdef") {
+                    this.addScope(node.name,{kind:"class",node});
+                }
                 if (node.type==="define") {
                     this.addScope(node.name,{kind:"function",node});
                 }
@@ -6587,7 +6691,7 @@ function (Visitor,IndentBuffer,assert) {
         },
         letStmt: function (node) {
             this.visit(node.left);
-            this.printf("=");
+            this.printf("%s",node.op);
             this.visit(node.right);
             //this.printf("%n");
         },
@@ -6791,20 +6895,40 @@ function (Visitor,IndentBuffer,context,PL) {
         forStmt: function (node) {
             this.printf("var %j;%nfor (%v of %v) %v", [",",node.vars],node.vars[0], node.set, node.do);
         },
+        listComprehension: function (node) {
+            const vn=node.vars[0];
+            this.printf("%s.listComprehension(%s=>%v, %v)",
+                       PYLIB, vn, node.elem, node.set);
+        },
         letStmt: function (node) {
             if (this.anon.get(node).needVar) {
                 this.printf("var ");
             }
             console.log("NODEL",node.left);//lvallist
             const firstBody=node.left.body && node.left.body[0];
+            const io=PL.iops[node.op+""];
             if (firstBody &&
                 firstBody.type==="postfix" &&
                 firstBody.op.type==="index") {
                 // TODO: [x[5],y]=[2,3]  -> x.__setitem__(5,2), y=3
                 const object=firstBody.left;
                 const index=firstBody.op;
+                const value=node.right;
                 console.log("NODEL2",object,index);
-                this.printf("%v.__setitem__(%v, %v);",object, index.body,node.right );
+                if (io) {
+                    this.printf("%v.__setitem__(%v, "+
+                        "%s.wrap( %v.__getitem__(%v) ).__%s__(%v)"+
+                    ");",
+                        object, index.body,
+                        PYLIB, object, index.body, io, value
+                    );
+                } else {
+                    this.printf("%v.__setitem__(%v, %v);",object, index.body,value );
+                }
+            } else if (io) {
+                const value=node.right;
+                this.printf("%v=%s.wrap(%v).__%s__(%v)" ,
+                node.left, PYLIB, node.left, io, value);
             } else {
                 //if (node.left.type)
                 this.visit(node.left);
@@ -6917,6 +7041,9 @@ function (Visitor,IndentBuffer,context,PL) {
             } else if (io) {
                 this.printf("%v=%s.wrap(%v).__%s__(%v)" ,
                 node.left, PYLIB, node.left, io, node.right);
+            } else if (node.op+""==="in") {
+                this.printf("%s.wrap(%v).__contains__(%v)" ,
+                    PYLIB, node.right, node.left);
             } else {
                 throw new Error("No operator for "+node.op);
             }
