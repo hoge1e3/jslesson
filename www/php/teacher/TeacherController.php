@@ -1,5 +1,5 @@
 <?php
-req("auth","BAClass");
+req("auth","BAClass","DateUtil");
 //require_once"php/auth.php";
 //require_once"php/teacher/Classes.php";
 class TeacherController {
@@ -193,7 +193,56 @@ class TeacherController {
         }
 
     }
-
+    static function langStat(){
+      date_default_timezone_set('Asia/Tokyo');
+      $thisURL="a.php?Teacher/langStat";
+      $now=time();
+      if(!param("Y",false)){
+          $min=$now-2592000;
+          $max=$now;
+      }else{
+          $min=DateUtil::toInt(param('Y')."-".param('m')."-".param('d')." ".param('H').":".param('i').":".param('s'));
+          $max=DateUtil::toInt(param('aY')."-".param('am')."-".param('ad')." ".param('aH').":".param('ai').":".param('as'));
+      }
+      $overall = array();
+      foreach(glob(BA_HOME."/*") as $class){
+        if(!is_file($class)){
+          foreach(glob($class."/*") as $user){
+            if(!is_file($user)){
+              foreach(glob($user."/*") as $prj){
+                if(is_file($prj."/options.json") && (filemtime($prj."/options.json")>=$min && filemtime($prj."/options.json")<=$max)){
+                  $opt=json_decode(file_get_contents($prj."/options.json"));
+                  if(isset($opt->language)){
+                    if(!isset($overall[$opt->language])) $overall[$opt->language]=1;
+                    else $overall[$opt->language]++;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      foreach ($overall as $key => $value) {
+        echo $key.":".$value."<BR>";
+      }
+    ?>
+    <form action="<?= $thisURL ?>" method="POST">
+        <input name="Y" value="<?=date("Y",$min)?>" maxlength="4" size="4">年
+        <input name="m" value="<?=date("m",$min)?>" maxlength="2" size="2">月
+        <input name="d" value="<?=date("d",$min)?>" maxlength="2" size="2">日
+        <input name="H" value="<?=date("H",$min)?>" maxlength="2" size="2">時
+        <input name="i" value="<?=date("i",$min)?>" maxlength="2" size="2">分
+        <input name="s" value="<?=date("s",$min)?>" maxlength="2" size="2">秒から<br>
+        <input name="aY" value="<?=date("Y",$max)?>" maxlength="4" size="4">年
+        <input name="am" value="<?=date("m",$max)?>" maxlength="2" size="2">月
+        <input name="ad" value="<?=date("d",$max)?>" maxlength="2" size="2">日
+        <input name="aH" value="<?=date("H",$max)?>" maxlength="2" size="2">時
+        <input name="ai" value="<?=date("i",$max)?>" maxlength="2" size="2">分
+        <input name="as" value="<?=date("s",$max)?>" maxlength="2" size="2">秒までの<br>
+      <input type="submit" value="状況を見る"/>
+  </form>
+  <?php
+  }
 }
 
 ?>
