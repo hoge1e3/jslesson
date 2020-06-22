@@ -194,6 +194,11 @@ class TeacherController {
 
     }
     static function langStat(){
+      $teacher=Auth::isTeacher2();
+      if (!$teacher || !$teacher->isSysAd()) {
+          header("Location: a.php?Teacher/login");
+          return;
+      }
       date_default_timezone_set('Asia/Tokyo');
       $thisURL="a.php?Teacher/langStat";
       $now=time();
@@ -204,6 +209,25 @@ class TeacherController {
           $min=DateUtil::toInt(param('Y')."-".param('m')."-".param('d')." ".param('H').":".param('i').":".param('s'));
           $max=DateUtil::toInt(param('aY')."-".param('am')."-".param('ad')." ".param('aH').":".param('ai').":".param('as'));
       }
+      ?>
+      <form action="<?= $thisURL ?>" method="POST">
+          <input name="Y" value="<?=date("Y",$min)?>" maxlength="4" size="4">年
+          <input name="m" value="<?=date("m",$min)?>" maxlength="2" size="2">月
+          <input name="d" value="<?=date("d",$min)?>" maxlength="2" size="2">日
+          <input name="H" value="<?=date("H",$min)?>" maxlength="2" size="2">時
+          <input name="i" value="<?=date("i",$min)?>" maxlength="2" size="2">分
+          <input name="s" value="<?=date("s",$min)?>" maxlength="2" size="2">秒から<br>
+          <input name="aY" value="<?=date("Y",$max)?>" maxlength="4" size="4">年
+          <input name="am" value="<?=date("m",$max)?>" maxlength="2" size="2">月
+          <input name="ad" value="<?=date("d",$max)?>" maxlength="2" size="2">日
+          <input name="aH" value="<?=date("H",$max)?>" maxlength="2" size="2">時
+          <input name="ai" value="<?=date("i",$max)?>" maxlength="2" size="2">分
+          <input name="as" value="<?=date("s",$max)?>" maxlength="2" size="2">秒までの<br>
+        <input type="submit" value="状況を見る"/>
+    </form>
+    <table>
+      <tr><th>クラス</th><th>ユーザ</th><th>プロジェクト</th><th>言語</th></tr>
+    <?php
       $overall = array();
       foreach(glob(BA_HOME."/*") as $class){
         if(!is_file($class)){
@@ -215,6 +239,11 @@ class TeacherController {
                   if(isset($opt->language)){
                     if(!isset($overall[$opt->language])) $overall[$opt->language]=1;
                     else $overall[$opt->language]++;
+                    $path=explode("/",$prj);
+                    //$path[count($path)-3]."/".$path[count($path)-2]."/".$path[count($path)-1]."<BR>";
+                    ?>
+                    <tr><td><?=$path[count($path)-3]?></td><td><?=$path[count($path)-2]?></td><td><?=$path[count($path)-1]?></td><td><?=$opt->language?></td></tr>
+                    <?php
                   }
                 }
               }
@@ -222,26 +251,12 @@ class TeacherController {
           }
         }
       }
+      ?>
+    </table>
+      <?php
       foreach ($overall as $key => $value) {
         echo $key.":".$value."<BR>";
       }
-    ?>
-    <form action="<?= $thisURL ?>" method="POST">
-        <input name="Y" value="<?=date("Y",$min)?>" maxlength="4" size="4">年
-        <input name="m" value="<?=date("m",$min)?>" maxlength="2" size="2">月
-        <input name="d" value="<?=date("d",$min)?>" maxlength="2" size="2">日
-        <input name="H" value="<?=date("H",$min)?>" maxlength="2" size="2">時
-        <input name="i" value="<?=date("i",$min)?>" maxlength="2" size="2">分
-        <input name="s" value="<?=date("s",$min)?>" maxlength="2" size="2">秒から<br>
-        <input name="aY" value="<?=date("Y",$max)?>" maxlength="4" size="4">年
-        <input name="am" value="<?=date("m",$max)?>" maxlength="2" size="2">月
-        <input name="ad" value="<?=date("d",$max)?>" maxlength="2" size="2">日
-        <input name="aH" value="<?=date("H",$max)?>" maxlength="2" size="2">時
-        <input name="ai" value="<?=date("i",$max)?>" maxlength="2" size="2">分
-        <input name="as" value="<?=date("s",$max)?>" maxlength="2" size="2">秒までの<br>
-      <input type="submit" value="状況を見る"/>
-  </form>
-  <?php
   }
 }
 
