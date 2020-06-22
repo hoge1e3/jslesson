@@ -16,7 +16,7 @@ function (Klass,UI,ctrl,WebSite,DragDrop,root) {
                     var fileName=u.replace(/[^\/]+\//,"");
                     var urlFull=WebSite.published+u;
                     t.list.append(UI("div",
-                        ["span",urlFull],
+                        ["a",{href:urlFull, target:"asset"},urlFull],
                         ["button",{on:{click:del}},"削除"]
                     ));
                     function del() {
