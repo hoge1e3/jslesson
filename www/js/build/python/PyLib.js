@@ -493,6 +493,28 @@ define(function (require,exports,module) {
         },
         sort: function (self, comp) {
             comp=comp||((a,b)=>(a>b?1:a<b?-1:0));
+            if (comp instanceof PL.Option) {
+                let key=comp.key;
+                if (typeof key==="string") {
+                    const ks=key;
+                    key=o=>o[ks];
+                }
+                if (typeof key==="function") {
+                    const sorted=self.map((val,idx)=>({val,idx}) ).sort((a,b)=>{
+                        const va=key(a.val);
+                        const vb=key(b.val);
+                        if (va>vb) return 1;
+                        else if (va<vb) return -1;
+                        else return a.idx-b.idx;
+                    }).map(r=>r.val);
+                    while(self.length) self.pop();
+                    while(sorted.length) self.push(sorted.shift());
+                }
+                if (comp.reverse) {
+                    self.reverse();
+                }
+                return self;
+            }
             return orig_sort.apply(self, [comp]);
         },
         __contains__: function () {

@@ -667,6 +667,35 @@ define(function (require, exports, module) {
             comp = comp || function (a, b) {
                 return a > b ? 1 : a < b ? -1 : 0;
             };
+            if (comp instanceof PL.Option) {
+                var key = comp.key;
+                if (typeof key === "string") {
+                    var ks = key;
+                    key = function key(o) {
+                        return o[ks];
+                    };
+                }
+                if (typeof key === "function") {
+                    var sorted = self.map(function (val, idx) {
+                        return { val: val, idx: idx };
+                    }).sort(function (a, b) {
+                        var va = key(a.val);
+                        var vb = key(b.val);
+                        if (va > vb) return 1;else if (va < vb) return -1;else return a.idx - b.idx;
+                    }).map(function (r) {
+                        return r.val;
+                    });
+                    while (self.length) {
+                        self.pop();
+                    }while (sorted.length) {
+                        self.push(sorted.shift());
+                    }
+                }
+                if (comp.reverse) {
+                    self.reverse();
+                }
+                return self;
+            }
             return orig_sort.apply(self, [comp]);
         },
         __contains__: function __contains__() {}
