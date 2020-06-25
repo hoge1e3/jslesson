@@ -88,6 +88,7 @@ class Docker {
             $lnksrc=$guestAssetPath.$v;
             $lnkdst=$guestWorkPrjPath.$k;
             $cmds.=
+            "mkdir -p $lnksrc \n".
             "if [ ! -L $lnkdst ] ;then\n".
             "   ln -s $lnksrc $lnkdst\n".
             "fi\n";
