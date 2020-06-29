@@ -15128,7 +15128,8 @@ function (Klass,UI,ctrl,WebSite,DragDrop,root) {
             ctrl.get("Asset/list",{context:t.context}).then(function (r) {
                 t.list.empty();
                 r.forEach(function (u) {
-                    var fileName=u.replace(/[^\/]+\//,"");
+                    //                 class                  user
+                    var fileName=u.replace(/[^\/]+\//,"").replace(/[^\/]+\//,"");
                     var urlFull=WebSite.published+u;
                     t.list.append(UI("div",
                         ["span",urlFull],
@@ -16171,7 +16172,7 @@ function ready() {
         var curHTMLFile=curFiles[0];
         var curLogicFile=curFiles[1];
 	    window.sendResult=function(resDetail, lang){
-            lang=lang||"C";
+            lang=lang||"c";
             //console.log("sendResult",resDetail,lang);
             logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Run",resDetail,langList[lang]);
         };
