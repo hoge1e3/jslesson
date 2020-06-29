@@ -13,7 +13,8 @@ function (Klass,UI,ctrl,WebSite,DragDrop,root) {
             ctrl.get("Asset/list",{context:t.context}).then(function (r) {
                 t.list.empty();
                 r.forEach(function (u) {
-                    var fileName=u.replace(/[^\/]+\//,"");
+                    //                 class                  user
+                    var fileName=u.replace(/[^\/]+\//,"").replace(/[^\/]+\//,"");
                     var urlFull=WebSite.published+u;
                     t.list.append(UI("div",
                         ["a",{href:urlFull, target:"asset"},urlFull],
