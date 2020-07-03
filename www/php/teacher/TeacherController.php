@@ -223,11 +223,11 @@ class TeacherController {
           <input name="aH" value="<?=date("H",$max)?>" maxlength="2" size="2">時
           <input name="ai" value="<?=date("i",$max)?>" maxlength="2" size="2">分
           <input name="as" value="<?=date("s",$max)?>" maxlength="2" size="2">秒までの<br>
-        <input type="submit" value="状況を見る"/>
-    </form>
-    <table>
-      <tr><th>クラス</th><th>ユーザ</th><th>プロジェクト</th><th>言語</th></tr>
-    <?php
+          <input type="submit" value="状況を見る"/>
+      </form>
+      <table>
+        <tr><th>クラス</th><th>ユーザ</th><th>プロジェクト</th><th>言語</th></tr>
+      <?php
       $overall = array();
       foreach(glob(BA_HOME."/*") as $class){
         if(!is_file($class)){
@@ -258,6 +258,70 @@ class TeacherController {
         echo $key.":".$value."<BR>";
       }
   }
+
+  static function langStatAll(){
+      $teacher=Auth::isTeacher2();
+      if (!$teacher || !$teacher->isSysAd()) {
+          header("Location: a.php?Teacher/login");
+          return;
+      }
+      date_default_timezone_set('Asia/Tokyo');
+      $now=time();
+      ?>
+      <table>
+          <tr><th>クラス</th><th>開講年月</th><th>主たる言語</th><th>アクティブユーザ数</th><th>教員</th><th>プロジェクト</th>
+              <th>c</th><th>dncl</th><th>dtl</th><th>py</th><th>js</th><th>tonyu</th><th>合計</th></tr>
+              <?php
+              foreach(glob(BA_HOME."/*") as $class){
+                  if(!is_file($class)){
+                      $temp=explode("/",$class);
+                      $className=$temp[count($temp)-1];
+                      $begin=$now;
+                      $overall = array();
+                      foreach(glob($class."/*") as $user){
+                          if(!is_file($user)){
+                              $temp=explode("/",$user);
+                              $userName=$temp[count($temp)-1];
+                              foreach(glob($user."/*") as $prj){
+                                  if(is_file($prj."/options.json")){
+                                      $createdTime=filemtime($prj."/options.json");
+                                      $temp=explode("/",$prj);
+                                      $prjName=$temp[count($temp)-1];
+                                      if($createdTime<$begin){
+                                          $begin=$createdTime;
+                                      }
+
+                                      $opt=json_decode(file_get_contents($prj."/options.json"));
+                                      $lang=isset($opt->language) ? $opt->language : 'js';
+                                      if(!isset($overall[$lang])) $overall[$lang]=1;
+                                      else $overall[$lang]++;
+                                      $path=explode("/",$prj);
+                                      //$path[count($path)-3]."/".$path[count($path)-2]."/".$path[count($path)-1]."<BR>";
+                                  }
+                              }
+                          }
+                      }
+                      ?>
+                      <tr><td><?=$className?></td><td><?=DateUtil::toString($begin)?></td><td><?=isset($overall['c'])? $overall['c']:0 ?></td>
+                          <td><?=isset($overall['dncl'])?$overall['dncl'] :0 ?></td>
+                          <td><?=isset($overall['dtl'])?$overall['dtl'] :0 ?></td>
+                          <td><?=isset($overall['py'])? $overall['py']:0 ?></td>
+                          <td><?=isset($overall['js'])? $overall['js']:0 ?></td>
+                          <td><?=isset($overall['tonyu'])? $overall['tonyu']:0 ?></td></tr>
+                          <?php
+                      }
+                  }
+                  ?>
+              </table>
+              <?php
+              foreach ($overall as $key => $value) {
+                  echo $key.":".$value."<BR>";
+              }
+          }
+    static function mainLang($overall){
+        // todo
+        return shu;
+    }
 }
 
 ?>
