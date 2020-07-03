@@ -146,7 +146,9 @@ define(function (require, exports, module) {
         }
         return Math.max.apply(Math, args);
     };
-
+    PL.open = function () {
+        throw new Error("openを使うには，「サーバで実行」を選んでください．");
+    };
     PL.quit = function (s) {
         PL.exit();
     };
