@@ -37,6 +37,20 @@ function (Visitor,IndentBuffer,context,PL) {
                 //this.printf("var %s=%s.import('%v');",node.name,PYLIB,node.name);
             }//this.printf("%n");
         },
+        importStmt2: function (node) {
+            for (let e of node.elements) {
+                this.visit(e);
+            }
+        },
+        importElement: function (node) {
+            var url=this.options.pyLibPath+"/py_"+node.name+".js";
+            if (node.alias) {
+                this.printf("var %s=require('%s').install(%s);", node.alias, url, PYLIB);
+            } else {
+                this.printf("var %s=require('%s').install(%s);", node.name, url, PYLIB);
+            }
+        },
+
         fromImportStmt: function (node) {
             var url=this.options.pyLibPath+"/py_"+node.name+".js";
             this.printf("var {%j}=require('%s').install(%s);", [",",node.localNames], url, PYLIB);

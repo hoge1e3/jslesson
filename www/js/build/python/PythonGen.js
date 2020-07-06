@@ -33,6 +33,20 @@ function (Visitor,IndentBuffer,assert) {
             }*/
             //this.printf("%n");
         },
+        importStmt2: function (node) {
+            this.printf("import %j",[",",node.elements]);
+        },
+        importElement: function (node) {
+            const nameHead=node.name[0];
+            const inf=this.importable[nameHead+""];
+            const useWrapper=(inf && inf.wrapper);
+            const localName=node.alias || node.name;
+            this.printf("%s%v", useWrapper?"_":"", node.name);
+            if (node.alias || useWrapper) {
+                this.printf(" as %v", localName);
+            }
+        },
+
         fromImportStmt: function (node) {
             const nameHead=node.name[0];
             const inf=this.importable[nameHead+""];

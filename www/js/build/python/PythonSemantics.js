@@ -17,7 +17,8 @@ const importable={
     sys:{wrapper:true,server:true},
     matplotlib:{wrapper:true,server:true},
     numpy:{wrapper:true,server:true},
-    os:{wrapper:true,server:true}
+    os:{wrapper:true,server:true},
+    urllib:{wrapper:true,server:true},
 };
 
 //-----
@@ -49,6 +50,14 @@ const vdef={
             if (importable[nameHead].server) hint="(「サーバで実行」するとインポートできます)．";
             this.error(nameHead+" はインポートできません"+hint,nameHead);
         }*/
+        this.addScope(node.alias || nameHead,{kind:"module",vtype:importable[nameHead],node});
+    },
+    importStmt2: function (node) {
+        for (let e of node.elements) this.visit(e);
+    },
+    importElement: function (node) {
+        const nameHead=node.name[0];
+        this.checkImportable(nameHead);
         this.addScope(node.alias || nameHead,{kind:"module",vtype:importable[nameHead],node});
     },
     fromImportStmt: function (node) {
