@@ -136,6 +136,9 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
                         "name: function (){return "+JSON.stringify(pysrcF.name())+";}"+
                     "};"+
                     "e.pos="+pos+";"+
+                    "if (window.parent && typeof window.parent.closeRunDialog==='function') {"+
+                        "window.parent.closeRunDialog();"+
+                    "}"+
                     "throw e;";
 
                     //throw TError(e.message,pysrcF,e.node.pos);

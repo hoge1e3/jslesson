@@ -795,6 +795,9 @@ function ready() {
             run();
         }
     };
+    window.closeRunDialog=()=>{
+        setTimeout(()=>RunDialog2.close(),100);
+    };
     //var curth;
     /*window.setupFrame=function (r) {
         A.is(r,Function);

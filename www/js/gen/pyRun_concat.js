@@ -1806,9 +1806,11 @@ function (Grammar,Pos2RC/*,TError*/) {
         stmtList: rep1("stmt"),
         // why printStmt -> printStmt3?
         // because if parse print(x), as printStmt3, comma remains unparsed.
-        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt","fromImportStmt","globalStmt","nodent"),
+        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt2","fromImportStmt","globalStmt","nodent"),
         fromImportStmt: ["from",{name:"packageName"},"import",{localNames:sep1("symbol",",")}],
         importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
+        importStmt2: ["import",{elements:sep1("importElement",",")}],
+        importElement: [{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
         packageName: sep1("symbol","."),
         exprStmt: [{expr:"expr"}],
         delStmt: ["del",{expr:"expr"}],
@@ -2164,7 +2166,9 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         }
         return Math.max.apply(Math, args);
     };
-
+    PL.open = function () {
+        throw new Error("openを使うには，「サーバで実行」を選んでください．");
+    };
     PL.quit = function (s) {
         PL.exit();
     };
@@ -2685,6 +2689,35 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             comp = comp || function (a, b) {
                 return a > b ? 1 : a < b ? -1 : 0;
             };
+            if (comp instanceof PL.Option) {
+                var key = comp.key;
+                if (typeof key === "string") {
+                    var ks = key;
+                    key = function key(o) {
+                        return o[ks];
+                    };
+                }
+                if (typeof key === "function") {
+                    var sorted = self.map(function (val, idx) {
+                        return { val: val, idx: idx };
+                    }).sort(function (a, b) {
+                        var va = key(a.val);
+                        var vb = key(b.val);
+                        if (va > vb) return 1;else if (va < vb) return -1;else return a.idx - b.idx;
+                    }).map(function (r) {
+                        return r.val;
+                    });
+                    while (self.length) {
+                        self.pop();
+                    }while (sorted.length) {
+                        self.push(sorted.shift());
+                    }
+                }
+                if (comp.reverse) {
+                    self.reverse();
+                }
+                return self;
+            }
             return orig_sort.apply(self, [comp]);
         },
         __contains__: function __contains__() {}
@@ -2847,7 +2880,8 @@ const importable={
     sys:{wrapper:true,server:true},
     matplotlib:{wrapper:true,server:true},
     numpy:{wrapper:true,server:true},
-    os:{wrapper:true,server:true}
+    os:{wrapper:true,server:true},
+    urllib:{wrapper:true,server:true},
 };
 
 //-----
@@ -2879,6 +2913,14 @@ const vdef={
             if (importable[nameHead].server) hint="(「サーバで実行」するとインポートできます)．";
             this.error(nameHead+" はインポートできません"+hint,nameHead);
         }*/
+        this.addScope(node.alias || nameHead,{kind:"module",vtype:importable[nameHead],node});
+    },
+    importStmt2: function (node) {
+        for (let e of node.elements) this.visit(e);
+    },
+    importElement: function (node) {
+        const nameHead=node.name[0];
+        this.checkImportable(nameHead);
         this.addScope(node.alias || nameHead,{kind:"module",vtype:importable[nameHead],node});
     },
     fromImportStmt: function (node) {
@@ -6650,6 +6692,20 @@ function (Visitor,IndentBuffer,assert) {
             }*/
             //this.printf("%n");
         },
+        importStmt2: function (node) {
+            this.printf("import %j",[",",node.elements]);
+        },
+        importElement: function (node) {
+            const nameHead=node.name[0];
+            const inf=this.importable[nameHead+""];
+            const useWrapper=(inf && inf.wrapper);
+            const localName=node.alias || node.name;
+            this.printf("%s%v", useWrapper?"_":"", node.name);
+            if (node.alias || useWrapper) {
+                this.printf(" as %v", localName);
+            }
+        },
+
         fromImportStmt: function (node) {
             const nameHead=node.name[0];
             const inf=this.importable[nameHead+""];
@@ -6859,6 +6915,20 @@ function (Visitor,IndentBuffer,context,PL) {
                 //this.printf("var %s=%s.import('%v');",node.name,PYLIB,node.name);
             }//this.printf("%n");
         },
+        importStmt2: function (node) {
+            for (let e of node.elements) {
+                this.visit(e);
+            }
+        },
+        importElement: function (node) {
+            var url=this.options.pyLibPath+"/py_"+node.name+".js";
+            if (node.alias) {
+                this.printf("var %s=require('%s').install(%s);", node.alias, url, PYLIB);
+            } else {
+                this.printf("var %s=require('%s').install(%s);", node.name, url, PYLIB);
+            }
+        },
+
         fromImportStmt: function (node) {
             var url=this.options.pyLibPath+"/py_"+node.name+".js";
             this.printf("var {%j}=require('%s').install(%s);", [",",node.localNames], url, PYLIB);

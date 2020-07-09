@@ -78,14 +78,13 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA) {
             return true;
         }
     }
+    res.close=()=>res.d && res.d.dialog("close");
     res.embed=function (runFile, options) {
         options=options||{};
         if (!res.d) {
             res.d=UI("div",{title:"実行画面ダイアログ",id:"runDlg",css:{overflow:"hidden"}},
                     ["div",{$var:"browser"}],
-                    ["button", {type:"button",$var:"OKButton", on:{click: function () {
-                        res.d.dialog("close");
-                    }}}, "閉じる"],
+                    ["button", {type:"button",$var:"OKButton", on:{click: res.close}}, "閉じる"],
                     (true?"":["button", {type:"button",$var:"WButton", on:{click: function () {
                         if (res.hasLocalBrowserWindow()) res.lbw.close();
                         res.lbw=new LocalBrowserWindow({
