@@ -334,5 +334,13 @@ class TeacherController {
         return is_null($ml)? 'none' : $overall[$ml]/array_sum($overall)>0.8 ? $ml : 'mix';
     }
 }
+if (! function_exists("array_key_last")) {
+    function array_key_last($array) {
+        if (!is_array($array) || empty($array)) {
+            return NULL;
+        }       
+        return array_keys($array)[count($array)-1];
+    }
+}
 
 ?>
