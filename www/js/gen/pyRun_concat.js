@@ -1806,9 +1806,11 @@ function (Grammar,Pos2RC/*,TError*/) {
         stmtList: rep1("stmt"),
         // why printStmt -> printStmt3?
         // because if parse print(x), as printStmt3, comma remains unparsed.
-        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt","fromImportStmt","globalStmt","nodent"),
+        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt2","fromImportStmt","globalStmt","nodent"),
         fromImportStmt: ["from",{name:"packageName"},"import",{localNames:sep1("symbol",",")}],
         importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
+        importStmt2: ["import",{elements:sep1("importElement",",")}],
+        importElement: [{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
         packageName: sep1("symbol","."),
         exprStmt: [{expr:"expr"}],
         delStmt: ["del",{expr:"expr"}],
@@ -1850,7 +1852,7 @@ function (Grammar,Pos2RC/*,TError*/) {
                 //["infixl", or("+=","-=","*=","/=","%=")],
                 ["infixl", or("or")  ] ,
                 ["infixl", or("and")  ] ,
-                ["infixl", or(">=","<=","==","!=",">","<")  ] , //  + -  左結合２項演算子
+                ["infixl", or("in",">=","<=","==","!=",">","<")  ] , //  + -  左結合２項演算子
                 ["infixl", or("+","-")  ] , //  + -  左結合２項演算子
                 ["infixl", or("//","*","/","%")  ] , //  * 左結合２項演算子
                 ["infixl", or("**")],
@@ -2164,7 +2166,9 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         }
         return Math.max.apply(Math, args);
     };
-
+    PL.open = function () {
+        throw new Error("openを使うには，「サーバで実行」を選んでください．");
+    };
     PL.quit = function (s) {
         PL.exit();
     };
@@ -2277,6 +2281,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             return self;
         };
         _res.prototype = Object.create(parent.prototype, {});
+        var methodNames = [];
         function addMethod(k) {
             var m = defs[k];
             if (typeof m === "function") {
@@ -2293,13 +2298,18 @@ define('PyLib',['require','exports','module'],function (require, exports, module
                     },
                     enumerable: false
                 });
+                methodNames.push(k);
             } else {
                 _res.prototype[k] = m;
             }
         }
         _res.__name__ = defs.CLASSNAME;
         _res.prototype.constructor = _res;
-        _res.prototype.__class__ = _res;
+        Object.defineProperty(_res.prototype, "__class__", {
+            value: _res,
+            enumerable: false
+        });
+        _res.__methodnames__ = methodNames;
         _res.__str__ = function () {
             return "<class '__main__." + _res.__name__ + "'>";
         };
@@ -2310,12 +2320,17 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         return _res;
     };
     PL.super = function (klass, self) {
-        //console.log("klass,self",klass,self);
+        //console.log("klass,self, name",klass,self, klass.__name__);
         //console.log("klass.prototype.CLASSNAME",klass.prototype.CLASSNAME);
+        if (!klass.__bases__) {
+            console.log(klass);
+            throw new Error("superclass of " + klass.prototype.CLASSNAME + " not found");
+        }
         var superclass = klass.__bases__.elems[0];
         if (!superclass) {
-            throw new Error("superclass not found");
+            throw new Error("superclass of " + klass.prototype.CLASSNAME + " not found");
         }
+        //console.log("superclass", superclass, superclass.__name__, klass.__methodnames__, superclass.__methodnames__);
         var superprot = superclass.prototype;
         if (superprot === klass.prototype) {
             console.log(self, self.CLASSNAME);
@@ -2326,10 +2341,32 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         }
         //console.log("superprot",superprot.CLASSNAME);
         var res = {};
-        for (var meth in superprot) {
-            if (typeof superprot[meth] !== "function") continue;
-            res[meth] = superprot[meth].bind(self);
+        var _iteratorNormalCompletion2 = true;
+        var _didIteratorError2 = false;
+        var _iteratorError2 = undefined;
+
+        try {
+            for (var _iterator2 = klass.__methodnames__[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                var meth = _step2.value;
+
+                if (typeof superprot[meth] !== "function") continue;
+                Object.defineProperty(res, meth, { value: superprot[meth].bind(self) });
+            }
+        } catch (err) {
+            _didIteratorError2 = true;
+            _iteratorError2 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                    _iterator2.return();
+                }
+            } finally {
+                if (_didIteratorError2) {
+                    throw _iteratorError2;
+                }
+            }
         }
+
         return res;
     };
     PL.Tuple = PL.class({
@@ -2554,13 +2591,13 @@ define('PyLib',['require','exports','module'],function (require, exports, module
                 args[_key4 - 1] = arguments[_key4];
             }
 
-            var _iteratorNormalCompletion2 = true;
-            var _didIteratorError2 = false;
-            var _iteratorError2 = undefined;
+            var _iteratorNormalCompletion3 = true;
+            var _didIteratorError3 = false;
+            var _iteratorError3 = undefined;
 
             try {
-                for (var _iterator2 = args[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-                    var _a = _step2.value;
+                for (var _iterator3 = args[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                    var _a = _step3.value;
 
                     if (_a instanceof PL.Option) {
                         Object.assign(o, _a);
@@ -2570,16 +2607,16 @@ define('PyLib',['require','exports','module'],function (require, exports, module
                     i++;
                 }
             } catch (err) {
-                _didIteratorError2 = true;
-                _iteratorError2 = err;
+                _didIteratorError3 = true;
+                _iteratorError3 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
-                        _iterator2.return();
+                    if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                        _iterator3.return();
                     }
                 } finally {
-                    if (_didIteratorError2) {
-                        throw _iteratorError2;
+                    if (_didIteratorError3) {
+                        throw _iteratorError3;
                     }
                 }
             }
@@ -2587,9 +2624,9 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             i = 0;
             return str.replace(/{([0-9a-zA-Z_]*)}/g, function (_, name) {
                 if (!name) {
-                    return o[i++];
+                    return PL.str(o[i++]);
                 } else {
-                    return o[name];
+                    return PL.str(o[name]);
                 }
             });
         }
@@ -2608,6 +2645,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             return "<class function>";
         }
     });
+    var orig_sort = Array.prototype.sort;
     PL.addMonkeyPatch(Array, {
         __class__: PL.list,
         append: function append(self) {
@@ -2646,7 +2684,43 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         },
         sorted: function sorted(self) {
             return self.slice().sort();
-        }
+        },
+        sort: function sort(self, comp) {
+            comp = comp || function (a, b) {
+                return a > b ? 1 : a < b ? -1 : 0;
+            };
+            if (comp instanceof PL.Option) {
+                var key = comp.key;
+                if (typeof key === "string") {
+                    var ks = key;
+                    key = function key(o) {
+                        return o[ks];
+                    };
+                }
+                if (typeof key === "function") {
+                    var sorted = self.map(function (val, idx) {
+                        return { val: val, idx: idx };
+                    }).sort(function (a, b) {
+                        var va = key(a.val);
+                        var vb = key(b.val);
+                        if (va > vb) return 1;else if (va < vb) return -1;else return a.idx - b.idx;
+                    }).map(function (r) {
+                        return r.val;
+                    });
+                    while (self.length) {
+                        self.pop();
+                    }while (sorted.length) {
+                        self.push(sorted.shift());
+                    }
+                }
+                if (comp.reverse) {
+                    self.reverse();
+                }
+                return self;
+            }
+            return orig_sort.apply(self, [comp]);
+        },
+        __contains__: function __contains__() {}
     });
 
     //---
@@ -2800,12 +2874,14 @@ const importable={
     //fs:{wrapper:true,server:true},
     re:{server:true},
     g:{browser:true},
+    turtle:{browser:true},
     requests:{server:true},//SPECIAL
     json:{server:true},//SPECIAL
     sys:{wrapper:true,server:true},
     matplotlib:{wrapper:true,server:true},
     numpy:{wrapper:true,server:true},
-    os:{wrapper:true,server:true}
+    os:{wrapper:true,server:true},
+    urllib:{wrapper:true,server:true},
 };
 
 //-----
@@ -2837,6 +2913,14 @@ const vdef={
             if (importable[nameHead].server) hint="(「サーバで実行」するとインポートできます)．";
             this.error(nameHead+" はインポートできません"+hint,nameHead);
         }*/
+        this.addScope(node.alias || nameHead,{kind:"module",vtype:importable[nameHead],node});
+    },
+    importStmt2: function (node) {
+        for (let e of node.elements) this.visit(e);
+    },
+    importElement: function (node) {
+        const nameHead=node.name[0];
+        this.checkImportable(nameHead);
         this.addScope(node.alias || nameHead,{kind:"module",vtype:importable[nameHead],node});
     },
     fromImportStmt: function (node) {
@@ -3115,7 +3199,7 @@ const vdef={
         this.visit(node.body);
     }
 };
-const thru=["nodent",">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
+const thru=["nodent","in",">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
   ">","<","=",".",":","+","-","*","/","%","(",")",",","not","and","or","True","False","None",
   "passStmt","superCall"];
 for (let t of thru) {
@@ -3184,6 +3268,9 @@ const Semantics= {
             for (let node of stmtList) {
                 if (node.type==="globalStmt") {
                     v.visit(node);
+                }
+                if (node.type==="classdef") {
+                    this.addScope(node.name,{kind:"class",node});
                 }
                 if (node.type==="define") {
                     this.addScope(node.name,{kind:"function",node});
@@ -6605,6 +6692,20 @@ function (Visitor,IndentBuffer,assert) {
             }*/
             //this.printf("%n");
         },
+        importStmt2: function (node) {
+            this.printf("import %j",[",",node.elements]);
+        },
+        importElement: function (node) {
+            const nameHead=node.name[0];
+            const inf=this.importable[nameHead+""];
+            const useWrapper=(inf && inf.wrapper);
+            const localName=node.alias || node.name;
+            this.printf("%s%v", useWrapper?"_":"", node.name);
+            if (node.alias || useWrapper) {
+                this.printf(" as %v", localName);
+            }
+        },
+
         fromImportStmt: function (node) {
             const nameHead=node.name[0];
             const inf=this.importable[nameHead+""];
@@ -6814,6 +6915,20 @@ function (Visitor,IndentBuffer,context,PL) {
                 //this.printf("var %s=%s.import('%v');",node.name,PYLIB,node.name);
             }//this.printf("%n");
         },
+        importStmt2: function (node) {
+            for (let e of node.elements) {
+                this.visit(e);
+            }
+        },
+        importElement: function (node) {
+            var url=this.options.pyLibPath+"/py_"+node.name+".js";
+            if (node.alias) {
+                this.printf("var %s=require('%s').install(%s);", node.alias, url, PYLIB);
+            } else {
+                this.printf("var %s=require('%s').install(%s);", node.name, url, PYLIB);
+            }
+        },
+
         fromImportStmt: function (node) {
             var url=this.options.pyLibPath+"/py_"+node.name+".js";
             this.printf("var {%j}=require('%s').install(%s);", [",",node.localNames], url, PYLIB);
@@ -6996,6 +7111,9 @@ function (Visitor,IndentBuffer,context,PL) {
             } else if (io) {
                 this.printf("%v=%s.wrap(%v).__%s__(%v)" ,
                 node.left, PYLIB, node.left, io, node.right);
+            } else if (node.op+""==="in") {
+                this.printf("%s.wrap(%v).__contains__(%v)" ,
+                    PYLIB, node.right, node.left);
             } else {
                 throw new Error("No operator for "+node.op);
             }

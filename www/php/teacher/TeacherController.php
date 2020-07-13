@@ -268,9 +268,9 @@ class TeacherController {
       date_default_timezone_set('Asia/Tokyo');
       $now=time();
       ?>
-      <table>
-          <tr><th>クラス</th><th>開講年月</th><th>主たる言語</th><th>アクティブユーザ数</th><th>教員</th><th>プロジェクト</th>
-              <th>c</th><th>dncl</th><th>dtl</th><th>py</th><th>js</th><th>tonyu</th><th>合計</th></tr>
+      <table border="1">
+          <tr><th>クラス</th><th>開講年月</th><th>主たる言語</th><th>アクティブユーザ数</th>
+              <th>c</th><th>dncl</th><th>dtl</th><th>py</th><th>js</th><th>tonyu</th><th>合計</th><th>教員</th><th>プロジェクト</th></tr>
               <?php
               foreach(glob(BA_HOME."/*") as $class){
                   if(!is_file($class)){
@@ -278,12 +278,15 @@ class TeacherController {
                       $className=$temp[count($temp)-1];
                       $begin=$now;
                       $overall = array();
+                      $users=0;
                       foreach(glob($class."/*") as $user){
                           if(!is_file($user)){
                               $temp=explode("/",$user);
                               $userName=$temp[count($temp)-1];
+                              $isAct=false;
                               foreach(glob($user."/*") as $prj){
                                   if(is_file($prj."/options.json")){
+                                      $isAct=true;
                                       $createdTime=filemtime($prj."/options.json");
                                       $temp=explode("/",$prj);
                                       $prjName=$temp[count($temp)-1];
@@ -299,15 +302,21 @@ class TeacherController {
                                       //$path[count($path)-3]."/".$path[count($path)-2]."/".$path[count($path)-1]."<BR>";
                                   }
                               }
+                              if($isAct) $users++;
                           }
                       }
+                      $ml=self::mainLang($overall);
                       ?>
-                      <tr><td><?=$className?></td><td><?=DateUtil::toString($begin)?></td><td><?=isset($overall['c'])? $overall['c']:0 ?></td>
+                      <tr><td><?=$className?></td><td><?=DateUtil::toString($begin)?></td>
+                          <td><?=$ml?></td>
+                          <td><?=$users?></td>
+                          <td><?=isset($overall['c'])? $overall['c']:0 ?></td>
                           <td><?=isset($overall['dncl'])?$overall['dncl'] :0 ?></td>
                           <td><?=isset($overall['dtl'])?$overall['dtl'] :0 ?></td>
                           <td><?=isset($overall['py'])? $overall['py']:0 ?></td>
                           <td><?=isset($overall['js'])? $overall['js']:0 ?></td>
-                          <td><?=isset($overall['tonyu'])? $overall['tonyu']:0 ?></td></tr>
+                          <td><?=isset($overall['tonyu'])? $overall['tonyu']:0 ?></td>
+                          <td><?=array_sum($overall) ?></td></tr>
                           <?php
                       }
                   }
@@ -320,7 +329,9 @@ class TeacherController {
           }
     static function mainLang($overall){
         // todo
-        return shu;
+        asort($overall);
+        $ml=array_key_last($overall);
+        return is_null($ml)? 'none' : $overall[$ml]/array_sum($overall)>0.8 ? $ml : 'mix';
     }
 }
 
