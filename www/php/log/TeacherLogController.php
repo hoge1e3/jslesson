@@ -70,9 +70,17 @@ class TeacherLogController {
           $logs2=Array();
           foreach($logs as $i=>$l){
             if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false){
-              if(array_key_exists($i+1,$logs)){
+              //if(array_key_exists($i+1,$logs)){
+                //没：次のログが3秒以上後，または 「実行しました（実行しようとしました）」ではない
                 //if($logs[$i+1]['time']-$l['time']>=3 || ($logs[$i+1]['time']-$l['time']<3 && $l['detail']!="実行しました")) {
-                if(($l['detail']!="実行しました" || $all) && !($l['time']-$prevTime<=1 && $l['result']==$prevResult && strpos(mb_strtolower($l['result']),'runtime')!==false)) {
+                // 実行しました（実行しようとしました）  は除外(all=1で表示可能)
+                if(($l['detail']!="実行しました" || $all) &&
+                // 1秒以内に隣り合っているもので，しかも1個前と結果が同じ，しかもruntime errorは除外
+                // => runtime errorが連続で出ているものは除外
+                    !($l['time']-$prevTime<=1 &&
+                    $l['result']==$prevResult &&
+                    strpos(mb_strtolower($l['result']),'runtime')!==false)
+                ) {
                   array_push($logs2,$l);
                   ?>
                   <script>
@@ -82,15 +90,16 @@ class TeacherLogController {
                   </script>
                   <?php
                 }
-              }
+              //}
               $prevTime=$l['time'];
               $prevResult=$l['result'];
             }
           }
-          if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false) array_push($logs2,$l);
+          //if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false) array_push($logs2,$l);
           ?>
           <script>
           var indexList=[];
+          console.log("programs", programs, '<?= count($logs2) ?>');
           </script>
           <?php
           foreach($logs2 as $l){
@@ -127,7 +136,8 @@ class TeacherLogController {
               var sameLines=":"+lastDiffData["equal"];
               console.log("prev",prevProg);
               console.log("cur",curProg);
-              console.log("diff",prevDiffData);
+              console.log("diff",prevDiffData, lastDiffData);
+              console.log("cur/last",curProg,lastProg, curProg===lastProg);
 
               var e=document.createElement("span");
               e.id='<?=$l['id']?>summary';
