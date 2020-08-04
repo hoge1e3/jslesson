@@ -120,7 +120,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             checkBorder: function checkBorder() {
                 if (obj instanceof Array && typeof key === "number") {
                     if (key < 0 || key >= obj.length) {
-                        throw new Error("配列の" + key + "番目にアクセスしようとしました．" + "この配列の有効な添字は[0]から[" + (obj.length - 1) + "]までです");
+                        throw new Error("配列の添字[" + key + "]にアクセスしようとしました．" + "この配列の有効な添字は[0]から[" + (obj.length - 1) + "]までです");
                     }
                 }
             },
