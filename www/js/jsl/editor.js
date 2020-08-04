@@ -626,6 +626,11 @@ function ready() {
                 reg:/^[A-Za-z_][\-a-zA-Z0-9_]*$/, error:"名前は，半角英数字とアンダースコア(_)，ハイフン(-)のみが使えます．"
             };
         }
+        if (builder && builder.Semantics && builder.Semantics.importable ) {
+            if (builder.Semantics.importable[name]) {
+                return {ok:false, reason:`${name}はPythonのライブラリ名と同じなので使えません．`};
+            }
+        }
         if (name.match(pat.reg)) {
             if (sourceFiles[name]) {
                 return {ok:false, reason:name+"は存在します"};

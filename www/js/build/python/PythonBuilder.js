@@ -197,5 +197,6 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
     p.upload=function (pub) {
         return Sync.sync(this.dst,pub);
     };
+    p.Semantics=S;
     return PythonBuilder;//<-Dtl
 });
