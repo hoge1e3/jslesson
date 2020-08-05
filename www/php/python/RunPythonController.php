@@ -66,7 +66,7 @@ class RunPythonController {
         $prjDesc=$d->openProject($user->name, $projectName);
         $stdinfile="__STDIN.txt";
      	$prjDesc["work"]["host"]->rel($stdinfile)->text($stdin);
-     	$res=$d->execInProject($prjDesc, "export MPLBACKEND=\"module://mybackend\" \n timeout 1 python $fileName < $stdinfile");
+     	$res=$d->execInProject($prjDesc, "export MPLBACKEND=\"module://mybackend\" \n timeout 60 python $fileName < $stdinfile");
      	if ($res["stderr"]=="") self::convOut($res["stdout"], $d->hostWork()->rel($user->name."/")->rel("$projectName/") );
         else {
             http_response_code(500);

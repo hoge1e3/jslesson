@@ -19,6 +19,7 @@ const importable={
     numpy:{wrapper:true,server:true},
     os:{wrapper:true,server:true},
     urllib:{wrapper:true,server:true},
+    chainer:{server:true},
 };
 
 //-----
