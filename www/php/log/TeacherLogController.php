@@ -24,12 +24,18 @@ class TeacherLogController {
     }
     static function view1() {
         // focus to one student
-        $user=param("user");
         $day=DateUtil::toInt(param("day",DateUtil::now()));
         // If i can do , i do it.
         $class=Auth::curClass2();
-        $targetUser=$class->getUser($user);
-        $teacher=Auth::curTeacher()->id;
+        $teacherObj=Auth::curTeacher();
+        if($teacherObj) {
+            $teacher=Auth::curTeacher()->id;
+            $user=param("user");
+            $targetUser=$class->getUser($user);
+        } else {
+            $teacher="NOT_TEACHER";
+            $targetUser=Auth::curUser2();
+        }
         ?>
         <script type="text/javascript" src="js/lib/jquery-1.12.1.js"></script>
         <script type="text/javascript" src="js/lib/jquery-ui.js"></script>

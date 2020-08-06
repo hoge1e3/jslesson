@@ -202,7 +202,7 @@ class Auth {
     static function isTeacherOf($class){
         //現在ログインしているユーザは$class の教員roleを持つか？
         $t=self::isTeacher2();
-        return $t->isTeacherOf(self::getClass($class));
+        return $t && $t->isTeacherOf(self::getClass($class));
         /*$pdo = pdo();
     	$sth=$pdo->prepare("select * from role where class = ? and user = ? and type = ?");
     	$sth->execute(array($class,self::curUser(),self::TEACHER));
