@@ -22,6 +22,34 @@ class TeacherLogController {
         }
         //echo $day;
     }
+    static function view1Dates() {
+        $day=DateUtil::toInt(param("day",DateUtil::now()));
+        // If i can do , i do it.
+        $class=Auth::curClass2();
+        $teacher=Auth::curTeacher();
+        if($teacher) {
+            $teacheIDr=Auth::curTeacher()->id;
+            $userName=param("user");
+            $user=$class->getUser($userName);
+        } else {
+            $teacheID="NOT_TEACHER";
+            $user=Auth::curUser2();
+        }
+        //print $class->id." , ".$user->name;
+        $it=pdo_select_iter("select time from log where class=? and user=? ",$class->id, $user->name);
+        $has=array();
+        req("DateUtil");
+        foreach ($it as $obj) {
+            $day=DateUtil::toDayTop($obj->time);
+            if (isset($has[$day])) continue;
+            $has[$day]=1;
+            ?>
+            <a href=".?TeacherLog/view1&day=<?= $day ?>">
+                <?= DateUtil::toString($day) ?>
+            </a><BR/>
+            <?php
+        }
+    }
     static function view1() {
         // focus to one student
         $day=DateUtil::toInt(param("day",DateUtil::now()));
@@ -62,6 +90,9 @@ class TeacherLogController {
         $logs=$targetUser->getAllLogs($baseInt,$baseInt+86400);
         if (count($logs)===0) {
             echo "この日のログはありません．";
+            ?>
+            <a href=".?TeacherLog/view1Dates">他の日のログを見る</a>
+            <?php 
             return;
         }
         ?>

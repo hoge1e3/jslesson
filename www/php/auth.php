@@ -267,5 +267,25 @@ class Auth {
         $user=self::curUser2();
         return Published::getURL($user->_class->id, $user->name, $project);
     }
+    static function context() {
+        return new AuthContext();
+    }
+}
+class AuthContext {
+    function __construct() {
+        $this->userObj=$this->user=Auth::curUser2();
+        if (!$this->user) {
+            throw new Exception("Not logged in");
+        }
+        $this->userId=$this->userID=$this->userName=$this->user->name;
+        $this->classObj=$this->{"class"}=$this->_class=$this->user->_class;
+        $this->classID=$this->classId=$this->className=$this->_class->id;
+        $this->teacher=Auth::isTeacherOf($this->{"class"});
+        // NOTE: this.teacher !== this.user
+        //       (If the teacher predend to be him/her).
+    }
+    function isTeacher() {
+        return $this->teacher;
+    }
 }
 ?>

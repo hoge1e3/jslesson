@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__."/../PQuery.php";
+req("auth","BAClass","BAUser");
 class LogUtil {
     static $verbose=0;
     static function detectProgram($e) {
@@ -46,22 +47,25 @@ class LogUtil {
     }
     static function getLogFiles() {
         $class=Auth::curClass();
-        return self::getLogFileOf($class);
+        return self::getLogsFileOf($class);
     }
-    static function getLogFilesOf($class) {
+    static function getLogFilesOf($classOrUser) {
         $logD=self::getLogDir();
         $files=$logD->listFiles();
         $res=array();
-        if (Auth::isTeacherOf($class)) {
-            foreach ($files as $file) {
-                if (self::isLogFileOf($file,$class)) {
-                    $res[]=$file;
-                }
+        foreach ($files as $file) {
+            if (self::isLogFileOf($file,$classOrUser)) {
+                $res[]=$file;
             }
         }
         return $res;
     }
     static function isLogFileOf($file,$cid) {
+        if ($cid instanceof BAClass) {
+            $cid=$cid->id;
+        } else if ($cid instanceof BAUser) {
+            return self::isLogFileOf($file, $cid->_class->id, $cid->name);
+        }
         return ($file->startsWith($cid) && $file->endsWith("-data.log"));
     }
     static function isLogFileOfUser($file,$cid,$uid){
@@ -85,5 +89,25 @@ class LogUtil {
         }
         $file->text($buf);
     }
+    static function get($id){
+        $r=pdo_select1("select * from log where id = ?",$id);
+        if (!$r) {
+            throw new Exception("ID $id is not found");
+        }
+        //print_r($r);
+        $user=Auth::curUser2();
+        $class=$user->_class;
+        if (Auth::isTeacherOf($class)) {
+            if ($r->{"class"}!==$class->id) {
+                throw new Exception("ID $id is not of ".$class->id);
+            }
+        } else {
+            if ($r->{"class"}!==$class->id || $r->user!==$user->name) {
+                throw new Exception("ID $id is not of ".$class->id.":".$user->name);
+            }
+        }
+        return $r;
+    }
+
 }
 ?>
