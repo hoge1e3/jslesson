@@ -29,7 +29,11 @@ class TeacherLogController {
         $teacher=Auth::curTeacher();
         if($teacher) {
             $teacheIDr=Auth::curTeacher()->id;
-            $userName=param("user");
+            $userName=param("user",null);
+            if (!$userName) {
+                $targetUser=Auth::curUser2();
+                $userName=$targetUser->name;
+            }
             $user=$class->getUser($userName);
         } else {
             $teacheID="NOT_TEACHER";
@@ -58,11 +62,16 @@ class TeacherLogController {
         $teacherObj=Auth::curTeacher();
         if($teacherObj) {
             $teacher=Auth::curTeacher()->id;
-            $user=param("user");
+            $user=param("user",null);
+            if (!$user) {
+                $targetUser=Auth::curUser2();
+                $user=$targetUser->name;
+            }
             $targetUser=$class->getUser($user);
         } else {
             $teacher="NOT_TEACHER";
             $targetUser=Auth::curUser2();
+            $user=$targetUser->name;
         }
         ?>
         <script type="text/javascript" src="js/lib/jquery-1.12.1.js"></script>
@@ -92,7 +101,7 @@ class TeacherLogController {
             echo "この日のログはありません．";
             ?>
             <a href=".?TeacherLog/view1Dates">他の日のログを見る</a>
-            <?php 
+            <?php
             return;
         }
         ?>

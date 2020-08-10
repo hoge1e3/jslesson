@@ -18,8 +18,10 @@ $(document).ready(function() {
 function getLog(logid,userid){
   $.ajax({
       type: "POST",
-      url: "?Class/getLog",
-      data: "logid="+logid,
+      // url: "?Class/getLog",
+      //data: "logid="+logid,
+      url: "?LogQuery/byId",
+      data: "id="+logid,
       dataType: "json",
       success: function(data,dataType){
           console.log(data);
@@ -82,7 +84,7 @@ function openFrame(data){
   $("[id='"+userid+"']").html(res);
   $("[id='"+userid+"']").css("display","inline");
   //$("#"+userid).width($("#"+userid).parent().width());
-  $("[id='"+userid+"']").height($("[id='"+userid+"']").get(0).scrollHeight);
+  $("[id='"+userid+"']").height( checknull( $("[id='"+userid+"']").get(0), userid).scrollHeight);
   $("[data-id='"+data.id+"']").css("background-color","orange");
   $("[id='"+userid+"detail']").html(detail);
   //alert(logid);
@@ -149,8 +151,10 @@ if(reloadMode){
 function getPreviousLog(logid){
   return $.ajax({
       type: "POST",
-      url: "?Class/getLog",
-      data: "logid="+logid,
+      // url: "?Class/getLog",
+      //data: "logid="+logid,
+      url: "?LogQuery/byId",
+      data: "id="+logid,
       dataType: "json"
   });
 }
@@ -205,7 +209,7 @@ async function showLogOneUser(logid,userid,fn){
         $("[id='"+logid+"summary']").html(pd+ld);*/
 
     }catch(e) {
-        console.log("failed get last log",e);
+        console.log("failed get last log",e.stack);
     }
   }
 }
@@ -215,6 +219,10 @@ function clearBreak(base){
     return !l.match(/^(\s)*$/);
   });
   return res.join("\n");
+}
+function checknull(o,mesg) {
+    if (o) return o;
+    throw new Error(mesg+" is not found");
 }
 function calcDiff(prev,now,id,btn,ntn,flag){
   // get the baseText and newText values from the two textboxes, and split them into lines
@@ -231,7 +239,7 @@ function calcDiff(prev,now,id,btn,ntn,flag){
   // in order to yield the new text
   var opcodes = sm.get_opcodes();
   //var diffoutputdiv = $("[id='"+id+"diff']")[0];
-  var diffoutputdiv = $(id)[0];
+  var diffoutputdiv = checknull( $(id)[0], id);
   console.log("SequenceMatcher",opcodes);
   var diffData={"insert":0,"delete":0,"replace":0,"equal":0};
   let diffLine="";
