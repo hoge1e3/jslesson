@@ -181,10 +181,10 @@ async function showLogOneUser(logid,userid,fn){
         const lastProg=getCode(lRaw);//lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
         const prevDiffData=calcDiff(code,currentProgram,"[id='"+userid+"diff']","Prev","Current",true);
         const lastDiffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last",true);
-        /*var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
-            var ld="-"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"];
-            $("[id='"+logid+"summary']").html(pd+ld);
-         */
+        /*var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"]+":"+prevDiffData.firstLine;
+        var ld="-"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"]+":"+lastDiffData.firstLine;
+        $("[id='"+logid+"summary']").html(pd+ld);*/
+
     }catch(e) {
         console.log("failed get last log",e);
     }
@@ -200,10 +200,10 @@ async function showLogOneUser(logid,userid,fn){
         const lastProg=getCode(lRaw);//.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || curRaw.code.py || "";
         calcDiff("最初のプログラム",currentProgram,"[id='"+userid+"diff']","Prev","Current",true);
         const diffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last",true);
-        /*var pd=":0:0:0:0";
-        var ld="-"+diffData["delete"]+":"+diffData["insert"]+":"+diffData["replace"]+":"+diffData["equal"];
-        $("[id='"+logid+"summary']").html(pd+ld);
-        */
+        /*var pd=":0:0:0:0:-1";
+        var ld="-"+diffData.delete+":"+diffData.insert+":"+diffData.replace+":"+diffData.equal+":"+diffData.firstLine;
+        $("[id='"+logid+"summary']").html(pd+ld);*/
+
     }catch(e) {
         console.log("failed get last log",e);
     }
@@ -232,26 +232,34 @@ function calcDiff(prev,now,id,btn,ntn,flag){
   var opcodes = sm.get_opcodes();
   //var diffoutputdiv = $("[id='"+id+"diff']")[0];
   var diffoutputdiv = $(id)[0];
-  //console.log(sm,opcodes);
+  console.log("SequenceMatcher",opcodes);
   var diffData={"insert":0,"delete":0,"replace":0,"equal":0};
+  let diffLine="";
   for(var opti in opcodes){
     var opt=opcodes[opti];
-    //console.log("switch"+opt[0]);
+    console.log("switch",opt[0],opti,opt[2]);
     switch(opt[0]){
       case "equal":
+        if (opti==0 && opcodes.length>1) diffLine=opt[2];
+        diffData[opt[0]]+=(opt[2]-opt[1]);//  b   e    b    e
+        break;
       case "delete":
-        diffData[opt[0]]+=(opt[2]-opt[1]);
+        if (opti==0) diffLine=0;          //  Left     Right
+        diffData[opt[0]]+=(opt[2]-opt[1]);//  b   e    b    e
         break;
       case "insert":
+        if (opti==0) diffLine=0;
         diffData[opt[0]]+=(opt[4]-opt[3]);
         break;
       case "replace":
+        if (opti==0) diffLine=0;
         diffData[opt[0]]+=Math.max(opt[2]-opt[1],opt[4]-opt[3]);
         break;
       default:
         console.log("Unknown state '"+opt[0]+"' discovered.");
     }
   }
+  diffData.firstLine=diffLine;
   if(flag){
     while (diffoutputdiv.firstChild) diffoutputdiv.removeChild(diffoutputdiv.firstChild);
     //var contextSize = $("contextSize").value;
