@@ -29,6 +29,7 @@
   - branch docker
 * 作品一覧
 * OK personalクラス
+* C -  fgets() + sscanf() ,sizeof
 
 *OK 隠し from teacher(オプションで再出現)
 -未採点の課題

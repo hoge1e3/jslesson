@@ -62,13 +62,13 @@ function calcDiffLast(ary){
 		ary[i].push(d1["delete"]);
 		ary[i].push(d1["replace"]);
 		ary[i].push(d1["equal"]);
-		ary[i].push(d1.firstLine);
 		ary[i].push(d["insert"]);
 		ary[i].push(d["delete"]);
 		ary[i].push(d["replace"]);
 		ary[i].push(d["equal"]);
-		ary[i].push(d.firstLine);
 		ary[i].push(location.href.replace(/&logid=\d+/,"") + "&logid="+ary[i].id);
+		ary[i].push(d1.firstLine);
+		ary[i].push(d.firstLine);
 	}
 }
 
