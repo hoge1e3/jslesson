@@ -239,7 +239,6 @@ function calcDiff(prev,now,id,btn,ntn,flag){
   // in order to yield the new text
   var opcodes = sm.get_opcodes();
   //var diffoutputdiv = $("[id='"+id+"diff']")[0];
-  var diffoutputdiv = checknull( $(id)[0], id);
   console.log("SequenceMatcher",opcodes);
   var diffData={"insert":0,"delete":0,"replace":0,"equal":0};
   let diffLine="";
@@ -269,6 +268,7 @@ function calcDiff(prev,now,id,btn,ntn,flag){
   }
   diffData.firstLine=diffLine;
   if(flag){
+      let diffoutputdiv = checknull( $(id)[0], id);
     while (diffoutputdiv.firstChild) diffoutputdiv.removeChild(diffoutputdiv.firstChild);
     //var contextSize = $("contextSize").value;
     //contextSize = contextSize ? contextSize : null;
