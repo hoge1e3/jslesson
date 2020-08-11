@@ -22,14 +22,57 @@ class TeacherLogController {
         }
         //echo $day;
     }
-    static function view1() {
-        // focus to one student
-        $user=param("user");
+    static function view1Dates() {
         $day=DateUtil::toInt(param("day",DateUtil::now()));
         // If i can do , i do it.
         $class=Auth::curClass2();
-        $targetUser=$class->getUser($user);
-        $teacher=Auth::curTeacher()->id;
+        $teacher=Auth::curTeacher();
+        if($teacher) {
+            $teacheIDr=Auth::curTeacher()->id;
+            $userName=param("user",null);
+            if (!$userName) {
+                $targetUser=Auth::curUser2();
+                $userName=$targetUser->name;
+            }
+            $user=$class->getUser($userName);
+        } else {
+            $teacheID="NOT_TEACHER";
+            $user=Auth::curUser2();
+        }
+        //print $class->id." , ".$user->name;
+        $it=pdo_select_iter("select time from log where class=? and user=? ",$class->id, $user->name);
+        $has=array();
+        req("DateUtil");
+        foreach ($it as $obj) {
+            $day=DateUtil::toDayTop($obj->time);
+            if (isset($has[$day])) continue;
+            $has[$day]=1;
+            ?>
+            <a href=".?TeacherLog/view1&day=<?= $day ?>">
+                <?= DateUtil::toString($day) ?>
+            </a><BR/>
+            <?php
+        }
+    }
+    static function view1() {
+        // focus to one student
+        $day=DateUtil::toInt(param("day",DateUtil::now()));
+        // If i can do , i do it.
+        $class=Auth::curClass2();
+        $teacherObj=Auth::curTeacher();
+        if($teacherObj) {
+            $teacher=Auth::curTeacher()->id;
+            $user=param("user",null);
+            if (!$user) {
+                $targetUser=Auth::curUser2();
+                $user=$targetUser->name;
+            }
+            $targetUser=$class->getUser($user);
+        } else {
+            $teacher="NOT_TEACHER";
+            $targetUser=Auth::curUser2();
+            $user=$targetUser->name;
+        }
         ?>
         <script type="text/javascript" src="js/lib/jquery-1.12.1.js"></script>
         <script type="text/javascript" src="js/lib/jquery-ui.js"></script>
@@ -56,6 +99,9 @@ class TeacherLogController {
         $logs=$targetUser->getAllLogs($baseInt,$baseInt+86400);
         if (count($logs)===0) {
             echo "この日のログはありません．";
+            ?>
+            <a href=".?TeacherLog/view1Dates">他の日のログを見る</a>
+            <?php
             return;
         }
         ?>
@@ -70,9 +116,17 @@ class TeacherLogController {
           $logs2=Array();
           foreach($logs as $i=>$l){
             if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false){
-              if(array_key_exists($i+1,$logs)){
+              //if(array_key_exists($i+1,$logs)){
+                //没：次のログが3秒以上後，または 「実行しました（実行しようとしました）」ではない
                 //if($logs[$i+1]['time']-$l['time']>=3 || ($logs[$i+1]['time']-$l['time']<3 && $l['detail']!="実行しました")) {
-                if(($l['detail']!="実行しました" || $all) && !($l['time']-$prevTime<=1 && $l['result']==$prevResult && strpos(mb_strtolower($l['result']),'runtime')!==false)) {
+                // 実行しました（実行しようとしました）  は除外(all=1で表示可能)
+                if(($l['detail']!="実行しました" || $all) &&
+                // 1秒以内に隣り合っているもので，しかも1個前と結果が同じ，しかもruntime errorは除外
+                // => runtime errorが連続で出ているものは除外
+                    !($l['time']-$prevTime<=1 &&
+                    $l['result']==$prevResult &&
+                    strpos(mb_strtolower($l['result']),'runtime')!==false)
+                ) {
                   array_push($logs2,$l);
                   ?>
                   <script>
@@ -82,15 +136,16 @@ class TeacherLogController {
                   </script>
                   <?php
                 }
-              }
+              //}
               $prevTime=$l['time'];
               $prevResult=$l['result'];
             }
           }
-          if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false) array_push($logs2,$l);
+          //if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false) array_push($logs2,$l);
           ?>
           <script>
           var indexList=[];
+          console.log("programs", programs, '<?= count($logs2) ?>');
           </script>
           <?php
           foreach($logs2 as $l){
@@ -127,7 +182,8 @@ class TeacherLogController {
               var sameLines=":"+lastDiffData["equal"];
               console.log("prev",prevProg);
               console.log("cur",curProg);
-              console.log("diff",prevDiffData);
+              console.log("diff",prevDiffData, lastDiffData);
+              console.log("cur/last",curProg,lastProg, curProg===lastProg);
 
               var e=document.createElement("span");
               e.id='<?=$l['id']?>summary';

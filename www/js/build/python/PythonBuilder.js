@@ -209,5 +209,6 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
             }
         };
     };
+    p.Semantics=S;
     return PythonBuilder;//<-Dtl
 });

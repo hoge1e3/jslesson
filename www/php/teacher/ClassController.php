@@ -467,9 +467,18 @@ class ClassController {
     }*/
     static function getLog(){
         $class=Auth::curClass2();
-        $logid=$_POST["logid"];
+        $logid=param("logid");//$_POST["logid"];
         $lg=$class->getLogById($logid);
+        if (!$lg) {
+            throw new Error("log id=$logid is not found.");
+        }
         $user=Auth::curUser2();
+        if (!$user) {
+            throw new Error("Not logged in.");
+        }
+        if (!$class) {
+            throw new Error("Not logged in to class.");
+        }
         if (Auth::isTeacherOf($class) || $user->name==$lg[0]->user) {
             print(json_encode($lg[0]));
         }

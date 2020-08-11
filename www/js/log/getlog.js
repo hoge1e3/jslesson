@@ -32,13 +32,16 @@ function getLogsByFileName(fn){
 	var ret=[];
 	for(var i in logsOfOneUser[fn]){
 		getPreviousLog(logsOfOneUser[fn][i]).done(function(r){
+			//console.log("r",r);
+			var id=r.id;
 			var r=JSON.parse(r.raw);
 			var ary=[];
 			ary["filename"]=r.filename.split("/")[5];
 			ary["date"]=r.date;
 			ary["time"]=r.time;
-			ary["code"]=r.code.C;
+			ary["code"]=getCode(r);//r.code.C;
 			ary["result"]=r.result;
+			ary.id=id;
 			ret.push(ary);
 		});
 	}
@@ -46,9 +49,11 @@ function getLogsByFileName(fn){
 }
 
 function calcDiffLast(ary){
+	//console.log("calcDiffLast",ary);
 	for(var i=0;i<ary.length;i++){
-		if(i>0) var d1=calcDiff(ary[i-1]["code"],ary[i]["code"],null,null,null,false);
-		else var d1={"insert":0,"delete":0,"replace":0,"equal":0};
+		let d1;
+		if(i>0) d1=calcDiff(ary[i-1]["code"],ary[i]["code"],null,null,null,false);
+		else d1={"insert":0,"delete":0,"replace":0,"equal":0};
 		var d=calcDiff(ary[i]["code"],ary[ary.length-1]["code"],null,null,null,false);
 		ary[i].push(ary[i]["time"]);
 		ary[i].push(interval(ary,i));
@@ -57,10 +62,13 @@ function calcDiffLast(ary){
 		ary[i].push(d1["delete"]);
 		ary[i].push(d1["replace"]);
 		ary[i].push(d1["equal"]);
+		ary[i].push(d1.firstLine);
 		ary[i].push(d["insert"]);
 		ary[i].push(d["delete"]);
 		ary[i].push(d["replace"]);
 		ary[i].push(d["equal"]);
+		ary[i].push(d.firstLine);
+		ary[i].push(location.href.replace(/&logid=\d+/,"") + "&logid="+ary[i].id);
 	}
 }
 
