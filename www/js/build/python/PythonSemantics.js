@@ -20,6 +20,7 @@ const importable={
     os:{wrapper:true,server:true},
     urllib:{wrapper:true,server:true},
     chainer:{server:true},
+    PIL:{server:true},
 };
 
 //-----
@@ -392,7 +393,8 @@ const Semantics= {
         v.checkImportable=function (nameHead) {
             //const nameHead=node.name[0];
             if (!importable[nameHead]) {
-                this.error(nameHead+" はインポートできません",nameHead);
+                //this.error(nameHead+" はインポートできません",nameHead);
+		importable[nameHead]={server:true};
             }
             if (this.options.runAt && !importable[nameHead][this.options.runAt]) {
                 let hint="．";

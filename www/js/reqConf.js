@@ -287,6 +287,7 @@ var reqConf={
             pyRun:"build/python/pyRun",
             PyLib: "../runtime/lib/python/PyLib",
             PyX: "../runtime/lib/python/PyX",
+            PHPBuilder:"build/php/PHPBuilder",
             SysDebugger_concat:"../runtime/lib/tonyu/SysDebugger_concat.min",
             CBuilder:"build/c/CBuilder",
             TonyuBuilder:"build/tonyu/TonyuBuilder",

@@ -228,6 +228,19 @@ define(function (require, exports, module) {
         }
         return res;
     };
+    PL.parseArgs2 = function (arg, spec) {
+        // spec: [{name:  , defval: }]
+        arg = Array.prototype.slice.call(arg);
+        var opt = null;
+        if (arg[arg.length - 1] instanceof PL.Option) {
+            opt = arg.pop();
+        }
+        var res = spec.map(function (s, i) {
+            return i < arg.length ? arg[i] : opt && opt[s.name] !== undefined ? opt[s.name] : s.defval;
+        });
+        return res;
+    };
+
     PL.opt = PL.Option;
     PL.range = function (b, e) {
         var s = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;

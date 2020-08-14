@@ -9,6 +9,7 @@ $mod_aliases=array(
     'LogFileToDBController' => 'php/analysis/LogFileToDBController.php',
     'LogUtil' => 'php/analysis/LogUtil.php',
     'Log' => 'php/log/',
+    "PHPController" =>"php/php",
     "PythonCheckController"=>"php/analysis",
     'MarkTimeController' => 'php/analysis/MarkTimeController.php',
     'MkCluster' => 'php/analysis/MkCluster.php',
