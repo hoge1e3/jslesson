@@ -68,6 +68,7 @@ define(function (require) {
         "tonyu":"Tonyu",
         "dncl":"DNCL",
         "py":"Python",
+        "php":"PHP",
     };
     var helpURL;
     var unsaved=false;
@@ -145,7 +146,7 @@ function ready() {
     var HEXT=".html";
     var opt=curPrj.getOptions();
     var lang=opt.language || "js";
-    const ide={run, prj:curPrj,saveDesktopEnv};
+    const ide={run, prj:curPrj,saveDesktopEnv, sync};
     root.openDummyEditor=openDummyEditor;
     switch (lang){
     case "c":
@@ -180,6 +181,11 @@ function ready() {
         //ALWAYS_UPLOAD=true;
         requirejs(["TonyuBuilder"],setupBuilder);
         helpURL="http://bitarrow.eplang.jp/index.php?tonyu";
+        break;
+    case "php":
+        //ALWAYS_UPLOAD=true;
+        requirejs(["PHPBuilder"],setupBuilder);
+        helpURL="http://bitarrow.eplang.jp/index.php?php";
         break;
     }
     function setupBuilder(BuilderClass) {
