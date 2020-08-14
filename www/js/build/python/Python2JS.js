@@ -13,7 +13,7 @@ function (Visitor,IndentBuffer,context,PL) {
                     "%s:'%s',%j"+
                 "%}});",
                 node.name, PYLIB,sp,
-                    "CLASSNAME",node.name, [",",node.body]);
+                    "CLASSNAME",node.name, [",",node.body.filter(b=>b.type==="define")]);
             });
         },//
         define: function (node) {

@@ -174,6 +174,20 @@ define(function (require,exports,module) {
         }
         return res;
     };
+    PL.parseArgs2=function(arg, spec) {
+        // spec: [{name:  , defval: }]
+        arg=Array.prototype.slice.call(arg);
+        let opt=null;
+        if (arg[arg.length-1] instanceof PL.Option) {
+            opt=arg.pop();
+        }
+        const res=spec.map((s,i)=>
+            i<arg.length ? arg[i] : 
+            (opt && opt[s.name]!==undefined) ? opt[s.name] : s.defval
+        );
+        return res;
+    };
+
     PL.opt=PL.Option;
     PL.range=function (b,e,s=1) {
         if (e==null) {e=b;b=0;}
