@@ -9292,6 +9292,7 @@ define('NewProjectDialog',["UI","FS","ProjectFactory"], function (UI,FS,F) {
         			 ["option",{value:"dtl"},"ドリトル"],
         			 ["option",{value:"c"},"C"],
                      ["option",{value:"py"},"Python"],
+                     ["option",{value:"php"},"PHP"],
                      ["option",{value:"dncl"},"DNCL(どんくり)"]
                     ]
 				],

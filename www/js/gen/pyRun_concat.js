@@ -2248,6 +2248,19 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         }
         return res;
     };
+    PL.parseArgs2 = function (arg, spec) {
+        // spec: [{name:  , defval: }]
+        arg = Array.prototype.slice.call(arg);
+        var opt = null;
+        if (arg[arg.length - 1] instanceof PL.Option) {
+            opt = arg.pop();
+        }
+        var res = spec.map(function (s, i) {
+            return i < arg.length ? arg[i] : opt && opt[s.name] !== undefined ? opt[s.name] : s.defval;
+        });
+        return res;
+    };
+
     PL.opt = PL.Option;
     PL.range = function (b, e) {
         var s = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
@@ -6891,7 +6904,7 @@ function (Visitor,IndentBuffer,context,PL) {
                     "%s:'%s',%j"+
                 "%}});",
                 node.name, PYLIB,sp,
-                    "CLASSNAME",node.name, [",",node.body]);
+                    "CLASSNAME",node.name, [",",node.body.filter(b=>b.type==="define")]);
             });
         },//
         define: function (node) {
