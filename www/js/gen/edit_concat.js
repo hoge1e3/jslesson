@@ -14828,6 +14828,7 @@ define('NewProjectDialog',["UI","FS","ProjectFactory"], function (UI,FS,F) {
         			 ["option",{value:"dtl"},"ドリトル"],
         			 ["option",{value:"c"},"C"],
                      ["option",{value:"py"},"Python"],
+                     ["option",{value:"php"},"PHP"],
                      ["option",{value:"dncl"},"DNCL(どんくり)"]
                     ]
 				],
@@ -15495,6 +15496,7 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
         "tonyu":"Tonyu",
         "dncl":"DNCL",
         "py":"Python",
+        "php":"PHP",
     };
     var helpURL;
     var unsaved=false;
@@ -15572,7 +15574,7 @@ function ready() {
     var HEXT=".html";
     var opt=curPrj.getOptions();
     var lang=opt.language || "js";
-    const ide={run, prj:curPrj,saveDesktopEnv};
+    const ide={run, prj:curPrj,saveDesktopEnv, sync};
     root.openDummyEditor=openDummyEditor;
     switch (lang){
     case "c":
@@ -15607,6 +15609,11 @@ function ready() {
         //ALWAYS_UPLOAD=true;
         requirejs(["TonyuBuilder"],setupBuilder);
         helpURL="http://bitarrow.eplang.jp/index.php?tonyu";
+        break;
+    case "php":
+        //ALWAYS_UPLOAD=true;
+        requirejs(["PHPBuilder"],setupBuilder);
+        helpURL="http://bitarrow.eplang.jp/index.php?php";
         break;
     }
     function setupBuilder(BuilderClass) {
@@ -16052,6 +16059,11 @@ function ready() {
             pat={
                 reg:/^[A-Za-z_][\-a-zA-Z0-9_]*$/, error:"名前は，半角英数字とアンダースコア(_)，ハイフン(-)のみが使えます．"
             };
+        }
+        if (builder && builder.Semantics && builder.Semantics.importable ) {
+            if (builder.Semantics.importable[name]) {
+                return {ok:false, reason:`${name}はPythonのライブラリ名と同じなので使えません．`};
+            }
         }
         if (name.match(pat.reg)) {
             if (sourceFiles[name]) {
