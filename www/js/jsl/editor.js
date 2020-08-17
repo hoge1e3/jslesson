@@ -693,6 +693,7 @@ function ready() {
         var inf=getCurrentEditorInfo();
         if (!inf && !options.mainFile) {
             alert("実行したいファイルを選んでください");
+            return;
         }
         save();
         sync();
@@ -730,6 +731,33 @@ function ready() {
                 SplashScreen.hide();
             }
         }
+    }
+    async function build(options) {
+        if (!options.curLogicFile || !options.curHTMLFile) {
+            throw new Error("options should be set: curLogicFile, curHTMLFile");// Mandatory "options" :-)
+        }
+        const {curLogicFile, curHTMLFile}=options;
+        options.mainFile=options.curLogicFile;
+        if (options.upload) {
+            const pubd=await Auth.publishedDir(curProjectDir.name());
+            const pubu=await Auth.publishedURL(curProjectDir.name());
+            options.publishedDir=pubd;
+            options.publishedURL=pubu;
+        }
+        const buildStatus=(await builder.build(options))||{};
+        if (options.upload) {
+            if (buildStatus.publishedURL) {
+                options.publishedURL=buildStatus.publishedURL;
+            } else {
+                buildStatus.publishedURL=options.publishedURL+curHTMLFile.name();
+            }
+            if (buildStatus.publishedDir) {
+                options.publishedDir=buildStatus.publishedDir;
+            }
+            await builder.upload(options.publishedDir);
+        }
+        logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Build","ビルドしました",langList[lang]);
+        return buildStatus;
     }
     //\run
     async function run(options) {//run!!
