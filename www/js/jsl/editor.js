@@ -767,7 +767,7 @@ function ready() {
             SplashScreen.show();
     	    $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
             options.mainFile=curLogicFile;
-            var b=await builder.build(options);
+            await builder.build(options);
             logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Run","実行しました",langList[lang]);
             if (ALWAYS_UPLOAD) {
                 const pubd=await Auth.publishedDir(curProjectDir.name());

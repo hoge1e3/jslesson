@@ -8,15 +8,16 @@ define(function (require, exports, module) {
             this.ide=ide;
             //this.runLocal=true;
         }
-        genHTML(html) {
+        async genHTML(html) {
             const dst=this.dst;
             const path=html.path();
             const paths=path.split("/");
             paths.splice(0,paths.length-4);
             const [klass,user,project,file]=paths;
-            const url=ctrl.url("PHP/run")+`&class=${klass}&user=${user}&project=${project}&file=${file.replace(/\.html/,".php")}`;
+            const url=await ctrl.get("PHP/urlOf",{class:klass,user,project,file:file.replace(/\.html/,".php")});//+`&class=${klass}&user=${user}&project=${project}&file=${file.replace(/\.html/,".php")}`;
             const dh=dst.rel(html.name());
             //console.log("dh",dh.path());
+            console.log("url",url);
             dh.text(`<html><script>location.href="${url}";</script></html>`);
         }
         async build(options) {
@@ -31,7 +32,7 @@ define(function (require, exports, module) {
                 var php=f.up().rel(name+".php");
                 //console.log(name, html.path(), php.path());
                 if (!php.exists()) continue;
-                this.genHTML(html);
+                await this.genHTML(html);
             }
             await this.ide.sync();
         }
