@@ -6,14 +6,15 @@ require_once "php/ErrorHandler.php";
 
 $fs=Auth::getFS();
 
-if (!isset($_POST["base"])) {
+/*if (!isset($_POST["base"])) {
     die("Specify base");
-}
-$base=$_POST["base"];
-if (!isset($_POST["paths"])) {
+}*/
+$base=param("base");//$_POST["base"];
+/*if (!isset($_POST["paths"])) {
     die("Specify paths");
 }
-$paths=json_decode($_POST["paths"]);
+$paths=json_decode($_POST["paths"]);*/
+$paths=json_decode(param("paths"));
 $data=array();
 foreach ($paths as $path) {
     $fp=PathUtil::rel($base, $path);
