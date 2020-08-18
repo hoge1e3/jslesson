@@ -75,7 +75,15 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","Bui
     p.build=async function (options) {
         const c=this.builderClient;
         await c.clean();
-        if (options.fullScr) return await this.mkrun(options);
+        if (options.upload) {
+            await this.mkrun(options);
+            const pubd=options.publishedDir;
+            const pubu=options.publishedURL.replace(/\/$/,"")+"/index.html";
+            console.log("Tonyu upload",this.dst,pubd, pubu);
+            const r=await Sync.sync(this.dst,pubd,{excludes:["images/","sounds/"]});
+            console.log("Tonyu upload syncres",r);
+            return {publishedURL:pubu};
+        }
         const opt=this.prj.getOptions();
         if (options.mainClass && opt.run && opt.run.mainClass!==options.mainClass) {
             opt.run.mainClass=options.mainClass;
@@ -84,7 +92,9 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","Bui
         //const main=opt.run.mainClass;
         this.removeThumbnail();
         const aliases={};//this.genUrlAliases();
-        this.dst.rel("index.html").text(this.debugHTML(this.prj.getDir().path(),aliases));
+        const indexFile=this.dst.rel("index.html");
+        indexFile.text(this.debugHTML(this.prj.getDir().path(),aliases));
+        return {indexFile};
     };
     p.removeThumbnail=function () {
         const prj=this.prj;
@@ -109,6 +119,13 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","Bui
             }
         }
     };
+    function when(...procs) {
+        procs=procs.map((p,i)=>$.when(p).then(
+            r=>{console.log(i,"Succ");return r;},
+            r=>{console.log(i,"Fail",r);return r;},
+        ));
+        return $.when(...procs);
+    }
     p.mkrun=function(options) {
         FS.mount(location.protocol+"//"+location.host+"/", "web");
         var prj=this.prj;
@@ -260,8 +277,8 @@ reqConf={
             prjDir.copyTo(dest.rel("src/"));
         }
     };
-    p.upload=function (pub) {
-        return Sync.sync(this.dst,pub,{excludes:["images/","sounds/"]});
+    p.upload=async function (pub) {
+        // Done in build
     };
     p.addMenu=function (Menu) {
         Menu.appendSub(

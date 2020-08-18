@@ -16,7 +16,7 @@ define("ENC_KEY","fugahoge");
 define("PAUTH_SERVER","http://localhost/sakumon/?Login/responsePAuth");
 
 define("PHP_WORK","phpwork/");
-define("PHP_URL","http://localhost/phpwork/{CLASS}/{USER}/{PROJECT}/{FILE}");
+define("PHP_URL","http://localhost/phpwork/{USER}/{PROJECT}/{FILE}");
 
 require(__DIR__."/config.shadow.php");
 /*

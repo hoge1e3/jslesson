@@ -8,21 +8,35 @@ define(function (require, exports, module) {
             this.ide=ide;
             //this.runLocal=true;
         }
-        genHTML(html) {
+        async genHTML(html) {
             const dst=this.dst;
             const path=html.path();
             const paths=path.split("/");
             paths.splice(0,paths.length-4);
             const [klass,user,project,file]=paths;
-            const url=ctrl.url("PHP/run")+`&class=${klass}&user=${user}&project=${project}&file=${file.replace(/\.html/,".php")}`;
+            const url=await ctrl.get("PHP/urlOf",{class:klass,user,project,file:file.replace(/\.html/,".php")});//+`&class=${klass}&user=${user}&project=${project}&file=${file.replace(/\.html/,".php")}`;
             const dh=dst.rel(html.name());
             //console.log("dh",dh.path());
-            dh.text(`<html><script>location.href="${url}";</script></html>`);
+            console.log("url",url);
+            //dh.text(`<html><script>location.href="${url}";</script></html>`);
+            dh.text(`<html>
+                <script>
+                function goPage() {
+                    const f=document.getElementById("frame");
+                    const u=document.getElementById("url");
+                    f.src=u.value;
+                }
+                </script>
+                <div><input id="url" value="${url}" size=100/><button onclick='goPage()'>Go</button></div>
+                <div><iframe id="frame" width="100%" height="90%" src="${url}"></iframe></div>
+            </html>`);
+            return url;
         }
         async build(options) {
             options=options||{};
             const curPrj=this.prj;
             const dst=this.dst;
+            let publishedURL;
             for (let f of curPrj.dir.listFiles()) {
                 //console.log(f.path());
                 if (f.ext()!==".html")  continue;
@@ -31,9 +45,16 @@ define(function (require, exports, module) {
                 var php=f.up().rel(name+".php");
                 //console.log(name, html.path(), php.path());
                 if (!php.exists()) continue;
-                this.genHTML(html);
+                const url=await this.genHTML(html);
+                if (php.name()===options.curLogicFile.name()) {
+                    publishedURL=url;
+                }
             }
             await this.ide.sync();
+            return {
+                synced:true,
+                publishedURL
+            };
         }
         upload(pub) {
             return Sync.sync(this.dst,pub);
