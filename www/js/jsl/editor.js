@@ -711,7 +711,8 @@ function ready() {
                 SplashScreen.show();
                 //pub=await Auth.publishedDir(curPrj.getName()+"/");
                 //options.mainFile=curLogicFile;
-                const buildStatus=build(options);
+                const buildStatus=await build(options);
+                console.log("built", options, buildStatus);
                 //await builder.build(options);
                 //await builder.upload(pub);
                 console.log("tonyu upl done");
@@ -749,6 +750,7 @@ function ready() {
             options.publishedURL=pubu;
         }
         const buildStatus=(await builder.build(options))||{};
+        console.log("buildStatus", buildStatus);
         if (options.upload) {
             if (buildStatus.publishedURL) {
                 options.publishedURL=buildStatus.publishedURL;
@@ -761,7 +763,7 @@ function ready() {
             await builder.upload(options.publishedDir);
         }
         logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Build","ビルドしました",langList[lang]);
-        buildStatus.indexFile=buildStatus.indexFile|| curHTMLFile;
+        buildStatus.indexFile=buildStatus.indexFile|| ram.rel(curHTMLFile.name());
         return buildStatus;
     }
     //\run
@@ -784,8 +786,8 @@ function ready() {
         options.curLogicFile=curLogicFile;
 	    window.sendResult=function(resDetail, lang){
             lang=lang||"c";
-            //console.log("sendResult",resDetail,lang);
-            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Run",resDetail,langList[lang]);
+            console.log("sendResult",resDetail,lang);
+            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),(langList[lang]||lang)+" Run",resDetail,langList[lang]);
         };
         stop();
         save();
@@ -798,6 +800,7 @@ function ready() {
             //options.mainFile=curLogicFile;
             options.upload=ALWAYS_UPLOAD;
             const buildStatus=await build(options);
+            console.log("built", options, buildStatus);
             //logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Run","実行しました",langList[lang]);
             if (ALWAYS_UPLOAD) {
                 /*const pubd=await Auth.publishedDir(curProjectDir.name());
@@ -867,7 +870,7 @@ function ready() {
     const errorDialog=new ErrorDialog();
     EC.handleException=function (e) {
         if (e.type==="dialogClosed") {
-            console.log(e.stack);
+            console.log(e.stack||e);
             return;
         }
         errorDialog.show(e);
