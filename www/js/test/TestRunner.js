@@ -51,12 +51,15 @@ define(function (require,exports,module) {
             const sel=await this.waitForText(t);
             sel.click();
         }
-        async waitAppear(f) {
-            while(true) {
+        waitTrue(f, mesg="waitTrue") {
+            return this.waitAppear(f,mesg);
+        }
+        async waitAppear(f, mesg="waitAppear") {
+            return await this.retry(()=>{
                 const e=f();
-                if (e) break;
-                await this.sleep();
-            }
+                if (e) return e;
+                throw new Error(`Timeout for ${mesg}`);
+            });
         }
         findByText(t, filter="") {
             let sel,len;

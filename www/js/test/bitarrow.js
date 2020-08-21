@@ -13,18 +13,17 @@ class BATest extends BATestRunner {
         this.createdCCode="";
 
         await this.sleep(1000);
+        await this.testC(await this.openProjectSel());
+        //await this.testJS(await this.openProjectSel());
+        //await this.testDtl(await this.openProjectSel());
         await this.openProjectSel();
-        await this.testC();
-        await this.openProjectSel();
-        await this.testJS();
-        await this.openProjectSel();
-        await this.testDtl();
     }
-    async testC() {
-        await this.sleep(1000);
-        await this.prepareEmptyProject("Ctes","c");
+    async testC(pc) {
+        await pc.sleep(1000);
+        const ic=await pc.prepareEmpty("Ctes","c");
         const c=this.genCTestCase();
-        await this.createAndTest(c);
+        const tc=ic.testcase(c);
+        await tc.run();
         // - open existing File 'Test2' and run
         //clickByText("Test2");
         //await this.sleep(SLP);
@@ -54,9 +53,9 @@ class BATest extends BATestRunner {
         ].join("\n");
         return {fileName:"C_Tes2",content, expect:""+num*2};
     }
-    async testJS() {
+    async testJS(pc) {
         await this.sleep(3000);
-        await this.prepareEmptyProject("TJStes","js");
+        const ec=await pc.prepareEmpty("TJStes","js");
         await this.sleep(2000);
         const testCase={
             fileName: "Test",
@@ -73,7 +72,7 @@ for(i=1;i<=10;i++) {
             expect: "55",
             sleepTime: 5000
         };
-        await this.createAndTest(testCase);
+        await ec.createAndTest(testCase);
         //await this.runTJSCode('<span name="val">55</span>');
     }
     async runTJSCode(expect) {
