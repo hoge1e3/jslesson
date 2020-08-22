@@ -29,6 +29,15 @@ define(function (require,exports,module) {
             r.$(".name").each(function (){res.push(this.innerText);});
             return res;
         }
+        async open(name) {
+            const n=this.getItem(name);
+            if (!n) throw new Error(`project ${name} does not exist`);
+            n.find(".name").get(0).click();
+            const r=this.runner;
+            const ic=new IDEContext(r);
+            await ic.init();
+            return ic;
+        }
         async init() {
             const r=this.runner;
             await r.open(r.projectSelURL);
@@ -62,13 +71,14 @@ define(function (require,exports,module) {
         }
         async deleteIfExists(name) {
             const r=this.runner;
-            const prjItem=this.getItem(name);
-            if (!prjItem) {
-                console.log("Project ",name," did not exist.");
-                return;
-            }
-            prjItem.find(".cmd_del")[0].click();
-            await this.sleep();
+            await r.waitTrue(()=>{
+                const prjItem=this.getItem(name);
+                if (!prjItem) {
+                    console.log("Project ",name," did not exist.");
+                    return true;
+                }
+                prjItem.find(".cmd_del")[0].click();
+            },`Project ${name} still exists!`);
         }
         async create(name, lang) {
             const r=this.runner;

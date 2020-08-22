@@ -14,9 +14,10 @@ class BATest extends BATestRunner {
 
         await this.sleep(1000);
         await this.testC(await this.openProjectSel());
-        //await this.testJS(await this.openProjectSel());
-        //await this.testDtl(await this.openProjectSel());
+        await this.testJS(await this.openProjectSel());
+        await this.testDtl(await this.openProjectSel());
         await this.openProjectSel();
+        console.log("SUCCESS");
     }
     async testC(pc) {
         await pc.sleep(1000);
@@ -72,7 +73,8 @@ for(i=1;i<=10;i++) {
             expect: "55",
             sleepTime: 5000
         };
-        await ec.createAndTest(testCase);
+        const t=await ec.testcase(testCase);
+        await t.run();
         //await this.runTJSCode('<span name="val">55</span>');
     }
     async runTJSCode(expect) {
@@ -85,37 +87,35 @@ for(i=1;i<=10;i++) {
     	if (tx.indexOf(expect)<0) throw new Error("Asserion failed: the output does not contain"+expect);
     	await this.clickByText("OK");
     }
-    async testDtl() {
-        await this.sleep(3000);
-        await this.selectLinkByText("DtlTes");
-        await this.sleep(2000);
-        await this.clickByText("Test");
-        await this.sleep(SLP);
-        await this.runDtlCode();
+    async testDtl(pc) {
+        const ic=await pc.open("DtlTes");
+        const ec=await ic.openFile("Test");
+        await this.runDtlCode(ec);
     }
-    async runDtlCode() {
-    	this.clickByID("runMenu");
-    	await this.sleep(2000);
-        const tx=this.getOutputBodyHTML();
-        var cnt=0;
-	    tx.replace(/<line[^>]*>/g,function (e) {
-            console.log(e);
-            switch(cnt) {
-                case 0:
-                    if (e.indexOf("100")<0) throw new Error("Line #0 not found: ");
-                    break;
-                case 1:
-                    if (e.indexOf("50")<0 || e.indexOf("86")<0) throw new Error("Line #1 not found :");
-                    break;
-                case 2:
-                    if (e.indexOf("50")<0 || e.indexOf("-86")<0) throw new Error("Line #2 not found :");
-                    break;
-                default:
-                    throw new Error("Too many lines");
-            }
-            cnt++;
-    	});
-    	if (cnt<3) throw new Error("Too few lines: "+cnt);
+    async runDtlCode(ec) {
+        const rc=await ec.run();
+        await this.retry(()=>{
+            const tx=rc.getOutputBodyHTML();
+            var cnt=0;
+    	    tx.replace(/<line[^>]*>/g,function (e) {
+                console.log(e);
+                switch(cnt) {
+                    case 0:
+                        if (e.indexOf("100")<0) throw new Error("Line #0 not found: ");
+                        break;
+                    case 1:
+                        if (e.indexOf("50")<0 || e.indexOf("86")<0) throw new Error("Line #1 not found :");
+                        break;
+                    case 2:
+                        if (e.indexOf("50")<0 || e.indexOf("-86")<0) throw new Error("Line #2 not found :");
+                        break;
+                    default:
+                        throw new Error("Too many lines");
+                }
+                cnt++;
+        	});
+        	if (cnt<3) throw new Error("Too few lines: "+cnt);
+        },"Dtl test fail");
     }
 }
 window.baTest=new BATest();
