@@ -39,8 +39,10 @@ function getOneUsersLogId(userid,pon){
   showFrame(logs[userid],userid,pon);
 }
 function getCode(raw) {
-    return raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.DNCL || raw.code.Python || raw.code.py || "";
+    return raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.DNCL || raw.code.Python || raw.code.py ||
+    raw.code.Tonyu || raw.code.tonyu || raw.code.undefined || "";
 }
+
 function openFrame(data){
   console.log(data);
   if(displayingId!==""){
