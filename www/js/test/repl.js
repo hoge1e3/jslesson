@@ -31,6 +31,7 @@ define(function (require,module,exports) {
         const output=$("<textarea>").appendTo(place);
         let edit;
         async function openFile(name) {
+            if (edit) await edit.input(textArea.val());
             edit=await ide.openFile(name);
             textArea.val(edit.getContent());
         }
@@ -39,11 +40,14 @@ define(function (require,module,exports) {
             if (!edit) return ;
             if (timer) clearInterval(timer);
             await edit.input(textArea.val());
+            const url=await edit.runFullScr();
+            $("<a>").attr({href:url,target:"run"}).text("Run").appendTo(place);
+            /*
             const result=await edit.run();
             timer=setInterval(()=>{
                 output.val(result.getOutputBodyText());
-            },1000);     
-
+            },1000);
+            */
         }
     }
     main();

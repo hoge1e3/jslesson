@@ -219,6 +219,16 @@ define(function (require,exports,module) {
             const r=new RunContext(this);
             return await r.init();
         }
+        async runFullScr() {
+            const r=this.runner;
+            r.$("#fullScr").click();
+            return await r.waitTrue(()=>{
+                const urlElem=r.$("[target='runit']");
+                const url=urlElem.attr("href");
+                if (url) urlElem.closest(".ui-dialog").find(".ui-dialog-titlebar-close")[0].click();
+                return url;
+            });
+        }
 
     }
     class RunContext {
