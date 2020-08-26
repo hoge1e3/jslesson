@@ -48,7 +48,7 @@ class TeacherLogController {
             if (isset($has[$day])) continue;
             $has[$day]=1;
             ?>
-            <a href=".?TeacherLog/view1&day=<?= $day ?>">
+            <a href=".?TeacherLog/view1&day=<?= $day ?>&user=<?= $userName ?>">
                 <?= DateUtil::toString($day) ?>
             </a><BR/>
             <?php
@@ -100,7 +100,7 @@ class TeacherLogController {
         if (count($logs)===0) {
             echo "この日のログはありません．";
             ?>
-            <a href=".?TeacherLog/view1Dates">他の日のログを見る</a>
+            <a href=".?TeacherLog/view1Dates&user=<?= $user ?>">他の日のログを見る</a>
             <?php
             return;
         }

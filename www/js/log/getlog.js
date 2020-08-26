@@ -9,10 +9,17 @@ function setup(){
 	array_data=[];
 }
 
-function getData(){
+
+async function downloadAll() {
+	await getData();
+	setData();
+	downloadAllOld();
+}
+
+async function getData(){
 	if(array_data.length>0) array_data=[];
 	for(var i in logsOfOneUser){
-		array_data[i]=getLogsByFileName(i);
+		array_data[i]=await getLogsByFileName(i);
 	}
 }
 function setData(){
@@ -21,20 +28,21 @@ function setData(){
 		calcDiffLast(array_data[key]);
 	}
 }
-function downloadAll(){
+async function downloadAllOld(){
 	//setData();
 	for(var key of Object.keys(array_data)){
  		download(array_data[key],key);
+		await new Promise(s=>setTimeout(s,100));
 	}
 }
 
-function getLogsByFileName(fn){
+async function getLogsByFileName(fn){
 	var ret=[];
 	for(var i in logsOfOneUser[fn]){
-		getPreviousLog(logsOfOneUser[fn][i]).done(function(r){
+		let r=await getPreviousLog(logsOfOneUser[fn][i]);//.done(function(r){
 			//console.log("r",r);
 			var id=r.id;
-			var r=JSON.parse(r.raw);
+			r=JSON.parse(r.raw);
 			var ary=[];
 			ary["filename"]=r.filename.split("/")[5];
 			ary["date"]=r.date;
@@ -43,7 +51,7 @@ function getLogsByFileName(fn){
 			ary["result"]=r.result;
 			ary.id=id;
 			ret.push(ary);
-		});
+		//});
 	}
 	return ret;
 }
@@ -171,9 +179,9 @@ function calcDiff(prev,now,id,btn,ntn,flag){
 }
 */
 function howto(){
-	console.log("Step 1. Use 'getData()' to get log data");
-	console.log("Step 2. Use 'setData()' to prepare of download");
-	console.log("Step 3. Use 'downloadAll()' to download csv file(s)");
+	//console.log("Step 1. Use 'getData()' to get log data");
+	//console.log("Step 2. Use 'setData()' to prepare of download");
+	console.log("Step 1. Use 'downloadAll()' to download csv file(s)");
 	console.log("Use 'howto()' if you want to see this information again.");
 }
 $(function(){

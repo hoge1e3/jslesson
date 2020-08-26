@@ -8,8 +8,9 @@ define(function (require,exports,module) {
             options.timeout=options.timeout||10000;
         }
         async run() {
-            const width=$(window).width()-50;
-            const height=$(window).height()-100;
+            const n=(a,b)=>typeof a==="number"? a: b;
+            const width=n(this.options.width, $(window).width()-50);
+            const height=n(this.options.height, $(window).height()-100);
             const ifrmjq=$("<iframe>").attr({
                 /*src:this.projectSelURL,*/width,height
             }).appendTo("body");
@@ -51,12 +52,15 @@ define(function (require,exports,module) {
             const sel=await this.waitForText(t);
             sel.click();
         }
-        async waitAppear(f) {
-            while(true) {
+        waitTrue(f, mesg="waitTrue") {
+            return this.waitAppear(f,mesg);
+        }
+        async waitAppear(f, mesg="waitAppear") {
+            return await this.retry(()=>{
                 const e=f();
-                if (e) break;
-                await this.sleep();
-            }
+                if (e) return e;
+                throw new Error(`Timeout for ${mesg}`);
+            });
         }
         findByText(t, filter="") {
             let sel,len;
