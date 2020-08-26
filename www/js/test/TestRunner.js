@@ -8,8 +8,9 @@ define(function (require,exports,module) {
             options.timeout=options.timeout||10000;
         }
         async run() {
-            const width=$(window).width()-50;
-            const height=$(window).height()-100;
+            const n=(a,b)=>typeof a==="number"? a: b;
+            const width=n(this.options.width, $(window).width()-50);
+            const height=n(this.options.height, $(window).height()-100);
             const ifrmjq=$("<iframe>").attr({
                 /*src:this.projectSelURL,*/width,height
             }).appendTo("body");

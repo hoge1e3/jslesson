@@ -1,6 +1,24 @@
 define(function (require,exports,module) {
     const WebSite=require("WebSite");
     const TestRunner=require("test/TestRunner");
+    class ProjectItem {
+        constructor(runner, jdom) {
+            this.runner=runner;
+            this.jdom=jdom;
+            this.name=jdom.find(".name").text();
+            this.lang=jdom.find("img").attr("src").replace(/.\/images\/([\w\d]+)\.png/,(_,l)=>l);
+        }
+        async open() {
+            this.jdom.find(".name").get(0).click();
+            const r=this.runner;
+            const ic=new IDEContext(r);
+            await ic.init();
+            return ic;
+        }
+        async delete() {
+            this.jdom.find(".cmd_del")[0].click();
+        }
+    }
     class ProjectSelContext {
         constructor(runner) {
             this.runner=runner;
@@ -8,35 +26,23 @@ define(function (require,exports,module) {
         async sleep(t){await this.runner.sleep(t);}
         $(q) {return this.runner.$(q);}
         getItem(name) {
-            let res;
-            const r=this.runner;
-            r.$(".project").each(function (){
-                if ($(this).find(".name").text()===name) {
-                    res=$(this);
-                }
-            });
-            return res;
+            return this.getItems().find(p=>p.name===name);
         }
         getItems() {
             const res=[];
             const r=this.runner;
-            r.$(".project").each(function (){res.push(this);});
+            r.$(".project").each(function (){
+                res.push(new ProjectItem(r,$(this)));
+            });
             return res;
         }
         getNames() {
-            const res=[];
-            const r=this.runner;
-            r.$(".name").each(function (){res.push(this.innerText);});
-            return res;
+            return this.getItems().map(p=>p.name);
         }
         async open(name) {
             const n=this.getItem(name);
             if (!n) throw new Error(`project ${name} does not exist`);
-            n.find(".name").get(0).click();
-            const r=this.runner;
-            const ic=new IDEContext(r);
-            await ic.init();
-            return ic;
+            return await n.open();
         }
         async init() {
             const r=this.runner;
@@ -77,7 +83,7 @@ define(function (require,exports,module) {
                     console.log("Project ",name," did not exist.");
                     return true;
                 }
-                prjItem.find(".cmd_del")[0].click();
+                prjItem.delete();
             },`Project ${name} still exists!`);
         }
         async create(name, lang) {
@@ -112,7 +118,7 @@ define(function (require,exports,module) {
             if (res.get(0)) return res;
             return null;
         }
-        async getFileNames() {
+        getFileNames() {
             const res=[];
             this.$(".fileItem").each(function () {
                 res.push(this.innerText);
@@ -184,6 +190,9 @@ define(function (require,exports,module) {
         $(q) {return this.runner.$(q);}
         getCurrentEditor() {
             return this.runner.contentWindow().getCurrentEditorInfo().editor;
+        }
+        getContent() {
+            return this.getCurrentEditor().getValue();
         }
         async input(cont) {
             if (typeof cont==="string") {
@@ -272,156 +281,15 @@ define(function (require,exports,module) {
             const ctx=new ProjectSelContext(this);
             await ctx.init();
             return ctx;
-            /*await this.open(this.projectSelURL);
-            await this.waitAppear(()=>{
-                const w=this.contentWindow();
-                const d=w.document;
-                return d.querySelector("#userInfo") || d.querySelector("[name='class']");
-            },"projectSel");
-            const w=this.contentWindow();
-            const d=w.document;
-            if (d.querySelector("#userInfo")) {
-                await this.waitForText("他ユーザでログイン");
-                return;
-            }
-            const options=this.options;
-            await this.sleep(1000);
-            d.querySelector("[name='class']").value=(options.className);
-            await this.sleep(500);
-            d.querySelector("[name='user']").value=(options.userName);
-            await this.sleep(500);
-            d.forms[0].submit();//");//clickByText("OK");
-            await this.sleep(300);
-            this.loggedin=true;*/
         }
-        /*async prepareEmptyProject(name, lang) {
-            await this.deleteProjectIfExists(name);
-            await this.sleep(1000);
-            await this.createProject(name,lang);
-            await this.sleep(1000);
-        }
-        async deleteProjectIfExists(name) {
-            const prjItem=this.findByText(name).closest(".project");
-            if (!prjItem.length) {
-                console.log("Project ",name," did not exist.");
-                return;
-            }
-            prjItem.find(".cmd_del")[0].click();
-            await this.sleep();
-        }
-        async createProject(name, lang) {
-            const w=this.contentWindow();
-            const $=w.$;
-            $('#newPrj').click();
-            await this.sleep();
-            $('#prjName').val(name);
-            await this.sleep();
-            $('#prjLang').val(lang);
-            await this.sleep();
-            await this.clickByText("OK");
-            await this.sleep();
-        }*/
         async toggleMenu() {
             const q=".navbar-toggle";
             if (!$(q)[0]) return;
             await this.clickByQuery(q);
             await this.sleep();
         }
-        /*async waitBuidlerReady() {
-            await this.waitAppear(()=>this.contentWindow().curPrj,"builderReady");
-        }
-        async createFile(name) {
-            await this.waitForText("ファイル");
-            if (this.fileExistsInList(name)) return;
-            await this.toggleMenu();
-            //await this.sleep();
-            await this.selectLinkByText("ファイル");
-            await this.sleep();
-            await this.selectLinkByText("新規");
-            await this.sleep();
-            await this.toggleMenu();
-            const w=this.contentWindow();
-            const $=w.$;
-            $("#inputDialog").val(name);
-            await this.sleep();
-            await this.clickByText("OK");
-        }
-        async createAndTest(c) {
-            // c:{fileName, content, expect};
-            await this.createFile(c.fileName);
-            await this.inputAndRunCode(c);
-        }
-        async inputAndRunCode(c) {
-            await this.inputToEditor(c.content);
-            await this.sleep();
-            await this.runCode(c);
-        }
-        getCurrentEditor() {
-            return this.contentWindow().getCurrentEditorInfo().editor;
-        }
-        async inputToEditor(cont) {
-            if (typeof cont==="string") {
-                const e=this.getCurrentEditor();
-                e.setValue(cont);
-            } else {
-                for (let lang in cont) {
-                    this.selectLangTab(lang);
-                    await this.sleep();
-                    const e=this.getCurrentEditor();
-                    e.setValue(cont[lang]);
-                    await this.sleep();
-                }
-            }
-        }
-        async runCode(testCase) {
-        	await this.toggleMenu();
-            if (this.$("#runMenu").length) {
-                await this.clickByID("runMenu");
-            } else if (this.$("#runPython").length) {
-                await this.clickByID("runPython");
-                await this.sleep();
-                await this.clickByID("runServer");
-            }
-            await this.toggleMenu();
-            await this.sleep(testCase.sleepTime||3000);
-            const tx=this.getOutputBodyText();
-        	console.log("The output", tx);
-        	const expect=testCase.expect;
-            console.log(tx,expect);
-            if (typeof expect==="string") {
-                if (tx!==expect) throw new Error("Asserion failed"+tx+"!="+expect);
-            } else if (typeof expect==="function") {
-                await expect(this.getOutputWindow());
-            }
-            await this.clickByText("OK");
-        }*/
         trimspace(s) {
             return s.replace(/^[\r\n\s]*/,"").replace(/[\r\n\s]*$/,"").replace(/[\r\n\s]+/g," ");
         }
-        /*
-        getOutputWindow() {
-            return this.$("#ifrmDlg")[0].contentWindow;
-        }
-        getConsoleOutput() {
-            return this.$("#ifrmDlg")[0].contentWindow.
-            	document.getElementById("console").innerText;
-        }
-        getOutputBodyHTML() {
-            return this.$("#ifrmDlg")[0].contentWindow.
-            	document.body.innerHTML;
-        }
-        getOutputBodyText() {
-            return this.$("#ifrmDlg")[0].contentWindow.
-            	document.body.innerText;
-        }
-        async selectLangTab(name) {
-            const e=await this.retryGet(
-                ()=>this.$(`.selTab:contains('${name}')`).get(0),
-                `selectLangTab ${name} fail`);
-            e.click();
-        }
-        fileExistsInList(name) {
-            return this.$(`.fileItem:contains('${name}')`).get(0);
-        }*/
     };
 });
