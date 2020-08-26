@@ -32,7 +32,14 @@ class PHPController {
            }
        }
     }
-   static function run() {
+    static function available() {
+        if (defined("PHP_URL")) {
+            echo 1;
+        } else {
+            echo 0;
+        }
+    }
+    static function run() {
         $userName=param("user");
         $className=param("class");
         $projectName=param("project");
