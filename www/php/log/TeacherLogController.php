@@ -42,14 +42,18 @@ class TeacherLogController {
         //print $class->id." , ".$user->name;
         $it=pdo_select_iter("select time from log where class=? and user=? ",$class->id, $user->name);
         $has=array();
+        $ord=array();
         req("DateUtil");
         foreach ($it as $obj) {
             $day=DateUtil::toDayTop($obj->time);
-            if (isset($has[$day])) continue;
+            if (isset($has[$day])) {$has[$day]++;continue;}
             $has[$day]=1;
+            array_push($ord, $day);
+        }
+        foreach ($ord as $day) {
             ?>
             <a href=".?TeacherLog/view1&day=<?= $day ?>&user=<?= $userName ?>">
-                <?= DateUtil::toString($day) ?>
+                <?= DateUtil::toString($day) ?>(<?=$has[$day] ?>)
             </a><BR/>
             <?php
         }
