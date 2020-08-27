@@ -54,6 +54,141 @@ class TeacherLogController {
             <?php
         }
     }
+    static function getLogs() {
+        $day=DateUtil::toInt(param("day",DateUtil::now()));
+        // If i can do , i do it.
+        $class=Auth::curClass2();
+        $teacherObj=Auth::curTeacher();
+        if($teacherObj) {
+            $teacher=Auth::curTeacher()->id;
+            $user=param("user",null);
+            if (!$user) {
+                $targetUser=Auth::curUser2();
+                $user=$targetUser->name;
+            }
+            $targetUser=$class->getUser($user);
+        } else {
+            $teacher="NOT_TEACHER";
+            $targetUser=Auth::curUser2();
+            $user=$targetUser->name;
+        }
+        $base=DateUtil::getYear($day)."-".DateUtil::getMonth($day)."-".DateUtil::getDay($day)." 00:00:00";
+        $baseInt=DateUtil::toInt($base);
+        //echo $day." ".$base." ".$baseInt;
+        $logs=$targetUser->getAllLogs($baseInt,$baseInt+86400);
+        $all=param("all",false);
+        $prevTime=0;
+        $prevResult="";
+        $logs2=Array();
+        foreach($logs as $i=>$l){
+            if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false){
+              //if(array_key_exists($i+1,$logs)){
+                //没：次のログが3秒以上後，または 「実行しました（実行しようとしました）」ではない
+                //if($logs[$i+1]['time']-$l['time']>=3 || ($logs[$i+1]['time']-$l['time']<3 && $l['detail']!="実行しました")) {
+                // 実行しました（実行しようとしました）  は除外(all=1で表示可能)
+                if(($l['detail']!="実行しました" || $all) &&
+                // 1秒以内に隣り合っているもので，しかも1個前と結果が同じ，しかもruntime errorは除外
+                // => runtime errorが連続で出ているものは除外
+                    !($l['time']-$prevTime<=1 &&
+                    $l['result']==$prevResult &&
+                    strpos(mb_strtolower($l['result']),'runtime')!==false)
+                ) {
+                    array_push($logs2,$l);
+                }
+                $prevTime=$l['time'];
+                $prevResult=$l['result'];
+            }
+        }
+        header("Content-type: text/json");
+        print json_encode($logs2);
+    }
+    static function view1new() {
+        ?>
+<html>
+    <head>
+        <script type="text/javascript" src="js/lib/jquery-1.12.1.js"></script>
+        <script type="text/javascript" src="js/lib/jquery-ui.js"></script>
+        <script type="text/javascript" src="js/lib/difflib.js"></script>
+        <script type="text/javascript" src="js/lib/diffview.js"></script>
+        <script type="text/javascript" src="js/lib/jquery.tablesorter.min.js"></script>
+        <link rel="stylesheet" href="css/jquery-ui.css"></link>
+        <link rel="stylesheet" href="css/diffview.css"></link>
+        <script>
+            classID='${CLASSID}';
+            teacherID='${TEACHERID}';
+            userId='${USERID}';
+            reloadMode=0;
+            logsOfOneUser=[];
+            programs=[];
+            var indexList=[];
+        </script>
+        <script src="js/log/logViewer.js"></script>
+        <script src="js/log/getlog.js"></script>
+    </head>
+    <body>
+        <div style="float:left; overflow-y:auto; height:100%; width:20%; resize:horizontal;">
+            <!--
+            <script>
+                if(!programs["${FILENAME}"]) programs["${FILENAME}"]=[];
+                    programs["${FILENAME}"].push({"date":"2018/11/15","time":"10:31:24","lang":"C","filename":"/home/${CLASSID}/${USERID}/${FILENAME}","result":"C Run","detail":"Hello! words","code":{"C":"#include<stdio.h>\n// C\nint main(void ) {\n    printf(\"Hello! words\");\n}","HTML":"<html>\n\n</html>"}});
+            </script>
+            -->
+            <!--
+            <div>${FILENAME}</div>
+            <div onClick="showLogOneUser.call(this,'${LOGID}','${USERID}','${FILENAME}');"
+                id='${LOGID}'
+            ><font color="black">${FILENAME}</font></div>
+            <script>
+                var userid='${USERID}';
+                if(!logsOfOneUser["${FILENAME}"]) logsOfOneUser["${FILENAME}"]=[];
+                      logsOfOneUser["${FILENAME}"].push(${LOGID});
+                      var pRaw;
+                      if(!indexList["${FILENAME}"]){
+                        indexList["${FILENAME}"]=0;
+                        pRaw=programs["${FILENAME}"][0];
+                      }else{
+                        var i=indexList["${FILENAME}"];
+                        pRaw=programs["${FILENAME}"][i-1];
+                        //console.log(i-1,pRaw);
+                      }
+                      indexList["${FILENAME}"]++;
+                      var cRaw={"date":"2018/11/15","time":"10:31:24","lang":"C","filename":"/home/${CLASSID}/${USERID}/${FILENAME}","result":"C Run","detail":"Hello! words","code":{"C":"#include<stdio.h>\n// C\nint main(void ) {\n    printf(\"Hello! words\");\n}","HTML":"<html>\n\n</html>"}}
+        ;
+                      var lRaw=programs["${FILENAME}"][programs["${FILENAME}"].length-1];
+                      console.log(pRaw,cRaw,lRaw);
+                      var prevProg=getCode(pRaw);//.code.C || pRaw.code.JavaScript || pRaw.code.Dolittle || pRaw.code.Python || "";
+                      var curProg=getCode(cRaw);//.code.C || cRaw.code.JavaScript || cRaw.code.Dolittle || cRaw.code.Python || "";
+                      var lastProg=getCode(lRaw);//.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
+                      var prevDiffData=calcDiff(prevProg,curProg,"[id='"+userid+"diff']","Prev","Current",false);
+                      var lastDiffData=calcDiff(curProg,lastProg,"[id='"+userid+"diffLast']","Current","Last",false);
+                      var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
+                      var ld="-"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"];
+                      var sameLines=":"+lastDiffData["equal"];
+                      console.log("prev",prevProg);
+                      console.log("cur",curProg);
+                      console.log("diff",prevDiffData, lastDiffData);
+                      console.log("cur/last",curProg,lastProg, curProg===lastProg);
+
+                      var e=document.createElement("span");
+                      e.id='${LOGID}summary';
+                      e.innerHTML=sameLines;
+                      document.getElementById('${LOGID}').appendChild(e);
+            </script>
+            -->
+        </div>
+        <div style="float:left; width:30%;">
+            <div id="${USERID}res"></div><br>
+            <textarea id="${USERID}" style="width:100%;" onclick="this.select(0,this.value.length)" readonly></textarea>
+            <textarea id="${USERID}detail" style="width:100%;" readonly></textarea>
+        </div>
+        <div style="float:left;">
+            <span id="${USERID}diff"></span><br>
+            <span id="${USERID}diffLast"></span>
+        </div>
+    </body>
+</html>
+        <?php
+    }
     static function view1() {
         // focus to one student
         $day=DateUtil::toInt(param("day",DateUtil::now()));
