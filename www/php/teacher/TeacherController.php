@@ -331,7 +331,7 @@ class TeacherController {
         // todo
         asort($overall);
         $ml=array_key_last($overall);
-        return (is_null($ml)? 'none' : ($overall[$ml]/array_sum($overall)>0.8 ? $ml : 'mix'));
+        return is_null($ml)? 'none' : ($overall[$ml]/array_sum($overall)>0.8 ? $ml : 'mix');
     }
 }
 if (! function_exists("array_key_last")) {
