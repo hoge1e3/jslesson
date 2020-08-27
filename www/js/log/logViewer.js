@@ -163,7 +163,7 @@ function getPreviousLog(logid){
 function showFileEntry(l) {
     var userid=l.user;
     if(!logsOfOneUser[l.filename]) logsOfOneUser[l.filename]=[];
-    logsOfOneUser[l.filename].push(l.id);
+    logsOfOneUser[l.filename].push(l.id-0);
     var pRaw;
     if(!indexList[l.filename]){
       indexList[l.filename]=0;
@@ -206,6 +206,28 @@ async function showLogOneUser(logid,userid,fn){
   var currentProgram;
   var cururl=location.href.replace(/&logid=[0-9]+/,"")+"&logid="+logid;
   history.replaceState(null,null,cururl);
+  console.log(ind,logsOfOneUser[fn]);
+  //return;
+    try {
+        const r=await getPreviousLog(logsOfOneUser[fn][ind]);//.done(function(r){
+        const curRaw=JSON.parse(r.raw);
+        currentProgram=getCode(curRaw);//.code.C || curRaw.code.JavaScript || curRaw.code.Dolittle || curRaw.code.Python;
+
+        let code="最初のプログラム";
+        if (ind>0) {
+            const result=await getPreviousLog(logsOfOneUser[fn][ind-1]);//.done(function(result) {
+            const raw=JSON.parse(result.raw);
+            code=getCode(raw);
+        }
+        const last=await getPreviousLog(logsOfOneUser[fn][logsOfOneUser[fn].length-1]);//.done(function(last){
+        const lRaw=JSON.parse(last.raw);
+        const lastProg=getCode(lRaw);//lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
+        const prevDiffData=calcDiff(code,currentProgram,"[id='"+userid+"diff']","Prev","Current",true);
+        const lastDiffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last",true);
+
+    }catch(e) {
+        console.log("failed get last log",e.stack||e);
+    }
 }
 function clearBreak(base){
   var lines=base.split("\n");
