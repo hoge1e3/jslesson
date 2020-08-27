@@ -156,39 +156,7 @@ class TeacherLogController {
                     id='<?=$l['id']?>'
                   ><font color="<?=strpos($l['result'],'Error')!==false ? 'red' : 'black'?>"><?=$l['filename']?></font></div>
               <script>
-              var userid='<?=$l['user']?>';
-              if(!logsOfOneUser["<?=$l['filename']?>"]) logsOfOneUser["<?=$l['filename']?>"]=[];
-              logsOfOneUser["<?=$l['filename']?>"].push(<?=$l['id']?>);
-              var pRaw;
-              if(!indexList["<?=$l['filename']?>"]){
-                indexList["<?=$l['filename']?>"]=0;
-                pRaw=programs["<?=$l['filename']?>"][0];
-              }else{
-                var i=indexList["<?=$l['filename']?>"];
-                pRaw=programs["<?=$l['filename']?>"][i-1];
-                //console.log(i-1,pRaw);
-              }
-              indexList["<?=$l['filename']?>"]++;
-              var cRaw=<?=$l['raw']?>;
-              var lRaw=programs["<?=$l['filename']?>"][programs["<?=$l['filename']?>"].length-1];
-              console.log(pRaw,cRaw,lRaw);
-              var prevProg=getCode(pRaw);//.code.C || pRaw.code.JavaScript || pRaw.code.Dolittle || pRaw.code.Python || "";
-              var curProg=getCode(cRaw);//.code.C || cRaw.code.JavaScript || cRaw.code.Dolittle || cRaw.code.Python || "";
-              var lastProg=getCode(lRaw);//.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
-              var prevDiffData=calcDiff(prevProg,curProg,"[id='"+userid+"diff']","Prev","Current",false);
-              var lastDiffData=calcDiff(curProg,lastProg,"[id='"+userid+"diffLast']","Current","Last",false);
-              var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
-              var ld="-"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"];
-              var sameLines=":"+lastDiffData["equal"];
-              console.log("prev",prevProg);
-              console.log("cur",curProg);
-              console.log("diff",prevDiffData, lastDiffData);
-              console.log("cur/last",curProg,lastProg, curProg===lastProg);
-
-              var e=document.createElement("span");
-              e.id='<?=$l['id']?>summary';
-              e.innerHTML=sameLines;
-              document.getElementById('<?=$l['id']?>').appendChild(e);
+              showFileEntry(<?=json_encode($l)?>);
               </script>
               <?php
             //} else {
