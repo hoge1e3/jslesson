@@ -1,5 +1,4 @@
 define(function (require,exports,module) {
-    const WebSite=require("WebSite");
     module.exports=class {
         constructor(options) {
             options=options||{};
@@ -15,7 +14,6 @@ define(function (require,exports,module) {
                 /*src:this.projectSelURL,*/width,height
             }).appendTo("body");
             this.iframe=ifrmjq[0];
-            window.SplashScreen.hide();
         }
         contentWindow() {
             return this.iframe.contentWindow;
