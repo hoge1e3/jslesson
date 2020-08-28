@@ -1,6 +1,7 @@
 // http://localhost/?r=test/bitarrow
 // class: 0123  user: test
 define(function (require,module,exports) {
+const WebSite=require("WebSite");
 const BATestRunner=require("test/BATestRunner");
 const SLP=1000;
 window.TESTING=true;
