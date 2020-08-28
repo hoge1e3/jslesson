@@ -5,13 +5,18 @@
 	var reqjsSeq=0;
 	R.def=function (name, reqs,func) {
 		var m=R.getModuleInfo(name);
-		if (typeof reqs=="function") {
-		    func=reqs;
-		    reqs=R.reqsFromFunc(func);
+        if (typeof reqs=="function" ||
+            (reqs && reqs.join && reqs.join(",").match(/^require,exports,module/))) {
+            if (typeof reqs=="function") {
+                func=reqs;
+		        reqs=R.reqsFromFunc(func);
+            } else {
+                reqs=reqs.slice(3);
+            }
     		R.setReqs( m, reqs);
     		m.func=function () {
     		    var module={exports:{}};
-    			var res=func(R.doLoad,module,module.exports);
+    			var res=func(R.doLoad,module.exports,module);
     			return res || module.exports;
     		};
 		} else {

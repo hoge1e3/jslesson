@@ -179,9 +179,9 @@ function calcDiff(prev,now,id,btn,ntn,flag){
 }
 */
 function howto(){
-	console.log("Step 1. Use 'getData()' to get log data");
-	console.log("Step 2. Use 'setData()' to prepare of download");
-	console.log("Step 3. Use 'downloadAll()' to download csv file(s)");
+	//console.log("Step 1. Use 'getData()' to get log data");
+	//console.log("Step 2. Use 'setData()' to prepare of download");
+	console.log("Step 1. Use 'downloadAll()' to download csv file(s)");
 	console.log("Use 'howto()' if you want to see this information again.");
 }
 $(function(){
