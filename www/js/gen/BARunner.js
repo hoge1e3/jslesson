@@ -507,12 +507,17 @@ define('test/BATestRunner',['require','exports','module','test/TestRunner'],func
             await r.clickByText("閉じる");
         }
     }
-    module.exports=class extends TestRunner {
+    class BATestRunner extends TestRunner {
         constructor(options) {
             super(options);
             options=this.options;
             options.className=options.className||"0123";
             options.userName=options.userName||"test";
+        }
+        static async create(options) {
+            const r=new BATestRunner(options);
+            await r.run();
+            return r;
         }
         async run() {
             super.run();
@@ -536,7 +541,8 @@ define('test/BATestRunner',['require','exports','module','test/TestRunner'],func
         trimspace(s) {
             return s.replace(/^[\r\n\s]*/,"").replace(/[\r\n\s]*$/,"").replace(/[\r\n\s]+/g," ");
         }
-    };
+    }
+    module.exports=BATestRunner;
 });
 
 
