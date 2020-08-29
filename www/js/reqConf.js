@@ -126,6 +126,7 @@ var reqConf={
             ProjectFactory: "ide/ProjectFactory",
             Sync: "fs2/sync2",
             root:"lib/root",
+            EventHandler: "lib/EventHandler",
             jshint: "lib/jshint",
             SplashScreen: "lib/SplashScreen",
             TT: "lang/tonyu2_token",
