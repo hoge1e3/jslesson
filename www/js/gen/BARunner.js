@@ -232,9 +232,51 @@ define('test/TestRunner',['require','exports','module'],function (require,export
     };
 });
 
-define('test/BATestRunner',['require','exports','module','test/TestRunner'],function (require,exports,module) {
+define('EventHandler',['require','exports','module'],function (require, exports, module) {
+    class SingleTypeEventHandler {
+        constructor(type) {
+            this.funcs=[];
+            this.type=type;
+        }
+        on(...args) {
+            const f=args.pop();
+            if (typeof f!=="function") {
+                console.log(args, f);
+                throw new Error("Not a function for type "+this.type);
+            }
+            this.funcs.push(f);
+            const r={
+                remove: ()=>{
+                    const e=this.funcs.indexOf(f);
+                    if (e>=0) this.funcs.splice(e,1);
+                }
+            };
+            return r;
+        }
+        fire(...args) {
+            for (let f of this.funcs) f(...args);
+        }
+    }
+    class EventHandler {
+        constructor() {
+            this.types={};
+        }
+        on(type, ...args) {
+            this.types[type]=this.types[type]||new SingleTypeEventHandler(type);
+            return this.types[type].on(...args);
+        }
+        fire(type,...args) {
+            this.types[type]=this.types[type]||new SingleTypeEventHandler(type);
+            return this.types[type].fire(...args);
+        }
+    }
+    module.exports=EventHandler;
+});
+
+define('test/BATestRunner',['require','exports','module','test/TestRunner','EventHandler'],function (require,exports,module) {
     const WebSite=window.WebSite;
     const TestRunner=require("test/TestRunner");
+    const EventHandler=require("EventHandler");
     class ProjectItem {
         constructor(runner, jdom) {
             this.runner=runner;
@@ -340,12 +382,18 @@ define('test/BATestRunner',['require','exports','module','test/TestRunner'],func
     class IDEContext {
         constructor(runner) {
             this.runner=runner;
+            this.events=new EventHandler();
         }
         async sleep(t){await this.runner.sleep(t);}
         $(q) {return this.runner.$(q);}
         async init() {
             const r=this.runner;
-            await r.waitAppear(()=>r.contentWindow().curPrj,"builderReady");
+            await r.waitAppear(()=>r.contentWindow().errorDialog,"builderReady");
+            this.errorDialog=r.contentWindow().errorDialog;
+            this.errorDialog.on("show",(...args)=>this.events.fire("error",...args));
+        }
+        on(...args) {
+            return this.events.on(...args);
         }
         getFileItem(name) {
             const res=this.$(`.fileItem:contains('${name}')`);
@@ -475,6 +523,8 @@ define('test/BATestRunner',['require','exports','module','test/TestRunner'],func
         $(q) {return this.runner.$(q);}
         async init(){
             const r=this.runner;
+            let errorInfo;
+            const h=this.ideCtx.on("error", e=>errorInfo=e);
             await r.toggleMenu();
             if (r.$("#runMenu").length) {
                 await r.clickByID("runMenu");
@@ -484,7 +534,17 @@ define('test/BATestRunner',['require','exports','module','test/TestRunner'],func
                 await r.clickByID("runServer");
             }
             await r.toggleMenu();
-            await r.waitTrue(()=>this.getOutputWindow() );
+            await r.waitTrue(()=>errorInfo||this.getOutputWindow());
+            h.remove();
+            if (errorInfo) {
+                if (errorInfo.error instanceof Error) {
+                    errorInfo.error.info=errorInfo;
+                    throw errorInfo.error;
+                }
+                const e=new Error(errorInfo.mesg||errorInfo);
+                e.info=errorInfo;
+                throw e;
+            }
             return this;
         }
         getOutputWindow() {

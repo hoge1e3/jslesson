@@ -1,6 +1,7 @@
 define(function (require,exports,module) {
     const WebSite=window.WebSite;
     const TestRunner=require("test/TestRunner");
+    const EventHandler=require("EventHandler");
     class ProjectItem {
         constructor(runner, jdom) {
             this.runner=runner;
@@ -106,12 +107,18 @@ define(function (require,exports,module) {
     class IDEContext {
         constructor(runner) {
             this.runner=runner;
+            this.events=new EventHandler();
         }
         async sleep(t){await this.runner.sleep(t);}
         $(q) {return this.runner.$(q);}
         async init() {
             const r=this.runner;
-            await r.waitAppear(()=>r.contentWindow().curPrj,"builderReady");
+            await r.waitAppear(()=>r.contentWindow().errorDialog,"builderReady");
+            this.errorDialog=r.contentWindow().errorDialog;
+            this.errorDialog.on("show",(...args)=>this.events.fire("error",...args));
+        }
+        on(...args) {
+            return this.events.on(...args);
         }
         getFileItem(name) {
             const res=this.$(`.fileItem:contains('${name}')`);
@@ -241,6 +248,8 @@ define(function (require,exports,module) {
         $(q) {return this.runner.$(q);}
         async init(){
             const r=this.runner;
+            let errorInfo;
+            const h=this.ideCtx.on("error", e=>errorInfo=e);
             await r.toggleMenu();
             if (r.$("#runMenu").length) {
                 await r.clickByID("runMenu");
@@ -250,7 +259,17 @@ define(function (require,exports,module) {
                 await r.clickByID("runServer");
             }
             await r.toggleMenu();
-            await r.waitTrue(()=>this.getOutputWindow() );
+            await r.waitTrue(()=>errorInfo||this.getOutputWindow());
+            h.remove();
+            if (errorInfo) {
+                if (errorInfo.error instanceof Error) {
+                    errorInfo.error.info=errorInfo;
+                    throw errorInfo.error;
+                }
+                const e=new Error(errorInfo.mesg||errorInfo);
+                e.info=errorInfo;
+                throw e;
+            }
             return this;
         }
         getOutputWindow() {

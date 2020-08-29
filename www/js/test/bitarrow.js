@@ -14,12 +14,51 @@ class BATest extends BATestRunner {
         this.createdCCode="";
 
         await this.sleep(1000);
-        await this.testC(await this.openProjectSel());
+        /*await this.testC(await this.openProjectSel());
         await this.testJS(await this.openProjectSel());
         await this.testDtl(await this.openProjectSel());
+        */
+        //await this.testCompileError_C(await this.openProjectSel());
+        await this.testRuntimeError_TJS(await this.openProjectSel());
         await this.openProjectSel();
         console.log("SUCCESS");
     }
+    async testCompileError_C(pc) {
+        const ic=await pc.prepareEmpty("Ctes","c");
+        const ec=await ic.openFile("Era");
+        await ec.input(`
+int main(){
+    x=3;
+}`);
+        let theError;
+        try {
+            const r=await ec.run();
+        } catch (e) {
+            theError=e;
+            console.log("Error ocurred successfully",e, e.info);
+
+        }
+        if (!theError) {
+            console.log("Kowaretenaikara kowareta");
+        }
+    }
+    async testRuntimeError_TJS(pc) {
+        const ic=await pc.prepareEmpty("TJStes","js");
+        const ec=await ic.openFile("Era");
+        await ec.input({
+            HTML: "<span id='test'></span>",
+            JavaScript:"a.b.c;"
+        });
+        let theError;
+        const h=ic.on("error",info=> {
+            theError=info;
+            console.log("Error ocurred successfully",info);
+        });
+        const r=await ec.run();
+        await this.waitTrue(()=>theError);
+        h.remove();
+    }
+
     async testC(pc) {
         await pc.sleep(1000);
         const ic=await pc.prepareEmpty("Ctes","c");

@@ -876,6 +876,7 @@ function ready() {
         return EC.handleException(e);
     };
     const errorDialog=new ErrorDialog();
+    window.errorDialog=errorDialog;
     EC.handleException=function (e) {
         if (e.type==="dialogClosed") {
             console.log(e.stack||e);
