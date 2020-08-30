@@ -35,6 +35,20 @@ function getLog(logid,userid){
   });
 
 }
+function getLogs(user,day,all){
+  return $.ajax({
+      type: "POST",
+      // url: "?Class/getLog",
+      //data: "logid="+logid,
+      url: "?TeacherLog/getLogs",
+      data: {user,day,all},
+      dataType: "json",
+  });
+}
+async function view1new() {
+    const logs=await getLogs(userId,day,all);
+    console.log(logs);
+}
 function getOneUsersLogId(userid,pon){
   showFrame(logs[userid],userid,pon);
 }
