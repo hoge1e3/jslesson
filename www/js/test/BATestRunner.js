@@ -88,6 +88,8 @@ define(function (require,exports,module) {
             },`Project ${name} still exists!`);
         }
         async create(name, lang) {
+            const prjItem=this.getItem(name);
+            if (prjItem) throw new Error(`Project ${name} already exists.`);
             const r=this.runner;
             const w=r.contentWindow();
             const $=w.$;
