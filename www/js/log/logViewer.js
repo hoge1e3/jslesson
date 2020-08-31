@@ -41,20 +41,47 @@ function getLogs(user,day,all){
       // url: "?Class/getLog",
       //data: "logid="+logid,
       url: "?TeacherLog/getLogs",
-      data: {user,day,all},
+      data: {user,day,all:(all?1:0)},
       dataType: "json",
   });
 }
 async function view1new() {
     const logs=await getLogs(userId,day,all);
     console.log(logs);
+    if (logs.length===0) {
+        document.write(`
+            この日のログはありません．
+            <a href=".?TeacherLog/view1Dates&user=${userId}">他の日のログを見る</a>
+        `);
+    }
+    programs=[];// {filename: [log....]}
+    for (let log of logs) {
+        //log.raw=JSON.parse(log.raw);
+        const filename=log.filename;
+        if(!programs[filename]) programs[filename]=[];
+        programs[filename].push(JSON.parse(log.raw));
+    }
+    for (let log of logs) {
+        const filename=log.filename;
+        //<div>${FILENAME}</div>
+        $("<div>").appendTo("#fileList").append(
+            $("<font>").attr("color", (log.result.match(/Error/) ? "red":"black")).text(filename)
+        ).click(function () {
+            console.log(log.id);
+            showLogOneUser.call(this, log.id, log.user, filename);
+        }).attr("id", log.id);
+        //<font color="black">${FILENAME}</font></div>
+        //<script>
+        showFileEntry(log);
+        //</script>
+    }
 }
 function getOneUsersLogId(userid,pon){
   showFrame(logs[userid],userid,pon);
 }
 function getCode(raw) {
     return raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.DNCL || raw.code.Python || raw.code.py ||
-    raw.code.Tonyu || raw.code.tonyu || raw.code.undefined || "";
+    raw.code.Tonyu || raw.code.tonyu || raw.code.undefined || raw.code.PHP || raw.code.php ||"";
 }
 
 function openFrame(data){

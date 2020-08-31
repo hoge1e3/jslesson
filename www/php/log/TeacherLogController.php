@@ -40,19 +40,29 @@ class TeacherLogController {
             $user=Auth::curUser2();
         }
         //print $class->id." , ".$user->name;
-        $it=pdo_select_iter("select time from log where class=? and user=? ",$class->id, $user->name);
+        $it=pdo_select_iter("select time,result from log where class=? and user=? ",$class->id, $user->name);
         $has=array();
         $ord=array();
         req("DateUtil");
+        $prevTime=0;
+        $prevResult="";
         foreach ($it as $obj) {
-            $day=DateUtil::toDayTop($obj->time);
-            if (isset($has[$day])) {$has[$day]++;continue;}
-            $has[$day]=1;
-            array_push($ord, $day);
+            if (strpos($obj->result,'Save')===false && strpos($obj->result,'rename')===false) {
+                if (!(($obj->time)-$prevTime<=1 &&
+                $obj->result==$prevResult &&
+                strpos(mb_strtolower($obj->result),'runtime')!==false)) {
+                    $day=DateUtil::toDayTop($obj->time);
+                    if (isset($has[$day])) {$has[$day]++;continue;}
+                    $has[$day]=1;
+                    array_push($ord, $day);
+                }
+                $prevTime=$obj->time;
+                $prevResult=$obj->result;
+            }
         }
         foreach ($ord as $day) {
             ?>
-            <a href=".?TeacherLog/view1&day=<?= $day ?>&user=<?= $userName ?>">
+            <a href=".?TeacherLog/view1new&day=<?= $day ?>&user=<?= $userName ?>">
                 <?= DateUtil::toString($day) ?>(<?=$has[$day] ?>)
             </a><BR/>
             <?php
@@ -62,7 +72,7 @@ class TeacherLogController {
         $class=Auth::curClass2();
         $teacherObj=Auth::curTeacher();
         if($teacherObj) {
-            $teacher=Auth::curTeacher()->id;
+            $teacher=$teacherObj->id;
             $user=param("user",null);
             if (!$user) {
                 $targetUser=Auth::curUser2();
@@ -77,6 +87,7 @@ class TeacherLogController {
         return $targetUser;
     }
     static function getLogs() {
+        // ある日のあるユーザの全ログ（all=1のとき）を，JSONで返してくれる．
         $day=DateUtil::toInt(param("day",DateUtil::now()));
         // If i can do , i do it.
         $targetUser=self::parseUser();
@@ -95,7 +106,7 @@ class TeacherLogController {
                 //没：次のログが3秒以上後，または 「実行しました（実行しようとしました）」ではない
                 //if($logs[$i+1]['time']-$l['time']>=3 || ($logs[$i+1]['time']-$l['time']<3 && $l['detail']!="実行しました")) {
                 // 実行しました（実行しようとしました）  は除外(all=1で表示可能)
-                if(($l['detail']!="実行しました" || $all) &&
+                if((($l['detail']!="実行しました" && $l['detail']!="ビルドしました") || $all) &&
                 // 1秒以内に隣り合っているもので，しかも1個前と結果が同じ，しかもruntime errorは除外
                 // => runtime errorが連続で出ているものは除外
                     !($l['time']-$prevTime<=1 &&
@@ -116,6 +127,12 @@ class TeacherLogController {
         $targetUser=self::parseUser();
         $userName=$targetUser->name;
         $all=param("all",false);
+        $teacherObj=Auth::curTeacher();
+        if ($teacherObj) {
+            $teacherID=$teacherObj->id;
+        } else {
+            $teacherID="";
+        }
         ?>
 <html>
     <head>
@@ -131,6 +148,7 @@ class TeacherLogController {
             userId='<?= $userName ?>';
             day=<?= $day ?>;
             all=<?= ($all?"true":"false") ?>;
+            teacherID='<?= $teacherID ?>';
             reloadMode=0;
             logsOfOneUser=[];
             programs=[];
@@ -478,7 +496,7 @@ class TeacherLogController {
                 $timecaution="white";
             }
             ?>
-            <tr><td><a href="a.php?TeacherLog/view1&user=<?=$k?>&day=<?=$max?>" target="view1"><?=$k?></a></td>
+            <tr><td><a href="a.php?TeacherLog/view1new&user=<?=$k?>&day=<?=$max?>" target="view1"><?=$k?></a></td>
             <td data-rate="<?=$rate?>" bgcolor=<?=$errcaution?>><?=$errcount[$k]?>/<?=$v?>(<?=$rate?>%)</td>
             <td bgcolor=<?=$timecaution?>><?=str_pad($time['h'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['m'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['s'],2,0,STR_PAD_LEFT)?></td>
             <td><?=$latestfile[$k]?></td><td><?=$runhistory[$k]?></td>
