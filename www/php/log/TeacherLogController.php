@@ -40,31 +40,39 @@ class TeacherLogController {
             $user=Auth::curUser2();
         }
         //print $class->id." , ".$user->name;
-        $it=pdo_select_iter("select time from log where class=? and user=? ",$class->id, $user->name);
+        $it=pdo_select_iter("select time,result from log where class=? and user=? ",$class->id, $user->name);
         $has=array();
         $ord=array();
         req("DateUtil");
+        $prevTime=0;
+        $prevResult="";
         foreach ($it as $obj) {
-            $day=DateUtil::toDayTop($obj->time);
-            if (isset($has[$day])) {$has[$day]++;continue;}
-            $has[$day]=1;
-            array_push($ord, $day);
+            if (strpos($obj->result,'Save')===false && strpos($obj->result,'rename')===false) {
+                if (!(($obj->time)-$prevTime<=1 &&
+                $obj->result==$prevResult &&
+                strpos(mb_strtolower($obj->result),'runtime')!==false)) {
+                    $day=DateUtil::toDayTop($obj->time);
+                    if (isset($has[$day])) {$has[$day]++;continue;}
+                    $has[$day]=1;
+                    array_push($ord, $day);
+                }
+                $prevTime=$obj->time;
+                $prevResult=$obj->result;
+            }
         }
         foreach ($ord as $day) {
             ?>
-            <a href=".?TeacherLog/view1&day=<?= $day ?>&user=<?= $userName ?>">
+            <a href=".?TeacherLog/view1new&day=<?= $day ?>&user=<?= $userName ?>">
                 <?= DateUtil::toString($day) ?>(<?=$has[$day] ?>)
             </a><BR/>
             <?php
         }
     }
-    static function getLogs() {
-        $day=DateUtil::toInt(param("day",DateUtil::now()));
-        // If i can do , i do it.
+    static function parseUser() {
         $class=Auth::curClass2();
         $teacherObj=Auth::curTeacher();
         if($teacherObj) {
-            $teacher=Auth::curTeacher()->id;
+            $teacher=$teacherObj->id;
             $user=param("user",null);
             if (!$user) {
                 $targetUser=Auth::curUser2();
@@ -76,6 +84,14 @@ class TeacherLogController {
             $targetUser=Auth::curUser2();
             $user=$targetUser->name;
         }
+        return $targetUser;
+    }
+    static function getLogs() {
+        // ある日のあるユーザの全ログ（all=1のとき）を，JSONで返してくれる．
+        $day=DateUtil::toInt(param("day",DateUtil::now()));
+        // If i can do , i do it.
+        $targetUser=self::parseUser();
+
         $base=DateUtil::getYear($day)."-".DateUtil::getMonth($day)."-".DateUtil::getDay($day)." 00:00:00";
         $baseInt=DateUtil::toInt($base);
         //echo $day." ".$base." ".$baseInt;
@@ -90,7 +106,7 @@ class TeacherLogController {
                 //没：次のログが3秒以上後，または 「実行しました（実行しようとしました）」ではない
                 //if($logs[$i+1]['time']-$l['time']>=3 || ($logs[$i+1]['time']-$l['time']<3 && $l['detail']!="実行しました")) {
                 // 実行しました（実行しようとしました）  は除外(all=1で表示可能)
-                if(($l['detail']!="実行しました" || $all) &&
+                if((($l['detail']!="実行しました" && $l['detail']!="ビルドしました") || $all) &&
                 // 1秒以内に隣り合っているもので，しかも1個前と結果が同じ，しかもruntime errorは除外
                 // => runtime errorが連続で出ているものは除外
                     !($l['time']-$prevTime<=1 &&
@@ -107,6 +123,16 @@ class TeacherLogController {
         print json_encode($logs2);
     }
     static function view1new() {
+        $day=DateUtil::toInt(param("day",DateUtil::now()));
+        $targetUser=self::parseUser();
+        $userName=$targetUser->name;
+        $all=param("all",false);
+        $teacherObj=Auth::curTeacher();
+        if ($teacherObj) {
+            $teacherID=$teacherObj->id;
+        } else {
+            $teacherID="";
+        }
         ?>
 <html>
     <head>
@@ -118,19 +144,22 @@ class TeacherLogController {
         <link rel="stylesheet" href="css/jquery-ui.css"></link>
         <link rel="stylesheet" href="css/diffview.css"></link>
         <script>
-            classID='${CLASSID}';
-            teacherID='${TEACHERID}';
-            userId='${USERID}';
+            classID='<?= $targetUser->_class->id ?>';
+            userId='<?= $userName ?>';
+            day=<?= $day ?>;
+            all=<?= ($all?"true":"false") ?>;
+            teacherID='<?= $teacherID ?>';
             reloadMode=0;
             logsOfOneUser=[];
             programs=[];
             var indexList=[];
+            $(()=>view1new());
         </script>
         <script src="js/log/logViewer.js"></script>
         <script src="js/log/getlog.js"></script>
     </head>
     <body>
-        <div style="float:left; overflow-y:auto; height:100%; width:20%; resize:horizontal;">
+        <div id="fileList" style="float:left; overflow-y:auto; height:100%; width:20%; resize:horizontal;">
             <!--
             <script>
                 if(!programs["${FILENAME}"]) programs["${FILENAME}"]=[];
@@ -143,51 +172,18 @@ class TeacherLogController {
                 id='${LOGID}'
             ><font color="black">${FILENAME}</font></div>
             <script>
-                var userid='${USERID}';
-                if(!logsOfOneUser["${FILENAME}"]) logsOfOneUser["${FILENAME}"]=[];
-                      logsOfOneUser["${FILENAME}"].push(${LOGID});
-                      var pRaw;
-                      if(!indexList["${FILENAME}"]){
-                        indexList["${FILENAME}"]=0;
-                        pRaw=programs["${FILENAME}"][0];
-                      }else{
-                        var i=indexList["${FILENAME}"];
-                        pRaw=programs["${FILENAME}"][i-1];
-                        //console.log(i-1,pRaw);
-                      }
-                      indexList["${FILENAME}"]++;
-                      var cRaw={"date":"2018/11/15","time":"10:31:24","lang":"C","filename":"/home/${CLASSID}/${USERID}/${FILENAME}","result":"C Run","detail":"Hello! words","code":{"C":"#include<stdio.h>\n// C\nint main(void ) {\n    printf(\"Hello! words\");\n}","HTML":"<html>\n\n</html>"}}
-        ;
-                      var lRaw=programs["${FILENAME}"][programs["${FILENAME}"].length-1];
-                      console.log(pRaw,cRaw,lRaw);
-                      var prevProg=getCode(pRaw);//.code.C || pRaw.code.JavaScript || pRaw.code.Dolittle || pRaw.code.Python || "";
-                      var curProg=getCode(cRaw);//.code.C || cRaw.code.JavaScript || cRaw.code.Dolittle || cRaw.code.Python || "";
-                      var lastProg=getCode(lRaw);//.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
-                      var prevDiffData=calcDiff(prevProg,curProg,"[id='"+userid+"diff']","Prev","Current",false);
-                      var lastDiffData=calcDiff(curProg,lastProg,"[id='"+userid+"diffLast']","Current","Last",false);
-                      var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
-                      var ld="-"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"];
-                      var sameLines=":"+lastDiffData["equal"];
-                      console.log("prev",prevProg);
-                      console.log("cur",curProg);
-                      console.log("diff",prevDiffData, lastDiffData);
-                      console.log("cur/last",curProg,lastProg, curProg===lastProg);
-
-                      var e=document.createElement("span");
-                      e.id='${LOGID}summary';
-                      e.innerHTML=sameLines;
-                      document.getElementById('${LOGID}').appendChild(e);
+                 showFileEntry(${L});
             </script>
             -->
         </div>
         <div style="float:left; width:30%;">
-            <div id="${USERID}res"></div><br>
-            <textarea id="${USERID}" style="width:100%;" onclick="this.select(0,this.value.length)" readonly></textarea>
-            <textarea id="${USERID}detail" style="width:100%;" readonly></textarea>
+            <div id="<?= $userName ?>res"></div><br>
+            <textarea id="<?= $userName ?>" style="width:100%;" onclick="this.select(0,this.value.length)" readonly></textarea>
+            <textarea id="<?= $userName ?>detail" style="width:100%;" readonly></textarea>
         </div>
         <div style="float:left;">
-            <span id="${USERID}diff"></span><br>
-            <span id="${USERID}diffLast"></span>
+            <span id="<?= $userName ?>diff"></span><br>
+            <span id="<?= $userName ?>diffLast"></span>
         </div>
     </body>
 </html>
@@ -295,39 +291,7 @@ class TeacherLogController {
                     id='<?=$l['id']?>'
                   ><font color="<?=strpos($l['result'],'Error')!==false ? 'red' : 'black'?>"><?=$l['filename']?></font></div>
               <script>
-              var userid='<?=$l['user']?>';
-              if(!logsOfOneUser["<?=$l['filename']?>"]) logsOfOneUser["<?=$l['filename']?>"]=[];
-              logsOfOneUser["<?=$l['filename']?>"].push(<?=$l['id']?>);
-              var pRaw;
-              if(!indexList["<?=$l['filename']?>"]){
-                indexList["<?=$l['filename']?>"]=0;
-                pRaw=programs["<?=$l['filename']?>"][0];
-              }else{
-                var i=indexList["<?=$l['filename']?>"];
-                pRaw=programs["<?=$l['filename']?>"][i-1];
-                //console.log(i-1,pRaw);
-              }
-              indexList["<?=$l['filename']?>"]++;
-              var cRaw=<?=$l['raw']?>;
-              var lRaw=programs["<?=$l['filename']?>"][programs["<?=$l['filename']?>"].length-1];
-              console.log(pRaw,cRaw,lRaw);
-              var prevProg=getCode(pRaw);//.code.C || pRaw.code.JavaScript || pRaw.code.Dolittle || pRaw.code.Python || "";
-              var curProg=getCode(cRaw);//.code.C || cRaw.code.JavaScript || cRaw.code.Dolittle || cRaw.code.Python || "";
-              var lastProg=getCode(lRaw);//.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
-              var prevDiffData=calcDiff(prevProg,curProg,"[id='"+userid+"diff']","Prev","Current",false);
-              var lastDiffData=calcDiff(curProg,lastProg,"[id='"+userid+"diffLast']","Current","Last",false);
-              var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
-              var ld="-"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"];
-              var sameLines=":"+lastDiffData["equal"];
-              console.log("prev",prevProg);
-              console.log("cur",curProg);
-              console.log("diff",prevDiffData, lastDiffData);
-              console.log("cur/last",curProg,lastProg, curProg===lastProg);
-
-              var e=document.createElement("span");
-              e.id='<?=$l['id']?>summary';
-              e.innerHTML=sameLines;
-              document.getElementById('<?=$l['id']?>').appendChild(e);
+              showFileEntry(<?=json_encode($l)?>);
               </script>
               <?php
             //} else {
@@ -532,7 +496,7 @@ class TeacherLogController {
                 $timecaution="white";
             }
             ?>
-            <tr><td><a href="a.php?TeacherLog/view1&user=<?=$k?>&day=<?=$max?>" target="view1"><?=$k?></a></td>
+            <tr><td><a href="a.php?TeacherLog/view1new&user=<?=$k?>&day=<?=$max?>" target="view1"><?=$k?></a></td>
             <td data-rate="<?=$rate?>" bgcolor=<?=$errcaution?>><?=$errcount[$k]?>/<?=$v?>(<?=$rate?>%)</td>
             <td bgcolor=<?=$timecaution?>><?=str_pad($time['h'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['m'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['s'],2,0,STR_PAD_LEFT)?></td>
             <td><?=$latestfile[$k]?></td><td><?=$runhistory[$k]?></td>
