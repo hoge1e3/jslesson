@@ -12,7 +12,7 @@ define(function (require,exports,module) {
         async open() {
             this.jdom.find(".name").get(0).click();
             const r=this.runner;
-            const ic=new IDEContext(r);
+            const ic=new IDEContext(r, this.name);
             await ic.init();
             return ic;
         }
@@ -101,14 +101,15 @@ define(function (require,exports,module) {
             await r.sleep();
             await r.clickByText("OK");
             await r.sleep();
-            const ic=new IDEContext(r);
+            const ic=new IDEContext(r, name);
             await ic.init();
             return ic;
         }
     }
     class IDEContext {
-        constructor(runner) {
+        constructor(runner, name) {
             this.runner=runner;
+            this.name=name;
             this.events=new EventHandler();
         }
         async sleep(t){await this.runner.sleep(t);}
