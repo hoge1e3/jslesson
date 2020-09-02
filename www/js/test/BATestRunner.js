@@ -12,7 +12,7 @@ define(function (require,exports,module) {
         async open() {
             this.jdom.find(".name").get(0).click();
             const r=this.runner;
-            const ic=new IDEContext(r);
+            const ic=new IDEContext(r, this.name);
             await ic.init();
             return ic;
         }
@@ -88,6 +88,8 @@ define(function (require,exports,module) {
             },`Project ${name} still exists!`);
         }
         async create(name, lang) {
+            const prjItem=this.getItem(name);
+            if (prjItem) throw new Error(`Project ${name} already exists.`);
             const r=this.runner;
             const w=r.contentWindow();
             const $=w.$;
@@ -99,14 +101,15 @@ define(function (require,exports,module) {
             await r.sleep();
             await r.clickByText("OK");
             await r.sleep();
-            const ic=new IDEContext(r);
+            const ic=new IDEContext(r, name);
             await ic.init();
             return ic;
         }
     }
     class IDEContext {
-        constructor(runner) {
+        constructor(runner, name) {
             this.runner=runner;
+            this.name=name;
             this.events=new EventHandler();
         }
         async sleep(t){await this.runner.sleep(t);}
@@ -222,27 +225,17 @@ define(function (require,exports,module) {
                 `selectLangTab ${name} fail`);
             e.click();
         }
-        async run() {
-            const r=new RunContext(this);
+        async run(options) {
+            const r=new RunContext(this,options);
             return await r.init();
         }
-        async runFullScr() {
-            const r=this.runner;
-            r.$("#fullScr").click();
-            return await r.waitTrue(()=>{
-                const urlElem=r.$("[target='runit']");
-                const url=urlElem.attr("href");
-                if (url) urlElem.closest(".ui-dialog").find(".ui-dialog-titlebar-close")[0].click();
-                return url;
-            });
-        }
-
     }
     class RunContext {
-        constructor(editCtx) {
+        constructor(editCtx, options) {
             this.editCtx=editCtx;
             this.ideCtx=editCtx.ideCtx;
             this.runner=this.ideCtx.runner;
+            this.options=options||{runAt:"browser", fullScr:false};
         }
         async sleep(t){await this.runner.sleep(t);}
         $(q) {return this.runner.$(q);}
@@ -251,15 +244,29 @@ define(function (require,exports,module) {
             let errorInfo;
             const h=this.ideCtx.on("error", e=>errorInfo=e);
             await r.toggleMenu();
-            if (r.$("#runMenu").length) {
+            const options=this.options;
+            if (options.fullScr) {
+                r.$("#fullScr").click();
+            } else if (r.$("#runMenu").length) {
                 await r.clickByID("runMenu");
             } else if (r.$("#runPython").length) {
                 await r.clickByID("runPython");
                 await r.sleep();
-                await r.clickByID("runServer");
+                await r.clickByID(options.runAt==="browser"?"runBrowser":"runServer");
             }
             await r.toggleMenu();
-            await r.waitTrue(()=>errorInfo||this.getOutputWindow());
+            await r.waitTrue(()=>{
+                if (errorInfo) return errorInfo;
+                if (options.fullScr) {
+                    const urlElem=r.$("[target='runit']");
+                    const url=urlElem.attr("href");
+                    if (url) urlElem.closest(".ui-dialog").find(".ui-dialog-titlebar-close")[0].click();
+                    this.url=url;
+                    return url;
+                } else {
+                    return this.getOutputWindow();
+                }
+            });
             h.remove();
             if (errorInfo) {
                 if (errorInfo.error instanceof Error) {
