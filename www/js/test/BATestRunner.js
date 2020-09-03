@@ -60,15 +60,19 @@ define(function (require,exports,module) {
                 return;
             }
             const options=r.options;
-            await r.sleep(1000);
-            d.querySelector("[name='class']").value=(options.className);
-            await r.sleep(500);
-            d.querySelector("[name='user']").value=(options.userName);
-            await r.sleep(500);
-            d.forms[0].submit();//");//clickByText("OK");
-            await r.sleep(300);
-            r.loggedin=true;
-            return this;
+            if (options.className && options.userName) {
+                await r.sleep(1000);
+                d.querySelector("[name='class']").value=(options.className);
+                await r.sleep(500);
+                d.querySelector("[name='user']").value=(options.userName);
+                await r.sleep(500);
+                d.forms[0].submit();//");//clickByText("OK");
+                await r.sleep(300);
+                r.loggedin=true;
+                return this;
+            } else {
+                alert("BitArrowにログインしてください。");
+            }
         }
         async prepareEmpty(name, lang) {
             await this.deleteIfExists(name);
@@ -303,8 +307,8 @@ define(function (require,exports,module) {
         constructor(options) {
             super(options);
             options=this.options;
-            options.className=options.className||"0123";
-            options.userName=options.userName||"test";
+            //options.className=options.className||"0123";
+            //options.userName=options.userName||"test";
         }
         static async create(options) {
             const r=new BATestRunner(options);
