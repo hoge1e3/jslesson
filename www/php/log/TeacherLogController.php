@@ -316,9 +316,17 @@ class TeacherLogController {
               var lastProg=getCode(lRaw);//.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
               var prevDiffData=calcDiff(prevProg,curProg,"[id='"+userid+"diff']","Prev","Current",false);
               var lastDiffData=calcDiff(curProg,lastProg,"[id='"+userid+"diffLast']","Current","Last",false);
+              var lastDiffData1=calcDiff(prevProg,lastProg,"[id='"+userid+"diffLast']","Prev","Last",false);
               var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
               var ld="-"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"];
-              var sameLines=":"+lastDiffData["equal"];
+              console.log("lastDiff",lastDiffData["equal"],lastDiffData1.equal);
+              if(lastDiffData["equal"]<lastDiffData1.equal){
+                var sameLines=":"+`<font color="red">${lastDiffData["equal"]}</font>`;
+              }else{
+                var sameLines=":"+lastDiffData["equal"];
+              }
+
+              //var sameLines=":"+lastDiffData["equal"];
               console.log("prev",prevProg);
               console.log("cur",curProg);
               console.log("diff",prevDiffData, lastDiffData);
