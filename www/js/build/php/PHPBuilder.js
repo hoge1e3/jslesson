@@ -26,9 +26,29 @@ define(function (require, exports, module) {
                     const u=document.getElementById("url");
                     f.src=u.value;
                 }
+                function showHTML() {
+                    const f=document.getElementById("frame");
+                    const h=document.getElementById("html");
+                    f.style="display: none;";
+                    h.style="display: inline";
+                    h.value=f.contentWindow.document.documentElement.outerHTML;;
+                }
+                function showFrame() {
+                    const f=document.getElementById("frame");
+                    const h=document.getElementById("html");
+                    h.style="display: none;";
+                    f.style="display: inline";
+                }
                 </script>
                 <div><input id="url" value="${url}" size=100/><button onclick='goPage()'>Go</button></div>
-                <div><iframe id="frame" width="100%" height="90%" src="${url}"></iframe></div>
+                <!--div>
+                    <button onclick="showHTML()">HTMLソース</button>
+                    <button onclick="showFrame()">Webページ</button>
+                </div-->
+                <div>
+                    <textarea id="html" style="display:none;" width="100%" height="90%"></textarea>
+                    <iframe id="frame" width="100%" height="90%" src="${url}"></iframe>
+                </div>
             </html>`);
             return url;
         }
