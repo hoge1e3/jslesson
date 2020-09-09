@@ -85,8 +85,10 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","Bui
             return {publishedURL:pubu};
         }
         const opt=this.prj.getOptions();
+        console.log("OPTOPT",opt, options);
         if (options.mainClass && opt.run && opt.run.mainClass!==options.mainClass) {
             opt.run.mainClass=options.mainClass;
+            console.log("OPTSET",opt);
             this.prj.setOptions(opt);
         }
         //const main=opt.run.mainClass;

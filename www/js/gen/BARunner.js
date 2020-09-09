@@ -287,7 +287,7 @@ define('test/BATestRunner',['require','exports','module','test/TestRunner','Even
         async open() {
             this.jdom.find(".name").get(0).click();
             const r=this.runner;
-            const ic=new IDEContext(r);
+            const ic=new IDEContext(r, this.name);
             await ic.init();
             return ic;
         }
@@ -335,15 +335,19 @@ define('test/BATestRunner',['require','exports','module','test/TestRunner','Even
                 return;
             }
             const options=r.options;
-            await r.sleep(1000);
-            d.querySelector("[name='class']").value=(options.className);
-            await r.sleep(500);
-            d.querySelector("[name='user']").value=(options.userName);
-            await r.sleep(500);
-            d.forms[0].submit();//");//clickByText("OK");
-            await r.sleep(300);
-            r.loggedin=true;
-            return this;
+            if (options.className && options.userName) {
+                await r.sleep(1000);
+                d.querySelector("[name='class']").value=(options.className);
+                await r.sleep(500);
+                d.querySelector("[name='user']").value=(options.userName);
+                await r.sleep(500);
+                d.forms[0].submit();//");//clickByText("OK");
+                await r.sleep(300);
+                r.loggedin=true;
+                return this;
+            } else {
+                alert("BitArrowにログインしてください。");
+            }
         }
         async prepareEmpty(name, lang) {
             await this.deleteIfExists(name);
@@ -363,6 +367,8 @@ define('test/BATestRunner',['require','exports','module','test/TestRunner','Even
             },`Project ${name} still exists!`);
         }
         async create(name, lang) {
+            const prjItem=this.getItem(name);
+            if (prjItem) throw new Error(`Project ${name} already exists.`);
             const r=this.runner;
             const w=r.contentWindow();
             const $=w.$;
@@ -374,14 +380,15 @@ define('test/BATestRunner',['require','exports','module','test/TestRunner','Even
             await r.sleep();
             await r.clickByText("OK");
             await r.sleep();
-            const ic=new IDEContext(r);
+            const ic=new IDEContext(r, name);
             await ic.init();
             return ic;
         }
     }
     class IDEContext {
-        constructor(runner) {
+        constructor(runner, name) {
             this.runner=runner;
+            this.name=name;
             this.events=new EventHandler();
         }
         async sleep(t){await this.runner.sleep(t);}
@@ -575,8 +582,8 @@ define('test/BATestRunner',['require','exports','module','test/TestRunner','Even
         constructor(options) {
             super(options);
             options=this.options;
-            options.className=options.className||"0123";
-            options.userName=options.userName||"test";
+            //options.className=options.className||"0123";
+            //options.userName=options.userName||"test";
         }
         static async create(options) {
             const r=new BATestRunner(options);
