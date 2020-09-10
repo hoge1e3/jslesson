@@ -37,4 +37,11 @@ define(function (require, exports, module) {
         }
     }
     module.exports=EventHandler;
+    /*
+    add to constructor:
+        this.handler=new EventHandler();
+    delegation:
+    on(...args){return this.handler.on(...args);}
+    fire(...args){return this.handler.fire(...args);}
+    */
 });
