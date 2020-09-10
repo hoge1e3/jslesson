@@ -30,7 +30,12 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","Bui
             "language":"tonyu",
             "run":{
                 "mainClass":"user.Main",
-                "bootClass":"kernel.Boot"
+                "bootClass":"kernel.Boot",
+                globals:{
+                    $defaultFPS:60,
+                    $imageSmoothingDisabled:true,
+                    $soundLoadAndDecode:false
+                }
             },
             "plugins":{}
         };
@@ -69,6 +74,8 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","Bui
         this.prj.getPublishedURL().then(function (r) {
             WebSite.pubURLOfPrj=r;
         });
+        ide.on("rename",evt=>this.refreshRunMenu());
+        ide.on("createContent",evt=>this.refreshRunMenu());
         //prj.getPublishedURL() // why delete?
     };
     var p=MkRun.prototype;
@@ -366,9 +373,9 @@ reqConf={
                         $("<a>").attr("href","#").text("実行するファイルを選択...").click(F(dialogs.selectMain))
                     ));*/
     };
-    p.afterCreateContent=function () {
+    /*p.afterCreateContent=function () {
         this.refreshRunMenu();
-    };
+    };*/
     p.debugHTML=(prj,aliases)=>{
         return `<!DOCTYPE html>
 <html>
