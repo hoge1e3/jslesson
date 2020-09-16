@@ -149,7 +149,7 @@ class Auth {
     }
     static function su($user) {//nariSUmasi   $user:BAUser
         $t=self::curTeacher();
-        if ($t->isTeacherOf($user->_class)) {
+        if ($t && $t->isTeacherOf($user->_class)) {
             MySession::set("class",$user->_class->id);
             MySession::set("user",$user->name);
         } else {
