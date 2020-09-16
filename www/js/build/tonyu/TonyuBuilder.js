@@ -297,11 +297,17 @@ reqConf={
         Menu.appendSub("tool",
             {label:"音声リスト",id:"soundList",action:this.showSoundList.bind(this)},
         );
+        Menu.appendSub("tool",
+            {label:"マップエディタ",id:"mapEditor",action:this.mapEditor.bind(this)},
+        );
         Menu.deleteMain("runMenu");
         Menu.appendMain(
             {label:"実行",id:"runTonyu",after:$("#fileMenu"),sub:[]}
         );
         this.refreshRunMenu();
+    };
+    p.mapEditor=function () {
+        this.ide.run({mainClass:"kernel.MapEditor"});
     };
     p.showImageList=function () {
         var t=this;
