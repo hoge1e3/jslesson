@@ -15342,6 +15342,13 @@ define('EventHandler',['require','exports','module'],function (require, exports,
         }
     }
     module.exports=EventHandler;
+    /*
+    add to constructor:
+        this.handler=new EventHandler();
+    delegation:
+    on(...args){return this.handler.on(...args);}
+    fire(...args){return this.handler.fire(...args);}
+    */
 });
 
 define('ErrorDialog',["Klass","FS","UI","Pos2RC","UserAgent","stacktrace","EventHandler"],
@@ -15815,7 +15822,7 @@ define('SocializeDialog',['require','exports','module','UI','ctrl'],function (re
 });
 
 /*global requirejs*/
-define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shell','KeyEventChecker','UIDiag','WebSite','exceptionCatcher','Columns','assert','Menu','DeferredUtil','Sync','RunDialog2','logToServer2','SplashScreen','Auth','DistributeDialog','NotificationDialog','IframeDialog','AssignmentDialog','SubmitDialog','CommentDialog2','NewProjectDialog','ProgramFileUploader','AssetDialog','root','ErrorDialog','ProjectFactory','UserAgent','SocializeDialog'],function (require) {
+define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shell','KeyEventChecker','UIDiag','WebSite','exceptionCatcher','Columns','assert','Menu','DeferredUtil','Sync','RunDialog2','logToServer2','SplashScreen','Auth','DistributeDialog','NotificationDialog','IframeDialog','AssignmentDialog','SubmitDialog','CommentDialog2','NewProjectDialog','ProgramFileUploader','AssetDialog','root','ErrorDialog','ProjectFactory','UserAgent','EventHandler','SocializeDialog'],function (require) {
     var Util=require("Util");
     var FS=require("FS");
     var FileList=require("FileList");
@@ -15850,6 +15857,7 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
     var PF=require("ProjectFactory");
     var UA=require("UserAgent");
     const SocializeDialog=require("SocializeDialog");
+    const EventHandler=require("EventHandler");
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
         A.setMode(A.MODE_STRICT);
@@ -15963,7 +15971,11 @@ function ready() {
     var HEXT=".html";
     var opt=curPrj.getOptions();
     var lang=opt.language || "js";
-    const ide={run, prj:curPrj,getCurrentEditorInfo, saveDesktopEnv, sync};
+    const ide={run, prj:curPrj,getCurrentEditorInfo, saveDesktopEnv, sync,
+        handler: new EventHandler(),
+        on(...args){return this.handler.on(...args);},
+        fire(...args){return this.handler.fire(...args);}
+    };
     root.openDummyEditor=openDummyEditor;
     switch (lang){
     case "c":
@@ -16310,6 +16322,7 @@ function ready() {
                 if (olds[i].equals(old)) ci=i;
                 if (olds[i].exists() && !news[i].exists()) {
                     news[i].copyFrom(olds[i]);
+                    ide.fire("createContent",{file:news[i], oldFile:olds[i]});
                     if (builder.afterCreateContent)builder.afterCreateContent(news[i]);
                 }
             }
@@ -16364,6 +16377,7 @@ function ready() {
         } else if (!f.exists()) {
             f.text("");
         }
+        ide.fire("createContent",{file:f});
         if (builder.afterCreateContent)builder.afterCreateContent(f);
     };
     FM.on.displayName=function (f) {
@@ -16399,6 +16413,7 @@ function ready() {
                     logToServer2(olds[i].path(),"MOVED","MOVED","rename",
                     olds[i].path()+"->"+news[i].path()  ,lang);
                 }catch(e){console.log(e.stack);}
+                ide.fire("rename",{oldFile: olds[i], newFile: news[i]});
             }
             close(olds[i]);
         }
