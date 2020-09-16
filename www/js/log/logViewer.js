@@ -228,7 +228,7 @@ function showFileEntry(l) {
     var ld="-"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"];
     console.log("lastDiff",lastDiffData["equal"],lastDiffData1.equal);
     if(lastDiffData["equal"]<lastDiffData1.equal){
-      var sameLines=":"+`<font color="red">${lastDiffData["equal"]}</font>`;
+      var sameLines=":"+`<font color="red">${lastDiffData["equal"]}　★</font>`;
     }else{
       var sameLines=":"+lastDiffData["equal"];
     }
