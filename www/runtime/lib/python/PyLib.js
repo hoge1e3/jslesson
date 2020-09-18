@@ -146,7 +146,9 @@ define(function (require, exports, module) {
         }
         return Math.max.apply(Math, args);
     };
-
+    PL.open = function () {
+        throw new Error("openを使うには，「サーバで実行」を選んでください．");
+    };
     PL.quit = function (s) {
         PL.exit();
     };
@@ -226,6 +228,19 @@ define(function (require, exports, module) {
         }
         return res;
     };
+    PL.parseArgs2 = function (arg, spec) {
+        // spec: [{name:  , defval: }]
+        arg = Array.prototype.slice.call(arg);
+        var opt = null;
+        if (arg[arg.length - 1] instanceof PL.Option) {
+            opt = arg.pop();
+        }
+        var res = spec.map(function (s, i) {
+            return i < arg.length ? arg[i] : opt && opt[s.name] !== undefined ? opt[s.name] : s.defval;
+        });
+        return res;
+    };
+
     PL.opt = PL.Option;
     PL.range = function (b, e) {
         var s = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
@@ -667,6 +682,35 @@ define(function (require, exports, module) {
             comp = comp || function (a, b) {
                 return a > b ? 1 : a < b ? -1 : 0;
             };
+            if (comp instanceof PL.Option) {
+                var key = comp.key;
+                if (typeof key === "string") {
+                    var ks = key;
+                    key = function key(o) {
+                        return o[ks];
+                    };
+                }
+                if (typeof key === "function") {
+                    var sorted = self.map(function (val, idx) {
+                        return { val: val, idx: idx };
+                    }).sort(function (a, b) {
+                        var va = key(a.val);
+                        var vb = key(b.val);
+                        if (va > vb) return 1;else if (va < vb) return -1;else return a.idx - b.idx;
+                    }).map(function (r) {
+                        return r.val;
+                    });
+                    while (self.length) {
+                        self.pop();
+                    }while (sorted.length) {
+                        self.push(sorted.shift());
+                    }
+                }
+                if (comp.reverse) {
+                    self.reverse();
+                }
+                return self;
+            }
             return orig_sort.apply(self, [comp]);
         },
         __contains__: function __contains__() {}
