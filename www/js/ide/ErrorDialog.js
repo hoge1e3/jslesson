@@ -1,5 +1,5 @@
-define(["Klass","FS","UI","Pos2RC","UserAgent","stacktrace"],
-function (Klass,FS,UI,Pos2RC,ua,StackTrace) {
+define(["Klass","FS","UI","Pos2RC","UserAgent","stacktrace","EventHandler"],
+function (Klass,FS,UI,Pos2RC,ua,StackTrace,EventHandler) {
     //var regrc=/:([0-9]+):([0-9]+)/;
     //function unknownF(){return "不明";}
     /*var bytes=function(s) {
@@ -18,6 +18,9 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace) {
     };*/
     return Klass.define({
         $this:true,
+        $: t=>{
+            t.events=new EventHandler();
+        },
         convertPath: function (t,e) {return e;},// replaced with BuilderClient.convertFromWorkerPath
         decodeTrace: async function (t,e) {
             try {
@@ -41,9 +44,11 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace) {
         },
         show: async function (t, mesg, src, pos, trace) {
             var appendPos;
+            let error;
             console.log("ERRD",mesg);
             if (mesg && mesg.noTrace) return;
             if (mesg && mesg.stack) {
+                error=mesg;
                 var tr=await t.decodeTrace(mesg);
                 var detail=(mesg.message ? "("+mesg.message+")" : "");
                 for (var i=0;i<tr.length;i++) {
@@ -67,6 +72,7 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace) {
             t.mesgd.text(
                 mesg//+" 場所："+src.name()+(typeof row=="number"?":"+p.row+":"+p.col:"")
             );
+            t.events.fire("show",{mesg, src,pos,trace, dialog:t, error});
             if (src && pos!=null) {
                 var str=typeof src==="string"?src:src.text();
                 var p=new Pos2RC(str).getAll(pos);
@@ -88,6 +94,7 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace) {
             }
             elem.dialog({width:600,height:400});
         },
+        on: (t,...args)=>t.events.on(...args),
         close: function (t) {
             if (t.dom) t.dom.dialog("close");
         },

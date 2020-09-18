@@ -18,7 +18,7 @@ class Permission {
     }
     public function isAccessible($p,$opr) {// $p:Path String
         $p=PathUtil::resolveDotDot($p);
-        if (PathUtil::endsWith($p,".php")) return false;
+        //if (PathUtil::endsWith($p,".php")) return false;
         if (PathUtil::endsWith($p,".cgi")) return false;
         $anyRead=(self::READ|self::LS|self::READMETA);
         //$p=$f.path();

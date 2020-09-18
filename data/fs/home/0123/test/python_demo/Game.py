@@ -1,6 +1,6 @@
 #「実行」→「ブラウザで実行」を選んでください
-import g
-import random
+import g,random
+#import random
 class Actor:
     def __init__(self,x,y):
         self.x=x

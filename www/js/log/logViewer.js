@@ -18,8 +18,10 @@ $(document).ready(function() {
 function getLog(logid,userid){
   $.ajax({
       type: "POST",
-      url: "?Class/getLog",
-      data: "logid="+logid,
+      // url: "?Class/getLog",
+      //data: "logid="+logid,
+      url: "?LogQuery/byId",
+      data: "id="+logid,
       dataType: "json",
       success: function(data,dataType){
           console.log(data);
@@ -33,12 +35,55 @@ function getLog(logid,userid){
   });
 
 }
+function getLogs(user,day,all){
+  return $.ajax({
+      type: "POST",
+      // url: "?Class/getLog",
+      //data: "logid="+logid,
+      url: "?TeacherLog/getLogs",
+      data: {user,day,all:(all?1:0)},
+      dataType: "json",
+  });
+}
+async function view1new() {
+    const logs=await getLogs(userId,day,all);
+    console.log(logs);
+    if (logs.length===0) {
+        document.write(`
+            この日のログはありません．
+            <a href=".?TeacherLog/view1Dates&user=${userId}">他の日のログを見る</a>
+        `);
+    }
+    programs=[];// {filename: [log....]}
+    for (let log of logs) {
+        //log.raw=JSON.parse(log.raw);
+        const filename=log.filename;
+        if(!programs[filename]) programs[filename]=[];
+        programs[filename].push(JSON.parse(log.raw));
+    }
+    for (let log of logs) {
+        const filename=log.filename;
+        //<div>${FILENAME}</div>
+        $("<div>").appendTo("#fileList").append(
+            $("<font>").attr("color", (log.result.match(/Error/) ? "red":"black")).text(filename)
+        ).click(function () {
+            console.log(log.id);
+            showLogOneUser.call(this, log.id, log.user, filename);
+        }).attr("id", log.id);
+        //<font color="black">${FILENAME}</font></div>
+        //<script>
+        showFileEntry(log);
+        //</script>
+    }
+}
 function getOneUsersLogId(userid,pon){
   showFrame(logs[userid],userid,pon);
 }
 function getCode(raw) {
-    return raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.DNCL || raw.code.Python || raw.code.py || "";
+    return raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.DNCL || raw.code.Python || raw.code.py ||
+    raw.code.Tonyu || raw.code.tonyu || raw.code.undefined || raw.code.PHP || raw.code.php ||"";
 }
+
 function openFrame(data){
   console.log(data);
   if(displayingId!==""){
@@ -82,7 +127,7 @@ function openFrame(data){
   $("[id='"+userid+"']").html(res);
   $("[id='"+userid+"']").css("display","inline");
   //$("#"+userid).width($("#"+userid).parent().width());
-  $("[id='"+userid+"']").height($("[id='"+userid+"']").get(0).scrollHeight);
+  $("[id='"+userid+"']").height( checknull( $("[id='"+userid+"']").get(0), userid).scrollHeight);
   $("[data-id='"+data.id+"']").css("background-color","orange");
   $("[id='"+userid+"detail']").html(detail);
   //alert(logid);
@@ -149,10 +194,54 @@ if(reloadMode){
 function getPreviousLog(logid){
   return $.ajax({
       type: "POST",
-      url: "?Class/getLog",
-      data: "logid="+logid,
+      // url: "?Class/getLog",
+      //data: "logid="+logid,
+      url: "?LogQuery/byId",
+      data: "id="+logid,
       dataType: "json"
   });
+}
+function showFileEntry(l) {
+    var userid=l.user;
+    if(!logsOfOneUser[l.filename]) logsOfOneUser[l.filename]=[];
+    logsOfOneUser[l.filename].push(l.id-0);
+    var pRaw;
+    if(!indexList[l.filename]){
+      indexList[l.filename]=0;
+      pRaw=programs[l.filename][0];
+    }else{
+      var i=indexList[l.filename];
+      pRaw=programs[l.filename][i-1];
+      //console.log(i-1,pRaw);
+    }
+    indexList[l.filename]++;
+    var cRaw=JSON.parse(l.raw);
+    var lRaw=programs[l.filename][programs[l.filename].length-1];
+    console.log(pRaw,cRaw,lRaw);
+    var prevProg=getCode(pRaw);//.code.C || pRaw.code.JavaScript || pRaw.code.Dolittle || pRaw.code.Python || "";
+    var curProg=getCode(cRaw);//.code.C || cRaw.code.JavaScript || cRaw.code.Dolittle || cRaw.code.Python || "";
+    var lastProg=getCode(lRaw);//.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
+    var prevDiffData=calcDiff(prevProg,curProg,"[id='"+userid+"diff']","Prev","Current",false);
+    var lastDiffData=calcDiff(curProg,lastProg,"[id='"+userid+"diffLast']","Current","Last",false);
+    var lastDiffData1=calcDiff(prevProg,lastProg,"[id='"+userid+"diffLast']","Prev","Last",false);
+    var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
+    var ld="-"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"];
+    console.log("lastDiff",lastDiffData["equal"],lastDiffData1.equal);
+    if(lastDiffData["equal"]<lastDiffData1.equal){
+      var sameLines=":"+`<font color="red">${lastDiffData["equal"]}　★</font>`;
+    }else{
+      var sameLines=":"+lastDiffData["equal"];
+    }
+
+    console.log("prev",prevProg);
+    console.log("cur",curProg);
+    console.log("diff",prevDiffData, lastDiffData);
+    console.log("cur/last",curProg,lastProg, curProg===lastProg);
+
+    var e=document.createElement("span");
+    e.id=l.id+'summary';
+    e.innerHTML=sameLines;
+    document.getElementById(l.id).appendChild(e);
 }
 var prevLog;
 async function showLogOneUser(logid,userid,fn){
@@ -160,54 +249,33 @@ async function showLogOneUser(logid,userid,fn){
     if (prevLog) $(prevLog).css({background:"#fff"});
     $(this).css({background:"#ff0"});
     prevLog=this;
-  getLog(logid,userid);
+  getLog(logid,userid);// openFrameする
   var ind=logsOfOneUser[fn].indexOf(logid-0);
   var currentProgram;
   var cururl=location.href.replace(/&logid=[0-9]+/,"")+"&logid="+logid;
   history.replaceState(null,null,cururl);
-  if(ind>0){
+  console.log(ind,logsOfOneUser[fn]);
+  //return;
     try {
         const r=await getPreviousLog(logsOfOneUser[fn][ind]);//.done(function(r){
         const curRaw=JSON.parse(r.raw);
         currentProgram=getCode(curRaw);//.code.C || curRaw.code.JavaScript || curRaw.code.Dolittle || curRaw.code.Python;
 
-        const result=await getPreviousLog(logsOfOneUser[fn][ind-1]);//.done(function(result) {
-        const raw=JSON.parse(result.raw);
-        const code=getCode(raw);//raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.Python || "";
-        //calcDiff(code,currentProgram,userid);
-
+        let code="最初のプログラム";
+        if (ind>0) {
+            const result=await getPreviousLog(logsOfOneUser[fn][ind-1]);//.done(function(result) {
+            const raw=JSON.parse(result.raw);
+            code=getCode(raw);
+        }
         const last=await getPreviousLog(logsOfOneUser[fn][logsOfOneUser[fn].length-1]);//.done(function(last){
         const lRaw=JSON.parse(last.raw);
         const lastProg=getCode(lRaw);//lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
         const prevDiffData=calcDiff(code,currentProgram,"[id='"+userid+"diff']","Prev","Current",true);
         const lastDiffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last",true);
-        /*var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
-            var ld="-"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"];
-            $("[id='"+logid+"summary']").html(pd+ld);
-         */
-    }catch(e) {
-        console.log("failed get last log",e);
-    }
-  }else{
-    try {
-        const r=await getPreviousLog(logsOfOneUser[fn][ind]);//.done(function(r){
-        console.log("ind",ind);
-        const curRaw=JSON.parse(r.raw);
-        currentProgram=getCode(curRaw);//.code.C || curRaw.code.JavaScript || curRaw.code.Dolittle || curRaw.code.Python || curRaw.code.py;
 
-        const last=await getPreviousLog(logsOfOneUser[fn][logsOfOneUser[fn].length-1]);//.done(function(last){
-        const lRaw=JSON.parse(last.raw);
-        const lastProg=getCode(lRaw);//.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || curRaw.code.py || "";
-        calcDiff("最初のプログラム",currentProgram,"[id='"+userid+"diff']","Prev","Current",true);
-        const diffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last",true);
-        /*var pd=":0:0:0:0";
-        var ld="-"+diffData["delete"]+":"+diffData["insert"]+":"+diffData["replace"]+":"+diffData["equal"];
-        $("[id='"+logid+"summary']").html(pd+ld);
-        */
     }catch(e) {
-        console.log("failed get last log",e);
+        console.log("failed get last log",e.stack||e);
     }
-  }
 }
 function clearBreak(base){
   var lines=base.split("\n");
@@ -215,6 +283,10 @@ function clearBreak(base){
     return !l.match(/^(\s)*$/);
   });
   return res.join("\n");
+}
+function checknull(o,mesg) {
+    if (o) return o;
+    throw new Error(mesg+" is not found");
 }
 function calcDiff(prev,now,id,btn,ntn,flag){
   // get the baseText and newText values from the two textboxes, and split them into lines
@@ -231,28 +303,36 @@ function calcDiff(prev,now,id,btn,ntn,flag){
   // in order to yield the new text
   var opcodes = sm.get_opcodes();
   //var diffoutputdiv = $("[id='"+id+"diff']")[0];
-  var diffoutputdiv = $(id)[0];
-  //console.log(sm,opcodes);
+  console.log("SequenceMatcher",opcodes);
   var diffData={"insert":0,"delete":0,"replace":0,"equal":0};
+  let diffLine="";
   for(var opti in opcodes){
     var opt=opcodes[opti];
-    //console.log("switch"+opt[0]);
+    console.log("switch",opt[0],opti,opt[2]);
     switch(opt[0]){
       case "equal":
+        if (opti==0 && opcodes.length>1) diffLine=opt[2];
+        diffData[opt[0]]+=(opt[2]-opt[1]);//  b   e    b    e
+        break;
       case "delete":
-        diffData[opt[0]]+=(opt[2]-opt[1]);
+        if (opti==0) diffLine=0;          //  Left     Right
+        diffData[opt[0]]+=(opt[2]-opt[1]);//  b   e    b    e
         break;
       case "insert":
+        if (opti==0) diffLine=0;
         diffData[opt[0]]+=(opt[4]-opt[3]);
         break;
       case "replace":
+        if (opti==0) diffLine=0;
         diffData[opt[0]]+=Math.max(opt[2]-opt[1],opt[4]-opt[3]);
         break;
       default:
         console.log("Unknown state '"+opt[0]+"' discovered.");
     }
   }
+  diffData.firstLine=diffLine;
   if(flag){
+      let diffoutputdiv = checknull( $(id)[0], id);
     while (diffoutputdiv.firstChild) diffoutputdiv.removeChild(diffoutputdiv.firstChild);
     //var contextSize = $("contextSize").value;
     //contextSize = contextSize ? contextSize : null;

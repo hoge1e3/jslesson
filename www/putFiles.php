@@ -18,6 +18,8 @@ $data=json_decode($_POST["data"]);
 if (!$data) {
     die("Invalid JSON data: ".substr($_POST["data"],0,500));
 }
+$excludes=param("excludes","[]");
+$excludes=json_decode($excludes);
 foreach ($data as $path=>$cont) {
 //print "cont $cont";
     $fp=PathUtil::rel($base, $path);
@@ -31,7 +33,7 @@ foreach ($data as $path=>$cont) {
 //header("Content-type: text/plain");
 //print "OK";
 require_once "php/getDirInfoLib.php";
-print json_encode( getDirInfo($base, $base) );
+print json_encode( getDirInfo($base,$excludes) );
 
 //print $_POST["data"];
 

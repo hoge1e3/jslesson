@@ -149,7 +149,7 @@ class Auth {
     }
     static function su($user) {//nariSUmasi   $user:BAUser
         $t=self::curTeacher();
-        if ($t->isTeacherOf($user->_class)) {
+        if ($t && $t->isTeacherOf($user->_class)) {
             MySession::set("class",$user->_class->id);
             MySession::set("user",$user->name);
         } else {
@@ -202,7 +202,7 @@ class Auth {
     static function isTeacherOf($class){
         //現在ログインしているユーザは$class の教員roleを持つか？
         $t=self::isTeacher2();
-        return $t->isTeacherOf(self::getClass($class));
+        return $t && $t->isTeacherOf(self::getClass($class));
         /*$pdo = pdo();
     	$sth=$pdo->prepare("select * from role where class = ? and user = ? and type = ?");
     	$sth->execute(array($class,self::curUser(),self::TEACHER));
@@ -266,6 +266,26 @@ class Auth {
         req("Published");
         $user=self::curUser2();
         return Published::getURL($user->_class->id, $user->name, $project);
+    }
+    static function context() {
+        return new AuthContext();
+    }
+}
+class AuthContext {
+    function __construct() {
+        $this->userObj=$this->user=Auth::curUser2();
+        if (!$this->user) {
+            throw new Exception("Not logged in");
+        }
+        $this->userId=$this->userID=$this->userName=$this->user->name;
+        $this->classObj=$this->{"class"}=$this->_class=$this->user->_class;
+        $this->classID=$this->classId=$this->className=$this->_class->id;
+        $this->teacher=Auth::isTeacherOf($this->{"class"});
+        // NOTE: this.teacher !== this.user
+        //       (If the teacher predend to be him/her).
+    }
+    function isTeacher() {
+        return $this->teacher;
     }
 }
 ?>

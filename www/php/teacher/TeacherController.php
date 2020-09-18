@@ -1,5 +1,5 @@
 <?php
-req("auth","BAClass");
+req("auth","BAClass","DateUtil");
 //require_once"php/auth.php";
 //require_once"php/teacher/Classes.php";
 class TeacherController {
@@ -193,7 +193,154 @@ class TeacherController {
         }
 
     }
+    static function langStat(){
+      $teacher=Auth::isTeacher2();
+      if (!$teacher || !$teacher->isSysAd()) {
+          header("Location: a.php?Teacher/login");
+          return;
+      }
+      date_default_timezone_set('Asia/Tokyo');
+      $thisURL="a.php?Teacher/langStat";
+      $now=time();
+      if(!param("Y",false)){
+          $min=$now-2592000;
+          $max=$now;
+      }else{
+          $min=DateUtil::toInt(param('Y')."-".param('m')."-".param('d')." ".param('H').":".param('i').":".param('s'));
+          $max=DateUtil::toInt(param('aY')."-".param('am')."-".param('ad')." ".param('aH').":".param('ai').":".param('as'));
+      }
+      ?>
+      <form action="<?= $thisURL ?>" method="POST">
+          <input name="Y" value="<?=date("Y",$min)?>" maxlength="4" size="4">年
+          <input name="m" value="<?=date("m",$min)?>" maxlength="2" size="2">月
+          <input name="d" value="<?=date("d",$min)?>" maxlength="2" size="2">日
+          <input name="H" value="<?=date("H",$min)?>" maxlength="2" size="2">時
+          <input name="i" value="<?=date("i",$min)?>" maxlength="2" size="2">分
+          <input name="s" value="<?=date("s",$min)?>" maxlength="2" size="2">秒から<br>
+          <input name="aY" value="<?=date("Y",$max)?>" maxlength="4" size="4">年
+          <input name="am" value="<?=date("m",$max)?>" maxlength="2" size="2">月
+          <input name="ad" value="<?=date("d",$max)?>" maxlength="2" size="2">日
+          <input name="aH" value="<?=date("H",$max)?>" maxlength="2" size="2">時
+          <input name="ai" value="<?=date("i",$max)?>" maxlength="2" size="2">分
+          <input name="as" value="<?=date("s",$max)?>" maxlength="2" size="2">秒までの<br>
+          <input type="submit" value="状況を見る"/>
+      </form>
+      <table>
+        <tr><th>クラス</th><th>ユーザ</th><th>プロジェクト</th><th>言語</th></tr>
+      <?php
+      $overall = array();
+      foreach(glob(BA_HOME."/*") as $class){
+        if(!is_file($class)){
+          foreach(glob($class."/*") as $user){
+            if(!is_file($user)){
+              foreach(glob($user."/*") as $prj){
+                if(is_file($prj."/options.json") && (filemtime($prj."/options.json")>=$min && filemtime($prj."/options.json")<=$max)){
+                  $opt=json_decode(file_get_contents($prj."/options.json"));
+                  if(isset($opt->language)){
+                    if(!isset($overall[$opt->language])) $overall[$opt->language]=1;
+                    else $overall[$opt->language]++;
+                    $path=explode("/",$prj);
+                    //$path[count($path)-3]."/".$path[count($path)-2]."/".$path[count($path)-1]."<BR>";
+                    ?>
+                    <tr><td><?=$path[count($path)-3]?></td><td><?=$path[count($path)-2]?></td><td><?=$path[count($path)-1]?></td><td><?=$opt->language?></td></tr>
+                    <?php
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      ?>
+    </table>
+      <?php
+      foreach ($overall as $key => $value) {
+        echo $key.":".$value."<BR>";
+      }
+  }
 
+  static function langStatAll(){
+      $teacher=Auth::isTeacher2();
+      if (!$teacher || !$teacher->isSysAd()) {
+          header("Location: a.php?Teacher/login");
+          return;
+      }
+      date_default_timezone_set('Asia/Tokyo');
+      $now=time();
+      ?>
+      <table border="1">
+          <tr><th>クラス</th><th>開講年月</th><th>主たる言語</th><th>アクティブユーザ数</th>
+              <th>c</th><th>dncl</th><th>dtl</th><th>py</th><th>js</th><th>tonyu</th><th>合計</th><th>教員</th><th>プロジェクト</th></tr>
+              <?php
+              foreach(glob(BA_HOME."/*") as $class){
+                  if(!is_file($class)){
+                      $temp=explode("/",$class);
+                      $className=$temp[count($temp)-1];
+                      $begin=$now;
+                      $overall = array();
+                      $users=0;
+                      foreach(glob($class."/*") as $user){
+                          if(!is_file($user)){
+                              $temp=explode("/",$user);
+                              $userName=$temp[count($temp)-1];
+                              $isAct=false;
+                              foreach(glob($user."/*") as $prj){
+                                  if(is_file($prj."/options.json")){
+                                      $isAct=true;
+                                      $createdTime=filemtime($prj."/options.json");
+                                      $temp=explode("/",$prj);
+                                      $prjName=$temp[count($temp)-1];
+                                      if($createdTime<$begin){
+                                          $begin=$createdTime;
+                                      }
+
+                                      $opt=json_decode(file_get_contents($prj."/options.json"));
+                                      $lang=isset($opt->language) ? $opt->language : 'js';
+                                      if(!isset($overall[$lang])) $overall[$lang]=1;
+                                      else $overall[$lang]++;
+                                      $path=explode("/",$prj);
+                                      //$path[count($path)-3]."/".$path[count($path)-2]."/".$path[count($path)-1]."<BR>";
+                                  }
+                              }
+                              if($isAct) $users++;
+                          }
+                      }
+                      $ml=self::mainLang($overall);
+                      ?>
+                      <tr><td><?=$className?></td><td><?=DateUtil::toString($begin)?></td>
+                          <td><?=$ml?></td>
+                          <td><?=$users?></td>
+                          <td><?=isset($overall['c'])? $overall['c']:0 ?></td>
+                          <td><?=isset($overall['dncl'])?$overall['dncl'] :0 ?></td>
+                          <td><?=isset($overall['dtl'])?$overall['dtl'] :0 ?></td>
+                          <td><?=isset($overall['py'])? $overall['py']:0 ?></td>
+                          <td><?=isset($overall['js'])? $overall['js']:0 ?></td>
+                          <td><?=isset($overall['tonyu'])? $overall['tonyu']:0 ?></td>
+                          <td><?=array_sum($overall) ?></td></tr>
+                          <?php
+                      }
+                  }
+                  ?>
+              </table>
+              <?php
+              foreach ($overall as $key => $value) {
+                  echo $key.":".$value."<BR>";
+              }
+          }
+    static function mainLang($overall){
+        // todo
+        asort($overall);
+        $ml=array_key_last($overall);
+        return is_null($ml)? 'none' : ($overall[$ml]/array_sum($overall)>0.8 ? $ml : 'mix');
+    }
+}
+if (! function_exists("array_key_last")) {
+    function array_key_last($array) {
+        if (!is_array($array) || empty($array)) {
+            return NULL;
+        }
+        return array_keys($array)[count($array)-1];
+    }
 }
 
 ?>

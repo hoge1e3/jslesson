@@ -18,6 +18,8 @@ function pdo_new() {
         $dbh=new PDO(PDO_DSN);
     }
     $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // Uncomment if use pdo_select_iter
+    //$pdo->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY,false);
     return $dbh;
 }
 function pdo_select1() {

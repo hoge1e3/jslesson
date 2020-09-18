@@ -104,7 +104,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
                 t.progress("Transpile "+f.src.py.name());//<-dtl
                 var isMainFile=(f.src.py.path()==mainFilePath);//<-dtl
                 if (!isMainFile && isNewer(f.dst.js, f.src.py) && isNewer(f.dst.html, f.src.html)) return SplashScreen.waitIfBusy();//<-dtl
-                t.compile(f,runLocal);
+                t.compile(f,{runLocal,isMainFile});
                 t.genHTML(f);
                 return SplashScreen.waitIfBusy();
             });
@@ -112,7 +112,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
     };
     var superMode=false;
 
-    p.compile=function (f,runLocal) {
+    p.compile=function (f,{runLocal,isMainFile}) {
         var pysrcF=f.src.py;
         var js;
         var anon,node,errSrc,needInput=false;
@@ -127,7 +127,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
                 needInput=!!vres.useInput;
                 anon=vres.anon;
             } catch(e) {
-                if (e.node || typeof e.pos==="number") {
+                if (!isMainFile && (e.node || typeof e.pos==="number")) {
                     var pos=e.node?e.node.pos:e.pos;
                     errSrc=
                     "var e=new Error("+JSON.stringify(e.message)+");"+
@@ -136,6 +136,9 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
                         "name: function (){return "+JSON.stringify(pysrcF.name())+";}"+
                     "};"+
                     "e.pos="+pos+";"+
+                    "if (window.parent && typeof window.parent.closeRunDialog==='function') {"+
+                        "window.parent.closeRunDialog();"+
+                    "}"+
                     "throw e;";
 
                     //throw TError(e.message,pysrcF,e.node.pos);
@@ -194,5 +197,6 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
     p.upload=function (pub) {
         return Sync.sync(this.dst,pub);
     };
+    p.Semantics=S;
     return PythonBuilder;//<-Dtl
 });

@@ -247,7 +247,7 @@ class ClassController {
             ?>
             <tr><th><?=$s->name?></th><th><?=$n?></th>
 	            <th pass="<?=$pass?>" onclick="if(this.innerHTML=='表示')this.innerHTML=this.getAttribute('pass');else this.innerHTML='表示';">表示</th>
-
+                <td><a href="a.php?Class/su&user=<?= htmlspecialchars($s->name) ?>">代理ログイン</a></td>
             </tr>
 
             <?php
@@ -258,6 +258,13 @@ class ClassController {
         ?>
         </table>
         <?php
+    }
+    static function su() {
+        $user=param("user");
+        $class=Auth::curClass2();
+        $user=$class->getUser($user);
+        Auth::su($user);
+        header("Location: a.php");
     }
     static function distribute(){
         /*
@@ -467,9 +474,18 @@ class ClassController {
     }*/
     static function getLog(){
         $class=Auth::curClass2();
-        $logid=$_POST["logid"];
+        $logid=param("logid");//$_POST["logid"];
         $lg=$class->getLogById($logid);
+        if (!$lg) {
+            throw new Error("log id=$logid is not found.");
+        }
         $user=Auth::curUser2();
+        if (!$user) {
+            throw new Error("Not logged in.");
+        }
+        if (!$class) {
+            throw new Error("Not logged in to class.");
+        }
         if (Auth::isTeacherOf($class) || $user->name==$lg[0]->user) {
             print(json_encode($lg[0]));
         }

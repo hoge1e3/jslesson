@@ -1,5 +1,5 @@
 <?php
-req("auth","param","DateUtil");
+req("auth","param","DateUtil","pdo");
 class LogQueryController {
     static function index() {
         $date=param("date","");
@@ -59,6 +59,14 @@ class LogQueryController {
         }
         print"</table>";
     }
+    static function byId(){
+        req("LogUtil");
+        $id=param("id");
+        $r=LogUtil::get($id);
+        header("Content-type: text/json");
+        print json_encode($r);
+    }
+
 }
 
  ?>

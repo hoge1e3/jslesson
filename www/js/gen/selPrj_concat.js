@@ -9292,6 +9292,7 @@ define('NewProjectDialog',["UI","FS","ProjectFactory"], function (UI,FS,F) {
         			 ["option",{value:"dtl"},"ドリトル"],
         			 ["option",{value:"c"},"C"],
                      ["option",{value:"py"},"Python"],
+                     //["option",{value:"php"},"PHP"],
                      ["option",{value:"dncl"},"DNCL(どんくり)"]
                     ]
 				],
@@ -9846,7 +9847,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
         }
         function getLocalDirInfo() {
             console.log("gerLCD");
-            var res2=local.getDirTree({style:"flat-relative",excludes:[".sync/"]});
+            var res2=local.getDirTree({style:"flat-relative",excludes});
             console.log("gerLCD done",res2);
             return res2;
         }
@@ -9919,8 +9920,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
         if (!options) options={};
         if (options.test) options.v=1;
         var syncInfoDir=local.rel(".sync/");
-        options.excludes=options.excludes||[];
-        options.excludes=options.excludes.concat(syncInfoDir.name());
+        const excludes=(options.excludes||[]).concat(syncInfoDir.name());
         var downloadSkipped, uploadSkipped;
         var uploads={},downloads=[];
         var user;
@@ -9938,7 +9938,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
         if (options.v) sh.echo("last/cur LocalDirInfo",lastLocalDirInfo, curLocalDirInfo);
         localDelta=getDelta(lastLocalDirInfo, curLocalDirInfo);
         if (options.v) sh.echo("localDelta",localDelta);
-        var req={base:remote.path(),excludes:JSON.stringify(options.excludes),token:""+Math.random()};
+        var req={base:remote.path(),excludes:JSON.stringify(excludes),token:""+Math.random()};
         status("getDirInfo", req);
         return $.ajax({
             type:"get",
@@ -10018,7 +10018,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
                 uploadSkipped=true;
                 return {uploadSkipped:true};
             }
-            var req={base:remote.path(),data:JSON.stringify(uploads),token:""+Math.random()};
+            var req={base:remote.path(),data:JSON.stringify(uploads),excludes:JSON.stringify(excludes),token:""+Math.random()};
             console.log("Data len=",req.data.length);
             req.pathInfo=A(WebSite.url.putFiles);
             status("putFiles", req);

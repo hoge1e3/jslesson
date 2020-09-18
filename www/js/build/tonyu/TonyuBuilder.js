@@ -30,7 +30,12 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","Bui
             "language":"tonyu",
             "run":{
                 "mainClass":"user.Main",
-                "bootClass":"kernel.Boot"
+                "bootClass":"kernel.Boot",
+                globals:{
+                    $defaultFPS:60,
+                    $imageSmoothingDisabled:true,
+                    $soundLoadAndDecode:false
+                }
             },
             "plugins":{}
         };
@@ -69,22 +74,36 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","Bui
         this.prj.getPublishedURL().then(function (r) {
             WebSite.pubURLOfPrj=r;
         });
+        ide.on("rename",evt=>this.refreshRunMenu());
+        ide.on("createContent",evt=>this.refreshRunMenu());
         //prj.getPublishedURL() // why delete?
     };
     var p=MkRun.prototype;
     p.build=async function (options) {
         const c=this.builderClient;
         await c.clean();
-        if (options.fullScr) return await this.mkrun(options);
+        if (options.upload) {
+            await this.mkrun(options);
+            const pubd=options.publishedDir;
+            const pubu=options.publishedURL.replace(/\/$/,"")+"/index.html";
+            console.log("Tonyu upload",this.dst,pubd, pubu);
+            const r=await Sync.sync(this.dst,pubd,{excludes:["images/","sounds/"]});
+            console.log("Tonyu upload syncres",r);
+            return {publishedURL:pubu};
+        }
         const opt=this.prj.getOptions();
+        console.log("OPTOPT",opt, options);
         if (options.mainClass && opt.run && opt.run.mainClass!==options.mainClass) {
             opt.run.mainClass=options.mainClass;
+            console.log("OPTSET",opt);
             this.prj.setOptions(opt);
         }
         //const main=opt.run.mainClass;
         this.removeThumbnail();
         const aliases={};//this.genUrlAliases();
-        this.dst.rel("index.html").text(this.debugHTML(this.prj.getDir().path(),aliases));
+        const indexFile=this.dst.rel("index.html");
+        indexFile.text(this.debugHTML(this.prj.getDir().path(),aliases));
+        return {indexFile};
     };
     p.removeThumbnail=function () {
         const prj=this.prj;
@@ -109,6 +128,13 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","Bui
             }
         }
     };
+    function when(...procs) {
+        procs=procs.map((p,i)=>$.when(p).then(
+            r=>{console.log(i,"Succ");return r;},
+            r=>{console.log(i,"Fail",r);return r;},
+        ));
+        return $.when(...procs);
+    }
     p.mkrun=function(options) {
         FS.mount(location.protocol+"//"+location.host+"/", "web");
         var prj=this.prj;
@@ -260,8 +286,8 @@ reqConf={
             prjDir.copyTo(dest.rel("src/"));
         }
     };
-    p.upload=function (pub) {
-        return Sync.sync(this.dst,pub,{excludes:["images/","sounds/"]});
+    p.upload=async function (pub) {
+        // Done in build
     };
     p.addMenu=function (Menu) {
         Menu.appendSub(
@@ -271,11 +297,17 @@ reqConf={
         Menu.appendSub("tool",
             {label:"音声リスト",id:"soundList",action:this.showSoundList.bind(this)},
         );
+        Menu.appendSub("tool",
+            {label:"マップエディタ",id:"mapEditor",action:this.mapEditor.bind(this)},
+        );
         Menu.deleteMain("runMenu");
         Menu.appendMain(
             {label:"実行",id:"runTonyu",after:$("#fileMenu"),sub:[]}
         );
         this.refreshRunMenu();
+    };
+    p.mapEditor=function () {
+        this.ide.run({mainClass:"kernel.MapEditor"});
     };
     p.showImageList=function () {
         var t=this;
@@ -347,9 +379,9 @@ reqConf={
                         $("<a>").attr("href","#").text("実行するファイルを選択...").click(F(dialogs.selectMain))
                     ));*/
     };
-    p.afterCreateContent=function () {
+    /*p.afterCreateContent=function () {
         this.refreshRunMenu();
-    };
+    };*/
     p.debugHTML=(prj,aliases)=>{
         return `<!DOCTYPE html>
 <html>

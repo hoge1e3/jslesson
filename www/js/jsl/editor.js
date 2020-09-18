@@ -34,6 +34,7 @@ define(function (require) {
     var PF=require("ProjectFactory");
     var UA=require("UserAgent");
     const SocializeDialog=require("SocializeDialog");
+    const EventHandler=require("EventHandler");
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
         A.setMode(A.MODE_STRICT);
@@ -69,6 +70,7 @@ define(function (require) {
         "tonyu":"Tonyu",
         "dncl":"DNCL",
         "py":"Python",
+        "php":"PHP",
     };
     var helpURL;
     var unsaved=false;
@@ -146,7 +148,11 @@ function ready() {
     var HEXT=".html";
     var opt=curPrj.getOptions();
     var lang=opt.language || "js";
-    const ide={run, prj:curPrj,getCurrentEditorInfo, saveDesktopEnv};
+    const ide={run, prj:curPrj,getCurrentEditorInfo, saveDesktopEnv, sync,
+        handler: new EventHandler(),
+        on(...args){return this.handler.on(...args);},
+        fire(...args){return this.handler.fire(...args);}
+    };
     root.openDummyEditor=openDummyEditor;
     switch (lang){
     case "c":
@@ -181,6 +187,11 @@ function ready() {
         //ALWAYS_UPLOAD=true;
         requirejs(["TonyuBuilder"],setupBuilder);
         helpURL="http://bitarrow.eplang.jp/index.php?tonyu";
+        break;
+    case "php":
+        //ALWAYS_UPLOAD=true;
+        requirejs(["PHPBuilder"],setupBuilder);
+        helpURL="http://bitarrow.eplang.jp/index.php?php";
         break;
     }
     function setupBuilder(BuilderClass) {
@@ -488,6 +499,7 @@ function ready() {
                 if (olds[i].equals(old)) ci=i;
                 if (olds[i].exists() && !news[i].exists()) {
                     news[i].copyFrom(olds[i]);
+                    ide.fire("createContent",{file:news[i], oldFile:olds[i]});
                     if (builder.afterCreateContent)builder.afterCreateContent(news[i]);
                 }
             }
@@ -542,6 +554,7 @@ function ready() {
         } else if (!f.exists()) {
             f.text("");
         }
+        ide.fire("createContent",{file:f});
         if (builder.afterCreateContent)builder.afterCreateContent(f);
     };
     FM.on.displayName=function (f) {
@@ -577,6 +590,7 @@ function ready() {
                     logToServer2(olds[i].path(),"MOVED","MOVED","rename",
                     olds[i].path()+"->"+news[i].path()  ,lang);
                 }catch(e){console.log(e.stack);}
+                ide.fire("rename",{oldFile: olds[i], newFile: news[i]});
             }
             close(olds[i]);
         }
@@ -627,6 +641,11 @@ function ready() {
             pat={
                 reg:/^[A-Za-z_][\-a-zA-Z0-9_]*$/, error:"名前は，半角英数字とアンダースコア(_)，ハイフン(-)のみが使えます．"
             };
+        }
+        if (builder && builder.Semantics && builder.Semantics.importable ) {
+            if (builder.Semantics.importable[name]) {
+                return {ok:false, reason:`${name}はPythonのライブラリ名と同じなので使えません．`};
+            }
         }
         if (name.match(pat.reg)) {
             if (sourceFiles[name]) {
@@ -690,6 +709,7 @@ function ready() {
         var inf=getCurrentEditorInfo();
         if (!inf && !options.mainFile) {
             alert("実行したいファイルを選んでください");
+            return;
         }
         save();
         sync();
@@ -699,19 +719,24 @@ function ready() {
                 var curFiles=fileSet(curFile);
                 var curHTMLFile=curFiles[0];
                 var curLogicFile=curFiles[1];
-                var pub;
+                options.curHTMLFile=curHTMLFile;
+                options.curLogicFile=curLogicFile;
+                options.upload=true;
+                //var pub;
                 //var pub=Auth.remotePublics()/*FS.get("/public/")*/.rel(curProjectDir.name());
                 SplashScreen.show();
-                pub=await Auth.publishedDir(curPrj.getName()+"/");
-                options.mainFile=curLogicFile;
-                await builder.build(options);
-                await builder.upload(pub);
+                //pub=await Auth.publishedDir(curPrj.getName()+"/");
+                //options.mainFile=curLogicFile;
+                const buildStatus=await build(options);
+                console.log("built", options, buildStatus);
+                //await builder.build(options);
+                //await builder.upload(pub);
                 console.log("tonyu upl done");
                 SplashScreen.hide();
-                const _u=await Auth.publishedURL(curPrj.getName()+"/");
+                //const _u=await Auth.publishedURL(curPrj.getName()+"/");
                 var cv=$("<div>");
                 cv.dialog();
-                var runURL=_u+(lang=="tonyu"?"index.html":curHTMLFile.name());
+                var runURL=buildStatus.publishedURL;//_u+(lang=="tonyu"?"index.html":curHTMLFile.name());
                 cv.append($("<div>").append(
                     $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
                 ));
@@ -721,12 +746,41 @@ function ready() {
                     editorInfo:getCurrentEditorInfo(),
                     rerun:runFullScr
                 });
-                return sync();
+                if (!buildStatus.synced) return sync();
             }catch(e) {
                 EC.handleException(e);
                 SplashScreen.hide();
             }
         }
+    }
+    async function build(options) {
+        if (!options.curLogicFile || !options.curHTMLFile) {
+            throw new Error("options should be set: curLogicFile, curHTMLFile");// Mandatory "options" :-)
+        }
+        const {curLogicFile, curHTMLFile}=options;
+        options.mainFile=options.curLogicFile;
+        if (options.upload) {
+            const pubd=await Auth.publishedDir(curProjectDir.name());
+            const pubu=await Auth.publishedURL(curProjectDir.name());
+            options.publishedDir=pubd;
+            options.publishedURL=pubu;
+        }
+        const buildStatus=(await builder.build(options))||{};
+        console.log("buildStatus", buildStatus);
+        if (options.upload) {
+            if (buildStatus.publishedURL) {
+                options.publishedURL=buildStatus.publishedURL;
+            } else {
+                buildStatus.publishedURL=options.publishedURL+curHTMLFile.name();
+            }
+            if (buildStatus.publishedDir) {
+                options.publishedDir=buildStatus.publishedDir;
+            }
+            await builder.upload(options.publishedDir);
+        }
+        logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Build","ビルドしました",langList[lang]);
+        buildStatus.indexFile=buildStatus.indexFile|| ram.rel(curHTMLFile.name());
+        return buildStatus;
     }
     //\run
     async function run(options) {//run!!
@@ -744,10 +798,12 @@ function ready() {
         var curFiles=fileSet(curFile);
         var curHTMLFile=curFiles[0];
         var curLogicFile=curFiles[1];
+        options.curHTMLFile=curHTMLFile;
+        options.curLogicFile=curLogicFile;
 	    window.sendResult=function(resDetail, lang){
             lang=lang||"c";
-            //console.log("sendResult",resDetail,lang);
-            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Run",resDetail,langList[lang]);
+            console.log("sendResult",resDetail,lang);
+            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),(langList[lang]||lang)+" Run",resDetail,langList[lang]);
         };
         stop();
         save();
@@ -757,18 +813,20 @@ function ready() {
     	try {
             SplashScreen.show();
     	    $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
-            options.mainFile=curLogicFile;
-            var b=await builder.build(options);
-            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Run","実行しました",langList[lang]);
+            //options.mainFile=curLogicFile;
+            options.upload=ALWAYS_UPLOAD;
+            const buildStatus=await build(options);
+            console.log("built", options, buildStatus);
+            //logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Run","実行しました",langList[lang]);
             if (ALWAYS_UPLOAD) {
-                const pubd=await Auth.publishedDir(curProjectDir.name());
+                /*const pubd=await Auth.publishedDir(curProjectDir.name());
                 console.log("Upload comp",pubd);
                 await builder.upload(pubd);
-                const pub=await Auth.publishedURL(curProjectDir.name());
-                var runURL=pub+(lang=="tonyu"?"index.html": curHTMLFile.name());
+                const pub=await Auth.publishedURL(curProjectDir.name());*/
+                var runURL=buildStatus.publishedURL;//pub+(lang=="tonyu"?"index.html": curHTMLFile.name());
                 return IframeDialog.show(runURL,{width:600,height:400});
             } else {
-                var indexF=ram.rel(lang=="tonyu"?"index.html":curHTMLFile.name());
+                var indexF=buildStatus.indexFile;// ram.rel(lang=="tonyu"?"index.html":curHTMLFile.name());
                 return RunDialog2.show(indexF,{
                     window:newwnd,
                     height:RunDialog2.geom.height||screenH-50,
@@ -797,6 +855,9 @@ function ready() {
             run();
         }
     };
+    window.closeRunDialog=()=>{
+        setTimeout(()=>RunDialog2.close(),100);
+    };
     //var curth;
     /*window.setupFrame=function (r) {
         A.is(r,Function);
@@ -823,9 +884,10 @@ function ready() {
         return EC.handleException(e);
     };
     const errorDialog=new ErrorDialog();
+    window.errorDialog=errorDialog;
     EC.handleException=function (e) {
         if (e.type==="dialogClosed") {
-            console.log(e.stack);
+            console.log(e.stack||e);
             return;
         }
         errorDialog.show(e);

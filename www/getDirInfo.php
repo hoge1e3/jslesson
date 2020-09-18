@@ -13,10 +13,12 @@ if (!isset($_GET["base"])) {
     die("Specify base");
 }
 $base=$_GET["base"];
+$excludes=param("excludes","[]");
+$excludes=json_decode($excludes);
 require_once "php/getDirInfoLib.php";
 //try {
     //print $json->encode( $fs->ls("Tonyu/Projects/") );
-    $inf=getDirInfo($base, $base);
+    $inf=getDirInfo($base, $excludes);
     $inf["user"]=Auth::curUser();
     $inf["class"]=Auth::curClass();
     print json_encode( $inf );

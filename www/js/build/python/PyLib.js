@@ -100,7 +100,7 @@ define(function (require,exports,module) {
         }
         return Math.max(...args);
     };
-
+    PL.open=function () {throw new Error("openを使うには，「サーバで実行」を選んでください．");};
     PL.quit=function (s) {PL.exit();};
     PL.exit=function (s) {
         var e=new Error("exit でプログラムが終了しました。");
@@ -174,6 +174,20 @@ define(function (require,exports,module) {
         }
         return res;
     };
+    PL.parseArgs2=function(arg, spec) {
+        // spec: [{name:  , defval: }]
+        arg=Array.prototype.slice.call(arg);
+        let opt=null;
+        if (arg[arg.length-1] instanceof PL.Option) {
+            opt=arg.pop();
+        }
+        const res=spec.map((s,i)=>
+            i<arg.length ? arg[i] : 
+            (opt && opt[s.name]!==undefined) ? opt[s.name] : s.defval
+        );
+        return res;
+    };
+
     PL.opt=PL.Option;
     PL.range=function (b,e,s=1) {
         if (e==null) {e=b;b=0;}
@@ -493,6 +507,28 @@ define(function (require,exports,module) {
         },
         sort: function (self, comp) {
             comp=comp||((a,b)=>(a>b?1:a<b?-1:0));
+            if (comp instanceof PL.Option) {
+                let key=comp.key;
+                if (typeof key==="string") {
+                    const ks=key;
+                    key=o=>o[ks];
+                }
+                if (typeof key==="function") {
+                    const sorted=self.map((val,idx)=>({val,idx}) ).sort((a,b)=>{
+                        const va=key(a.val);
+                        const vb=key(b.val);
+                        if (va>vb) return 1;
+                        else if (va<vb) return -1;
+                        else return a.idx-b.idx;
+                    }).map(r=>r.val);
+                    while(self.length) self.pop();
+                    while(sorted.length) self.push(sorted.shift());
+                }
+                if (comp.reverse) {
+                    self.reverse();
+                }
+                return self;
+            }
             return orig_sort.apply(self, [comp]);
         },
         __contains__: function () {

@@ -12,6 +12,12 @@ class DateUtil {
     static function looksLikeInt($s) {
         return preg_match('/^[0-9]+$/',$s);
     }
+    static function toDayTop($d) {
+        $s=self::toString($d);
+        // yyyy-mm-dd hh:mm:ss
+        // yyyy-mm-dd
+        return self::toInt(substr($s,0,strlen($s)-9));
+    }
     static function toInt($d) {
         if (is_string($d)) {
             if(self::looksLikeInt($d)) return $d-0;
