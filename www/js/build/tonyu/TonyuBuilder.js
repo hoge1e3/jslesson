@@ -1,3 +1,4 @@
+/*global requirejs*/
 define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","BuilderClient","ProjectFactory","sysMod","root","exceptionCatcher"],
         function (FS,Util,WebSite,plugins,sh,Tonyu,Sync,ResEditors,BuilderClient,F,sysMod,root,EC) {
     const langMod=BuilderClient.langMod;
@@ -300,11 +301,20 @@ reqConf={
         Menu.appendSub("tool",
             {label:"マップエディタ",id:"mapEditor",action:this.mapEditor.bind(this)},
         );
+        Menu.appendSub("tool",
+            {label:"HTML出力",id:"exportHTML",action:this.exportHTML.bind(this)},
+        );
         Menu.deleteMain("runMenu");
         Menu.appendMain(
             {label:"実行",id:"runTonyu",after:$("#fileMenu"),sub:[]}
         );
         this.refreshRunMenu();
+    };
+    p.exportHTML=function () {
+        requirejs(["ExportHTMLDialog"],E=>{
+            this.exportHTMLDialog=this.exportHTMLDialog||new E(this.prj);
+            this.exportHTMLDialog.show({includeJSScript:true});
+        });
     };
     p.mapEditor=function () {
         this.ide.run({mainClass:"kernel.MapEditor"});
