@@ -21,10 +21,12 @@ define(function (require, exports, module) {
             //dh.text(`<html><script>location.href="${url}";</script></html>`);
             dh.text(`<html>
                 <script>
+                let prevURL;
                 function goPage() {
                     const f=document.getElementById("frame");
                     const u=document.getElementById("url");
                     f.src=u.value;
+                    prevURL=u.value;
                 }
                 function showHTML() {
                     const f=document.getElementById("frame");
@@ -39,6 +41,27 @@ define(function (require, exports, module) {
                     h.style="display: none;";
                     f.style="display: inline";
                 }
+                function refreshURL() {
+                    try {
+                        const f=document.getElementById("frame");
+                        const u=document.getElementById("url");
+                        const src=f.contentWindow.location.href;
+                        if (src!==prevURL) {
+                            u.value=src;
+                            prevURL=src;
+                        }
+                    } catch(e) {
+
+                    }
+                }
+                function attachEnterKey() {
+                    const u=document.getElementById("url");
+                    u.addEventListener("keydown",e=>{
+                        if (e.keyCode===13) {
+                            goPage();
+                        }
+                    })
+                }
                 </script>
                 <div><input id="url" value="${url}" size=100/><button onclick='goPage()'>Go</button></div>
                 <!--div>
@@ -49,6 +72,7 @@ define(function (require, exports, module) {
                     <textarea id="html" style="display:none;" width="100%" height="90%"></textarea>
                     <iframe id="frame" width="100%" height="90%" src="${url}"></iframe>
                 </div>
+                <script>setInterval(refreshURL,500);attachEnterKey();</script>
             </html>`);
             return url;
         }
