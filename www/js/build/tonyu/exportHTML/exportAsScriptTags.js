@@ -7,7 +7,11 @@ define(["FS","Util","WebSite","splashElement"], function (FS,Util,WebSite,splash
         var buf="<!DOCTYPE html>\n<html><head>\n";
         buf+='<meta http-equiv="Content-type" content="text/html; charset=utf-8"/>\n';
         // ADDBA
-        buf+=`<script>WebSite={runType:'singleHTML', useEditButton:${!!options.editButton}, runtime: '${WebSite.runtime}'};</script>`;
+        if (WebSite.serverType==="BA") {
+            buf+=`<script>WebSite={runType:'singleHTML', useEditButton:${!!options.editButton}, runtime: '${WebSite.runtime}'};</script>`;
+        } else {
+            buf+=`<script>WebSite={runType:'singleHTML', useEditButton:${!!options.editButton}};</script>`;            
+        }
         //"<script>WebSite_runType='singleHTML';</script>\n";
         const replacedFiles={};//path->text   //ADDBA
         const ft=(f)=>replacedFiles[f.path()]||f.text(); //ADDBA
