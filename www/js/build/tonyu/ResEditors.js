@@ -11,7 +11,7 @@ function (ResEditor,Klass,OggConverter,WebSite) {
             builtins:WebSite.builtinAssetNames
         },
         sound:{name:"音声",exts:["mp3","ogg","mp4","m4a","mid","wav","mzo"],path:"sounds/",key:"sounds",
-            extPattern:/\.(mp3|ogg|mp4|m4a|midi?|wav|mzo)$/i,contentType:/((audio\/(mp3|ogg|x-m4a|midi?|wav|mzo))|(video\/mp4))/,
+            extPattern:/\.(mp3|ogg|mp4|m4a|midi?|wav|mzo)$/i,contentType:/((audio\/(mpeg|mp3|ogg|x-m4a|midi?|wav|mzo))|(video\/mp4))/,
             newItem:function (name) {
                 var r={};
                 if (name) r.name="$se_"+name;
