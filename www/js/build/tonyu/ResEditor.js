@@ -134,6 +134,7 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                     if (file.name.match(/\.mzo$/)) filetype="audio/mzo";
                     var useBlob=WebSite.serverType=="BA"||WebSite.serverType=="GAE" && (file.size>1000*300);
                     if(!filetype.match(mediaInfo.contentType)) {
+                        console.log("notread", filetype,mediaInfo.contentType);
                         readFileSum--;
                         notReadFiles.push(file);
                         return;//continue;
