@@ -3462,7 +3462,7 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 		}
 		var vm = void 0;
 		/*global global*/
-		if (typeof global !== "undefined" && global.require) {
+		if (typeof global !== "undefined" && global.require && global.require.name !== "requirejs") {
 			vm = global.require("vm");
 		}
 

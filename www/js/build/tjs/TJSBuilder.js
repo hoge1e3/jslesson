@@ -35,7 +35,7 @@ function (A,DU,wget,Sync,WebSite,Tonyu,BuilderClient,Util,FS,F,root) {
         const workerURL=(root.reqConf.baseUrl.match(/es5/)?
         	"BuilderWorker.es5.js":"BuilderWorker.js");
         const builder=new BuilderClient(prj ,{
-            worker: {ns2depspec, url: workerURL}
+            worker: {ns2depspec, url: workerURL},locale:"ja",
         });//PRC(prj.getDir());// Tonyu-lang dependent
         //Util.extend(tprj, prj);// TODO .include(langMod);
 
