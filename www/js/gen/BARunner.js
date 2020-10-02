@@ -271,6 +271,13 @@ define('EventHandler',['require','exports','module'],function (require, exports,
         }
     }
     module.exports=EventHandler;
+    /*
+    add to constructor:
+        this.handler=new EventHandler();
+    delegation:
+    on(...args){return this.handler.on(...args);}
+    fire(...args){return this.handler.fire(...args);}
+    */
 });
 
 define('test/BATestRunner',['require','exports','module','test/TestRunner','EventHandler'],function (require,exports,module) {
@@ -538,6 +545,7 @@ define('test/BATestRunner',['require','exports','module','test/TestRunner','Even
                 if (errorInfo) return errorInfo;
                 if (options.fullScr) {
                     const urlElem=r.$("[target='runit']");
+                    if (!urlElem.is(":visible")) return;
                     const url=urlElem.attr("href");
                     if (url) urlElem.closest(".ui-dialog").find(".ui-dialog-titlebar-close")[0].click();
                     this.url=url;
