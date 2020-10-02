@@ -263,6 +263,7 @@ define(function (require,exports,module) {
                 if (errorInfo) return errorInfo;
                 if (options.fullScr) {
                     const urlElem=r.$("[target='runit']");
+                    if (!urlElem.is(":visible")) return;
                     const url=urlElem.attr("href");
                     if (url) urlElem.closest(".ui-dialog").find(".ui-dialog-titlebar-close")[0].click();
                     this.url=url;
