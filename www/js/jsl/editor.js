@@ -737,6 +737,7 @@ function ready() {
                 var cv=$("<div>");
                 cv.dialog();
                 var runURL=buildStatus.publishedURL;//_u+(lang=="tonyu"?"index.html":curHTMLFile.name());
+                ide.fire("publishedURL",{url:runURL, dialog:cv});
                 cv.append($("<div>").append(
                     $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
                 ));
@@ -1172,6 +1173,7 @@ function ready() {
         var prog=getCurrentEditor();
         if(prog) prog.focus();
     }
+    if (root.BitArrow) root.BitArrow.ide=ide;
     window.getCurrentEditorInfo=getCurrentEditorInfo;
     SplashScreen.hide();
     window.NotificationDialog=NotificationDialog;

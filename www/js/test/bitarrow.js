@@ -14,12 +14,12 @@ class BATest extends BATestRunner {
         this.createdCCode="";
 
         await this.sleep(1000);
-        /*await this.testC(await this.openProjectSel());
-        await this.testJS(await this.openProjectSel());
+        await this.testC(await this.openProjectSel());
+        /*await this.testJS(await this.openProjectSel());
         await this.testDtl(await this.openProjectSel());
-        */
         //await this.testCompileError_C(await this.openProjectSel());
         await this.testRuntimeError_TJS(await this.openProjectSel());
+        */
         await this.openProjectSel();
         console.log("SUCCESS");
     }
@@ -65,6 +65,18 @@ int main(){
         const c=this.genCTestCase();
         const tc=ic.testcase(c);
         await tc.run();
+
+        const ec=await ic.openFile("QRTest");
+        await ec.input(`
+#include<stdio.h>
+int main(void) {
+    printf("QR");
+}
+`);
+        const rc=await ec.run({fullScr:true});
+        $("body").append($("<a>").attr({href:rc.url}).text("GO!QR!"));
+        console.log("RUNCQR",rc);
+
         // - open existing File 'Test2' and run
         //clickByText("Test2");
         //await this.sleep(SLP);

@@ -15971,7 +15971,7 @@ function ready() {
     var HEXT=".html";
     var opt=curPrj.getOptions();
     var lang=opt.language || "js";
-    const ide={run, prj:curPrj,getCurrentEditorInfo, saveDesktopEnv, sync,
+    const ide={run, prj:curPrj, getCurrentEditorInfo, saveDesktopEnv, sync,
         handler: new EventHandler(),
         on(...args){return this.handler.on(...args);},
         fire(...args){return this.handler.fire(...args);}
@@ -16560,6 +16560,7 @@ function ready() {
                 var cv=$("<div>");
                 cv.dialog();
                 var runURL=buildStatus.publishedURL;//_u+(lang=="tonyu"?"index.html":curHTMLFile.name());
+                ide.fire("publishedURL",{url:runURL, dialog:cv});
                 cv.append($("<div>").append(
                     $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
                 ));
@@ -16995,6 +16996,7 @@ function ready() {
         var prog=getCurrentEditor();
         if(prog) prog.focus();
     }
+    if (root.BitArrow) root.BitArrow.ide=ide;
     window.getCurrentEditorInfo=getCurrentEditorInfo;
     SplashScreen.hide();
     window.NotificationDialog=NotificationDialog;
