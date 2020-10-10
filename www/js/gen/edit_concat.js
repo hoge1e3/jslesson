@@ -232,7 +232,7 @@ define("Util", (function (global) {
 /*
 (function (d,f) {
 module.exports=f();
-}) 
+})
 */
 define('FSLib',[],function () {
     var define,requirejs;
@@ -9540,7 +9540,7 @@ define('DiagAdjuster',[],function () {
     DiagAdjuster.prototype.handleResizeF=function () {
         var self=this;
         return function () {
-            self.handleResize();    
+            self.handleResize();
         };
     };
     DiagAdjuster.prototype.afterResize=function (){};
@@ -9742,7 +9742,7 @@ window.SplashScreen=window.SplashScreen||(function () {
                 SS.state=false;
             } else {
                 s.css("left",SS.x);
-            }       
+            }
         } else if (SS.state===true) {
             //s.text("Please wait"+(cnt%2==0?"...":""));
             cnt+=0.5;
@@ -9759,7 +9759,7 @@ window.SplashScreen=window.SplashScreen||(function () {
             var d=new $.Deferred;
             setTimeout(function () {d.resolve(r)},0);
             return d.promise();
-        }  
+        }
         return r;
     };
     SS.busyTime=function () {
@@ -14827,7 +14827,7 @@ define('NewProjectDialog',["UI","FS","ProjectFactory"], function (UI,FS,F) {
         			 ["option",{value:"dtl"},"ドリトル"],
         			 ["option",{value:"c"},"C"],
                      ["option",{value:"py"},"Python"],
-                     //["option",{value:"php"},"PHP"],
+                     ["option",{value:"php"},"PHP"],
                      ["option",{value:"dncl"},"DNCL(どんくり)"]
                     ]
 				],
@@ -15970,7 +15970,7 @@ function ready() {
     var HEXT=".html";
     var opt=curPrj.getOptions();
     var lang=opt.language || "js";
-    const ide={run, prj:curPrj,getCurrentEditorInfo, saveDesktopEnv, sync,
+    const ide={run, prj:curPrj, getCurrentEditorInfo, saveDesktopEnv, sync,
         handler: new EventHandler(),
         on(...args){return this.handler.on(...args);},
         fire(...args){return this.handler.fire(...args);}
@@ -16559,6 +16559,7 @@ function ready() {
                 var cv=$("<div>");
                 cv.dialog();
                 var runURL=buildStatus.publishedURL;//_u+(lang=="tonyu"?"index.html":curHTMLFile.name());
+                ide.fire("publishedURL",{url:runURL, dialog:cv});
                 cv.append($("<div>").append(
                     $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
                 ));
@@ -16994,6 +16995,7 @@ function ready() {
         var prog=getCurrentEditor();
         if(prog) prog.focus();
     }
+    if (root.BitArrow) root.BitArrow.ide=ide;
     window.getCurrentEditorInfo=getCurrentEditorInfo;
     SplashScreen.hide();
     window.NotificationDialog=NotificationDialog;

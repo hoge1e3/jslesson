@@ -123,6 +123,13 @@ define(function (require,exports,module) {
             await r.waitAppear(()=>r.contentWindow().errorDialog,"builderReady");
             this.errorDialog=r.contentWindow().errorDialog;
             this.errorDialog.on("show",(...args)=>this.events.fire("error",...args));
+            this.ide=r.contentWindow().BitArrow.ide;
+        }
+        getIDE() {
+            return this.ide;
+        }
+        getCurrentEditorInfo() {
+            return this.getIDE().getCurrentEditorInfo();
         }
         on(...args) {
             return this.events.on(...args);
@@ -203,7 +210,8 @@ define(function (require,exports,module) {
         async sleep(t){await this.runner.sleep(t);}
         $(q) {return this.runner.$(q);}
         getCurrentEditor() {
-            return this.runner.contentWindow().getCurrentEditorInfo().editor;
+            return this.ideCtx.getCurrentEditorInfo().editor;
+            //return this.runner.contentWindow().getCurrentEditorInfo().editor;
         }
         getContent() {
             return this.getCurrentEditor().getValue();
@@ -249,7 +257,14 @@ define(function (require,exports,module) {
             const h=this.ideCtx.on("error", e=>errorInfo=e);
             await r.toggleMenu();
             const options=this.options;
+            let theURL;
             if (options.fullScr) {
+                const eh=this.ideCtx.getIDE().on("publishedURL", e=>{
+                    console.log("publishedURL",e);
+                    theURL=e.url;
+                    e.dialog.dialog("close");
+                    eh.remove();
+                });
                 r.$("#fullScr").click();
             } else if (r.$("#runMenu").length) {
                 await r.clickByID("runMenu");
@@ -262,11 +277,12 @@ define(function (require,exports,module) {
             await r.waitTrue(()=>{
                 if (errorInfo) return errorInfo;
                 if (options.fullScr) {
-                    const urlElem=r.$("[target='runit']");
+                    /*const urlElem=r.$("[target='runit']").filter(":visible");
+                    if (urlElem.legnth==0) return;
                     const url=urlElem.attr("href");
-                    if (url) urlElem.closest(".ui-dialog").find(".ui-dialog-titlebar-close")[0].click();
-                    this.url=url;
-                    return url;
+                    if (url) urlElem.closest(".ui-dialog").find(".ui-dialog-titlebar-close")[0].click();*/
+                    this.url=theURL;
+                    return theURL;
                 } else {
                     return this.getOutputWindow();
                 }

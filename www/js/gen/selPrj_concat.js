@@ -9292,7 +9292,7 @@ define('NewProjectDialog',["UI","FS","ProjectFactory"], function (UI,FS,F) {
         			 ["option",{value:"dtl"},"ドリトル"],
         			 ["option",{value:"c"},"C"],
                      ["option",{value:"py"},"Python"],
-                     //["option",{value:"php"},"PHP"],
+                     ["option",{value:"php"},"PHP"],
                      ["option",{value:"dncl"},"DNCL(どんくり)"]
                     ]
 				],
@@ -10464,7 +10464,8 @@ function ready() {//-------------------------
             if (!f.isDir()) return;
             //if (!f.rel("options.json").exists()) return;
             var u=UI("div", {"class":"project"},
-                    ["a", {href:"?r=jsl_edit&dir="+f.path()},
+                    //["a", {href:"?r=jsl_edit&dir="+f.path()},
+                    ["a", {href:jsl_edit_url(f)},
                      ["img",{$var:"t",src:FS.expandPath("${sampleImg}/"+(e.language||"js")+".png")}],
                      ["div",{class:"name"}, name]],
                      ["div",
@@ -10526,7 +10527,8 @@ function ready() {//-------------------------
                 },
         		language:model.lang
             });*/
-            document.location.href="?r=jsl_edit&dir="+prjDir.path();
+            //document.location.href="?r=jsl_edit&dir="+prjDir.path();
+            document.location.href=jsl_edit_url(prjDir);
     	});
     });
     $("#newSample").click(function (){
@@ -10534,7 +10536,8 @@ function ready() {//-------------------------
             DU.loop(function (i) {
                 var inf=projectsInfo.findProject(model.name);
                 if (inf) {
-                    document.location.href="?r=jsl_edit&dir="+inf.dir.path();
+                    //document.location.href="?r=jsl_edit&dir="+inf.dir.path();
+                    document.location.href=jsl_edit_url(inf.dir);
                     return DU.brk();
                 }
                 if (i==1) return DU.brk();
@@ -10547,6 +10550,9 @@ function ready() {//-------------------------
     ls().then(function () {
         if (window.SplashScreen) window.SplashScreen.hide();
     });
+    function jsl_edit_url(dir) {
+        return `?r=jsl_edit&dir=${encodeURIComponent(dir.path()).replace(/%2f/ig,"/")}`;
+    }
 }//------of function ready()-----------
 });
 
