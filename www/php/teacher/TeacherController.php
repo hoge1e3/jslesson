@@ -1,5 +1,5 @@
 <?php
-req("auth","BAClass");
+req("auth","BAClass","DateUtil","Mail");
 //require_once"php/auth.php";
 //require_once"php/teacher/Classes.php";
 class TeacherController {
@@ -107,9 +107,36 @@ class TeacherController {
             ?>
             <hr>
             <h1>システム管理メニュー</h1>
-
-            <a href="a.php?Teacher/add">教員追加</a>
+            <ul>
+            <li><a href="a.php?Teacher/add">教員追加</a></li>
+            <li><a href="a.php?Teacher/lastLogin">教員ログイン状況</a></li>
+            <ul>
             <?php
+        }
+    }
+    static function lastLogin() {
+        $teacher=Auth::isTeacher2();
+        if (!$teacher || !$teacher->isSysAd()) {
+            header("Location: a.php?Teacher/login");
+            return;
+        }
+        $teachers=pdo_select ("select * from teacher");
+        foreach ($teachers as $teacher) {
+            $options=$teacher->options;
+            $teacher->lastLogin=0;
+            if (is_string($options)) {
+                $options=json_decode($options);
+                if (is_object($options) && isset($options->lastLogin)) {
+                    $teacher->lastLogin=$options->lastLogin;
+                    //echo $teacher->name." - ".DateUtil::toString($options->lastLogin)."<BR>";
+                }
+            }
+        }
+        usort($teachers, function ($a,$b) {
+            return $b->lastLogin-$a->lastLogin;
+        });
+        foreach ($teachers as $teacher) {
+            echo $teacher->name." - ".DateUtil::toString($teacher->lastLogin)."<BR>";
         }
     }
     static function add() {
@@ -121,6 +148,7 @@ class TeacherController {
         ?>
         <h1>教員追加</h1>
         <form action="?Teacher/addDone" method="POST">
+            所属と氏名 <input name="cname" size=50><BR>
             メールアドレス <input name="mail"><BR>
             パスワード <input name="pass"><BR>
             <input type="submit">
@@ -133,14 +161,29 @@ class TeacherController {
             header("Location: a.php?Teacher/login");
             return;
         }
+        $cname=param("cname");
         $name=param("mail");
         $pass=param("pass");
         $shadow=BATeacher::pass2shadow($pass);
         $r=pdo_select1("select * from teacher where name=?",$name);
-        if ($r) echo "$name はすでに登録されています．";
-        else {
+        if ($r) {
+            pdo_update("teacher",array("name"=>$name), array("shadow"=>$shadow));
+            echo "$name はすでに登録されています．パスワードを更新しました。";
+        } else {
             pdo_insert("teacher",array("name"=>$name, "shadow"=>$shadow));
             echo "$name を登録しました．";
+        }
+        if (defined("BA_MAIL") && defined("BA_MESG_FOR_TEACHER") && $cname!=="") {
+            $mesg=BA_MESG_FOR_TEACHER;
+            $mesg=preg_replace("/<NAME>/", $cname,$mesg);
+            $mesg=preg_replace("/<MAIL>/", $name,$mesg);
+            $mesg=preg_replace("/<PASS>/", $pass,$mesg);
+            $mesg=preg_replace("/<BA_MAIL>/", BA_MAIL,$mesg);
+
+            Mail::send($name, "BitArrow教員ID登録のお知らせ", $mesg, array(
+                "From"=>BA_MAIL, "Cc"=> BA_MAIL, "Reply-to"=> BA_MAIL
+            ));
+            echo "<div>$name にメール送信しました。</div>";
         }
     }
     static function shadowize() {
