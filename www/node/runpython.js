@@ -48,6 +48,8 @@ function (FS,PP,S,G) {
         //process.env.BAASSETPATH=asset;
         //console.log("Passed",'python '+pySrcF.path());
         process.chdir(workd.path());
+        console.log("pythonpath", process.env.PYTHONPATH);
+        console.log("work dir", workd.path());
         var stdin=workd.rel("stdin.txt");
         var pre=Promise.resolve();
         if (!stdin.exists()) {
