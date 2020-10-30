@@ -102,15 +102,23 @@ class Auth {
         $sth_c=count($sth->fetchAll());
 
         $shadow=BATeacher::pass2shadow($pass);
-        $sth2=$pdo->prepare("select * from teacher where name = ? and shadow = ?");
-    	$sth2->execute(array($name,$shadow));
-        $sth2_c=count($sth2->fetchAll());
+        $results=pdo_select("select * from teacher where name = ? and shadow = ?",$name,$shadow);
+        $sth2_c=count($results);
         /*if ($sth_c!==$sth2_c) {
             self::logAuthErr(" pass!=shadow on Teacher $name pass=$sth_c, shadow=$sth2_c ");
         }*/
     	if ($sth_c==0 && $sth2_c==0){
 	        return "メールアドレスかパスワードが間違っています。";
     	}else{
+            $options=$results[0]->options;
+            if (is_string($options)) {
+                $options=json_decode($options);
+            }
+            if (!is_object($options)) {
+                $options=new stdClass;
+            }
+            $options->lastLogin=time();
+            pdo_update("teacher", array("name"=>$name), array("options"=>json_encode($options)));
 	        // Success
 	        MySession::set("teacher",$name);
 	        //MySession::set("class",self::TEACHER);

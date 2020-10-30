@@ -18,6 +18,24 @@ define("PAUTH_SERVER","http://localhost/sakumon/?Login/responsePAuth");
 define("PHP_WORK","phpwork/");
 define("PHP_URL","http://localhost/phpwork/{USER}/{PROJECT}/{FILE}");
 
+define("BA_MAIL", "bitarrow@example.com");
+define("BA_MESG_FOR_TEACHER", <<<EOF
+<NAME> 様
+BitArrow登録担当です。
+以下の内容で登録を行いました．
+ユーザ名   <MAIL>
+パスワード  <PASS>
+
+https://bitarrow.eplang.jp/bitarrow/の「教員用ログイン」からログインのご確認をよろしくお願いいたします。
+
+使用方法を含め、ご不明な点等ございましたら、
+Bit Arrow問い合わせ用メールアドレス: <BA_MAIL>
+までご連絡ください。
+
+よろしくお願いいたします。
+EOF
+);
+
 require(__DIR__."/config.shadow.php");
 /*
 define('CONSUMER_KEY', 'XXX');
