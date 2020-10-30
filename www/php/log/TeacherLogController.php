@@ -466,6 +466,8 @@ class TeacherLogController {
             <input name="as" value="<?=date("s",$max)?>" maxlength="2" size="2">秒までの<br>
     	    <input type="submit" value="状況を見る"/>
     	</form>
+        <hr>
+        <a target="panorama" href="?TeacherLog/panorama">最新のソースコード一覧</a>
     	<hr>
       <iframe src="./js/log/timeline/index.html?day=<?=date("Y",$max)?>-<?=date("m",$max)?>-<?=date("d",$max)?>"></iframe><br>
       <a href="./js/log/timeline/index.html?day=<?=date("Y",$max)?>-<?=date("m",$max)?>-<?=date("d",$max)?>" target="_timeline">タイムラインを別画面で見る</a>
@@ -524,6 +526,62 @@ class TeacherLogController {
         }else{
             return Array('h'=>'--','m'=>'--','s'=>'--');
         }
+    }
+    static function panorama() {
+        $class=Auth::curClass2();
+        $teacher=Auth::assertTeacher();
+        $file=param("file",null);
+        if ($file) {
+            $filewhere=' filename=? ';
+        } else {
+            $filewhere=' filename<>? ';
+            $file="dummy";
+        }
+        $minq=pdo_select("select max(time) as t,user from log ".
+        "where class=? and $filewhere group by user ",
+        $class->id, $file);
+        $mint=time();
+        foreach ($minq as $m) {
+            if ($mint > $m->t) $mint=$m->t;
+        }
+        $q=pdo_select("select * from log ".
+        "where class=? and $filewhere and time>=? order by time desc ",
+        $class->id, $file, $mint);
+        $shown=[];
+        //print "Since ".DateUtil::toString($mint);
+        ?>
+        <a href="?TeacherLog/panorama">
+            Any Files
+        </a>
+        <?php
+        print "<hR>\n";
+        foreach ($q as $r) {
+            $raw=json_decode($r->raw);
+            if (!is_object($raw)) continue;
+            if (isset($shown[$r->user])) continue;
+            $shown[$r->user]=1;
+            print( DateUtil::toString($r->time)." - ");
+            ?>
+            <a target="view1" href="?TeacherLog/view1&user=<?=$r->user?>&day=<?=$r->time?>&logid=<?= $r->id?>">
+                <?= $r->user ?>
+            </a>
+            -
+            <a href="?TeacherLog/panorama&file=<?=$r->filename?>">
+                <?= $r->filename ?>
+            </a><?php
+            print ("<pre>");
+            print (htmlspecialchars(self::getCode($raw)));
+            print ("</pre>");
+            print ("<hR>\n");
+        }
+    }
+    static function getCode($r) {
+        if (!isset($r->code)) return "";
+        if (!is_object($r->code)) return "";
+        foreach ($r->code as $k=>$v) {
+            return $v;
+        }
+        return "";
     }
 }
 
