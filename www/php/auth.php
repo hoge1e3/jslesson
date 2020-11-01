@@ -110,15 +110,17 @@ class Auth {
     	if ($sth_c==0 && $sth2_c==0){
 	        return "メールアドレスかパスワードが間違っています。";
     	}else{
-            $options=$results[0]->options;
-            if (is_string($options)) {
-                $options=json_decode($options);
+            if (isset($results[0])) {
+                $options=$results[0]->options;
+                if (is_string($options)) {
+                    $options=json_decode($options);
+                }
+                if (!is_object($options)) {
+                    $options=new stdClass;
+                }
+                $options->lastLogin=time();
+                pdo_update("teacher", array("name"=>$name), array("options"=>json_encode($options)));                
             }
-            if (!is_object($options)) {
-                $options=new stdClass;
-            }
-            $options->lastLogin=time();
-            pdo_update("teacher", array("name"=>$name), array("options"=>json_encode($options)));
 	        // Success
 	        MySession::set("teacher",$name);
 	        //MySession::set("class",self::TEACHER);
