@@ -530,28 +530,37 @@ class TeacherLogController {
     static function panorama() {
         $class=Auth::curClass2();
         $teacher=Auth::assertTeacher();
-        $file=param("file",null);
-        if ($file) {
+        $file=param("file","ANY");
+        $error=param("error",false);
+        if ($file!=="ANY") {
             $filewhere=' filename=? ';
         } else {
             $filewhere=' filename<>? ';
-            $file="dummy";
+        }
+        if ($error) {
+            $errorwhere=" and result like '%Error%'";
+        } else {
+            $errorwhere="";
         }
         $minq=pdo_select("select max(time) as t,user from log ".
-        "where class=? and $filewhere group by user ",
+        "where class=? and $filewhere $errorwhere group by user ",
         $class->id, $file);
         $mint=time();
         foreach ($minq as $m) {
             if ($mint > $m->t) $mint=$m->t;
         }
         $q=pdo_select("select * from log ".
-        "where class=? and $filewhere and time>=? order by time desc ",
+        "where class=? and $filewhere and time>=? $errorwhere order by time desc ",
         $class->id, $file, $mint);
         $shown=[];
         //print "Since ".DateUtil::toString($mint);
         ?>
-        <a href="?TeacherLog/panorama">
+        <a href="?TeacherLog/panorama&error=<?= ($error?1:0) ?>">
             Any Files
+        </a>
+        -
+        <a href="?TeacherLog/panorama&file=<?= $file ?>&error=<?= ($error?0:1) ?>">
+            Toggle Error
         </a>
         <?php
         print "<hR>\n";
@@ -566,12 +575,18 @@ class TeacherLogController {
                 <?= $r->user ?>
             </a>
             -
-            <a href="?TeacherLog/panorama&file=<?=$r->filename?>">
+            <a href="?TeacherLog/panorama&file=<?=$r->filename?>&error=<?= ($error?1:0) ?>">
                 <?= $r->filename ?>
             </a><?php
             print ("<pre>");
             print (htmlspecialchars(self::getCode($raw)));
             print ("</pre>");
+            if (strpos($r->result,"Error")!==false) {
+                print ("<h2>Error</h2>");
+                print ("<pre>");
+                print $raw->detail;
+                print ("</pre>");
+            }
             print ("<hR>\n");
         }
     }
