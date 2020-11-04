@@ -53,7 +53,7 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","Bui
         const workerURL=(root.reqConf.baseUrl.match(/es5/)?
         	"BuilderWorker.es5.js":"BuilderWorker.js");
         const builder=new BuilderClient(prj ,{
-            worker: {ns2depspec, url: workerURL}
+            worker: {ns2depspec, url: workerURL},locale:"ja",
         });
         this.builderClient=builder;
         this.convertPath=p=>builder.convertFromWorkerPath(p);

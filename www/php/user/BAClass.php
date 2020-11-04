@@ -64,7 +64,14 @@ class BAClass{
     }
     function getOption($key) {
         $opts=$this->getOptions();
-        if (!isset($opts->{$key})) return null;
+        if (!isset($opts->{$key})) {
+            if (defined("DEFAULT_CLASS_OPTIONS")) {
+                if (isset(DEFAULT_CLASS_OPTIONS[$key])) {
+                    return DEFAULT_CLASS_OPTIONS[$key];
+                }
+            }
+            return null;
+        }
         return $opts->{$key};
     }
     function setOptions($opts){
