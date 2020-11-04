@@ -232,7 +232,7 @@ define("Util", (function (global) {
 /*
 (function (d,f) {
 module.exports=f();
-}) 
+})
 */
 define('FSLib',[],function () {
     var define,requirejs;
@@ -9540,7 +9540,7 @@ define('DiagAdjuster',[],function () {
     DiagAdjuster.prototype.handleResizeF=function () {
         var self=this;
         return function () {
-            self.handleResize();    
+            self.handleResize();
         };
     };
     DiagAdjuster.prototype.afterResize=function (){};
@@ -9742,7 +9742,7 @@ window.SplashScreen=window.SplashScreen||(function () {
                 SS.state=false;
             } else {
                 s.css("left",SS.x);
-            }       
+            }
         } else if (SS.state===true) {
             //s.text("Please wait"+(cnt%2==0?"...":""));
             cnt+=0.5;
@@ -9759,7 +9759,7 @@ window.SplashScreen=window.SplashScreen||(function () {
             var d=new $.Deferred;
             setTimeout(function () {d.resolve(r)},0);
             return d.promise();
-        }  
+        }
         return r;
     };
     SS.busyTime=function () {
@@ -15822,7 +15822,7 @@ define('SocializeDialog',['require','exports','module','UI','ctrl'],function (re
 });
 
 /*global requirejs*/
-define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shell','KeyEventChecker','UIDiag','WebSite','exceptionCatcher','Columns','assert','Menu','DeferredUtil','Sync','RunDialog2','logToServer2','SplashScreen','Auth','DistributeDialog','NotificationDialog','IframeDialog','AssignmentDialog','SubmitDialog','CommentDialog2','NewProjectDialog','ProgramFileUploader','AssetDialog','root','ErrorDialog','ProjectFactory','UserAgent','EventHandler','SocializeDialog'],function (require) {
+define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shell','KeyEventChecker','UIDiag','WebSite','exceptionCatcher','Columns','assert','Menu','DeferredUtil','Sync','RunDialog2','logToServer2','SplashScreen','Auth','DistributeDialog','NotificationDialog','IframeDialog','AssignmentDialog','SubmitDialog','CommentDialog2','NewProjectDialog','ProgramFileUploader','AssetDialog','root','ErrorDialog','ProjectFactory','UserAgent','SocializeDialog','EventHandler'],function (require) {
     var Util=require("Util");
     var FS=require("FS");
     var FileList=require("FileList");
