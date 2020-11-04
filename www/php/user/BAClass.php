@@ -57,21 +57,22 @@ class BAClass{
         $sth=$pdo->prepare("select options from class where id = ?");
         $sth->execute(array($this->id));
         $c=$sth->fetchAll();
-        if($c[0]["options"]==""){
-            return new stdClass;
+        $optJSON=$c[0]["options"];
+        if($optJSON==="" || !$optJSON){
+            $opt=new stdClass;
+        } else {
+            $opt=json_decode($optJSON);
         }
-        return json_decode($c[0]["options"]);
+        if (defined("DEFAULT_CLASS_OPTIONS")) {
+            foreach (DEFAULT_CLASS_OPTIONS as $k=>$v) {
+                if (!isset($opt->{$k})) $opt->{$k}=$v;
+            }
+        }
+        return $opt;
     }
     function getOption($key) {
         $opts=$this->getOptions();
-        if (!isset($opts->{$key})) {
-            if (defined("DEFAULT_CLASS_OPTIONS")) {
-                if (isset(DEFAULT_CLASS_OPTIONS[$key])) {
-                    return DEFAULT_CLASS_OPTIONS[$key];
-                }
-            }
-            return null;
-        }
+        if (!isset($opts->{$key})) return null;
         return $opts->{$key};
     }
     function setOptions($opts){
