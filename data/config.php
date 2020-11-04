@@ -35,8 +35,8 @@ Bit Arrow問い合わせ用メールアドレス: <BA_MAIL>
 よろしくお願いいたします。
 EOF
 );
-
 require(__DIR__."/config.shadow.php");
+define('DEFAULT_CLASS_OPTIONS',array('disableNote'=>true));
 /*
 define('CONSUMER_KEY', 'XXX');
 define('CONSUMER_SECRET', 'YYY');
