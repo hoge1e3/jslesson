@@ -211,5 +211,8 @@ class BAUser {
         }
         return $res;
     }
+    function getClass() {
+        return $this->_class;
+    }
 }
 ?>

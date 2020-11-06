@@ -91,7 +91,10 @@ define(["FS","md5","WebSite","DeferredUtil","root"], function (FS,md5,WebSite,DU
             return this.remoteProjects().rel("public/"); //changeHOME(1)
             //return FS.get("/public/");//changeHOME
         },
-        hashCache:{}
+        hashCache:{},
+        getClassOptions: function () {
+            return $.ajax(".?Class/getOptions");
+        },
     };
     return root.Auth;
 });
