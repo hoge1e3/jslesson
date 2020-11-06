@@ -130,6 +130,11 @@ class ClassController {
         $cur=$class->getOption("disableNote")?1:0;
         $options=array("使用する","使用しない");
         break;
+        case "showOtherStudentsLogs":
+        $label="他の受講者のログの閲覧";
+        $cur=$class->getOption($name)?1:0;
+        $options=array("許可しない","許可する");
+        break;
         default:
         die ("$name is not a option name");
         }
@@ -152,6 +157,7 @@ class ClassController {
         self::optionItems("registByUser");
         self::optionItems("useAssignment");
         self::optionItems("disableNote");
+        self::optionItems("showOtherStudentsLogs");
 
         /*
         if($class->passwordRequired()){

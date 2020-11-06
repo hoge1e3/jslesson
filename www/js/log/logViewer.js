@@ -122,7 +122,9 @@ function openFrame(data){
   var prjName="Auto_"+lang;
   var runLink=".?r=jsl_edit&dir=/home/"+classID+"/"+teacherID+"/"+prjName+"/&autologexec="+data.id+"&lang="+lang;
   var userid=data.user;
-  $("[id='"+userid+"res']").html("<br>"+logtime+"<br><a target='runCheck' href='"+runLink+"'>実行してみる</a><br>"+filehist+"<br>"+data.result);
+  if (teacherID && teacherID!=="") {
+      $("[id='"+userid+"res']").html("<br>"+logtime+"<br><a target='runCheck' href='"+runLink+"'>実行してみる</a><br>"+filehist+"<br>"+data.result);      
+  }
   $("[id='"+userid+"']").height(30);
   $("[id='"+userid+"']").html(res);
   $("[id='"+userid+"']").css("display","inline");

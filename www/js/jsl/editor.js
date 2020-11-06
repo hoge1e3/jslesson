@@ -315,7 +315,8 @@ function ready() {
                   ]}
               ]}
         );
-        $.ajax(".?Class/getOptions").then(function (r) {
+        Auth.getClassOptions().then(function (r) {
+            console.log("class options",r);
             if (r.useAssignment==="yes") {
                 Menu.appendMain({after:"#save",label:"提出",id:"submit",action:submit});
             }

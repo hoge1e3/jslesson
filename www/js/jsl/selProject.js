@@ -32,6 +32,7 @@ function ready() {//-------------------------
             ["a",{href:"https://bitarrow.eplang.jp/2017_0328/",target:"wikiTab"},"以前のバージョン(2017_0328)を使う"]*/],
             ["div",
 	            ["a",{href:"https://bitarrow.eplang.jp/",target:"wikiTab"},"Bit Arrow解説ページ"],
+                " | ",["a",{href:".?TeacherLog/view1Dates",target:"logTab"},"ログを見る"],
                 ["span",{class:"assignment"}," | ",
                 ["a",{href:".?Assignment/view",target:"asTab"},"採点結果を見る"]],
                 " | ",["a",{href:".?Teacher/login",target:"teaTab"},"教員用ログイン"]

@@ -232,7 +232,7 @@ define("Util", (function (global) {
 /*
 (function (d,f) {
 module.exports=f();
-})
+}) 
 */
 define('FSLib',[],function () {
     var define,requirejs;
@@ -9540,7 +9540,7 @@ define('DiagAdjuster',[],function () {
     DiagAdjuster.prototype.handleResizeF=function () {
         var self=this;
         return function () {
-            self.handleResize();
+            self.handleResize();    
         };
     };
     DiagAdjuster.prototype.afterResize=function (){};
@@ -9742,7 +9742,7 @@ window.SplashScreen=window.SplashScreen||(function () {
                 SS.state=false;
             } else {
                 s.css("left",SS.x);
-            }
+            }       
         } else if (SS.state===true) {
             //s.text("Please wait"+(cnt%2==0?"...":""));
             cnt+=0.5;
@@ -9759,7 +9759,7 @@ window.SplashScreen=window.SplashScreen||(function () {
             var d=new $.Deferred;
             setTimeout(function () {d.resolve(r)},0);
             return d.promise();
-        }
+        }  
         return r;
     };
     SS.busyTime=function () {
@@ -10159,7 +10159,10 @@ define('Auth',["FS","md5","WebSite","DeferredUtil","root"], function (FS,md5,Web
             return this.remoteProjects().rel("public/"); //changeHOME(1)
             //return FS.get("/public/");//changeHOME
         },
-        hashCache:{}
+        hashCache:{},
+        getClassOptions: function () {
+            return $.ajax(".?Class/getOptions");
+        },
     };
     return root.Auth;
 });
@@ -10913,7 +10916,7 @@ class BuilderClient {
         let url=config.worker.url;
         if (!url.match(/^blob/)) url+="?"+Math.random();
         this.w=new WS.Wrapper(new Worker(url));
-        this.config=config;
+        this.config=config||{};
         this.fileMap=new FileMap();
     }
     getOutputFile(...f) {return this.prj.getOutputFile(...f);}
@@ -10946,7 +10949,7 @@ class BuilderClient {
         const ns2depspec=this.config.worker.ns2depspec;
         const {prjDir:remotePrjDir}=await this.w.run("compiler/init",{
             namespace:this.prj.getNamespace(),
-            files, ns2depspec
+            files, ns2depspec, locale: this.config.locale
         });
         fileMap.add({local:localPrjDir, remote: remotePrjDir});
         const deps=this.prj.getDependingProjects();//TODO recursive
@@ -11035,7 +11038,11 @@ class BuilderClient {
     }
     convertError(e) {
         if (e.isTError) {
-            e.src=FS.get(this.convertFromWorkerPath(e.src));
+            try {
+                e.src=FS.get(this.convertFromWorkerPath(e.src));
+            } catch(ee) {
+                console.log(ee);
+            }
         }
         return e;
     }
@@ -11149,7 +11156,8 @@ root.Debugger={
             //StackDecoder.decode(e);
         }
     },
-    on:Events.on.bind(Events)
+    on:Events.on.bind(Events),
+    fire:Events.fire.bind(Events)
 };
 try {
     //if (root.parent && root.parent.onTonyuDebuggerReady) <- fails CORS
@@ -11170,8 +11178,8 @@ function timeout(t) {
 }
 let vm;
 /*global global*/
-if (typeof global!=="undefined" && global.require) {
-    //vm=global.require("vm"); TODO (polyfill.js)
+if (typeof global!=="undefined" && global.require && global.require.name!=="requirejs") {
+    vm=global.require("vm");
 }
 class SourceFile {
     // var text, sourceMap:S.Sourcemap;
@@ -14615,10 +14623,6 @@ module.exports=WorkerService;
         types[n]=f;
     };
     exports.fromDependencySpec=function (prj,spec) {
-        if (typeof spec=="string") {
-            var prjDir=prj.resolve(spec);
-            return this.fromDir(prjDir);
-        }
         for (let f of resolvers) {
             const res=f(prj,spec);
             if (res) return res;
@@ -14637,7 +14641,7 @@ module.exports=WorkerService;
         return types[type](params);
     };
     class ProjectCore {
-        getPublishedURL(){}//TODO
+        getPublishedURL(){}//override in BAProject
         getOptions(opt) {return {};}//stub
         getName() {
             return this.dir.name().replace(/\/$/,"");
@@ -14697,6 +14701,9 @@ module.exports=WorkerService;
         },
         setOptions(opt) {// not in compiledProject
             return this.getOptionsFile().obj(opt);
+        },
+        fixOptions(TPR,opt) {// required in BAProject
+            if (!opt.compiler) opt.compiler={};
         },
         getOutputFile(lang) {// not in compiledProject
             var opt=this.getOptions();
@@ -16137,7 +16144,8 @@ function ready() {
                   ]}
               ]}
         );
-        $.ajax(".?Class/getOptions").then(function (r) {
+        Auth.getClassOptions().then(function (r) {
+            console.log("class options",r);
             if (r.useAssignment==="yes") {
                 Menu.appendMain({after:"#save",label:"提出",id:"submit",action:submit});
             }

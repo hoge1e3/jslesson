@@ -2898,8 +2898,10 @@ const importable={
     sys:{wrapper:true,server:true},
     matplotlib:{wrapper:true,server:true},
     numpy:{wrapper:true,server:true},
+    cv2:{wrapper:true,server:true},
     os:{wrapper:true,server:true},
     urllib:{wrapper:true,server:true},
+    // あとopencvとか
 };
 
 //-----

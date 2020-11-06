@@ -5378,7 +5378,7 @@ class BuilderClient {
         let url=config.worker.url;
         if (!url.match(/^blob/)) url+="?"+Math.random();
         this.w=new WS.Wrapper(new Worker(url));
-        this.config=config;
+        this.config=config||{};
         this.fileMap=new FileMap();
     }
     getOutputFile(...f) {return this.prj.getOutputFile(...f);}
@@ -5411,7 +5411,7 @@ class BuilderClient {
         const ns2depspec=this.config.worker.ns2depspec;
         const {prjDir:remotePrjDir}=await this.w.run("compiler/init",{
             namespace:this.prj.getNamespace(),
-            files, ns2depspec
+            files, ns2depspec, locale: this.config.locale
         });
         fileMap.add({local:localPrjDir, remote: remotePrjDir});
         const deps=this.prj.getDependingProjects();//TODO recursive
@@ -5500,7 +5500,11 @@ class BuilderClient {
     }
     convertError(e) {
         if (e.isTError) {
-            e.src=FS.get(this.convertFromWorkerPath(e.src));
+            try {
+                e.src=FS.get(this.convertFromWorkerPath(e.src));
+            } catch(ee) {
+                console.log(ee);
+            }
         }
         return e;
     }
@@ -5614,7 +5618,8 @@ root.Debugger={
             //StackDecoder.decode(e);
         }
     },
-    on:Events.on.bind(Events)
+    on:Events.on.bind(Events),
+    fire:Events.fire.bind(Events)
 };
 try {
     //if (root.parent && root.parent.onTonyuDebuggerReady) <- fails CORS
@@ -5635,8 +5640,8 @@ function timeout(t) {
 }
 let vm;
 /*global global*/
-if (typeof global!=="undefined" && global.require) {
-    //vm=global.require("vm"); TODO (polyfill.js)
+if (typeof global!=="undefined" && global.require && global.require.name!=="requirejs") {
+    vm=global.require("vm");
 }
 class SourceFile {
     // var text, sourceMap:S.Sourcemap;
@@ -9080,10 +9085,6 @@ module.exports=WorkerService;
         types[n]=f;
     };
     exports.fromDependencySpec=function (prj,spec) {
-        if (typeof spec=="string") {
-            var prjDir=prj.resolve(spec);
-            return this.fromDir(prjDir);
-        }
         for (let f of resolvers) {
             const res=f(prj,spec);
             if (res) return res;
@@ -9102,7 +9103,7 @@ module.exports=WorkerService;
         return types[type](params);
     };
     class ProjectCore {
-        getPublishedURL(){}//TODO
+        getPublishedURL(){}//override in BAProject
         getOptions(opt) {return {};}//stub
         getName() {
             return this.dir.name().replace(/\/$/,"");
@@ -9162,6 +9163,9 @@ module.exports=WorkerService;
         },
         setOptions(opt) {// not in compiledProject
             return this.getOptionsFile().obj(opt);
+        },
+        fixOptions(TPR,opt) {// required in BAProject
+            if (!opt.compiler) opt.compiler={};
         },
         getOutputFile(lang) {// not in compiledProject
             var opt=this.getOptions();
@@ -9747,7 +9751,10 @@ define('Auth',["FS","md5","WebSite","DeferredUtil","root"], function (FS,md5,Web
             return this.remoteProjects().rel("public/"); //changeHOME(1)
             //return FS.get("/public/");//changeHOME
         },
-        hashCache:{}
+        hashCache:{},
+        getClassOptions: function () {
+            return $.ajax(".?Class/getOptions");
+        },
     };
     return root.Auth;
 });
@@ -10379,6 +10386,7 @@ function ready() {//-------------------------
             ["a",{href:"https://bitarrow.eplang.jp/2017_0328/",target:"wikiTab"},"以前のバージョン(2017_0328)を使う"]*/],
             ["div",
 	            ["a",{href:"https://bitarrow.eplang.jp/",target:"wikiTab"},"Bit Arrow解説ページ"],
+                " | ",["a",{href:".?TeacherLog/view1Dates",target:"logTab"},"ログを見る"],
                 ["span",{class:"assignment"}," | ",
                 ["a",{href:".?Assignment/view",target:"asTab"},"採点結果を見る"]],
                 " | ",["a",{href:".?Teacher/login",target:"teaTab"},"教員用ログイン"]

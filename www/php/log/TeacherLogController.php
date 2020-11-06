@@ -2,12 +2,19 @@
 req("auth","DateUtil","pdo");
 class TeacherLogController {
     static function getFileNames() {
+        $p=self::parseUser();
+        $user=$p["user"];
+        $teacher=$p["teacher"];
+        $class=$user->getClass();
+        if (!$teacher && !$class->getOption("showOtherStudentsLogs")) {
+            throw new Exception("You cannot see logs");
+        }
         $classid=param("classid",NULL);
         if ($classid && strpos( $_SERVER["HTTP_HOST"],"localhost")!==FALSE ) {
 
         } else {
-            $class=Auth::curClass2();
-            $teacher=Auth::curTeacher()->id;
+            //$class=Auth::curClass2();
+            //$teacher=Auth::curTeacher()->id;
             $classid=$class->id;
         }
 
@@ -24,11 +31,20 @@ class TeacherLogController {
     }
     static function view1Dates() {
         $day=DateUtil::toInt(param("day",DateUtil::now()));
+        $p=self::parseUser();
+        $user=$p["user"];
+        $teacher=$p["teacher"];
+        $class=$user->getClass();
+        if ($teacher || $class->getOption("showOtherStudentsLogs")) {
+            ?>
+            <a href=".?TeacherLog/view">他ユーザのログを見る</a>
+            <?php
+        }
         // If i can do , i do it.
-        $class=Auth::curClass2();
+        /*$class=Auth::curClass2();
         $teacher=Auth::curTeacher();
         if($teacher) {
-            $teacheIDr=Auth::curTeacher()->id;
+            $teacherID=Auth::curTeacher()->id;
             $userName=param("user",null);
             if (!$userName) {
                 $targetUser=Auth::curUser2();
@@ -38,9 +54,9 @@ class TeacherLogController {
         } else {
             $teacheID="NOT_TEACHER";
             $user=Auth::curUser2();
-        }
+        }*/
         //print $class->id." , ".$user->name;
-        $it=pdo_select_iter("select time,result from log where class=? and user=? ",$class->id, $user->name);
+        $it=pdo_select_iter("select time,result from log where class=? and user=? order by time desc ",$class->id, $user->name);
         $has=array();
         $ord=array();
         req("DateUtil");
@@ -60,9 +76,12 @@ class TeacherLogController {
                 $prevResult=$obj->result;
             }
         }
+        ?>
+        <h1>ユーザ<?= $user->name ?>のログ一覧</h1>
+        <?php
         foreach ($ord as $day) {
             ?>
-            <a href=".?TeacherLog/view1new&day=<?= $day ?>&user=<?= $userName ?>">
+            <a href=".?TeacherLog/view1new&day=<?= $day ?>&user=<?= $user->name ?>">
                 <?= DateUtil::toString($day) ?>(<?=$has[$day] ?>)
             </a><BR/>
             <?php
@@ -71,7 +90,7 @@ class TeacherLogController {
     static function parseUser() {
         $class=Auth::curClass2();
         $teacherObj=Auth::curTeacher();
-        if($teacherObj) {
+        if($teacherObj && $teacherObj->isTeacherOf($class)) {
             $teacher=$teacherObj->id;
             $user=param("user",null);
             if (!$user) {
@@ -80,17 +99,22 @@ class TeacherLogController {
             }
             $targetUser=$class->getUser($user);
         } else {
+            $teacherObj=null;
             $teacher="NOT_TEACHER";
             $targetUser=Auth::curUser2();
+            if (!$targetUser) {
+                die("Not logged in");
+            }
             $user=$targetUser->name;
         }
-        return $targetUser;
+        return array("user"=>$targetUser, "teacher"=>$teacherObj);
     }
     static function getLogs() {
         // ある日のあるユーザの全ログ（all=1のとき）を，JSONで返してくれる．
         $day=DateUtil::toInt(param("day",DateUtil::now()));
         // If i can do , i do it.
-        $targetUser=self::parseUser();
+        $p=self::parseUser();
+        $targetUser=$p["user"];
 
         $base=DateUtil::getYear($day)."-".DateUtil::getMonth($day)."-".DateUtil::getDay($day)." 00:00:00";
         $baseInt=DateUtil::toInt($base);
@@ -130,7 +154,8 @@ class TeacherLogController {
     }
     static function view1new() {
         $day=DateUtil::toInt(param("day",DateUtil::now()));
-        $targetUser=self::parseUser();
+        $p=self::parseUser();
+        $targetUser=$p["user"];
         $userName=$targetUser->name;
         $all=param("all",false);
         $teacherObj=Auth::curTeacher();
@@ -326,7 +351,15 @@ class TeacherLogController {
     static function view() {
         date_default_timezone_set('Asia/Tokyo');
         $class=Auth::curClass2();
-        $teacher=Auth::curTeacher()->id;
+        if (!$class->getOption("showOtherStudentsLogs")) {
+            Auth::assertTeacher();
+        }
+        $teacherObj=Auth::curTeacher();
+        if ($teacherObj) {
+            $teacher=$teacherObj->id;
+        } else {
+            $teacher="";
+        }
         $now=time();
         $interval=param('interval',600);
         if(!param("Y",false)){
@@ -360,7 +393,7 @@ class TeacherLogController {
         }
         ?>
         <script>
-        logs["<?=$teacher?>"]=[];
+        if ("<?=$teacher?>") logs["<?=$teacher?>"]=[];
         </script>
         <?php
         foreach($logs as $log){

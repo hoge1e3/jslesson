@@ -219,8 +219,13 @@ class AssignmentController {
         }
     }
     static function matrix() {
-        Auth::assertTeacher();
+        $teacher=Auth::curTeacher();
         $class=Auth::curClass2();
+        if (!$teacher || !$teacher->isTeacherOf($class)) {
+            header("Content-type: text/json; charset=UTF-8");
+            print ("[]");
+            return;
+        }
         $filter=param("assignment","");
         $filter="%$filter%";
         $start=param("start",0);
