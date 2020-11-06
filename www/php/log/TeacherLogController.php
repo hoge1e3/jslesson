@@ -561,8 +561,13 @@ class TeacherLogController {
         }
     }
     static function panorama() {
-        $class=Auth::curClass2();
-        $teacher=Auth::assertTeacher();
+        $p=self::parseUser();
+        $user=$p["user"];
+        $teacher=$p["teacher"];
+        $class=$user->getClass();
+        if (!$teacher && !$class->getOption("showOtherStudentsLogs")) {
+            throw new Exception("You cannot see logs");
+        }
         $file=param("file","ANY");
         $error=param("error",false);
         if ($file!=="ANY") {
