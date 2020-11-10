@@ -48,8 +48,9 @@ def _input(*a,**k):
     return r
 def _str(*a,**k):
     return str(*a,**k)
-def _int(*a,**k):
-    return int(*a,**k)
+_int=int
+#def _int(*a,**k):
+#    return int(*a,**k)
 def _float(*a,**k):
     return float(*a,**k)
 def _len(*a,**k):
