@@ -580,14 +580,14 @@ class TeacherLogController {
         } else {
             $errorwhere="";
         }
-        $minq=pdo_select("select max(time) as t,user from log ".
+        $minq=pdo_select_iter("select max(time) as t,user from log ".
         "where class=? and $filewhere $errorwhere group by user ",
         $class->id, $file);
         $mint=time();
         foreach ($minq as $m) {
             if ($mint > $m->t) $mint=$m->t;
         }
-        $q=pdo_select("select * from log ".
+        $q=pdo_select_iter("select * from log ".
         "where class=? and $filewhere and time>=? $errorwhere order by time desc ",
         $class->id, $file, $mint);
         $shown=[];
