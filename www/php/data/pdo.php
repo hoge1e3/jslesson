@@ -22,6 +22,10 @@ function pdo_new() {
     //$dbh->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY,false);
     return $dbh;
 }
+function pdo_enableIter() {
+    $dbh=pdo();
+    $dbh->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY,false);
+}
 function pdo_select1() {
     $rs=call_user_func_array("pdo_select",func_get_args());
     foreach($rs as $r) {
