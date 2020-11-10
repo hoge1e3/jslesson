@@ -182,7 +182,7 @@ define(function (require,exports,module) {
             opt=arg.pop();
         }
         const res=spec.map((s,i)=>
-            i<arg.length ? arg[i] : 
+            i<arg.length ? arg[i] :
             (opt && opt[s.name]!==undefined) ? opt[s.name] : s.defval
         );
         return res;
@@ -289,13 +289,20 @@ define(function (require,exports,module) {
             return "("+self.elems.join(", ")+")";
         }
     });
+    PL.Tuple.prototype[Symbol.iterator]=function(...args) {
+        return this.elems[Symbol.iterator](...args);
+    };
+    PL.None=null;
     PL.Tuple.__bases__=PL.Tuple([]);
     PL.Slice=PL.class({
-        __init__:function (self, start,end, step=1) {
+        __init__:function (self, start, stop, step=1) {
             self.start=start;
-            self.end=end;
+            self.stop=stop;
             self.step=step;
         },
+        toString: function (self) {
+            return `slice(${self.start}, ${self.stop}, ${self.step})`;
+        }
     });
     PL.invoke=function (self,name,args) {
         var m=self[name];
@@ -475,6 +482,28 @@ define(function (require,exports,module) {
         __getTypeName__: function (){return "<class function>";},
     });
     const orig_sort=Array.prototype.sort;
+    function sliceToIndex(array, {start, stop, step}) {
+        start=start||0;
+        if (stop==null) stop=array.length;
+        if (start<0) start=array.length+start;
+        if (stop<0) stop=array.length+stop;
+        if (step==null) step=1;
+        if (step>0) {
+            return function*() {
+                for (let i=start;i<stop;i+=step) {
+                    yield i;
+                }
+            }();
+        }
+        if (step<0) {
+            return function*() {
+                for (let i=start;i>stop;i+=step) {
+                    yield i;
+                }
+            }();
+        }
+        throw new Error("Slice step is 0");
+    }
     PL.addMonkeyPatch(Array, {
         __class__:PL.list,
         append(self, ...args) {
@@ -490,11 +519,25 @@ define(function (require,exports,module) {
             return "["+self.join(", ")+"]";
         },
         __getitem__:function (self, key) {
+            if (key instanceof PL.Slice) {
+                const res=[];
+                for (let i of sliceToIndex(this, key)) {
+                    res.push(this[i]);
+                }
+                return res;
+            }
             if (key<0) key=self.length+key;
             if (key>=self.length) throw new Error("Index "+key+" is out of range");
             return self[key];
         },
         __setitem__:function (self,key, value) {
+            if (key instanceof PL.Slice) {
+                const it=value[Symbol.iterator]();
+                for (let i of sliceToIndex(this, key)) {
+                    this[i]=it.next().value;
+                }
+                return value;
+            }
             if (key<0) key=self.length+key;
             if (key>=self.length) throw new Error("Index "+key+" is out of range");
             self[key]=value;
