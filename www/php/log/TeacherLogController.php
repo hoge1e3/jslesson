@@ -1,5 +1,10 @@
 <?php
 req("auth","DateUtil","pdo");
+function enableIter() {
+    if (param("enableIter",false)) {
+        pdo_enableIter();
+    }
+}
 class TeacherLogController {
     static function getFileNames() {
         $p=self::parseUser();
@@ -88,6 +93,7 @@ class TeacherLogController {
         }
     }
     static function parseUser() {
+        enableIter();
         $class=Auth::curClass2();
         $teacherObj=Auth::curTeacher();
         if($teacherObj && $teacherObj->isTeacherOf($class)) {
