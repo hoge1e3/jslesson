@@ -119,11 +119,11 @@ class TeacherLogController {
         $base=DateUtil::getYear($day)."-".DateUtil::getMonth($day)."-".DateUtil::getDay($day)." 00:00:00";
         $baseInt=DateUtil::toInt($base);
         //echo $day." ".$base." ".$baseInt;
-        $logs=$targetUser->getAllLogs($baseInt,$baseInt+86400);
         $all=param("all",false);
         $prevTime=0;
         $prevResult="";
         $logs2=Array();
+        $logs=$targetUser->getAllLogs($baseInt,$baseInt+86400);
         foreach($logs as $i=>$l){
             if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false){
               //if(array_key_exists($i+1,$logs)){
@@ -370,9 +370,8 @@ class TeacherLogController {
             $max=strtotime(param('aY')."/".param('am')."/".param('ad')." ".param('aH').":".param('ai').":".param('as'));
         }
         $reloadMode=param('reloadMode',0);
-        $logs=$class->getAllLogs($min,$max);
-        $runcount=Array();
         $students=$class->getAllStu();
+        $runcount=Array();
         ?>
         <script>
           logs=[];
@@ -396,6 +395,7 @@ class TeacherLogController {
         if ("<?=$teacher?>") logs["<?=$teacher?>"]=[];
         </script>
         <?php
+        $logs=$class->getAllLogs($min,$max);
         foreach($logs as $log){
             if(!isset($runcount[$log['user']])){
                 $runcount[$log['user']]=0;
