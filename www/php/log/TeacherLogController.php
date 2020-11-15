@@ -94,8 +94,11 @@ class TeacherLogController {
     }
     static function parseUser() {
         enableIter();
+        req("LogFileToDBController");
+        LogFileToDBController::run();
         $class=Auth::curClass2();
         $teacherObj=Auth::curTeacher();
+        $canSeeOtherUsersLogs=0;
         if($teacherObj && $teacherObj->isTeacherOf($class)) {
             $teacher=$teacherObj->id;
             $user=param("user",null);
@@ -104,6 +107,7 @@ class TeacherLogController {
                 $user=$targetUser->name;
             }
             $targetUser=$class->getUser($user);
+            $canSeeOtherUsers=1;
         } else {
             $teacherObj=null;
             $teacher="NOT_TEACHER";
@@ -111,9 +115,17 @@ class TeacherLogController {
             if (!$targetUser) {
                 die("Not logged in");
             }
-            $user=$targetUser->name;
+            if ($class->getOption("showOtherStudentsLogs")) {
+                $canSeeOtherUsers=1;
+                $user=param("user",null);
+                if ($user) {
+                    $targetUser=$class->getUser($user);
+                }
+            }
+            //$user=$targetUser->name;
         }
-        return array("user"=>$targetUser, "teacher"=>$teacherObj);
+        return array("user"=>$targetUser, "teacher"=>$teacherObj,
+        "canSeeOtherUsersLogs"=>$canSeeOtherUsersLogs);
     }
     static function getLogs() {
         // ある日のあるユーザの全ログ（all=1のとき）を，JSONで返してくれる．
@@ -574,30 +586,10 @@ class TeacherLogController {
         if (!$teacher && !$class->getOption("showOtherStudentsLogs")) {
             throw new Exception("You cannot see logs");
         }
-        $file=param("file","ANY");
+        $file=param("file",null);
         $error=param("error",false);
-        if ($file!=="ANY") {
-            $filewhere=' filename=? ';
-        } else {
-            $filewhere=' filename<>? ';
-        }
-        if ($error) {
-            $errorwhere=" and result like '%Error%'";
-        } else {
-            $errorwhere="";
-        }
-        $minq=pdo_select_iter("select max(time) as t,user from log ".
-        "where class=? and $filewhere $errorwhere group by user ",
-        $class->id, $file);
-        $mint=time();
-        foreach ($minq as $m) {
-            if ($mint > $m->t) $mint=$m->t;
-        }
-        $q=pdo_select_iter("select * from log ".
-        "where class=? and $filewhere and time>=? $errorwhere order by time desc ",
-        $class->id, $file, $mint);
-        $shown=[];
-        //print "Since ".DateUtil::toString($mint);
+        $wheres=self::buildPanoramaQuery($class, $file, $error);
+        $q=self::getPanorama($wheres);
         ?>
         <a href="?TeacherLog/panorama&error=<?= ($error?1:0) ?>">
             Any Files
@@ -609,30 +601,82 @@ class TeacherLogController {
         <?php
         print "<hR>\n";
         foreach ($q as $r) {
-            $raw=json_decode($r->raw);
+            /*$raw=json_decode($r->raw);
             if (!is_object($raw)) continue;
-            if (isset($shown[$r->user])) continue;
-            $shown[$r->user]=1;
+            if (isset($shown[$r->user])) {
+                $shown[$r->user]++;
+                continue;
+            }
+            $shown[$r->user]=1;*/
+            $raw=$r->raw;
             print( DateUtil::toString($r->time)." - ");
             ?>
             <a target="view1" href="?TeacherLog/view1&user=<?=$r->user?>&day=<?=$r->time?>&logid=<?= $r->id?>">
                 <?= $r->user ?>
             </a>
             -
+            <?= $r->filename ?>:
             <a href="?TeacherLog/panorama&file=<?=$r->filename?>&error=<?= ($error?1:0) ?>">
-                <?= $r->filename ?>
-            </a><?php
+                Filter
+            </a>
+            /
+            <a href="?TeacherLog/diffSeq&file=<?=$r->filename?>&user=<?= $r->user ?>">
+                Timeline
+            </a>
+            <?php
             print ("<pre>");
             print (htmlspecialchars(self::getCode($raw)));
             print ("</pre>");
             if (strpos($r->result,"Error")!==false) {
                 print ("<h2>Error</h2>");
                 print ("<pre>");
-                print $raw->detail;
+                print htmlspecialchars($raw->detail);
                 print ("</pre>");
             }
             print ("<hR>\n");
         }
+    }
+    static function buildPanoramaQuery($class, $file=null, $error=false) {
+        $wheres=[];
+        $wheres[]=["class=?",$class->id];
+        if ($file) {
+            $wheres[]=[' filename=? ',$file];
+        }
+        if ($error) {
+            $wheres[]=" result like '%Error%' ";
+        }
+        return $wheres;
+    }
+    static function getPanoramaStat($wheres) {
+        //$wheres=self::buildPanoramaQuery($class, $file, $error);
+        return pdo_select_ands(
+            "select max(time) as last, count(*) as count, user from log ".
+            "where ? group by user ",$wheres);
+    }
+    static function getPanorama($wheres) {
+        //$wheres=self::buildPanoramaQuery($class, $file, $error);
+        $minq=self::getPanoramaStat($wheres);
+        $mint=time();
+        foreach ($minq as $m) {
+            if ($mint > $m->last) $mint=$m->last;
+        }
+        $wheres[]=[' time>=? ',$mint];
+        $q=pdo_select_ands(
+            "select * from log ".
+            "where ? order by time desc ",$wheres);
+        $shown=[];
+        foreach ($q as $r) {
+            $raw=json_decode($r->raw);
+            if (!is_object($raw)) continue;
+            if (isset($shown[$r->user])) {
+                $shown[$r->user]->count++;
+            } else {
+                $shown[$r->user]=$r;
+                $r->count=0;
+                $r->raw=$raw;
+            }
+        }
+        return $shown;
     }
     static function getCode($r) {
         if (!isset($r->code)) return "";
@@ -641,6 +685,53 @@ class TeacherLogController {
             return $v;
         }
         return "";
+    }
+    static function diffSeq() {
+        $p=self::parseUser();
+        $user=$p["user"];
+        $teacher=$p["teacher"];
+        $class=$user->getClass();
+        $file=param("file");
+        $hint=param("hint",false);
+        if ($hint) {
+            $wheres=self::buildPanoramaQuery($class, $file, false);
+            $stat=self::getPanoramaStat($wheres);
+            $cands=[];
+            foreach ($stat as $r) {
+                $cands[]=$r;//print_r($r);
+            }
+            $user=$class->getUser($cands[random_int(0,count($cands)-1)]->user);
+        }
+        ?>
+        <html>
+            <head>
+                <script type="text/javascript" src="js/lib/jquery-1.12.1.js"></script>
+                <script type="text/javascript" src="js/lib/jquery-ui.js"></script>
+                <script type="text/javascript" src="js/lib/difflib.js"></script>
+                <script type="text/javascript" src="js/lib/diffview.js"></script>
+                <script type="text/javascript" src="js/lib/jquery.tablesorter.min.js"></script>
+                <link rel="stylesheet" href="css/jquery-ui.css"></link>
+                <link rel="stylesheet" href="css/diffview.css"></link>
+                <script>
+                    reloadMode=false;
+                </script>
+                <script src="js/log/logViewer.js"></script>
+                <script src="js/log/getlog.js"></script>
+                <script src="js/log/diffSeq.js"></script>
+            </head>
+            <body>
+                <?php if ($hint) { ?>
+                    <a href="?TeacherLog/diffSeq&file=<?= $file ?>&hint=1">他のヒントを見る</a>
+                    <hr/>
+                <?php } ?>
+                <h2><?= $file ?></h2>
+
+            </body>
+            <script>
+                diffSeq('<?= $user->name ?>', '<?= $file ?>');
+            </script>
+        </html>
+        <?php
     }
 }
 

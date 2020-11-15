@@ -135,6 +135,11 @@ class ClassController {
         $cur=$class->getOption($name)?1:0;
         $options=array("許可しない","許可する");
         break;
+        case "showHint":
+        $label="ヒントの閲覧";
+        $cur=$class->getOption($name)?1:0;
+        $options=array("許可しない","許可する");
+        break;
         default:
         die ("$name is not a option name");
         }
@@ -158,6 +163,7 @@ class ClassController {
         self::optionItems("useAssignment");
         self::optionItems("disableNote");
         self::optionItems("showOtherStudentsLogs");
+        self::optionItems("showHint");
 
         /*
         if($class->passwordRequired()){
