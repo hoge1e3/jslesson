@@ -123,7 +123,7 @@ function openFrame(data){
   var runLink=".?r=jsl_edit&dir=/home/"+classID+"/"+teacherID+"/"+prjName+"/&autologexec="+data.id+"&lang="+lang;
   var userid=data.user;
   if (teacherID && teacherID!=="") {
-      $("[id='"+userid+"res']").html("<br>"+logtime+"<br><a target='runCheck' href='"+runLink+"'>実行してみる</a><br>"+filehist+"<br>"+data.result);      
+      $("[id='"+userid+"res']").html("<br>"+logtime+"<br><a target='runCheck' href='"+runLink+"'>実行してみる</a><br>"+filehist+"<br>"+data.result);
   }
   $("[id='"+userid+"']").height(30);
   $("[id='"+userid+"']").html(res);
@@ -290,7 +290,7 @@ function checknull(o,mesg) {
     if (o) return o;
     throw new Error(mesg+" is not found");
 }
-function calcDiff(prev,now,id,btn,ntn,flag){
+function calcDiff(prev,now,id,btn,ntn,show){
   // get the baseText and newText values from the two textboxes, and split them into lines
   var cbPrev=clearBreak(prev);
   var cbNow=clearBreak(now);
@@ -333,7 +333,7 @@ function calcDiff(prev,now,id,btn,ntn,flag){
     }
   }
   diffData.firstLine=diffLine;
-  if(flag){
+  if(show){
       let diffoutputdiv = checknull( $(id)[0], id);
     while (diffoutputdiv.firstChild) diffoutputdiv.removeChild(diffoutputdiv.firstChild);
     //var contextSize = $("contextSize").value;

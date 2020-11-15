@@ -69,6 +69,27 @@ function pdo_insert($tbl, $vals) {
     $sth=$pdo->prepare($q);
     $sth->execute($vary);
 }
+function pdo_select_ands($query, $ands) {
+    // $query="select * from test where (?) or x=3 order by time ";
+    // $ands=[[" a>? ", 5],["b like ?","%hoge%"]];
+    $pdo=pdo();
+    $wheres=array();
+    $vary=array();
+    foreach ($ands as $and) {
+        if (is_array($and)) {
+            array_push($wheres, $and[0]);
+            array_push($vary, $and[1]);
+        } else {
+            array_push($wheres, $and);
+        }
+    }
+    $wheres=implode(" and ", $wheres);
+    $q=preg_replace("/\\?/", $wheres,$query);
+    //echo $q;var_dump($vary);
+    $sth=$pdo->prepare($q);
+    $sth->execute($vary);
+    return new RecordIterator($sth);
+}
 function pdo_find1($tbl,$keys) {
     $q="select * from `$tbl` ";
     $q.=" where ";$com="";

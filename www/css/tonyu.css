@@ -9,6 +9,9 @@ body {
 button.selected {
     background-color: #f08;
 }
+.tabLink {
+    padding-left: 5px;
+}
 .faved {
     color: red;
 }

@@ -1,7 +1,8 @@
 <?php
 date_default_timezone_set("Asia/Tokyo");
 class DateUtil {
-    static function toString($d,$format="Y-m-d H:i:s") {
+    static function toString($d=null,$format="Y-m-d H:i:s") {
+        if (!$d) $d=self::now();
         if (is_int($d) || self::looksLikeInt($d)) {
             $da=new DateTime();
             $da->setTimeStamp($d-0);
@@ -12,7 +13,8 @@ class DateUtil {
     static function looksLikeInt($s) {
         return preg_match('/^[0-9]+$/',$s);
     }
-    static function toDayTop($d) {
+    static function toDayTop($d=null) {
+        if (!$d) $d=self::now();
         $s=self::toString($d);
         // yyyy-mm-dd hh:mm:ss
         // yyyy-mm-dd
