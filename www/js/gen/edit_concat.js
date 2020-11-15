@@ -15098,8 +15098,12 @@ define('ProgramFileUploader',["FS","DragDrop","root"],function (FS,DragDrop,root
 
 define('ctrl',[], function () {
     var ctrl={};
-    ctrl.url=function (path) {
-        return ".?"+path;
+    ctrl.url=function (path,params) {
+        let res=".?"+path;
+        if (params) {
+            res+=Object.keys(params).map (k=>`&${k}=${params[k]}`).join("");
+        }
+        return res;
     };
     ctrl.run=function (method,path,params) {
         params=params||{};
@@ -15828,7 +15832,7 @@ define('SocializeDialog',['require','exports','module','UI','ctrl'],function (re
 });
 
 /*global requirejs*/
-define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shell','KeyEventChecker','UIDiag','WebSite','exceptionCatcher','Columns','assert','Menu','DeferredUtil','Sync','RunDialog2','logToServer2','SplashScreen','Auth','DistributeDialog','NotificationDialog','IframeDialog','AssignmentDialog','SubmitDialog','CommentDialog2','NewProjectDialog','ProgramFileUploader','AssetDialog','root','ErrorDialog','ProjectFactory','UserAgent','SocializeDialog','EventHandler'],function (require) {
+define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shell','KeyEventChecker','UIDiag','WebSite','exceptionCatcher','Columns','assert','Menu','DeferredUtil','Sync','RunDialog2','logToServer2','SplashScreen','Auth','DistributeDialog','NotificationDialog','IframeDialog','AssignmentDialog','SubmitDialog','CommentDialog2','NewProjectDialog','ProgramFileUploader','AssetDialog','root','ErrorDialog','ProjectFactory','UserAgent','SocializeDialog','EventHandler','UI','ctrl'],function (require) {
     var Util=require("Util");
     var FS=require("FS");
     var FileList=require("FileList");
@@ -15864,6 +15868,8 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
     var UA=require("UserAgent");
     const SocializeDialog=require("SocializeDialog");
     const EventHandler=require("EventHandler");
+    const UI=require("UI");
+    const ctrl=require("ctrl");
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
         A.setMode(A.MODE_STRICT);
@@ -16117,9 +16123,10 @@ function ready() {
                      },langList[lang]],
                      ["span",{id:"curFileLabel"}],
                      ["span",{id:"modLabel"}],
-                     ["span",{id:"commentLink"}],
-                     ["a",{id:"fullScr",href:JS_NOP}],
-                     ["span",{id:"toastArea"}]
+                     ["span",{class:"tabLink", id:"commentLink"}],
+                     ["span",{class:"tabLink", id:"hintLink"}],
+                     ["a",{class:"tabLink", id:"fullScr",href:JS_NOP}],
+                     ["span",{class:"tabLink", id:"toastArea"}]
                   ],
                   ["div",{id:"progs"}]
               ]
@@ -16148,6 +16155,9 @@ function ready() {
             console.log("class options",r);
             if (r.useAssignment==="yes") {
                 Menu.appendMain({after:"#save",label:"提出",id:"submit",action:submit});
+            }
+            if (!r.showHint) {
+                $("#hintLink").remove();
             }
             disableNote=!!r.disableNote;
         });
@@ -16928,6 +16938,11 @@ function ready() {
                     })).append("&nbsp;");
             }
         }).catch(DU.E);
+        const filePath=inf.file.relPath(curProjectDir.up());
+        $("#hintLink").empty().append(
+            UI("a",{"href": ctrl.url("TeacherLog/diffSeq",{hint:1,file:filePath}), "target":"hint"},
+            "ヒントを見る")
+        );
         $("#curFileLabel").text(f.truncExt());
         if (disableNote===false) socializeDialog.show(inf.file);
     }

@@ -10331,8 +10331,12 @@ define("SplashScreen", (function (global) {
 
 define('ctrl',[], function () {
     var ctrl={};
-    ctrl.url=function (path) {
-        return ".?"+path;
+    ctrl.url=function (path,params) {
+        let res=".?"+path;
+        if (params) {
+            res+=Object.keys(params).map (k=>`&${k}=${params[k]}`).join("");
+        }
+        return res;
     };
     ctrl.run=function (method,path,params) {
         params=params||{};
