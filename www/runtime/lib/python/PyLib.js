@@ -373,14 +373,23 @@ define(function (require, exports, module) {
             return "(" + self.elems.join(", ") + ")";
         }
     });
+    PL.Tuple.prototype[Symbol.iterator] = function () {
+        var _elems;
+
+        return (_elems = this.elems)[Symbol.iterator].apply(_elems, arguments);
+    };
+    PL.None = null;
     PL.Tuple.__bases__ = PL.Tuple([]);
     PL.Slice = PL.class({
-        __init__: function __init__(self, start, end) {
+        __init__: function __init__(self, start, stop) {
             var step = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
 
             self.start = start;
-            self.end = end;
+            self.stop = stop;
             self.step = step;
+        },
+        toString: function toString(self) {
+            return "slice(" + self.start + ", " + self.stop + ", " + self.step + ")";
         }
     });
     PL.invoke = function (self, name, args) {
@@ -639,6 +648,82 @@ define(function (require, exports, module) {
         }
     });
     var orig_sort = Array.prototype.sort;
+    function sliceToIndex(array, _ref) {
+        var start = _ref.start,
+            stop = _ref.stop,
+            step = _ref.step;
+
+        start = start || 0;
+        if (stop == null) stop = array.length;
+        if (start < 0) start = array.length + start;
+        if (stop < 0) stop = array.length + stop;
+        if (step == null) step = 1;
+        if (step > 0) {
+            return (/*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                    var i;
+                    return regeneratorRuntime.wrap(function _callee$(_context) {
+                        while (1) {
+                            switch (_context.prev = _context.next) {
+                                case 0:
+                                    i = start;
+
+                                case 1:
+                                    if (!(i < stop)) {
+                                        _context.next = 7;
+                                        break;
+                                    }
+
+                                    _context.next = 4;
+                                    return i;
+
+                                case 4:
+                                    i += step;
+                                    _context.next = 1;
+                                    break;
+
+                                case 7:
+                                case "end":
+                                    return _context.stop();
+                            }
+                        }
+                    }, _callee, this);
+                })()
+            );
+        }
+        if (step < 0) {
+            return (/*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+                    var i;
+                    return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                        while (1) {
+                            switch (_context2.prev = _context2.next) {
+                                case 0:
+                                    i = start;
+
+                                case 1:
+                                    if (!(i > stop)) {
+                                        _context2.next = 7;
+                                        break;
+                                    }
+
+                                    _context2.next = 4;
+                                    return i;
+
+                                case 4:
+                                    i += step;
+                                    _context2.next = 1;
+                                    break;
+
+                                case 7:
+                                case "end":
+                                    return _context2.stop();
+                            }
+                        }
+                    }, _callee2, this);
+                })()
+            );
+        }
+        throw new Error("Slice step is 0");
+    }
     PL.addMonkeyPatch(Array, {
         __class__: PL.list,
         append: function append(self) {
@@ -663,11 +748,69 @@ define(function (require, exports, module) {
         },
 
         __getitem__: function __getitem__(self, key) {
+            if (key instanceof PL.Slice) {
+                var res = [];
+                var _iteratorNormalCompletion4 = true;
+                var _didIteratorError4 = false;
+                var _iteratorError4 = undefined;
+
+                try {
+                    for (var _iterator4 = sliceToIndex(this, key)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                        var i = _step4.value;
+
+                        res.push(this[i]);
+                    }
+                } catch (err) {
+                    _didIteratorError4 = true;
+                    _iteratorError4 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                            _iterator4.return();
+                        }
+                    } finally {
+                        if (_didIteratorError4) {
+                            throw _iteratorError4;
+                        }
+                    }
+                }
+
+                return res;
+            }
             if (key < 0) key = self.length + key;
             if (key >= self.length) throw new Error("Index " + key + " is out of range");
             return self[key];
         },
         __setitem__: function __setitem__(self, key, value) {
+            if (key instanceof PL.Slice) {
+                var it = value[Symbol.iterator]();
+                var _iteratorNormalCompletion5 = true;
+                var _didIteratorError5 = false;
+                var _iteratorError5 = undefined;
+
+                try {
+                    for (var _iterator5 = sliceToIndex(this, key)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                        var i = _step5.value;
+
+                        this[i] = it.next().value;
+                    }
+                } catch (err) {
+                    _didIteratorError5 = true;
+                    _iteratorError5 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                            _iterator5.return();
+                        }
+                    } finally {
+                        if (_didIteratorError5) {
+                            throw _iteratorError5;
+                        }
+                    }
+                }
+
+                return value;
+            }
             if (key < 0) key = self.length + key;
             if (key >= self.length) throw new Error("Index " + key + " is out of range");
             self[key] = value;
@@ -717,7 +860,7 @@ define(function (require, exports, module) {
     });
 
     //---
-    PL.builtins = ["range", "input", "str", "int", "float", "len", "type", "quit", "exit", "sorted", "abs", "min", "max", "list", "isinstance", "fillRect", "setColor", "setTimeout", "clearRect", "clear"];
+    PL.builtins = ["range", "input", "str", "int", "float", "object", "len", "type", "quit", "exit", "sorted", "abs", "min", "max", "list", "isinstance", "fillRect", "setColor", "setTimeout", "clearRect", "clear"];
     root.PYLIB = PL;
 
     function sprintfJS() {

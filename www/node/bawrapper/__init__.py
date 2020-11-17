@@ -46,13 +46,15 @@ def _input(*a,**k):
     r=input(*a,**k)
     #print (r)
     return r
-def _str(*a,**k):
-    return str(*a,**k)
+#def _str(*a,**k):
+#    return str(*a,**k)
+_str=str
 _int=int
 #def _int(*a,**k):
 #    return int(*a,**k)
-def _float(*a,**k):
-    return float(*a,**k)
+_float=float
+#def _float(*a,**k):
+#    return float(*a,**k)
 def _len(*a,**k):
     return len(*a,**k)
 def _type(*a,**k):
@@ -69,3 +71,4 @@ def _min(*a,**k):
     return min(*a,**k)
 def _max(*a,**k):
     return max(*a,**k)
+_object=object
