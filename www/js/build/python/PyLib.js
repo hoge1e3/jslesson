@@ -580,7 +580,7 @@ define(function (require,exports,module) {
     });
 
     //---
-    PL.builtins=["range","input","str","int","float","len","type","quit","exit","sorted","abs",
+    PL.builtins=["range","input","str","int","float","object","len","type","quit","exit","sorted","abs",
     "min","max","list","isinstance",
     "fillRect","setColor","setTimeout","clearRect","clear"];
     root.PYLIB=PL;

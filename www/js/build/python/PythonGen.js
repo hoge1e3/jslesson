@@ -116,9 +116,10 @@ function (Visitor,IndentBuffer,assert) {
             this.printf("%j",[",",node.body]);
         },
         slice: function (node) {
-            node.start=node.start||{type:"None"};
-            node.stop=node.stop||{type:"None"};
-            node.step=node.step||{type:"None"};
+            const empty={type:"literal", toString:()=>""};
+            node.start=node.start||empty;
+            node.stop=node.stop||empty;
+            node.step=node.step||empty;
             this.printf("%v:%v:%v", node.start, node.stop, node.step);
         },
         lvalList: function (node) {

@@ -23,6 +23,7 @@ def imshow(name, img):
 def cvtColor(*a,**k):
     return c.cvtColor(*a,**k)
 resize=c.resize
+filter2D=c.filter2D
 #def resize(*a,**k):
 #    return c.resize(*a,**k)
 def bitwise_not(*a,**k):
@@ -36,7 +37,7 @@ def inRange(*a,**k):
 def bitwise_and(*a,**k):
     return c.bitwise_and(*a,**k)
 def CascadeClassifier(face_cascade_path):
-    f=bawrapper.resolve(file)
+    f=bawrapper.resolve(face_cascade_path)
     return c.CascadeClassifier(f)
 
 COLOR_BGR2YCrCb=c.COLOR_BGR2YCrCb

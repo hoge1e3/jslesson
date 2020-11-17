@@ -4,8 +4,7 @@ def randint(*a,**k):
     return rd.randint(*a,**k)
 def randn(*a,**k):
     return rd.randn(*a,**k)
-def rand():
-    return rd.rand()
+rand=rd.rand
 def normal(*a,**k):
     return rd.normal(*a,**k)
 def random(*a,**k):
