@@ -32,3 +32,11 @@ def show():
     fn=os.getcwd()+'/figure'+str(seq)+'.png'
     p.savefig(fn)
     print("##PLOT##%s"%(fn))
+hist=p.hist
+pcolor=p.pcolor
+grid=p.grid
+subplots=p.subplots
+cla=p.cla
+legend=p.legend
+tight_layout=p.tight_layout
+#imshow=p.imshow
