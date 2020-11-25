@@ -6,22 +6,39 @@ async function diffSeq(user, file) {
     });
     console.log(logs);
     let prevProgram, prevTime;
-    $("<div>").text(`First Code:`).appendTo("body");
+    $("<h2>").text(`First Code:`).appendTo("body");
+    const outputs={};
     for (let log of logs) {
         const lRaw=JSON.parse(log.raw);
         const curProg=getCode(lRaw);//.code.C || pRaw.code.JavaScript || pRaw.code.Dolittle || pRaw.code.Python || "";
         //var curProg=getCode(cRaw);
+        const output=(outputs[curProg]=outputs[curProg]||{dom:$("<pre>")});
+        if (looksLikeOutput(lRaw.detail)) {
+            output.text=lRaw.detail;
+        }
         if (!prevProgram) {
             $("<pre>").text(curProg).appendTo("body");
+            $("<h3>").text("Output:").appendTo("body");
+            output.dom.appendTo("body");
             prevTime=log.time;
         } else if (prevProgram!==curProg){
-            $("<div>").text(`${log.time-prevTime} Sec. `).appendTo("body");
+            $("<hr>").appendTo("body");
+            $("<div>").text(`↑${log.time-prevTime} Sec.↓ `).appendTo("body");
+            $("<hr>").appendTo("body");
+            $("<h3>").text("Changed:").appendTo("body");
+
             const id="DIV"+Math.floor(Math.random()*1000000);
             $("<div>").attr({id}).appendTo("body");
             calcDiff(prevProgram,curProg,`#${id}`,"Prev","Current",true);
+            $("<h3>").text("Output:").appendTo("body");
+            output.dom.appendTo("body");
             prevTime=log.time;
         }
         prevProgram=curProg;
+    }
+    for (let prog in outputs) {
+        const output=outputs[prog];
+        output.dom.text(output.text||"(empty)");
     }
     $(".diff th").each(function () {
         let th=$(this);
@@ -29,4 +46,10 @@ async function diffSeq(user, file) {
             th.text("");
         }
     });
+    function looksLikeOutput(detail) {
+        if (detail==="未保存の内容") return false;
+        if (detail==="保存しました") return false;
+        if (detail==="実行しました") return false;
+        return true;
+    }
 }
