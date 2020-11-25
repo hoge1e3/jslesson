@@ -173,10 +173,9 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("%v:%v",node.key,node.value);
         },
         index: function (node) {
-            for (let b of node.body) {
-                this.printf(".__getitem__(%v)",b);
+            // index: ["[",{body:"exprSliceList"},"]"],
+            this.printf(".__getitem__(%v)",node.body);
                 //this.printf("[%v]",b);
-            }
         },
         block: function (node) {
             this.printf("{%{");
@@ -194,6 +193,21 @@ function (Visitor,IndentBuffer,context,PL) {
             } else {
                 this.printf("%v",node.body[0]);
             }
+        },
+        exprSliceList: function (node) {
+            // exprSliceList: [{body:sep1(or("expr","slice"),",")},{t:tailC}]
+            const a=this.anon.get(node);
+            if (a.isTuple) {
+                this.printf("%s.Tuple([%j])",PYLIB,[",",node.body]);
+            } else {
+                this.printf("%v",node.body[0]);
+            }
+        },
+        slice: function (node) {
+            node.start=node.start||{type:"None"};
+            node.stop=node.stop||{type:"None"};
+            node.step=node.step||{type:"None"};
+            this.printf("%s.Slice(%v, %v, %v)", PYLIB, node.start, node.stop, node.step);
         },
         lvalList: function (node) {
             if (node.body.length===1) {
@@ -283,6 +297,7 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         True: function () {this.printf("true");},
         False: function () {this.printf("false");},
+        None: function () {this.printf("%s.None",PYLIB);},
     };
     const cmps={">":1,"<":1,"==":1,">=":1,"<=":1,"!=":1};
     function isCmp(node) {

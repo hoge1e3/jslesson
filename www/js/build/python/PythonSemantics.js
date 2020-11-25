@@ -167,6 +167,7 @@ const vdef={
                     });
                     return true;
                 case "index":
+                    // expr.op = {body: exprSliceList }
                     this.anon.put(node,{
                         obj: expr.left,
                         index: expr.op.body
@@ -184,6 +185,11 @@ const vdef={
             this.error("del の後ろは「オブジェクト.属性名」という形式にしてください．"  , node);
         }
         this.visit(node.expr);
+    },
+    slice: function (node) {
+        if (node.start) this.visit(node.start);
+        if (node.stop) this.visit(node.stop);
+        if (node.step) this.visit(node.step);
     },
     printStmt3: function (node) {
         for (let value of node.args.body) {
@@ -284,6 +290,14 @@ const vdef={
             this.visit(b);
         }
     },
+    exprSliceList: function (node) {
+        if (node.body.length>1 || node.t) {
+            this.anon.put(node,{isTuple:true});
+        }
+        for (let b of node.body) {
+            this.visit(b);
+        }
+    },
     array: function (node) {
         for (let b of node.body) {
             this.visit(b);
@@ -299,9 +313,8 @@ const vdef={
         this.visit(node.value);
     },
     index: function (node) {
-        for (let b of node.body) {
-            this.visit(b);
-        }
+        // index= [ exprSliceList ]
+        this.visit(node.body);
     },
     memberRef: function (node) {
         // node.name

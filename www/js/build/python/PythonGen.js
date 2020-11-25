@@ -112,6 +112,16 @@ function (Visitor,IndentBuffer,assert) {
         exprList: function (node) {
             this.printf("%j",[",",node.body]);
         },
+        exprSliceList: function (node) {
+            this.printf("%j",[",",node.body]);
+        },
+        slice: function (node) {
+            const empty={type:"literal", toString:()=>""};
+            node.start=node.start||empty;
+            node.stop=node.stop||empty;
+            node.step=node.step||empty;
+            this.printf("%v:%v:%v", node.start, node.stop, node.step);
+        },
         lvalList: function (node) {
             this.printf("%j",[",",node.body]);
         },
@@ -125,7 +135,7 @@ function (Visitor,IndentBuffer,assert) {
             this.printf("%v:%v",node.key,node.value);
         },
         index: function (node) {
-            this.printf("[%j]",[":",node.body]);
+            this.printf("[%v]",node.body);
         },
         arg: function (node) {
             if (node.name) {
@@ -182,10 +192,16 @@ function (Visitor,IndentBuffer,assert) {
         not: function() {
             this.printf("not ");
         },
+        "literal3":function (node) {
+            this.printf("%s",node+"");
+        },
+        "literal":function (node) {
+            this.printf("%s",node+"");
+        }
     };
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
       ">","<","=",".",":","+","-","*","/","%","(",")",",",
-      "number","literal3","literal","and","or","True","False","None"];
+      "number","and","or","True","False","None"];
     for (let ve of verbs) {
         vdef[ve]=function (node) {
             //console.log("verb",node);

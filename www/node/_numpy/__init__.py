@@ -1,5 +1,12 @@
 import numpy as n
 
+float32=n.float32
+int32=n.int32
+nan=n.nan
+pi=n.pi
+e=n.e
+inf=n.inf
+
 def arange(*a,**k):
     return n.arange(*a,**k)
 def zeros(*a,**k):
@@ -62,8 +69,7 @@ def arctan(*a,**k):
     return n.arctan(*a,**k)
 def polyfit(*a,**k):
     return n.polyfit(*a,**k)
-def count_nonzero(c):
-    return n.count_nonzero(c)
+count_nonzero = n.count_nonzero
 def argsort(*a,**k):
     return n.argsort(*a,**k)
 def copy(*a,**k):

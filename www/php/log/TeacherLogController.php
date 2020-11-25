@@ -710,6 +710,9 @@ class TeacherLogController {
                 <script type="text/javascript" src="js/lib/difflib.js"></script>
                 <script type="text/javascript" src="js/lib/diffview.js"></script>
                 <script type="text/javascript" src="js/lib/jquery.tablesorter.min.js"></script>
+                <style>
+                    pre{	border: solid black 1px;}
+                </style>
                 <link rel="stylesheet" href="css/jquery-ui.css"></link>
                 <link rel="stylesheet" href="css/diffview.css"></link>
                 <script>

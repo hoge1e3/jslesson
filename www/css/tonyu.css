@@ -109,6 +109,9 @@ textarea{
 .shell.error {
     color: red;
 }
+.code {
+	border: solid black 1px;
+}
 
 .tutorial-highlight {
 	background-color: #ffdd88;

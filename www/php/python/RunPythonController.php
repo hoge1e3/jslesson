@@ -33,7 +33,8 @@ class RunPythonController {
         if (!$exs || !$exd || $exdf) {
             die("Renaming $path(exist=$exs) to $dst(exist dir=$exd,file=$exdf) failed");
         }
-        rename($path,$dst);
+        copy($path,$dst);
+        unlink($path);
         //echo " BA=".BA_PUB_URL." puburlpath=$pubURLPath  /  n=$n  ext=$ext";
         return "$pubURLPath/$n$ext";
     }

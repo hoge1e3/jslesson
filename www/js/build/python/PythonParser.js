@@ -241,9 +241,11 @@ function (Grammar,Pos2RC/*,TError*/) {
         )*/
         parenLval: ["(",{this:"lvalList"},")"],
         lval: or("parenLval","lvalList"),
+        // t regards it a tuple
         exprList: g.toParser( [{body:sep1("expr",",")},{t:tailC}]),/*.ret(
             (r)=>r.body.length==1&&!r.t ? r.body[1]:r
         )*/
+        exprSliceList: g.toParser( [{body:sep1(or("slice","expr"),",")},{t:tailC}]),
         expr: g.expr({
             element: "elem",
             operators: [
@@ -265,10 +267,26 @@ function (Grammar,Pos2RC/*,TError*/) {
         array: ["[",{body:sep0("expr",",")},"]"],
         dict: ["{",{body:sep0("dictEntry",",")},"}"],
         dictEntry: [{key:"literal"},":",{value:"expr"}],
-        index: ["[",{body:sep1("expr",":")},"]"],
-        //index: ["[",{body:or("slice","expr")},"]"],
-        slice: [{start:opt("expr")},{end:"slicePart"},{step:opt("slicePart")}],
-        slicePart: [":",{value:opt("expr")}],
+        index: ["[",{body:"exprSliceList"},"]"],
+        //index: ["[",{body:or("slice","exprList")},"]"],
+        slice: or(  "slice111", "slice110", "slice101", "slice100",
+                    "slice011", "slice010", "slice001", "slice000").ret(addTypeF("slice")),
+        // :   ::
+        slice000: [":",opt(":")],
+        // ::z
+        slice001: [":",":",{step:"expr"}], // lose by slice000
+        // :y   :y:
+        slice010: [":",{stop:"expr"},opt(":")],
+        // :y:z
+        slice011: [":",{stop:"expr"},":",{step:"expr"}],
+        // x:  x::
+        slice100: [{start:"expr"},":",opt(":")],
+        // x::z
+        slice101: [{start:"expr"},":",":",{step:"expr"}],
+        // x:y  x:y:
+        slice110: [{start:"expr"},":",{stop:"expr"},opt(":")],
+        // x:y:z
+        slice111: [{start:"expr"},":",{stop:"expr"},":",{step:"expr"}],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: [":indent",{body:"stmtList"},"dedent"],
         elem: or("symbol","number","None","bool","listComprehension","array","dict","literal3","literal","paren","superCall"),
@@ -286,7 +304,9 @@ function (Grammar,Pos2RC/*,TError*/) {
     for (let k of reserved) {
         if (!gdef[k]) gdef[k]=tk(k);
     }
-
+    function addTypeF(type) {
+        return r=>{r.type=type;return r;};
+    }
     //console.log("gdef",gdef);
     g.def(gdef);
     //console.log("gdefed",g);
