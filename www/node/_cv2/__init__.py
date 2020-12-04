@@ -23,7 +23,18 @@ def imshow(name, img):
 def cvtColor(*a,**k):
     return c.cvtColor(*a,**k)
 resize=c.resize
+rectangle=c.rectangle
 filter2D=c.filter2D
+
+circle=c.circle
+line=c.line
+ellipse=c.ellipse
+
+HOUGH_GRADIENT=c.HOUGH_GRADIENT
+COLOR_BGR2GRAY=c.COLOR_BGR2GRAY
+COLOR_BGR2HSV=c.COLOR_BGR2HSV
+COLOR_HSV2BGR=c.COLOR_HSV2BGR
+COLOR_RGB2BGR=c.COLOR_RGB2BGR
 #def resize(*a,**k):
 #    return c.resize(*a,**k)
 def bitwise_not(*a,**k):
