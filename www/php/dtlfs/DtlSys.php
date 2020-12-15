@@ -2,7 +2,7 @@
 
 class DtlSys {
     public $root,$fs;
-    public function DtlSys($root,$fs) {
+    public function __construct($root,$fs) {
         $this->root=$root;
         $this->fs=$fs;
     }
