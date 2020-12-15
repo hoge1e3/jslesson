@@ -10235,22 +10235,52 @@ define('RenameProjectDialog',["UI","FS"], function (UI,FS) {
     return res;
 });
 
-define('RemoteProject',["root"],function (root) {
+define('ctrl',[], function () {
+    var ctrl={};
+    ctrl.url=function (path,params) {
+        let res=".?"+path;
+        if (params) {
+            res+=Object.keys(params).map (k=>`&${k}=${params[k]}`).join("");
+        }
+        return res;
+    };
+    ctrl.run=function (method,path,params) {
+        params=params||{};
+        return $.ajax({
+            url: ctrl.url(path),
+            data:params,
+            cache: false,
+            type:method
+        });
+    };
+    ctrl.get=function (path,params) {
+        return ctrl.run("get",path,params);
+    };
+    ctrl.post=function (path,params) {
+        return ctrl.run("post",path,params);
+    };
+    return ctrl;
+});
+
+define('RemoteProject',["root","ctrl"],function (root,ctrl) {
     var RemoteProject={};
-    RemoteProject.url=function () {
+    RemoteProject.url=function (cmd) {
         return "runDtl.php?"+Math.random();
     };
 	RemoteProject.list=function () {
-	    return $.get(this.url(),{file:"/scripts/ListProjects.dtlvm"});
+        return ctrl.get("Project/list",{id:Math.random()});
+	    //return $.get(this.url(),{file:"/scripts/ListProjects.dtlvm"});
 	};
 	RemoteProject.delete=function (n) {
-	    return $.get(this.url(),{file:"/scripts/DeleteProject.dtlvm",project:n+"/"});
+        return ctrl.get("Project/delete",{id:Math.random(), project:n+"/"});
+	    //return $.get(this.url(),{file:"/scripts/DeleteProject.dtlvm",project:n+"/"});
 	};
 	RemoteProject.rename=function (from,to) {
-	    return $.get(this.url(),{
+        return ctrl.get("Project/rename",{id:Math.random(), from:from+"/", to:to+"/"});
+	    /*return $.get(this.url(),{
 	        file:"/scripts/RenameProject.dtlvm",
 	        from:from+"/",to:to+"/"
-	    });
+	    });*/
 	};
     root.RemoteProject=RemoteProject;
 	return RemoteProject;
@@ -10328,33 +10358,6 @@ define("SplashScreen", (function (global) {
         return ret || global.SplashScreen;
     };
 }(this)));
-
-define('ctrl',[], function () {
-    var ctrl={};
-    ctrl.url=function (path,params) {
-        let res=".?"+path;
-        if (params) {
-            res+=Object.keys(params).map (k=>`&${k}=${params[k]}`).join("");
-        }
-        return res;
-    };
-    ctrl.run=function (method,path,params) {
-        params=params||{};
-        return $.ajax({
-            url: ctrl.url(path),
-            data:params,
-            cache: false,
-            type:method
-        });
-    };
-    ctrl.get=function (path,params) {
-        return ctrl.run("get",path,params);
-    };
-    ctrl.post=function (path,params) {
-        return ctrl.run("post",path,params);
-    };
-    return ctrl;
-});
 
 define('jsl_selProject',["FS","Shell","Shell2",
            "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog","RenameProjectDialog",
