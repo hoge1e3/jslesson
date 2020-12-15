@@ -223,6 +223,19 @@ class SFile{
         }
         $this->fs->mkdir($this->path());
     }
+    public function rmdir() {
+        $this->fs->rmdir($this->path());
+    }
+    public function rmdirForce() {
+        foreach ($this->listFiles() as $f) {
+            if ($f->isDir()) {
+                $f->rmdirForce();
+            } else {
+                $f->rm();
+            }
+        }
+        $this->rmdir();
+    }
     public function link() {
     }
     public function resolveLink() {
