@@ -15,3 +15,7 @@ def random_sample(*a,**k):
     return rd.random_sample(*a,**k)
 def choice(*a,**k):
     return rd.choice(*a,**k)
+
+binomial=rd.binomial
+poisson=rd.poisson
+beta=rd.beta
