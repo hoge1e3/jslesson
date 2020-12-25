@@ -1,4 +1,5 @@
 import numpy as n
+import bawrapper
 
 float32=n.float32
 int32=n.int32
@@ -168,7 +169,11 @@ cross=n.cross
 trace=n.trace
 conj=n.conj
 ix_=n.ix_
-genfromtxt=n.genfromtxt
+#genfromtxt=n.genfromtxt
+def genfromtxt(file, **k):
+    f=bawrapper.resolve(file)
+    return n.genfromtxt(f, **k)
+
 fromregex=n.fromregex
 geomspace=n.geomspace
 diag=n.diag

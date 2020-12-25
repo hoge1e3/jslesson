@@ -1,7 +1,7 @@
 import scipy.special as s
 
 jn=s.jn
-ellip=s.ellip
+ellipe=s.ellipe
 gamma=s.gamma
 gammaln=s.gammaln
 erf=s.erf
