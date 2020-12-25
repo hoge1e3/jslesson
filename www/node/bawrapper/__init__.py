@@ -50,6 +50,7 @@ def _input(*a,**k):
 #    return str(*a,**k)
 _str=str
 _int=int
+_zip=zip
 #def _int(*a,**k):
 #    return int(*a,**k)
 _float=float

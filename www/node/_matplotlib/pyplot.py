@@ -22,6 +22,7 @@ def scatter(*a,**k):
 def plot(*a,**k):
     return p.plot(*a,**k)
 subplots=p.subplots
+subplot=p.subplot
 #def subplots(*a,**k):
 #    return p.subplots(*a,**k)
 def axis(*a,**k):
@@ -31,6 +32,7 @@ def show():
     seq+=1
     fn=os.getcwd()+'/figure'+str(seq)+'.png'
     p.savefig(fn)
+    p.clf()
     print("##PLOT##%s"%(fn))
 hist=p.hist
 pcolor=p.pcolor
@@ -39,4 +41,8 @@ subplots=p.subplots
 cla=p.cla
 legend=p.legend
 tight_layout=p.tight_layout
+figure=p.figure
+add_subplot=p.add_subplot
+pcolormesh=p.pcolormesh
+pcolorfast=p.pcolorfast
 #imshow=p.imshow

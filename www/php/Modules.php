@@ -1,6 +1,7 @@
 <?php
 $mod_aliases=array(
     //----AUTOGEN
+    'ProjectController'=>"php/user/",
     'AddErrorInfoController' => 'php/analysis/AddErrorInfoController.php',
     'AddScoreInfo' => 'php/analysis/AddScoreInfo.php',
     'DetectFile' => 'php/analysis/DetectFile.php',

@@ -20,6 +20,9 @@ if (isset($_POST["script"]) || isset($_GET["file"])) {
         $scr=$_POST["script"];
     }
     $vmc=json_decode($scr, JSON_OBJECT_AS_ARRAY);
+    if (isset($_GET["debug"])) {
+        DtlThread::$debug=true;
+    }
 
     header("Content-type: text/json; charset=utf8");
     echo json_encode( DtlUtil::unwrap( Dtl::run($root,$vmc) ) );

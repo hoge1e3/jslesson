@@ -1847,9 +1847,11 @@ function (Grammar,Pos2RC/*,TError*/) {
         )*/
         parenLval: ["(",{this:"lvalList"},")"],
         lval: or("parenLval","lvalList"),
+        // t regards it a tuple
         exprList: g.toParser( [{body:sep1("expr",",")},{t:tailC}]),/*.ret(
             (r)=>r.body.length==1&&!r.t ? r.body[1]:r
         )*/
+        exprSliceList: g.toParser( [{body:sep1(or("slice","expr"),",")},{t:tailC}]),
         expr: g.expr({
             element: "elem",
             operators: [
@@ -1871,10 +1873,26 @@ function (Grammar,Pos2RC/*,TError*/) {
         array: ["[",{body:sep0("expr",",")},"]"],
         dict: ["{",{body:sep0("dictEntry",",")},"}"],
         dictEntry: [{key:"literal"},":",{value:"expr"}],
-        index: ["[",{body:sep1("expr",":")},"]"],
-        //index: ["[",{body:or("slice","expr")},"]"],
-        slice: [{start:opt("expr")},{end:"slicePart"},{step:opt("slicePart")}],
-        slicePart: [":",{value:opt("expr")}],
+        index: ["[",{body:"exprSliceList"},"]"],
+        //index: ["[",{body:or("slice","exprList")},"]"],
+        slice: or(  "slice111", "slice110", "slice101", "slice100",
+                    "slice011", "slice010", "slice001", "slice000").ret(addTypeF("slice")),
+        // :   ::
+        slice000: [":",opt(":")],
+        // ::z
+        slice001: [":",":",{step:"expr"}], // lose by slice000
+        // :y   :y:
+        slice010: [":",{stop:"expr"},opt(":")],
+        // :y:z
+        slice011: [":",{stop:"expr"},":",{step:"expr"}],
+        // x:  x::
+        slice100: [{start:"expr"},":",opt(":")],
+        // x::z
+        slice101: [{start:"expr"},":",":",{step:"expr"}],
+        // x:y  x:y:
+        slice110: [{start:"expr"},":",{stop:"expr"},opt(":")],
+        // x:y:z
+        slice111: [{start:"expr"},":",{stop:"expr"},":",{step:"expr"}],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: [":indent",{body:"stmtList"},"dedent"],
         elem: or("symbol","number","None","bool","listComprehension","array","dict","literal3","literal","paren","superCall"),
@@ -1892,7 +1910,9 @@ function (Grammar,Pos2RC/*,TError*/) {
     for (let k of reserved) {
         if (!gdef[k]) gdef[k]=tk(k);
     }
-
+    function addTypeF(type) {
+        return r=>{r.type=type;return r;};
+    }
     //console.log("gdef",gdef);
     g.def(gdef);
     //console.log("gdefed",g);
@@ -2398,14 +2418,23 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             return "(" + self.elems.join(", ") + ")";
         }
     });
+    PL.Tuple.prototype[Symbol.iterator] = function () {
+        var _elems;
+
+        return (_elems = this.elems)[Symbol.iterator].apply(_elems, arguments);
+    };
+    PL.None = null;
     PL.Tuple.__bases__ = PL.Tuple([]);
     PL.Slice = PL.class({
-        __init__: function __init__(self, start, end) {
+        __init__: function __init__(self, start, stop) {
             var step = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
 
             self.start = start;
-            self.end = end;
+            self.stop = stop;
             self.step = step;
+        },
+        toString: function toString(self) {
+            return "slice(" + self.start + ", " + self.stop + ", " + self.step + ")";
         }
     });
     PL.invoke = function (self, name, args) {
@@ -2664,6 +2693,82 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         }
     });
     var orig_sort = Array.prototype.sort;
+    function sliceToIndex(array, _ref) {
+        var start = _ref.start,
+            stop = _ref.stop,
+            step = _ref.step;
+
+        start = start || 0;
+        if (stop == null) stop = array.length;
+        if (start < 0) start = array.length + start;
+        if (stop < 0) stop = array.length + stop;
+        if (step == null) step = 1;
+        if (step > 0) {
+            return (/*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                    var i;
+                    return regeneratorRuntime.wrap(function _callee$(_context) {
+                        while (1) {
+                            switch (_context.prev = _context.next) {
+                                case 0:
+                                    i = start;
+
+                                case 1:
+                                    if (!(i < stop)) {
+                                        _context.next = 7;
+                                        break;
+                                    }
+
+                                    _context.next = 4;
+                                    return i;
+
+                                case 4:
+                                    i += step;
+                                    _context.next = 1;
+                                    break;
+
+                                case 7:
+                                case "end":
+                                    return _context.stop();
+                            }
+                        }
+                    }, _callee, this);
+                })()
+            );
+        }
+        if (step < 0) {
+            return (/*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+                    var i;
+                    return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                        while (1) {
+                            switch (_context2.prev = _context2.next) {
+                                case 0:
+                                    i = start;
+
+                                case 1:
+                                    if (!(i > stop)) {
+                                        _context2.next = 7;
+                                        break;
+                                    }
+
+                                    _context2.next = 4;
+                                    return i;
+
+                                case 4:
+                                    i += step;
+                                    _context2.next = 1;
+                                    break;
+
+                                case 7:
+                                case "end":
+                                    return _context2.stop();
+                            }
+                        }
+                    }, _callee2, this);
+                })()
+            );
+        }
+        throw new Error("Slice step is 0");
+    }
     PL.addMonkeyPatch(Array, {
         __class__: PL.list,
         append: function append(self) {
@@ -2688,11 +2793,69 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         },
 
         __getitem__: function __getitem__(self, key) {
+            if (key instanceof PL.Slice) {
+                var res = [];
+                var _iteratorNormalCompletion4 = true;
+                var _didIteratorError4 = false;
+                var _iteratorError4 = undefined;
+
+                try {
+                    for (var _iterator4 = sliceToIndex(this, key)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                        var i = _step4.value;
+
+                        res.push(this[i]);
+                    }
+                } catch (err) {
+                    _didIteratorError4 = true;
+                    _iteratorError4 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                            _iterator4.return();
+                        }
+                    } finally {
+                        if (_didIteratorError4) {
+                            throw _iteratorError4;
+                        }
+                    }
+                }
+
+                return res;
+            }
             if (key < 0) key = self.length + key;
             if (key >= self.length) throw new Error("Index " + key + " is out of range");
             return self[key];
         },
         __setitem__: function __setitem__(self, key, value) {
+            if (key instanceof PL.Slice) {
+                var it = value[Symbol.iterator]();
+                var _iteratorNormalCompletion5 = true;
+                var _didIteratorError5 = false;
+                var _iteratorError5 = undefined;
+
+                try {
+                    for (var _iterator5 = sliceToIndex(this, key)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                        var i = _step5.value;
+
+                        this[i] = it.next().value;
+                    }
+                } catch (err) {
+                    _didIteratorError5 = true;
+                    _iteratorError5 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                            _iterator5.return();
+                        }
+                    } finally {
+                        if (_didIteratorError5) {
+                            throw _iteratorError5;
+                        }
+                    }
+                }
+
+                return value;
+            }
             if (key < 0) key = self.length + key;
             if (key >= self.length) throw new Error("Index " + key + " is out of range");
             self[key] = value;
@@ -2742,7 +2905,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
     });
 
     //---
-    PL.builtins = ["range", "input", "str", "int", "float", "len", "type", "quit", "exit", "sorted", "abs", "min", "max", "list", "isinstance", "fillRect", "setColor", "setTimeout", "clearRect", "clear"];
+    PL.builtins = ["range", "input", "str", "int", "float", "object", "len", "type", "quit", "exit", "sorted", "abs", "min", "max", "list", "isinstance", "zip", "fillRect", "setColor", "setTimeout", "clearRect", "clear"];
     root.PYLIB = PL;
 
     function sprintfJS() {
@@ -2899,9 +3062,13 @@ const importable={
     matplotlib:{wrapper:true,server:true},
     numpy:{wrapper:true,server:true},
     cv2:{wrapper:true,server:true},
+    pandas:{wrapper:true,server:true},
+    scipy:{wrapper:true,server:true},
+    BeautifulSoup:{wrapper:true,server:true},
+    sklearn:{wrapper:true,server:true},
     os:{wrapper:true,server:true},
     urllib:{wrapper:true,server:true},
-    // あとopencvとか
+    // turtle: js?
 };
 
 //-----
@@ -3047,6 +3214,7 @@ const vdef={
                     });
                     return true;
                 case "index":
+                    // expr.op = {body: exprSliceList }
                     this.anon.put(node,{
                         obj: expr.left,
                         index: expr.op.body
@@ -3064,6 +3232,11 @@ const vdef={
             this.error("del の後ろは「オブジェクト.属性名」という形式にしてください．"  , node);
         }
         this.visit(node.expr);
+    },
+    slice: function (node) {
+        if (node.start) this.visit(node.start);
+        if (node.stop) this.visit(node.stop);
+        if (node.step) this.visit(node.step);
     },
     printStmt3: function (node) {
         for (let value of node.args.body) {
@@ -3164,6 +3337,14 @@ const vdef={
             this.visit(b);
         }
     },
+    exprSliceList: function (node) {
+        if (node.body.length>1 || node.t) {
+            this.anon.put(node,{isTuple:true});
+        }
+        for (let b of node.body) {
+            this.visit(b);
+        }
+    },
     array: function (node) {
         for (let b of node.body) {
             this.visit(b);
@@ -3179,9 +3360,8 @@ const vdef={
         this.visit(node.value);
     },
     index: function (node) {
-        for (let b of node.body) {
-            this.visit(b);
-        }
+        // index= [ exprSliceList ]
+        this.visit(node.body);
     },
     memberRef: function (node) {
         // node.name
@@ -6791,6 +6971,16 @@ function (Visitor,IndentBuffer,assert) {
         exprList: function (node) {
             this.printf("%j",[",",node.body]);
         },
+        exprSliceList: function (node) {
+            this.printf("%j",[",",node.body]);
+        },
+        slice: function (node) {
+            const empty={type:"literal", toString:()=>""};
+            node.start=node.start||empty;
+            node.stop=node.stop||empty;
+            node.step=node.step||empty;
+            this.printf("%v:%v:%v", node.start, node.stop, node.step);
+        },
         lvalList: function (node) {
             this.printf("%j",[",",node.body]);
         },
@@ -6804,7 +6994,7 @@ function (Visitor,IndentBuffer,assert) {
             this.printf("%v:%v",node.key,node.value);
         },
         index: function (node) {
-            this.printf("[%j]",[":",node.body]);
+            this.printf("[%v]",node.body);
         },
         arg: function (node) {
             if (node.name) {
@@ -6861,10 +7051,16 @@ function (Visitor,IndentBuffer,assert) {
         not: function() {
             this.printf("not ");
         },
+        "literal3":function (node) {
+            this.printf("%s",node+"");
+        },
+        "literal":function (node) {
+            this.printf("%s",node+"");
+        }
     };
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
       ">","<","=",".",":","+","-","*","/","%","(",")",",",
-      "number","literal3","literal","and","or","True","False","None"];
+      "number","and","or","True","False","None"];
     for (let ve of verbs) {
         vdef[ve]=function (node) {
             //console.log("verb",node);
@@ -7071,10 +7267,9 @@ function (Visitor,IndentBuffer,context,PL) {
             this.printf("%v:%v",node.key,node.value);
         },
         index: function (node) {
-            for (let b of node.body) {
-                this.printf(".__getitem__(%v)",b);
+            // index: ["[",{body:"exprSliceList"},"]"],
+            this.printf(".__getitem__(%v)",node.body);
                 //this.printf("[%v]",b);
-            }
         },
         block: function (node) {
             this.printf("{%{");
@@ -7092,6 +7287,21 @@ function (Visitor,IndentBuffer,context,PL) {
             } else {
                 this.printf("%v",node.body[0]);
             }
+        },
+        exprSliceList: function (node) {
+            // exprSliceList: [{body:sep1(or("expr","slice"),",")},{t:tailC}]
+            const a=this.anon.get(node);
+            if (a.isTuple) {
+                this.printf("%s.Tuple([%j])",PYLIB,[",",node.body]);
+            } else {
+                this.printf("%v",node.body[0]);
+            }
+        },
+        slice: function (node) {
+            node.start=node.start||{type:"None"};
+            node.stop=node.stop||{type:"None"};
+            node.step=node.step||{type:"None"};
+            this.printf("%s.Slice(%v, %v, %v)", PYLIB, node.start, node.stop, node.step);
         },
         lvalList: function (node) {
             if (node.body.length===1) {
@@ -7181,6 +7391,7 @@ function (Visitor,IndentBuffer,context,PL) {
         },
         True: function () {this.printf("true");},
         False: function () {this.printf("false");},
+        None: function () {this.printf("%s.None",PYLIB);},
     };
     const cmps={">":1,"<":1,"==":1,">=":1,"<=":1,"!=":1};
     function isCmp(node) {

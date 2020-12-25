@@ -1,4 +1,5 @@
 import numpy as n
+import bawrapper
 
 float32=n.float32
 int32=n.int32
@@ -86,3 +87,95 @@ def cumprod(*a,**k):
     return n.cumprod(*a,**k)
 def array(*a,**k):
     return n.array(*a,**k)
+
+#pi=n.pi
+#nan=n.nan
+#e=n.e
+euler_gamma=n.euler_gamma
+newaxis=n.newaxis
+#inf=n.inf
+identity=n.identity
+sort=n.sort
+repeat=n.repeat
+tile=n.tile
+round=n.round
+argmin=n.argmin
+argsort=n.argsort
+median=n.median
+var=n.var
+log1p=n.log1p
+log2=n.log2
+degrees=n.degrees
+radians=n.radians
+deg2rad=n.deg2rad
+rad2deg=n.rad2deg
+unique=n.unique
+isnan=n.isnan
+ravel=n.ravel
+imag=n.imag
+real=n.real
+#sum=n.sum
+prod=n.prod
+int8=n.int8
+int16=n.int16
+#int32=n.int32
+int64=n.int64
+float16=n.float16
+#float32=n.float32
+float64=n.float64
+
+#Bit Arrow and Anaconda
+#numpy has no attribute float128
+#print(np.longdouble)
+#<class 'numpy.float64'>
+
+#paiza.io
+#<class 'numpy.float128'>
+#print(np.longdouble)
+#<class 'numpy.float128'>
+
+#float128=n.float128
+
+full=n.full
+full_like=n.full_like
+ceil=n.ceil
+floor=n.floor
+cumsum=n.cumsum
+swapaxes=n.swapaxes
+resize=n.resize
+squeeze=n.squeeze
+isinf=n.isinf
+all=n.all
+any=n.any
+nonzero=n.nonzero
+take=n.take
+tril=n.tril
+triu=n.triu
+column_stack=n.column_stack
+row_stack=n.row_stack
+r_=n.r_
+hsplit=n.hsplit
+vsplit=n.vsplit
+array_split=n.array_split
+logspace=n.logspace
+diagonal=n.diagonal
+dsplit=n.dsplit
+dstack=n.dstack
+ptp=n.ptp
+choose=n.choose
+put=n.put
+putmask=n.putmask
+cross=n.cross
+trace=n.trace
+conj=n.conj
+ix_=n.ix_
+#genfromtxt=n.genfromtxt
+def genfromtxt(file, **k):
+    f=bawrapper.resolve(file)
+    return n.genfromtxt(f, **k)
+
+fromregex=n.fromregex
+geomspace=n.geomspace
+diag=n.diag
+diagflat=n.diagflat
+frombuffer=n.frombuffer

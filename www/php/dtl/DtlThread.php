@@ -1,9 +1,10 @@
 <?php
 class DtlThread {
+    public static $debug=false;
     public static $methodMap=array(
         "else"=>"_else","while"=>"_while","use"=>"_use",
         "and"=>"_and","_or"=>"or"
-    ); 
+    );
     public static function run($self,$block,$args) {
         $stack=new DtlArray;
         $scope=$block->__scope->create();//DtlObj::create($block->scope);
@@ -12,12 +13,14 @@ class DtlThread {
         for ($i=0;$i<count($args);$i++) {
             DtlObj::s_set($scope,"_param$i",$args[$i]);
         }
-        //echo count($block->code);
+        if (self::$debug) echo count($block->code);
         foreach ($block->code as $c) {
-            //$len=count($this->stack);
-            //echo " {$c[0]} sp=$len \n";
+            if (self::$debug) {
+                $len=count($stack);
+                echo " {$c[0]} sp=$len \n";
+            }
             switch ($c[0]) {
-            //pushi (immedeate) 
+            //pushi (immedeate)
             case "pushi":
                 $stack->push(DtlUtil::wrap($c[1]));
                 break;
@@ -48,7 +51,7 @@ class DtlThread {
             case "pushb":
                 $stack->push(new DtlBlock($scope,$c[1]) );
                 break;
-            //[obj] [arg1] .... [argN] send #N,$nameid   
+            //[obj] [arg1] .... [argN] send #N,$nameid
             case "send":
                 $n=$c[1];
                 $name=$c[2];
@@ -108,7 +111,7 @@ class DtlThread {
             /*case "para":
                 $name=$c[1];
                 DtlObj::s_set($scope, $name, array_shift($scope->arguments));
-                break;                
+                break;
             case "tmp":
                 $name=$c[1];
                 DtlObj::s_set($scope, $name, 0);
@@ -118,7 +121,7 @@ class DtlThread {
                 while($n--) $stack->pop();
                 break;
             }
-        } 
+        }
     }
 }
 ?>

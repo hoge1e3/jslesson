@@ -142,7 +142,7 @@ define(function (require,exports,module) {
         getFileNames() {
             const res=[];
             this.$(".fileItem").each(function () {
-                res.push(this.innerText);
+                res.push($(this).text());
             });
             return res;
         }

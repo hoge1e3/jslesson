@@ -1,9 +1,12 @@
 <?php
 class DtlArray {
     public $raw;
-    public function DtlArray() {
+    public function __construct() {
         if (func_num_args()==0) $this->raw=array();
         else $this->raw=func_get_arg(0);
+        if (!is_array($this->raw)) {
+            throw new Exception("Empty array");
+        }
     }
     public function create() {
         $r= new DtlArray;
