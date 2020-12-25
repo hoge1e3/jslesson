@@ -1,7 +1,6 @@
 /* global self, global */
 define([],function () {
     function install(PL) {
-        var lib=PL.import.libs.turtle={};
         // same with root.js
         function getRoot(){
             if (typeof window!=="undefined") return window;
@@ -46,60 +45,89 @@ define([],function () {
             }
             return window.xCanvas;
         }
-        function conv(pos) {
-            var cv=initX()[0];
-            return lib.Vec(
-                cv.width/2+pos.x,
-                cv.height/2-pos.y,
-            );
-        }
-        lib.Turtle=PL.class({
+        const Turtle=PL.class({
             __init__: function (self) {
-                self.screen=initX();
-                self.position=lib.Vec(0,0);
+                self._position=Vec(0,0);
                 self._heading=0;
+            },
+            init: function(self) {
+                if (self.inited) return;
+                self.screen=initX();
                 const ctx=self.ctx();
                 ctx.strokeStlye="black";
                 ctx.lineWidth=1;
+                self.inited=true;
             },
             vec: function (self) {
+                self.init();
                 return r(self._heading);
             },
             ctx: function (self) {
                 return self.screen[0].getContext("2d");
             },
             forward: function (self ,by ){
+                self.init();
                 const ctx=self.ctx();
-                let cv=conv(self.position);
-                console.log(cv,self.position);
+                let cv=conv(self._position);
+                console.log(cv,self._position);
                 ctx.moveTo(cv.x,cv.y);
-                self.position=self.position.__add__(
+                self._position=self._position.__add__(
                     self.vec().__mul__(by)
                 );
-                cv=conv(self.position);
-                console.log(cv,self.position);
+                cv=conv(self._position);
+                console.log(cv,self._position);
                 ctx.lineTo(cv.x,cv.y);
                 ctx.stroke();
             },
             right: function (self,by) {
-                self._heading+=by;
+                self.init();
+                self._heading-=by;
+                return self;
             },
+            left: function (self,by) {
+                self.init();
+                self.right(-by);
+                return self;
+            },
+            clear: function (self) {
+                self.init();
+                clear();
+                return self;
+            },
+            position: function (self) {
+                return PL.Tuple([self._position.x, self._position.y]);
+            }
         });
         function r(dir) {
-            return lib.Vec(Math.cos(dir*Math.PI/180), Math.sin(dir*Math.PI/180));
+            return Vec(Math.cos(dir*Math.PI/180), Math.sin(dir*Math.PI/180));
         }
-        lib.Vec=PL.class({
+        const Vec=PL.class({
             __init__: function (self,x,y) {
                 self.x=x;
                 self.y=y;
             },
             __add__: function (self, other) {
-                return lib.Vec(self.x+other.x, self.y+other.y);
+                return Vec(self.x+other.x, self.y+other.y);
             },
             __mul__: function (self, k) {
-                return lib.Vec(self.x*k, self.y*k);
+                return Vec(self.x*k, self.y*k);
             }
         });
+        function clear() {
+            const cv=initX()[0];
+            const ctx=cv.getContext("2d");
+            ctx.clearRect(0,0,cv.width, cv.height);
+        }
+        function conv(pos) {
+            var cv=initX()[0];
+            return Vec(
+                cv.width/2+pos.x,
+                cv.height/2-pos.y,
+            );
+        }
+        const lib=PL.import.libs.turtle=new Turtle();
+        lib.Vec=Vec;
+        lib.Turtle=Turtle;
         return lib;
     }
     return {install};
