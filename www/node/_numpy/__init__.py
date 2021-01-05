@@ -34,8 +34,9 @@ def exp(*a,**k):
     return n.exp(*a,**k)
 def log(*a,**k):
     return n.log(*a,**k)
-def log10(*a,**k):
-    return n.log10(*a,**k)
+log10=n.log10
+#def log10(*a,**k):
+#    return n.log10(*a,**k)
 def expand_dims(*a,**k):
     return n.expand_dims(*a,**k)
 def std(*a,**k):

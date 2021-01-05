@@ -117,6 +117,39 @@ class NoteController {
             echo "</ul>";
         }
     }
+    public static function showAllAsTable(){
+        $class=Auth::curClass2();
+        if(!Auth::isTeacherOf($class)){
+            return redirect("Teacher/login");
+        }
+        $it=pdo_select_iter("select distinct file from note where class=? and file is not null order by file ",$class->id);
+        $p=null;
+        echo "<table>";
+        ?><tr>
+            <td>File</td>
+            <td>User</td>
+            <td>Time</td>
+            <td>Favs</td>
+            <td>Content</td>
+        </tr><?php
+        foreach ($it as $e) {
+            $file=$e->file;
+            $ra=Note::get($class,$file,null, 0, true);
+            //echo"<h1>$file に関するノート</h1>\n<ul>";
+            foreach ($ra as $e) {
+                $reps=$e->repliesHaving;
+                ?><tr>
+                    <td><?= $file ?></td>
+                    <td><?= $e->user ?></td>
+                    <td><?= DateUtil::toString($e->time) ?></td>
+                    <td><?=$e->favsHaving?></td>
+                    <td><?= htmlspecialchars($e->content) ?></td>
+                </tr><?php
+            }
+        }
+        echo "</table>";
+    }
+
     public static function myNotes() {
         $stats=param("stats",false);
         $user=Auth::curUser2();

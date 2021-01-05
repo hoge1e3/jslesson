@@ -42,7 +42,9 @@ cla=p.cla
 legend=p.legend
 tight_layout=p.tight_layout
 figure=p.figure
-add_subplot=p.add_subplot
 pcolormesh=p.pcolormesh
-pcolorfast=p.pcolorfast
+# p.figure().add_subplot...
+#add_subplot=p.add_subplot
+#pcolorfast=p.pcolorfast
+
 #imshow=p.imshow
