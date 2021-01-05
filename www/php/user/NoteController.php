@@ -126,6 +126,7 @@ class NoteController {
         $p=null;
         echo "<table>";
         ?><tr>
+            <td>ID</td>
             <td>File</td>
             <td>User</td>
             <td>Time</td>
@@ -139,6 +140,7 @@ class NoteController {
             foreach ($ra as $e) {
                 $reps=$e->repliesHaving;
                 ?><tr>
+                    <td><?= $e->id ?></td>
                     <td><?= $file ?></td>
                     <td><?= $e->user ?></td>
                     <td><?= DateUtil::toString($e->time) ?></td>
