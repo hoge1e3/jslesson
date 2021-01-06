@@ -764,15 +764,16 @@ class TeacherLogController {
         for ($i=0;$i<=$zonemax ; $i++) {
             ?><td><?= DateUtil::toString($base+$zoneWidth*$i,"Y/m/d") ?></td><?php
         }
-        echo "</tr>";
+        echo "</tr>\n";
         foreach ($mat as $user=>$zonec) {
             echo "<tr>";
             ?><td><?=$user?></td><?php
             for ($i=0;$i<=$zonemax ; $i++) {
                 ?><td><?= isset($mat[$user][$i])?$mat[$user][$i]:"" ?></td><?php
             }
-            echo "<tr/>";
+            echo "</tr>\n";
         }
+        echo "</table>";
     }
 }
 
