@@ -736,6 +736,44 @@ class TeacherLogController {
         </html>
         <?php
     }
+    static function activityMatrix() {
+        Auth::assertTeacher();
+        $teacherObj=Auth::curTeacher();
+        $class=Auth::curClass2();
+        $base=param("base");
+        req("DateUtil");
+        $base=DateUtil::toInt($base);
+        $zoneWidth=86400*7;
+        pdo_enableIter();
+        $logs=pdo_select_iter("select user,time from log where class=?", $class->id);
+        $mat=array();// user=> (zone=>count)
+        $zonemax=-1000;
+        foreach ($logs as $log) {
+            $user=$log->user;
+            $zone= intval( ($log->time-$base)/$zoneWidth );
+            if ($zone>$zonemax) $zonemax=$zone;
+            if (!isset($mat[$user])) {
+                $mat[$user]=array();
+            }
+            if (!isset($mat[$user][$zone])) {
+                $mat[$user][$zone]=0;
+            }
+            $mat[$user][$zone]++;
+        }
+        echo "<table><tr><td>-</td>";
+        for ($i=0;$i<=$zonemax ; $i++) {
+            ?><td><?= DateUtil::toString($base+$zoneWidth*$i,"Y/m/d") ?></td><?php
+        }
+        echo "</tr>";
+        foreach ($mat as $user=>$zonec) {
+            echo "<tr>";
+            ?><td><?=$user?></td><?php
+            for ($i=0;$i<=$zonemax ; $i++) {
+                ?><td><?= isset($mat[$user][$i])?$mat[$user][$i]:"" ?></td><?php
+            }
+            echo "<tr/>";
+        }
+    }
 }
 
 ?>
