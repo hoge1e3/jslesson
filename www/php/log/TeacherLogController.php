@@ -175,7 +175,7 @@ class TeacherLogController {
         $p=self::parseUser();
         $targetUser=$p["user"];
         $userName=$targetUser->name;
-        $all=param("all",false);
+        $all=param("all",true);
         $teacherObj=Auth::curTeacher();
         if ($teacherObj) {
             $teacherID=$teacherObj->id;
