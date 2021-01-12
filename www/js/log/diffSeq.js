@@ -6,7 +6,7 @@ async function diffSeq(user, file) {
     });
     console.log(logs);
     let prevProgram, prevTime;
-    $("<h2>").text(`First Code:`).appendTo("body");
+    $("<h2>").text(`First Code: `).appendTo("body");
     const outputs={};
     for (let log of logs) {
         const lRaw=JSON.parse(log.raw);
@@ -23,7 +23,9 @@ async function diffSeq(user, file) {
             prevTime=log.time;
         } else if (prevProgram!==curProg){
             $("<hr>").appendTo("body");
+            $("<div>").text(`at ${new Date(prevTime*1000)}`).appendTo("body");
             $("<div>").text(`↑${log.time-prevTime} Sec.↓ `).appendTo("body");
+            $("<div>").text(`at ${new Date(log.time*1000)}`).appendTo("body");
             $("<hr>").appendTo("body");
             $("<h3>").text("Changed:").appendTo("body");
 
