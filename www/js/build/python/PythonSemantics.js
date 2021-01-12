@@ -24,6 +24,7 @@ const importable={
     sklearn:{wrapper:true,server:true},
     os:{wrapper:true,server:true},
     urllib:{wrapper:true,server:true},
+    bs4:{wrapper:true,server:true},
     // turtle: js?
 };
 
