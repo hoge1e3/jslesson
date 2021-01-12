@@ -1,6 +1,7 @@
 import numpy as n
 import bawrapper
-
+import random
+import fft
 float32=n.float32
 int32=n.int32
 nan=n.nan
