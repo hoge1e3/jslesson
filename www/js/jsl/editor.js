@@ -37,6 +37,7 @@ define(function (require) {
     const EventHandler=require("EventHandler");
     const UI=require("UI");
     const ctrl=require("ctrl");
+    const EditorSettingDialog=require("EditorSettingDialog");
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
         A.setMode(A.MODE_STRICT);
@@ -313,9 +314,9 @@ function ready() {
                   ]},
                   {label:"実行",id:"runMenu",action:run},
                   {label:"保存",id:"save"},
-                  {label:"設定",id:"config",sub:[
+                  {label:"設定",id:"config",action:editorSetting}/*sub:[
                       {label:"エディタの文字の大きさ",id:"textsize",action:textSize}
-                  ]}
+                  ]}*/
               ]}
         );
         Auth.getClassOptions().then(function (r) {
@@ -1055,6 +1056,7 @@ function ready() {
             var progDOM=$("<pre>").css("height", screenH+"px").text(f.text()).appendTo("#progs");
             progDOM.attr("data-file",f.name());
             var prog=root.ace.edit(progDOM[0]);
+            prog.setShowInvisibles(desktopEnv.showInvisibles);
             if (typeof desktopEnv.editorFontSize=="number") prog.setFontSize(desktopEnv.editorFontSize);
     	    else prog.setFontSize(18);
             //prog.setFontSize(20);
@@ -1133,7 +1135,12 @@ function ready() {
         d.obj(desktopEnv);
     }
     if (root.progBar) {root.progBar.clear();}
-    function textSize() {
+    let editorSettingDialog;
+    function editorSetting() {
+        editorSettingDialog=editorSettingDialog||new EditorSettingDialog(ide);
+        editorSettingDialog.show(ide);
+    }
+    /*function textSize() {
         var prog=getCurrentEditor();
         var s=prompt("エディタの文字の大きさ", desktopEnv.editorFontSize||18);
         if(s==null) return;
@@ -1141,7 +1148,7 @@ function ready() {
         if (prog) prog.setFontSize(desktopEnv.editorFontSize||18);
         saveDesktopEnv();
         window.editorTextSize=desktopEnv.editorFontSize||18;
-    }
+    }*/
     /*function editorType() {
         var prog=getCurrentEditor();
         if(prog.getKeyboardHandler()==defaultKeyboard){
