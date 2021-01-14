@@ -37,7 +37,7 @@ define(function (require) {
     const EventHandler=require("EventHandler");
     const UI=require("UI");
     const ctrl=require("ctrl");
-    const EditorSettingDialog=require("EditorSettingDialog");
+    const DesktopSettingDialog=require("DesktopSettingDialog");
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
         A.setMode(A.MODE_STRICT);
@@ -151,7 +151,7 @@ function ready() {
     var HEXT=".html";
     var opt=curPrj.getOptions();
     var lang=opt.language || "js";
-    const ide={run, prj:curPrj, getCurrentEditorInfo, saveDesktopEnv, sync,
+    const ide={run, prj:curPrj, getCurrentEditorInfo, saveDesktopEnv, sync, ls,
         handler: new EventHandler(),
         on(...args){return this.handler.on(...args);},
         fire(...args){return this.handler.fire(...args);}
@@ -609,10 +609,11 @@ function ready() {
     };
     F(FM.on);
     console.log("listing", curProjectDir.path());
-    fl.ls(curProjectDir);
+    //fl.ls(curProjectDir);
+    ls();
     console.log("listing", curProjectDir.path(),"done");
     function ls(){
-        fl.ls(curProjectDir);
+        fl.ls(curProjectDir, desktopEnv.fileList || "latest");
     }
     function dispNameFL(name) {
         A.is(name,String);
@@ -1135,10 +1136,10 @@ function ready() {
         d.obj(desktopEnv);
     }
     if (root.progBar) {root.progBar.clear();}
-    let editorSettingDialog;
+    let desktopSettingDialog;
     function editorSetting() {
-        editorSettingDialog=editorSettingDialog||new EditorSettingDialog(ide);
-        editorSettingDialog.show(ide);
+        desktopSettingDialog=desktopSettingDialog||new DesktopSettingDialog(ide);
+        desktopSettingDialog.show(ide);
     }
     /*function textSize() {
         var prog=getCurrentEditor();
