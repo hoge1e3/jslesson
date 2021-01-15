@@ -579,6 +579,7 @@ class TeacherLogController {
         }
     }
     static function panorama() {
+        pdo_enableIter();
         $p=self::parseUser();
         $user=$p["user"];
         $teacher=$p["teacher"];
@@ -630,7 +631,12 @@ class TeacherLogController {
             if (strpos($r->result,"Error")!==false) {
                 print ("<h2>Error</h2>");
                 print ("<pre>");
-                print htmlspecialchars($raw->detail);
+                $detail=$raw->detail;
+                if (is_string($detail)) {
+                    print htmlspecialchars($raw->detail);
+                } else if ($detail && is_object($detail)) {
+                    print htmlspecialchars(json_encode($raw->detail));
+                }
                 print ("</pre>");
             }
             print ("<hR>\n");
