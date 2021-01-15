@@ -38,6 +38,7 @@ define(function (require) {
     const UI=require("UI");
     const ctrl=require("ctrl");
     const DesktopSettingDialog=require("DesktopSettingDialog");
+    const languageList=require("LanguageList");
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
         A.setMode(A.MODE_STRICT);
@@ -66,7 +67,7 @@ define(function (require) {
     var ALWAYS_UPLOAD=(localStorage.ALWAYS_UPLOAD==="true");
     console.log("ALWAYS_UPLOAD",ALWAYS_UPLOAD);
     if (root.BitArrow) root.BitArrow.curProjectDir=curProjectDir.path();
-    var langList={
+    /*var langList={
         "js":"JavaScript",
         "c":"C",
         "dtl":"Dolittle",
@@ -74,7 +75,8 @@ define(function (require) {
         "dncl":"DNCL",
         "py":"Python",
         "php":"PHP",
-    };
+    };*/
+
     var helpURL;
     var unsaved=false;
     var unsynced=false;
@@ -157,7 +159,15 @@ function ready() {
         fire(...args){return this.handler.fire(...args);}
     };
     root.openDummyEditor=openDummyEditor;
-    switch (lang){
+    const langInfo=languageList[lang];
+    if (!langInfo) {
+        throw new Error(`Undefined language: ${lang}`);
+    }
+    requirejs([langInfo.builder], function(_){
+        setupBuilder(_);
+    });
+    helpURL=langInfo.helpURL;
+    /*switch (lang){
     case "c":
         requirejs(["CBuilder"],function(_){
             setupBuilder(_);
@@ -196,7 +206,7 @@ function ready() {
         requirejs(["PHPBuilder"],setupBuilder);
         helpURL="http://bitarrow.eplang.jp/index.php?php";
         break;
-    }
+    }*/
     function setupBuilder(BuilderClass) {
         $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
         ram=FS.get("/ram/build/");
@@ -288,7 +298,7 @@ function ready() {
                      },"HTML"],
                      ["button",{
                          "class":"selTab","data-ext":EXT
-                     },langList[lang]],
+                     },langInfo.en],
                      ["span",{id:"curFileLabel"}],
                      ["span",{id:"modLabel"}],
                      ["span",{class:"tabLink", id:"commentLink"}],
@@ -547,8 +557,8 @@ function ready() {
         if (f.ext()==EXT || f.ext()==HEXT) {
             fileSet(f).forEach(function (e) {
                 if (e.ext()==EXT && !e.exists()) {
-                    //e.text((lang=="py"?"# ":"// ")+langList[lang]+"\n");
-                    if(lang=="js") e.text(/*"// "+langList[lang]+"\n*/
+                    //e.text((lang=="py"?"# ":"// ")+langInfo.en+"\n");
+                    if(lang=="js") e.text(/*"// "+langInfo.en+"\n*/
                     "// ここで扱われるJavaScriptは通常のJavaScriptとは異なります。詳しくは使用方法をご覧ください。\n");
                     else e.text("");
                 } else if (e.ext()==HEXT  && !e.exists()) {
@@ -786,7 +796,7 @@ function ready() {
             }
             await builder.upload(options.publishedDir);
         }
-        logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Build","ビルドしました",langList[lang]);
+        logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Build","ビルドしました",langInfo.en);
         buildStatus.indexFile=buildStatus.indexFile|| ram.rel(curHTMLFile.name());
         return buildStatus;
     }
@@ -811,7 +821,7 @@ function ready() {
 	    window.sendResult=function(resDetail, lang){
             lang=lang||"c";
             console.log("sendResult",resDetail,lang);
-            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),(langList[lang]||lang)+" Run",resDetail,langList[lang]);
+            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),(langInfo.en||lang)+" Run",resDetail,langInfo.en);
         };
         stop();
         save();
@@ -825,7 +835,7 @@ function ready() {
             options.upload=ALWAYS_UPLOAD;
             const buildStatus=await build(options);
             console.log("built", options, buildStatus);
-            //logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Run","実行しました",langList[lang]);
+            //logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Run","実行しました",langInfo.en);
             if (ALWAYS_UPLOAD) {
                 /*const pubd=await Auth.publishedDir(curProjectDir.name());
                 console.log("Upload comp",pubd);
@@ -846,7 +856,7 @@ function ready() {
             console.log(e,e.stack);
             if (e.isTError) {
                 errorDialog.show(e);//showErrorPos($("#errorPos"),e);
-                logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Compile Error",e.src+":"+e.pos+"\n"+e.mesg,langList[lang]);
+                logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Compile Error",e.src+":"+e.pos+"\n"+e.mesg,langInfo.en);
             } else {
                 EC.handleException(e);
             }
@@ -908,7 +918,7 @@ function ready() {
         if (curJSFile) {
             var posinfo="";
             if (e.srcPath && e.pos) posinfo="("+e.srcPath+":"+e.pos+")";
-            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",posinfo+(e.stack || e),langList[lang]);
+            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langInfo.en+" Runtime Error",posinfo+(e.stack || e),langInfo.en);
         }
     };
     function close(rm) { // rm or mv
@@ -974,7 +984,7 @@ function ready() {
             var nw=prog.getValue();
             if (old!=nw) {
                 curFile.text(nw);
-                logToServer2(curFile.path(),curFile.text(),/*curHTMLFile.text()*/"HTML","Save","保存しました",langList[lang]);
+                logToServer2(curFile.path(),curFile.text(),/*curHTMLFile.text()*/"HTML","Save","保存しました",langInfo.en);
             }
         }
         fl.setModified(false);
@@ -1001,7 +1011,7 @@ function ready() {
                 if (sendUnsavedContentCount>=10) {
                     sendUnsavedContentCount=0;
                     lastSentUnsavedContent=prog.getValue();
-                    logToServer2(curFile.path(),lastSentUnsavedContent,"",langList[lang]+" Unsaved","未保存の内容",langList[lang]);
+                    logToServer2(curFile.path(),lastSentUnsavedContent,"",langInfo.en+" Unsaved","未保存の内容",langInfo.en);
                 }
     	    }else{
     	        unsaved=false;

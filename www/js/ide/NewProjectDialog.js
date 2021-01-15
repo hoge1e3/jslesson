@@ -1,4 +1,4 @@
-define(["UI","FS","ProjectFactory"], function (UI,FS,F) {
+define(["UI","FS","ProjectFactory","LanguageList"], function (UI,FS,F,languageList) {
     var res={};
 	res.show=function (prjInfo, onOK,options) {
     	var d=res.embed(prjInfo,onOK,options);
@@ -24,12 +24,12 @@ define(["UI","FS","ProjectFactory"], function (UI,FS,F) {
         			 ["span","プログラミング言語"],
         			 ["select",{$var:"lang",$edit:"lang",id:"prjLang"},
         			 ["option",{selected:"selected",value:"select"},"言語を選択してください"],
-        			 ["option",{value:"js"},"JavaScript"],
+        			 /*["option",{value:"js"},"JavaScript"],
         			 ["option",{value:"dtl"},"ドリトル"],
         			 ["option",{value:"c"},"C"],
                      ["option",{value:"py"},"Python"],
                      ["option",{value:"php"},"PHP"],
-                     ["option",{value:"dncl"},"DNCL(どんくり)"]
+                     ["option",{value:"dncl"},"DNCL(どんくり)"]*/
                     ]
 				],
          		/*	["div",{css:{"display":"none"}},
@@ -46,7 +46,9 @@ define(["UI","FS","ProjectFactory"], function (UI,FS,F) {
             );
             //if (localStorage.noconcat) {
                 //res.d.$vars.lang.append(UI("option",{value:"py"},"Python"));
-                res.d.$vars.lang.append(UI("option",{value:"tonyu"},"Tonyu"));
+            for (let ext in languageList) {
+                res.d.$vars.lang.append(UI("option",{value:ext},languageList[ext].ja));
+            }
             //}
         }
         var d=res.d;
