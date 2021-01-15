@@ -1,12 +1,16 @@
 define(["FS","DragDrop","root"],function (FS,DragDrop,root) {
     var P=FS.PathUtil;
     var ProgramFileUploader={
-        accept: function (fileList,options) {
-            options=options||{};
+        acceptingEXT(prj) {
+            const acext={".html":1};
+            acext[prj.getEXT()]=1;
+            return acext;
+        },
+        accept(fileList,prj) {
+            //options=options||{};
             //extPattern=options.extPattern||/.*/;
-            var acext={};
-            acext[options.ext]=1;
-            acext[options.hext]=1;
+            const acext=ProgramFileUploader.acceptingEXT(prj);
+            const EXT=prj.getEXT(), HEXT=".html";
             DragDrop.accept(fileList.elem, {
                 onCheckFile: function (dst,file) {
                     if (!acext[P.ext(file.name)]) {
@@ -24,10 +28,10 @@ define(["FS","DragDrop","root"],function (FS,DragDrop,root) {
                             var srcFile=status[k].file;
                             var srcDir=srcFile.up();
                             var name=srcFile.truncExt();
-                            var srcPfile=srcDir.rel(name+options.ext);
-                            var dstPfile=dstDir.rel(name+options.ext);
-                            var srcHfile=srcDir.rel(name+options.hext);
-                            var dstHfile=dstDir.rel(name+options.hext);
+                            var srcPfile=srcDir.rel(name+EXT);
+                            var dstPfile=dstDir.rel(name+EXT);
+                            var srcHfile=srcDir.rel(name+HEXT);
+                            var dstHfile=dstDir.rel(name+HEXT);
                             if (!srcPfile.exists()) {
                                 srcPfile.text("");
                             }
@@ -46,6 +50,22 @@ define(["FS","DragDrop","root"],function (FS,DragDrop,root) {
                     fileList.ls();
                 }
             });
+        },
+
+        addMissingFiles(prj, options) {
+            const fileNames=prj.sourceFiles();
+            const EXT=prj.getEXT(), HEXT=".html";
+
+            for (let name in fileNames) {
+                const file=fileNames[name];
+                const pfile=file.sibling(name+EXT);
+                const hfile=file.sibling(name+HEXT);
+                if (!pfile.exists()) pfile.text("");
+                if (!hfile.exists()) hfile.text("");
+            }
+        },
+        fromZip(zipFile, projectsDir) {
+
         }
     };
     root.ProgramFileUploader=ProgramFileUploader;

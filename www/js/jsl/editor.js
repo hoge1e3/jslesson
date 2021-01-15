@@ -477,9 +477,7 @@ function ready() {
             displayName: dispNameFL
         }
     });
-    ProgramFileUploader.accept(fl,{
-        ext:EXT, hext:HEXT//Pattern: new RegExp(EXT+"|"+HEXT)
-    });
+    ProgramFileUploader.accept(fl,curPrj);
     var FM=FileMenu();
     FM.fileList=fl;
     var sourceFiles={};
