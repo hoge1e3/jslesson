@@ -4098,7 +4098,22 @@ function FileList(elem, options) {
     function isModified() {
     	return _mod;
     }
-    function ls(dir) {
+    const orderBy={
+        latest(a,b) {
+            if(a.lastUpdate>b.lastUpdate){
+                return -1;
+            }else if(a.lastUpdate<b.lastUpdate){
+                return 1;
+            }
+            return 0;
+        },
+        name(a,b) {
+            if (a.name>b.name) return 1;
+            else if (a.name<b.name) return -1;
+            else return 0;
+        }
+    };
+    function ls(dir, order="latest") {
         if (typeof dir=="string") dir=FS.get(dir);
         if (dir) {
             _curDir=dir;
@@ -4133,14 +4148,8 @@ function FileList(elem, options) {
         var tr=_curDir.getDirTree({style:"no-recursive"});
         var tra=[];
         for (var k in tr) { tra.push({name:k,lastUpdate:tr[k].lastUpdate}); }
-        tra=tra.sort(function (a,b) {
-    		if(a.lastUpdate>b.lastUpdate){
-    			return -1;
-    		}else if(a.lastUpdate<b.lastUpdate){
-    			return 1;
-    		}
-    		return 0;
-        });
+        tra=tra.sort(orderBy[order]||orderBy.latest);
+        //console.log(tra);
         var dirPath=_curDir.path();
         var P=FS.PathUtil;
         tra.forEach(function (e) {
@@ -14804,7 +14813,26 @@ define('ProjectFactory',['require','exports','module','BuilderClient','Util','De
     module.exports=F;
 });
 
-define('NewProjectDialog',["UI","FS","ProjectFactory"], function (UI,FS,F) {
+define('LanguageList',['require','exports','module'],function (require, exports, module) {
+    module.exports={
+        "js":{en:"JavaScript",ja:"JavaScript",builder:"TJSBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?javascript"},
+        "dtl":{en:"Dolittle", ja:"ドリトル",builder:"DtlBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?dolittle_use"},
+        "c":{en:"C", ja:"C",builder:"CBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?c_use"},
+        "dncl":{en:"DNCL", ja:"DNCL(どんくり)",builder:"DnclBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?dncl_use"},
+        "py": {en:"Python", ja:"Python",builder:"PythonBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?python"},
+        "tonyu":{en:"Tonyu", ja:"Tonyu",builder:"TonyuBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?tonyu"},
+        "php":{en:"PHP", ja:"PHP",builder:"PHPBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?php"},
+    };
+});
+
+define('NewProjectDialog',["UI","FS","ProjectFactory","LanguageList"], function (UI,FS,F,languageList) {
     var res={};
 	res.show=function (prjInfo, onOK,options) {
     	var d=res.embed(prjInfo,onOK,options);
@@ -14830,12 +14858,12 @@ define('NewProjectDialog',["UI","FS","ProjectFactory"], function (UI,FS,F) {
         			 ["span","プログラミング言語"],
         			 ["select",{$var:"lang",$edit:"lang",id:"prjLang"},
         			 ["option",{selected:"selected",value:"select"},"言語を選択してください"],
-        			 ["option",{value:"js"},"JavaScript"],
+        			 /*["option",{value:"js"},"JavaScript"],
         			 ["option",{value:"dtl"},"ドリトル"],
         			 ["option",{value:"c"},"C"],
                      ["option",{value:"py"},"Python"],
                      ["option",{value:"php"},"PHP"],
-                     ["option",{value:"dncl"},"DNCL(どんくり)"]
+                     ["option",{value:"dncl"},"DNCL(どんくり)"]*/
                     ]
 				],
          		/*	["div",{css:{"display":"none"}},
@@ -14852,7 +14880,9 @@ define('NewProjectDialog',["UI","FS","ProjectFactory"], function (UI,FS,F) {
             );
             //if (localStorage.noconcat) {
                 //res.d.$vars.lang.append(UI("option",{value:"py"},"Python"));
-                res.d.$vars.lang.append(UI("option",{value:"tonyu"},"Tonyu"));
+            for (let ext in languageList) {
+                res.d.$vars.lang.append(UI("option",{value:ext},languageList[ext].ja));
+            }
             //}
         }
         var d=res.d;
@@ -15042,15 +15072,20 @@ define('DragDrop',["FS","root"],function (FS,root) {
     return DragDrop;
 });
 
-define('ProgramFileUploader',["FS","DragDrop","root"],function (FS,DragDrop,root) {
+define('ProgramFileUploader',["FS","DragDrop","root","UI","LanguageList","Sync"],
+function (FS,DragDrop,root,UI,LL,Sync) {
     var P=FS.PathUtil;
     var ProgramFileUploader={
-        accept: function (fileList,options) {
-            options=options||{};
+        acceptingEXT(prj) {
+            const acext={".html":1};
+            acext[prj.getEXT()]=1;
+            return acext;
+        },
+        accept(fileList,prj) {
+            //options=options||{};
             //extPattern=options.extPattern||/.*/;
-            var acext={};
-            acext[options.ext]=1;
-            acext[options.hext]=1;
+            const acext=ProgramFileUploader.acceptingEXT(prj);
+            const EXT=prj.getEXT(), HEXT=".html";
             DragDrop.accept(fileList.elem, {
                 onCheckFile: function (dst,file) {
                     if (!acext[P.ext(file.name)]) {
@@ -15068,10 +15103,10 @@ define('ProgramFileUploader',["FS","DragDrop","root"],function (FS,DragDrop,root
                             var srcFile=status[k].file;
                             var srcDir=srcFile.up();
                             var name=srcFile.truncExt();
-                            var srcPfile=srcDir.rel(name+options.ext);
-                            var dstPfile=dstDir.rel(name+options.ext);
-                            var srcHfile=srcDir.rel(name+options.hext);
-                            var dstHfile=dstDir.rel(name+options.hext);
+                            var srcPfile=srcDir.rel(name+EXT);
+                            var dstPfile=dstDir.rel(name+EXT);
+                            var srcHfile=srcDir.rel(name+HEXT);
+                            var dstHfile=dstDir.rel(name+HEXT);
                             if (!srcPfile.exists()) {
                                 srcPfile.text("");
                             }
@@ -15090,9 +15125,182 @@ define('ProgramFileUploader',["FS","DragDrop","root"],function (FS,DragDrop,root
                     fileList.ls();
                 }
             });
+        },
+
+        addMissingFiles(prj, options) {
+            const fileNames=prj.sourceFiles();
+            const EXT=prj.getEXT(), HEXT=".html";
+
+            for (let name in fileNames) {
+                const file=fileNames[name];
+                const pfile=file.sibling(name+EXT);
+                const hfile=file.sibling(name+HEXT);
+                if (!pfile.exists()) pfile.text("");
+                if (!hfile.exists()) hfile.text("");
+            }
+        },
+        fromZip(zipFile, projectsDir) {
+            FS.zip.unzip(zipFile);
+
         }
     };
+    FS.mount("/ram/","ram");
+    //var zip=FS.zip;
+    const tmpDir=FS.get("/ram/");
+
+    class ZipImporter {
+        constructor(dir, elem, options) {
+            const t=this;
+            t.elem=elem;
+            t.dir=dir;
+            t.tmpDir=tmpDir.rel(dir.name());
+            options=options||{};
+            t.onComplete=options.onComplete;
+            if (t.elem) t.prepareDragDrop();
+        }
+        prepareDragDrop() {
+            const t=this;
+            DragDrop.accept(t.elem, t.tmpDir, {
+                onComplete: async function (status) {
+                    t.showDialog();
+                    var ctx={imported:0, from:"dragDrop"};
+                    try {
+                        await t.acceptDrag(status,ctx);
+                        t.closeDialog();
+                        if (t.onComplete) t.onComplete(ctx);
+                    } catch (e) {
+                        t.closeDialog();
+                        console.error(e);
+                        alert(e);
+                    }
+                }
+            });
+        }
+        async acceptDrag(status,ctx) {
+            const t=this;
+            for (let k in status) {
+                const s=status[k];
+                //s.file;
+                //s.status;
+                if (s.status==="uploaded" && s.file.ext()===".zip") {
+                    await t.unzip(s.file,ctx);
+                }
+            }
+            console.log("End acceptDrag");
+        }
+        showDialog(mesg) {
+            const t=this;
+            mesg=mesg||R("importingFromZip");
+            if (!t.dialog) {
+                t.dialog=UI("div",{title:R("importFromZip")},
+                    ["span",{$var:"mesg"}, mesg]
+                );
+                t.mesg=t.dialog.$vars.mesg;
+            } else {
+                t.mesg.text(mesg);
+            }
+            if (!t.dialogOpened) {
+                t.dialog.dialog({modal:true});
+            }
+            t.dialogOpened=true;
+        }
+        closeDialog() {
+            const t=this;
+            if (t.dialog) {
+                t.dialog.dialog("close");
+                t.dialogOpened=false;
+            }
+        }
+        unzip(file,ctx) {
+            // ctx.dstDir is set when fromPrjB, /Tonyu/Project/prjfile_0.00/
+            const t=this;
+            t.showDialog(R("unzipping",file.name()));
+            var zipexdir=t.tmpDir.rel(file.truncExt()+"/");
+            var opt={
+                progress: function (file) {
+                    t.showDialog(R("unzipping",file.name()));
+                    return new Promise(s=>setTimeout(s,0));
+                }
+            };
+            return FS.zip.unzip(file, zipexdir,opt ).then(function () {
+                if (ctx.rel) {
+                    zipexdir=zipexdir.rel(ctx.rel);
+                    if (!zipexdir.exists()) {
+                        return ctx;
+                    }
+                }
+                return t.traverse(zipexdir,ctx);
+            });
+        }
+        async traverse(dir,ctx) {
+            const t=this;
+            ctx=ctx||{};
+            ctx.imported=ctx.imported||0;
+            let imported=false;
+            for (let f of dir.listFiles()) {
+                t.showDialog(R("checking file",f.name()));
+                if (f.isDir()) continue;
+                if (f.name()==="options.json") {
+                    ctx.imported++;
+                    imported=true;
+                    await t.importFrom(f.up(),ctx);
+                } else {
+                    const ext=f.ext() && f.ext().replace(/^\./,"");
+                    if (LL[ext] && !ctx.detected) {
+                        ctx.detected={ext, dir};
+                    }
+                }
+            }
+            if (!imported) {
+                for (let f of dir.listFiles()) {
+                    t.showDialog(R("checking dir",f.name()));
+                    if (f.isDir()) {
+                        await t.traverse(f,ctx);
+                    }
+                }
+            }
+            if (ctx.imported===0 && ctx.detected) {
+                ctx.detected.dir.rel("options.json").obj({lang:ctx.detected.ext});
+                await t.importFrom(ctx.detected.dir, ctx);
+            }
+            return ctx;
+        }
+        async importFrom(src,ctx) {
+            const t=this;
+            var dst;
+            var dstParent=t.dir;
+            var nameT=FS.PathUtil.truncSEP(src.name());
+            if (nameT==="src") {
+                nameT=FS.PathUtil.truncSEP(src.up().name());
+            }
+            var name=nameT+"/";
+            dst=dstParent.rel(name);
+            var i=2;
+            while (dst.exists()) {
+                name=nameT+i+"/";
+                i++;
+                dst=dstParent.rel(name);
+            }
+            t.showDialog(R("copying",src.name(),dst.name()));
+            console.log("importFrom",src.path(), "to", dst.path());
+            const sync=src.rel(".sync/");
+            if (sync.exists()) {
+                sync.rm({r:1});
+            }
+            await src.copyTo(dst);
+            addMissingFiles()
+            t.showDialog("Syncing");
+            const res=await Sync.sync(dst,dst,{v:true});
+            console.log("Copy done",res);
+        }
+    }
+    function R(...args) {
+        return args.join(" ");
+    }
+
+
     root.ProgramFileUploader=ProgramFileUploader;
+    ProgramFileUploader.ZipImporter=ZipImporter;
     return ProgramFileUploader;
 });
 
@@ -15831,8 +16039,62 @@ define('SocializeDialog',['require','exports','module','UI','ctrl'],function (re
     };
 });
 
+define('DesktopSettingDialog',['require','exports','module','UI','jshint'],function (require, exports, module) {
+    const UI=require("UI");
+    const jshint=require("jshint");
+    class DesktopSettingDialog {
+        show(ide,options) {
+            const d=this.embed(ide,options);
+            this.dom=d;
+            d.dialog({width:500,height:300});
+        }
+        embed(ide,options) {
+            if (!options) options={};
+            const desktopEnv=ide.desktopEnv;
+            const close=()=>{
+                const form=this.vars.form[0];
+                desktopEnv.editorFontSize=form.editorFontSize.value-0;
+                desktopEnv.showInvisibles=$(form.showInvisibles).prop("checked");
+                desktopEnv.fileList=form.fileList.value;
+                ide.saveDesktopEnv();
+                const ei=ide.getCurrentEditorInfo();
+                if (ei) {
+                    ei.editor.setFontSize(desktopEnv.editorFontSize||18);
+                    ei.editor.setShowInvisibles(!!desktopEnv.showInvisibles);
+                }
+                ide.ls();
+                this.dom.dialog("close");
+            };
+            if (!this.dom) {
+                this.dom=UI("div",{title:"設定"},
+                    ["form",{$var:"form",action:jshint.scriptURL(";")},
+                        ["h3","エディタ"],
+                        ["div","文字の大きさ",
+                            ["input",{name:"editorFontSize",$var:"size",on:{enterkey:close}}]],
+                        ["div",
+                            ["input",{name:"showInvisibles",type:"checkbox",$var:"showInvisibles"}],
+                            "スペースやタブを表示する"],
+                        ["h3","ファイル表示"],
+                        ["div",
+                            ["input",{type:"radio",name:"fileList",value:"latest",$var:"fileList"}],"更新順",
+                            ["input",{type:"radio",name:"fileList",value:"name",$var:"fileList"}],"名前順",
+                        ],
+                        ["button",{on:{click:close}},"OK"]
+                    ]);
+                this.vars=this.dom.$vars;
+            }
+            const form=this.vars.form[0];
+            form.editorFontSize.value=(desktopEnv.editorFontSize||18);
+            $(form.showInvisibles).prop("checked", !!desktopEnv.showInvisibles);
+            form.fileList.value=desktopEnv.fileList||"latest";
+            return this.dom;
+        }
+    }
+    module.exports=DesktopSettingDialog;
+});
+
 /*global requirejs*/
-define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shell','KeyEventChecker','UIDiag','WebSite','exceptionCatcher','Columns','assert','Menu','DeferredUtil','Sync','RunDialog2','logToServer2','SplashScreen','Auth','DistributeDialog','NotificationDialog','IframeDialog','AssignmentDialog','SubmitDialog','CommentDialog2','NewProjectDialog','ProgramFileUploader','AssetDialog','root','ErrorDialog','ProjectFactory','UserAgent','SocializeDialog','EventHandler','UI','ctrl'],function (require) {
+define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shell','KeyEventChecker','UIDiag','WebSite','exceptionCatcher','Columns','assert','Menu','DeferredUtil','Sync','RunDialog2','logToServer2','SplashScreen','Auth','DistributeDialog','NotificationDialog','IframeDialog','AssignmentDialog','SubmitDialog','CommentDialog2','NewProjectDialog','ProgramFileUploader','AssetDialog','root','ErrorDialog','ProjectFactory','UserAgent','SocializeDialog','EventHandler','UI','ctrl','DesktopSettingDialog','LanguageList'],function (require) {
     var Util=require("Util");
     var FS=require("FS");
     var FileList=require("FileList");
@@ -15870,6 +16132,8 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
     const EventHandler=require("EventHandler");
     const UI=require("UI");
     const ctrl=require("ctrl");
+    const DesktopSettingDialog=require("DesktopSettingDialog");
+    const languageList=require("LanguageList");
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
         A.setMode(A.MODE_STRICT);
@@ -15898,7 +16162,7 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
     var ALWAYS_UPLOAD=(localStorage.ALWAYS_UPLOAD==="true");
     console.log("ALWAYS_UPLOAD",ALWAYS_UPLOAD);
     if (root.BitArrow) root.BitArrow.curProjectDir=curProjectDir.path();
-    var langList={
+    /*var langList={
         "js":"JavaScript",
         "c":"C",
         "dtl":"Dolittle",
@@ -15906,7 +16170,8 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
         "dncl":"DNCL",
         "py":"Python",
         "php":"PHP",
-    };
+    };*/
+
     var helpURL;
     var unsaved=false;
     var unsynced=false;
@@ -15983,13 +16248,21 @@ function ready() {
     var HEXT=".html";
     var opt=curPrj.getOptions();
     var lang=opt.language || "js";
-    const ide={run, prj:curPrj, getCurrentEditorInfo, saveDesktopEnv, sync,
+    const ide={run, prj:curPrj, getCurrentEditorInfo, saveDesktopEnv, sync, ls,
         handler: new EventHandler(),
         on(...args){return this.handler.on(...args);},
         fire(...args){return this.handler.fire(...args);}
     };
     root.openDummyEditor=openDummyEditor;
-    switch (lang){
+    const langInfo=languageList[lang];
+    if (!langInfo) {
+        throw new Error(`Undefined language: ${lang}`);
+    }
+    requirejs([langInfo.builder], function(_){
+        setupBuilder(_);
+    });
+    helpURL=langInfo.helpURL;
+    /*switch (lang){
     case "c":
         requirejs(["CBuilder"],function(_){
             setupBuilder(_);
@@ -16028,7 +16301,7 @@ function ready() {
         requirejs(["PHPBuilder"],setupBuilder);
         helpURL="http://bitarrow.eplang.jp/index.php?php";
         break;
-    }
+    }*/
     function setupBuilder(BuilderClass) {
         $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
         ram=FS.get("/ram/build/");
@@ -16120,7 +16393,7 @@ function ready() {
                      },"HTML"],
                      ["button",{
                          "class":"selTab","data-ext":EXT
-                     },langList[lang]],
+                     },langInfo.en],
                      ["span",{id:"curFileLabel"}],
                      ["span",{id:"modLabel"}],
                      ["span",{class:"tabLink", id:"commentLink"}],
@@ -16146,9 +16419,9 @@ function ready() {
                   ]},
                   {label:"実行",id:"runMenu",action:run},
                   {label:"保存",id:"save"},
-                  {label:"設定",id:"config",sub:[
+                  {label:"設定",id:"config",action:editorSetting}/*sub:[
                       {label:"エディタの文字の大きさ",id:"textsize",action:textSize}
-                  ]}
+                  ]}*/
               ]}
         );
         Auth.getClassOptions().then(function (r) {
@@ -16309,9 +16582,7 @@ function ready() {
             displayName: dispNameFL
         }
     });
-    ProgramFileUploader.accept(fl,{
-        ext:EXT, hext:HEXT//Pattern: new RegExp(EXT+"|"+HEXT)
-    });
+    ProgramFileUploader.accept(fl,curPrj);
     var FM=FileMenu();
     FM.fileList=fl;
     var sourceFiles={};
@@ -16381,8 +16652,8 @@ function ready() {
         if (f.ext()==EXT || f.ext()==HEXT) {
             fileSet(f).forEach(function (e) {
                 if (e.ext()==EXT && !e.exists()) {
-                    //e.text((lang=="py"?"# ":"// ")+langList[lang]+"\n");
-                    if(lang=="js") e.text(/*"// "+langList[lang]+"\n*/
+                    //e.text((lang=="py"?"# ":"// ")+langInfo.en+"\n");
+                    if(lang=="js") e.text(/*"// "+langInfo.en+"\n*/
                     "// ここで扱われるJavaScriptは通常のJavaScriptとは異なります。詳しくは使用方法をご覧ください。\n");
                     else e.text("");
                 } else if (e.ext()==HEXT  && !e.exists()) {
@@ -16441,10 +16712,11 @@ function ready() {
     };
     F(FM.on);
     console.log("listing", curProjectDir.path());
-    fl.ls(curProjectDir);
+    //fl.ls(curProjectDir);
+    ls();
     console.log("listing", curProjectDir.path(),"done");
     function ls(){
-        fl.ls(curProjectDir);
+        fl.ls(curProjectDir, desktopEnv.fileList || "latest");
     }
     function dispNameFL(name) {
         A.is(name,String);
@@ -16619,7 +16891,7 @@ function ready() {
             }
             await builder.upload(options.publishedDir);
         }
-        logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Build","ビルドしました",langList[lang]);
+        logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Build","ビルドしました",langInfo.en);
         buildStatus.indexFile=buildStatus.indexFile|| ram.rel(curHTMLFile.name());
         return buildStatus;
     }
@@ -16644,7 +16916,7 @@ function ready() {
 	    window.sendResult=function(resDetail, lang){
             lang=lang||"c";
             console.log("sendResult",resDetail,lang);
-            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),(langList[lang]||lang)+" Run",resDetail,langList[lang]);
+            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),(langInfo.en||lang)+" Run",resDetail,langInfo.en);
         };
         stop();
         save();
@@ -16658,7 +16930,7 @@ function ready() {
             options.upload=ALWAYS_UPLOAD;
             const buildStatus=await build(options);
             console.log("built", options, buildStatus);
-            //logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Run","実行しました",langList[lang]);
+            //logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Run","実行しました",langInfo.en);
             if (ALWAYS_UPLOAD) {
                 /*const pubd=await Auth.publishedDir(curProjectDir.name());
                 console.log("Upload comp",pubd);
@@ -16679,7 +16951,7 @@ function ready() {
             console.log(e,e.stack);
             if (e.isTError) {
                 errorDialog.show(e);//showErrorPos($("#errorPos"),e);
-                logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langList[lang]+" Compile Error",e.src+":"+e.pos+"\n"+e.mesg,langList[lang]);
+                logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Compile Error",e.src+":"+e.pos+"\n"+e.mesg,langInfo.en);
             } else {
                 EC.handleException(e);
             }
@@ -16741,7 +17013,7 @@ function ready() {
         if (curJSFile) {
             var posinfo="";
             if (e.srcPath && e.pos) posinfo="("+e.srcPath+":"+e.pos+")";
-            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langList[lang]+" Runtime Error",posinfo+(e.stack || e),langList[lang]);
+            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langInfo.en+" Runtime Error",posinfo+(e.stack || e),langInfo.en);
         }
     };
     function close(rm) { // rm or mv
@@ -16807,7 +17079,7 @@ function ready() {
             var nw=prog.getValue();
             if (old!=nw) {
                 curFile.text(nw);
-                logToServer2(curFile.path(),curFile.text(),/*curHTMLFile.text()*/"HTML","Save","保存しました",langList[lang]);
+                logToServer2(curFile.path(),curFile.text(),/*curHTMLFile.text()*/"HTML","Save","保存しました",langInfo.en);
             }
         }
         fl.setModified(false);
@@ -16834,7 +17106,7 @@ function ready() {
                 if (sendUnsavedContentCount>=10) {
                     sendUnsavedContentCount=0;
                     lastSentUnsavedContent=prog.getValue();
-                    logToServer2(curFile.path(),lastSentUnsavedContent,"",langList[lang]+" Unsaved","未保存の内容",langList[lang]);
+                    logToServer2(curFile.path(),lastSentUnsavedContent,"",langInfo.en+" Unsaved","未保存の内容",langInfo.en);
                 }
     	    }else{
     	        unsaved=false;
@@ -16888,6 +17160,7 @@ function ready() {
             var progDOM=$("<pre>").css("height", screenH+"px").text(f.text()).appendTo("#progs");
             progDOM.attr("data-file",f.name());
             var prog=root.ace.edit(progDOM[0]);
+            prog.setShowInvisibles(desktopEnv.showInvisibles);
             if (typeof desktopEnv.editorFontSize=="number") prog.setFontSize(desktopEnv.editorFontSize);
     	    else prog.setFontSize(18);
             //prog.setFontSize(20);
@@ -16966,7 +17239,12 @@ function ready() {
         d.obj(desktopEnv);
     }
     if (root.progBar) {root.progBar.clear();}
-    function textSize() {
+    let desktopSettingDialog;
+    function editorSetting() {
+        desktopSettingDialog=desktopSettingDialog||new DesktopSettingDialog(ide);
+        desktopSettingDialog.show(ide);
+    }
+    /*function textSize() {
         var prog=getCurrentEditor();
         var s=prompt("エディタの文字の大きさ", desktopEnv.editorFontSize||18);
         if(s==null) return;
@@ -16974,7 +17252,7 @@ function ready() {
         if (prog) prog.setFontSize(desktopEnv.editorFontSize||18);
         saveDesktopEnv();
         window.editorTextSize=desktopEnv.editorFontSize||18;
-    }
+    }*/
     /*function editorType() {
         var prog=getCurrentEditor();
         if(prog.getKeyboardHandler()==defaultKeyboard){
