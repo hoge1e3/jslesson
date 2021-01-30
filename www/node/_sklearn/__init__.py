@@ -1,1 +1,1 @@
-import datasets
+from . import datasets

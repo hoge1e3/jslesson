@@ -2,8 +2,8 @@ import sklearn.datasets as ds
 
 def load_wine():
     pass
-"""
 fetch_openml=ds.fetch_openml
+"""
 load_digits=ds.load_digits
 load_iris=ds.load_iris
 
