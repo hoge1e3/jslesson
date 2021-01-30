@@ -163,6 +163,9 @@ function (Visitor,IndentBuffer,assert) {
         infixl: function(node) {
             this.printf("%v%v%v",node.left,node.op,node.right);
         },
+        isnt: function () {
+            this.printf(" is not ");
+        },
         postfix: function (node) {
             this.printf("%v%v",node.left,node.op);
         },

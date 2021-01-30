@@ -25,6 +25,7 @@ const importable={
     os:{wrapper:true,server:true},
     urllib:{wrapper:true,server:true},
     bs4:{wrapper:true,server:true},
+    time:{wrapper:true,server:true},
     // turtle: js?
 };
 
@@ -358,7 +359,7 @@ const vdef={
 };
 const thru=["nodent","in",">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
   ">","<","=",".",":","+","-","*","/","%","(",")",",","not","and","or","True","False","None",
-  "passStmt","superCall"];
+  "passStmt","superCall","isnt"];
 for (let t of thru) {
     vdef[t]=()=>{};
 }
