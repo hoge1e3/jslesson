@@ -1,3 +1,9 @@
+*
+・[DL]プロジェクトごとのコピーができる。
+・プロジェクト間のファイルの移動・コピーができる。
+・[OK]ファイルがアルファベット順・作成日時順に表示される。
+　（実行されたものが一番上にいくのでファイルを探すのに苦労する）
+・[OK]tabと空白の区別ができる。
 * ログ
    ファイル別検索
    いつやっていたか（日をまたいで検索）
@@ -11,6 +17,8 @@
             x+="#"
         return x
 * Tonyu
+ - Error Betupe-ji  -> syntax error
+ - Midi does not run
  - OK IE support?(TJS only)
  - OK music icon
  - OK Mezonetプラグイン
