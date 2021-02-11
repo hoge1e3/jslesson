@@ -8,6 +8,7 @@ nan=n.nan
 pi=n.pi
 e=n.e
 inf=n.inf
+zeros_like=n.zeros_like
 
 def arange(*a,**k):
     return n.arange(*a,**k)

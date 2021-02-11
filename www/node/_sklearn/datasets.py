@@ -1,9 +1,8 @@
 import sklearn.datasets as ds
 
-def load_wine():
-    pass
+#def load_wine():
+#    pass
 fetch_openml=ds.fetch_openml
-"""
 load_digits=ds.load_digits
 load_iris=ds.load_iris
 
@@ -26,4 +25,3 @@ fetch_covtype=ds.fetch_covtype
 fetch_rcv1=ds.fetch_rcv1
 fetch_kddcup99=ds.fetch_kddcup99
 fetch_california_housing=ds.fetch_california_housing
-"""
