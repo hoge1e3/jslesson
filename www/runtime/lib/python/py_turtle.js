@@ -45,7 +45,7 @@ define([],function () {
             }
             return window.xCanvas;
         }
-        const Turtle=PL.class({
+        const tdef=({
             __init__: function (self) {
                 self._position=Vec(0,0);
                 self._heading=0;
@@ -98,6 +98,7 @@ define([],function () {
                 return PL.Tuple([self._position.x, self._position.y]);
             }
         });
+        const Turtle=PL.class(tdef);
         function r(dir) {
             return Vec(Math.cos(dir*Math.PI/180), Math.sin(dir*Math.PI/180));
         }
@@ -125,9 +126,14 @@ define([],function () {
                 cv.height/2-pos.y,
             );
         }
-        const lib=PL.import.libs.turtle=new Turtle();
+        const lib=PL.import.libs.turtle={};
+        const theTurtle=new Turtle();
+        for (let k of Object.keys(tdef)) {
+            lib[k]=theTurtle[k].bind(theTurtle);
+        }
         lib.Vec=Vec;
         lib.Turtle=Turtle;
+        console.log("py_turtle", Object.keys(lib));
         return lib;
     }
     return {install};

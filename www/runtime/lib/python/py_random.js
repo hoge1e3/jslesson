@@ -23,6 +23,7 @@ define([],function () {
                 return seq[this.randint(0,seq.length-1)];
             }
         };
+        console.log("py_random", Object.keys(lib));
         return lib;
     }
     return {install};

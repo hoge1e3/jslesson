@@ -1,0 +1,8 @@
+import sklearn.metrics as m
+
+confusion_matrix=m.confusion_matrix
+accuracy_score=m.accuracy_score
+mean_absolute_error=m.mean_absolute_error
+mean_squared_error=m.mean_squared_error
+r2_score=m.r2_score
+classification_report=m.classification_report

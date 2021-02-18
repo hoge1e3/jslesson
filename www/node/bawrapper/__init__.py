@@ -51,6 +51,7 @@ def _input(*a,**k):
 _str=str
 _int=int
 _zip=zip
+_sum=sum
 #def _int(*a,**k):
 #    return int(*a,**k)
 _float=float

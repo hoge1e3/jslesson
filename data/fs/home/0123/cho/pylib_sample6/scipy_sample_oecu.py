@@ -1,0 +1,138 @@
+import numpy as np
+import numpy.random as random
+# import scipy
+from scipy import stats, linalg, fftpack, signal, interpolate, optimize, special, integrate
+from scipy.stats import norm
+#from scipy import linalg, fftpack, signal, interpolate, optimize, special, integrate
+
+from scipy.io import wavfile
+np.random.seed(1750)
+print("=== scipy.stats.pearsonr ===")
+a = np.array([0, 0, 0, 1, 1, 1, 1])
+b = np.arange(7)
+print(stats.pearsonr(a, b))
+print("=== stats.scoreatpercentile ===")
+a = np.arange(100)
+print(stats.scoreatpercentile(a, 50))
+print("=== linalg.det ===")
+a = np.arange(16).reshape(4, 4)
+print(linalg.det(a))
+print("=== linalg.inv ===")
+a = np.arange(4).reshape(2, 2)
+print(linalg.inv(a))
+print("=== linalg.svd ===")
+#a = np.random.randn(9, 6) + 1j * np.random.randn(9, 6)
+#print(len(linalg.svd(a)))
+print("=== linalg.solve ===")
+a = np.array([[5, -1], [2, 3]])
+b = np.array([9, 7])
+print(linalg.solve(a, b))
+print("=== io.wavfile.read ===")
+#fs, data = wavfile.read("user/sample.wav")
+#print(fs, len(data))
+print("=== io.wavfile.read ===")
+#print(wavfile.write("sample_2.wav", fs, data))
+print("=== fftpack.fft ===")
+#fft = fftpack.fft(data)
+#print(fft.shape)
+print("=== fftpack.ifft ===")
+#ifft = fftpack.ifft(fft)
+#print(ifft.shape)
+print("=== fftpack.fftfreq ===")
+#size = data.size
+#print(fftpack.fftfreq(size, d=1.0 / fs).shape)
+print("=== signal.detrend ===")
+a = 3 + 2 * np.linspace(0, 1, 100) + np.random.randn(100)
+print(signal.detrend(a).shape)
+print("=== signal.wiener ===")
+img = np.random.random((10, 10))
+print(signal.wiener(img, (3, 3)).shape)
+print("=== signal.resample ===")
+x = np.linspace(0, 10, 20, endpoint=False)
+y = np.cos(-x ** 2 / 6.0)
+print(signal.resample(y, 100).shape)
+print("=== signal.stft ===")
+#_, _, stft = signal.stft(data)
+#print(stft.shape)
+print("=== signal.istft ===")
+#print(signal.istft(stft))
+print("=== signal.welch ===")
+#_, welch = signal.welch(x, fs, nperseg=1024)
+#print(welch.shape)
+print("=== signal.spectrogram ===")
+#_, _, spec = signal.spectrogram(data, fs, nperseg=1024)
+#print(spec.shape)
+print("=== signal.blackman ===")
+print(signal.blackman(51).shape)
+print("=== signal.bartlett ===")
+print(signal.bartlett(51).shape)
+print("=== signal.hamming ===")
+print(signal.hamming(51).shape)
+print("=== signal.hanning ===")
+print(signal.hanning(51).shape)
+print("=== signal.triang ===")
+print(signal.triang(51).shape)
+print("=== signal.find_peaks ===")
+x = np.sin(np.linspace(0, np.pi, 100))
+p, _ = signal.find_peaks(x)
+print(p.shape)
+print("=== interpolate.interp1d ===")
+x = np.linspace(0, 10, 11)
+y = x * np.sin(2 * x)
+f = interpolate.interp1d(x, y, kind="cubic")
+print(f(np.linspace(0, 10, 101)).shape)
+print("=== optimize.fmin_bfgs ===")
+def objective_func(theta):
+    return (theta - 2) ** 2
+def gradient(theta):
+    return 2 * (theta - 2)
+theta_opt = optimize.fmin_bfgs(f=objective_func, x0=[0], fprime=gradient)
+print(theta_opt)
+print("=== optimize.basinhopping ===")
+def func(x):
+    return np.cos(14.5 * x - 0.3) + (x + 0.2) * x
+ret = optimize.basinhopping(func, [1.], minimizer_kwargs={"method": "BFGS"}, niter=200)
+print(ret)
+print("=== fminbound ===")
+def f(x):
+    return x ** 2
+minimize = optimize.fminbound(f, 1, 2)
+print(minimize)
+print("=== fsolve ===")
+def f2(x):
+    return [x[0] * np.cos(x[1]) - 4, x[1] * x[0] - x[1] - 5]
+root = optimize.fsolve(f2, [1, 1])
+print(root)
+print("=== optimize.curve_fit ===")
+def f3(x, a, b, c):
+    return a * np.exp(-b * x) + c
+x = np.linspace(0, 4, 50)
+y = f3(x, 2.5, 1.3, 0.5) + np.random.normal(size=x.size)
+popt, pcov = optimize.curve_fit(f3, x, y)
+print(popt)
+print("=== special.jn ===")
+ret = special.jn([0, 1, 2], [10, 11, 12])
+print(ret)
+print("=== special.ellipe")
+a = 3.5
+b = 2.1
+e_sq = 1.0 - b ** 2 / a ** 2
+c = 4 * a * special.ellipe(e_sq)
+print(c)
+print("=== special.gamma ===")
+print(special.gamma([0, 0.5, 1, 5]))
+print("=== special.gammaln ===")
+print(special.gammaln([1, 2]))
+print("=== special.erf ===")
+print(special.erf(np.linspace(-3, 3)).shape)
+print("=== integrate.quad ===")
+print(integrate.quad(f, 0, 4))
+print("=== integrate.odient ===")
+def func_dydt(y, t):
+    dydt = -y
+    return dydt
+print(integrate.odeint(func_dydt, 1.0, np.linspace(0.0, 10.0, 1000)).shape)
+print("=== stats.norm.pdf ===")
+print(stats.norm.pdf(np.linspace(0, 10, 100)).shape)
+print("=== stats.norm.fit ===")
+print(stats.norm.fit(np.random.randn(100)))

@@ -75,6 +75,10 @@ async function view1new() {
         showFileEntry(log);
         //</script>
     }
+    const logid=getQueryString("logid",false);
+    if (logid) {
+        document.getElementById(logid).click();
+    }
 }
 function getOneUsersLogId(userid,pon){
   showFrame(logs[userid],userid,pon);
@@ -354,4 +358,18 @@ function calcDiff(prev,now,id,btn,ntn,show){
   return diffData;
   // scroll down to the diff view window.
   //location = url + "#diff";
+}
+function getQueryString(key, default_)
+{
+    if (arguments.length===1) default_="";
+   key = key.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+   var regex = new RegExp("[\\?&]"+key+"=([^&#]*)");
+   var qs = regex.exec(location.href);
+   if(qs == null)
+    return default_;
+   else
+    return decodeURLComponentEx(qs[1]);
+}
+function decodeURLComponentEx(s){
+    return decodeURIComponent(s.replace(/\+/g, '%20'));
 }

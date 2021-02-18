@@ -206,7 +206,8 @@ function (Grammar,Pos2RC/*,TError*/) {
         // why printStmt -> printStmt3?
         // because if parse print(x), as printStmt3, comma remains unparsed.
         stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt2","fromImportStmt","globalStmt","nodent"),
-        fromImportStmt: ["from",{name:"packageName"},"import",{localNames:sep1("symbol",",")}],
+        fromImportStmt: ["from",{name:"packageName"},"import",{localNames:"localNames"}],
+        localNames: [{names:or(sep1("symbol",","),"*")}],
         importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
         importStmt2: ["import",{elements:sep1("importElement",",")}],
         importElement: [{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
@@ -253,7 +254,7 @@ function (Grammar,Pos2RC/*,TError*/) {
                 //["infixl", or("+=","-=","*=","/=","%=")],
                 ["infixl", or("or")  ] ,
                 ["infixl", or("and")  ] ,
-                ["infixl", or("in",">=","<=","==","!=",">","<")  ] , //  + -  左結合２項演算子
+                ["infixl", or("in",">=","<=","==","!=",">","<","isnt","is")  ] , //  + -  左結合２項演算子
                 ["infixl", or("+","-")  ] , //  + -  左結合２項演算子
                 ["infixl", or("//","*","/","%")  ] , //  * 左結合２項演算子
                 ["infixl", or("**")],
@@ -261,6 +262,7 @@ function (Grammar,Pos2RC/*,TError*/) {
                 ["postfix" , or("args" , "memberRef","index") ] , // (a,b)  .x
             ]
         }),
+        isnt: ["is","not"],
         memberRef: [".",{name:"symOrResv"}],
         args: ["(",{body:sep0("arg",",")},")"],
         listComprehension: ["[",{elem:"expr"},"for",{vars:sep1("symbol",",")},"in",{set:"expr"},"]"],

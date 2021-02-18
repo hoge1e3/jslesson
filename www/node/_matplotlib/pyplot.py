@@ -47,4 +47,4 @@ pcolormesh=p.pcolormesh
 #add_subplot=p.add_subplot
 #pcolorfast=p.pcolorfast
 
-#imshow=p.imshow
+imshow=p.imshow

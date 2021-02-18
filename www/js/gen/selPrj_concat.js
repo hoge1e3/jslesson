@@ -9266,7 +9266,26 @@ define('ProjectFactory',['require','exports','module','BuilderClient','Util','De
     module.exports=F;
 });
 
-define('NewProjectDialog',["UI","FS","ProjectFactory"], function (UI,FS,F) {
+define('LanguageList',['require','exports','module'],function (require, exports, module) {
+    module.exports={
+        "js":{en:"JavaScript",ja:"JavaScript",builder:"TJSBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?javascript"},
+        "dtl":{en:"Dolittle", ja:"ドリトル",builder:"DtlBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?dolittle_use"},
+        "c":{en:"C", ja:"C",builder:"CBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?c_use"},
+        "dncl":{en:"DNCL", ja:"DNCL(どんくり)",builder:"DnclBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?dncl_use"},
+        "py": {en:"Python", ja:"Python",builder:"PythonBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?python"},
+        "tonyu":{en:"Tonyu", ja:"Tonyu",builder:"TonyuBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?tonyu"},
+        "php":{en:"PHP", ja:"PHP",builder:"PHPBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?php"},
+    };
+});
+
+define('NewProjectDialog',["UI","FS","ProjectFactory","LanguageList"], function (UI,FS,F,languageList) {
     var res={};
 	res.show=function (prjInfo, onOK,options) {
     	var d=res.embed(prjInfo,onOK,options);
@@ -9292,12 +9311,12 @@ define('NewProjectDialog',["UI","FS","ProjectFactory"], function (UI,FS,F) {
         			 ["span","プログラミング言語"],
         			 ["select",{$var:"lang",$edit:"lang",id:"prjLang"},
         			 ["option",{selected:"selected",value:"select"},"言語を選択してください"],
-        			 ["option",{value:"js"},"JavaScript"],
+        			 /*["option",{value:"js"},"JavaScript"],
         			 ["option",{value:"dtl"},"ドリトル"],
         			 ["option",{value:"c"},"C"],
                      ["option",{value:"py"},"Python"],
                      ["option",{value:"php"},"PHP"],
-                     ["option",{value:"dncl"},"DNCL(どんくり)"]
+                     ["option",{value:"dncl"},"DNCL(どんくり)"]*/
                     ]
 				],
          		/*	["div",{css:{"display":"none"}},
@@ -9314,7 +9333,9 @@ define('NewProjectDialog',["UI","FS","ProjectFactory"], function (UI,FS,F) {
             );
             //if (localStorage.noconcat) {
                 //res.d.$vars.lang.append(UI("option",{value:"py"},"Python"));
-                res.d.$vars.lang.append(UI("option",{value:"tonyu"},"Tonyu"));
+            for (let ext in languageList) {
+                res.d.$vars.lang.append(UI("option",{value:ext},languageList[ext].ja));
+            }
             //}
         }
         var d=res.d;
@@ -10359,14 +10380,393 @@ define("SplashScreen", (function (global) {
     };
 }(this)));
 
+define('jshint',[],function () {
+    var colon=":";
+    return {
+        Function: Function,
+        use: function () {},
+        scriptURL: function (url) {
+            return "javascript"+colon+url;
+        }
+    };
+});
+
+define('DragDrop',["FS","root"],function (FS,root) {
+    var DU=FS.DeferredUtil;
+    var SFile=FS.SFile;
+    var DragDrop={};
+    DragDrop.readFile=function (file) {
+        return DU.promise(function (succ) {
+            var reader = new FileReader();
+            reader.onload = function() {
+                succ(reader);
+            };
+            reader.readAsArrayBuffer(file);
+        });
+    };
+    DragDrop.CancelReason=function(r){
+        if (this instanceof DragDrop.CancelReason) {
+            this.reason=r;
+        } else {
+            return new DragDrop.CancelReason(r);
+        }
+    };
+    DragDrop.accept=function (dom, fdst,options) {
+        var useTmp;
+        if (!SFile.is(fdst)) {
+            options=fdst||options;
+            useTmp="/dd-ram/"+Math.random()+"/";
+            FS.mount(useTmp,"ram");
+            fdst=FS.get(useTmp);
+            console.log("Mount",useTmp);
+        }
+        options=options||{};
+        options.draggingClass=options.draggingClass||"dragging";
+        dom.on("dragover",over);
+        dom.on("dragenter",enter);
+        dom.on("dragleave",leave);
+        dom.on("drop",dropAdd);
+        if (!options.onCheckFile) {
+            options.onCheckFile=function (f) {
+                if (options.overwrite) {
+                    return f;
+                } else {
+                    if (f.exists()) return false;
+                    return f;
+                }
+            };
+        }
+        if (!options.onCheckFiles) {
+            options.onCheckFiles=function (fileEnt) {
+                return fileEnt;
+            };
+        }
+        if (!options.onError) {
+            options.onError=function (e) {
+                console.error(e);
+            };
+        }
+        function dropAdd(e) {
+            var dst=fdst;
+            if (typeof dst==="function") dst=dst();
+            dom.removeClass(options.draggingClass);
+            var status={};
+            var eo=e.originalEvent;
+            e.stopPropagation();
+            e.preventDefault();
+            var files = Array.prototype.slice.call(eo.dataTransfer.files);
+            var added=[],cnt=files.length;
+            var fileSet=files.map(function (file) {
+                var itemName=file.name;
+                var dstFile=dst.rel(itemName);
+                return {dst:dstFile,src:file,name:itemName};
+            });
+            DU.resolve(
+                options.onCheckFiles(fileSet)
+            ).then(function (fileSet) {
+                return DU.each(fileSet,function (fileEnt) {
+                    var name=fileEnt.name;
+                    var dstFile=fileEnt.dst ,actFile;
+                    var srcFile=fileEnt.src;
+                    return DU.resolve(
+                        options.onCheckFile(dstFile,srcFile)
+                    ).then(function (cr) {
+                        if (cr===false || cr instanceof DragDrop.CancelReason) {
+                            status[dstFile.path()]={
+                                file:dstFile,
+                                status:"cancelled",
+                                reason: cr.reason
+                            };
+                            return;
+                        }
+                        if (SFile.is(cr)) actFile=cr;
+                        else actFile=dstFile;
+                        return DragDrop.readFile(srcFile).then(function (reader) {
+                            var fileContent=reader.result;
+                            actFile.setBytes(fileContent);
+                            status[dstFile.path()]={
+                                file:dstFile,
+                                status:"uploaded"
+                            };
+                            if (actFile.path()!==dstFile.path()) {
+                                status[dstFile.path()].redirectedTo=actFile;
+                            }
+                        });
+                    });
+                });
+            }).then(function () {
+                if (options.onComplete) return options.onComplete(status);
+            }).catch(function (e) {
+                options.onError(e);
+            }).done(function () {
+                if (useTmp) {
+                    FS.unmount(useTmp);
+                    console.log("Umount",useTmp);
+                }
+            });
+            return false;
+        }
+        function over(e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        var entc=0;
+        function enter(e) {
+            var eo=e.originalEvent;
+            entc++;
+            dom.addClass(options.draggingClass);
+        }
+        function leave(e) {
+            var eo=e.originalEvent;
+            console.log("leave",eo.target.innerHTML,e);
+            entc--;
+            if (entc<=0) dom.removeClass(options.draggingClass);
+        }
+    };
+    root.DragDrop=DragDrop;
+    return DragDrop;
+});
+
+define('ProgramFileUploader',["FS","DragDrop","root","UI","LanguageList","Sync"],
+function (FS,DragDrop,root,UI,LL,Sync) {
+    var P=FS.PathUtil;
+    var ProgramFileUploader={
+        acceptingEXT(prj) {
+            const acext={".html":1};
+            acext[prj.getEXT()]=1;
+            return acext;
+        },
+        accept(fileList,prj) {
+            //options=options||{};
+            //extPattern=options.extPattern||/.*/;
+            const acext=ProgramFileUploader.acceptingEXT(prj);
+            const EXT=prj.getEXT(), HEXT=".html";
+            DragDrop.accept(fileList.elem, {
+                onCheckFile: function (dst,file) {
+                    if (!acext[P.ext(file.name)]) {
+                        return DragDrop.CancelReason(file.name+": このファイルは追加できません");
+                    }
+                    if (dst.exists()) {
+                        return DragDrop.CancelReason(file.name+": 同名のファイルがあるため中止しました．");
+                    }
+                    return dst;
+                },
+                onComplete: function (status) {
+                    var dstDir=fileList.curDir();
+                    for (var k in status) {
+                        if (status[k].status==="uploaded") {
+                            var srcFile=status[k].file;
+                            var srcDir=srcFile.up();
+                            var name=srcFile.truncExt();
+                            var srcPfile=srcDir.rel(name+EXT);
+                            var dstPfile=dstDir.rel(name+EXT);
+                            var srcHfile=srcDir.rel(name+HEXT);
+                            var dstHfile=dstDir.rel(name+HEXT);
+                            if (!srcPfile.exists()) {
+                                srcPfile.text("");
+                            }
+                            if (!srcHfile.exists()) {
+                                srcHfile.text("");
+                            }
+                            if (!dstPfile.exists()) {
+                                dstPfile.copyFrom(srcPfile);
+                            }
+                            if (!dstHfile.exists()) {
+                                dstHfile.copyFrom(srcHfile);
+                            }
+                        }
+                    }
+                    console.log(status);
+                    fileList.ls();
+                }
+            });
+        },
+
+        addMissingFiles(prj, options) {
+            const fileNames=prj.sourceFiles();
+            const EXT=prj.getEXT(), HEXT=".html";
+
+            for (let name in fileNames) {
+                const file=fileNames[name];
+                const pfile=file.sibling(name+EXT);
+                const hfile=file.sibling(name+HEXT);
+                if (!pfile.exists()) pfile.text("");
+                if (!hfile.exists()) hfile.text("");
+            }
+        },
+        fromZip(zipFile, projectsDir) {
+            FS.zip.unzip(zipFile);
+
+        }
+    };
+    FS.mount("/ram/","ram");
+    //var zip=FS.zip;
+    const tmpDir=FS.get("/ram/");
+
+    class ZipImporter {
+        constructor(dir, elem, options) {
+            const t=this;
+            t.elem=elem;
+            t.dir=dir;
+            t.tmpDir=tmpDir.rel(dir.name());
+            options=options||{};
+            t.onComplete=options.onComplete;
+            if (t.elem) t.prepareDragDrop();
+        }
+        prepareDragDrop() {
+            const t=this;
+            DragDrop.accept(t.elem, t.tmpDir, {
+                onComplete: async function (status) {
+                    t.showDialog();
+                    var ctx={imported:0, from:"dragDrop"};
+                    try {
+                        await t.acceptDrag(status,ctx);
+                        t.closeDialog();
+                        if (t.onComplete) t.onComplete(ctx);
+                    } catch (e) {
+                        t.closeDialog();
+                        console.error(e);
+                        alert(e);
+                    }
+                }
+            });
+        }
+        async acceptDrag(status,ctx) {
+            const t=this;
+            for (let k in status) {
+                const s=status[k];
+                //s.file;
+                //s.status;
+                if (s.status==="uploaded" && s.file.ext()===".zip") {
+                    await t.unzip(s.file,ctx);
+                }
+            }
+            console.log("End acceptDrag");
+        }
+        showDialog(mesg) {
+            const t=this;
+            mesg=mesg||R("importingFromZip");
+            if (!t.dialog) {
+                t.dialog=UI("div",{title:R("importFromZip")},
+                    ["span",{$var:"mesg"}, mesg]
+                );
+                t.mesg=t.dialog.$vars.mesg;
+            } else {
+                t.mesg.text(mesg);
+            }
+            if (!t.dialogOpened) {
+                t.dialog.dialog({modal:true});
+            }
+            t.dialogOpened=true;
+        }
+        closeDialog() {
+            const t=this;
+            if (t.dialog) {
+                t.dialog.dialog("close");
+                t.dialogOpened=false;
+            }
+        }
+        unzip(file,ctx) {
+            // ctx.dstDir is set when fromPrjB, /Tonyu/Project/prjfile_0.00/
+            const t=this;
+            t.showDialog(R("unzipping",file.name()));
+            var zipexdir=t.tmpDir.rel(file.truncExt()+"/");
+            var opt={
+                progress: function (file) {
+                    t.showDialog(R("unzipping",file.name()));
+                    return new Promise(s=>setTimeout(s,0));
+                }
+            };
+            return FS.zip.unzip(file, zipexdir,opt ).then(function () {
+                if (ctx.rel) {
+                    zipexdir=zipexdir.rel(ctx.rel);
+                    if (!zipexdir.exists()) {
+                        return ctx;
+                    }
+                }
+                return t.traverse(zipexdir,ctx);
+            });
+        }
+        async traverse(dir,ctx) {
+            const t=this;
+            ctx=ctx||{};
+            ctx.imported=ctx.imported||0;
+            let imported=false;
+            for (let f of dir.listFiles()) {
+                t.showDialog(R("checking file",f.name()));
+                if (f.isDir()) continue;
+                if (f.name()==="options.json") {
+                    ctx.imported++;
+                    imported=true;
+                    await t.importFrom(f.up(),ctx);
+                } else {
+                    const ext=f.ext() && f.ext().replace(/^\./,"");
+                    if (LL[ext] && !ctx.detected) {
+                        ctx.detected={ext, dir};
+                    }
+                }
+            }
+            if (!imported) {
+                for (let f of dir.listFiles()) {
+                    t.showDialog(R("checking dir",f.name()));
+                    if (f.isDir()) {
+                        await t.traverse(f,ctx);
+                    }
+                }
+            }
+            if (ctx.imported===0 && ctx.detected) {
+                ctx.detected.dir.rel("options.json").obj({lang:ctx.detected.ext});
+                await t.importFrom(ctx.detected.dir, ctx);
+            }
+            return ctx;
+        }
+        async importFrom(src,ctx) {
+            const t=this;
+            var dst;
+            var dstParent=t.dir;
+            var nameT=FS.PathUtil.truncSEP(src.name());
+            if (nameT==="src") {
+                nameT=FS.PathUtil.truncSEP(src.up().name());
+            }
+            var name=nameT+"/";
+            dst=dstParent.rel(name);
+            var i=2;
+            while (dst.exists()) {
+                name=nameT+i+"/";
+                i++;
+                dst=dstParent.rel(name);
+            }
+            t.showDialog(R("copying",src.name(),dst.name()));
+            console.log("importFrom",src.path(), "to", dst.path());
+            const sync=src.rel(".sync/");
+            if (sync.exists()) {
+                sync.rm({r:1});
+            }
+            await src.copyTo(dst);
+            addMissingFiles()
+            t.showDialog("Syncing");
+            const res=await Sync.sync(dst,dst,{v:true});
+            console.log("Copy done",res);
+        }
+    }
+    function R(...args) {
+        return args.join(" ");
+    }
+
+
+    root.ProgramFileUploader=ProgramFileUploader;
+    ProgramFileUploader.ZipImporter=ZipImporter;
+    return ProgramFileUploader;
+});
+
 define('jsl_selProject',["FS","Shell","Shell2",
            "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog","RenameProjectDialog",
            "assert","DeferredUtil","RemoteProject","SplashScreen",
-       "ctrl","root"],
+       "ctrl","root","jshint","ProgramFileUploader"],
     function(FS, sh,sh2,
            NPD, UI, Auth,zip,Sync,NSD,RPD,
            A,DU,RemoteProject,SplashScreen,
-       ctrl,root) {
+       ctrl,root,jshint, ProgramFileUploader) {
     if (location.href.match(/localhost/)) {
         A.setMode(A.MODE_STRICT);
     } else {
@@ -10437,6 +10837,9 @@ function ready() {//-------------------------
     console.log(projects);
     projects.mkdir();
     sh.cd(projects);
+    new ProgramFileUploader.ZipImporter(projects, $("#prjItemList"),{
+        onComplete:ls
+    });
     var curDir=projects;
     var projectsInfo=[];// name not ends with / (truncated at function item() )
     function ls() {
@@ -10452,6 +10855,9 @@ function ready() {//-------------------------
             };
             d.sort(function (a,b) { return b.lastUpdate-a.lastUpdate;});
             d.forEach(item);
+            if (d.length==0) {
+                $("#prjItemList").css({height:300,width:"100%"});
+            }
         }).fail(function(e){
             console.log("list failed",e);
         });
@@ -10475,20 +10881,42 @@ function ready() {//-------------------------
             var f=projects.rel(e.name+"/");
             e.dir=f;
             var name=e.name;
-
+            const HNOP=jshint.scriptURL(";");
             if (!f.isDir()) return;
             //if (!f.rel("options.json").exists()) return;
-            var u=UI("div", {"class":"project"},
+            var u=UI("div", {"class":"project", on:{contextmenu:openSubmenu}},
                     //["a", {href:"?r=jsl_edit&dir="+f.path()},
                     ["a", {href:jsl_edit_url(f)},
                      ["img",{$var:"t",src:FS.expandPath("${sampleImg}/"+(e.language||"js")+".png")}],
                      ["div",{class:"name"}, name]],
                      ["div",
                       ["a",{class:"cmd_ren",on:{click:ren(name)}},"名前変更"], ["span"," "],
-                      ["a",{class:"cmd_del",on:{click:del(name)}},"削除"]]
+                      ["a",{class:"cmd_del",on:{click:del(name)}},"削除"]],
+                    ["span",{class:"dropdown-content"},
+                        ["a",{href:HNOP,class:"submenu",on:{click:()=>dlZip(f)}},"ZIPダウンロード"],
+                    ]
                   );
             u.appendTo("#prjItemList");
         }
+    }
+    function dlZip(f) {
+        console.log("DL", f.name());
+        FS.zip.zip(f);
+        closeSubmenu();
+    }
+    let submenu;
+    function closeSubmenu() {
+        if (submenu) {
+            $(submenu).find(".dropdown-content").removeClass("show");
+            submenu=null;
+        }
+    }
+    function openSubmenu(e) {
+        closeSubmenu();
+        submenu=this;
+        $(this).find(".dropdown-content").addClass("show");
+        e.preventDefault();
+        return false;
     }
     function ren(fromName) {//  not endswidth /
         return function () {

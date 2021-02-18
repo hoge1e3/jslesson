@@ -1,5 +1,5 @@
-define(["Visitor","IndentBuffer","context","PyLib"],
-function (Visitor,IndentBuffer,context,PL) {
+define(["Visitor","IndentBuffer","context","PyLib","PythonSemantics"],
+function (Visitor,IndentBuffer,context,PL,S) {
     var PYLIB="PYLIB";
     const vdef={
         program: function (node) {
@@ -50,10 +50,14 @@ function (Visitor,IndentBuffer,context,PL) {
                 this.printf("var %s=require('%s').install(%s);", node.name, url, PYLIB);
             }
         },
-
         fromImportStmt: function (node) {
             var url=this.options.pyLibPath+"/py_"+node.name+".js";
-            this.printf("var {%j}=require('%s').install(%s);", [",",node.localNames], url, PYLIB);
+            if (node.localNames.names.text==="*"){
+                this.printf("var {%s}=require('%s').install(%s);",
+                S.importable[node.name].browser.join(","), url, PYLIB);
+            } else {
+                this.printf("var {%j}=require('%s').install(%s);", [",",node.localNames.names], url, PYLIB);
+            }
         },
         exprStmt: function (node) {
             this.printf("%v;",node.expr);

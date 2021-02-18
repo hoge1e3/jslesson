@@ -1,11 +1,11 @@
 define(["FS","Shell","Shell2",
            "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog","RenameProjectDialog",
            "assert","DeferredUtil","RemoteProject","SplashScreen",
-       "ctrl","root"],
+       "ctrl","root","jshint","ProgramFileUploader"],
     function(FS, sh,sh2,
            NPD, UI, Auth,zip,Sync,NSD,RPD,
            A,DU,RemoteProject,SplashScreen,
-       ctrl,root) {
+       ctrl,root,jshint, ProgramFileUploader) {
     if (location.href.match(/localhost/)) {
         A.setMode(A.MODE_STRICT);
     } else {
@@ -76,6 +76,9 @@ function ready() {//-------------------------
     console.log(projects);
     projects.mkdir();
     sh.cd(projects);
+    new ProgramFileUploader.ZipImporter(projects, $("#prjItemList"),{
+        onComplete:ls
+    });
     var curDir=projects;
     var projectsInfo=[];// name not ends with / (truncated at function item() )
     function ls() {
@@ -91,6 +94,9 @@ function ready() {//-------------------------
             };
             d.sort(function (a,b) { return b.lastUpdate-a.lastUpdate;});
             d.forEach(item);
+            if (d.length==0) {
+                $("#prjItemList").css({height:300,width:"100%"});
+            }
         }).fail(function(e){
             console.log("list failed",e);
         });
@@ -114,20 +120,42 @@ function ready() {//-------------------------
             var f=projects.rel(e.name+"/");
             e.dir=f;
             var name=e.name;
-
+            const HNOP=jshint.scriptURL(";");
             if (!f.isDir()) return;
             //if (!f.rel("options.json").exists()) return;
-            var u=UI("div", {"class":"project"},
+            var u=UI("div", {"class":"project", on:{contextmenu:openSubmenu}},
                     //["a", {href:"?r=jsl_edit&dir="+f.path()},
                     ["a", {href:jsl_edit_url(f)},
                      ["img",{$var:"t",src:FS.expandPath("${sampleImg}/"+(e.language||"js")+".png")}],
                      ["div",{class:"name"}, name]],
                      ["div",
                       ["a",{class:"cmd_ren",on:{click:ren(name)}},"名前変更"], ["span"," "],
-                      ["a",{class:"cmd_del",on:{click:del(name)}},"削除"]]
+                      ["a",{class:"cmd_del",on:{click:del(name)}},"削除"]],
+                    ["span",{class:"dropdown-content"},
+                        ["a",{href:HNOP,class:"submenu",on:{click:()=>dlZip(f)}},"ZIPダウンロード"],
+                    ]
                   );
             u.appendTo("#prjItemList");
         }
+    }
+    function dlZip(f) {
+        console.log("DL", f.name());
+        FS.zip.zip(f);
+        closeSubmenu();
+    }
+    let submenu;
+    function closeSubmenu() {
+        if (submenu) {
+            $(submenu).find(".dropdown-content").removeClass("show");
+            submenu=null;
+        }
+    }
+    function openSubmenu(e) {
+        closeSubmenu();
+        submenu=this;
+        $(this).find(".dropdown-content").addClass("show");
+        e.preventDefault();
+        return false;
     }
     function ren(fromName) {//  not endswidth /
         return function () {

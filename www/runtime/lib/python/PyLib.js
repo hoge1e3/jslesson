@@ -860,7 +860,7 @@ define(function (require, exports, module) {
     });
 
     //---
-    PL.builtins = ["range", "input", "str", "int", "float", "object", "len", "type", "quit", "exit", "sorted", "abs", "min", "max", "list", "isinstance", "zip", "fillRect", "setColor", "setTimeout", "clearRect", "clear"];
+    PL.builtins = ["range", "input", "str", "int", "sum", "float", "object", "len", "type", "quit", "exit", "sorted", "abs", "min", "max", "list", "isinstance", "zip", "fillRect", "setColor", "setTimeout", "clearRect", "clear"];
     root.PYLIB = PL;
 
     function sprintfJS() {

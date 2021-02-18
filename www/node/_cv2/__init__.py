@@ -162,3 +162,4 @@ getGaussianKernel=c.getGaussianKernel
 matchTemplate=c.matchTemplate
 HoughLines=c.HoughLines
 HoughLinesP=c.HoughLinesP
+HoughCircles=c.HoughCircles

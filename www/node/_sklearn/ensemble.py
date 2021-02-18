@@ -1,0 +1,4 @@
+import sklearn.ensemble as e
+
+RandomForestClassifier=e.RandomForestClassifier
+RandomForestRegressor=e.RandomForestRegressor

@@ -53,7 +53,22 @@ function FileList(elem, options) {
     function isModified() {
     	return _mod;
     }
-    function ls(dir) {
+    const orderBy={
+        latest(a,b) {
+            if(a.lastUpdate>b.lastUpdate){
+                return -1;
+            }else if(a.lastUpdate<b.lastUpdate){
+                return 1;
+            }
+            return 0;
+        },
+        name(a,b) {
+            if (a.name>b.name) return 1;
+            else if (a.name<b.name) return -1;
+            else return 0;
+        }
+    };
+    function ls(dir, order="latest") {
         if (typeof dir=="string") dir=FS.get(dir);
         if (dir) {
             _curDir=dir;
@@ -88,14 +103,8 @@ function FileList(elem, options) {
         var tr=_curDir.getDirTree({style:"no-recursive"});
         var tra=[];
         for (var k in tr) { tra.push({name:k,lastUpdate:tr[k].lastUpdate}); }
-        tra=tra.sort(function (a,b) {
-    		if(a.lastUpdate>b.lastUpdate){
-    			return -1;
-    		}else if(a.lastUpdate<b.lastUpdate){
-    			return 1;
-    		}
-    		return 0;
-        });
+        tra=tra.sort(orderBy[order]||orderBy.latest);
+        //console.log(tra);
         var dirPath=_curDir.path();
         var P=FS.PathUtil;
         tra.forEach(function (e) {

@@ -1,12 +1,14 @@
 import numpy as n
 import bawrapper
-
+from . import random
+from . import fft
 float32=n.float32
 int32=n.int32
 nan=n.nan
 pi=n.pi
 e=n.e
 inf=n.inf
+zeros_like=n.zeros_like
 
 def arange(*a,**k):
     return n.arange(*a,**k)

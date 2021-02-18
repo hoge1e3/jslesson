@@ -6,8 +6,17 @@ cd $(dirname "$0")
 cnt=`ps -ax|grep "\bpython\b"|wc -l`
 #if [ $cnt -lt 50 ] ; then  # special-change
 #    timeout 10 node runpython.js $* # special-change
+duration=60
 if [ $cnt -lt 10 ] ; then
-    timeout 60 nodejs runpython.js $*
+    start_time=`date +%s`
+    timeout $duration nodejs runpython.js $*
+    end_time=`date +%s`
+    elapsed=`expr $end_time - $start_time`
+    #echo "Time=$elapsed"
+    if [ $elapsed -ge $duration ]
+    then
+        echo "実行時間が$duration 秒を過ぎたので強制終了しました。"
+    fi
 else
     echo "Pythonプログラムが多数実行されています。しばらくしてからもう一度実行してください。"
 fi

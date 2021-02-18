@@ -447,13 +447,13 @@ class ClassController {
                         $u->make();
                         $created++;
                         ?>
-                        <th>新規</th><th><?=$line[0]?></th><th><?=$line[1]?></th><th><?=$line[2]?></th></tr>
+                        <th>新規</th><th><?=$line[0]?></th><th><?=(isset($line[1])?$line[1]:"")?></th><th><?=(isset($line[2])?$line[2]:"")?></th></tr>
                         <?php
                     }else {
                         $u->edit();
                         $updated++;
                         ?>
-                        <th>変更</th><th><?=$line[0]?></th><th><?=$line[1]?></th><th><?=$line[2]?></th></tr>
+                        <th>変更</th><th><?=$line[0]?></th><th><?=(isset($line[1])?$line[1]:"")?></th><th><?=(isset($line[2])?$line[2]:"")?></th></tr>
                         <?php
                     }
                 }

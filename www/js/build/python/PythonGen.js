@@ -51,8 +51,11 @@ function (Visitor,IndentBuffer,assert) {
             const nameHead=node.name[0];
             const inf=this.importable[nameHead+""];
             const useWrapper=(inf && inf.wrapper);
-            this.printf("from %s%v import %j",useWrapper?"_":"",node.name,
-            [",", node.localNames]);
+            this.printf("from %s%v import %v",useWrapper?"_":"",node.name, node.localNames);
+        },
+        localNames: function (node) {
+            if (node.names.text==="*") this.printf("*");
+            else this.printf("%j",node.names);
         },
         globalStmt: function (node) {
             this.printf("global %j",[",",node.names]);
@@ -162,6 +165,9 @@ function (Visitor,IndentBuffer,assert) {
         },
         infixl: function(node) {
             this.printf("%v%v%v",node.left,node.op,node.right);
+        },
+        isnt: function () {
+            this.printf(" is not ");
         },
         postfix: function (node) {
             this.printf("%v%v",node.left,node.op);
