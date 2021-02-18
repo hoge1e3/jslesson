@@ -1812,7 +1812,8 @@ function (Grammar,Pos2RC/*,TError*/) {
         // why printStmt -> printStmt3?
         // because if parse print(x), as printStmt3, comma remains unparsed.
         stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt2","fromImportStmt","globalStmt","nodent"),
-        fromImportStmt: ["from",{name:"packageName"},"import",{localNames:sep1("symbol",",")}],
+        fromImportStmt: ["from",{name:"packageName"},"import",{localNames:"localNames"}],
+        localNames: [{names:or(sep1("symbol",","),"*")}],
         importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
         importStmt2: ["import",{elements:sep1("importElement",",")}],
         importElement: [{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
@@ -1859,7 +1860,7 @@ function (Grammar,Pos2RC/*,TError*/) {
                 //["infixl", or("+=","-=","*=","/=","%=")],
                 ["infixl", or("or")  ] ,
                 ["infixl", or("and")  ] ,
-                ["infixl", or("in",">=","<=","==","!=",">","<")  ] , //  + -  左結合２項演算子
+                ["infixl", or("in",">=","<=","==","!=",">","<","isnt","is")  ] , //  + -  左結合２項演算子
                 ["infixl", or("+","-")  ] , //  + -  左結合２項演算子
                 ["infixl", or("//","*","/","%")  ] , //  * 左結合２項演算子
                 ["infixl", or("**")],
@@ -1867,6 +1868,7 @@ function (Grammar,Pos2RC/*,TError*/) {
                 ["postfix" , or("args" , "memberRef","index") ] , // (a,b)  .x
             ]
         }),
+        isnt: ["is","not"],
         memberRef: [".",{name:"symOrResv"}],
         args: ["(",{body:sep0("arg",",")},")"],
         listComprehension: ["[",{elem:"expr"},"for",{vars:sep1("symbol",",")},"in",{set:"expr"},"]"],
@@ -2905,7 +2907,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
     });
 
     //---
-    PL.builtins = ["range", "input", "str", "int", "float", "object", "len", "type", "quit", "exit", "sorted", "abs", "min", "max", "list", "isinstance", "zip", "fillRect", "setColor", "setTimeout", "clearRect", "clear"];
+    PL.builtins = ["range", "input", "str", "int", "sum", "float", "object", "len", "type", "quit", "exit", "sorted", "abs", "min", "max", "list", "isinstance", "zip", "fillRect", "setColor", "setTimeout", "clearRect", "clear"];
     root.PYLIB = PL;
 
     function sprintfJS() {
@@ -3049,13 +3051,17 @@ const builtins=PyLib.builtins;//["print","range","int","str","float","input","le
 builtins.push("open");
 const importable={
     datetime:{server:true},
-    random:{browser:true,server:true},
-    math:{browser:true, server:true},
+    random:{browser:["random", "randrange", "randint", "shuffle", "sample", "choice"],server:true },
+    math:{browser:["fabs", "ceil", "floor", "sqrt"], server:true},
     //jp:true,
     //fs:{wrapper:true,server:true},
     re:{server:true},
-    g:{browser:true},
-    turtle:{browser:true},
+    g:{browser:[
+        "fillRect", "writeGraphicsLog", "clear", "update", "setColor",
+        "setLineWidth", "drawGrid", "setPen", "movePen", "setTextSize",
+        "drawString", "drawText", "drawNumber", "drawLine",
+        "fillOval", "getkey", "wait", "setTimeout"]},
+    turtle:{browser:["Turtle","forward","right","left","clear","position"] },
     requests:{server:true},//SPECIAL
     json:{server:true},//SPECIAL
     sys:{wrapper:true,server:true},
@@ -3068,7 +3074,10 @@ const importable={
     sklearn:{wrapper:true,server:true},
     os:{wrapper:true,server:true},
     urllib:{wrapper:true,server:true},
+    chainer:{server:true},
+    PIL:{server:true},
     bs4:{wrapper:true,server:true},
+    time:{wrapper:true,server:true},
     // turtle: js?
 };
 
@@ -3114,8 +3123,19 @@ const vdef={
     fromImportStmt: function (node) {
         const nameHead=node.name[0];
         this.checkImportable(nameHead);
-        for (let localName of node.localNames) {
-            this.addScope(localName,{kind:"local",localName});
+        if (node.localNames.names.text==="*") {
+            const names=Semantics.importable[nameHead][this.options.runAt];
+            if (names && names.join) {
+                for (let localName of names) {
+                    this.addScope(localName,{kind:"local",localName});
+                }
+            } else {
+                this.error(`from ${nameHead} import * は使えません。*の部分に使いたい命令をカンマ区切りで書いてください。`,node);
+            }
+        } else {
+            for (let localName of node.localNames.names) {
+                this.addScope(localName,{kind:"local",localName});
+            }
         }
     },
     classdef: function (node) {
@@ -3402,7 +3422,7 @@ const vdef={
 };
 const thru=["nodent","in",">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
   ">","<","=",".",":","+","-","*","/","%","(",")",",","not","and","or","True","False","None",
-  "passStmt","superCall"];
+  "passStmt","superCall","isnt"];
 for (let t of thru) {
     vdef[t]=()=>{};
 }
@@ -3455,7 +3475,8 @@ const Semantics= {
         v.checkImportable=function (nameHead) {
             //const nameHead=node.name[0];
             if (!importable[nameHead]) {
-                this.error(nameHead+" はインポートできません",nameHead);
+                //this.error(nameHead+" はインポートできません",nameHead);
+		importable[nameHead]={server:true};
             }
             if (this.options.runAt && !importable[nameHead][this.options.runAt]) {
                 let hint="．";
@@ -6911,8 +6932,11 @@ function (Visitor,IndentBuffer,assert) {
             const nameHead=node.name[0];
             const inf=this.importable[nameHead+""];
             const useWrapper=(inf && inf.wrapper);
-            this.printf("from %s%v import %j",useWrapper?"_":"",node.name,
-            [",", node.localNames]);
+            this.printf("from %s%v import %v",useWrapper?"_":"",node.name, node.localNames);
+        },
+        localNames: function (node) {
+            if (node.names.text==="*") this.printf("*");
+            else this.printf("%j",node.names);
         },
         globalStmt: function (node) {
             this.printf("global %j",[",",node.names]);
@@ -7023,6 +7047,9 @@ function (Visitor,IndentBuffer,assert) {
         infixl: function(node) {
             this.printf("%v%v%v",node.left,node.op,node.right);
         },
+        isnt: function () {
+            this.printf(" is not ");
+        },
         postfix: function (node) {
             this.printf("%v%v",node.left,node.op);
         },
@@ -7093,8 +7120,8 @@ function (Visitor,IndentBuffer,assert) {
     return gen;
 });
 
-define('Python2JS',["Visitor","IndentBuffer","context","PyLib"],
-function (Visitor,IndentBuffer,context,PL) {
+define('Python2JS',["Visitor","IndentBuffer","context","PyLib","PythonSemantics"],
+function (Visitor,IndentBuffer,context,PL,S) {
     var PYLIB="PYLIB";
     const vdef={
         program: function (node) {
@@ -7145,10 +7172,14 @@ function (Visitor,IndentBuffer,context,PL) {
                 this.printf("var %s=require('%s').install(%s);", node.name, url, PYLIB);
             }
         },
-
         fromImportStmt: function (node) {
             var url=this.options.pyLibPath+"/py_"+node.name+".js";
-            this.printf("var {%j}=require('%s').install(%s);", [",",node.localNames], url, PYLIB);
+            if (node.localNames.names.text==="*"){
+                this.printf("var {%s}=require('%s').install(%s);",
+                S.importable[node.name].browser.join(","), url, PYLIB);
+            } else {
+                this.printf("var {%j}=require('%s').install(%s);", [",",node.localNames.names], url, PYLIB);
+            }
         },
         exprStmt: function (node) {
             this.printf("%v;",node.expr);
