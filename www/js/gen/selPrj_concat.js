@@ -10527,8 +10527,8 @@ define('DragDrop',["FS","root"],function (FS,root) {
     return DragDrop;
 });
 
-define('ProgramFileUploader',["FS","DragDrop","root","UI","LanguageList","Sync"],
-function (FS,DragDrop,root,UI,LL,Sync) {
+define('ProgramFileUploader',["FS","DragDrop","root","UI","LanguageList","Sync","ProjectFactory"],
+function (FS,DragDrop,root,UI,LL,Sync,PF) {
     var P=FS.PathUtil;
     var ProgramFileUploader={
         acceptingEXT(prj) {
@@ -10743,7 +10743,10 @@ function (FS,DragDrop,root,UI,LL,Sync) {
                 sync.rm({r:1});
             }
             await src.copyTo(dst);
-            addMissingFiles()
+
+            const curPrj=PF.create("ba",{dir:dst});
+
+            ProgramFileUploader.addMissingFiles(curPrj);
             t.showDialog("Syncing");
             const res=await Sync.sync(dst,dst,{v:true});
             console.log("Copy done",res);
