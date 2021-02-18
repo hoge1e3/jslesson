@@ -203,7 +203,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
     p.getIndentFixer=function () {
         return {
             fix(t) {
-                return t.replace(/[”“?]/g,'"');
+		return t.replace(/[”“„]/g,'"');
             }
         };
     };
