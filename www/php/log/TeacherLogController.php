@@ -437,8 +437,8 @@ class TeacherLogController {
             }
             $detail=json_decode($log["detail"]);
             if(strpos($result,'Error') !== false){
-                $url = 'https://hooks.slack.com/services/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';
-                //$url = 'https://hooks.slack.com/services/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';
+                // URL設定はdata/config.shadow.php に移転しました。
+                $url = SLACK_BOT_URL;
                 $mesg="";
                 if ($detail && isset($detail->message)) {
                     $mesg=$detail->message;
