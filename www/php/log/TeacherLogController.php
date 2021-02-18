@@ -1,5 +1,5 @@
 <?php
-req("auth","DateUtil","pdo");
+req("auth","DateUtil","pdo","LogUtil");
 function enableIter() {
     if (param("enableIter",false)) {
         pdo_enableIter();
@@ -107,7 +107,7 @@ class TeacherLogController {
                 $user=$targetUser->name;
             }
             $targetUser=$class->getUser($user);
-            $canSeeOtherUsers=1;
+            $canSeeOtherUsersLogs=1;
         } else {
             $teacherObj=null;
             $teacher="NOT_TEACHER";
@@ -116,7 +116,7 @@ class TeacherLogController {
                 die("Not logged in");
             }
             if ($class->getOption("showOtherStudentsLogs")) {
-                $canSeeOtherUsers=1;
+                $canSeeOtherUsersLogs=1;
                 $user=param("user",null);
                 if ($user) {
                     $targetUser=$class->getUser($user);
@@ -171,10 +171,25 @@ class TeacherLogController {
         print json_encode($logs2);
     }
     static function view1new() {
-        $day=DateUtil::toInt(param("day",DateUtil::now()));
         $p=self::parseUser();
-        $targetUser=$p["user"];
-        $userName=$targetUser->name;
+        $logid=param("logid", false);
+        //print_r($p);
+        if ($logid && $p["canSeeOtherUsersLogs"]) {
+            //$log=LogUtil::get($id);
+            $log=pdo_select1("select * from log where id = ?",$logid);
+            //print_r($log);
+            $day = DateUtil::toDayTop($log->time);
+            $userName=$log->user;
+            $curClass=$p["user"]->_class;
+            if ($log->class !== $curClass->id) {
+                throw new Exception(" Class is different");
+            }
+            $targetUser=$curClass->getUser($userName);
+        } else {
+            $day=DateUtil::toInt(param("day",DateUtil::now()));
+            $targetUser=$p["user"];
+            $userName=$targetUser->name;
+        }
         $all=param("all",true);
         $teacherObj=Auth::curTeacher();
         if ($teacherObj) {
@@ -412,13 +427,88 @@ class TeacherLogController {
             print_r($raw);
             print("<BR> result=");
             print($raw->result);
+            $id=$log["id"];
+            $result=/*json_decode*/($log["result"]);
+            $name=/*json_decode*/($log["user"]);
+            $filename=/*json_decode*/($log["filename"]);
+            $code="";
+            if (isset($raw->code->C)) {
+                $code=$raw->code->C;
+            }
+            $detail=json_decode($log["detail"]);
+            if(strpos($result,'Error') !== false){
+                $url = 'https://hooks.slack.com/services/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';
+                //$url = 'https://hooks.slack.com/services/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';
+                $mesg="";
+                if ($detail && isset($detail->message)) {
+                    $mesg=$detail->message;
+                }
+                if ($detail && isset($detail->pos)) {
+                    $pos=$detail->pos;
+                    $code=substr($code, 0, $pos)."!!HERE!!".substr($code,$pos);
+                }
+                //https://api.slack.com/messaging/webhooks
+                $data = array(
+                    'payload' => json_encode( array(
+                        "text"=>"エラー配信テスト\n$id\n$name\n$filename\n$mesg\n$code"
+                        /*"blocks"=>array(
+        		                array(    "type"=> "section",
+        		                    "text"=> array(
+        			                        "type"=> "mrkdwn",
+        			                        "text"=> "Danny Torrence left the `following` review for your property:"
+                                        ))
+        	             )*/
+                    ))
+                );
+
+                $context = array(
+                    'http' => array(
+                                 'method'  => 'POST',
+                                 'header'  => implode("\r\n", array('Content-Type: application/x-www-form-urlencoded',)),
+                                 'content' => http_build_query($data)
+                    )
+                );
+
+                $html = file_get_contents($url, false, stream_context_create($context));
+
+                var_dump($http_response_header);
+
+                echo $html;
+            }
         }
+        /*ユーザごとに集計
+        $logs=[
+            ["user"=>"a", "mesg"=>"Error1"],
+            ["user"=>"a", "mesg"=>"Error2"],
+            ["user"=>"b", "mesg"=>"Error3"],
+            ["user"=>"a", "mesg"=>"Error4"],
+            ["user"=>"b", "mesg"=>"Error5"],
+            ["user"=>"a", "mesg"=>"Error6"],
+        ];
+
+        // $stat:
+        // ["a"=>  ["Error1","Erro2","Error4","Error6"],  "b"=>["Error3","Error5"]]
+        $stat=[];
+        foreach ($logs as $log) {
+            $user=$log["user"];
+            $mesg=$log["mesg"];
+            if (!isset($stat[$user])) {
+                $stat[$user]=[];
+            }
+            $stat[$user][]=$mesg;
+        }
+        print_r($stat);
+
+
+        */
         //print("$min - $max  max-min=".($max-$min)."count=".count($logs));
         // 指定された日時の$interval秒前までのログについて，エラーのものがあったらBotに送りつける
         //               (とりあえずは，エラーだろうがそうでなかろうが，表示するでもいいよ)
-        $url = 'https://hooks.slack.com/services/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';
+
+        //$url = 'https://hooks.slack.com/services/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';
 
 //https://api.slack.com/messaging/webhooks
+/*
         $data = array(
             'payload' => json_encode( array(
                 "text"=>"工事中!?"
@@ -429,9 +519,9 @@ class TeacherLogController {
         			                "text"=> "Danny Torrence left the `following` review for your property:"
                                 ))
         	     )*/
-             ))
-        );
-
+             //))
+        //);
+/*
         $context = array(
             'http' => array(
                    'method'  => 'POST',
@@ -445,6 +535,7 @@ class TeacherLogController {
         var_dump($http_response_header);
 
         echo $html;
+*/
 
 
     }
