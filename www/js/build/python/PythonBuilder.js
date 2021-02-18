@@ -110,20 +110,17 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
             });
         }));
     };
-    var superMode=false;
+    //var superMode=true;// docker
 
     p.compile=function (f,{runLocal,isMainFile}) {
         var pysrcF=f.src.py;
         var js;
         var anon,node,errSrc,needInput=false;
-        if (!superMode) {
+        if (runLocal) {// docker
             try {
                 node=PP.parse(pysrcF);
                 var vres=S.check(node,{srcFile:pysrcF, runAt: runLocal?"browser":"server"});
                 //var gen=G(node);
-                /*if(vres.useInput) {
-                    runLocal=true;
-                }*/
                 needInput=!!vres.useInput;
                 anon=vres.anon;
             } catch(e) {
@@ -149,7 +146,8 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
                 }
             }
         } else {
-            runLocal=false;
+            //--- docker do nothing
+            //runLocal=false;
         }
         //console.log("PPToken",PP.Tokenizer(pysrc).tokenize());
         var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
@@ -170,18 +168,18 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         // always run local default is not good for betupe-ji jikkou
         // this.runLocal=true;
     };
-    function checkSuperMode(){
+    /*function checkSuperMode(){
         if (typeof superMode==="number") return DU.resolve(superMode);
         return ctrl.post("RunPython/isSuper").then(function (r) {
             superMode=r-0;
             console.log("superMode",superMode);
             return superMode;
         });
-    }
+    }*/
     p.addMenu=async function (Menu) {
         var t=this;
-        const superMode=await checkSuperMode();
-        if (superMode) return;
+        //const superMode=await checkSuperMode();
+        //if (superMode) return;
         Menu.deleteMain("runMenu");
         Menu.appendMain(
             {label:"実行",id:"runPython",after:$("#fileMenu"),sub:
@@ -205,7 +203,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
     p.getIndentFixer=function () {
         return {
             fix(t) {
-                return t.replace(/[”“„]/g,'"');
+                return t.replace(/[”“?]/g,'"');
             }
         };
     };
