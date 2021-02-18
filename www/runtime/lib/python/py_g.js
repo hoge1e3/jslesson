@@ -207,6 +207,7 @@ define([],function () {
                 f();
             },t);
         };
+        console.log("py_g", Object.keys(lib));
         return lib;
     }
     return {install};

@@ -5,13 +5,17 @@ const builtins=PyLib.builtins;//["print","range","int","str","float","input","le
 builtins.push("open");
 const importable={
     datetime:{server:true},
-    random:{browser:true,server:true},
-    math:{browser:true, server:true},
+    random:{browser:["random", "randrange", "randint", "shuffle", "sample", "choice"],server:true },
+    math:{browser:["fabs", "ceil", "floor", "sqrt"], server:true},
     //jp:true,
     //fs:{wrapper:true,server:true},
     re:{server:true},
-    g:{browser:true},
-    turtle:{browser:true},
+    g:{browser:[
+        "fillRect", "writeGraphicsLog", "clear", "update", "setColor",
+        "setLineWidth", "drawGrid", "setPen", "movePen", "setTextSize",
+        "drawString", "drawText", "drawNumber", "drawLine",
+        "fillOval", "getkey", "wait", "setTimeout"]},
+    turtle:{browser:["Turtle","forward","right","left","clear","position"] },
     requests:{server:true},//SPECIAL
     json:{server:true},//SPECIAL
     sys:{wrapper:true,server:true},
@@ -71,8 +75,19 @@ const vdef={
     fromImportStmt: function (node) {
         const nameHead=node.name[0];
         this.checkImportable(nameHead);
-        for (let localName of node.localNames) {
-            this.addScope(localName,{kind:"local",localName});
+        if (node.localNames.names.text==="*") {
+            const names=Semantics.importable[nameHead][this.options.runAt];
+            if (names && names.join) {
+                for (let localName of names) {
+                    this.addScope(localName,{kind:"local",localName});
+                }
+            } else {
+                this.error(`from ${nameHead} import * は使えません。*の部分に使いたい命令をカンマ区切りで書いてください。`,node);
+            }
+        } else {
+            for (let localName of node.localNames.names) {
+                this.addScope(localName,{kind:"local",localName});
+            }
         }
     },
     classdef: function (node) {

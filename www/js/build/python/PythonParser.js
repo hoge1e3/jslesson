@@ -206,7 +206,8 @@ function (Grammar,Pos2RC/*,TError*/) {
         // why printStmt -> printStmt3?
         // because if parse print(x), as printStmt3, comma remains unparsed.
         stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt2","fromImportStmt","globalStmt","nodent"),
-        fromImportStmt: ["from",{name:"packageName"},"import",{localNames:sep1("symbol",",")}],
+        fromImportStmt: ["from",{name:"packageName"},"import",{localNames:"localNames"}],
+        localNames: [{names:or(sep1("symbol",","),"*")}],
         importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
         importStmt2: ["import",{elements:sep1("importElement",",")}],
         importElement: [{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],

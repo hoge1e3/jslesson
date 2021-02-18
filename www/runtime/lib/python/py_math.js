@@ -7,6 +7,7 @@ define([],function () {
             floor:Math.floor.bind(Math),
             sqrt:Math.sqrt.bind(Math),
         };
+        console.log("py_math", Object.keys(lib));
         return lib;
     }
     return {install};
