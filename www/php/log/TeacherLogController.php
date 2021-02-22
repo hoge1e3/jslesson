@@ -419,14 +419,15 @@ class TeacherLogController {
     	</form><?php
         $logs=$class->getAllLogs($min,$max);
         //print_r ($logs);
+        $errorLogs=[];
         foreach($logs as $log){
-            echo "<HR>\n";
+            /*echo "<HR>\n";
             print_r($log);
-            print("<BR> raw=");
+            print("<BR> raw=");*/
             $raw=json_decode($log["raw"]);
-            print_r($raw);
+            /*print_r($raw);
             print("<BR> result=");
-            print($raw->result);
+            print($raw->result);*/
             $id=$log["id"];
             $time=$log["time"];
             $nEtime="";
@@ -450,23 +451,24 @@ class TeacherLogController {
                     $pos=$detail->pos;
                     $code=substr($code, 0, $pos)."!!HERE!!".substr($code,$pos);
                 }
-                if(strpos($name,$log[user]) !== false){
-	            if($time>$nEtime){
-	                $nEtime=$time;
-	                $nEcode=$code;
-	            }
+                $errorLogs[]=array("user"=>$name, "mesg"=>$mesg, "code"=>$code, "time"=>$time,"filename"=>$filename);
+                /*if(strpos($name,$log["user"]) !== false){
+	                if($time>$nEtime){
+	                    $nEtime=$time;
+	                    $nEcode=$code;
+	                }
                 }
                 //https://api.slack.com/messaging/webhooks
                 $data = array(
                     'payload' => json_encode( array(
                         "text"=>"最新(過去)エラー配信テスト\n$id\n$name\n$filename\n$mesg\n$nEcode"
-                        /*"blocks"=>array(
+                        "blocks"=>array(
         		                array(    "type"=> "section",
         		                    "text"=> array(
         			                        "type"=> "mrkdwn",
         			                        "text"=> "Danny Torrence left the `following` review for your property:"
                                         ))
-        	             )*/
+        	             )
                     ))
                 );
 
@@ -482,11 +484,12 @@ class TeacherLogController {
 
                 var_dump($http_response_header);
 
-                echo $html;
+                echo $html;*/
             }
         }
-        /*ユーザごとに集計
-        $logs=[
+        //print_r($errorLogs);
+        //ユーザごとに集計
+        /*$logs=[
             ["user"=>"a", "mesg"=>"Error1"],
             ["user"=>"a", "mesg"=>"Error2"],
             ["user"=>"b", "mesg"=>"Error3"],
@@ -494,60 +497,74 @@ class TeacherLogController {
             ["user"=>"b", "mesg"=>"Error5"],
             ["user"=>"a", "mesg"=>"Error6"],
         ];
-
+*/
         // $stat:
         // ["a"=>  ["Error1","Erro2","Error4","Error6"],  "b"=>["Error3","Error5"]]
         $stat=[];
-        foreach ($logs as $log) {
+        foreach ($errorLogs as $log) {
             $user=$log["user"];
             $mesg=$log["mesg"];
+            $time=$log["time"];
+            $filename=/*json_decode*/($log["filename"]);
+            $code="";
+
             if (!isset($stat[$user])) {
                 $stat[$user]=[];
             }
-            $stat[$user][]=$mesg;
+            $stat[$user][]=$log;
         }
-        print_r($stat);
+        print_r("--------");
+        //print_r($stat);
+        foreach ($stat as $s) {
+          //print_r($s);
+          print_r("--------");
+          $count=count($s);
+          print_r($s[$count-1]);
+          $url = SLACK_BOT_URL;
+          $mesg=$s[$count-1]["mesg"];
+          $name=$s[$count-1]["user"];
+          //$id=$s[$count-1]["id"];
+          $filename=$s[$count-1]["filename"];
+  //https://api.slack.com/messaging/webhooks
+
+          $data = array(
+              'payload' => json_encode( array(
+                  "text"=>"最新(過去)エラー配信テスト\n$name\n$filename\n$mesg\n"
+                  /*"blocks"=>array(
+          		        array(    "type"=> "section",
+          		            "text"=> array(
+          			                "type"=> "mrkdwn",
+          			                "text"=> "Danny Torrence left the `following` review for your property:"
+                              ))
+          	     )*/
+               ))
+          );
+
+          $context = array(
+              'http' => array(
+                     'method'  => 'POST',
+                     'header'  => implode("\r\n", array('Content-Type: application/x-www-form-urlencoded',)),
+                     'content' => http_build_query($data)
+              )
+          );
+
+          $html = file_get_contents($url, false, stream_context_create($context));
+
+          var_dump($http_response_header);
+
+          echo $html;
 
 
-        */
+
+        }
+      }
+
+
         //print("$min - $max  max-min=".($max-$min)."count=".count($logs));
         // 指定された日時の$interval秒前までのログについて，エラーのものがあったらBotに送りつける
         //               (とりあえずは，エラーだろうがそうでなかろうが，表示するでもいいよ)
 
-        //$url = 'https://hooks.slack.com/services/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';
 
-//https://api.slack.com/messaging/webhooks
-/*
-        $data = array(
-            'payload' => json_encode( array(
-                "text"=>"工事中!?"
-                /*"blocks"=>array(
-        		        array(    "type"=> "section",
-        		            "text"=> array(
-        			                "type"=> "mrkdwn",
-        			                "text"=> "Danny Torrence left the `following` review for your property:"
-                                ))
-        	     )*/
-             //))
-        //);
-/*
-        $context = array(
-            'http' => array(
-                   'method'  => 'POST',
-                   'header'  => implode("\r\n", array('Content-Type: application/x-www-form-urlencoded',)),
-                   'content' => http_build_query($data)
-            )
-        );
-
-        $html = file_get_contents($url, false, stream_context_create($context));
-
-        var_dump($http_response_header);
-
-        echo $html;
-*/
-
-
-    }
     static function view() {
         date_default_timezone_set('Asia/Tokyo');
         $class=Auth::curClass2();
