@@ -82,8 +82,14 @@ define(function (require,exports,module) {
     };
     PL.str=function (s) {
         //  s==false
-        if (s!=null && s.__str__) return s.__str__();
+        if (s!=null && s.__str__) return s.__str__();// __OP__
         return s+"";
+    };
+    PL.sum=function (s,init=0) {
+        for (let e of s) {
+            init=init.__add__(e); // __OP__
+        }
+        return init;
     };
     PL.abs=function (s) {
         return Math.abs(s);
