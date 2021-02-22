@@ -389,7 +389,7 @@ class TeacherLogController {
         }
         $thisURL="a.php?TeacherLog/bot";
         $now=time();
-        $interval=param('interval',60);
+        $interval=param('interval',300);
         if(!param("Y",false)){
             $min=$now-$interval;
             $max=$now;
@@ -428,10 +428,13 @@ class TeacherLogController {
             print("<BR> result=");
             print($raw->result);
             $id=$log["id"];
+            $time=$log["time"];
+            $nEtime="";
             $result=/*json_decode*/($log["result"]);
             $name=/*json_decode*/($log["user"]);
             $filename=/*json_decode*/($log["filename"]);
             $code="";
+            $nEcode="";
             if (isset($raw->code->C)) {
                 $code=$raw->code->C;
             }
@@ -447,10 +450,16 @@ class TeacherLogController {
                     $pos=$detail->pos;
                     $code=substr($code, 0, $pos)."!!HERE!!".substr($code,$pos);
                 }
+                if(strpos($name,$log[user]) !== false){
+	            if($time>$nEtime){
+	                $nEtime=$time;
+	                $nEcode=$code;
+	            }
+                }
                 //https://api.slack.com/messaging/webhooks
                 $data = array(
                     'payload' => json_encode( array(
-                        "text"=>"エラー配信テスト\n$id\n$name\n$filename\n$mesg\n$code"
+                        "text"=>"最新(過去)エラー配信テスト\n$id\n$name\n$filename\n$mesg\n$nEcode"
                         /*"blocks"=>array(
         		                array(    "type"=> "section",
         		                    "text"=> array(

@@ -148,11 +148,12 @@ class TeacherController {
         ?>
         <h1>教員追加</h1>
         <form action="?Teacher/addDone" method="POST">
-            所属と氏名 <input name="cname" size=50><BR>
+            所属と氏名 <input name="cname" size=50>様<BR>
             メールアドレス <input name="mail"><BR>
-            パスワード <input name="pass"><BR>
+            パスワード <input name="pass" id="pasu"><BR>
             <input type="submit">
         </form>
+        <script>document.querySelector("#pasu").value=(Math.random()+"").substring(2,8);</script>
         <?php
     }
     static function addDone() {
