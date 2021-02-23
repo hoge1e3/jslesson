@@ -523,13 +523,13 @@ class TeacherLogController {
           $url = SLACK_BOT_URL;
           $mesg=$s[$count-1]["mesg"];
           $name=$s[$count-1]["user"];
-          //$id=$s[$count-1]["id"];
+          $code=$s[$count-1]["code"];
           $filename=$s[$count-1]["filename"];
   //https://api.slack.com/messaging/webhooks
 
           $data = array(
               'payload' => json_encode( array(
-                  "text"=>"最新(過去)エラー配信テスト\n$name\n$filename\n$mesg\n"
+                  "text"=>"最新(過去)エラー配信テスト\n$name\n$filename\n$mesg\n$code\n"
                   /*"blocks"=>array(
           		        array(    "type"=> "section",
           		            "text"=> array(
