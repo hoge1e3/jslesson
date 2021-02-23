@@ -55,7 +55,7 @@ function (Visitor,IndentBuffer,assert) {
         },
         localNames: function (node) {
             if (node.names.text==="*") this.printf("*");
-            else this.printf("%j",node.names);
+            else this.printf("%j",[",",node.names]);
         },
         globalStmt: function (node) {
             this.printf("global %j",[",",node.names]);
