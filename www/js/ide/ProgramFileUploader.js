@@ -28,7 +28,7 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
                         if (status[k].status==="uploaded") {
                             var srcFile=status[k].file;
                             var srcDir=srcFile.up();
-                            var name=srcFile.truncExt();
+                            var name=srcFile.truncExt();//.p5.js
                             var srcPfile=srcDir.rel(name+EXT);
                             var dstPfile=dstDir.rel(name+EXT);
                             var srcHfile=srcDir.rel(name+HEXT);

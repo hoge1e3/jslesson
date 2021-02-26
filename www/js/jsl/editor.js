@@ -504,7 +504,7 @@ function ready() {
             return;
         }
         var old=inf.file;
-        var oldName=old.truncExt();
+        var oldName=curPrj.truncEXT(old);//old.truncExt();//.p5.js
         FM.dialogOpt({title:"コピー", name:oldName, action:"cp", onend:function (_new) {
             if (!_new) return;
             var olds=fileSet(old);
@@ -554,14 +554,16 @@ function ready() {
     FM.on.ls=ls;
     FM.on.validateName=fixName;
     FM.on.createContent=function (f) {
-        if (f.ext()==EXT || f.ext()==HEXT) {
+        //console.log("FM.on.createContent", f, f.ext(), EXT, HEXT);
+        if (curPrj.isHTMLFile(f) || curPrj.isLogicFile(f)) {
+            //console.log("FM.on.createContent fileSet",fileSet(f));
             fileSet(f).forEach(function (e) {
-                if (e.ext()==EXT && !e.exists()) {
+                if (curPrj.isLogicFile(e) && !e.exists()) {
                     //e.text((lang=="py"?"# ":"// ")+langInfo.en+"\n");
                     if(lang=="js") e.text(/*"// "+langInfo.en+"\n*/
                     "// ここで扱われるJavaScriptは通常のJavaScriptとは異なります。詳しくは使用方法をご覧ください。\n");
                     else e.text("");
-                } else if (e.ext()==HEXT  && !e.exists()) {
+                } else if (curPrj.isHTMLFile(e)  && !e.exists()) {
                     e.text("<html>\n\n</html>");
                 } else if (!e.exists()) {
                     e.text("");
@@ -631,7 +633,7 @@ function ready() {
         //                          Why commented out??
         //  in dtl mode, if A.html is newer than A.dtl, "A" will be bound to "A.html"
         //      but html tab is not shown  -> cannot edit A.dtl, kowareta!!
-        if (P.endsWith(name,EXT) /*|| P.endsWith(name,HEXT)*/) return P.truncExt(name);
+        if (curPrj.isLogicFile(name) /*|| P.endsWith(name,HEXT)*/) return curPrj.truncEXT(name);//P.truncExt(name);//.p5.js
         return null;
     }
     function dispNameFM(name) {
@@ -640,7 +642,7 @@ function ready() {
         if (P.startsWith(name,".")) return null;
         if (P.isDir(name)) return name;
         //      this is used for mvdiag, both A.js and A.html shoud be "A"
-        if (P.endsWith(name,EXT) || P.endsWith(name,HEXT)) return P.truncExt(name);
+        if (curPrj.isHTMLFile(name) || curPrj.isLogicFile(name)) return curPrj.truncEXT(name);//P.truncExt(name);//.p5.js
         return null;
     }
     function fixName(name, options) {
@@ -978,7 +980,7 @@ function ready() {
         var curFile=inf.file; //fl.curFile();
         var prog=inf.editor; //getCurrentEditor();
         if (curFile && prog && !curFile.isReadOnly()) {
-            if (curFile.ext()==EXT) fixEditorIndent(prog);
+            if (curPrj.isLogicFile(curFile)) fixEditorIndent(prog);
             else fixZSpace(prog);
             var old=curFile.text();
             var nw=prog.getValue();
@@ -1025,7 +1027,7 @@ function ready() {
     }
     function fileSet(c) {
         A.is(c,"SFile");
-        var n=c.truncExt();
+        var n=curPrj.truncEXT(c);//c.truncExt();//.p5.js
         return [c.up().rel(n+HEXT), c.up().rel(n+EXT)];
     }
     $(".selTab").click(function () {
@@ -1035,7 +1037,7 @@ function ready() {
             alert("まず、メニューの「ファイル」→「新規」でファイルを作るか、左のファイル一覧からファイルを選んでください。");
             return;
         }
-        var n=c.truncExt();
+        var n=curPrj.truncEXT(c);//c.truncExt();//.p5.js
         var f=c.up().rel(n+ext);
         if (!f.exists()) {
             FM.on.createContent(f);
@@ -1059,8 +1061,9 @@ function ready() {
         save();
         if (curDOM) curDOM.hide();
         var inf=editors[f.path()];
+        const ext=(curPrj.isLogicFile(f)?EXT:curPrj.isHTMLFile(f)?HEXT:"");
         $(".selTab").removeClass("selected");
-        $(".selTab[data-ext='"+f.ext()+"']").addClass("selected");
+        $(".selTab[data-ext='"+ext+"']").addClass("selected");
         if (!inf) {
             var progDOM=$("<pre>").css("height", screenH+"px").text(f.text()).appendTo("#progs");
             progDOM.attr("data-file",f.name());
@@ -1073,19 +1076,20 @@ function ready() {
             //defaultKeyboard=prog.getKeyboardHandler();
             //if(desktopEnv.editorMode=="emacs") prog.setKeyboardHandler("ace/keyboard/emacs");
             //prog.setKeyboardHandler(defaultKeyboard);
-            if (f.ext()==EXT && lang=="c") {
+            const isLogicFile=curPrj.isLogicFile(f);
+            if (isLogicFile && lang=="c") {
                 //console.log("mode/c/set");
                 prog.getSession().setMode("ace/mode/c_cpp");
             }
-            else if (f.ext()==EXT && lang=="py") {
+            else if (isLogicFile && lang=="py") {
                 //console.log("mode/python/set");
                 prog.getSession().setMode("ace/mode/python");
             }
-            else if (f.ext()==EXT) {
+            else if (isLogicFile) {
                 //console.log("mode/tonyu/set");
                 prog.getSession().setMode("ace/mode/tonyu");
             }
-            if (f.ext()==HEXT) {
+            if (curPrj.isHTMLFile(f)) {
                 //console.log("mode/html/set");
                 prog.getSession().setMode("ace/mode/html");
             }
@@ -1121,7 +1125,7 @@ function ready() {
             UI("a",{"href": ctrl.url("TeacherLog/diffSeq",{hint:1,file:filePath}), "target":"hint"},
             "ヒントを見る")
         );
-        $("#curFileLabel").text(f.truncExt());
+        $("#curFileLabel").text(curPrj.truncEXT(f)/*f.truncExt()*/);//.p5.js
         if (disableNote===false) socializeDialog.show(inf.file);
     }
     root.d=function () {
