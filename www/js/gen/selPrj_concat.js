@@ -9208,6 +9208,14 @@ define('ProjectFactory',['require','exports','module','BuilderClient','Util','De
     const F=BuilderClient.ProjectFactory;
     const Util=require("Util");
     const DU=require("DeferredUtil");
+    const HEXT=".html";
+    function getName(file) {
+        if (typeof file.name==="function") file=file.name();
+        if (typeof file!=="string") {
+            throw new Error(`truncEXT: ${file} is not a string.`);
+        }
+        return file;
+    }
     F.addType("ba",params=>{
         const res=F.createDirBasedCore(params);
         Util.extend(res,{
@@ -9227,6 +9235,22 @@ define('ProjectFactory',['require','exports','module','BuilderClient','Util','De
         		else TPR.EXT="."+opt.language;
         		return TPR.EXT;
         	},
+            truncEXT: function (file) {
+                file=getName(file);
+                const EXT=this.getEXT();
+                if (file.endsWith(HEXT)) return file.substring(0,file.length-HEXT.length);
+                if (file.endsWith(EXT)) return file.substring(0,file.length-EXT.length);
+                throw new Error(`truncEXT: '${file}' ends with neither ${HEXT} nor ${EXT}.`);
+            },
+            isLogicFile: function (file) {
+                file=getName(file);
+                const EXT=this.getEXT();
+                return file.endsWith(EXT);
+            },
+            isHTMLFile: function (file) {
+                file=getName(file);
+                return file.endsWith(HEXT);
+            },
         	fixOptions: function (opt) {
         		if (!opt.compiler) opt.compiler={};
         	},
@@ -9282,6 +9306,8 @@ define('LanguageList',['require','exports','module'],function (require, exports,
             helpURL:"http://bitarrow.eplang.jp/index.php?tonyu"},
         "php":{en:"PHP", ja:"PHP",builder:"PHPBuilder",
             helpURL:"http://bitarrow.eplang.jp/index.php?php"},
+        "p5.js":{en:"p5.js", ja:"p5.js",builder:"P5Builder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?p5"},
     };
 });
 
@@ -10557,7 +10583,7 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
                         if (status[k].status==="uploaded") {
                             var srcFile=status[k].file;
                             var srcDir=srcFile.up();
-                            var name=srcFile.truncExt();
+                            var name=srcFile.truncExt();//.p5.js
                             var srcPfile=srcDir.rel(name+EXT);
                             var dstPfile=dstDir.rel(name+EXT);
                             var srcHfile=srcDir.rel(name+HEXT);
