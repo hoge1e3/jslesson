@@ -1077,19 +1077,11 @@ function ready() {
             //if(desktopEnv.editorMode=="emacs") prog.setKeyboardHandler("ace/keyboard/emacs");
             //prog.setKeyboardHandler(defaultKeyboard);
             const isLogicFile=curPrj.isLogicFile(f);
-            if (isLogicFile && lang=="c") {
+            if (isLogicFile) {
+                const mode=langInfo.mode || "ace/mode/tonyu";                
                 //console.log("mode/c/set");
-                prog.getSession().setMode("ace/mode/c_cpp");
-            }
-            else if (isLogicFile && lang=="py") {
-                //console.log("mode/python/set");
-                prog.getSession().setMode("ace/mode/python");
-            }
-            else if (isLogicFile) {
-                //console.log("mode/tonyu/set");
-                prog.getSession().setMode("ace/mode/tonyu");
-            }
-            if (curPrj.isHTMLFile(f)) {
+                prog.getSession().setMode(mode);
+            } else if (curPrj.isHTMLFile(f)) {
                 //console.log("mode/html/set");
                 prog.getSession().setMode("ace/mode/html");
             }
