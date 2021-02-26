@@ -3,6 +3,14 @@ define(function (require, exports, module) {
     const F=BuilderClient.ProjectFactory;
     const Util=require("Util");
     const DU=require("DeferredUtil");
+    const HEXT=".html";
+    function getName(file) {
+        if (typeof file.name==="function") file=file.name();
+        if (typeof file!=="string") {
+            throw new Error(`truncEXT: ${file} is not a string.`);
+        }
+        return file;
+    }
     F.addType("ba",params=>{
         const res=F.createDirBasedCore(params);
         Util.extend(res,{
@@ -22,6 +30,22 @@ define(function (require, exports, module) {
         		else TPR.EXT="."+opt.language;
         		return TPR.EXT;
         	},
+            truncEXT: function (file) {
+                file=getName(file);
+                const EXT=this.getEXT();
+                if (file.endsWith(HEXT)) return file.substring(0,file.length-HEXT.length);
+                if (file.endsWith(EXT)) return file.substring(0,file.length-EXT.length);
+                throw new Error(`truncEXT: '${file}' ends with neither ${HEXT} nor ${EXT}.`);
+            },
+            isLogicFile: function (file) {
+                file=getName(file);
+                const EXT=this.getEXT();
+                return file.endsWith(EXT);
+            },
+            isHTMLFile: function (file) {
+                file=getName(file);
+                return file.endsWith(HEXT);
+            },
         	fixOptions: function (opt) {
         		if (!opt.compiler) opt.compiler={};
         	},

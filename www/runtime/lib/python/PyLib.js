@@ -120,8 +120,37 @@ define(function (require, exports, module) {
     };
     PL.str = function (s) {
         //  s==false
-        if (s != null && s.__str__) return s.__str__();
+        if (s != null && s.__str__) return s.__str__(); // __OP__
         return s + "";
+    };
+    PL.sum = function (s) {
+        var init = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+        var _iteratorNormalCompletion2 = true;
+        var _didIteratorError2 = false;
+        var _iteratorError2 = undefined;
+
+        try {
+            for (var _iterator2 = s[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                var e = _step2.value;
+
+                init = init.__add__(e); // __OP__
+            }
+        } catch (err) {
+            _didIteratorError2 = true;
+            _iteratorError2 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                    _iterator2.return();
+                }
+            } finally {
+                if (_didIteratorError2) {
+                    throw _iteratorError2;
+                }
+            }
+        }
+
+        return init;
     };
     PL.abs = function (s) {
         return Math.abs(s);
@@ -334,28 +363,28 @@ define(function (require, exports, module) {
         }
         //console.log("superprot",superprot.CLASSNAME);
         var res = {};
-        var _iteratorNormalCompletion2 = true;
-        var _didIteratorError2 = false;
-        var _iteratorError2 = undefined;
+        var _iteratorNormalCompletion3 = true;
+        var _didIteratorError3 = false;
+        var _iteratorError3 = undefined;
 
         try {
-            for (var _iterator2 = klass.__methodnames__[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-                var meth = _step2.value;
+            for (var _iterator3 = klass.__methodnames__[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                var meth = _step3.value;
 
                 if (typeof superprot[meth] !== "function") continue;
                 Object.defineProperty(res, meth, { value: superprot[meth].bind(self) });
             }
         } catch (err) {
-            _didIteratorError2 = true;
-            _iteratorError2 = err;
+            _didIteratorError3 = true;
+            _iteratorError3 = err;
         } finally {
             try {
-                if (!_iteratorNormalCompletion2 && _iterator2.return) {
-                    _iterator2.return();
+                if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                    _iterator3.return();
                 }
             } finally {
-                if (_didIteratorError2) {
-                    throw _iteratorError2;
+                if (_didIteratorError3) {
+                    throw _iteratorError3;
                 }
             }
         }
@@ -593,13 +622,13 @@ define(function (require, exports, module) {
                 args[_key4 - 1] = arguments[_key4];
             }
 
-            var _iteratorNormalCompletion3 = true;
-            var _didIteratorError3 = false;
-            var _iteratorError3 = undefined;
+            var _iteratorNormalCompletion4 = true;
+            var _didIteratorError4 = false;
+            var _iteratorError4 = undefined;
 
             try {
-                for (var _iterator3 = args[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-                    var _a = _step3.value;
+                for (var _iterator4 = args[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                    var _a = _step4.value;
 
                     if (_a instanceof PL.Option) {
                         Object.assign(o, _a);
@@ -609,16 +638,16 @@ define(function (require, exports, module) {
                     i++;
                 }
             } catch (err) {
-                _didIteratorError3 = true;
-                _iteratorError3 = err;
+                _didIteratorError4 = true;
+                _iteratorError4 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion3 && _iterator3.return) {
-                        _iterator3.return();
+                    if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                        _iterator4.return();
                     }
                 } finally {
-                    if (_didIteratorError3) {
-                        throw _iteratorError3;
+                    if (_didIteratorError4) {
+                        throw _iteratorError4;
                     }
                 }
             }
@@ -750,27 +779,27 @@ define(function (require, exports, module) {
         __getitem__: function __getitem__(self, key) {
             if (key instanceof PL.Slice) {
                 var res = [];
-                var _iteratorNormalCompletion4 = true;
-                var _didIteratorError4 = false;
-                var _iteratorError4 = undefined;
+                var _iteratorNormalCompletion5 = true;
+                var _didIteratorError5 = false;
+                var _iteratorError5 = undefined;
 
                 try {
-                    for (var _iterator4 = sliceToIndex(this, key)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-                        var i = _step4.value;
+                    for (var _iterator5 = sliceToIndex(this, key)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                        var i = _step5.value;
 
                         res.push(this[i]);
                     }
                 } catch (err) {
-                    _didIteratorError4 = true;
-                    _iteratorError4 = err;
+                    _didIteratorError5 = true;
+                    _iteratorError5 = err;
                 } finally {
                     try {
-                        if (!_iteratorNormalCompletion4 && _iterator4.return) {
-                            _iterator4.return();
+                        if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                            _iterator5.return();
                         }
                     } finally {
-                        if (_didIteratorError4) {
-                            throw _iteratorError4;
+                        if (_didIteratorError5) {
+                            throw _iteratorError5;
                         }
                     }
                 }
@@ -784,27 +813,27 @@ define(function (require, exports, module) {
         __setitem__: function __setitem__(self, key, value) {
             if (key instanceof PL.Slice) {
                 var it = value[Symbol.iterator]();
-                var _iteratorNormalCompletion5 = true;
-                var _didIteratorError5 = false;
-                var _iteratorError5 = undefined;
+                var _iteratorNormalCompletion6 = true;
+                var _didIteratorError6 = false;
+                var _iteratorError6 = undefined;
 
                 try {
-                    for (var _iterator5 = sliceToIndex(this, key)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-                        var i = _step5.value;
+                    for (var _iterator6 = sliceToIndex(this, key)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+                        var i = _step6.value;
 
                         this[i] = it.next().value;
                     }
                 } catch (err) {
-                    _didIteratorError5 = true;
-                    _iteratorError5 = err;
+                    _didIteratorError6 = true;
+                    _iteratorError6 = err;
                 } finally {
                     try {
-                        if (!_iteratorNormalCompletion5 && _iterator5.return) {
-                            _iterator5.return();
+                        if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                            _iterator6.return();
                         }
                     } finally {
-                        if (_didIteratorError5) {
-                            throw _iteratorError5;
+                        if (_didIteratorError6) {
+                            throw _iteratorError6;
                         }
                     }
                 }

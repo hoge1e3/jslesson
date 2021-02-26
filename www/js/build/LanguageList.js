@@ -14,5 +14,7 @@ define(function (require, exports, module) {
             helpURL:"http://bitarrow.eplang.jp/index.php?tonyu"},
         "php":{en:"PHP", ja:"PHP",builder:"PHPBuilder",
             helpURL:"http://bitarrow.eplang.jp/index.php?php"},
+        "p5.js":{en:"p5.js", ja:"p5.js",builder:"P5Builder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?p5"},
     };
 });
