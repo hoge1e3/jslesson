@@ -108,6 +108,15 @@ class LogUtil {
         }
         return $r;
     }
-
+    static function getCode($raw) {
+        if (!isset($raw->code)) return "";
+        $code=$raw->code;
+        foreach ($code as $lang=>$code) {
+            if ($lang ==="HTML") continue;
+            if ($lang ==="html") continue;
+            return $code;
+        }
+        return "";
+    }
 }
 ?>

@@ -100,7 +100,7 @@ define(function (require) {
         }).fail(function (e) {
             if (!e) e="Unknown error";
             logToServer2("","","","SYNC ERROR!",
-            (e.stack || e.responseText || e));
+            e,"System");
             console.log(e);
             alert("保存に失敗しました。");
         });
@@ -858,7 +858,7 @@ function ready() {
             console.log(e,e.stack);
             if (e.isTError) {
                 errorDialog.show(e);//showErrorPos($("#errorPos"),e);
-                logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Compile Error",e.src+":"+e.pos+"\n"+e.mesg,langInfo.en);
+                logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Compile Error",/*e.src+":"+e.pos+"\n"+e.mesg*/e,langInfo.en);
             } else {
                 EC.handleException(e);
             }
@@ -911,6 +911,7 @@ function ready() {
             return;
         }
         errorDialog.show(e);
+        // TODO errorDialogで表示した結果（posとか)を含めてlogToServer2
         var inf=getCurrentEditorInfo();
         if (!inf) return;
         var curFile=inf && inf.file;
@@ -920,7 +921,7 @@ function ready() {
         if (curJSFile) {
             var posinfo="";
             if (e.srcPath && e.pos) posinfo="("+e.srcPath+":"+e.pos+")";
-            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langInfo.en+" Runtime Error",posinfo+(e.stack || e),langInfo.en);
+            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langInfo.en+" Runtime Error",e/*posinfo+(e.stack || e)*/,langInfo.en);
         }
     };
     function close(rm) { // rm or mv
@@ -1078,7 +1079,7 @@ function ready() {
             //prog.setKeyboardHandler(defaultKeyboard);
             const isLogicFile=curPrj.isLogicFile(f);
             if (isLogicFile) {
-                const mode=langInfo.mode || "ace/mode/tonyu";                
+                const mode=langInfo.mode || "ace/mode/tonyu";
                 //console.log("mode/c/set");
                 prog.getSession().setMode(mode);
             } else if (curPrj.isHTMLFile(f)) {
