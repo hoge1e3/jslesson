@@ -16,6 +16,18 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace,EventHandler) {
             return s;
         }
     };*/
+    function decodeSrc(src){
+        if (!src) return src;
+        let text="unknown", name="unknown";
+        if (typeof src==="string") {
+            return {text:src, name};
+        }
+        if (typeof src.text==="function") text=src.text();
+        if (typeof src.text==="string") text=src.text;
+        if (typeof src.name==="function") name=src.name();
+        if (typeof src.name==="string") name=src.name;
+        return {text, name};
+    }
     return Klass.define({
         $this:true,
         $: t=>{
@@ -73,15 +85,15 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace,EventHandler) {
                 mesg//+" 場所："+src.name()+(typeof row=="number"?":"+p.row+":"+p.col:"")
             );
             t.events.fire("show",{mesg, src,pos,trace, dialog:t, error});
+            src=decodeSrc(src);
             if (src && pos!=null) {
-                var str=typeof src==="string"?src:src.text();
-                var p=new Pos2RC(str).getAll(pos);
-                if (appendPos) t.mesgd.append("場所："+src.name()+":"+p.row+":"+p.col);
+                var p=new Pos2RC(src.text).getAll(pos);
+                if (appendPos) t.mesgd.append("場所："+src.name+":"+p.row+":"+p.col);
                 t.srcd.show();
                 t.srcd.empty();
-                t.srcd.append($("<span>").text(str.substring(0,p.pos)));
+                t.srcd.append($("<span>").text(src.text.substring(0,p.pos)));
                 t.srcd.append($("<img>").attr("src",FS.expandPath("${sampleImg}/ecl.png")));//MODJSL
-                t.srcd.append($("<span>").text(str.substring(p.pos)));
+                t.srcd.append($("<span>").text(src.text.substring(p.pos)));
             } else {
                 t.srcd.hide();
             }

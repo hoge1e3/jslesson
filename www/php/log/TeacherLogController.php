@@ -434,11 +434,8 @@ class TeacherLogController {
             $result=/*json_decode*/($log["result"]);
             $name=/*json_decode*/($log["user"]);
             $filename=/*json_decode*/($log["filename"]);
-            $code="";
             $nEcode="";
-            if (isset($raw->code->C)) {
-                $code=$raw->code->C;
-            }
+            $code=LogUtil::getCode($raw);
             $detail=json_decode($log["detail"]);
             if(strpos($result,'Error') !== false){
                 // URL設定はdata/config.shadow.php に移転しました。
@@ -449,7 +446,7 @@ class TeacherLogController {
                 }
                 if ($detail && isset($detail->pos)) {
                     $pos=$detail->pos;
-                    $code=substr($code, 0, $pos)."!!HERE!!".substr($code,$pos);
+                    $code=substr($code, 0, $pos).":warning::white_check_mark::ballot_box_with_check::x::ng:!!HERE!!:grey_exclamation::exclamation::koko::bangbang:".substr($code,$pos);
                 }
                 $errorLogs[]=array("user"=>$name, "mesg"=>$mesg, "code"=>$code, "time"=>$time,"filename"=>$filename);
                 /*if(strpos($name,$log["user"]) !== false){
@@ -529,7 +526,7 @@ class TeacherLogController {
 
           $data = array(
               'payload' => json_encode( array(
-                  "text"=>"最新(過去)エラー配信テスト\n$name\n$filename\n$mesg\n$code\n"
+                  "text"=>"エラー箇所視認性テスト\n$name\n$filename\n$mesg\n$code\n"
                   /*"blocks"=>array(
           		        array(    "type"=> "section",
           		            "text"=> array(

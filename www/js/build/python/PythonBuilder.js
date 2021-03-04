@@ -1,7 +1,7 @@
 define(["assert","DeferredUtil","wget", "IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator",
-"PythonParser","PythonSemantics","PythonGen","Python2JS","ctrl","root","WebSite","TError"],
+"PythonParser","PythonSemantics","PythonGen","Python2JS","ctrl","root","WebSite","TError","DelayedCompileError"],
 function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
-    PP,S,G,J,ctrl,root,WebSite,TError) {//<-dtl
+    PP,S,G,J,ctrl,root,WebSite,TError,DelayedCompileError) {//<-dtl
     var PythonBuilder=function (prj, dst,ide) {//<-Dtl
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
@@ -126,7 +126,9 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
             } catch(e) {
                 if (!isMainFile && (e.node || typeof e.pos==="number")) {
                     var pos=e.node?e.node.pos:e.pos;
-                    errSrc=
+                    e.pos=pos;
+                    errSrc=DelayedCompileError(e);
+                    /*errSrc=
                     "var e=new Error("+JSON.stringify(e.message)+");"+
                     "e.src={"+
                         "text: function (){return "+JSON.stringify(pysrcF.text().replace(/\r/g,""))+";},"+
@@ -137,7 +139,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
                         "window.parent.closeRunDialog();"+
                     "}"+
                     "throw e;";
-
+                    */
                     //throw TError(e.message,pysrcF,e.node.pos);
 
                 } else {

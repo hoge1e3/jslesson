@@ -23,9 +23,7 @@ define(function (require, exports, module) {
             //console.log("url",url);
             //dh.text(`<html><script>location.href="${url}";</script></html>`);
             html.text(`<html>
-                <script>
-                ${code}
-                </script>
+                <script src="${p5.name()}"></script>
                 <script src="${p5jsURL}"></script>
             </html>`);
             //return url;
@@ -42,8 +40,9 @@ define(function (require, exports, module) {
                 if (!curPrj.isHTMLFile(f))  continue;
                 var name=curPrj.truncEXT(f);
                 var html=dst.rel(name+HEXT);
-                var p5Dst=dst.rel(name+EXT);
+                const p5Dst=dst.rel(name+EXT);
                 const p5Src=f.sibling(p5Dst.name());
+                p5Dst.copyFrom(p5Src);
                 console.log(name, html.path(), p5Src.path(), p5Dst.path(), p5Src.exists());
                 if (!p5Src.exists()) continue;
                 const url=await this.genHTML(html, p5Src);

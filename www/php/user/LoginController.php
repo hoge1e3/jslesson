@@ -1,5 +1,5 @@
 <?php
-req("auth");
+req("auth", "DateUtil");
 class LoginController {
     static $mesg;
     static function form() {
@@ -47,6 +47,18 @@ class LoginController {
     static function isValidUserName($u) {
         return preg_match("/^[\+@a-zA-Z_0-9\-\.]+$/",$u);
     }
+    static function bauth() {
+        $status=param("status");
+        $status=json_decode($status,true);
+        $status2=statusHash($status);
+        //echo ($status2["hash"]."<>".$status["hash"]."<BR>\n");
+        //echo (DateUtil::now()-$status["time"]."<BR>\n");
+        if (DateUtil::now()-$status["time"]<30 && $status2["hash"]===$status["hash"]) {
+            echo "OK";
+        } else {
+            echo "NG";
+        }
+    }
     static function curStatus() {
         $u=Auth::curUser2();
         if ($u) {
@@ -59,6 +71,10 @@ class LoginController {
         }
         $t=Auth::curTeacher();
         if ($t) $res["teacher"]=$t->name;
+        $res["time"]=DateUtil::now();
+        if (defined("BAUTH_SALT")) {
+            $res=statusHash($res);
+        }
         print json_encode($res);
     }
     static function curClass() {
@@ -240,5 +256,14 @@ class LoginController {
         MySession::set("class",$res->class);
         MySession::set("user",$res->user);
     }
+}
+function statusHash($res) {
+    $src=BAUTH_SALT;
+    $keys=["user","class","teacher","time"];
+    foreach ($keys as $key) {
+        if (isset($res[$key])) $src.=",".$res[$key];
+    }
+    $res["hash"]=md5($src);
+    return $res;
 }
 ?>
