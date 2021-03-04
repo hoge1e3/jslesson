@@ -86,6 +86,7 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace,EventHandler) {
             );
             t.events.fire("show",{mesg, src,pos,trace, dialog:t, error});
             src=decodeSrc(src);
+            let srcpos;
             if (src && pos!=null) {
                 var p=new Pos2RC(src.text).getAll(pos);
                 if (appendPos) t.mesgd.append("場所："+src.name+":"+p.row+":"+p.col);
@@ -94,6 +95,7 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace,EventHandler) {
                 t.srcd.append($("<span>").text(src.text.substring(0,p.pos)));
                 t.srcd.append($("<img>").attr("src",FS.expandPath("${sampleImg}/ecl.png")));//MODJSL
                 t.srcd.append($("<span>").text(src.text.substring(p.pos)));
+                srcpos={src,pos:p.pos};
             } else {
                 t.srcd.hide();
             }
@@ -105,6 +107,7 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace,EventHandler) {
                 t.traced.text(trace);
             }
             elem.dialog({width:600,height:400});
+            return srcpos;
         },
         on: (t,...args)=>t.events.on(...args),
         close: function (t) {
