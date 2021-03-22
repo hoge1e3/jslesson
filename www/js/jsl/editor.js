@@ -905,13 +905,18 @@ function ready() {
     };
     const errorDialog=new ErrorDialog();
     window.errorDialog=errorDialog;
-    EC.handleException=function (e) {
+    EC.handleException=async function (e) {
         if (e.type==="dialogClosed") {
             console.log(e.stack||e);
             return;
         }
-        errorDialog.show(e);
-        // TODO errorDialogで表示した結果（posとか)を含めてlogToServer2
+        const srcpos=await errorDialog.show(e);
+        console.log("srcpos", srcpos);
+        if (srcpos) {
+            // TODO errorDialogで表示した結果（posとか)を含めてlogToServer2
+            e.pos=e.pos||srcpos.pos;
+            e.src=e.src||srcpos.src;
+        }
         var inf=getCurrentEditorInfo();
         if (!inf) return;
         var curFile=inf && inf.file;
@@ -920,7 +925,7 @@ function ready() {
         var curJSFile=curFiles && curFiles[1];
         if (curJSFile) {
             var posinfo="";
-            if (e.srcPath && e.pos) posinfo="("+e.srcPath+":"+e.pos+")";
+            //if (e.srcPath && e.pos) posinfo="("+e.srcPath+":"+e.pos+")";
             logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langInfo.en+" Runtime Error",e/*posinfo+(e.stack || e)*/,langInfo.en);
         }
     };

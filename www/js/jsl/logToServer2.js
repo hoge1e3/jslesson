@@ -20,6 +20,8 @@ define(function (require, exports, module) {
                 }
             }*/
             detail=eobj;
+        } else {
+            detail={message:detail};
         }
         var data={date:d.getFullYear()+"/"+dataPadding(d.getMonth()+1)+"/"+dataPadding(d.getDate()),time:dataPadding(d.getHours())+":"+dataPadding(d.getMinutes())+":"+dataPadding(d.getSeconds()),lang:lang,filename:filePath,result:result,detail:detail,code:code};
         console.log("logged to server DATA",data);

@@ -381,6 +381,19 @@ class TeacherLogController {
       </div>
         <?php
     }
+    static function userWeight() {
+        $r=pdo_select("select user, count(*) as count from log_annotation as a inner join log on a.target=log.id group by user ");
+        $anonCount=[];
+        foreach ($r as $e) {
+            $anonCount[$e->user]=$e->count;
+        }
+        print_r($anonCount);
+        // if (短い || isset($anonCount[$user])) {
+        //    //プログラム全文表示
+        // } else {
+        //    // プログラムの一部を表示
+        // }
+    }
     static function bot() {
         date_default_timezone_set('Asia/Tokyo');
         $class=Auth::curClass2();
@@ -420,6 +433,9 @@ class TeacherLogController {
         $logs=$class->getAllLogs($min,$max);
         //print_r ($logs);
         $errorLogs=[];
+        $prevTime=0;
+        $prevResult=0;
+        $errorSolved=[];
         foreach($logs as $log){
             /*echo "<HR>\n";
             print_r($log);
@@ -446,9 +462,16 @@ class TeacherLogController {
                 }
                 if ($detail && isset($detail->pos)) {
                     $pos=$detail->pos;
-                    $code=substr($code, 0, $pos).":warning::white_check_mark::ballot_box_with_check::x::ng:!!HERE!!:grey_exclamation::exclamation::koko::bangbang:".substr($code,$pos);
+                    $code=substr($code, 0, $pos).":exclamation:".substr($code,$pos);
                 }
-                $errorLogs[]=array("user"=>$name, "mesg"=>$mesg, "code"=>$code, "time"=>$time,"filename"=>$filename);
+                if (!($log['time']-$prevTime<=1 &&
+                $log['result']==$prevResult &&
+                strpos(mb_strtolower($log['result']),'runtime')!==false)) {
+                    $errorLogs[]=array("user"=>$name, "mesg"=>$mesg, "code"=>$code, "time"=>$time,"filename"=>$filename,"id"=>$id);
+                }
+                $prevTime=$log['time'];
+                $prevResult=$log['result'];
+
                 /*if(strpos($name,$log["user"]) !== false){
 	                if($time>$nEtime){
 	                    $nEtime=$time;
@@ -482,6 +505,10 @@ class TeacherLogController {
                 var_dump($http_response_header);
 
                 echo $html;*/
+            } else if(strpos($result,'Unsaved') !== false) {
+            } else if(strpos($result,'Save')!==false) {
+            } else {// うまくいっている？
+                $errorSolved[$name]=$time;
             }
         }
         //print_r($errorLogs);
@@ -504,6 +531,7 @@ class TeacherLogController {
             $time=$log["time"];
             $filename=/*json_decode*/($log["filename"]);
             $code="";
+            $id=$log["id"];
 
             if (!isset($stat[$user])) {
                 $stat[$user]=[];
@@ -512,6 +540,8 @@ class TeacherLogController {
         }
         print_r("--------");
         //print_r($stat);
+        uasort($stat, function ($a, $b) { return count($a)-count($b); } );
+
         foreach ($stat as $s) {
           //print_r($s);
           print_r("--------");
@@ -522,34 +552,43 @@ class TeacherLogController {
           $name=$s[$count-1]["user"];
           $code=$s[$count-1]["code"];
           $filename=$s[$count-1]["filename"];
+          $id=$s[$count-1]["id"];
+          $lastErrorTime=$s[$count-1]["time"];
+
+          $solved="未解決";
+          if (isset($errorSolved[$name]) && $errorSolved[$name]>$lastErrorTime) {
+              $solved="解決済み";
+          }else{
   //https://api.slack.com/messaging/webhooks
 
-          $data = array(
-              'payload' => json_encode( array(
-                  "text"=>"エラー箇所視認性テスト\n$name\n$filename\n$mesg\n$code\n"
-                  /*"blocks"=>array(
-          		        array(    "type"=> "section",
-          		            "text"=> array(
-          			                "type"=> "mrkdwn",
-          			                "text"=> "Danny Torrence left the `following` review for your property:"
-                              ))
-          	     )*/
-               ))
-          );
+            $data = array(
+                'payload' => json_encode( array(
+                    "text"=>"http://localhost/?TeacherLog/view1new&logid=$id $name($count 件) $filename $mesg"
+                    /*"blocks"=>array(
+            		        array(    "type"=> "section",
+            		            "text"=> array(
+            			                "type"=> "mrkdwn",
+            			                "text"=> "Danny Torrence left the `following` review for your property:"
+                                ))
+            	     )*/
+                 ))
+            );
 
-          $context = array(
-              'http' => array(
-                     'method'  => 'POST',
-                     'header'  => implode("\r\n", array('Content-Type: application/x-www-form-urlencoded',)),
-                     'content' => http_build_query($data)
-              )
-          );
+            $context = array(
+                'http' => array(
+                       'method'  => 'POST',
+                       'header'  => implode("\r\n", array('Content-Type: application/x-www-form-urlencoded',)),
+                       'content' => http_build_query($data)
+                )
+            );
 
-          $html = file_get_contents($url, false, stream_context_create($context));
+            $html = file_get_contents($url, false, stream_context_create($context));
 
-          var_dump($http_response_header);
+            var_dump($http_response_header);
 
-          echo $html;
+            echo $html;
+
+          }
 
 
 
