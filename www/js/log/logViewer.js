@@ -126,8 +126,12 @@ function openFrame(data){
   var prjName="Auto_"+lang;
   var runLink=".?r=jsl_edit&dir=/home/"+classID+"/"+teacherID+"/"+prjName+"/&autologexec="+data.id+"&lang="+lang;
   var userid=data.user;
+  const rawLink=`?LogQuery/byId&id=${data.id}`;
   if (teacherID && teacherID!=="") {
-      $("[id='"+userid+"res']").html("<br>"+logtime+"<br><a target='runCheck' href='"+runLink+"'>実行してみる</a><br>"+filehist+"<br>"+data.result);
+      $("[id='"+userid+"res']").html("<br>"+logtime+
+      `<a target='raw' href="${rawLink}">.</a><Br/>`+
+      "<a target='runCheck' href='"+runLink+"'>実行してみる</a><br>"+
+      filehist+"<br>"+data.result);
   }
   $("[id='"+userid+"']").height(30);
   $("[id='"+userid+"']").html(res);
@@ -233,10 +237,11 @@ function showFileEntry(l) {
     var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
     var ld="-"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"];
     console.log("lastDiff",lastDiffData["equal"],lastDiffData1.equal);
+    let sameLines;
     if(lastDiffData["equal"]<lastDiffData1.equal){
-      var sameLines=":"+`<font color="red">${lastDiffData["equal"]}　★</font>`;
+      sameLines=":"+`<font color="red">${lastDiffData["equal"]}/${lastDiffData.prevLines}/${lastDiffData.nowLines}　★</font>`;
     }else{
-      var sameLines=":"+lastDiffData["equal"];
+      sameLines=`:${lastDiffData.equal}/${lastDiffData.prevLines}/${lastDiffData.nowLines}`;
     }
 
     console.log("prev",prevProg);
@@ -310,7 +315,8 @@ function calcDiff(prev,now,id,btn,ntn,show){
   var opcodes = sm.get_opcodes();
   //var diffoutputdiv = $("[id='"+id+"diff']")[0];
   console.log("SequenceMatcher",opcodes);
-  var diffData={"insert":0,"delete":0,"replace":0,"equal":0};
+  var diffData={"insert":0,"delete":0,"replace":0,"equal":0,
+  nowLines:newtxt.length, prevLines:base.length};
   let diffLine="";
   for(var opti in opcodes){
     var opt=opcodes[opti];
