@@ -400,6 +400,9 @@ class TeacherLogController {
         if (!$class->getOption("showOtherStudentsLogs")) {
             Auth::assertTeacher();
         }
+        req("LogFileToDBController");
+        LogFileToDBController::run();
+
         $thisURL="a.php?TeacherLog/bot";
         $now=time();
         $interval=param('interval',300);
@@ -563,7 +566,7 @@ class TeacherLogController {
 
             $data = array(
                 'payload' => json_encode( array(
-                    "text"=>"http://localhost/?TeacherLog/view1new&logid=$id $name($count 件) $filename $mesg"
+                    "text"=>BA_TOP_URL."?TeacherLog/view1new&logid=$id $name($count 件) $filename $mesg"
                     /*"blocks"=>array(
             		        array(    "type"=> "section",
             		            "text"=> array(
