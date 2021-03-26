@@ -32,7 +32,7 @@ class DataFrameProxy:
         self.dropna=raw.dropna
         self.fillna=raw.fillna
         self.columns=raw.columns
-        self.dot=raw.dot
+        #self.dot=raw.dot
         self.to_numpy=raw.to_numpy
         self.shape=raw.shape
         self.at=raw.at
@@ -56,6 +56,10 @@ class DataFrameProxy:
         self.to_string=raw.to_string
     def __str__(self):
         return self.raw.__str__()
+    def __getitem__(self,i):
+        return self.raw.__getitem__(i)
+    def dot(self,other):
+        return self.raw.dot(other.raw)
     def to_csv(self, file, **k):
         f=bawrapper.resolve(file)
         return self.raw.to_csv(f, **k)
@@ -64,16 +68,45 @@ def DataFrame(*a, **k):
     raw=p.DataFrame(*a, **k)
     res=DataFrameProxy(raw)
     return res
-merge=p.merge
-concat=p.concat
+#merge=p.merge
+def merge(left, right, *a, **k):
+    #tempLeft=p.DataFrame(left.to_numpy(),columns=left.columns,index=left.index)
+    #tempRight=p.DataFrame(right.to_numpy(),columns=right.columns,index=right.index)
+    #merged_df=p.merge(tempLeft, tempRight, *a, **k)
+    merged_df=p.merge(left.raw, right.raw, *a, **k)
+    #res=DataFrame(merged_df.to_numpy(),columns=merged_df.columns,index=merged_df.index)
+    res=DataFrame(merged_df)
+    return res
+
+#concat=p.concat
+def concat(objs, *a, **k):
+    dfobjs=[]
+    for obj in objs:
+        tempObj=p.DataFrame(obj.to_numpy(),columns=obj.columns,index=obj.index)
+        dfobjs.append(tempObj)
+    concated_df=p.concat(dfobjs, *a, **k)
+    #res=DataFrame(concated_df.to_numpy(),columns=concated_df.columns,index=concated_df.index)
+    res=DataFrame(concated_df)
+    return res
+
 cut=p.cut
 
 
 date_range=p.date_range
 melt=p.melt
 qcut=p.qcut
-merge_ordered=p.merge_ordered
-merge_asof=p.merge_asof
+#merge_ordered=p.merge_ordered
+def merge_ordered(left,right,*a,**k):
+    morderd_df=p.merge_ordered(left.raw,right.raw,*a,**k)
+    res=DataFrame(morderd_df)
+    return res
+
+#merge_asof=p.merge_asof
+def merge_asof(left,right,*a,**k):
+    masof_df=p.merge_asof(left.raw,right.raw,*a,**k)
+    res=DataFrame(masof_df)
+    return res
+
 get_dummies=p.get_dummies
 factorize=p.factorize
 unique=p.unique
