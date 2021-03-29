@@ -47,7 +47,7 @@ function getLogs(user,day,all){
 }
 async function view1new() {
     const logs=await getLogs(userId,day,all);
-    console.log(logs);
+    console.log(logs, all);
     if (logs.length===0) {
         document.write(`
             この日のログはありません．

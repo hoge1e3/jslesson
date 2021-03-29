@@ -154,11 +154,14 @@ class TeacherLogController {
                       ||
                     (1秒以内に隣り合っているもので，しかも1個前と結果が同じ，ただし、1回目のruntime errorは除外しない)
                 */
-                if((($l['detail']!="実行しました" && $l['detail']!="ビルドしました") || $all) &&
+                if((($l['detail']!="実行しました" &&
+                    //$l['detail']!="ビルドしました" &&
+                    strpos($l['result'],'Build')===false
+                ) || $all) &&
                 // 1秒以内に隣り合っているもので，しかも1個前と結果が同じ，しかもruntime errorは除外
                 // => runtime errorが連続で出ているものは除外
                     !($l['time']-$prevTime<=1 &&
-                    $l['result']==$prevResult &&
+                    $l['result']==  $prevResult &&
                     strpos(mb_strtolower($l['result']),'runtime')!==false)
                 ) {
                     array_push($logs2,$l);
@@ -190,7 +193,7 @@ class TeacherLogController {
             $targetUser=$p["user"];
             $userName=$targetUser->name;
         }
-        $all=param("all",true);
+        $all=param("all",false);
         $teacherObj=Auth::curTeacher();
         if ($teacherObj) {
             $teacherID=$teacherObj->id;
@@ -509,6 +512,7 @@ class TeacherLogController {
 
                 echo $html;*/
             } else if(strpos($result,'Unsaved') !== false) {
+            } else if(strpos($result,'Build')!==false) {
             } else if(strpos($result,'Save')!==false) {
             } else {// うまくいっている？
                 $errorSolved[$name]=$time;
