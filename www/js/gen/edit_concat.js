@@ -9686,7 +9686,31 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA) {
     return res;
 });
 
-define('logToServer2',[],function () {
+define('stringifyError',['require','exports','module'],function (require, exports, module) {
+    module.exports=function (e) {
+        var eobj={stack:e.stack,message:e.message, strMesg:e+""};
+        for (let k in e) {
+            const v=e[k];
+            if (v && typeof v.text==="function" && typeof v.name==="function") {
+                eobj[k]={
+                    name: v.name(),
+                    text: v.text(),
+                };
+            } else {
+                eobj[k]=v;
+            }
+            /*else if (typeof v==="number") {
+                eobj[k]=v;
+            } else {
+                eobj[k]=v+"";
+            }*/
+        }
+        return eobj;
+    };
+});
+
+define('logToServer2',['require','exports','module','stringifyError'],function (require, exports, module) {
+    const stringifyError=require("stringifyError");
     var c=0,time=(new Date().getTime());
     function logToServer2(filePath,codeL,codeH,result,detail,lang) {
         var d=new Date();
@@ -9695,19 +9719,23 @@ define('logToServer2',[],function () {
 		var code={};
 		code[lang]=codeL;
 		code.HTML=codeH;
-        if (detail instanceof Error) {
-            var eobj={stack:detail.stack,message:detail+""};
+        if (typeof detail==="object") {//} instanceof Error) {
+            const eobj=stringifyError(detail);
+            /*
+            var eobj={stack:detail.stack,message:detail.message, strMesg:detail+""};
             for (var k in detail) {
                 if (k==="errorParams") {
                     eobj[k]=detail[k]+"";
                 } else {
                     eobj[k]=detail[k];
                 }
-            }
+            }*/
             detail=eobj;
+        } else {
+            detail={message:detail};
         }
         var data={date:d.getFullYear()+"/"+dataPadding(d.getMonth()+1)+"/"+dataPadding(d.getDate()),time:dataPadding(d.getHours())+":"+dataPadding(d.getMinutes())+":"+dataPadding(d.getSeconds()),lang:lang,filename:filePath,result:result,detail:detail,code:code};
-        //console.log("DATA",data);
+        console.log("logged to server DATA",data);
 		return $.post(".?dump2",{data:JSON.stringify(data)}).then(function (r) {
 			console.log(r);
 		}).fail(function(e){
@@ -14851,8 +14879,8 @@ define('LanguageList',['require','exports','module'],function (require, exports,
             helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
         "tonyu":{en:"Tonyu", ja:"Tonyu",builder:"TonyuBuilder",
             helpURL:"http://bitarrow.eplang.jp/index.php?tonyu",mode:"ace/mode/tonyu"},
-        "php":{en:"PHP", ja:"PHP",builder:"PHPBuilder",
-            helpURL:"http://bitarrow.eplang.jp/index.php?php",mode:"ace/mode/php"},
+        //"php":{en:"PHP", ja:"PHP",builder:"PHPBuilder",
+        //    helpURL:"http://bitarrow.eplang.jp/index.php?php",mode:"ace/mode/php"},
         "p5.js":{en:"p5.js", ja:"p5.js",builder:"P5Builder",
             helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/javascript"},
     };
@@ -15616,6 +15644,18 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace,EventHandler) {
             return s;
         }
     };*/
+    function decodeSrc(src){
+        if (!src) return src;
+        let text="unknown", name="unknown";
+        if (typeof src==="string") {
+            return {text:src, name};
+        }
+        if (typeof src.text==="function") text=src.text();
+        if (typeof src.text==="string") text=src.text;
+        if (typeof src.name==="function") name=src.name();
+        if (typeof src.name==="string") name=src.name;
+        return {text, name};
+    }
     return Klass.define({
         $this:true,
         $: t=>{
@@ -15673,15 +15713,17 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace,EventHandler) {
                 mesg//+" 場所："+src.name()+(typeof row=="number"?":"+p.row+":"+p.col:"")
             );
             t.events.fire("show",{mesg, src,pos,trace, dialog:t, error});
+            src=decodeSrc(src);
+            let srcpos;
             if (src && pos!=null) {
-                var str=typeof src==="string"?src:src.text();
-                var p=new Pos2RC(str).getAll(pos);
-                if (appendPos) t.mesgd.append("場所："+src.name()+":"+p.row+":"+p.col);
+                var p=new Pos2RC(src.text).getAll(pos);
+                if (appendPos) t.mesgd.append("場所："+src.name+":"+p.row+":"+p.col);
                 t.srcd.show();
                 t.srcd.empty();
-                t.srcd.append($("<span>").text(str.substring(0,p.pos)));
+                t.srcd.append($("<span>").text(src.text.substring(0,p.pos)));
                 t.srcd.append($("<img>").attr("src",FS.expandPath("${sampleImg}/ecl.png")));//MODJSL
-                t.srcd.append($("<span>").text(str.substring(p.pos)));
+                t.srcd.append($("<span>").text(src.text.substring(p.pos)));
+                srcpos={src,pos:p.pos};
             } else {
                 t.srcd.hide();
             }
@@ -15693,6 +15735,7 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace,EventHandler) {
                 t.traced.text(trace);
             }
             elem.dialog({width:600,height:400});
+            return srcpos;
         },
         on: (t,...args)=>t.events.on(...args),
         close: function (t) {
@@ -16224,7 +16267,7 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
         }).fail(function (e) {
             if (!e) e="Unknown error";
             logToServer2("","","","SYNC ERROR!",
-            (e.stack || e.responseText || e));
+            e,"System");
             console.log(e);
             alert("保存に失敗しました。");
         });
@@ -16982,7 +17025,7 @@ function ready() {
             console.log(e,e.stack);
             if (e.isTError) {
                 errorDialog.show(e);//showErrorPos($("#errorPos"),e);
-                logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Compile Error",e.src+":"+e.pos+"\n"+e.mesg,langInfo.en);
+                logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Compile Error",/*e.src+":"+e.pos+"\n"+e.mesg*/e,langInfo.en);
             } else {
                 EC.handleException(e);
             }
@@ -17029,12 +17072,18 @@ function ready() {
     };
     const errorDialog=new ErrorDialog();
     window.errorDialog=errorDialog;
-    EC.handleException=function (e) {
+    EC.handleException=async function (e) {
         if (e.type==="dialogClosed") {
             console.log(e.stack||e);
             return;
         }
-        errorDialog.show(e);
+        const srcpos=await errorDialog.show(e);
+        console.log("srcpos", srcpos);
+        if (srcpos) {
+            // TODO errorDialogで表示した結果（posとか)を含めてlogToServer2
+            e.pos=e.pos||srcpos.pos;
+            e.src=e.src||srcpos.src;
+        }
         var inf=getCurrentEditorInfo();
         if (!inf) return;
         var curFile=inf && inf.file;
@@ -17043,8 +17092,8 @@ function ready() {
         var curJSFile=curFiles && curFiles[1];
         if (curJSFile) {
             var posinfo="";
-            if (e.srcPath && e.pos) posinfo="("+e.srcPath+":"+e.pos+")";
-            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langInfo.en+" Runtime Error",posinfo+(e.stack || e),langInfo.en);
+            //if (e.srcPath && e.pos) posinfo="("+e.srcPath+":"+e.pos+")";
+            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langInfo.en+" Runtime Error",e/*posinfo+(e.stack || e)*/,langInfo.en);
         }
     };
     function close(rm) { // rm or mv
@@ -17202,7 +17251,7 @@ function ready() {
             //prog.setKeyboardHandler(defaultKeyboard);
             const isLogicFile=curPrj.isLogicFile(f);
             if (isLogicFile) {
-                const mode=langInfo.mode || "ace/mode/tonyu";                
+                const mode=langInfo.mode || "ace/mode/tonyu";
                 //console.log("mode/c/set");
                 prog.getSession().setMode(mode);
             } else if (curPrj.isHTMLFile(f)) {
