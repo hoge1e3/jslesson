@@ -437,6 +437,8 @@ class TeacherLogController {
     	    <input type="submit" value="Botで送る"/>
     	</form><?php
         $logs=$class->getAllLogs($min,$max);
+        $slack_bot_url=$class->getOption("botURL");
+        print "BOT URL=$slack_bot_url<BR>\n";
         //print_r ($logs);
         $errorLogs=[];
         $prevTime=0;
@@ -461,7 +463,7 @@ class TeacherLogController {
             $detail=json_decode($log["detail"]);
             if(strpos($result,'Error') !== false){
                 // URL設定はdata/config.shadow.php に移転しました。
-                $url = SLACK_BOT_URL;
+                $url = $slack_bot_url;
                 $mesg="";
                 if ($detail && isset($detail->message)) {
                     $mesg=$detail->message;
@@ -554,7 +556,7 @@ class TeacherLogController {
           print_r("--------");
           $count=count($s);
           print_r($s[$count-1]);
-          $url = SLACK_BOT_URL;
+          $url = $slack_bot_url;
           $mesg=$s[$count-1]["mesg"];
           $name=$s[$count-1]["user"];
           $code=$s[$count-1]["code"];
@@ -567,10 +569,15 @@ class TeacherLogController {
               $solved="解決済み";
           }else{
   //https://api.slack.com/messaging/webhooks
-
+          $buffer="";
+          $URL=BA_TOP_URL."?TeacherLog/view1new&logid=$id";
+          $array=[$URL ,"$name ($count 件)" ,$filename ,$mesg];
+          foreach ($array as $element) {
+            $buffer.="[".$element."]\n";
+          }
             $data = array(
                 'payload' => json_encode( array(
-                    "text"=>BA_TOP_URL."?TeacherLog/view1new&logid=$id $name($count 件) $filename $mesg"
+                    "text"=>$buffer
                     /*"blocks"=>array(
             		        array(    "type"=> "section",
             		            "text"=> array(
