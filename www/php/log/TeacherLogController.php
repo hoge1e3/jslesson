@@ -437,6 +437,8 @@ class TeacherLogController {
     	    <input type="submit" value="Botで送る"/>
     	</form><?php
         $logs=$class->getAllLogs($min,$max);
+        $slack_bot_url=$class->getOption("botURL");
+        print "BOT URL=$slack_bot_url<BR>\n";
         //print_r ($logs);
         $errorLogs=[];
         $prevTime=0;
@@ -461,7 +463,7 @@ class TeacherLogController {
             $detail=json_decode($log["detail"]);
             if(strpos($result,'Error') !== false){
                 // URL設定はdata/config.shadow.php に移転しました。
-                $url = SLACK_BOT_URL;
+                $url = $slack_bot_url;
                 $mesg="";
                 if ($detail && isset($detail->message)) {
                     $mesg=$detail->message;
@@ -548,13 +550,14 @@ class TeacherLogController {
         print_r("--------");
         //print_r($stat);
         uasort($stat, function ($a, $b) { return count($a)-count($b); } );
-
+        $buffer="";
+        $url="";
         foreach ($stat as $s) {
           //print_r($s);
           print_r("--------");
           $count=count($s);
           print_r($s[$count-1]);
-          $url = SLACK_BOT_URL;
+          $url = $slack_bot_url;
           $mesg=$s[$count-1]["mesg"];
           $name=$s[$count-1]["user"];
           $code=$s[$count-1]["code"];
@@ -568,38 +571,70 @@ class TeacherLogController {
           }else{
   //https://api.slack.com/messaging/webhooks
 
-            $data = array(
-                'payload' => json_encode( array(
-                    "text"=>BA_TOP_URL."?TeacherLog/view1new&logid=$id $name($count 件) $filename $mesg"
-                    /*"blocks"=>array(
-            		        array(    "type"=> "section",
-            		            "text"=> array(
-            			                "type"=> "mrkdwn",
-            			                "text"=> "Danny Torrence left the `following` review for your property:"
-                                ))
-            	     )*/
-                 ))
-            );
+          $URL=BA_TOP_URL."?TeacherLog/view1new&logid=$id";
+          $element="$URL $name ($count 件) $filename $mesg";
 
-            $context = array(
-                'http' => array(
-                       'method'  => 'POST',
-                       'header'  => implode("\r\n", array('Content-Type: application/x-www-form-urlencoded',)),
-                       'content' => http_build_query($data)
-                )
-            );
+          $buffer.="[".$element."]\n";
+          /*
+          $data = array(
+              'payload' => json_encode( array(
+                  "text"=>BA_TOP_URL."?TeacherLog/view1new&logid=$id $name($count 件) $filename $mesg"
+                  /*"blocks"=>array(
+                      array(    "type"=> "section",
+                          "text"=> array(
+                                "type"=> "mrkdwn",
+                                "text"=> "Danny Torrence left the `following` review for your property:"
+                              ))
+                 )*/
+               /*))
+          );
 
-            $html = file_get_contents($url, false, stream_context_create($context));
+          $context = array(
+              'http' => array(
+                     'method'  => 'POST',
+                     'header'  => implode("\r\n", array('Content-Type: application/x-www-form-urlencoded',)),
+                     'content' => http_build_query($data)
+              )
+          );
 
-            var_dump($http_response_header);
+          $html = file_get_contents($url, false, stream_context_create($context));
 
-            echo $html;
+          var_dump($http_response_header);
+
+          echo $html;*/
 
           }
 
 
 
         }
+
+        $data = array(
+            'payload' => json_encode( array(
+                "text"=>$buffer
+                /*"blocks"=>array(
+                    array(    "type"=> "section",
+                        "text"=> array(
+                              "type"=> "mrkdwn",
+                              "text"=> "Danny Torrence left the `following` review for your property:"
+                            ))
+               )*/
+             ))
+        );
+
+        $context = array(
+            'http' => array(
+                   'method'  => 'POST',
+                   'header'  => implode("\r\n", array('Content-Type: application/x-www-form-urlencoded',)),
+                   'content' => http_build_query($data)
+            )
+        );
+
+        $html = file_get_contents($url, false, stream_context_create($context));
+
+        var_dump($http_response_header);
+
+        echo $html;
       }
 
 

@@ -164,24 +164,34 @@ class ClassController {
         self::optionItems("disableNote");
         self::optionItems("showOtherStudentsLogs");
         self::optionItems("showHint");
-
-        /*
-        if($class->passwordRequired()){
-            echo 'パスワード設定:使用する<br>';
-            echo '<a href="a.php?Class/setPasswordNouse">「使用しない」に変更</a>';
-        }else{
-            echo 'パスワード設定:使用しない<br>';
-            echo '<a href="a.php?Class/setPasswordUse">「使用する」に変更</a>';
-        }?></p>
-        <p>
-        <?php
-        $regu=$class->registrationByUserAllowed();
-        echo "ユーザ登録方法：".($regu?"ユーザ自身または教員による登録":"教員による登録のみ")."<Br>";
-        echo '<a href="a.php?Class/setUserRegistrationPolicy&allow='.!$regu.'">';
-        echo '「'. (!$regu?"ユーザ自身または教員による登録":"教員による登録のみ")  .'」に変更</a>';
-        */
+        self::botURLForm();
         ?>
         <hr>
+        <?php
+    }
+    static function botURLForm() {
+        Auth::assertTeacher();
+        $class=Auth::curClass2();
+        $url=$class->getOption("botURL");
+        if (!$url) $url="";
+        ?>
+        <div>Slack Bot送信用URL(試験運用)</div>
+        <form action="a.php?Class/setBotURL" method="POST">
+        <input size=80 name="url" value="<?= htmlspecialchars($url) ?>"/>
+        <input type="submit">
+        </form>
+        <?php
+    }
+    static function setBotURL() {
+        Auth::assertTeacher();
+        $class=Auth::curClass2();
+        $url=param("url");
+        $class->setOption("botURL",$url);
+        $redirect="a.php?Class/config";
+        ?>
+        設定しました．
+        <a href="<?= $redirect ?>">設定画面へ</a>
+        <meta http-equiv="refresh" content="2;URL='<?= $redirect ?>'" />
         <?php
     }
     static function setUserRegistrationPolicy() {
