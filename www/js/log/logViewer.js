@@ -131,6 +131,7 @@ function openFrame(data){
       $("[id='"+userid+"res']").html("<br>"+logtime+
       `<a target='raw' href="${rawLink}">.</a><Br/>`+
       "<a target='runCheck' href='"+runLink+"'>実行してみる</a><br>"+
+      userid+"<BR>"+
       filehist+"<br>"+data.result);
   }
   $("[id='"+userid+"']").height(30);
