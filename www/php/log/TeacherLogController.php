@@ -550,7 +550,8 @@ class TeacherLogController {
         print_r("--------");
         //print_r($stat);
         uasort($stat, function ($a, $b) { return count($a)-count($b); } );
-
+        $buffer="";
+        $url="";
         foreach ($stat as $s) {
           //print_r($s);
           print_r("--------");
@@ -569,44 +570,71 @@ class TeacherLogController {
               $solved="解決済み";
           }else{
   //https://api.slack.com/messaging/webhooks
-          $buffer="";
+
           $URL=BA_TOP_URL."?TeacherLog/view1new&logid=$id";
-          $array=[$URL ,"$name ($count 件)" ,$filename ,$mesg];
-          foreach ($array as $element) {
-            $buffer.="[".$element."]\n";
-          }
-            $data = array(
-                'payload' => json_encode( array(
-                    "text"=>$buffer
-                    /*"blocks"=>array(
-            		        array(    "type"=> "section",
-            		            "text"=> array(
-            			                "type"=> "mrkdwn",
-            			                "text"=> "Danny Torrence left the `following` review for your property:"
-                                ))
-            	     )*/
-                 ))
-            );
+          $element="$URL $name ($count 件) $filename $mesg";
 
-            $context = array(
-                'http' => array(
-                       'method'  => 'POST',
-                       'header'  => implode("\r\n", array('Content-Type: application/x-www-form-urlencoded',)),
-                       'content' => http_build_query($data)
-                )
-            );
+          $buffer.="[".$element."]\n";
+          /*
+          $data = array(
+              'payload' => json_encode( array(
+                  "text"=>BA_TOP_URL."?TeacherLog/view1new&logid=$id $name($count 件) $filename $mesg"
+                  /*"blocks"=>array(
+                      array(    "type"=> "section",
+                          "text"=> array(
+                                "type"=> "mrkdwn",
+                                "text"=> "Danny Torrence left the `following` review for your property:"
+                              ))
+                 )*/
+               /*))
+          );
 
-            $html = file_get_contents($url, false, stream_context_create($context));
+          $context = array(
+              'http' => array(
+                     'method'  => 'POST',
+                     'header'  => implode("\r\n", array('Content-Type: application/x-www-form-urlencoded',)),
+                     'content' => http_build_query($data)
+              )
+          );
 
-            var_dump($http_response_header);
+          $html = file_get_contents($url, false, stream_context_create($context));
 
-            echo $html;
+          var_dump($http_response_header);
+
+          echo $html;*/
 
           }
 
 
 
         }
+
+        $data = array(
+            'payload' => json_encode( array(
+                "text"=>$buffer
+                /*"blocks"=>array(
+                    array(    "type"=> "section",
+                        "text"=> array(
+                              "type"=> "mrkdwn",
+                              "text"=> "Danny Torrence left the `following` review for your property:"
+                            ))
+               )*/
+             ))
+        );
+
+        $context = array(
+            'http' => array(
+                   'method'  => 'POST',
+                   'header'  => implode("\r\n", array('Content-Type: application/x-www-form-urlencoded',)),
+                   'content' => http_build_query($data)
+            )
+        );
+
+        $html = file_get_contents($url, false, stream_context_create($context));
+
+        var_dump($http_response_header);
+
+        echo $html;
       }
 
 
