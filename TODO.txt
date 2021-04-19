@@ -1,5 +1,9 @@
 turtle.done()
-*
+* Editor<textarea>on ipad
+* Unsavedは青で
+* TA role
+* 教員複数で1クラス
+
 ・別ページー＞ソース公開
 ・[DL]プロジェクトごとのコピーができる。
 ・プロジェクト間のファイルの移動・コピーができる。
