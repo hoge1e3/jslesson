@@ -803,6 +803,7 @@ class TeacherLogController {
     	<?php
     	    echo date("Y/m/d H:i:s",$min)." から ".date("Y/m/d H:i:s",$max)."までの実行状況";
     	?>
+        <a href="?TeacherLog/count&min=<?= $min ?>&max=<?= $max ?>">集計....</a>
         <table border=1 class="tablesorter">
             <thead>
             <tr><th>ユーザID</th><th>エラー/実行</th><th>実行からの経過時間</th><th>今実行しているファイル</th><th>実行結果履歴</th></tr>
@@ -1057,6 +1058,30 @@ class TeacherLogController {
             echo "</tr>\n";
         }
         echo "</table>";
+    }
+    static function count() {
+        $min=param("min");
+        $max=param("max");
+        $class=Auth::curClass2();
+        $r=pdo_select_iter(
+            "select filename ,user, count(*) as c from log where result not like '%Save' and class=? and time>? and time<? group by filename, user order by filename, c desc", $class->id, $min, $max);
+        ?>
+        <table>
+            <tr><td>ファイル名</td><td>ユーザ名</td><td>ログ総数</td></tr><?php
+        foreach ($r as $e) {
+            ?>
+            <tr>
+                <td><?= $e->filename ?></td>
+                <td>
+                    <a href="a.php?TeacherLog/view1new&filename=<?= $e->filename ?>&user=<?=$e->user?>&day=<?=$max?>" target="view1">
+                        <?=$e->user?>
+                    </a>
+                </td>
+                <td><?= $e->c ?></td>
+            </tr>
+            <?php
+        }
+        ?></table><?php
     }
 }
 
