@@ -75,6 +75,11 @@ class LoginController {
         if (defined("BAUTH_SALT")) {
             $res=statusHash($res);
         }
+        $callback=param("callback",null);
+        if ($callback) {
+            header("Location: $callback&code=$res");
+            return;
+        }
         print json_encode($res);
     }
     static function curClass() {
