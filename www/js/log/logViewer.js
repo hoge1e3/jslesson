@@ -45,6 +45,7 @@ function getLogs(user,day,all){
       dataType: "json",
   });
 }
+let scrolled=false;
 async function view1new() {
     const logs=await getLogs(userId,day,all);
     console.log(logs, all);
@@ -68,8 +69,9 @@ async function view1new() {
             $("<font>").attr("color", (log.result.match(/Error/) ? "red":"black")).text(filename)
         ).click(function () {
             console.log(log.id);
+            if (!scrolled) {scrolled=true; this.scrollIntoView();}
             showLogOneUser.call(this, log.id, log.user, filename);
-        }).attr("id", log.id);
+        }).attr("id", log.id).attr("data-filename",log.filename);
         //<font color="black">${FILENAME}</font></div>
         //<script>
         showFileEntry(log);
@@ -78,6 +80,14 @@ async function view1new() {
     const logid=getQueryString("logid",false);
     if (logid) {
         document.getElementById(logid).click();
+    } else {
+        for (let log of logs) {
+            //console.log("hairaito", log.time, day);
+            if (log.time>=day) {
+                document.getElementById(log.id).click();
+                break;
+            }
+        }
     }
 }
 function getOneUsersLogId(userid,pon){
@@ -87,7 +97,37 @@ function getCode(raw) {
     return raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.DNCL || raw.code.Python || raw.code.py ||
     raw.code.Tonyu || raw.code.tonyu || raw.code.undefined || raw.code.PHP || raw.code.php ||"";
 }
+function goFileTop(file) {
+    console.log("Top",file);
+    scrolled=false;
+    const e=$(`[data-filename="${file}"]`);
+    e[0].click();
+}
+function goFileLast(file) {
+    console.log("Last",file);
+    scrolled=false;
+    const e=$(`[data-filename="${file}"]`);
+    e[e.length-1].click();
+}
+function goFileNext(file) {
+    console.log("Next",file);
+    scrolled=false;
+    const e=$(`[data-filename="${file}"]`);
+    for (let i=0;e.length;i++) {
+        if (e[i].id===currentLogId) {
+            e[i+1].click();
+            break;
+        }
+    }
+}
 
+function navByFile(file) {
+    return `
+        <a href="javascript:;" onclick="goFileTop('${file}')">Top</a> |
+        <a href="javascript:;" onclick="goFileNext('${file}')">Next</a> |
+        <a href="javascript:;" onclick="goFileLast('${file}')">Last</a>
+    `;
+}
 function openFrame(data){
   console.log(data);
   if(displayingId!==""){
@@ -124,16 +164,16 @@ function openFrame(data){
   var lang=raw.code.C ?"c" : raw.code.JavaScript ? "js" : raw.code.Dolittle ? "dtl" : raw.code.DNCL ? "dncl" : raw.code.Python ? "py" :"unknown";
   var detail=raw.detail;
   var prjName="Auto_"+lang;
-  var runLink=".?r=jsl_edit&dir=/home/"+classID+"/"+teacherID+"/"+prjName+"/&autologexec="+data.id+"&lang="+lang;
+  var runLink=teacherID && ".?r=jsl_edit&dir=/home/"+classID+"/"+teacherID+"/"+prjName+"/&autologexec="+data.id+"&lang="+lang;
   var userid=data.user;
   const rawLink=`?LogQuery/byId&id=${data.id}`;
-  if (teacherID && teacherID!=="") {
-      $("[id='"+userid+"res']").html("<br>"+logtime+
+  $("[id='"+userid+"res']").html("<br>"+logtime+
       `<a target='raw' href="${rawLink}">.</a><Br/>`+
-      "<a target='runCheck' href='"+runLink+"'>実行してみる</a><br>"+
+      (runLink ?
+          "<a target='runCheck' href='"+runLink+"'>実行してみる</a><br>":"")+
       userid+"<BR>"+
-      filehist+"<br>"+data.result);
-  }
+      filehist+ navByFile(data.filename)+ "<br>"+
+      data.result);
   $("[id='"+userid+"']").height(30);
   $("[id='"+userid+"']").html(res);
   $("[id='"+userid+"']").css("display","inline");
@@ -228,7 +268,7 @@ function showFileEntry(l) {
     indexList[l.filename]++;
     var cRaw=JSON.parse(l.raw);
     var lRaw=programs[l.filename][programs[l.filename].length-1];
-    console.log(pRaw,cRaw,lRaw);
+    //console.log(pRaw,cRaw,lRaw);
     var prevProg=getCode(pRaw);//.code.C || pRaw.code.JavaScript || pRaw.code.Dolittle || pRaw.code.Python || "";
     var curProg=getCode(cRaw);//.code.C || cRaw.code.JavaScript || cRaw.code.Dolittle || cRaw.code.Python || "";
     var lastProg=getCode(lRaw);//.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
@@ -237,7 +277,7 @@ function showFileEntry(l) {
     var lastDiffData1=calcDiff(prevProg,lastProg,"[id='"+userid+"diffLast']","Prev","Last",false);
     var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
     var ld="-"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"];
-    console.log("lastDiff",lastDiffData["equal"],lastDiffData1.equal);
+    //console.log("lastDiff",lastDiffData["equal"],lastDiffData1.equal);
     let sameLines;
     if(lastDiffData["equal"]<lastDiffData1.equal){
       sameLines=":"+`<font color="red">${lastDiffData["equal"]}/${lastDiffData.prevLines}/${lastDiffData.nowLines}　★</font>`;
@@ -245,10 +285,10 @@ function showFileEntry(l) {
       sameLines=`:${lastDiffData.equal}/${lastDiffData.prevLines}/${lastDiffData.nowLines}`;
     }
 
-    console.log("prev",prevProg);
+    /*console.log("prev",prevProg);
     console.log("cur",curProg);
     console.log("diff",prevDiffData, lastDiffData);
-    console.log("cur/last",curProg,lastProg, curProg===lastProg);
+    console.log("cur/last",curProg,lastProg, curProg===lastProg);*/
 
     var e=document.createElement("span");
     e.id=l.id+'summary';
@@ -315,13 +355,13 @@ function calcDiff(prev,now,id,btn,ntn,show){
   // in order to yield the new text
   var opcodes = sm.get_opcodes();
   //var diffoutputdiv = $("[id='"+id+"diff']")[0];
-  console.log("SequenceMatcher",opcodes);
+  //console.log("SequenceMatcher",opcodes);
   var diffData={"insert":0,"delete":0,"replace":0,"equal":0,
   nowLines:newtxt.length, prevLines:base.length};
   let diffLine="";
   for(var opti in opcodes){
     var opt=opcodes[opti];
-    console.log("switch",opt[0],opti,opt[2]);
+    //console.log("switch",opt[0],opti,opt[2]);
     switch(opt[0]){
       case "equal":
         if (opti==0 && opcodes.length>1) diffLine=opt[2];
