@@ -145,9 +145,12 @@ define(function (require,exports,module){
              implicitImports,
              injectBefore: `var p5=${"req"+"uire"}("${p5jsURL}");\n`,
              injectAfter: `var p5main;new p5(function (inst) {
-                 p5main=inst;
-                 inst.setup=setup;
-                 inst.draw=draw;
+                p5main=inst;
+                inst.setup=setup;
+                inst.draw=()=>{
+                    PYLIB.LoopChecker.reset();
+                    draw();
+                };
              }, document.querySelector("body"));`});
         }
         buf.close();
