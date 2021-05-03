@@ -302,6 +302,13 @@ function (Visitor,IndentBuffer,context,PL,S) {
         True: function () {this.printf("true");},
         False: function () {this.printf("false");},
         None: function () {this.printf("%s.None",PYLIB);},
+        symbol(node) {
+            if (this.convertSymbol[node.text]) {
+                this.printf(this.convertSymbol[node.text]);
+            } else {
+                this.printf("%s",node+"");
+            }
+        },
     };
     const cmps={">":1,"<":1,"==":1,">=":1,"<=":1,"!=":1};
     function isCmp(node) {
@@ -318,7 +325,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
     }
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=",
       ">","<","=",".",":","+","-","*","/","%","(",")",",","!",
-      "number","symbol"];
+      "number"];
     for (let ve of verbs) {
         vdef[ve]=function (node) {
             //console.log("verb",node);
@@ -339,6 +346,13 @@ function (Visitor,IndentBuffer,context,PL,S) {
             }
         };
         v.options=options;
+        v.convertSymbol={};
+        for (let im of options.implicitImports||[]) {
+            for (let n of im.names) {
+                v.convertSymbol[n]=im.head+"."+n;
+            }
+        }
+        //console.log("convertSymbol",this.convertSymbol,options.implicitImports);
         v.ctx=context();
         const buf=options.buf||IndentBuffer();
         buf.visitor=v;
@@ -349,10 +363,16 @@ function (Visitor,IndentBuffer,context,PL,S) {
             v.printf("define('__main__',function (require,exports,module) {%{");
             v.printf("var %s=require('%s/PyLib.js');%n",PYLIB,options.pyLibPath);
         }
+        if (options.injectBefore) {
+            v.printf(options.injectBefore);
+        }
         for (let n of PL.builtins) {
             v.printf("var %s=%s.%s;%n",n,PYLIB,n);
         }
         v.visit(node);
+        if (options.injectAfter) {
+            v.printf(options.injectAfter);
+        }
         if (options.genReqJS) {
             v.printf("%}});%n");
             const SEND_LOG=`

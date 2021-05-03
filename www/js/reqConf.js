@@ -293,6 +293,7 @@ var reqConf={
             PyX: "../runtime/lib/python/PyX",
             PHPBuilder:"build/php/PHPBuilder",
             P5Builder:"build/p5/P5Builder",
+            p5pyBuilder:"build/python/p5pyBuilder",
             SysDebugger_concat:"../runtime/lib/tonyu/SysDebugger_concat.min",
             CBuilder:"build/c/CBuilder",
             TonyuBuilder:"build/tonyu/TonyuBuilder",
