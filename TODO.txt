@@ -3,6 +3,7 @@ turtle.done()
 * Unsavedは青で
 * TA role
 * 教員複数で1クラス
+* teacherlog view1new day jump
 
 ・別ページー＞ソース公開
 ・[DL]プロジェクトごとのコピーができる。

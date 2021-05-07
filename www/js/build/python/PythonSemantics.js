@@ -400,6 +400,12 @@ const Semantics= {
             v.rootScope[b]=new ScopeInfo(v.rootScope,b,"function");
             v.rootScope[b].builtin=true;
         }
+        for (let im of options.implicitImports||[]) {
+            for (let n of im.names) {
+                v.rootScope[n]=new ScopeInfo(v.rootScope,n,"function");
+                v.rootScope[n].builtin=true;
+            }
+        }
         v.newScope=function (f) {
             var pa=this.ctx.scope||this.rootScope;
             var ns=Object.create(pa);

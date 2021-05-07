@@ -9308,6 +9308,8 @@ define('LanguageList',['require','exports','module'],function (require, exports,
             helpURL:"http://bitarrow.eplang.jp/index.php?php",mode:"ace/mode/php"},
         "p5.js":{en:"p5.js", ja:"p5.js",builder:"P5Builder",
             helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/javascript"},
+        "p5.py":{en:"p5 Python mode", ja:"p5 Python mode",builder:"p5pyBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/python"},
     };
 });
 
