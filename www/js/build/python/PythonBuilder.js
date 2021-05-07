@@ -150,6 +150,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         } else {
             //--- docker do nothing
             //runLocal=false;
+            needInput=pysrcF.text().match(/\binput\s*\(\b/);
         }
         //console.log("PPToken",PP.Tokenizer(pysrc).tokenize());
         var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
@@ -162,7 +163,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
             const pyFile=f.src.py;
             const name=pyFile.name();
             const prj=pyFile.up().name().replace(/\/$/,"");
-            
+
             buf.printf("runOnServer3('%s','%s',%s);",    prj, name ,needInput );
             //buf.printf("runOnServer2(%s,%s);",    JSON.stringify(f.src.py.text()),needInput );
         }
