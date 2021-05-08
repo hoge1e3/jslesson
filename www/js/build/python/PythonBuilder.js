@@ -150,7 +150,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         } else {
             //--- docker do nothing
             //runLocal=false;
-            needInput=pysrcF.text().match(/\binput\s*\(\b/);
+            needInput=(!!pysrcF.text().match(/\binput\b\s*\(/))+"";
         }
         //console.log("PPToken",PP.Tokenizer(pysrc).tokenize());
         var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
@@ -206,7 +206,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
     p.getIndentFixer=function () {
         return {
             fix(t) {
-		return t.replace(/[”“„]/g,'"');
+		return t.replace(/[”“]/g,'"');
             }
         };
     };
