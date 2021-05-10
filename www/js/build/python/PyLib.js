@@ -52,6 +52,9 @@ define(function (require,exports,module) {
         var a=PL.parseArgs(arguments);
         console.log("print",arguments,a);
         var end=a.options.end!=null ? a.options.end: "\n";
+        if (typeof u(end)!=="string") {
+            throw new Error("endには文字列を指定してください");
+        }
         var out=a.map(PL.str).join(" ")+end;
         PL.lineBuf+=out;
         var lines=PL.lineBuf.split("\n");
@@ -197,6 +200,9 @@ define(function (require,exports,module) {
     PL.opt=PL.Option;
     PL.range=function (b,e,s=1) {
         if (e==null) {e=b;b=0;}
+        if (typeof b!=="number") throw new Error("rangeの引数には数値を指定してください");
+        if (typeof e!=="number") throw new Error("rangeの引数には数値を指定してください");
+        if (typeof s!=="number") throw new Error("rangeの引数には数値を指定してください");
         var res=[];
         for (; s>0&&b<e || s<0&&b>e ;b+=s) res.push(b);
         return res;
@@ -343,8 +349,15 @@ define(function (require,exports,module) {
         return v;
     }
 
-    PL.invalidOP=function (op,to) {
-        throw new Error("Cannot do opration "+op+" to "+to);
+    PL.invalidOP=function (left, op, right) {
+        function typestr(val) {
+            if (val==null) return "None";
+            const res=(typeof u(val));
+            if (res!=="object") return res;
+            if (val && val.__getTypeName__) return val.__getTypeName__();
+            return res;
+        }
+        throw new Error(`unsupported operand type(s) for ${op}: '${typestr(left)}' and '${typestr(right)}'`);
     };
 
     PL.LoopChecker={
@@ -428,7 +441,7 @@ define(function (require,exports,module) {
         __class__:Number,
         __getTypeName__: function (){return "<class number>";},
     });
-    PL.addMonkeyPatch(String,{
+    PL.addMonkeyPatch(String,({
         __class__:String,
         __getTypeName__: function (){return "<class str>";},
         __mul__: function (self,other) {
@@ -438,7 +451,7 @@ define(function (require,exports,module) {
                 for (;other;other--) res+=self;
                 return res;
             default:
-                PL.invalidOP("__mul__",other);
+                PL.invalidOP(self, "__mul__",other);
             }
         },
         __mod__: function (self,other) {
@@ -454,6 +467,12 @@ define(function (require,exports,module) {
             }
             return Object.prototype.__add__.call(self,other);
         },
+        __gt__: otherShouldString("gt"),
+        __lt__: otherShouldString("lt"),
+        __ge__: otherShouldString("ge"),
+        __le__: otherShouldString("le"),
+        __eq__: otherShouldString("eq"),
+        __ne__: otherShouldString("ne"),
         format: function (self,...args) {
             const str=self;
             const o={};
@@ -475,7 +494,15 @@ define(function (require,exports,module) {
                 }
             });
         }
-    });
+    }));
+    function otherShouldString(k) {
+        return function (self,other) {
+            if (typeof u(other)!=="string") {
+                PL.invalidOP(self, k,other);
+            }
+            return Object.prototype[k].call(self,other);
+        };
+    }
     PL.addMonkeyPatch(Boolean,{
         __getTypeName__: function (){return "<class boolean>";},
         __str__(self) {
