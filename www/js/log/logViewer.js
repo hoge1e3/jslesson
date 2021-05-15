@@ -60,7 +60,12 @@ async function view1new() {
         //log.raw=JSON.parse(log.raw);
         const filename=log.filename;
         if(!programs[filename]) programs[filename]=[];
-        programs[filename].push(JSON.parse(log.raw));
+        try {
+            programs[filename].push(JSON.parse(log.raw));
+        } catch(e) {
+            console.log("JSON_ERROR",log.raw);
+            console.error(e);
+        }
     }
     for (let log of logs) {
         const filename=log.filename;
@@ -74,7 +79,11 @@ async function view1new() {
         }).attr("id", log.id).attr("data-filename",log.filename);
         //<font color="black">${FILENAME}</font></div>
         //<script>
-        showFileEntry(log);
+        try {
+            showFileEntry(log);
+        } catch(e){
+            console.log(e);
+        }
         //</script>
     }
     const logid=getQueryString("logid",false);
@@ -182,7 +191,7 @@ function openFrame(data){
   $("[data-id='"+data.id+"']").css("background-color","orange");
   $("[id='"+userid+"detail']").html(detail);
   //alert(logid);
-  if(showDiffFlag /*&& prevProgram!=code*/){
+  if(showDiffFlag && typeof prevProgram!=="undefined"/*&& prevProgram!=code*/){
     calcDiff(prevProgram,code,"[id='"+userid+"diff']","Prev","Current",true);
     $("[id='"+userid+"diff']").css("display","inline");
   }
