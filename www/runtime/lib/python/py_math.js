@@ -6,6 +6,7 @@ define([],function () {
             ceil:Math.ceil.bind(Math),
             floor:Math.floor.bind(Math),
             sqrt:Math.sqrt.bind(Math),
+            pi: Math.PI,
         };
         console.log("py_math", Object.keys(lib));
         return lib;
