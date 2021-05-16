@@ -86,9 +86,15 @@ class TeacherLogController {
         <?php
         foreach ($ord as $day) {
             ?>
+            <?= DateUtil::toString($day) ?>(<?=$has[$day] ?>):
             <a href=".?TeacherLog/view1new&day=<?= $day ?>&user=<?= $user->name ?>">
-                <?= DateUtil::toString($day) ?>(<?=$has[$day] ?>)
-            </a><BR/>
+                一部
+            </a>
+            |
+            <a href=".?TeacherLog/view1new&day=<?= $day ?>&user=<?= $user->name ?>&all=1">
+                詳細
+            </a>
+            <BR/>
             <?php
         }
     }
