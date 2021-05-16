@@ -104,7 +104,8 @@ function getOneUsersLogId(userid,pon){
 }
 function getCode(raw) {
     return raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.DNCL || raw.code.Python || raw.code.py ||
-    raw.code.Tonyu || raw.code.tonyu || raw.code.undefined || raw.code.PHP || raw.code.php ||"";
+    raw.code.Tonyu || raw.code.tonyu || raw.code.undefined || raw.code.PHP || raw.code.php ||
+    raw.code["p5.js"] || raw.code["p5.py"] || "";
 }
 function goFileTop(file) {
     console.log("Top",file);
@@ -122,9 +123,20 @@ function goFileNext(file) {
     console.log("Next",file);
     scrolled=false;
     const e=$(`[data-filename="${file}"]`);
-    for (let i=0;e.length;i++) {
+    for (let i=0;i<e.length-1;i++) {
         if (e[i].id===currentLogId) {
             e[i+1].click();
+            break;
+        }
+    }
+}
+function goFilePrev(file) {
+    console.log("Prev",file);
+    scrolled=false;
+    const e=$(`[data-filename="${file}"]`);
+    for (let i=1;i<e.length;i++) {
+        if (e[i].id===currentLogId) {
+            e[i-1].click();
             break;
         }
     }
@@ -133,6 +145,7 @@ function goFileNext(file) {
 function navByFile(file) {
     return `
         <a href="javascript:;" onclick="goFileTop('${file}')">Top</a> |
+        <a href="javascript:;" onclick="goFilePrev('${file}')">Prev</a> |
         <a href="javascript:;" onclick="goFileNext('${file}')">Next</a> |
         <a href="javascript:;" onclick="goFileLast('${file}')">Last</a>
     `;
