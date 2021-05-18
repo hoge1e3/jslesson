@@ -1089,6 +1089,12 @@ class TeacherLogController {
         }
         ?></table><?php
     }
+    static function getNameOfUser() {
+        $p=self::parseUser();
+        $user=$p["user"];
+        $teacher=$p["teacher"];
+        echo $user->getOptions()->name;
+    }
 }
 
 ?>
