@@ -188,12 +188,13 @@ function openFrame(data){
   var prjName="Auto_"+lang;
   var runLink=teacherID && ".?r=jsl_edit&dir=/home/"+classID+"/"+teacherID+"/"+prjName+"/&autologexec="+data.id+"&lang="+lang;
   var userid=data.user;
+  $.get("?TeacherLog/getNameOfUser",{user:userid}).then(r=>$("#userName").text(r));
   const rawLink=`?LogQuery/byId&id=${data.id}`;
   $("[id='"+userid+"res']").html("<br>"+logtime+
       `<a target='raw' href="${rawLink}">.</a><Br/>`+
       (runLink ?
           "<a target='runCheck' href='"+runLink+"'>実行してみる</a><br>":"")+
-      userid+"<BR>"+
+      userid+"(<span id='userName'></span>)<BR>"+
       filehist+ navByFile(data.filename)+ "<br>"+
       data.result);
   $("[id='"+userid+"']").height(30);
