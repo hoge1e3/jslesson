@@ -1108,6 +1108,9 @@ function ready() {
             //if(desktopEnv.editorMode=="emacs") inf.editor.setKeyboardHandler("ace/keyboard/emacs");
             //else inf.editor.setKeyboardHandler(defaultKeyboard);
         }
+        const [curHTMLFile, curLogicFile]=fileSet(inf.file);
+        logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Open","開きました",langInfo.en);
+
         commentDialog.getComment(f).then(function (c) {
             $("#commentLink").empty();
             console.log(c);
