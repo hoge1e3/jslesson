@@ -68,7 +68,7 @@ function (Grammar,Pos2RC/*,TError*/) {
             var lineNo=0;
             let literal3=false; // """ ... """
             const literal3End=/"""/;
-            for (let line of src.split("\n")) {
+            for (let line of src.split(/\r\n|\n|\r/)) {
                 if (literal3) {
                     const m=literal3End.exec(line);
                     if (m) {
