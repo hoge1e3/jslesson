@@ -36,18 +36,23 @@ function getLog(logid,userid){
 
 }
 function getLogs(user,day,all){
+    let cmd="getLogClusters";
+    if (location.href.match(/nocluster/)) {
+        cmd="getLogs";
+    }
   return $.ajax({
       type: "POST",
       // url: "?Class/getLog",
       //data: "logid="+logid,
-      url: "?TeacherLog/getLogs",
+      url: `?TeacherLog/${cmd}`,
       data: {user,day,all:(all?1:0)},
       dataType: "json",
   });
 }
 let scrolled=false;
 async function view1new() {
-    const logs=await getLogs(userId,day,all);
+    let logs=await getLogs(userId,day,all);
+    const showSave=location.href.match(/showSave/);
     console.log(logs, all);
     if (logs.length===0) {
         document.write(`
@@ -56,6 +61,7 @@ async function view1new() {
         `);
     }
     programs=[];// {filename: [log....]}
+    logs=logs.filter(log=>!(log.result.match(/(Save|Open)/) && !showSave));
     for (let log of logs) {
         //log.raw=JSON.parse(log.raw);
         const filename=log.filename;
@@ -67,11 +73,30 @@ async function view1new() {
             console.error(e);
         }
     }
+    let paka=0, lastNotPaka, last;
     for (let log of logs) {
         const filename=log.filename;
         //<div>${FILENAME}</div>
+        if (log.result.match(/(Save|Open)/) && !showSave) {
+            paka++;
+            continue;
+        }
+        if (paka>1 && lastNotPaka) {
+            $(`<div>Save/Open for ${log.time-lastNotPaka.time}secs</div>`).appendTo("#fileList");
+        }
+        if (last && log.time-last.time>=300) {
+            $(`<div>Idle for ${log.time-last.time}secs.</div>`).appendTo("#fileList");
+        }
+        lastNotPaka=log;
+        paka=0;
         $("<div>").appendTo("#fileList").append(
-            $("<font>").attr("color", (log.result.match(/Error/) ? "red":"black")).text(filename)
+            $("<font>").attr("color", (
+                log.result.match(/Unsaved/) ? "#aaa" :
+                log.result.match(/Open/) ? "#88f" :
+                log.result.match(/Save/) ? "#888" :
+                log.result.match(/Run/) ? "#0a0" :
+                log.result.match(/Error/) ? "red":
+                "black")).text(filename)
         ).click(function () {
             console.log(log.id);
             if (!scrolled) {scrolled=true; this.scrollIntoView();}
@@ -79,6 +104,8 @@ async function view1new() {
         }).attr("id", log.id).attr("data-filename",log.filename);
         //<font color="black">${FILENAME}</font></div>
         //<script>
+        //shownLogs.push(log);
+        last=log;
         try {
             showFileEntry(log);
         } catch(e){
@@ -86,6 +113,7 @@ async function view1new() {
         }
         //</script>
     }
+
     const logid=getQueryString("logid",false);
     if (logid) {
         document.getElementById(logid).click();
@@ -93,8 +121,11 @@ async function view1new() {
         for (let log of logs) {
             //console.log("hairaito", log.time, day);
             if (log.time>=day) {
-                document.getElementById(log.id).click();
-                break;
+                const e=document.getElementById(log.id);
+                if (e) {
+                    e.click();
+                    break;
+                }
             }
         }
     }
@@ -203,7 +234,7 @@ function openFrame(data){
   //$("#"+userid).width($("#"+userid).parent().width());
   $("[id='"+userid+"']").height( checknull( $("[id='"+userid+"']").get(0), userid).scrollHeight);
   $("[data-id='"+data.id+"']").css("background-color","orange");
-  $("[id='"+userid+"detail']").html(detail);
+  $("[id='"+userid+"detail']").html(decodeDetail(detail));
   //alert(logid);
   if(showDiffFlag && typeof prevProgram!=="undefined"/*&& prevProgram!=code*/){
     calcDiff(prevProgram,code,"[id='"+userid+"diff']","Prev","Current",true);
@@ -212,6 +243,11 @@ function openFrame(data){
   prevProgram=code;
   //console.log("code",code);
   //console.log("res",res);
+}
+function decodeDetail(detail) {
+    if (typeof detail==="string") return detail;
+    if (detail && typeof detail.message==="string") return detail.message;
+    return JSON.stringify(detail);
 }
 function showFrame(data,userid,pon){
   console.log("data",data,currentLogId,data.indexOf(currentLogId));
@@ -275,6 +311,7 @@ function getPreviousLog(logid){
       dataType: "json"
   });
 }
+var maxEqual={}, lastAdvance={};
 function showFileEntry(l) {
     var userid=l.user;
     if(!logsOfOneUser[l.filename]) logsOfOneUser[l.filename]=[];
@@ -306,6 +343,13 @@ function showFileEntry(l) {
       sameLines=":"+`<font color="red">${lastDiffData["equal"]}/${lastDiffData.prevLines}/${lastDiffData.nowLines}　★</font>`;
     }else{
       sameLines=`:${lastDiffData.equal}/${lastDiffData.prevLines}/${lastDiffData.nowLines}`;
+    }
+    if (lastDiffData.equal>(maxEqual[l.filename]||-1)) {
+        if (maxEqual[l.filename]) sameLines+=`<font color='#0a0'>♪</font>`;
+        maxEqual[l.filename]=lastDiffData.equal;
+        lastAdvance[l.filename]=l;
+    } else if (lastAdvance[l.filename] && l.time-lastAdvance[l.filename].time>=15*60){
+        sameLines+=`<font color="#f80">×</font>`;
     }
 
     /*console.log("prev",prevProg);

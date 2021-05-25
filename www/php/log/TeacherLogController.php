@@ -133,6 +133,36 @@ class TeacherLogController {
         return array("user"=>$targetUser, "teacher"=>$teacherObj,
         "canSeeOtherUsersLogs"=>$canSeeOtherUsersLogs);
     }
+    static function getLogClusters() {
+        $day=DateUtil::toInt(param("day",DateUtil::now()));
+        // If i can do , i do it.
+        $p=self::parseUser();
+        $targetUser=$p["user"];
+
+        $base=DateUtil::getYear($day)."-".DateUtil::getMonth($day)."-".DateUtil::getDay($day)." 00:00:00";
+        $baseInt=DateUtil::toInt($base);
+        //echo $day." ".$base." ".$baseInt;
+        $all=param("all",false);
+        $prevTime=0;
+        $prevResult="";
+        $logs2=Array();
+        $logs=$targetUser->getAllLogs($baseInt,$baseInt+86400);
+        req("LogCluster");
+        $c=null;
+        foreach($logs as $i=>$l){
+            if (!$c) {
+                $c=new LogCluster();
+            }
+            if (!$c->collect($l)) {
+                $logs2[]=$c->withRaw();
+                $c=new LogCluster();
+                $c->collect($l);
+            }
+        }
+        if ($c) $logs2[]=$c->withRaw();
+        header("Content-type: text/json");
+        print json_encode($logs2);
+    }
     static function getLogs() {
         // ある日のあるユーザの全ログ（all=1のとき）を，JSONで返してくれる．
         $day=DateUtil::toInt(param("day",DateUtil::now()));
