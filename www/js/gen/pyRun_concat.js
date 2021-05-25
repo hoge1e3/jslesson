@@ -1674,7 +1674,7 @@ function (Grammar,Pos2RC/*,TError*/) {
             var lineNo=0;
             let literal3=false; // """ ... """
             const literal3End=/"""/;
-            for (let line of src.split("\n")) {
+            for (let line of src.split(/\r\n|\n|\r/)) {
                 if (literal3) {
                     const m=literal3End.exec(line);
                     if (m) {
@@ -2107,6 +2107,9 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         var a = PL.parseArgs(arguments);
         console.log("print", arguments, a);
         var end = a.options.end != null ? a.options.end : "\n";
+        if (typeof u(end) !== "string") {
+            throw new Error("endには文字列を指定してください");
+        }
         var out = a.map(PL.str).join(" ") + end;
         PL.lineBuf += out;
         var lines = PL.lineBuf.split("\n");
@@ -2324,6 +2327,9 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         if (e == null) {
             e = b;b = 0;
         }
+        if (typeof b !== "number") throw new Error("rangeの引数には数値を指定してください");
+        if (typeof e !== "number") throw new Error("rangeの引数には数値を指定してください");
+        if (typeof s !== "number") throw new Error("rangeの引数には数値を指定してください");
         var res = [];
         for (; s > 0 && b < e || s < 0 && b > e; b += s) {
             res.push(b);
@@ -2501,8 +2507,15 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         return v;
     }
 
-    PL.invalidOP = function (op, to) {
-        throw new Error("Cannot do opration " + op + " to " + to);
+    PL.invalidOP = function (left, op, right) {
+        function typestr(val) {
+            if (val == null) return "None";
+            var res = _typeof(u(val));
+            if (res !== "object") return res;
+            if (val && val.__getTypeName__) return val.__getTypeName__();
+            return res;
+        }
+        throw new Error("unsupported operand type(s) for " + op + ": '" + typestr(left) + "' and '" + typestr(right) + "'");
     };
 
     PL.LoopChecker = {
@@ -2646,7 +2659,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
                         res += self;
                     }return res;
                 default:
-                    PL.invalidOP("__mul__", other);
+                    PL.invalidOP(self, "__mul__", other);
             }
         },
         __mod__: function __mod__(self, other) {
@@ -2660,6 +2673,12 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             }
             return Object.prototype.__add__.call(self, other);
         },
+        __gt__: otherShouldString("gt"),
+        __lt__: otherShouldString("lt"),
+        __ge__: otherShouldString("ge"),
+        __le__: otherShouldString("le"),
+        __eq__: otherShouldString("eq"),
+        __ne__: otherShouldString("ne"),
         format: function format(self) {
             var str = self;
             var o = {};
@@ -2709,6 +2728,14 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             });
         }
     });
+    function otherShouldString(k) {
+        return function (self, other) {
+            if (typeof u(other) !== "string") {
+                PL.invalidOP(self, k, other);
+            }
+            return Object.prototype[k].call(self, other);
+        };
+    }
     PL.addMonkeyPatch(Boolean, {
         __getTypeName__: function __getTypeName__() {
             return "<class boolean>";
@@ -3080,7 +3107,7 @@ const builtins=PyLib.builtins;//["print","range","int","str","float","input","le
 builtins.push("open");
 const importable={
     datetime:{server:true},
-    random:{browser:["random", "randrange", "randint", "shuffle", "sample", "choice"],server:true },
+    random:{browser:["random", "randrange", "randint", "shuffle", "sample", "choice"],server:true},
     math:{browser:["fabs", "ceil", "floor", "sqrt"], server:true},
     //jp:true,
     //fs:{wrapper:true,server:true},
