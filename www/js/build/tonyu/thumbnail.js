@@ -1,8 +1,10 @@
-define(["ImageRect"],function (IR) {
+define(["ImageRect","root","WebSite"],function (IR,root,WebSite) {
     var TN={};
-    var createThumbnail;
+    //var createThumbnail;
     var NAME="$icon_thumbnail";
+    var WIDTH=200,HEIGHT=200;
     TN.set=function (prj,delay) {
+        if (WebSite.surpressCreateThumbnail) return;
         setTimeout(function () { crt(prj);} ,delay);
     };
     TN.get=function (prj) {
@@ -18,8 +20,8 @@ define(["ImageRect"],function (IR) {
     };
     function crt(prj) {
         try {
-            var img=Tonyu.globals.$Screen.buf[0];
-            var cv=$("<canvas>").attr({width:100,height:100});
+            var img=root.Tonyu.globals.$Screen.buf[0];
+            var cv=$("<canvas>").attr({width:WIDTH,height:HEIGHT});
             IR(img, cv[0]);
             var url=cv[0].toDataURL();
             var rsrc=prj.getResource();
@@ -28,7 +30,8 @@ define(["ImageRect"],function (IR) {
             imfile.text( url );
             var item={
                 name:NAME,
-                pwidth:100,pheight:100,url:"ls:"+imfile.relPath(prjdir)
+                pwidth:WIDTH,pheight:HEIGHT,
+                url:"ls:"+imfile.relPath(prjdir)
             };
             var imgs=rsrc.images;
             var add=false;
@@ -46,6 +49,6 @@ define(["ImageRect"],function (IR) {
             console.log("Create thumbnail failed",e);
             console.log(e.stack);
         }
-    };
+    }
     return TN;
 });

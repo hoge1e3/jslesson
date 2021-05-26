@@ -1,9 +1,9 @@
 define(["Tonyu", "FS", "ImageList",
         "thumbnail","WebSite","plugins",
-        "DeferredUtil"],
+        "DeferredUtil","R"],
         function (Tonyu, FS, ImageList,
                 thumbnail,WebSite,plugins,
-                DU) {
+                DU,R) {
 // (was TonyuProject)
 return {
     /*stop:function () {
@@ -45,7 +45,28 @@ return {
             if (chg) this.setResource(res);
             return res;
         }
-        return Tonyu.defaultResource;
+        return WebSite.defaultResource;
+    },
+    removeThumbnail: function () {
+        try {
+            const prj=this;
+            const dir=prj.getDir && prj.getDir();
+            const resc=prj.getResource();
+            if (resc.images) {
+                const cnt=resc.images.length;
+                resc.images=resc.images.filter(item=>{
+                    if (item.name!=="$icon_thumbnail") return true;
+                    if (item.url && item.url.match(/^ls:/)) {
+                        const tfile=dir.rel(item.url.substring(3));
+                        if (tfile.exists()) tfile.rm();
+                    }
+                    return false;
+                });
+                if (resc.images.length<cnt) prj.setResource(resc);
+            }
+        }catch(e) {
+            console.log(e);
+        }
     },
     hasSoundResource: function () {
         var res=this.getResource();
@@ -147,7 +168,7 @@ return {
     requestPlugin: function (name) {
         this.addPlugin(name);
         if (plugins.loaded(name)) return;
-        var req=new Error("必要なプラグイン"+name+"を追加しました。もう一度実行してください");
+        var req=new Error(R("pluginAddedAndRestart",name));
         req.pluginName=name;
         throw req;
     },
@@ -202,6 +223,30 @@ return {
         return DU.promise(function (succ) {
             setTimeout(succ,0);
         });
+    },
+    nonSourceDirs() {
+        return {images:1, sounds:1, js:1, files:1, static:1 ,maps:1};
+    },
+    sourceFiles() {
+        const res={};
+        const ext=this.getEXT();
+        const ns=this.nonSourceDirs();
+        for (let d of this.dir.listFiles()) {
+            if (d.isDir()) {
+                if (!ns[d.name().replace(/[\/\\]$/,"")]) {
+                    d.recursive(collect);
+                }
+            } else {
+                collect(d);
+            }
+        }
+    	function collect(f) {
+    		if (f.endsWith(ext)) {
+    			var nb=f.truncExt(ext);
+    			res[nb]=f;
+    		}
+    	}
+    	return res;
     }
 };
 });
