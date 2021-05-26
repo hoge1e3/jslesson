@@ -97,7 +97,7 @@ class LogUtil {
         //print_r($r);
         $user=Auth::curUser2();
         $class=$user->_class;
-        if (Auth::isTeacherOf($class)) {
+        if (Auth::isTeacherOf($class) || $class->getOption("showOtherStudentsLogs")) {
             if ($r->{"class"}!==$class->id) {
                 throw new Exception("ID $id is not of ".$class->id);
             }
