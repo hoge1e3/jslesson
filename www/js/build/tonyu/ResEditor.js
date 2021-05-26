@@ -1,11 +1,11 @@
+/*globals requirejs*/
 define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
-"ImageDetailEditor","Util","Assets","root","jshint","IframeDialog"],
+"ImageDetailEditor","Util","Assets","root","jshint","R"],
         function (FS, Tonyu, UI,IL,Blob,Auth,WebSite,
-                ImageDetailEditor,Util,Assets,root,jshint,IframeDialog) {
+                ImageDetailEditor,Util,Assets,root,jshint,R) {
     const HNOP=jshint.scriptURL("");
     var ResEditor=function (prj, mediaInfo) {
-        let buttons;
-        var d=UI("div", {title:mediaInfo.name+"リスト"});
+        var d=UI("div", {title:R("resouceList",mediaInfo.name)});
         d.css({height:200+"px", "overflow-v":"scroll"});
         var rsrc=prj.getResource();
         var items=rsrc[mediaInfo.key];
@@ -13,6 +13,8 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
         var rsrcDir=prj.getDir().rel(mediaInfo.path);
         var itemUIs=[];
         var _dropAdd;
+        let buttons;
+
         if (!rsrc) prj.setResource({images:[],sounds:[]});
         function convURL(u) {
             function cvs(u) {
@@ -60,7 +62,7 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                 tempFiles = items.slice();
                 itemUIs=[];
                 if (action!="close") { // ウィンドウ閉じるとき（画面更新は要らない）
-                    var dragMsg="ここに"+mediaInfo.name+"ファイル("+mediaInfo.exts.join("/")+")をドラッグ＆ドロップして追加";
+                    var dragMsg=R("dragFileHere",mediaInfo.name, mediaInfo.exts.join("/"));
                     var dragPoint=UI("div", {style:"margin:10px; padding:10px; border:solid blue 2px;",
                         on:{dragover: s, dragenter: s, drop:dropAdd}},dragMsg
                     ).appendTo(d);
@@ -72,14 +74,17 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                     });
                     buttons=UI("div",{style:"clear:left;"},
                         (mediaInfo.builtins?
-                            ["span",{class:"dropdown"},
-                                ["button",{
-                                    //href:HNOP,
-                                    class:"submenu",
-                                    on:{click:addBuiltin}},"追加"],
-                                ["span",{$var:"addMenu",class:"dropdown-content"}]
-                            ]:""),
-                        ["button", {on:{click:function (){ d.dialog("close"); }}}, "完了"]
+                        ["span",{class:"dropdown"},
+                            ["button",{
+                                //href:HNOP,
+                                class:"submenu",
+                                on:{click:addBuiltin}},R("add")],
+                            ["span",{$var:"addMenu",class:"dropdown-content"},
+                                //["a",{href:HNOP,class:"submenu",on:{click:function(){}}},"名前変更"],
+                            ]
+                        ]:""),
+                        //["button", {on:{click:function (){ addBuiltin(this);}}}, "追加"]:""),
+                        ["button", {on:{click:function (){ d.dialog("close"); }}}, R("done")]
                     );
                     d.append(buttons);
                 }
@@ -108,14 +113,17 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                 //m.offset($(btn).position());
             }
             function addFromImageList() {
-                root.onImageSelected=n=> {
-                    const pn=n.replace(/\.(gif|png|jpg)$/,"");
-                    add({
-                        name:`$pat_${pn}`,type:"single",url:"${runtime}images/"+n
-                    });
-                    IframeDialog.close();
-                };
-                IframeDialog.show(WebSite.runtime+"images/index.php?fromTonyu=1");
+                // defined only in BA
+                requirejs(["IframeDialog"], function (IframeDialog) {
+                    root.onImageSelected=n=> {
+                        const pn=n.replace(/\.(gif|png|jpg)$/,"");
+                        add({
+                            name:`$pat_${pn}`,type:"single",url:"${runtime}images/"+n
+                        });
+                        IframeDialog.close();
+                    };
+                    IframeDialog.show(WebSite.runtime+"images/index.php?fromTonyu=1");
+                });
             }
             _dropAdd=dropAdd;
             function dropAdd(e) {
@@ -127,6 +135,7 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                 var readFileSum = files.length;
                 var notReadFiles = [];
                 var existsFiles = [];
+                var readCnt = 0;
                 for (var i=0; i<files.length; i++) loop(i);
                 function loop(i){
                     var file = files[i];
@@ -134,7 +143,6 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                     if (file.name.match(/\.mzo$/)) filetype="audio/mzo";
                     var useBlob=WebSite.serverType=="BA"||WebSite.serverType=="GAE" && (file.size>1000*300);
                     if(!filetype.match(mediaInfo.contentType)) {
-                        console.log("notread", filetype,mediaInfo.contentType);
                         readFileSum--;
                         notReadFiles.push(file);
                         return;//continue;
@@ -164,7 +172,7 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                     v.url=itemRelPath;
                     renameUnique(v);
                     tempFiles.push(v);
-                    if (useBlob) {
+                    if (useBlob) {//TODO replace GAE with BA
                         Auth.assertLogin({
                             showLoginLink:function (u) {
                                 dragPoint.css("border","solid red 2px").empty().append(
@@ -186,7 +194,6 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                             }
                         });
                     } else {
-                        var readCnt = 0;
                         var reader = new FileReader();
                         reader.temp_file=file;
                         reader.temp_itemName=itemName;
@@ -216,19 +223,19 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
                 }
                 var mes;
                 if (notReadFiles.length>0) {
-                    mes="このファイルは追加できません：\n";
+                    mes=R("thisFileCannotBeAdded");
                     notReadFiles.forEach(function(f){
                         if (f) mes+=f.name+"\n";
                     });
                     alert(mes);
                 }
                 if (existsFiles.length>0) {
-                    mes="同じ名前のファイルが既に登録されています：\n";
+                    mes=R("resourceFileExists");
                     existsFiles.forEach(function(f){
                         if (f) {
                             var fNameTemp=f.existsFile.url;
                             var fName=fNameTemp.substring(fNameTemp.lastIndexOf("/")+1,fNameTemp.length);
-                            mes+=f.name+" ⇒ "+fName+"("+f.existsFile.name+") と重複\n";
+                            mes+=R("duplicatedFiles",f.name, fName, f.existsFile.name);
                             //mes+=f.name+" ("+f.existsFile.name+")\n";
                         }
                     });
@@ -338,56 +345,6 @@ define(["FS","Tonyu","UI","ImageList","Blob","Auth","WebSite",
             console.log(rsrc);
             prj.setResource(rsrc);
             reload(action, args);
-        }
-        function cleanFiles() {
-            if (true) return;
-            // TODO
-            var items=rsrc[mediaInfo.key];
-            Auth.currentUser(function (u,ct) {
-                if (!u) return;
-                var rtf=[];
-                items.forEach(function (item) {
-                    var a=Blob.isBlobURL(item.url),ogg;
-                    if (a) {
-                        rtf.push(a.fileName);
-                        ogg=a.fileName.replace(/\.(mp3|mp4|m4a)$/,".ogg");
-                        if (ogg!=a.fileName) rtf.push(ogg);
-                    }
-                });
-                var data={
-                        user:u,
-                        project:prj.getName(),
-                        mediaType:mediaInfo.key,
-                        csrfToken:ct,
-                        retainFileNames:JSON.stringify(rtf)
-                };
-                console.log("retainBlobs",data);
-                //TODO: urlchange!
-                $.ajax({url:WebSite.serverTop+"/retainBlobs",type:"get",
-                    data:data
-                });
-            });
-            var cleanFile={};
-            if (rsrcDir.exists()) {
-                rsrcDir.each(function (f) {
-                    cleanFile["ls:"+f.relPath(prj.getDir())]=f;
-                });
-            }
-            rsrc=prj.getResource();
-            items.forEach(function (item){
-                delete cleanFile[item.url];
-                delete cleanFile[item.url.replace(/\.(mp3|mp4|m4a)$/,".ogg")];
-            });
-            console.log(cleanFile);
-            /*for (var ci in cleanFile) {
-                var cf=cleanFile[ci];
-                console.log(cf+" is removed");
-                cf.rm();
-            }*/
-        }
-        function toi(s) {
-            if (!s || s=="") return undefined;
-            return parseInt(s);
         }
         return {
             dropAdd:function (e) {

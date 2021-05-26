@@ -40,9 +40,10 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","Bui
             },
             "plugins":{}
         };
-        const ns2depspec= {
-            kernel: {namespace:"kernel", url: kernelURL}
-        };
+        const ns2depspec= [
+            {namespace:"kernel", url: kernelURL}
+        ];
+        WebSite.ns2depspec=ns2depspec;
         this.ide=ide;
         this.prj=prj;// BitArrow-based
         const opt=prj.getOptions();
