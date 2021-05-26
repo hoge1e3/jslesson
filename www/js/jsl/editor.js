@@ -167,6 +167,10 @@ function ready() {
         setupBuilder(_);
     });
     helpURL=langInfo.helpURL;
+    if (navigator.userAgent.match(/Firefox/) && lang==="tonyu") {
+        ALWAYS_UPLOAD=true;
+        console.log("Firefox tonyu ALWAYS_UPLOAD");
+    }
     /*switch (lang){
     case "c":
         requirejs(["CBuilder"],function(_){
