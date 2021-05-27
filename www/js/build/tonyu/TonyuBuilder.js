@@ -190,7 +190,9 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","Bui
 <script>window.runtimePath="${WebSite.runtime}/";</script>
 <script>
 WebSite={};
-WebSite.urlAliases={};
+WebSite.urlAliases={
+    "js/kernel.js":"${WebSite.compiledKernel}",
+};
 WebSite.runtime="${WebSite.runtime}";
 WebSite_runType="manual";
 WebSite.serverType="BA";
@@ -222,8 +224,9 @@ reqConf={
             var usrjsmap=prjDir.rel("js/concat.js.map");
             var kerjs=tonyuLibDir.rel("kernel.js");
             //var runScr2=tonyuLibDir.rel("gen/runScript2_concat.js");
+            //var userjsC=userjs.text().replace(/concat\.js\.map/g,"user.js.map");
             return $.when(
-                usrjs.copyTo(dest.rel("js/concat.js")),
+                usrjs.copyTo(dest.rel("js/user.js")),
                 usrjsmap.copyTo(dest.rel("js/concat.js.map"))
                 //kerjs.copyTo(dest.rel("js/kernel.js"))//,
                 //runScr2.copyTo(dest.rel("js/runScript2_concat.js"))
