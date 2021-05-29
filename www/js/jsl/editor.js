@@ -956,7 +956,8 @@ function ready() {
         }
     }
     function fixEditorIndent(prog) {
-        if (lang==="dncl" || lang==="py" || lang==="p5.py") return;// bad know-how!
+        //if (lang==="dncl" || lang==="py" || lang==="p5.py") return;// bad know-how!
+        if (langInfo.manualIndent) return;
         A.is(prog,"AceEditor");
         var prev=prog.getValue();
         let fixed;

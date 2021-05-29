@@ -9298,9 +9298,9 @@ define('LanguageList',['require','exports','module'],function (require, exports,
             helpURL:"http://bitarrow.eplang.jp/index.php?dolittle_use"},
         "c":{en:"C", ja:"C",builder:"CBuilder",
             helpURL:"http://bitarrow.eplang.jp/index.php?c_use", mode:"ace/mode/c_cpp"},
-        "dncl":{en:"DNCL", ja:"DNCL(どんくり)",builder:"DnclBuilder",
+        "dncl":{en:"DNCL", ja:"DNCL(どんくり)",builder:"DnclBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?dncl_use"},
-        "py": {en:"Python", ja:"Python",builder:"PythonBuilder",
+        "py": {en:"Python", ja:"Python",builder:"PythonBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
         "tonyu":{en:"Tonyu", ja:"Tonyu",builder:"TonyuBuilder",
             helpURL:"http://bitarrow.eplang.jp/index.php?tonyu",mode:"ace/mode/tonyu"},
@@ -9308,8 +9308,11 @@ define('LanguageList',['require','exports','module'],function (require, exports,
         //    helpURL:"http://bitarrow.eplang.jp/index.php?php",mode:"ace/mode/php"},
         "p5.js":{en:"p5.js", ja:"p5.js",builder:"P5Builder",
             helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/javascript"},
-        "p5.py":{en:"p5 Python mode", ja:"p5 Python mode",builder:"p5pyBuilder",
+        "p5.py":{en:"p5 Python mode", ja:"p5 Python mode",builder:"p5pyBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/python"},
+        "bry":{//ext:"py",// not working now 
+            en:"brython", ja:"Brython(試験運用中)",builder:"BrythonBuilder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
     };
 });
 
@@ -10558,6 +10561,12 @@ define('DragDrop',["FS","root"],function (FS,root) {
 define('ProgramFileUploader',["FS","DragDrop","root","UI","LanguageList","Sync","ProjectFactory"],
 function (FS,DragDrop,root,UI,LL,Sync,PF) {
     var P=FS.PathUtil;
+    function getExt(f) {
+        if (typeof f.name==="function") f=f.name();
+        const a=f.split(".");
+        a.shift();
+        return "."+a.join(".");
+    }
     var ProgramFileUploader={
         acceptingEXT(prj) {
             const acext={".html":1};
@@ -10571,7 +10580,7 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
             const EXT=prj.getEXT(), HEXT=".html";
             DragDrop.accept(fileList.elem, {
                 onCheckFile: function (dst,file) {
-                    if (!acext[P.ext(file.name)]) {
+                    if (!acext[getExt(file.name)]) {
                         return DragDrop.CancelReason(file.name+": このファイルは追加できません");
                     }
                     if (dst.exists()) {
@@ -10728,7 +10737,7 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
                     imported=true;
                     await t.importFrom(f.up(),ctx);
                 } else {
-                    const ext=f.ext() && f.ext().replace(/^\./,"");
+                    const ext=getExt(f) && getExt(f).replace(/^\./,"");
                     if (LL[ext] && !ctx.detected) {
                         ctx.detected={ext, dir};
                     }
