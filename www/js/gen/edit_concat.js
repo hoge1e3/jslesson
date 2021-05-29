@@ -16223,7 +16223,6 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
         return;
     }
     var curProjectDir=FS.get(dir);
-    var curPrj=PF.create("ba",{dir:curProjectDir});
     /*
     getEXT
     getOptions
@@ -16283,6 +16282,7 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
                     location.href="index.html";
                     return;
                 }
+                console.log("Creating project ",curProjectDir.name());
                 NPD.create(curProjectDir.up(),{name:curProjectDir.name(),lang:lang});
             }
         });
@@ -16300,6 +16300,7 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
     });
 
 function ready() {
+    const curPrj=PF.create("ba",{dir:curProjectDir});
     if (!Auth.teacher) {
         curPrj.getDir().each(function (f) {
             console.log(f.name());
@@ -16336,10 +16337,10 @@ function ready() {
         setupBuilder(_);
     });
     helpURL=langInfo.helpURL;
-    if (navigator.userAgent.match(/Firefox/) && lang==="tonyu") {
+    /*if (navigator.userAgent.match(/Firefox/) && lang==="tonyu") {
         ALWAYS_UPLOAD=true;
         console.log("Firefox tonyu ALWAYS_UPLOAD");
-    }
+    }*/
     /*switch (lang){
     case "c":
         requirejs(["CBuilder"],function(_){
