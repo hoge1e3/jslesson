@@ -1,5 +1,7 @@
+var classID, userId, day, all, teacherID, reloadMode, logsOfOneUser, programs, indexList;
+var displayingId, selectedFile;
 $(document).ready(function() {
-    dx=0,dy=0;
+    //dx=0,dy=0;
     displayingId="";
     selectedFile="";
 // call the tablesorter plugin
@@ -74,12 +76,21 @@ async function view1new() {
         }
     }
     let paka=0, lastNotPaka, last;
-    for (let log of logs) {
+    const logTypes=[
+        "Unsaved", "Open","Error", "Save", "Run", "Other"
+    ];
+    const detectType=log=>{
+        for (const t of logTypes) {
+            if (log.result.indexOf(t)>=0) return t;
+        }
+        return "Other";
+    };
+    logs.forEach(log=>{
         const filename=log.filename;
         //<div>${FILENAME}</div>
         if (log.result.match(/(Save|Open)/) && !showSave) {
             paka++;
-            continue;
+            return;
         }
         if (paka>1 && lastNotPaka) {
             $(`<div>Save/Open for ${log.time-lastNotPaka.time}secs</div>`).appendTo("#fileList");
@@ -89,15 +100,9 @@ async function view1new() {
         }
         lastNotPaka=log;
         paka=0;
-        $("<div>").appendTo("#fileList").append(
-            $("<font>").attr("color", (
-                log.result.match(/Unsaved/) ? "#aaa" :
-                log.result.match(/Open/) ? "#88f" :
-                log.result.match(/Save/) ? "#888" :
-                log.result.match(/Run/) ? "#0a0" :
-                log.result.match(/Error/) ? "red":
-                "black")).text(filename)
-        ).click(function () {
+        $("<div>").appendTo("#fileList").
+        addClass("logItem").addClass(detectType(log)).
+        append(filename).click(function () {
             console.log(log.id);
             if (!scrolled) {scrolled=true; this.scrollIntoView();}
             showLogOneUser.call(this, log.id, log.user, filename);
@@ -112,7 +117,7 @@ async function view1new() {
             console.log(e);
         }
         //</script>
-    }
+    });
 
     const logid=getQueryString("logid",false);
     if (logid) {
@@ -134,9 +139,14 @@ function getOneUsersLogId(userid,pon){
   showFrame(logs[userid],userid,pon);
 }
 function getCode(raw) {
-    return raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.DNCL || raw.code.Python || raw.code.py ||
+    for (let k in raw.code) {
+        if (k==="HTML") continue;
+        return raw.code[k];
+    }
+    return "";
+    /*return raw.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.DNCL || raw.code.Python || raw.code.py ||
     raw.code.Tonyu || raw.code.tonyu || raw.code.undefined || raw.code.PHP || raw.code.php ||
-    raw.code["p5.js"] || raw.code["p5.py"] || "";
+    raw.code["p5.js"] || raw.code["p5.py"] || raw.code.brython || "";*/
 }
 function goFileTop(file) {
     console.log("Top",file);
@@ -181,6 +191,7 @@ function navByFile(file) {
         <a href="javascript:;" onclick="goFileLast('${file}')">Last</a>
     `;
 }
+var currentLogId, showDiffFlag, prevProgram;
 function openFrame(data){
   console.log(data);
   if(displayingId!==""){
@@ -190,13 +201,13 @@ function openFrame(data){
       $("[id='"+displayingId+"']").css("display","none");
       $("[data-id='"+currentLogId+"']").css("background-color","white");
   }
-  displayingId==data.user ? showDiffFlag=true : showDiffFlag=false;
+  showDiffFlag=(displayingId==data.user);
   currentLogId=data.id;
   displayingId=data.user;
   var raw=JSON.parse(data.raw);
   var code=getCode(raw);//.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.DNCL || raw.code.Python || "";
   //res=data.filename+"\n"+data.result+"\n-------------\n"+data.code.C;
-  res=code;
+  let res=code;
   res=res.replace(/</g,"&lt;");
   res=res.replace(/>/g,"&gt;");
   $("[id='"+displayingId+"ui']").css("display","inline");

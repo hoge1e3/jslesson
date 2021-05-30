@@ -246,6 +246,7 @@ class TeacherLogController {
         <script type="text/javascript" src="js/lib/jquery.tablesorter.min.js"></script>
         <link rel="stylesheet" href="css/jquery-ui.css"></link>
         <link rel="stylesheet" href="css/diffview.css"></link>
+        <link rel="stylesheet" href="css/logViewer.css"></link>
         <script>
             classID='<?= $targetUser->_class->id ?>';
             userId='<?= $userName ?>';
