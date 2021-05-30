@@ -10,6 +10,7 @@ del gen\pyRun_concat.js
 call r_js -o build_pyRun.js
 del gen\BARunner.js
 call r_js -o build_BATestRunner.js
+node updateBAVer.js
 
 cd ..\..
 call babel www\js\gen\edit_concat.js --out-file www\es5\gen\edit_concat.js

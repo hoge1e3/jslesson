@@ -17004,10 +17004,18 @@ function ready() {
         var curLogicFile=curFiles[1];
         options.curHTMLFile=curHTMLFile;
         options.curLogicFile=curLogicFile;
-	    window.sendResult=function(resDetail, lang){
+	    window.sendResult=function(resDetail, lang, result="Run"){
+            const resCon=r=>{
+                if (typeof r==="string") return r;
+                if (r && r.message) return r.message;
+                return r+"";
+            };
             lang=lang||"c";
             console.log("sendResult",resDetail,lang);
-            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),(langInfo.en||lang)+" Run",resDetail,langInfo.en);
+            if (result==="Run" && resCon(resDetail).match(/Traceback.*most recent call last/)) {
+                result="Runtime Error";
+            }
+            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),(langInfo.en||lang)+" "+result, resDetail,langInfo.en);
         };
         stop();
         save();
