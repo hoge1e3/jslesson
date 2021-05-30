@@ -26,8 +26,14 @@ define(function (require, exports, module) {
                 };</script>
                 <script>
 const old=console.error;
+let oldContent="";
 console.error=(...a)=> {
-    document.querySelector("#console").append(a.join(" "));
+    const content = a.join(" ");
+    if (oldContent!==content) {
+        oldContent=content;
+        document.querySelector("#console").append(content);
+        window.parent.sendResult(content, "bry", "Runtime Error");
+    }
     return old.apply(console, a);
 };
                 </script>
