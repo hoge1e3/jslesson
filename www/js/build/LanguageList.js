@@ -16,9 +16,10 @@ define(function (require, exports, module) {
         //    helpURL:"http://bitarrow.eplang.jp/index.php?php",mode:"ace/mode/php"},
         "p5.js":{en:"p5.js", ja:"p5.js",builder:"P5Builder",
             helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/javascript"},
-        "p5.py":{en:"p5 Python mode", ja:"p5 Python mode",builder:"p5pyBuilder",manualIndent:true,
+            // lang <= 10
+        "p5.py":{en:"p5Python", ja:"p5 Python mode",builder:"p5pyBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/python"},
-        "bry":{//ext:"py",// not working now 
+        "bry":{//ext:"py",// not working now
             en:"brython", ja:"Brython(試験運用中)",builder:"BrythonBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
     };

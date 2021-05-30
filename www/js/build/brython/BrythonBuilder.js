@@ -18,6 +18,12 @@ define(function (require, exports, module) {
                 <script src="${stdlibURL}"></script>
                 <body onload="brython(1);">
                 <pre id="console"></pre>
+                <script>window.sendResult=(...a)=>{
+                    console.log("SR", ...a);
+                    if (window.parent && window.parent.sendResult) {
+                        window.parent.sendResult(...a);
+                    }
+                };</script>
                 <script>
 const old=console.error;
 console.error=(...a)=> {
@@ -30,12 +36,18 @@ import sys
 from browser import document, console
 class Writer:
     def write(*arg, **k):
-        console.log(arg, k)
+        #console.log(arg, k)
         document.querySelector("#console") <= arg[1]
 sys.stdout=Writer()
 #sys.stderr=Writer()
 </script>
                 <script type="text/python">${code}</script>
+                <script type="text/python">
+from browser import window
+#window.console.log("SENDO", window.parent.sendResult, window.document.querySelector("#console").innerText )
+window.console.log("SENDO",window.sendResult)
+window.sendResult(window.document.querySelector("#console").innerText,"bry")
+</script>
                 </body>
             </html>`);
             //return url;
