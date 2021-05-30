@@ -1,0 +1,15 @@
+.logitem.Unsaved {
+    color: #ccc;
+}
+.logitem.Save {
+    color: #aaa;
+}
+.logitem.Open {
+    color: #a0f;
+}
+.logitem.Error {
+    color: red;
+}
+.logitem.Run {
+    color: #0a0;
+}
