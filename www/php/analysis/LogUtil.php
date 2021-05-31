@@ -118,5 +118,14 @@ class LogUtil {
         }
         return "";
     }
+    static function isValidEntry($l){
+        if ($l["filename"]==="") {
+            return false;
+        }
+        if (!json_decode($l["raw"])) {
+            return false;
+        }
+        return true;
+    }
 }
 ?>

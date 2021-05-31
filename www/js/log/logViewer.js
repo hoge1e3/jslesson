@@ -1,4 +1,4 @@
-var classID, userId, day, all, teacherID, reloadMode, logsOfOneUser, programs, indexList;
+var classID, thisURL, userId, day, all, teacherID, reloadMode, logsOfOneUser, programs, indexList;
 var displayingId, selectedFile;
 $(document).ready(function() {
     //dx=0,dy=0;
@@ -17,6 +17,48 @@ $(document).ready(function() {
         }
     });
 });
+function fold(show) {
+    const items = [];
+    $(".logItem").each(function () {
+        items.push($(this));
+    });
+    console.log("ITEMS",items);
+    let chunk;
+    for (let item of items) {
+        if (toBeFold(item)) {
+            chunk = chunk || [];
+            chunk.push(item);
+        } else {
+            procChunk();
+        }
+    }
+    procChunk();
+    function procChunk() {
+        if (!chunk) return;
+        const items = chunk;
+        chunk = null;
+        if (items.length<2) return;
+        let showing = true;
+        console.log("CHUNK",items);
+        const id = Math.random();
+        const duration=items[items.length-1].attr("data-time")-items[0].attr("data-time");
+        const openedLabel="▼", closedLabel=`▶(${items.length}, ${duration}secs.)…`;
+        const handle = $("<div>").text(openedLabel).click(c);
+        items[0].before(handle);
+        if (!show) c();
+        function c() {
+            showing = !showing;
+            for (let item of items) {
+                if (showing) item.show();
+                else item.hide();
+            }
+            handle.text(showing?openedLabel:closedLabel);
+        }
+    }
+    function toBeFold(item) {
+        return item.hasClass("Open") || (item.hasClass("Save") && item.hasClass("unchanged"));// !item.hasClass("advanced") && !item.hasClass("regressed"));
+    }
+}
 function getLog(logid,userid){
   $.ajax({
       type: "POST",
@@ -54,16 +96,16 @@ function getLogs(user,day,all){
 let scrolled=false;
 async function view1new() {
     let logs=await getLogs(userId,day,all);
-    const showSave=location.href.match(/showSave/);
+    //const showSave=location.href.match(/showSave/);
     console.log(logs, all);
     if (logs.length===0) {
-        document.write(`
+        document.body.innerHTML=(`
             この日のログはありません．
             <a href=".?TeacherLog/view1Dates&user=${userId}">他の日のログを見る</a>
         `);
     }
     programs=[];// {filename: [log....]}
-    logs=logs.filter(log=>!(log.result.match(/(Save|Open)/) && !showSave));
+    //logs=logs.filter(log=>!(log.result.match(/(Save|Open)/) && !showSave));
     for (let log of logs) {
         //log.raw=JSON.parse(log.raw);
         const filename=log.filename;
@@ -88,21 +130,21 @@ async function view1new() {
     logs.forEach(log=>{
         const filename=log.filename;
         //<div>${FILENAME}</div>
-        if (log.result.match(/(Save|Open)/) && !showSave) {
+        /*if (log.result.match(/(Save|Open)/) && !showSave) {
             paka++;
             return;
         }
         if (paka>1 && lastNotPaka) {
             $(`<div>Save/Open for ${log.time-lastNotPaka.time}secs</div>`).appendTo("#fileList");
-        }
+        }*/
         if (last && log.time-last.time>=300) {
-            $(`<div>Idle for ${log.time-last.time}secs.</div>`).appendTo("#fileList");
+            $(`<div>Idle for ${log.time-last.time}secs.</div>`).addClass("logItem").appendTo("#fileList");
         }
         lastNotPaka=log;
         paka=0;
         $("<div>").appendTo("#fileList").
         addClass("logItem").addClass(detectType(log)).
-        append(filename).click(function () {
+        append($("<span>").addClass("fileName").text(filename)).click(function () {
             console.log(log.id);
             if (!scrolled) {scrolled=true; this.scrollIntoView();}
             showLogOneUser.call(this, log.id, log.user, filename);
@@ -134,6 +176,7 @@ async function view1new() {
             }
         }
     }
+    fold(all);
 }
 function getOneUsersLogId(userid,pon){
   showFrame(logs[userid],userid,pon);
@@ -346,32 +389,56 @@ function showFileEntry(l) {
     var prevDiffData=calcDiff(prevProg,curProg,"[id='"+userid+"diff']","Prev","Current",false);
     var lastDiffData=calcDiff(curProg,lastProg,"[id='"+userid+"diffLast']","Current","Last",false);
     var lastDiffData1=calcDiff(prevProg,lastProg,"[id='"+userid+"diffLast']","Prev","Last",false);
-    var pd=":"+prevDiffData["delete"]+":"+prevDiffData["insert"]+":"+prevDiffData["replace"]+":"+prevDiffData["equal"];
-    var ld="-"+lastDiffData["delete"]+":"+lastDiffData["insert"]+":"+lastDiffData["replace"]+":"+lastDiffData["equal"];
-    //console.log("lastDiff",lastDiffData["equal"],lastDiffData1.equal);
-    let sameLines;
-    if(lastDiffData["equal"]<lastDiffData1.equal){
-      sameLines=":"+`<font color="red">${lastDiffData["equal"]}/${lastDiffData.prevLines}/${lastDiffData.nowLines}　★</font>`;
-    }else{
-      sameLines=`:${lastDiffData.equal}/${lastDiffData.prevLines}/${lastDiffData.nowLines}`;
+    var pd=":"+prevDiffData.delete+":"+prevDiffData.insert+":"+prevDiffData.replace+":"+prevDiffData.equal;
+    var ld="-"+lastDiffData.delete+":"+lastDiffData.insert+":"+lastDiffData.replace+":"+lastDiffData.equal;
+    //console.log("lastDiff",lastDiffData.equal,lastDiffData1.equal);
+    //let advanced, regressed;
+    var e=$("<span>").attr({id:l.id+'summary'}).addClass("diffStat");
+    const line=$("#"+l.id);
+    line.attr({"data-time": l.time});
+    e.appendTo(line);
+    let sameLines=`:${lastDiffData.equal}/${lastDiffData.prevLines}/${lastDiffData.nowLines}`;
+    if (prevDiffData.delete+prevDiffData.insert+prevDiffData.replace===0) {
+        e.addClass("unchanged");
+        line.addClass("unchanged");
+        sameLines+="＝";
+    }
+    if(lastDiffData.equal<lastDiffData1.equal){
+        e.addClass("regressed");
+        line.addClass("regressed");
+        //regressed=true;
+        sameLines+="★";
     }
     if (lastDiffData.equal>(maxEqual[l.filename]||-1)) {
-        if (maxEqual[l.filename]) sameLines+=`<font color='#0a0'>♪</font>`;
+        if (maxEqual[l.filename]) {
+            e.addClass("advanced");
+            line.addClass("advanced");
+            //advanced=true;
+            sameLines+="♪";
+        }
         maxEqual[l.filename]=lastDiffData.equal;
         lastAdvance[l.filename]=l;
-    } else if (lastAdvance[l.filename] && l.time-lastAdvance[l.filename].time>=15*60){
-        sameLines+=`<font color="#f80">×</font>`;
+    } else if (lastAdvance[l.filename]) {
+        const unadv=(l.time-lastAdvance[l.filename].time);
+        if (unadv>=30*60) {
+            e.addClass("unadvanced_30");
+        } else if (unadv>=20*60) {
+            e.addClass("unadvanced_20");
+        } else if (unadv>=15*60) {
+            e.addClass("unadvanced_15");
+        } else if (unadv>=10*60) {
+            e.addClass("unadvanced_10");
+        } else if (unadv>=5*60) {
+            e.addClass("unadvanced_5");
+        }
+        //sameLines+=`<font color="#f80">×</font>`;
     }
-
+    e.html(sameLines);
     /*console.log("prev",prevProg);
     console.log("cur",curProg);
     console.log("diff",prevDiffData, lastDiffData);
     console.log("cur/last",curProg,lastProg, curProg===lastProg);*/
 
-    var e=document.createElement("span");
-    e.id=l.id+'summary';
-    e.innerHTML=sameLines;
-    document.getElementById(l.id).appendChild(e);
 }
 var prevLog;
 async function showLogOneUser(logid,userid,fn){

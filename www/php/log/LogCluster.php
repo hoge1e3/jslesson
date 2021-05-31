@@ -14,6 +14,9 @@ $attrs=[""];
 class LogElem {
     function __construct($l) {
         $r=json_decode($l["raw"]);
+        if (!$r) {
+            throw new Exception("Parse error json ".$l["raw"]);
+        }
         foreach ($r as $k=>$v) {
             $this->{$k}=$v;
         }
@@ -32,12 +35,16 @@ function getCode($code) {
 }
 class LogCluster {
     function collectOther($attr, $n) {
+        if (!isset($n->{$attr})) {
+            throw new Exception("invalid data ".json_encode($n));
+        }
+        $nv=$n->{$attr};
         if (!isset($this->{$attr})) {
             //print_r($n);
-            $this->{$attr}=$n->{$attr};
+            $this->{$attr}=$nv;
             return true;
         }
-        if ($this->{$attr}===$n->{$attr}) return true;
+        if ($this->{$attr}===$nv) return true;
         return false;
     }
     function collectOthers($n) {
