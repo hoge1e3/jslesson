@@ -1,15 +1,40 @@
-.logitem.Unsaved {
+.logitem.Unsaved .fileName {
     color: #ccc;
 }
-.logitem.Save {
-    color: #aaa;
+.logitem.Save .fileName {
+    color: #888;
 }
-.logitem.Open {
+.logitem.Open .fileName {
     color: #a0f;
 }
-.logitem.Error {
+.logitem.Error .fileName {
     color: red;
 }
-.logitem.Run {
+.logitem.Run .fileName {
     color: #0a0;
+}
+.diffStat.advanced{
+    color: #0a0;
+}
+.diffStat.regressed {
+    color: #f00;
+}
+.diffStat.unchanged {
+    color: #888;
+}
+
+.diffStat.unadvanced_5 {
+    background-color: #ffa;
+}
+.diffStat.unadvanced_10 {
+    background-color: #ff0;
+}
+.diffStat.unadvanced_15 {
+    background-color: #f80;
+}
+.diffStat.unadvanced_20 {
+    background-color: #f8a;
+}
+.diffStat.unadvanced_30 {
+    background-color: #f4f;
 }

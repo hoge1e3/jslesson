@@ -150,6 +150,9 @@ class TeacherLogController {
         req("LogCluster");
         $c=null;
         foreach($logs as $i=>$l){
+            if (!LogUtil::isValidEntry($l)) {
+                continue;
+            }
             if (!$c) {
                 $c=new LogCluster();
             }
