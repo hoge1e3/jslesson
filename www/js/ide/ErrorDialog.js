@@ -112,11 +112,19 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace,EventHandler) {
                 t.traced.text(trace);
             }
             elem.dialog({width:600,height:400});
+            t.opened=true;
             return srcpos;
         },
         on: (t,...args)=>t.events.on(...args),
         close: function (t) {
-            if (t.dom) t.dom.dialog("close");
+            try {
+                if (t.dom && t.opened) {
+                    t.dom.dialog("close");
+                    t.opened=false;
+                }
+            } catch(e) {
+                console.log("err",e);
+            }
         },
         createDom: function (t) {
             if (t.dom) return t.dom;

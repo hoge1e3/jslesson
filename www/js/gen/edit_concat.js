@@ -15778,7 +15778,11 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace,EventHandler) {
         },
         on: (t,...args)=>t.events.on(...args),
         close: function (t) {
-            if (t.dom) t.dom.dialog("close");
+            try {
+                if (t.dom) t.dom.dialog("close");
+            } catch(e) {
+                console.log("err",e);
+            }
         },
         createDom: function (t) {
             if (t.dom) return t.dom;
