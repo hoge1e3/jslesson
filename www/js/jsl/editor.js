@@ -383,6 +383,7 @@ function ready() {
         assignmentDialog.show(inf && inf.file);
     }
     function distributeFile() {
+        DistributeDialog.setDisabled(false);
         var curPrjName=curProjectDir.name();
         var inf=getCurrentEditorInfo();
         if (!inf) {
@@ -390,8 +391,9 @@ function ready() {
             return;
         }
         var curFile=getCurrentEditorInfo().file;
-        DistributeDialog.show(curFile.text(),function(text,overwrite){
+        DistributeDialog.show(curFile.text(),function(text,overwrite,{next}){
             console.log(text,overwrite);
+            DistributeDialog.setDisabled(true);
             $.ajax({
                 type:"POST",
                 url:WebSite.controller+"?Class/distribute",
@@ -405,14 +407,26 @@ function ready() {
                 }
             }).then(
                 function(d){
-                    alert(d);
+                    if (!next) {
+                        alert(d);
+                        DistributeDialog.setDisabled(false);
+                    } else {
+                        try {
+                            fl.selectNext();
+                            setTimeout(distributeFile, 500);
+                        } catch(e) {
+                            console.error(e);
+                            alert(e);
+                        }
+                    }
                 },
                 function(d){
                     alert("配布に失敗しました");
                     console.log(d);
+                    DistributeDialog.setDisabled(false);
                 }
             );
-        });
+        },{ide});
 
     }
     /*function distributePrj() {
@@ -825,10 +839,18 @@ function ready() {
         var curLogicFile=curFiles[1];
         options.curHTMLFile=curHTMLFile;
         options.curLogicFile=curLogicFile;
-	    window.sendResult=function(resDetail, lang){
+	    window.sendResult=function(resDetail, lang, result="Run"){
+            const resCon=r=>{
+                if (typeof r==="string") return r;
+                if (r && r.message) return r.message;
+                return r+"";
+            };
             lang=lang||"c";
             console.log("sendResult",resDetail,lang);
-            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),(langInfo.en||lang)+" Run",resDetail,langInfo.en);
+            if (result==="Run" && resCon(resDetail).match(/Traceback.*most recent call last/)) {
+                result="Runtime Error";
+            }
+            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),(langInfo.en||lang)+" "+result, resDetail,langInfo.en);
         };
         stop();
         save();
@@ -956,7 +978,8 @@ function ready() {
         }
     }
     function fixEditorIndent(prog) {
-        if (lang==="dncl" || lang==="py" || lang==="p5.py") return;// bad know-how!
+        //if (lang==="dncl" || lang==="py" || lang==="p5.py") return;// bad know-how!
+        if (langInfo.manualIndent) return;
         A.is(prog,"AceEditor");
         var prev=prog.getValue();
         let fixed;

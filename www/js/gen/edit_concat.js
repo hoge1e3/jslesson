@@ -4052,7 +4052,7 @@ function FileList(elem, options) {
     //console.log(elem);
     if (!options) options={};
     var FL={select:select, ls:ls, on:(options.on?options.on:{}), curFile:curFile, curDir: curDir,
-    		setModified:setModified, isModified:isModified,elem:elem};
+    		setModified:setModified, isModified:isModified,elem:elem, selectNext};
     var path=$("<div>");
     var items=$("<div>");
     if (!selbox) elem.append(path).append(items);
@@ -4089,6 +4089,18 @@ function FileList(elem, options) {
                 item(_curFile).addClass("selected");
             }
         }
+    }
+    function selectNext() {
+        let doNext;
+        items.find(selbox?"option":"span").each(function () {
+    		var t=$(this);
+    		if ( t.data("filename")==_curFile.path()) {
+                doNext=true;
+    		} else if (doNext) {
+                doNext=false;
+                select(FS.get(t.data("filename")));
+            }
+    	});
     }
     function setModified(m) {
     	if (!_curFile) return;
@@ -10225,21 +10237,31 @@ define('DistributeDialog',["UI"], function (UI) {
 			res.tx=$("<textarea>").attr({id:"fileCont2",rows:20,cols:20}).val(text),
 			$("<br>"),*/
 
-                $("<button>OK</button>").click(function () {
+
+                res.okb=$("<button>OK</button>").click(function () {
                     //alert("clicked");
-            	    res.d.done();
-            })
+            	    res.d.done({next:false});
+                }),
+                res.oknb=$("<button>OK&Next</button>").click(function () {
+                    //alert("clicked");
+                    res.d.done({next:true});
+                })
             );
         }
         res.tx.val(text);
         var d=res.d;
 /*        d.$vars.OKButton.attr("disabled", false);
         d.$vars.OKButton.val("OK");*/
-        d.done=function () {
-            onOK($("#fileCont").val(),$("#overwrite").prop("checked")	);
-            d.dialog("close");
+        d.done=function ({next}) {
+            onOK($("#fileCont").val(),$("#overwrite").prop("checked"),{next});
+            if(!next) d.dialog("close");
         };
         return d;
+    };
+    res.setDisabled=e=>{
+        if (res.okb) res.okb.attr('disabled',e);
+        if (res.oknb) res.oknb.attr('disabled',e);
+        if (res.tx) res.tx.attr('disabled',e);
     };
     return res;
 });
@@ -14873,9 +14895,9 @@ define('LanguageList',['require','exports','module'],function (require, exports,
             helpURL:"http://bitarrow.eplang.jp/index.php?dolittle_use"},
         "c":{en:"C", ja:"C",builder:"CBuilder",
             helpURL:"http://bitarrow.eplang.jp/index.php?c_use", mode:"ace/mode/c_cpp"},
-        "dncl":{en:"DNCL", ja:"DNCL(どんくり)",builder:"DnclBuilder",
+        "dncl":{en:"DNCL", ja:"DNCL(どんくり)",builder:"DnclBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?dncl_use"},
-        "py": {en:"Python", ja:"Python",builder:"PythonBuilder",
+        "py": {en:"Python", ja:"Python",builder:"PythonBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
         "tonyu":{en:"Tonyu", ja:"Tonyu",builder:"TonyuBuilder",
             helpURL:"http://bitarrow.eplang.jp/index.php?tonyu",mode:"ace/mode/tonyu"},
@@ -14883,8 +14905,12 @@ define('LanguageList',['require','exports','module'],function (require, exports,
         //    helpURL:"http://bitarrow.eplang.jp/index.php?php",mode:"ace/mode/php"},
         "p5.js":{en:"p5.js", ja:"p5.js",builder:"P5Builder",
             helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/javascript"},
-        "p5.py":{en:"p5 Python mode", ja:"p5 Python mode",builder:"p5pyBuilder",
+            // lang <= 10
+        "p5.py":{en:"p5Python", ja:"p5 Python mode",builder:"p5pyBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/python"},
+        "bry":{//ext:"py",// not working now
+            en:"brython", ja:"Brython(試験運用中)",builder:"BrythonBuilder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
     };
 });
 
@@ -15131,6 +15157,12 @@ define('DragDrop',["FS","root"],function (FS,root) {
 define('ProgramFileUploader',["FS","DragDrop","root","UI","LanguageList","Sync","ProjectFactory"],
 function (FS,DragDrop,root,UI,LL,Sync,PF) {
     var P=FS.PathUtil;
+    function getExt(f) {
+        if (typeof f.name==="function") f=f.name();
+        const a=f.split(".");
+        a.shift();
+        return "."+a.join(".");
+    }
     var ProgramFileUploader={
         acceptingEXT(prj) {
             const acext={".html":1};
@@ -15144,7 +15176,7 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
             const EXT=prj.getEXT(), HEXT=".html";
             DragDrop.accept(fileList.elem, {
                 onCheckFile: function (dst,file) {
-                    if (!acext[P.ext(file.name)]) {
+                    if (!acext[getExt(file.name)]) {
                         return DragDrop.CancelReason(file.name+": このファイルは追加できません");
                     }
                     if (dst.exists()) {
@@ -15301,7 +15333,7 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
                     imported=true;
                     await t.importFrom(f.up(),ctx);
                 } else {
-                    const ext=f.ext() && f.ext().replace(/^\./,"");
+                    const ext=getExt(f) && getExt(f).replace(/^\./,"");
                     if (LL[ext] && !ctx.detected) {
                         ctx.detected={ext, dir};
                     }
@@ -15715,7 +15747,12 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace,EventHandler) {
                 mesg//+" 場所："+src.name()+(typeof row=="number"?":"+p.row+":"+p.col:"")
             );
             t.events.fire("show",{mesg, src,pos,trace, dialog:t, error});
-            src=decodeSrc(src);
+            try {
+                src=decodeSrc(src);
+            } catch(e) {
+                console.log("decodeSrc fail", src);
+                alert(mesg);
+            }
             let srcpos;
             if (src && pos!=null) {
                 var p=new Pos2RC(src.text).getAll(pos);
@@ -15741,7 +15778,11 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace,EventHandler) {
         },
         on: (t,...args)=>t.events.on(...args),
         close: function (t) {
-            if (t.dom) t.dom.dialog("close");
+            try {
+                if (t.dom) t.dom.dialog("close");
+            } catch(e) {
+                console.log("err",e);
+            }
         },
         createDom: function (t) {
             if (t.dom) return t.dom;
@@ -16223,7 +16264,6 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
         return;
     }
     var curProjectDir=FS.get(dir);
-    var curPrj=PF.create("ba",{dir:curProjectDir});
     /*
     getEXT
     getOptions
@@ -16283,6 +16323,7 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
                     location.href="index.html";
                     return;
                 }
+                console.log("Creating project ",curProjectDir.name());
                 NPD.create(curProjectDir.up(),{name:curProjectDir.name(),lang:lang});
             }
         });
@@ -16300,6 +16341,7 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
     });
 
 function ready() {
+    const curPrj=PF.create("ba",{dir:curProjectDir});
     if (!Auth.teacher) {
         curPrj.getDir().each(function (f) {
             console.log(f.name());
@@ -16551,6 +16593,7 @@ function ready() {
         assignmentDialog.show(inf && inf.file);
     }
     function distributeFile() {
+        DistributeDialog.setDisabled(false);
         var curPrjName=curProjectDir.name();
         var inf=getCurrentEditorInfo();
         if (!inf) {
@@ -16558,8 +16601,9 @@ function ready() {
             return;
         }
         var curFile=getCurrentEditorInfo().file;
-        DistributeDialog.show(curFile.text(),function(text,overwrite){
+        DistributeDialog.show(curFile.text(),function(text,overwrite,{next}){
             console.log(text,overwrite);
+            DistributeDialog.setDisabled(true);
             $.ajax({
                 type:"POST",
                 url:WebSite.controller+"?Class/distribute",
@@ -16573,14 +16617,26 @@ function ready() {
                 }
             }).then(
                 function(d){
-                    alert(d);
+                    if (!next) {
+                        alert(d);
+                        DistributeDialog.setDisabled(false);
+                    } else {
+                        try {
+                            fl.selectNext();
+                            setTimeout(distributeFile, 500);
+                        } catch(e) {
+                            console.error(e);
+                            alert(e);
+                        }
+                    }
                 },
                 function(d){
                     alert("配布に失敗しました");
                     console.log(d);
+                    DistributeDialog.setDisabled(false);
                 }
             );
-        });
+        },{ide});
 
     }
     /*function distributePrj() {
@@ -16993,10 +17049,18 @@ function ready() {
         var curLogicFile=curFiles[1];
         options.curHTMLFile=curHTMLFile;
         options.curLogicFile=curLogicFile;
-	    window.sendResult=function(resDetail, lang){
+	    window.sendResult=function(resDetail, lang, result="Run"){
+            const resCon=r=>{
+                if (typeof r==="string") return r;
+                if (r && r.message) return r.message;
+                return r+"";
+            };
             lang=lang||"c";
             console.log("sendResult",resDetail,lang);
-            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),(langInfo.en||lang)+" Run",resDetail,langInfo.en);
+            if (result==="Run" && resCon(resDetail).match(/Traceback.*most recent call last/)) {
+                result="Runtime Error";
+            }
+            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),(langInfo.en||lang)+" "+result, resDetail,langInfo.en);
         };
         stop();
         save();
@@ -17124,7 +17188,8 @@ function ready() {
         }
     }
     function fixEditorIndent(prog) {
-        if (lang==="dncl" || lang==="py" || lang==="p5.py") return;// bad know-how!
+        //if (lang==="dncl" || lang==="py" || lang==="p5.py") return;// bad know-how!
+        if (langInfo.manualIndent) return;
         A.is(prog,"AceEditor");
         var prev=prog.getValue();
         let fixed;
