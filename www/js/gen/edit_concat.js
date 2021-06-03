@@ -15747,7 +15747,12 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace,EventHandler) {
                 mesg//+" 場所："+src.name()+(typeof row=="number"?":"+p.row+":"+p.col:"")
             );
             t.events.fire("show",{mesg, src,pos,trace, dialog:t, error});
-            src=decodeSrc(src);
+            try {
+                src=decodeSrc(src);
+            } catch(e) {
+                console.log("decodeSrc fail", src);
+                alert(mesg);
+            }
             let srcpos;
             if (src && pos!=null) {
                 var p=new Pos2RC(src.text).getAll(pos);
