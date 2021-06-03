@@ -85,7 +85,12 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace,EventHandler) {
                 mesg//+" 場所："+src.name()+(typeof row=="number"?":"+p.row+":"+p.col:"")
             );
             t.events.fire("show",{mesg, src,pos,trace, dialog:t, error});
-            src=decodeSrc(src);
+            try {
+                src=decodeSrc(src);
+            } catch(e) {
+                console.log("decodeSrc fail", src);
+                alert(mesg);
+            }
             let srcpos;
             if (src && pos!=null) {
                 var p=new Pos2RC(src.text).getAll(pos);
@@ -107,11 +112,19 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace,EventHandler) {
                 t.traced.text(trace);
             }
             elem.dialog({width:600,height:400});
+            t.opened=true;
             return srcpos;
         },
         on: (t,...args)=>t.events.on(...args),
         close: function (t) {
-            if (t.dom) t.dom.dialog("close");
+            try {
+                if (t.dom && t.opened) {
+                    t.dom.dialog("close");
+                    t.opened=false;
+                }
+            } catch(e) {
+                console.log("err",e);
+            }
         },
         createDom: function (t) {
             if (t.dom) return t.dom;
