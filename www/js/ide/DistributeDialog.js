@@ -19,21 +19,31 @@ define(["UI"], function (UI) {
 			res.tx=$("<textarea>").attr({id:"fileCont2",rows:20,cols:20}).val(text),
 			$("<br>"),*/
 
-                $("<button>OK</button>").click(function () {
+
+                res.okb=$("<button>OK</button>").click(function () {
                     //alert("clicked");
-            	    res.d.done();
-            })
+            	    res.d.done({next:false});
+                }),
+                res.oknb=$("<button>OK&Next</button>").click(function () {
+                    //alert("clicked");
+                    res.d.done({next:true});
+                })
             );
         }
         res.tx.val(text);
         var d=res.d;
 /*        d.$vars.OKButton.attr("disabled", false);
         d.$vars.OKButton.val("OK");*/
-        d.done=function () {
-            onOK($("#fileCont").val(),$("#overwrite").prop("checked")	);
-            d.dialog("close");
+        d.done=function ({next}) {
+            onOK($("#fileCont").val(),$("#overwrite").prop("checked"),{next});
+            if(!next) d.dialog("close");
         };
         return d;
+    };
+    res.setDisabled=e=>{
+        if (res.okb) res.okb.attr('disabled',e);
+        if (res.oknb) res.oknb.attr('disabled',e);
+        if (res.tx) res.tx.attr('disabled',e);
     };
     return res;
 });
