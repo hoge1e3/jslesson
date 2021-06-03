@@ -383,6 +383,7 @@ function ready() {
         assignmentDialog.show(inf && inf.file);
     }
     function distributeFile() {
+        DistributeDialog.setDisabled(false);
         var curPrjName=curProjectDir.name();
         var inf=getCurrentEditorInfo();
         if (!inf) {
@@ -390,8 +391,9 @@ function ready() {
             return;
         }
         var curFile=getCurrentEditorInfo().file;
-        DistributeDialog.show(curFile.text(),function(text,overwrite){
+        DistributeDialog.show(curFile.text(),function(text,overwrite,{next}){
             console.log(text,overwrite);
+            DistributeDialog.setDisabled(true);
             $.ajax({
                 type:"POST",
                 url:WebSite.controller+"?Class/distribute",
@@ -405,14 +407,26 @@ function ready() {
                 }
             }).then(
                 function(d){
-                    alert(d);
+                    if (!next) {
+                        alert(d);
+                        DistributeDialog.setDisabled(false);
+                    } else {
+                        try {
+                            fl.selectNext();
+                            setTimeout(distributeFile, 500);
+                        } catch(e) {
+                            console.error(e);
+                            alert(e);
+                        }
+                    }
                 },
                 function(d){
                     alert("配布に失敗しました");
                     console.log(d);
+                    DistributeDialog.setDisabled(false);
                 }
             );
-        });
+        },{ide});
 
     }
     /*function distributePrj() {

@@ -127,6 +127,20 @@ async function view1new() {
         }
         return "Other";
     };
+    const searchDiv=$("<div>").appendTo("#fileList");
+    const word=$("<input>").appendTo(searchDiv).on("keydown",e=>{
+        if (e.keyCode==13) {
+            for (let log of logs) {
+                try {
+                    if (getCode(JSON.parse(log.raw)).indexOf(word.val())>=0) {
+                        $("#"+log.id).addClass("found");
+                    }
+                }catch(ex){
+                    console.error(ex);
+                }
+            }
+        }
+    });
     logs.forEach(log=>{
         const filename=log.filename;
         //<div>${FILENAME}</div>
@@ -443,8 +457,8 @@ function showFileEntry(l) {
 var prevLog;
 async function showLogOneUser(logid,userid,fn){
     console.log("SLO",this,arguments);
-    if (prevLog) $(prevLog).css({background:"#fff"});
-    $(this).css({background:"#ff0"});
+    if (prevLog) $(prevLog).removeClass("selected");
+    $(this).addClass("selected");
     prevLog=this;
   getLog(logid,userid);// openFrameする
   var ind=logsOfOneUser[fn].indexOf(logid-0);
