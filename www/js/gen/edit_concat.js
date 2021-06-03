@@ -4052,7 +4052,7 @@ function FileList(elem, options) {
     //console.log(elem);
     if (!options) options={};
     var FL={select:select, ls:ls, on:(options.on?options.on:{}), curFile:curFile, curDir: curDir,
-    		setModified:setModified, isModified:isModified,elem:elem};
+    		setModified:setModified, isModified:isModified,elem:elem, selectNext};
     var path=$("<div>");
     var items=$("<div>");
     if (!selbox) elem.append(path).append(items);
@@ -4089,6 +4089,18 @@ function FileList(elem, options) {
                 item(_curFile).addClass("selected");
             }
         }
+    }
+    function selectNext() {
+        let doNext;
+        items.find(selbox?"option":"span").each(function () {
+    		var t=$(this);
+    		if ( t.data("filename")==_curFile.path()) {
+                doNext=true;
+    		} else if (doNext) {
+                doNext=false;
+                select(FS.get(t.data("filename")));
+            }
+    	});
     }
     function setModified(m) {
     	if (!_curFile) return;
@@ -10225,21 +10237,31 @@ define('DistributeDialog',["UI"], function (UI) {
 			res.tx=$("<textarea>").attr({id:"fileCont2",rows:20,cols:20}).val(text),
 			$("<br>"),*/
 
-                $("<button>OK</button>").click(function () {
+
+                res.okb=$("<button>OK</button>").click(function () {
                     //alert("clicked");
-            	    res.d.done();
-            })
+            	    res.d.done({next:false});
+                }),
+                res.oknb=$("<button>OK&Next</button>").click(function () {
+                    //alert("clicked");
+                    res.d.done({next:true});
+                })
             );
         }
         res.tx.val(text);
         var d=res.d;
 /*        d.$vars.OKButton.attr("disabled", false);
         d.$vars.OKButton.val("OK");*/
-        d.done=function () {
-            onOK($("#fileCont").val(),$("#overwrite").prop("checked")	);
-            d.dialog("close");
+        d.done=function ({next}) {
+            onOK($("#fileCont").val(),$("#overwrite").prop("checked"),{next});
+            if(!next) d.dialog("close");
         };
         return d;
+    };
+    res.setDisabled=e=>{
+        if (res.okb) res.okb.attr('disabled',e);
+        if (res.oknb) res.oknb.attr('disabled',e);
+        if (res.tx) res.tx.attr('disabled',e);
     };
     return res;
 });
@@ -16562,6 +16584,7 @@ function ready() {
         assignmentDialog.show(inf && inf.file);
     }
     function distributeFile() {
+        DistributeDialog.setDisabled(false);
         var curPrjName=curProjectDir.name();
         var inf=getCurrentEditorInfo();
         if (!inf) {
@@ -16569,8 +16592,9 @@ function ready() {
             return;
         }
         var curFile=getCurrentEditorInfo().file;
-        DistributeDialog.show(curFile.text(),function(text,overwrite){
+        DistributeDialog.show(curFile.text(),function(text,overwrite,{next}){
             console.log(text,overwrite);
+            DistributeDialog.setDisabled(true);
             $.ajax({
                 type:"POST",
                 url:WebSite.controller+"?Class/distribute",
@@ -16584,14 +16608,26 @@ function ready() {
                 }
             }).then(
                 function(d){
-                    alert(d);
+                    if (!next) {
+                        alert(d);
+                        DistributeDialog.setDisabled(false);
+                    } else {
+                        try {
+                            fl.selectNext();
+                            setTimeout(distributeFile, 500);
+                        } catch(e) {
+                            console.error(e);
+                            alert(e);
+                        }
+                    }
                 },
                 function(d){
                     alert("配布に失敗しました");
                     console.log(d);
+                    DistributeDialog.setDisabled(false);
                 }
             );
-        });
+        },{ide});
 
     }
     /*function distributePrj() {
