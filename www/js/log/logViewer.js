@@ -93,6 +93,7 @@ function getLogs(user,day,all){
       dataType: "json",
   });
 }
+const IDLE_TIME=300;
 let scrolled=false;
 async function view1new() {
     let logs=await getLogs(userId,day,all);
@@ -117,7 +118,7 @@ async function view1new() {
             console.error(e);
         }
     }
-    let paka=0, lastNotPaka, last;
+    let /*paka=0, lastNotPaka,*/ last, lastByFile={};
     const logTypes=[
         "Unsaved", "Open","Error", "Save", "Run", "Other"
     ];
@@ -151,18 +152,36 @@ async function view1new() {
         if (paka>1 && lastNotPaka) {
             $(`<div>Save/Open for ${log.time-lastNotPaka.time}secs</div>`).appendTo("#fileList");
         }*/
-        if (last && log.time-last.time>=300) {
-            $(`<div>Idle for ${log.time-last.time}secs.</div>`).addClass("logItem").appendTo("#fileList");
+        if (last) {
+            const elapsedFromLast=(log.time-last.time);
+            if (last.filename===log.filename) {
+                //console.log(last.fileName+" "+last.id+" "+log.id+" e="+elapsedFromLast);
+                log.actualTime=last.actualTime+(elapsedFromLast>=IDLE_TIME?0:elapsedFromLast);
+            } else {
+                if (!lastByFile[log.filename]) {
+                    log.actualTime=0;
+                } else {
+                    log.actualTime=lastByFile[log.filename].actualTime;
+                }
+            }
+            if (elapsedFromLast>=IDLE_TIME) {
+                $(`<div>Idle for ${log.time-last.time}secs.</div>`).addClass("logItem").appendTo("#fileList");
+            }
         }
-        lastNotPaka=log;
-        paka=0;
+
+        //lastNotPaka=log;
+        //paka=0;
+        if (!lastByFile[log.filename]) {
+            log.actualTime=0;// 他のファイルをいじっていた時間を除去した時間
+        }
+        lastByFile[log.filename]=log;
         $("<div>").appendTo("#fileList").
         addClass("logItem").addClass(detectType(log)).
         append($("<span>").addClass("fileName").text(filename)).click(function () {
             console.log(log.id);
             if (!scrolled) {scrolled=true; this.scrollIntoView();}
             showLogOneUser.call(this, log.id, log.user, filename);
-        }).attr("id", log.id).attr("data-filename",log.filename);
+        }).attr("id", log.id).attr("data-filename",log.filename).attr("data-actualTime",log.actualTime);
         //<font color="black">${FILENAME}</font></div>
         //<script>
         //shownLogs.push(log);
@@ -287,6 +306,7 @@ function openFrame(data){
   var prjName="Auto_"+lang;
   var runLink=teacherID && ".?r=jsl_edit&dir=/home/"+classID+"/"+teacherID+"/"+prjName+"/&autologexec="+data.id+"&lang="+lang;
   var userid=data.user;
+  const logDOM=$(`#${data.id}`);
   $.get("?TeacherLog/getNameOfUser",{user:userid}).then(r=>$("#userName").text(r));
   const rawLink=`?LogQuery/byId&id=${data.id}`;
   $("[id='"+userid+"res']").html("<br>"+logtime+
@@ -294,7 +314,7 @@ function openFrame(data){
       (runLink ?
           "<a target='runCheck' href='"+runLink+"'>実行してみる</a><br>":"")+
       userid+"(<span id='userName'></span>)<BR>"+
-      filehist+ navByFile(data.filename)+ "<br>"+
+      filehist+ navByFile(data.filename)+ `actualTime=${logDOM.attr("data-actualTime")}`+"<br>"+
       data.result);
   $("[id='"+userid+"']").height(30);
   $("[id='"+userid+"']").html(res);
@@ -424,7 +444,7 @@ function showFileEntry(l) {
         sameLines+="★";
     }
     if (lastDiffData.equal>(maxEqual[l.filename]||-1)) {
-        if (maxEqual[l.filename]) {
+        if (typeof maxEqual[l.filename]==="number") {
             e.addClass("advanced");
             line.addClass("advanced");
             //advanced=true;
