@@ -299,7 +299,7 @@ function openFrame(data){
   var logtime=year+"/"+month+"/"+day+" "+hour+":"+min+":"+sec;
   var fn=data.filename.replace("/","__");
   fn=fn.replace(".","__");
-  var filehist='<span filename="'+fn+'" onClick="showFileHistory(this.getAttribute('+"'"+'filename'+"'"+'))">'+data.filename+'</span>';
+  var filehist='<span class="filename" filename="'+fn+'" onClick="showFileHistory(this.getAttribute('+"'"+'filename'+"'"+'))">'+data.filename+'</span>';
   //var filehist=data.filename;
   var lang=raw.code.C ?"c" : raw.code.JavaScript ? "js" : raw.code.Dolittle ? "dtl" : raw.code.DNCL ? "dncl" : raw.code.Python ? "py" :"unknown";
   var detail=raw.detail;
@@ -309,12 +309,13 @@ function openFrame(data){
   const logDOM=$(`#${data.id}`);
   $.get("?TeacherLog/getNameOfUser",{user:userid}).then(r=>$("#userName").text(r));
   const rawLink=`?LogQuery/byId&id=${data.id}`;
-  $("[id='"+userid+"res']").html("<br>"+logtime+
+  $("[id='"+userid+"res']").html("<br>"+`<span class="logtime">${logtime}</span>`+
       `<a target='raw' href="${rawLink}">.</a><Br/>`+
       (runLink ?
           "<a target='runCheck' href='"+runLink+"'>実行してみる</a><br>":"")+
       userid+"(<span id='userName'></span>)<BR>"+
-      filehist+ navByFile(data.filename)+ `actualTime=${logDOM.attr("data-actualTime")}`+"<br>"+
+      filehist+ navByFile(data.filename)+
+      `actualTime=<span class='actualTime'>${logDOM.attr("data-actualTime")}</span>`+"<br>"+
       data.result);
   $("[id='"+userid+"']").height(30);
   $("[id='"+userid+"']").html(res);
