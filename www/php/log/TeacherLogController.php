@@ -283,12 +283,12 @@ class TeacherLogController {
             </script>
             -->
         </div>
-        <div style="float:left; width:30%;">
+        <div id="fileDetail" style="float:left; width:30%;">
             <div id="<?= $userName ?>res"></div><br>
             <textarea id="<?= $userName ?>" style="width:100%;" onclick="this.select(0,this.value.length)" readonly></textarea>
             <textarea id="<?= $userName ?>detail" style="width:100%;" readonly></textarea>
         </div>
-        <div style="float:left;">
+        <div id="diffArea" style="float:left;">
             <span id="<?= $userName ?>diff"></span><br>
             <span id="<?= $userName ?>diffLast"></span>
         </div>
