@@ -61,6 +61,10 @@ function runOnServerWithStdin(prj, file, stdin) {
                 }
                 //alert(buf);
             }
+            if (typeof parent!=="undefined" && parent.sendResult) {
+                const r=$("#output").text();
+                parent.sendResult(r,"Python");
+            }
         }
     );
 }
