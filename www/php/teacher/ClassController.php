@@ -164,9 +164,35 @@ class ClassController {
         self::optionItems("disableNote");
         self::optionItems("showOtherStudentsLogs");
         self::optionItems("showHint");
+        self::fileMenuTemplate();
         self::botURLForm();
         ?>
         <hr>
+        <?php
+    }
+    static function fileMenuTemplate() {
+        Auth::assertTeacher();
+        $class=Auth::curClass2();
+        $tmpl=$class->getOption("fileMenuTemplate");
+        if (!$tmpl) $tmpl="";
+        ?>
+        <div>ファイルメニュー(試験運用)</div>
+        <form action="a.php?Class/setFileMenuTemplate" method="POST">
+        <textarea rows=5 cols=60 name="tmpl"><?= htmlspecialchars($tmpl) ?></textarea>
+        <input type="submit">
+        </form>
+        <?php
+    }
+    static function setFileMenuTemplate() {
+        Auth::assertTeacher();
+        $class=Auth::curClass2();
+        $tmpl=param("tmpl");
+        $class->setOption("fileMenuTemplate",$tmpl);
+        $redirect="a.php?Class/config";
+        ?>
+        設定しました．
+        <a href="<?= $redirect ?>">設定画面へ</a>
+        <meta http-equiv="refresh" content="2;URL='<?= $redirect ?>'" />
         <?php
     }
     static function botURLForm() {
