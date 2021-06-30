@@ -308,6 +308,7 @@ function ready() {
                      ["span",{id:"modLabel"}],
                      ["span",{class:"tabLink", id:"commentLink"}],
                      ["span",{class:"tabLink", id:"hintLink"}],
+                     ["span",{class:"tabLink", id:"customLink"}],
                      ["a",{class:"tabLink", id:"fullScr",href:JS_NOP}],
                      ["span",{class:"tabLink", id:"toastArea"}]
                   ],
@@ -316,6 +317,7 @@ function ready() {
         );
     }
     makeUI();
+    let fileMenuTemplate="";
     function makeMenu() {
         Menu.make({label:"Bit Arrow",id:"home",sub:
                 [
@@ -342,6 +344,7 @@ function ready() {
             if (!r.showHint) {
                 $("#hintLink").remove();
             }
+            fileMenuTemplate=r.fileMenuTemplate||"";
             disableNote=!!r.disableNote;
         });
         showDistMenu();
@@ -1154,6 +1157,7 @@ function ready() {
             UI("a",{"href": ctrl.url("TeacherLog/diffSeq",{hint:1,file:filePath}), "target":"hint"},
             "ヒントを見る")
         );
+        $("#customLink").html(fileMenuTemplate.replaceAll("${PATH}",f.path()));
         $("#curFileLabel").text(curPrj.truncEXT(f)/*f.truncExt()*/);//.p5.js
         if (disableNote===false) socializeDialog.show(inf.file);
     }
