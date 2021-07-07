@@ -95,8 +95,15 @@ function getLogs(user,day,all){
 }
 const IDLE_TIME=300;
 let scrolled=false;
+let cutTime;
 async function view1new() {
     let logs=await getLogs(userId,day,all);
+    const curp=/cut=([\d]+)/;
+    const r=curp.exec(location.href);
+    if (r) {
+        cutTime=r[1]-0;
+        logs=logs.filter(log=>log.time<cutTime);
+    }
     //const showSave=location.href.match(/showSave/);
     console.log(logs, all);
     if (logs.length===0) {
@@ -267,6 +274,15 @@ function navByFile(file) {
         <a href="javascript:;" onclick="goFileLast('${file}')">Last</a>
     `;
 }
+function cut(time) {
+    if (!time){
+        location.href=location.href.replace(/cut=[\d]+/,"");
+    } else if (location.href.match(/cut=[\d]+/)) {
+        location.href=location.href.replace(/cut=[\d]+/,`cut=${time}`);
+    } else {
+        location.href+=`&cut=${time}`;
+    }
+}
 var currentLogId, showDiffFlag, prevProgram;
 function openFrame(data){
   console.log(data);
@@ -309,8 +325,14 @@ function openFrame(data){
   const logDOM=$(`#${data.id}`);
   $.get("?TeacherLog/getNameOfUser",{user:userid}).then(r=>$("#userName").text(r));
   const rawLink=`?LogQuery/byId&id=${data.id}`;
-  $("[id='"+userid+"res']").html("<br>"+`<span class="logtime">${logtime}</span>`+
-      `<a target='raw' href="${rawLink}">.</a><Br/>`+
+  $("[id='"+userid+"res']").html(`<Br/>
+        <div>
+            <span class="logtime">${logtime}</span>&nbsp;
+            ${cutTime ? `<button onclick="cut()">この日の最後まで表示</button>` :""}&nbsp;
+            <button onclick="cut(${data.time})">この時刻以降非表示</button>&nbsp;
+            <a href="?TeacherLog/view1Dates&user=${userid}">他の日付...</a>
+        </div>
+      <div><a target='raw' href="${rawLink}">Raw..</a></div>`+
       (runLink ?
           "<a target='runCheck' href='"+runLink+"'>実行してみる</a><br>":"")+
       userid+"(<span id='userName'></span>)<BR>"+
