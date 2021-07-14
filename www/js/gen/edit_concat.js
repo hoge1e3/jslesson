@@ -15126,10 +15126,10 @@ define('DragDrop',["FS","root"],function (FS,root) {
             }).catch(function (e) {
                 options.onError(e);
             }).done(function () {
-                if (useTmp) {
+                /*if (useTmp) {
                     FS.unmount(useTmp);
                     console.log("Umount",useTmp);
-                }
+                }*/
             });
             return false;
         }
@@ -15145,7 +15145,7 @@ define('DragDrop',["FS","root"],function (FS,root) {
         }
         function leave(e) {
             var eo=e.originalEvent;
-            console.log("leave",eo.target.innerHTML,e);
+            //console.log("leave",eo.target.innerHTML,e);
             entc--;
             if (entc<=0) dom.removeClass(options.draggingClass);
         }
@@ -15480,7 +15480,7 @@ function (Klass,UI,ctrl,WebSite,DragDrop,root) {
                 ]
             );
             DragDrop.accept(t.dom.$vars.content,{
-                onComplete: t.$bind.complete
+                onComplete: t.$bind.complete, overwrite:true,
             });
             t.result=t.dom.$vars.result;
             t.comment=t.dom.$vars.comment;
@@ -15499,6 +15499,7 @@ function (Klass,UI,ctrl,WebSite,DragDrop,root) {
         },
         complete: function (t,status) {
             var cnt=0;
+            console.log("complete ",status);
             for (var k in status) {
                 if (status[k].status!=="uploaded") continue;
                 var file=status[k].file;
