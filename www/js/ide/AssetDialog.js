@@ -57,7 +57,7 @@ function (Klass,UI,ctrl,WebSite,DragDrop,root) {
                 ]
             );
             DragDrop.accept(t.dom.$vars.content,{
-                onComplete: t.$bind.complete
+                onComplete: t.$bind.complete, overwrite:true,
             });
             t.result=t.dom.$vars.result;
             t.comment=t.dom.$vars.comment;
@@ -76,6 +76,7 @@ function (Klass,UI,ctrl,WebSite,DragDrop,root) {
         },
         complete: function (t,status) {
             var cnt=0;
+            console.log("complete ",status);
             for (var k in status) {
                 if (status[k].status!=="uploaded") continue;
                 var file=status[k].file;
