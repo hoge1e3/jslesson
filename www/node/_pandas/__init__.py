@@ -74,8 +74,8 @@ def makeSecret():
             self.query=raw.query
             self.rename=raw.rename
             self.replace=raw.replace
-            self.to_numpy=raw.to_numpy
-            self.value_counts=raw.value_counts
+            #self.to_numpy=raw.to_numpy
+            #self.value_counts=raw.value_counts
             self.values=raw.values
             self.where=raw.where
         def __str__(self):
