@@ -104,6 +104,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
                 t.progress("Transpile "+f.src.py.name());//<-dtl
                 var isMainFile=(f.src.py.path()==mainFilePath);//<-dtl
                 if (!isMainFile && isNewer(f.dst.js, f.src.py) && isNewer(f.dst.html, f.src.html)) return SplashScreen.waitIfBusy();//<-dtl
+                console.log("Transpile "+f.src.py.name());
                 t.compile(f,{runLocal,isMainFile});
                 t.genHTML(f);
                 return SplashScreen.waitIfBusy();

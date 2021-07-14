@@ -454,6 +454,13 @@ const Semantics= {
                 if (node.type==="define") {
                     this.addScope(node.name,{kind:"function",node});
                 }
+                if (node.type==="forStmt") {
+                    this.addScope(node.name,{kind:"function",node});
+                    var loopVars=node.vars;
+                    for(let loopVar of loopVars){
+                      this.addScope(loopVar,{kind:"local",node:loopVar});
+                    }
+                }
                 if (node.type==="letStmt") {
                     this.procLeft(node);
                 }
