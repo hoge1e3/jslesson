@@ -1,7 +1,14 @@
 <?php
 req("auth","Published","Asset");
 class AssetController {
-
+    static function form() {
+        ?>
+        <form action="a.php?Asset/upload" method="POST" enctype="multipart/form-data">
+            <input type="file" name="acceptImage"/>
+            <input type="text" name="context" value="user"/>
+            <input type="submit">
+        </form><?php
+    }
     static function upload() {
         $context=param("context","user");
         $fn=$_FILES['acceptImage']['name'];
