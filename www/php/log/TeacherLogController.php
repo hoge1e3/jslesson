@@ -503,7 +503,7 @@ class TeacherLogController {
             $detail=json_decode($log["detail"]);
             if(strpos($result,'Error') !== false){
                 // URL設定はdata/config.shadow.php に移転しました。
-                $url = $slack_bot_url;
+                //$url = $slack_bot_url;
                 $mesg="";
                 if ($detail && isset($detail->message)) {
                     $mesg=$detail->message;
@@ -591,13 +591,13 @@ class TeacherLogController {
         //print_r($stat);
         uasort($stat, function ($a, $b) { return count($a)-count($b); } );
         $buffer="";
-        $url="";
+        //$url="";
         foreach ($stat as $s) {
           //print_r($s);
           print_r("--------");
           $count=count($s);
           print_r($s[$count-1]);
-          $url = $slack_bot_url;
+          //$url = $slack_bot_url;
           $mesg=$s[$count-1]["mesg"];
           $name=$s[$count-1]["user"];
           $code=$s[$count-1]["code"];
@@ -612,7 +612,18 @@ class TeacherLogController {
   //https://api.slack.com/messaging/webhooks
 
           $URL=BA_TOP_URL."?TeacherLog/view1new&logid=$id";
-          $element="$URL $name ($count 件) $filename $mesg";
+          $option=[
+            'http' => [
+              'method'  => 'GET',
+              'timeout' => 600, // タイムアウト時間
+            ]
+          ];
+          if (defined("HINT_URL")){
+             $Hint=@file_get_contents(HINT_URL."?path=/home/pro3-21/$name/$filename",false,stream_context_create($option));
+            } else {
+                $Hint="";
+            }
+          $element="test $URL $name ($count 件) $filename $mesg \n $Hint";
 
           $buffer.="[".$element."]\n";
           /*
@@ -670,7 +681,7 @@ class TeacherLogController {
             )
         );
 
-        $html = file_get_contents($url, false, stream_context_create($context));
+        $html = file_get_contents($slack_bot_url, false, stream_context_create($context));
 
         var_dump($http_response_header);
 
