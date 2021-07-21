@@ -1,11 +1,5 @@
-ace.define("ace/snippets/mixal",[], function(require, exports, module) {
-"use strict";
 
-exports.snippetText = "";
-exports.scope = "mixal";
-
-});
-                (function() {
+;                (function() {
                     ace.require(["ace/snippets/mixal"], function(m) {
                         if (typeof module == "object" && typeof exports == "object" && module) {
                             module.exports = m;
