@@ -68,8 +68,9 @@ def makeSecret():
             self.to_latex=raw.to_latex
             self.to_records=raw.to_records
             self.to_string=raw.to_string
+            """
             self.plot=raw.plot
-            self.corr=raw.corr
+            """self.corr=raw.corr
             self.count=raw.count
             self.cov=raw.cov
             self.cumprod=raw.cumprod
@@ -96,9 +97,16 @@ def makeSecret():
             return wrap(self.__raw.__getattr__(name))
         def dot(self,other):
             return self.__raw.dot(getRaw(other))
-        def to_csv(self, file, **k):
+        def to_csv(self, file=None, **k):
+            if file is None:
+                return self.__raw.to_csv(**k)
             f=bawrapper.resolve(file)
             return self.__raw.to_csv(f, **k)
+        def to_json(self, file=None, **k):
+            if file is None:
+                return self.__raw.to_json(**k)
+            f=bawrapper.resolve(file)
+            return self.__raw.to_json(f, **k)
         def getRaw(self, s):
             if s==secret:
                 return self.__raw
@@ -121,8 +129,8 @@ def makeSecret():
                         "info","groupby","mean","median","mode","var","std","describe",
                         "sum","stack","unstack","duplicated","drop_duplicates","dropna",
                         "fillna","to_numpy","append","copy","isna","add","sub","div","mul",
-                        "min","max","to_dict","to_json","to_latex","to_records","to_string",
-                        "plot","corr","count","cov","cumprod","cumsum","items","keys",
+                        "min","max","to_dict","to_latex","to_records","to_string",
+                        "corr","count","cov","cumprod","cumsum","items","keys",
                         "mask","notna","quantile","query","rename","replace","values","where"]
 
     for m in dataframeAllowList:
@@ -156,7 +164,7 @@ def makeSecret():
             self.idxmax=raw.idxmax
             self.idxmin=raw.idxmin
             """
-            self.iloc=raw.iloc
+            #self.iloc=raw.iloc
             self.index=raw.index
             """
             self.isin=raw.isin
@@ -165,7 +173,7 @@ def makeSecret():
             self.iteritems=raw.iteritems
             self.keys=raw.keys
             """
-            self.loc=raw.loc
+            #self.loc=raw.loc
             """
             self.mask=raw.mask
             self.max=raw.max
@@ -204,6 +212,8 @@ def makeSecret():
             return self.__raw.__str__()
         def __getitem__(self,i):
             return wrap(self.__raw.__getitem__(i))
+        def __getattr__(self,name):
+            return wrap(self.__raw.__getattr__(name))
         def to_csv(self, file, **k):
             f=bawrapper.resolve(file)
             return self.__raw.to_csv(f, **k)
@@ -221,7 +231,7 @@ def makeSecret():
                    "isin","isna","items","iteritems","keys","mask","max","mean",
                    "median","min","mode","notna","quantile","rename","replace",
                    "sort_index","sort_values","std","sum","tail","to_dict",
-                   "to_frame","to_json","to_numpy","to_string","tolist","unique",
+                   "to_frame","to_json","to_numpy","to_string","to_list","unique",
                    "value_counts","var","where","unstack"]
     for m in seriesAllowList:
         wrapMethod(SeriesProxy,m)
