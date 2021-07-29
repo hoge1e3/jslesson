@@ -619,10 +619,15 @@ class TeacherLogController {
             ]
           ];
           if (defined("HINT_URL")){
-             $Hint=@file_get_contents(HINT_URL."?path=/home/pro3-21/$name/$filename",false,stream_context_create($option));
-            } else {
-                $Hint="";
-            }
+            $Hint=@file_get_contents(HINT_URL."?path=/home/pro3-21/$name/$filename",false,stream_context_create($option));
+          } else {
+            $Hint="";
+          }
+
+          $Hint=str_replace('<h1>','',$Hint);
+          $Hint=str_replace('</h1>','',$Hint);
+          $Hint=str_replace('<br/>','',$Hint);
+
           $element="test $URL $name ($count 件) $filename $mesg \n $Hint";
 
           $buffer.="[".$element."]\n";

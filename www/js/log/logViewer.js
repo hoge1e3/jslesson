@@ -466,7 +466,7 @@ function showFileEntry(l) {
         //regressed=true;
         sameLines+="★";
     }
-    if (lastDiffData.equal>(maxEqual[l.filename]||-1)) {
+    if (lastDiffData.equal>(typeof maxEqual[l.filename]==="number"? maxEqual[l.filename] :-1)) {
         if (typeof maxEqual[l.filename]==="number") {
             e.addClass("advanced");
             line.addClass("advanced");
