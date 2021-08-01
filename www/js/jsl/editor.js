@@ -498,6 +498,12 @@ function ready() {
     	e.preventDefault();
     	return false;
     }));
+    KeyEventChecker.down(document,"ctrl+m",F(function (e) {
+        fl.selectNext();
+        e.stopPropagation();
+    	e.preventDefault();
+    	return false;
+    }));
     $(window).resize(F(onResize));
     $("body")[0].spellcheck=false;
     sh.cd(curProjectDir);

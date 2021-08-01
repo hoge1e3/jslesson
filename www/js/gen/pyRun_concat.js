@@ -3559,6 +3559,13 @@ const Semantics= {
                 if (node.type==="define") {
                     this.addScope(node.name,{kind:"function",node});
                 }
+                if (node.type==="forStmt") {
+                    this.addScope(node.name,{kind:"function",node});
+                    var loopVars=node.vars;
+                    for(let loopVar of loopVars){
+                      this.addScope(loopVar,{kind:"local",node:loopVar});
+                    }
+                }
                 if (node.type==="letStmt") {
                     this.procLeft(node);
                 }
@@ -7284,7 +7291,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
             if (this.anon.get(node).needVar) {
                 this.printf("var ");
             }
-            console.log("NODEL",node.left);//lvallist
+            //console.log("NODEL",node.left);//lvallist
             const firstBody=node.left.body && node.left.body[0];
             const io=PL.iops[node.op+""];
             if (firstBody &&
@@ -7487,7 +7494,8 @@ function (Visitor,IndentBuffer,context,PL,S) {
         False: function () {this.printf("false");},
         None: function () {this.printf("%s.None",PYLIB);},
         symbol(node) {
-            if (this.convertSymbol[node.text]) {
+            if (typeof this.convertSymbol[node.text]==="string") {
+                // for example, node.text=="__str__", function returns
                 this.printf(this.convertSymbol[node.text]);
             } else {
                 this.printf("%s",node+"");
