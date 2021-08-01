@@ -175,11 +175,14 @@ async function view1new() {
                 $(`<div>Idle for ${log.time-last.time}secs.</div>`).addClass("logItem").appendTo("#fileList");
             }
         }
-
         //lastNotPaka=log;
         //paka=0;
         if (!lastByFile[log.filename]) {
             log.actualTime=0;// 他のファイルをいじっていた時間を除去した時間
+            log.actualTime2=0;// 同一ファイルで5分以上開いている部分を5分とみなした時間
+        } else {
+            const elapsedFromLast=(log.time-lastByFile[log.filename].time);
+            log.actualTime2=lastByFile[log.filename].actualTime2+Math.min(elapsedFromLast, IDLE_TIME);
         }
         lastByFile[log.filename]=log;
         $("<div>").appendTo("#fileList").
@@ -188,7 +191,7 @@ async function view1new() {
             console.log(log.id);
             if (!scrolled) {scrolled=true; this.scrollIntoView();}
             showLogOneUser.call(this, log.id, log.user, filename);
-        }).attr("id", log.id).attr("data-filename",log.filename).attr("data-actualTime",log.actualTime);
+        }).attr("id", log.id).attr("data-filename",log.filename).attr("data-actualTime",log.actualTime).attr("data-actualTime2",log.actualTime2);
         //<font color="black">${FILENAME}</font></div>
         //<script>
         //shownLogs.push(log);
@@ -338,6 +341,7 @@ function openFrame(data){
       userid+"(<span id='userName'></span>)<BR>"+
       filehist+ navByFile(data.filename)+
       `actualTime=<span class='actualTime'>${logDOM.attr("data-actualTime")}</span>`+"<br>"+
+      `actualTime2=<span class='actualTime2'>${logDOM.attr("data-actualTime2")}</span>`+"<br>"+
       data.result);
   $("[id='"+userid+"']").height(30);
   $("[id='"+userid+"']").html(res);
