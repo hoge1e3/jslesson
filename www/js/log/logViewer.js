@@ -458,7 +458,9 @@ function showFileEntry(l) {
     const line=$("#"+l.id);
     line.attr({"data-time": l.time});
     e.appendTo(line);
-    let sameLines=`:${lastDiffData.equal}/${lastDiffData.prevLines}/${lastDiffData.nowLines}`;
+    const r=x=>Math.floor(x*10)/10;
+    lastDiffData.equal+=lastDiffData.equalFine;
+    let sameLines=`:${r(lastDiffData.equal)}/${lastDiffData.prevLines}/${lastDiffData.nowLines}`;
     if (prevDiffData.delete+prevDiffData.insert+prevDiffData.replace===0) {
         e.addClass("unchanged");
         line.addClass("unchanged");
@@ -546,6 +548,51 @@ function checknull(o,mesg) {
     if (o) return o;
     throw new Error(mesg+" is not found");
 }
+
+function calcDiffOneLine(prev, now) {
+    const base   = prev.split("");
+    const newtxt = now.split("");
+    const sm     = new difflib.SequenceMatcher(base, newtxt);
+    var opcodes = sm.get_opcodes();
+    //console.log("SequenceMatcher", opcodes);
+    var diffData = {
+        "insert": 0,
+        "delete": 0,
+        "replace": 0,
+        "equal": 0,
+        equalFine:0,
+    };
+    let diffLine = "";
+    for (var opti in opcodes) {
+        var opt = opcodes[opti];
+        //console.log("switch", opt[0], opti, opt[2]);
+        switch (opt[0]) {
+            case "equal":
+                if (opti == 0 && opcodes.length > 1) diffLine = opt[2];
+                diffData[opt[0]] += (opt[2] - opt[1]); //  b   e    b    e
+                break;
+            case "delete":
+                if (opti == 0) diffLine = 0; //  Left     Right
+                diffData[opt[0]] += (opt[2] - opt[1]); //  b   e    b    e
+                break;
+            case "insert":
+                if (opti == 0) diffLine = 0;
+                diffData[opt[0]] += (opt[4] - opt[3]);
+                break;
+            case "replace":
+                if (opti == 0) diffLine = 0;
+                const pls = opt[2] - opt[1];
+                const nls = opt[4] - opt[3];
+                diffData[opt[0]] += Math.max(pls, nls);
+
+                break;
+            default:
+                console.log("Unknown state '" + opt[0] + "' discovered.");
+        }
+    }
+    diffData.firstLine = diffLine;
+    return diffData;
+}
 function calcDiff(prev,now,id,btn,ntn,show){
   // get the baseText and newText values from the two textboxes, and split them into lines
   var cbPrev=clearBreak(prev);
@@ -562,7 +609,7 @@ function calcDiff(prev,now,id,btn,ntn,show){
   var opcodes = sm.get_opcodes();
   //var diffoutputdiv = $("[id='"+id+"diff']")[0];
   //console.log("SequenceMatcher",opcodes);
-  var diffData={"insert":0,"delete":0,"replace":0,"equal":0,
+  var diffData={"insert":0,"delete":0,"replace":0,"equal":0,        equalFine:0,
   nowLines:newtxt.length, prevLines:base.length};
   let diffLine="";
   for(var opti in opcodes){
@@ -582,8 +629,18 @@ function calcDiff(prev,now,id,btn,ntn,show){
         diffData[opt[0]]+=(opt[4]-opt[3]);
         break;
       case "replace":
-        if (opti==0) diffLine=0;
-        diffData[opt[0]]+=Math.max(opt[2]-opt[1],opt[4]-opt[3]);
+        if (opti == 0) diffLine = 0;
+        const pls = opt[2] - opt[1];
+        const nls = opt[4] - opt[3];
+        diffData[opt[0]] += Math.max(pls, nls);
+        if (pls===nls) {
+                for (let i=0;i<pls;i++) {
+                       const bl=base[opt[1]+i];
+                       const nl=newtxt[opt[3]+i];
+                       const d=calcDiffOneLine(bl ,nl);
+                       diffData.equalFine+=(d.equal/Math.max(bl.length, nl.length));
+                }
+        }
         break;
       default:
         console.log("Unknown state '"+opt[0]+"' discovered.");
