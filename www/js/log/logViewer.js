@@ -84,12 +84,13 @@ function getLogs(user,day,all){
     if (location.href.match(/nocluster/)) {
         cmd="getLogs";
     }
+    const days=getQueryString("days",1);
   return $.ajax({
       type: "POST",
       // url: "?Class/getLog",
       //data: "logid="+logid,
       url: `?TeacherLog/${cmd}`,
-      data: {user,day,all:(all?1:0)},
+      data: {user,day,days,all:(all?1:0)},
       dataType: "json",
   });
 }
