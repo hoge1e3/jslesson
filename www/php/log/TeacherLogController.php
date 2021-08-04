@@ -135,6 +135,7 @@ class TeacherLogController {
     }
     static function getLogClusters() {
         $day=DateUtil::toInt(param("day",DateUtil::now()));
+        $days=param("days",1);
         // If i can do , i do it.
         $p=self::parseUser();
         $targetUser=$p["user"];
@@ -146,7 +147,7 @@ class TeacherLogController {
         $prevTime=0;
         $prevResult="";
         $logs2=Array();
-        $logs=$targetUser->getAllLogs($baseInt,$baseInt+86400);
+        $logs=$targetUser->getAllLogs($baseInt,$baseInt+$days*86400);
         req("LogCluster");
         $c=null;
         foreach($logs as $i=>$l){
