@@ -10,6 +10,9 @@
 .logitem.Error .fileName {
     color: red;
 }
+.logitem.Build .fileName {
+    color: #080;
+}
 .logitem.Run .fileName {
     color: #0a0;
 }

@@ -1,3 +1,4 @@
+/* globals difflib*/
 var classID, thisURL, userId, day, all, teacherID, reloadMode, logsOfOneUser, programs, indexList;
 var displayingId, selectedFile;
 $(document).ready(function() {
@@ -595,12 +596,16 @@ function calcDiffOneLine(prev, now) {
     return diffData;
 }
 function calcDiff(prev,now,id,btn,ntn,show){
+    const byChar=getQueryString("bychar",false);
   // get the baseText and newText values from the two textboxes, and split them into lines
   var cbPrev=clearBreak(prev);
   var cbNow=clearBreak(now);
-  var base = difflib.stringAsLines(cbPrev);
+  const mkary=byChar? s=>s.split("") : s=>difflib.stringAsLines(s);
+  var base = mkary(cbPrev);
+  var newtxt = mkary(cbNow);
+  //var base = difflib.stringAsLines(cbPrev);
   //var newtxt = difflib.stringAsLines($("newText").value);
-  var newtxt = difflib.stringAsLines(cbNow);
+  //var newtxt = difflib.stringAsLines(cbNow);
   // create  a SequenceMatcher instance that diffs the two sets of lines
   var sm = new difflib.SequenceMatcher(base, newtxt);
 
@@ -634,7 +639,7 @@ function calcDiff(prev,now,id,btn,ntn,show){
         const pls = opt[2] - opt[1];
         const nls = opt[4] - opt[3];
         diffData[opt[0]] += Math.max(pls, nls);
-        if (pls===nls) {
+        if (!byChar && pls===nls) {
                 for (let i=0;i<pls;i++) {
                        const bl=base[opt[1]+i];
                        const nl=newtxt[opt[3]+i];
