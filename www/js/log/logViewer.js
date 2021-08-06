@@ -90,7 +90,7 @@ function getLogs(user,day,all){
         return $.ajax({
           type: "POST",
           url: `?LogQuery/index`,
-          data: {user,file,output:"json"},
+          data: {user,file,output:"json",sort:"asc"},
           dataType: "json",
         });
     }
