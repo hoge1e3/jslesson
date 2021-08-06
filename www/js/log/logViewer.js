@@ -85,15 +85,24 @@ function getLogs(user,day,all){
     if (location.href.match(/nocluster/)) {
         cmd="getLogs";
     }
+    const file=getQueryString("file",null);
+    if (file) {
+        return $.ajax({
+          type: "POST",
+          url: `?LogQuery/index`,
+          data: {user,file,output:"json"},
+          dataType: "json",
+        });
+    }
     const days=getQueryString("days",1);
-  return $.ajax({
+    return $.ajax({
       type: "POST",
       // url: "?Class/getLog",
       //data: "logid="+logid,
       url: `?TeacherLog/${cmd}`,
       data: {user,day,days,all:(all?1:0)},
       dataType: "json",
-  });
+    });
 }
 const IDLE_TIME=300;
 let scrolled=false;
@@ -193,7 +202,9 @@ async function view1new() {
             console.log(log.id);
             if (!scrolled) {scrolled=true; this.scrollIntoView();}
             showLogOneUser.call(this, log.id, log.user, filename);
-        }).attr("id", log.id).attr("data-filename",log.filename).attr("data-actualTime",log.actualTime).attr("data-actualTime2",log.actualTime2);
+        }).attr("id", log.id).attr("data-filename",log.filename).
+            attr("data-actualTime",log.actualTime).
+            attr("data-actualTime2",log.actualTime2);
         //<font color="black">${FILENAME}</font></div>
         //<script>
         //shownLogs.push(log);
@@ -248,25 +259,39 @@ function goFileLast(file) {
     const e=$(`[data-filename="${file}"]`);
     e[e.length-1].click();
 }
-function goFileNext(file) {
+function goFileNext(file, skipEq=true) {
     console.log("Next",file);
     scrolled=false;
     const e=$(`[data-filename="${file}"]`);
+    let doClick;
     for (let i=0;i<e.length-1;i++) {
+        if (doClick) {
+            if (skipEq && $(e[i]).hasClass("unchanged")) continue;
+            else {
+                e[i].click();
+                break;
+            }
+        }
         if (e[i].id===currentLogId) {
-            e[i+1].click();
-            break;
+            doClick=true;
         }
     }
 }
-function goFilePrev(file) {
+function goFilePrev(file, skipEq=true) {
     console.log("Prev",file);
     scrolled=false;
     const e=$(`[data-filename="${file}"]`);
-    for (let i=1;i<e.length;i++) {
+    let doClick;
+    for (let i=e.length-1;i>=0;i--) {
+        if (doClick) {
+            if (skipEq && $(e[i]).hasClass("unchanged")) continue;
+            else {
+                e[i].click();
+                break;
+            }
+        }
         if (e[i].id===currentLogId) {
-            e[i-1].click();
-            break;
+            doClick=true;
         }
     }
 }
@@ -320,7 +345,9 @@ function openFrame(data){
   var logtime=year+"/"+month+"/"+day+" "+hour+":"+min+":"+sec;
   var fn=data.filename.replace("/","__");
   fn=fn.replace(".","__");
-  var filehist='<span class="filename" filename="'+fn+'" onClick="showFileHistory(this.getAttribute('+"'"+'filename'+"'"+'))">'+data.filename+'</span>';
+  //var filehist='<span class="filename" filename="'+fn+'" onClick="showFileHistory(this.getAttribute('+"'"+'filename'+"'"+'))">'+data.filename+'</span>';
+  const filedURL=getQueryString("file",null)? location.href: location.href+"&file="+data.filename;
+  const filehist=`<a class="filename" href=${filedURL}>${data.filename}</a>`;
   //var filehist=data.filename;
   var lang=raw.code.C ?"c" : raw.code.JavaScript ? "js" : raw.code.Dolittle ? "dtl" : raw.code.DNCL ? "dncl" : raw.code.Python ? "py" :"unknown";
   var detail=raw.detail;
