@@ -7,6 +7,7 @@ src=./data/fs/pub/01d3f7dd
 dst=./www/runtime/lib/dtl
 cp $src/Actor.js* $dst
 cp $src/Ajax.js* $dst
+cp $src/Assets.js* $dst
 cp $src/Color.js* $dst
 cp $src/db.js* $dst
 cp $src/Dict.js* $dst

@@ -11,7 +11,12 @@ class AssetController {
     }
     static function upload() {
         $context=param("context","user");
-        $fn=$_FILES['acceptImage']['name'];
+        $useFiles=(isset($_FILES) && isset($_FILES['acceptImage']));
+        if ($useFiles) {
+            $fn=$_FILES['acceptImage']['name'];
+        } else {
+            $fn=param("filename");
+        }
         $home=Asset::home($context);
         $h=$home["file"];
         $s=$h->rel($fn);
@@ -19,9 +24,26 @@ class AssetController {
         if ( $s->ext()===".php" ||  $s->ext()===".cgi") {
             $s=$s->sibling($s->truncExt().".txt");
         }
-        copy($_FILES['acceptImage']['tmp_name'], $s->nativePath());
+        if ($useFiles) {
+            copy($_FILES['acceptImage']['tmp_name'], $s->nativePath());
+        } else {
+            $s->text(param("content"));
+            echo "Saved $fn as text";
+        }
         //echo $_FILES['acceptImage']['tmp_name']." ".$s->nativePath();
         //echo preg_replace("/\/+/","/", $s->relPath(self::pub()) ); //self::pub??
+    }
+    static function download() {
+        $context=param("context","user");
+        $filename=param("filename");
+        if (strstr("..", $filename)) {
+            throw new Exception("Invalid path");
+        }
+        $home=Asset::home($context);
+        $h=$home["file"];
+        $f=$h->rel($filename);
+        header("Content-type: text/plain; charset=utf8");
+        echo $f->text();
     }
     static function list() {
         $context=param("context","user");

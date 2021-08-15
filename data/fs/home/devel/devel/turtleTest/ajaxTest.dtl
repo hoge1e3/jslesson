@@ -1,0 +1,5 @@
+
+a=Ajax ! "http://localhost/fs/pub/869479b0/output.txt" create.
+
+ラベル ! ( a ! get ) 作る．
+
