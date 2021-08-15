@@ -295,6 +295,7 @@ var reqConf={
             P5Builder:"build/p5/P5Builder",
             p5pyBuilder:"build/python/p5pyBuilder",
             BrythonBuilder:"build/brython/BrythonBuilder",
+            raspiBuilder:"build/python/raspiBuilder",
             SysDebugger_concat:"../runtime/lib/tonyu/SysDebugger_concat.min",
             CBuilder:"build/c/CBuilder",
             TonyuBuilder:"build/tonyu/TonyuBuilder",

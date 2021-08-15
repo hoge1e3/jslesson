@@ -264,7 +264,7 @@ function goFileNext(file, skipEq=true) {
     scrolled=false;
     const e=$(`[data-filename="${file}"]`);
     let doClick;
-    for (let i=0;i<e.length-1;i++) {
+    for (let i=0;i<e.length;i++) {
         if (doClick) {
             if (skipEq && $(e[i]).hasClass("unchanged")) continue;
             else {
