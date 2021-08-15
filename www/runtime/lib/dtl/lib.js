@@ -282,7 +282,7 @@ root.system=root.create().extend({
 		return o;
 	},
 	read:function(o,k){
-		return o[k]
+		return o[k];
 	},
 	delete:function(o,k){
 		delete o[k];

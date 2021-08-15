@@ -2,15 +2,15 @@
 req("PathUtil");
 class TestController {
     static function test() {
-        touch(
-            "C:\\bin\\Dropbox\\workspace\\jslesson\\www/../data/fs/home/personal/test@example.com/ctes/nul.html", 
-            1551789503);
+        /*touch(
+            "C:\\bin\\Dropbox\\workspace\\jslesson\\www/../data/fs/home/personal/test@example.com/ctes/nul.html",
+            1551789503);*/
         /*rename(
             "C:\\bin\\Dropbox\\workspace\\jslesson\\data\\pythonwork\\959485/figure.png",
             "C:\\bin\\Dropbox\\workspace\\jslesson\\www/../data/fs/pub/959485/11250.png"
         );*/
-
-        echo "done";
+        echo $_POST["x"]+$_POST["y"];
+        //echo "done";
         /*req("MountableFS");
         $m=new MountableFS();
         $m->mount("/hoge/","../Demo/");
