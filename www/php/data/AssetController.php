@@ -36,7 +36,7 @@ class AssetController {
     static function download() {
         $context=param("context","user");
         $filename=param("filename");
-        if (strstr("..", $filename)) {
+        if (strstr("..", $filename)!==false) {
             throw new Exception("Invalid path");
         }
         $home=Asset::home($context);
@@ -59,9 +59,24 @@ class AssetController {
         header("Content-type: text/json;charset=utf-8");
         print json_encode($res);
     }
+    static function exists() {
+        $context=param("context","user");
+        $filename=param("filename");
+        if (strstr("..", $filename)!==false) {
+            throw new Exception("Invalid path");
+        }
+        $home=Asset::home($context);
+        $h=$home["file"];
+        $f=$h->rel($filename);
+        header("Content-type: text/json;");
+        print ($f->exists() ? "true" : "false");
+    }
     static function del() {
         $context=param("context","user");
         $fn=param("fileName");
+        if (strstr("..", $filename)!==false) {
+            throw new Exception("Invalid path");
+        }
         $home=Asset::home($context);
         $h=$home["file"];
         $f=$h->rel($fn);
