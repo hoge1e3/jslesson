@@ -367,7 +367,7 @@ function openFrame(data){
       <div><a target='raw' href="${rawLink}">Raw..</a></div>`+
       (runLink ?
           "<a target='runCheck' href='"+runLink+"'>実行してみる</a><br>":"")+
-      userid+"(<span id='userName'></span>)<BR>"+
+      `<span class="userid">${userid}</span>(<span id='userName'></span>)<BR>`+
       filehist+ navByFile(data.filename)+
       `actualTime=<span class='actualTime'>${logDOM.attr("data-actualTime")}</span>`+"<br>"+
       `actualTime2=<span class='actualTime2'>${logDOM.attr("data-actualTime2")}</span>`+"<br>"+
