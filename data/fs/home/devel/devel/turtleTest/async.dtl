@@ -1,0 +1,17 @@
+
+b=ボタン！"Succ" 作る 「succ ! 実行」動作設定．
+wait=[
+    DtlPromise ! [|succ|
+        opt=system![]new．
+        opt:method="get".
+        opt:url="http://localhost/fs/pub/869479b0/output.txt".//"http://localhost/"．
+        opt:success=succ．
+        (window:console) ! (opt) log. 
+        (window:$) ! (opt) ajax.
+    ] new.
+]．
+t=タートル！作る．
+r=! wait.
+t! 100 歩く．
+ラベル！(r)  作る．
+

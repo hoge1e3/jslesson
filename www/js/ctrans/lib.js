@@ -27,31 +27,64 @@ _global.cjsFileHome=function cjsFileHome() {
 	if (!d) d="unknown";
 	return root.FS.get("/c-js/").rel(d+"/");
 };
-_global.fopen=function fopen(file, mode) {
+async function callAssetAPI(cmd, params) {
+    try {
+        return await $.ajax(window.BitArrow.runtimePath+`a.php?Asset/${cmd}`,
+            {method:"POST", data:params});
+    } catch(e) {
+        console.error(e);
+        throw e;
+    }
+}
+_global.fopen=async function fopen(file, mode) {
 	file=_global.ch_ptr_to_str(file);
+    const useRemote=/^(user|class)\/(.*)/.exec(file);
 	mode=_global.ch_ptr_to_str(mode);
-	var f=_global.cjsFileHome().rel(file);
+	//var f=_global.cjsFileHome().rel(file);
 	var fp={
-		file:f,
+		file: !useRemote && _global.cjsFileHome().rel(file),
 		mode:mode,
-		isFP:true
+		isFP:true,
+        useRemote,
 	};
 	if (mode.indexOf("r")>=0) {
-		if (!f.exists()) {
-			//throw new Error("ファイル "+file+"はありません．");
-			return _global.NULL;
-		}
-		fp.pos=0;
-		fp.text=f.text();
+        fp.pos=0;
+		if (fp.file) {
+            const f=fp.file;
+            if (!f.exists()) {
+    			//throw new Error("ファイル "+file+"はありません．");
+    			return _global.NULL;
+    		}
+            fp.text=f.text();
+        } else {
+            const [_, context, filename]=useRemote;
+            const e=await callAssetAPI("exists", {context,filename});
+            if (!e)     			return _global.NULL;
+            const t=await callAssetAPI("download", {context,filename});
+            fp.text=t;
+        }
 	} else if (mode.indexOf("w")>=0) {
 		fp.pos=0;
 		fp.text="";
 	} else if (mode.indexOf("a")>=0) {
-		if (!f.exists()) {
-			fp.pos=0;fp.text="";
-		} else {
-			fp.text=f.text();fp.pos=fp.text.length;
-		}
+        if (fp.file) {
+            const f=fp.file;
+    		if (!f.exists()) {
+    			fp.pos=0;fp.text="";
+    		} else {
+    			fp.text=f.text();fp.pos=fp.text.length;
+    		}
+        } else {
+            const [_,context, filename]=useRemote;
+            const e=await callAssetAPI("exists", {context,filename});
+            if (!e) {
+                fp.pos=0;fp.text="";
+            } else {
+                const t=await callAssetAPI("download", {context,filename});
+                fp.text=t;
+                fp.pos=fp.text.length;
+            }
+        }
 	} else {
 		throw new Error('fopenの第２引数には "r" "w" "a" のいずれかを指定してください．→'+mode);
 	}
@@ -80,10 +113,17 @@ _global.fgets=function fgets(str,len,fp) {
 	fp.pos+=inputLen;
 	return _global.strcpy(str,_global.str_to_ch_ptr(input));
 };
-_global.fclose=function fclose(fp) {
+_global.fclose=async function fclose(fp) {
 	if (!fp||!fp.isFP) throw new Error("fclose: 引数がファイルではありません");
 	if (fp.closed) throw new Error("fclose: このファイルはすでに閉じられています");
-	fp.file.text(fp.text);
+    if (fp.mode!=="r") {
+        if (fp.file) {
+            fp.file.text(fp.text);
+        } else {
+            const [_,context, filename]=fp.useRemote;
+            await callAssetAPI("upload", {context, filename, content:fp.text});
+        }
+    }
 	fp.closed=true;
 };
 _global.fprintf=function fprintf() {

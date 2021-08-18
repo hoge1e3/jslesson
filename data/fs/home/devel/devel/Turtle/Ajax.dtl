@@ -1,0 +1,39 @@
+Ajax=! create.
+
+Ajax:initialize=[|url|
+    self:url=url.
+    self:params=system![]new.
+    self:method="get".
+].
+Ajax:data=[|key value| 
+    system ! (self:params) (key) (value) write.
+    self:method="post".
+    self.
+].
+Ajax:execute=[|;s|
+    s=self.
+    DtlPromise ! [|succ|
+        opt=system![]new．
+        opt:method=s:method.
+        opt:url=s:url．
+        opt:data=s:params.
+        opt:success=succ．
+        //(window:console) ! (opt) log. 
+        (window:$) ! (opt) ajax.
+    ] new.
+].
+Ajax:get=[
+    self:method="get".
+    ! execute.
+].
+Ajax:post=[
+    self:method="post".
+    ! execute.
+].
+
+
+//r=Ajax ! "http://localhost/fs/pub/869479b0/output.txt" create get.
+//r=Ajax ! "http://localhost/?Test/test" create "x" 3 data "y" 2 data post.
+//ラベル！（ｒ）作る．
+
+

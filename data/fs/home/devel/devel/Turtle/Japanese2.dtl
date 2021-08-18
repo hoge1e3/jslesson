@@ -299,7 +299,7 @@
     ! "color" "暗くする" "くらくする" "darker" addAliasFromTable.
     ! "color" "明るくする" "あかるくする" "brighter" addAliasFromTable.
     ! "color" "半透明にする" "はんとうめいにする" "settransparency,maketranslucent" addAliasFromTable.
-    ! "color" "ランダムに作る,くじ引き" "らんだむにつくる,くじびき" "random" addAliasFromTable.
+    ! "color" "ランダムに作る,くじ引き" "らんだむにつくる,くじびき" "randomCreate" addAliasFromTable.
     ! "palette" "混ぜる" "まぜる" "mix" addAliasFromTable.
     ! "guiButton,guiField,guiLabel,guiList,guiMenu,guiSlider,guiArea" "次の行" "つぎのぎょう" "nextline" addAliasFromTable.
     ! "guiButton,guiField,guiLabel,guiList,guiMenu,guiSlider,guiArea" "位置" "いち" "position,moveto" addAliasFromTable.

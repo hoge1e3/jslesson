@@ -442,3 +442,30 @@ nowait \deg(d) {
     g.src=src||[];
     return g;
 }
+\readFile(path) {
+    var a=path.split("/");
+    var context=a[0], filename=a[1];
+    var p=window.$.ajax{
+        url: window.runtimePath+"a.php?Asset/download",
+        data: {
+            context, filename
+        }
+    };
+    var r;
+    r=waitFor(p);
+    return r;
+}
+
+\writeFile(path, content) {
+    var a=path.split("/");
+    var context=a[0], filename=a[1];
+    var p=window.$.ajax{
+        url: window.runtimePath+"a.php?Asset/upload",
+        data: {
+            context, filename, content
+        }
+    };
+    var r;
+    r=waitFor(p);
+    return r;
+}
