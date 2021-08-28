@@ -7,6 +7,7 @@ class TeacherController {
     public static $name="";
     static function login() {
     ?>
+    <title>教員ログイン - Bit Arrow</title>
 		<meta charset="UTF-8">
       <h1>Bit Arrow教員ログイン</h1>
     	<form action="a.php?Teacher/check" method="POST">
@@ -146,6 +147,7 @@ class TeacherController {
             return;
         }
         ?>
+        <title>教員追加 - Bit Arrow</title>
         <h1>教員追加</h1>
         <form action="?Teacher/addDone" method="POST">
             所属と氏名 <input name="cname" size=50>様<BR>

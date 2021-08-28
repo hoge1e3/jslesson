@@ -99,6 +99,11 @@ var reqConf={
                 deps:["Parser","ExpressionParser","context"],
                 exports:"dncl2js"
             },
+            /*SerialControl: {
+                exports: "SerialControl"
+            },
+                See: https://stackoverflow.com/questions/37711603/javascript-es6-class-definition-not-accessible-in-window-global
+            */
             Tonyu:{
                 exports:"Tonyu"
             },
@@ -322,6 +327,7 @@ var reqConf={
             GenericTokenizer: "lang/GenericTokenizer",
             CAndDtlTokenizer: "build/CAndDtlTokenizer",
             stacktrace:"lang/",
+            SerialControl: "../runtime/lib/python/SerialControl",
 
             "foo":"bar"
         },

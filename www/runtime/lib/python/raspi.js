@@ -3,9 +3,13 @@ const e=new TextEncoder();
 const d=new TextDecoder();
 let w;
 let rawSent;
-let serialCtrl=new SerialControl();
-setTimeout( ()=>serialCtrl.render(document.querySelector("#control")),100);
-serialCtrl.onPortReady=run;
+let serialCtrl=parent.BABuilder.serialControl;// new SerialControl();
+//setTimeout( ()=>serialCtrl.render(document.querySelector("#control")),100);
+if (serialCtrl.port) {
+    run();
+} else {
+    serialCtrl.onPortReady=run;
+}
 serialCtrl.onEcho=onEcho;
 const timeout=t=>new Promise(s=>setTimeout(s,t));
 function rst() {
