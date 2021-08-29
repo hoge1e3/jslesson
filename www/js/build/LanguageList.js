@@ -22,8 +22,8 @@ define(function (require, exports, module) {
         "bry":{//ext:"py",// not working now
             en:"brython(Beta)", ja:"Brython(試験運用中)",builder:"BrythonBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
-        "ras.py": {//ext:"py",// not working now
+        /*"ras.py": {//ext:"py",// not working now
             en: "Raspi-Pico(Beta)", ja:"Raspi-Pico(試験運用中)",builder:"raspiBuilder",manualIndent:true,
-            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
+            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},*/
     };
 });
