@@ -1,3 +1,4 @@
+/*global SerialControl*/
 define(function (require, exports, module) {
     const root=require("root");
     const WebSite=require("WebSite");
@@ -6,6 +7,8 @@ define(function (require, exports, module) {
     const PP=require("PythonParser");
     const S=require("PythonSemantics");
     const Sync=require("Sync");
+    // See: https://stackoverflow.com/questions/37711603/javascript-es6-class-definition-not-accessible-in-window-global
+    const _SerialControl=require("SerialControl");
     const EXT=".ras.py";
     const PythonBuilder=function (prj, dst,ide) {//<-Dtl
         this.prj=prj;// TPRC
@@ -100,7 +103,12 @@ define(function (require, exports, module) {
         }
     };
     var superMode=false;
-
+    p.addMenu=async function (Menu) {
+        const serialDOM=$("<div>Serial</div>");
+        $("#tabTop").after(serialDOM);
+        p.serialControl=new SerialControl();
+        p.serialControl.render(serialDOM[0]);
+    };
     p.compile=function (f) {
         var pysrcF=f.src.py;
         var js;

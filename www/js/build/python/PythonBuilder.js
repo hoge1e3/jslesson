@@ -6,7 +6,6 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
         this.ide=ide;
-        //this.runLocal=true;
     };
     var libs=["polyfill","jquery-1.12.1","require"].map(function (n) {
         return "lib/"+n+".js";
@@ -74,9 +73,9 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
     }
     p.build=function (options) {
         options=options||{};
-        let runLocal=(options.runLocal!==false);
-        if (options.fullScr) runLocal=(this.prevRunLocal!==false);
-        else this.prevRunLocal=runLocal;
+        let runAt=(options.runAt);
+        if (options.fullScr) runAt=(this.prevRunAt);
+        else this.prevRunAt=runAt;
         var mainFilePath=options.mainFile && options.mainFile.path();
         var curPrj=this.prj;
         var dst=this.dst;
@@ -105,7 +104,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
                 var isMainFile=(f.src.py.path()==mainFilePath);//<-dtl
                 if (!isMainFile && isNewer(f.dst.js, f.src.py) && isNewer(f.dst.html, f.src.html)) return SplashScreen.waitIfBusy();//<-dtl
                 console.log("Transpile "+f.src.py.name());
-                t.compile(f,{runLocal,isMainFile});
+                t.compile(f,{runAt,isMainFile});
                 t.genHTML(f);
                 return SplashScreen.waitIfBusy();
             });
@@ -113,15 +112,14 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
     };
     //var superMode=true;// docker
 
-    p.compile=function (f,{runLocal,isMainFile}) {
+    p.compile=function (f,{runAt,isMainFile}) {
         var pysrcF=f.src.py;
         var js;
         var anon,node,errSrc,needInput=false;
-        if (runLocal) {// docker
+        if (runAt==="browser") {// docker
             try {
                 node=PP.parse(pysrcF);
-                var vres=S.check(node,{srcFile:pysrcF, runAt: runLocal?"browser":"server"});
-                //var gen=G(node);
+                var vres=S.check(node,{srcFile:pysrcF, runAt});
                 needInput=!!vres.useInput;
                 anon=vres.anon;
             } catch(e) {
@@ -129,20 +127,6 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
                     var pos=e.node?e.node.pos:e.pos;
                     e.pos=pos;
                     errSrc=DelayedCompileError(e);
-                    /*errSrc=
-                    "var e=new Error("+JSON.stringify(e.message)+");"+
-                    "e.src={"+
-                        "text: function (){return "+JSON.stringify(pysrcF.text().replace(/\r/g,""))+";},"+
-                        "name: function (){return "+JSON.stringify(pysrcF.name())+";}"+
-                    "};"+
-                    "e.pos="+pos+";"+
-                    "if (window.parent && typeof window.parent.closeRunDialog==='function') {"+
-                        "window.parent.closeRunDialog();"+
-                    "}"+
-                    "throw e;";
-                    */
-                    //throw TError(e.message,pysrcF,e.node.pos);
-
                 } else {
                     console.log(e.stack);
                     throw e;
@@ -158,7 +142,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         buf.setSrcFile(pysrcF);//<-dtl
         if (errSrc) {
             buf.printf("%s",errSrc);
-        } else if (runLocal) {
+        } else if (runAt==="browser") {
             J(node,anon,{buf:buf,genReqJS:true, pyLibPath:WebSite.runtime+"lib/python"});
         } else {
             const pyFile=f.src.py;
@@ -170,7 +154,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         }
         buf.close();
         // always run local default is not good for betupe-ji jikkou
-        // this.runLocal=true;
+        // this.runAt="browser";
     };
     /*function checkSuperMode(){
         if (typeof superMode==="number") return DU.resolve(superMode);
@@ -189,14 +173,10 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
             {label:"実行",id:"runPython",after:$("#fileMenu"),sub:
             [
                 {label:"ブラウザで実行(F9)",id:"runBrowser",action: async ()=>{
-                    await t.ide.run({runLocal:true});
-                    //$("#runBrowser").text("ブラウザで実行(F9)");
-                    //$("#runServer").text("サーバで実行");
+                    await t.ide.run({runAt:"browser"});
                 } } ,
                 {label:"サーバで実行",id:"runServer",action: async ()=>{
-                    await t.ide.run({runLocal:false});
-                    //$("#runServer").text("サーバで実行(F9)");
-                    //$("#runBrowser").text("ブラウザで実行");
+                    await t.ide.run({runAt:"server"});
                 } }
             ]}
         );
