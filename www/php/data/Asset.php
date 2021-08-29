@@ -11,6 +11,7 @@ class Asset{
         );
     }
     static function home($context) {
+        Auth::assertLoggedIn();
         $class=Auth::curClass2();
         if ($context==="user") {
             $u=Auth::curUser2();
