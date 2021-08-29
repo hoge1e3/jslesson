@@ -9655,6 +9655,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA) {
             res.d=UI("div",{title:"実行画面ダイアログ",id:"runDlg",css:{overflow:"hidden"}},
                     ["div",{$var:"browser"}],
                     ["button", {type:"button",$var:"OKButton", on:{click: res.close}}, "閉じる"],
+                    ["button", {type:"button",$var:"OKButton", on:{click: res.dlOut}}, "出力ダウンロード"],
                     (true?"":["button", {type:"button",$var:"WButton", on:{click: function () {
                         if (res.hasLocalBrowserWindow()) res.lbw.close();
                         res.lbw=new LocalBrowserWindow({
@@ -9694,6 +9695,12 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA) {
         });
         //if (res.da) res.da.handleResize();
         return res.d;
+    };
+    res.dlOut=function () {
+        const w=res.b.iframe[0].contentWindow;
+        const d=w.document;
+        const c=d.querySelector("#console") || d.body;
+        window.saveAs(new Blob([c.innerText]), "output.txt");
     };
     return res;
 });
@@ -14909,8 +14916,11 @@ define('LanguageList',['require','exports','module'],function (require, exports,
         "p5.py":{en:"p5Python", ja:"p5 Python mode",builder:"p5pyBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/python"},
         "bry":{//ext:"py",// not working now
-            en:"brython", ja:"Brython(試験運用中)",builder:"BrythonBuilder",manualIndent:true,
+            en:"brython(Beta)", ja:"Brython(試験運用中)",builder:"BrythonBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
+        /*"ras.py": {//ext:"py",// not working now
+            en: "Raspi-Pico(Beta)", ja:"Raspi-Pico(試験運用中)",builder:"raspiBuilder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},*/
     };
 });
 
