@@ -1,7 +1,10 @@
+/*global SerialControl*/
 define(["assert","DeferredUtil","wget", "IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator",
-"PythonParser","PythonSemantics","PythonGen","Python2JS","ctrl","root","WebSite","TError","DelayedCompileError"],
+"PythonParser","PythonSemantics","PythonGen","Python2JS","ctrl","root","WebSite","TError","DelayedCompileError",
+"SerialControl"],
 function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
-    PP,S,G,J,ctrl,root,WebSite,TError,DelayedCompileError) {//<-dtl
+    PP,S,G,J,ctrl,root,WebSite,TError,DelayedCompileError,
+    _SerialControl) {//<-dtl
     var PythonBuilder=function (prj, dst,ide) {//<-Dtl
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
@@ -67,6 +70,45 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         });
         return f.dst.html.text("<!DOCTYPE HTML>\n<html>"+html.innerHTML+"</html>");
     };
+    p.genHTML_Raspi=function (f) {
+        const pythonSrc=f.src.py.text();
+        let ba={};
+        if (root.BitArrow) {
+            var BitArrow=root.BitArrow;
+            ba={
+                version:BitArrow.version,
+                urlArgs:BitArrow.urlArgs,
+                publishedURL:BitArrow.publishedURL,
+                runtimePath:WebSite.runtime};
+        }
+        const html=`<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf8"/>
+    <script>
+    window.BitArrow=${JSON.stringify(ba)};
+    </script>
+</head>
+<body>
+<div id="control"></div>
+<Script src="${WebSite.runtime}/lib/python/SerialControl.js"></script>
+<div>
+<div style="display:none;">
+<textarea rows=5 cols=40 id="prog">${pythonSrc}</textarea>
+<button onclick="run()">Run</button>
+</textarea>
+</div>
+<button onclick="ctrlC()">Stop</button>
+<button onclick="rstRun()">Restart</button>
+<button onclick="clearConsole()">Clear</button>
+<pre id="console">
+</pre>
+<script src="${WebSite.runtime}/lib/python/raspi.js">
+</script>
+</body>
+</html>`;
+        return f.dst.html.text(html);
+    };
     function isNewer(a,b) {
         if (!a.exists()) return false;
         return a.lastUpdate()>b.lastUpdate();
@@ -102,10 +144,17 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
             return DU.each(files,function (f) {
                 t.progress("Transpile "+f.src.py.name());//<-dtl
                 var isMainFile=(f.src.py.path()==mainFilePath);//<-dtl
-                if (!isMainFile && isNewer(f.dst.js, f.src.py) && isNewer(f.dst.html, f.src.html)) return SplashScreen.waitIfBusy();//<-dtl
+                if (!isMainFile) {
+                    if (runAt==="raspi" ||
+                      (isNewer(f.dst.js, f.src.py) &&
+                       isNewer(f.dst.html, f.src.html))) {
+                        return SplashScreen.waitIfBusy();//<-dtl
+                    }
+                }
                 console.log("Transpile "+f.src.py.name());
                 t.compile(f,{runAt,isMainFile});
-                t.genHTML(f);
+                if (runAt==="raspi") t.genHTML_Raspi(f);
+                else t.genHTML(f);
                 return SplashScreen.waitIfBusy();
             });
         }));
@@ -116,6 +165,10 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         var pysrcF=f.src.py;
         var js;
         var anon,node,errSrc,needInput=false;
+        if (runAt==="raspi") {
+            node=PP.parse(pysrcF);
+            return;
+        }
         if (runAt==="browser") {// docker
             try {
                 node=PP.parse(pysrcF);
@@ -180,6 +233,21 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
                 } }
             ]}
         );
+        Menu.appendSub(
+            {label:"ツール",id:"tool",after:$("#config")},
+            {label:"Raspi-pico接続",id:"raspiPanel",action:this.showRaspiPanel.bind(this)}
+        );
+        this.menu=Menu;
+    };
+    p.showRaspiPanel=function () {
+        if (this.serialControl) return;
+        const serialDOM=$("<div>Serial</div>");
+        $("#tabTop").after(serialDOM);
+        this.serialControl=new SerialControl();
+        this.serialControl.render(serialDOM[0]);
+        this.menu.appendSub("runPython",{label:"Raspiで実行",id:"runRaspi",action: async ()=>{
+            await this.ide.run({runAt:"raspi"});
+        } });
     };
     p.upload=function (pub) {
         return Sync.sync(this.dst,pub);

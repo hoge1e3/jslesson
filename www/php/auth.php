@@ -119,7 +119,7 @@ class Auth {
                     $options=new stdClass;
                 }
                 $options->lastLogin=time();
-                pdo_update("teacher", array("name"=>$name), array("options"=>json_encode($options)));                
+                pdo_update("teacher", array("name"=>$name), array("options"=>json_encode($options)));
             }
 	        // Success
 	        MySession::set("teacher",$name);
@@ -244,6 +244,11 @@ class Auth {
         if (!MySession::has("class")) return null;
         return MySession::get("class");
     }
+    static function assertLoggedIn() {
+        if (!self::loggedIn()) {
+             throw new Exception("Not logged in: BitArrowにログインしてください.");
+        }
+    }
     static function loggedIn() {
 	    $class=self::curClass();
    	    $user=self::curUser();
@@ -253,7 +258,8 @@ class Auth {
         MySession::clear();
     }
     static function homeDir(){
-        if (!self::loggedIn()) throw new Exception("Not logged in");
+        self::assertLoggedIn();
+        //if (!self::loggedIn()) throw new Exception("Not logged in");
         return "/home/".self::curClass()."/".self::curUser()."/";
     }
     static function home() {

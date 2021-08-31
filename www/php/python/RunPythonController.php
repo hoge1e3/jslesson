@@ -155,7 +155,7 @@ class RunPythonController {
     }
     static function isSuper($called=0) {
         $class=Auth::curClass2();
-        if (defined("SUPER_PYTHON") && $class->id === SUPER_PYTHON) {
+        if (defined("SUPER_PYTHON") && $class && $class->id === SUPER_PYTHON) {
         //if (true) {// special-change
             if (!$called) echo 1;
             return 1;
