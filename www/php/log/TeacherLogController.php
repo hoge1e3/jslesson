@@ -591,7 +591,7 @@ class TeacherLogController {
         print_r("--------");
         //print_r($stat);
         uasort($stat, function ($a, $b) { return count($a)-count($b); } );
-        $buffer="";
+        $buffer="エラー：";
         //$url="";
         foreach ($stat as $s) {
           //print_r($s);
@@ -620,7 +620,7 @@ class TeacherLogController {
             ]
           ];
           if (defined("HINT_URL")){
-            $Hint=@file_get_contents(HINT_URL."?path=/home/pro3-21/$name/$filename",false,stream_context_create($option));
+            $Hint=@file_get_contents(HINT_URL."?path=/home/$class/$name/$filename",false,stream_context_create($option));
           } else {
             $Hint="";
           }
