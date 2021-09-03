@@ -2,6 +2,7 @@
 $mod_aliases=array(
     //----AUTOGEN
     'LogCluster'=>"php/log/",
+    "CDBController"=>"php/data/",
     'ProjectController'=>"php/user/",
     'AddErrorInfoController' => 'php/analysis/AddErrorInfoController.php',
     'AddScoreInfo' => 'php/analysis/AddScoreInfo.php',

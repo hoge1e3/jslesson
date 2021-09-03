@@ -1,5 +1,5 @@
-define(["UI","LocalBrowser","LocalBrowserWindow","DiagAdjuster"],
-function (UI, LocalBrowser,LocalBrowserWindow,DA) {
+define(["UI","LocalBrowser","LocalBrowserWindow","DiagAdjuster","ExportOutputDialog"],
+function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
     var res={};
     var geom=res.geom={};
     res.hasLocalBrowserWindow=function () {
@@ -85,7 +85,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA) {
             res.d=UI("div",{title:"実行画面ダイアログ",id:"runDlg",css:{overflow:"hidden"}},
                     ["div",{$var:"browser"}],
                     ["button", {type:"button",$var:"OKButton", on:{click: res.close}}, "閉じる"],
-                    ["button", {type:"button",$var:"OKButton", on:{click: res.dlOut}}, "出力ダウンロード"],
+                    ["button", {type:"button",$var:"OKButton", on:{click: res.dlOut}}, "出力を共有……"],
                     (true?"":["button", {type:"button",$var:"WButton", on:{click: function () {
                         if (res.hasLocalBrowserWindow()) res.lbw.close();
                         res.lbw=new LocalBrowserWindow({
@@ -130,6 +130,8 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA) {
         const w=res.b.iframe[0].contentWindow;
         const d=w.document;
         const c=d.querySelector("#console") || d.body;
+        ExportOutputDialog.show(c);
+        return;
         window.saveAs(new Blob([c.innerText]), "output.txt");
     };
     return res;

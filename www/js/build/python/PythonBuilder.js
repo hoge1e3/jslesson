@@ -115,7 +115,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
     }
     p.build=function (options) {
         options=options||{};
-        let runAt=(options.runAt);
+        let runAt=(options.runAt)||"browser";
         if (options.fullScr) runAt=(this.prevRunAt);
         else this.prevRunAt=runAt;
         var mainFilePath=options.mainFile && options.mainFile.path();
