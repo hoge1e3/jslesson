@@ -9568,8 +9568,294 @@ define('DiagAdjuster',[],function () {
     return DiagAdjuster;
 });
 
-define('RunDialog2',["UI","LocalBrowser","LocalBrowserWindow","DiagAdjuster"],
-function (UI, LocalBrowser,LocalBrowserWindow,DA) {
+define('Tab',['require','exports','module','UI'],function (require, exports, module) {
+    const UI=require("UI");
+    function Tab(options) {
+        if (typeof options.length==="number") {
+            options={contents:options};
+        }
+        const infos=options.contents;
+        const baseClass=options.class||"tabs";
+        const classes= options.classes||{
+            all: baseClass,
+            selector: `${baseClass}-selector`,
+            container: `${baseClass}-container`,
+            content: `${baseClass}-content`,
+            button: `${baseClass}-button`,
+        };
+        let onSelect;
+        const sel=name=>{
+            for (let dom of doms) {
+                if (dom.info.name===name) {
+                    dom.content.show();
+                    dom.button.addClass("selected");
+                    if (onSelect) onSelect(name, dom);
+                } else {
+                    dom.content.hide();
+                    dom.button.removeClass("selected");
+                }
+            }
+        };
+        const res=UI("div",{class: classes.all, $var:"__top"});
+        const selector=UI("div",{class:classes.selector}).appendTo(res);
+        const container=UI("div",{class:classes.container}).appendTo(res);
+        const doms=[];
+        let init=infos[0].name;
+        for (let info of infos) {
+            const button=UI("button", {
+                    class: classes.button,
+                    "data-name": info.name}, info.caption || info.name );
+            button.appendTo(selector);
+            const content=UI("div", {class:classes.content, "data-name": info.name},
+                        info.content
+                    );
+            content.appendTo(container);
+            const dom={ info ,button, content};
+            Object.assign(res.$vars, info.content.$vars||{});
+            const name=info.name;
+            button.click(()=>sel(name));
+            doms.append(dom);
+            if (info.selected) {
+                init=name;
+            }
+        }
+        sel(init);
+        onSelect=options.onSelect;
+        return {content:res, select:sel, contents:doms};
+    }
+    module.exports=Tab;
+});
+
+define('ctrl',[], function () {
+    var ctrl={};
+    ctrl.url=function (path,params) {
+        let res=".?"+path;
+        if (params) {
+            res+=Object.keys(params).map (k=>`&${k}=${params[k]}`).join("");
+        }
+        return res;
+    };
+    ctrl.run=function (method,path,params) {
+        params=params||{};
+        return $.ajax({
+            url: ctrl.url(path),
+            data:params,
+            cache: false,
+            type:method
+        });
+    };
+    ctrl.get=function (path,params) {
+        return ctrl.run("get",path,params);
+    };
+    ctrl.post=function (path,params) {
+        return ctrl.run("post",path,params);
+    };
+    return ctrl;
+});
+
+define('ExportOutputDialog',['require','exports','module','UI','Tab','ctrl'],function (require, exports, module) {
+    const UI=require("UI");
+    const Tab=require("Tab");
+    const ctrl=require("ctrl");
+    class ExportOutputDialog {
+        outDest() {
+            return this.vars.dest[0].outDest.value;
+        }
+        renderTable(sep) {
+            const vars=this.vars;
+            const s=vars.plain.val();
+            const lines =s.split("\n");
+            let ln=0;
+            vars.table.empty();
+            let attrs=[], datas=[];
+            for (let line of lines ){
+                const isAttr=ln==0;
+                const tr=$("<tr>").appendTo(vars.table);
+                line=line.replace(/\r/,"");
+                if (line.length===0) continue;
+                const row=line.split(sep);
+                if (isAttr) attrs=row;
+                else {
+                    const data={};
+                    let i=0;
+                    for (let attr of attrs) {
+                        data[attr]=row[i];
+                        i++;
+                    }
+                    datas.push(data);
+                }
+                for (let d of row) {
+                    const td=$(isAttr? "<th>": "<td>").appendTo(tr);
+                    td.text(d);
+                }
+                ln++;
+            }
+            this.cdbData=datas;
+            console.log(datas);
+        }
+        dom() {
+            const cw=550,ch=250;
+            if (this._dom) return this._dom;
+            const chdest=(n)=>{
+                switch(n){
+                case "dl":
+                    this.vars.send.text("ダウンロード");
+                    this.vars.nameLabel.text("ファイル名");
+                    break;
+                case "ulu":
+                case "ulc":
+                    this.vars.send.text("送信");
+                    this.vars.nameLabel.text("ファイル名");
+                    break;
+                case "cdb":
+                    this.vars.send.text("送信");
+                    this.vars.nameLabel.text("APIキー名");
+                    break;
+                }
+            };
+            const opt=(vname, caption)=>(["div",
+                ["input", {
+                    type:"radio", id:`outDest_${vname}`, name:`outDest`,
+                    $var: vname, value:vname,
+                    on:{change: ()=>chdest(vname)},
+                }],
+                ["label", {for: `outDest_${vname}`}, caption]
+            ]);
+            const tabs=Tab({
+                onSelect: (name)=> {
+                    const vars=this.vars;
+                    if (name==="table") {
+                        const s=vars.plain.val();
+                        let sep=vars.sep.val();
+                        if (!sep) {
+                            sep=inferSeparator(s);
+                            vars.sep.val(sep);
+                        }
+                        this.renderTable(sep);
+                    }
+                },
+                contents: [
+                    {
+                        name: "plain", caption:"テキスト",
+                        content: UI("textarea",{$var:"plain", css:{width: cw, height: ch}})
+                    },
+                    {
+                        name: "table", caption:"表",
+                        content: UI("div",{css:{
+                                width: cw, height: ch,
+                                overflowY: "scroll",overflowX: "scroll"
+                            }},
+                            ["div",
+                                "区切り記号:", ["input", {$var:"sep",on:{input:()=>{
+                                    const sep=this.vars.sep.val();
+                                    this.renderTable(sep);
+                                }}}],
+                            ],
+                            ["table",{$var:"table", class:"output", rows:10, cols:60}]
+                        ),
+                    }
+                ],
+            });
+            this._dom=UI("div",
+                ["div",
+                    ["div",
+                        ["form",{$var:"dest"},
+                            opt("dl","ダウンロード"),
+                            opt("ulu","「素材管理」(user)に送信"),
+                            opt("ulc","「素材管理」(class)に送信"),
+                            opt("cdb","Connect DBに送信"),
+                        ]
+                    ],
+                    ["span",{$var: "nameLabel"},"ファイル名"], ["input",{$var:"name", value:"output.txt"}],
+                    ["span",{$var: "status"}],
+                    ["button", {$var:"send", on:{click:this.send.bind(this)}}, "ダウンロード"],
+                ],
+                tabs.content,
+            );
+            this.vars=Object.assign(this._dom.$vars, tabs.content.$vars);
+            this.vars.dest[0].outDest.value="dl";
+            chdest("dl");
+            return this._dom;
+        }
+        async send() {
+            const vars=this.vars;
+            const content=this.dataContent();
+            const name=vars.name.val();
+            if (!name) {
+                alert(`${vars.nameLabel.text()}を入れてください．`);
+                return;
+            }
+            vars.send.prop("disabled",true);
+            vars.status.text(`${vars.send.val()}中……`);
+            try {
+                switch(this.outDest()) {
+                    case "dl":
+                    window.saveAs(new Blob([content]), name);
+                    break;
+                    case "ulu":
+                    await this.uploadAsset("user",name, content);
+                    break;
+                    case "ulc":
+                    await this.uploadAsset("class",name, content);
+                    break;
+                    case "cdb":
+                    const data=this.cdbData;
+                    if (!data) {
+                        return alert("データがありません");
+                    }
+                    const key=vars.name.val();
+                    await ctrl.post("CDB/post", {key, data:JSON.stringify(data)});
+                    break;
+                }
+                vars.status.text("完了");
+            } catch (e) {
+                alert(e.responseText || e);
+                vars.status.text("失敗");
+            } finally {
+                vars.send.prop("disabled",false);
+            }
+        }
+        uploadAsset(context, filename, content) {
+            return $.post(ctrl.url("Asset/upload"),{context, filename, content});
+        }
+        dataContent() {
+            return this.vars.plain.val();
+        }
+        show(srcElem) {
+            const d=this.dom();
+            d.dialog({
+                title:"出力の共有",
+                width:600, height:500
+            });
+            this.vars.status.text("");
+            this.vars.plain.val(srcElem.innerText);
+        }
+    }
+    function inferSeparator(text) {
+        const cands=[",","\t"," ", /\s+/];
+        const lines=text.split("\n");
+        let res, max=-1;
+        for (let cand of cands) {
+            let score=0, prev;
+            for (let line of lines) {
+                const a=line.split(cand);
+                if (!prev || a.length===prev) {
+                    score+=a.length;
+                }
+                prev=a.length;
+            }
+            if (score>max) {
+                res=cand;
+                max=score;
+            }
+        }
+        return res;
+    }
+    module.exports=new ExportOutputDialog();
+});
+
+define('RunDialog2',["UI","LocalBrowser","LocalBrowserWindow","DiagAdjuster","ExportOutputDialog"],
+function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
     var res={};
     var geom=res.geom={};
     res.hasLocalBrowserWindow=function () {
@@ -9655,7 +9941,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA) {
             res.d=UI("div",{title:"実行画面ダイアログ",id:"runDlg",css:{overflow:"hidden"}},
                     ["div",{$var:"browser"}],
                     ["button", {type:"button",$var:"OKButton", on:{click: res.close}}, "閉じる"],
-                    ["button", {type:"button",$var:"OKButton", on:{click: res.dlOut}}, "出力ダウンロード"],
+                    ["button", {type:"button",$var:"OKButton", on:{click: res.dlOut}}, "出力を共有……"],
                     (true?"":["button", {type:"button",$var:"WButton", on:{click: function () {
                         if (res.hasLocalBrowserWindow()) res.lbw.close();
                         res.lbw=new LocalBrowserWindow({
@@ -9700,6 +9986,8 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA) {
         const w=res.b.iframe[0].contentWindow;
         const d=w.document;
         const c=d.querySelector("#console") || d.body;
+        ExportOutputDialog.show(c);
+        return;
         window.saveAs(new Blob([c.innerText]), "output.txt");
     };
     return res;
@@ -14908,8 +15196,8 @@ define('LanguageList',['require','exports','module'],function (require, exports,
             helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
         "tonyu":{en:"Tonyu", ja:"Tonyu",builder:"TonyuBuilder",
             helpURL:"http://bitarrow.eplang.jp/index.php?tonyu",mode:"ace/mode/tonyu"},
-        //"php":{en:"PHP", ja:"PHP",builder:"PHPBuilder",
-        //    helpURL:"http://bitarrow.eplang.jp/index.php?php",mode:"ace/mode/php"},
+        "php":{en:"PHP", ja:"PHP",builder:"PHPBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?php",mode:"ace/mode/php"},
         "p5.js":{en:"p5.js", ja:"p5.js",builder:"P5Builder",
             helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/javascript"},
             // lang <= 10
@@ -15405,33 +15693,6 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
     return ProgramFileUploader;
 });
 
-define('ctrl',[], function () {
-    var ctrl={};
-    ctrl.url=function (path,params) {
-        let res=".?"+path;
-        if (params) {
-            res+=Object.keys(params).map (k=>`&${k}=${params[k]}`).join("");
-        }
-        return res;
-    };
-    ctrl.run=function (method,path,params) {
-        params=params||{};
-        return $.ajax({
-            url: ctrl.url(path),
-            data:params,
-            cache: false,
-            type:method
-        });
-    };
-    ctrl.get=function (path,params) {
-        return ctrl.run("get",path,params);
-    };
-    ctrl.post=function (path,params) {
-        return ctrl.run("post",path,params);
-    };
-    return ctrl;
-});
-
 define('AssetDialog',["Klass","UI","ctrl","WebSite","DragDrop","root"],
 function (Klass,UI,ctrl,WebSite,DragDrop,root) {
     //var res={};
@@ -15440,22 +15701,24 @@ function (Klass,UI,ctrl,WebSite,DragDrop,root) {
         $: ["prj"],
         show: function (t) {
             t.createDOM();
-            t.dom.dialog({width:600});
+            t.dom.dialog({width:600,height:500});
         },
         refresh: function (t,mesg) {
             console.log("refresh",mesg);
-            ctrl.get("Asset/list",{context:t.context}).then(function (r) {
+            ctrl.get("Asset/list2",{context:t.context}).then(function ({files, prefix, baseUrl}) {
                 t.list.empty();
-                r.forEach(function (u) {
-                    var fileName=u.replace(/[^\/]+\//,"");
-                    var urlFull=WebSite.published+u;
-                    t.list.append(UI("div",
-                        ["a",{href:urlFull, target:"asset"},urlFull],
-                        ["button",{on:{click:del}},"削除"]
+                files.forEach(function (fileName) {
+                    //var fileName=u.replace(/[^\/]+\//,"");
+                    var urlFull=baseUrl+fileName;// WebSite.published+u;
+                    t.list.append(UI("tr",
+                        ["td",
+                            ["a",{href:urlFull, target:"asset"},`${t.context}/${fileName}`]],
+                        ["td",
+                            ["button",{on:{click:del}},"削除"]],
                     ));
                     function del() {
                         console.log("DEL",fileName);
-                        ctrl.get("Asset/del",{fileName:fileName,context:t.context}).
+                        ctrl.get("Asset/del",{fileName, context:t.context}).
                         then(t.$bind.refresh,err);
                     }
                 });
@@ -15486,7 +15749,7 @@ function (Klass,UI,ctrl,WebSite,DragDrop,root) {
                 ],
                 ["div",{$var:"content"},
                     dragPoint,
-                    ["div",{$var:"list",style:"height: 400px; overflow-y:scroll"}]
+                    ["table",{$var:"list",style:"height: 300px; overflow-y:scroll"}]
                 ]
             );
             DragDrop.accept(t.dom.$vars.content,{
