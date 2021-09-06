@@ -620,7 +620,7 @@ class TeacherLogController {
             ]
           ];
           if (defined("HINT_URL")){
-            $Hint=@file_get_contents(HINT_URL."?path=/home/$class/$name/$filename",false,stream_context_create($option));
+            $Hint=@file_get_contents(HINT_URL."?path=/home/$class->id/$name/$filename",false,stream_context_create($option));
           } else {
             $Hint="";
           }
@@ -665,33 +665,35 @@ class TeacherLogController {
 
 
         }
+        if($solved=="未解決"){
+          $data = array(
+              'payload' => json_encode( array(
+                  "text"=>$buffer
+                  /*"blocks"=>array(
+                      array(    "type"=> "section",
+                          "text"=> array(
+                                "type"=> "mrkdwn",
+                                "text"=> "Danny Torrence left the `following` review for your property:"
+                              ))
+                 )*/
+               ))
+          );
 
-        $data = array(
-            'payload' => json_encode( array(
-                "text"=>$buffer
-                /*"blocks"=>array(
-                    array(    "type"=> "section",
-                        "text"=> array(
-                              "type"=> "mrkdwn",
-                              "text"=> "Danny Torrence left the `following` review for your property:"
-                            ))
-               )*/
-             ))
-        );
+          $context = array(
+              'http' => array(
+                     'method'  => 'POST',
+                     'header'  => implode("\r\n", array('Content-Type: application/x-www-form-urlencoded',)),
+                     'content' => http_build_query($data)
+              )
+          );
 
-        $context = array(
-            'http' => array(
-                   'method'  => 'POST',
-                   'header'  => implode("\r\n", array('Content-Type: application/x-www-form-urlencoded',)),
-                   'content' => http_build_query($data)
-            )
-        );
+          $html = file_get_contents($slack_bot_url, false, stream_context_create($context));
 
-        $html = file_get_contents($slack_bot_url, false, stream_context_create($context));
+          var_dump($http_response_header);
 
-        var_dump($http_response_header);
+          echo $html;
+        }
 
-        echo $html;
       }
 
 
