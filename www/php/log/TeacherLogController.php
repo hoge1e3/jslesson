@@ -591,7 +591,7 @@ class TeacherLogController {
         print_r("--------");
         //print_r($stat);
         uasort($stat, function ($a, $b) { return count($a)-count($b); } );
-        $buffer="";
+        $buffer="エラー：";
         //$url="";
         foreach ($stat as $s) {
           //print_r($s);
