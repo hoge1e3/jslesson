@@ -59,6 +59,22 @@ class AssetController {
         header("Content-type: text/json;charset=utf-8");
         print json_encode($res);
     }
+    static function list2() {
+        $context=param("context","user");
+        $home=Asset::home($context);
+        $h=$home["file"];
+        $hu=$home["url"];
+        $pub=Asset::pub();
+        $prefix=$h->relPath($pub);
+        if ($h->exists()) {
+            $files=[];
+            foreach ($h->listFiles() as $file) {
+                array_push($files,$file->relPath($h));
+            }
+        }
+        header("Content-type: text/json;charset=utf-8");
+        print json_encode(["prefix"=>$prefix, "files"=>$files, "baseUrl"=>$hu]);
+    }
     static function exists() {
         $context=param("context","user");
         $filename=param("filename");
@@ -74,7 +90,7 @@ class AssetController {
     static function del() {
         $context=param("context","user");
         $fn=param("fileName");
-        if (strstr("..", $filename)!==false) {
+        if (strstr("..", $fn)!==false) {
             throw new Exception("Invalid path");
         }
         $home=Asset::home($context);

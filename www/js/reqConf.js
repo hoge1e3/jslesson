@@ -123,6 +123,8 @@ var reqConf={
             }*/
         },
         "paths": {
+            Tab: "ui/Tab",
+            ExportOutputDialog: "ide/ExportOutputDialog",
             jsl_selProject: "jsl/selProject",
             jsl_selUser: "jsl/selUser",
             jsl_selProject_concat: 'gen/selPrj_concat',

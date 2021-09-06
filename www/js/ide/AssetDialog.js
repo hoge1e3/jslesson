@@ -6,23 +6,24 @@ function (Klass,UI,ctrl,WebSite,DragDrop,root) {
         $: ["prj"],
         show: function (t) {
             t.createDOM();
-            t.dom.dialog({width:600});
+            t.dom.dialog({width:600,height:500});
         },
         refresh: function (t,mesg) {
             console.log("refresh",mesg);
-            ctrl.get("Asset/list",{context:t.context}).then(function (r) {
+            ctrl.get("Asset/list2",{context:t.context}).then(function ({files, prefix, baseUrl}) {
                 t.list.empty();
-                r.forEach(function (u) {
-                    //                 class                  user
-                    var fileName=u.replace(/[^\/]+\//,"").replace(/[^\/]+\//,"");
-                    var urlFull=WebSite.published+u;
-                    t.list.append(UI("div",
-                        ["a",{href:urlFull, target:"asset"},urlFull],
-                        ["button",{on:{click:del}},"削除"]
+                files.forEach(function (fileName) {
+                    //var fileName=u.replace(/[^\/]+\//,"");
+                    var urlFull=baseUrl+fileName;// WebSite.published+u;
+                    t.list.append(UI("tr",
+                        ["td",
+                            ["a",{href:urlFull, target:"asset"},`${t.context}/${fileName}`]],
+                        ["td",
+                            ["button",{on:{click:del}},"削除"]],
                     ));
                     function del() {
                         console.log("DEL",fileName);
-                        ctrl.get("Asset/del",{fileName:fileName,context:t.context}).
+                        ctrl.get("Asset/del",{fileName, context:t.context}).
                         then(t.$bind.refresh,err);
                     }
                 });
@@ -53,7 +54,7 @@ function (Klass,UI,ctrl,WebSite,DragDrop,root) {
                 ],
                 ["div",{$var:"content"},
                     dragPoint,
-                    ["div",{$var:"list",style:"height: 400px; overflow-y:scroll"}]
+                    ["table",{$var:"list",style:"height: 300px; overflow-y:scroll"}]
                 ]
             );
             DragDrop.accept(t.dom.$vars.content,{
