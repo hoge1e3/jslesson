@@ -8,7 +8,7 @@ function makeURL($action,$controller,$params=null) {
     $u="$u?$action/$controller";
     if ($params!=null) {
         foreach ($params as $k=>$v) {
-            $u.="$k=".urlencode($v);
+            $u.="&$k=".urlencode($v);
         }
     }
     return $u;
