@@ -48,6 +48,7 @@ class LoginController {
         return preg_match("/^[\+@a-zA-Z_0-9\-\.]+$/",$u);
     }
     static function bauth() {
+        // return whether status is valid
         $status=param("status");
         $status=json_decode($status,true);
         $status2=statusHash($status);
@@ -72,12 +73,15 @@ class LoginController {
         $t=Auth::curTeacher();
         if ($t) $res["teacher"]=$t->name;
         $res["time"]=DateUtil::now();
+        $oa=MySession::get("oauthed_id",null);
+        if ($oa) $res["oauthed_id"]=$oa;
         if (defined("BAUTH_SALT")) {
             $res=statusHash($res);
         }
         $callback=param("callback",null);
         if ($callback) {
-            header("Location: $callback&code=$res");
+            // TODO check callback domains
+            header("Location: $callback&code=".json_encode($res));
             return;
         }
         print json_encode($res);
@@ -264,7 +268,7 @@ class LoginController {
 }
 function statusHash($res) {
     $src=BAUTH_SALT;
-    $keys=["user","class","teacher","time"];
+    $keys=["user","class","teacher","time","oauthed_id"];
     foreach ($keys as $key) {
         if (isset($res[$key])) $src.=",".$res[$key];
     }
