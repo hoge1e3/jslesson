@@ -58,7 +58,7 @@ define(function (require, exports, module) {
                         const f=document.getElementById("frame");
                         const u=document.getElementById("url");
                         const src=f.contentWindow.location.href;
-                        if (src!==prevURL) {
+                        if (src!=="about:blank" && src!==prevURL) {
                             u.value=src;
                             prevURL=src;
                             sendResult(f.contentWindow.document.body.innerHTML);
