@@ -628,8 +628,10 @@ class TeacherLogController {
           $Hint=str_replace('<h1>','',$Hint);
           $Hint=str_replace('</h1>','',$Hint);
           $Hint=str_replace('<br/>','',$Hint);
+          $Hint=str_replace('<BR/>','',$Hint);
+          $Hint=str_replace('メインページ','',$Hint);
 
-          $element="test $URL $name ($count 件) $filename $mesg \n $Hint";
+          $element="$URL $name ($count 件) $filename $mesg \n $Hint";
 
           $buffer.="[".$element."]\n";
           /*
