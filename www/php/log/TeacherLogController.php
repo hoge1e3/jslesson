@@ -631,7 +631,9 @@ class TeacherLogController {
           $Hint=str_replace('<BR/>','',$Hint);
           $Hint=str_replace('メインページ','',$Hint);
 
-          $element="$URL $name ($count 件) $filename $mesg \n $Hint";
+          $mesg=substr($mesg,0,100);
+
+          $element="test $URL $name ($count 件) $filename $mesg \n $name \n $filename で苦戦中のようなので，ヒントを貼っておきます．それでもわからないなら遠慮なく質問してください． \n$Hint";
 
           $buffer.="[".$element."]\n";
           /*
@@ -728,6 +730,7 @@ class TeacherLogController {
         $reloadMode=param('reloadMode',0);
         $students=$class->getAllStu();
         $runcount=Array();
+        $runhistory=[];
         ?>
         <script>
           logs=[];
