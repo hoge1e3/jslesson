@@ -103,13 +103,13 @@ function (Visitor,IndentBuffer,context,PL,S) {
             //console.log("NODEL",node.left);//lvallist
             const firstBody=node.left.body && node.left.body[0];
             const io=PL.iops[node.op+""];
-            if (firstBody &&
-                firstBody.type==="postfix" &&
-                firstBody.op.type==="index") {
+            const value=node.right;
+            const matchPostfix=firstBody && firstBody.type==="postfix" && firstBody;
+            if (matchPostfix &&
+                matchPostfix.op.type==="index") {
                 // TODO: [x[5],y]=[2,3]  -> x.__setitem__(5,2), y=3
-                const object=firstBody.left;
-                const index=firstBody.op;
-                const value=node.right;
+                const object=matchPostfix.left;
+                const index=matchPostfix.op;
                 console.log("NODEL2",object,index);
                 if (io) {
                     this.printf("%v.__setitem__(%v, "+
@@ -121,8 +121,23 @@ function (Visitor,IndentBuffer,context,PL,S) {
                 } else {
                     this.printf("%v.__setitem__(%v, %v);",object, index.body,value );
                 }
+            } else if (matchPostfix &&
+                matchPostfix.op.type==="memberRef") {
+                // TODO: [x[5],y]=[2,3]  -> x.__setitem__(5,2), y=3
+                const object=matchPostfix.left;
+                const name=matchPostfix.op.name;
+                console.log("NODEL3",object,name);
+                if (io) {
+                    this.printf("%v.__setattr__('%v', "+
+                        "%s.wrap( %v.__getattribute__('%v') ).__%s__(%v)"+
+                    ");",
+                        object, name,
+                        PYLIB, object, name, io, value
+                    );
+                } else {
+                    this.printf("%v.__setattr__('%v', %v);",object, name,value );
+                }
             } else if (io) {
-                const value=node.right;
                 this.printf("%v=%s.wrap(%v).__%s__(%v)" ,
                 node.left, PYLIB, node.left, io, value);
             } else {
@@ -148,7 +163,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
             this.printf("%s.print %v;",PYLIB,node.args);
         },
         memberRef: function (node) {
-            this.printf(".%v",node.name);
+            this.printf(".__getattribute__('%v')",node.name);
         },
         args: function (node) {
             const noname=node.body.filter((a)=>!a.name);

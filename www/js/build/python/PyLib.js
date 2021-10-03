@@ -426,6 +426,19 @@ define(function (require,exports,module) {
         __imod__: function (self,other) { self=self.__mod__(other);return self;},
         __ipow__: function (self,other) { self=self.__pow__(other);return self;},
 
+        __getattr__: function (self,name) {
+            //__getattr__は、オブジェクトのインスタンス辞書に属性が見つからないときに呼び出されるメソッドです。
+            throw new Error(`field ${name} is not defined`);
+        },
+        __getattribute__: function (self,name) {
+            if (!(name in self)) {
+                return self.__getattr__(name);
+            }
+            return self[name];
+        },
+        __setattr__: function (self, name, value) {
+            self[name]=value;
+        },
         __delattr__: function (self,name) {
             delete self[name];
         },

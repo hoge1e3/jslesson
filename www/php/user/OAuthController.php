@@ -107,6 +107,7 @@ class OAuthController {
             ?>
             <?=$id?> - 現在登録されているクラスがありません．
             <?php
+            self::showRedirectMailDomain();
             return;
         } else if (count($a)==1) {
             $className=$a[0];
@@ -142,15 +143,17 @@ class OAuthController {
                     <?= $e ?></a></li>
                 <?php
             }
-            ?></ul><?php
-            $url=redirectMailDomain(MySession::get("oauthed_id"));
-            if ($url) {
-                ?>
-                <a href="<?= makeURL("Login","curStatus", ["callback"=>$url]) ?>">他サイトのBitArrowにログイン</a> 
-                <?php
-            }
+            ?></ul><?php self::showRedirectMailDomain();
         }
         //echo $id;
+    }
+    static function showRedirectMailDomain() {
+        $url=redirectMailDomain(MySession::get("oauthed_id"));
+        if ($url) {
+            ?>
+            <a href="<?= makeURL("Login","curStatus", ["callback"=>$url]) ?>">他サイトのBitArrowにログイン</a>
+            <?php
+        }
     }
     static function header() {
         echo "<a href='.'>トップ</a><hr>";

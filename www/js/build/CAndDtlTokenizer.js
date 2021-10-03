@@ -10,8 +10,8 @@ define(function (require,exports,module) {
     d.addToken(reg_num,"num");
     d.addToken(/^[\{\(\[｛（「『]/,"open");
     d.addToken(/^[\}\)\]｝）」』]/,"close");
-    d.addToken(/^'([^\\']*(\\.)*)*'/,"single");
-    d.addToken(/^"([^\\"]*(\\.)*)*"/,"double");
+    d.addToken(/^\'((\\(.|(\r?\n)))|[^\\\'\n])*\'/,"single");
+    d.addToken(/^\"((\\(.|(\r?\n)))|[^\\\"\n])*\"/,"double");
     const token=r=>({ret:f=>d.addToken(r,f()) });
     var colon=token(/^[:：]/).ret(function(){return ":";});
     var stick=token(/^[|｜]/).ret(function(){return "|";});
