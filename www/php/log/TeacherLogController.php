@@ -438,6 +438,25 @@ class TeacherLogController {
         //    // プログラムの一部を表示
         // }
     }
+    static function getActualtime2($user,$file) {
+        req("LogQueryController");
+        $class=Auth::curClass2();
+        $it=LogQueryController::get($class, null, $user, $file, 100000, "asc");
+        $prev=null;
+        define("IDLE_TIME",300);
+        $actTime2=0;
+        foreach ($it as $log) {
+            if (!$prev) { $prev=$log; continue; }
+            $elapsedFromLast=$log->time-$prev->time;
+            if ($elapsedFromLast>=IDLE_TIME) {
+                $actTime2+=IDLE_TIME;
+            } else {
+                $actTime2+=$elapsedFromLast;
+            }
+            $prev=$log;
+        }
+        return $actTime2;
+    }
     static function bot() {
         date_default_timezone_set('Asia/Tokyo');
         $class=Auth::curClass2();
@@ -633,7 +652,11 @@ class TeacherLogController {
 
           $mesg=substr($mesg,0,100);
 
-          $element="test $URL $name ($count 件) $filename $mesg \n $name \n $filename で苦戦中のようなので，ヒントを貼っておきます．それでもわからないなら遠慮なく質問してください． \n$Hint";
+          $user=$class->getUser($name);
+
+          $a2=self::getActualtime2($user,$filename);
+
+          $element="test $URL $name ($count 件) $filename $mesg \n Actualtime2= $a2 \n $name \n $filename で苦戦中のようなので，ヒントを貼っておきます．それでもわからないなら遠慮なく質問してください． \n$Hint";
 
           $buffer.="[".$element."]\n";
           /*
