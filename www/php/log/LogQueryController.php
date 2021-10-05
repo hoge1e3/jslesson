@@ -32,10 +32,10 @@ class LogQueryController {
         <?php
         }
         //if ($date!=="" && ($user!=="" || $file!=="")) {
-            self::show  ($output, $date, $class, $user, $file, $limit, $sort);
+            self::show  ($output, $class, $date, $user, $file, $limit, $sort);
         //}
     }
-    static function show($output, $date, $class, $user, $file, $limit, $sort) {
+    static function get($class, $date=null, $user=null, $file=null, $limit=100, $sort="desc") {
         if ($sort!="desc") $sort="asc";
         if (!is_int($limit)) $limit=100;
         $wheres=[];
@@ -53,8 +53,18 @@ class LogQueryController {
         }
         pdo_enableIter();
         $it=pdo_select_ands("select * from log where ? order by time $sort limit $limit ",$wheres);
-        if ($output==="table") self::showTable($it);
-        else self::showJSON($it);
+        return $it;
+    }
+    static function show($output, $class, $date, $user, $file, $limit, $sort) {
+        $it=self::get($class, $date, $user, $file, $limit, $sort);
+        if ($output==="table") {
+            if ($user && $file) {
+                req("TeacherLogController");
+                $a=TeacherLogController::getActualtime2($user, $file);
+                echo "actualTime2= $a";
+            }
+            self::showTable($it);
+        } else self::showJSON($it);
     }
     static function showJSON($it) {
         header("Content-type: text/json");
