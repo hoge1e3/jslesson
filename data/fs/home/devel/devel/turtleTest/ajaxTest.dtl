@@ -1,5 +1,5 @@
 
-a=Ajax ! "http://localhost/fs/pub/869479b0/output.txt" create.
+a=通信 ! "http://localhost/fs/pub/869479b0/output.txt" 作る.
 
-ラベル ! ( a ! get ) 作る．
+ラベル ! ( a ! 読む ) 作る．
 

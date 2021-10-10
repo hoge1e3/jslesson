@@ -14,7 +14,7 @@
     var dtlPreLibs=["promise","mt","polyk","calibration"].map(mapDtl);
     dtlPreLibs.push("minimal");
     var dtlLibs=["lib","devicemotion","Dict","Vec2","Actor","Group","UI","Color","Timer",
-    "Util","Turtle","Figure","DOM","TextFile","Japanese2","db","Ajax","Assets"].map(mapDtl).map(function (e) {
+    "Util","Turtle","Figure","DOM","TextFile","Ajax","Assets","Japanese2","db"].map(mapDtl).map(function (e) {
         return [e];
     });
     requirejs.config({

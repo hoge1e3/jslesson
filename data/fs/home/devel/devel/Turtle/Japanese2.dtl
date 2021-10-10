@@ -153,6 +153,17 @@
     "calibrate" "調整" addAlias
     "use" "使う" addAlias.
     
+    !"Assets" "素材" addAlias.
+    Assets ! "load" "読む" addAlias
+    "save" "書く" addAlias
+    "list" "一覧" addAlias.
+    
+    !"Ajax" "通信" addAlias.
+    Ajax ! "data" "データ" addAlias
+    "get" "読む" addAlias
+    "post" "書く" addAlias.
+    
+    
     HTML：読む＝[|x| !(x)get].
     HTML：位置＝[|x y| !(x)(y)move].
     
