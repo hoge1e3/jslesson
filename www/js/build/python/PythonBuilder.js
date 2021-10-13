@@ -79,6 +79,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
                 version:BitArrow.version,
                 urlArgs:BitArrow.urlArgs,
                 publishedURL:BitArrow.publishedURL,
+                serverTop: WebSite.serverTop,
                 runtimePath:WebSite.runtime};
         }
         const html=`<!DOCTYPE HTML>
@@ -88,6 +89,12 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
     <script>
     window.BitArrow=${JSON.stringify(ba)};
     </script>
+    <script src="${WebSite.runtime}/lib/jquery-1.12.1.js"></script>
+    <style>
+    #sentData {
+        background: #eee;
+    }
+    </style>
 </head>
 <body>
 <div id="control"></div>
@@ -101,9 +108,12 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
 <button onclick="ctrlC()">Stop</button>
 <button onclick="rstRun()">Restart</button>
 <button onclick="clearConsole()">Clear</button>
+<div id="sentData"></div>
 <pre id="console">
 </pre>
 <script src="${WebSite.runtime}/lib/python/raspi.js">
+</script>
+<script src="${WebSite.runtime}/lib/python/ExportOutput.js">
 </script>
 </body>
 </html>`;

@@ -1,10 +1,15 @@
-/*global SerialControl*/
+/*global SerialControl, ExportOutput*/
 const e=new TextEncoder();
 const d=new TextDecoder();
 let w;
 let rawSent;
-let serialCtrl=parent.BABuilder.serialControl;// new SerialControl();
-//setTimeout( ()=>serialCtrl.render(document.querySelector("#control")),100);
+let serialCtrl;
+if (parent && parent.BABuilder) {
+    serialCtrl=parent.BABuilder.serialControl;// new SerialControl();
+} else {
+    serialCtrl=new SerialControl();
+    setTimeout( ()=>serialCtrl.render(document.querySelector("#control")),100);
+}
 if (serialCtrl.port) {
     run();
 } else {
@@ -67,6 +72,7 @@ function withBS(s) {
 }
 const echoHandlers=new Set();
 const OKSeq=">OK";
+const sendSeq=/\n#SEND (.*)\n/;
 function onEcho(r) {
     let s=d.decode(r).replace(/\r/g,"");
     /*if (rawSent) {
@@ -77,7 +83,34 @@ function onEcho(r) {
             rawSent=false;
         }
     }*/
+    //console.log("S", s);
     document.querySelector("#console").innerText+=s;
+    const cont=document.querySelector("#console").innerText;
+
+    const m=sendSeq.exec(cont);
+    if (m) {
+        //console.log(cont, cont.length,  m.index, m[0], m[0].length, cont.substring( m.index+m[0].length ));
+        document.querySelector("#console").innerText=cont.substring( m.index+m[0].length );
+        const sending=$("<pre>").appendTo("#sentData");
+        const cmd=cont.substring(m.index,m.index+m[0].length ).replace(/^\n/,"").replace(/\n$/,"");
+        const text=cont.substring(0,m.index);
+        sending.text(text+"\nRunning: "+cmd);
+        const cdbr=/#SEND cdb ([\w\d]+)/;
+        const m2=cdbr.exec(cmd);
+        if (m2) {
+            const key=m2[1];
+            const sep=ExportOutput.inferSeparator(text);
+            const data=ExportOutput.renderTable(sep, text);
+            console.log( key, data);
+            ExportOutput.postCDB(key, data).then(r=>{
+                sending.text(text+"\nDone: "+cmd);
+            }, e=> {
+                sending.text(text+"\nError: "+cmd);
+                console.error(e);
+            });
+        }
+    }
+
     if (rawSent) {
         s=document.querySelector("#console").innerText;
         const i=s.indexOf(OKSeq);
