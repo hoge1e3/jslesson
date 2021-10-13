@@ -443,7 +443,7 @@ class TeacherLogController {
         $class=Auth::curClass2();
         $it=LogQueryController::get($class, null, $user, $file, 100000, "asc");
         $prev=null;
-        define("IDLE_TIME",300);
+        if (!defined("IDLE_TIME")) define("IDLE_TIME",300);
         $actTime2=0;
         foreach ($it as $log) {
             if (!$prev) { $prev=$log; continue; }
