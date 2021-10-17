@@ -9,6 +9,7 @@ native console;
 native Tonyu;
 native Error;
 native BitArrow;
+native RaspiREPL;
 native waitReady;
 native runCmd;
 
@@ -477,18 +478,19 @@ nowait \deg(d) {
 \loadRaspiScript() {
     var ppath=BitArrow.runtimePath+"lib/python/";
     waitFor( $.getScript( ppath+"SerialControl.js") );
-    waitFor( $.getScript( ppath+"raspi_dm.js") );
+    waitFor( $.getScript( ppath+"raspi_repl.js") );
 }
 \startRaspi() {
     if(raspiStarted) return;
     loadRaspiScript();
-    waitFor(waitReady());
+    raspiREPL=new RaspiREPL();
+    waitFor(raspiREPL.waitReady());
     execRaspi("import machine");
     raspiStarted=true;
 }
 \execRaspi(script) {
     var r;
-    r=waitFor(runCmd(script));
+    r=waitFor(raspiREPL.runCmd(script));
     return r;
 }
 \readADC(port, bytes) {
