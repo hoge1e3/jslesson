@@ -15185,7 +15185,7 @@ define('ProjectFactory',['require','exports','module','BuilderClient','Util','De
 define('LanguageList',['require','exports','module'],function (require, exports, module) {
     module.exports={
         "js":{en:"JavaScript",ja:"JavaScript",builder:"TJSBuilder",
-            helpURL:"http://bitarrow.eplang.jp/index.php?javascript",mode:"ace/mode/tonyu"},
+            helpURL:"http://bitarrow.eplang.jp/index.php?javascript",mode:"ace/mode/javascript"},
         "dtl":{en:"Dolittle", ja:"ドリトル",builder:"DtlBuilder",
             helpURL:"http://bitarrow.eplang.jp/index.php?dolittle_use"},
         "c":{en:"C", ja:"C",builder:"CBuilder",
@@ -15195,7 +15195,7 @@ define('LanguageList',['require','exports','module'],function (require, exports,
         "py": {en:"Python", ja:"Python",builder:"PythonBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
         "tonyu":{en:"Tonyu", ja:"Tonyu",builder:"TonyuBuilder",
-            helpURL:"http://bitarrow.eplang.jp/index.php?tonyu",mode:"ace/mode/tonyu"},
+            helpURL:"http://bitarrow.eplang.jp/index.php?tonyu",mode:"ace/mode/javascript"},
         "php":{en:"PHP", ja:"PHP",builder:"PHPBuilder",
             helpURL:"http://bitarrow.eplang.jp/index.php?php",mode:"ace/mode/php"},
         "p5.js":{en:"p5.js", ja:"p5.js",builder:"P5Builder",
