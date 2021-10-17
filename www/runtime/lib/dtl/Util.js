@@ -156,9 +156,26 @@ this['isset']=dtlbind(this,function(n){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
 return this['and']['true'](((n!==this['undef'])),((n!==this['null'])));
 });
-return this['Array']['prototype']['toString']=dtlbind(this,function(){
+this['Array']['prototype']['toString']=dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
 return (("["+(this['join'](" ")))+"]");
+});
+this['system']['jq2promise']=dtlbind(this,function(jq){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
+return this['DtlPromise']['new'](dtlbind(this,function(succ,err){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,2);
+return jq['then'](dtlbind(this,function(res){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
+return succ['execute']((res));
+}),dtlbind(this,function(e){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
+return err['execute']((e));
+}));
+}));
+});
+return this['system']['getScript']=dtlbind(this,function(url){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
+return this['jq2promise'](((this['window']['$'])['getScript']((url))));
 });
 });
 //# sourceMappingURL=Util.js.map
