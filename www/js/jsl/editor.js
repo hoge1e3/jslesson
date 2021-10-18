@@ -1163,7 +1163,7 @@ function ready() {
             UI("a",{"href": ctrl.url("TeacherLog/diffSeq",{hint:1,file:filePath}), "target":"hint"},
             "ヒントを見る")
         );
-        $("#customLink").html(fileMenuTemplate.replaceAll("${PATH}",f.path()));
+        $("#customLink").html(fileMenuTemplate.replaceAll("${PATH}",f.path()).replaceAll("${USER}",Auth.user).replaceAll("${CLASS}",Auth.class));
         $("#curFileLabel").text(curPrj.truncEXT(f)/*f.truncExt()*/);//.p5.js
         if (disableNote===false) socializeDialog.show(inf.file);
     }
