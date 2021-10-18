@@ -34,14 +34,14 @@ create table log(
 //   oneof tagD,tagE,tagF
 req("LogUtil","auth","pdo","DateUtil","PathUtil");
 class LogFileToDBController {
-    static function moveToTmp($c) {
+    static function moveToTmp($class) {
         //echo "moveto tmp run! ";
         /*if ($ctx->isTeacher()) {
             $files=LogUtil::getLogFilesOf($ctx->_class);
         } else {
             $files=LogUtil::getLogFilesOf($ctx->user);
         }*/
-        $files=LogUtil::getLogFilesOf(new BAClass($c));
+        $files=LogUtil::getLogFilesOf($class);
         $tmp=LogUtil::getLogDir()->rel("tmp/");
         $tmp->mkdir();
         foreach ($files as $file) {
@@ -55,11 +55,12 @@ class LogFileToDBController {
         }
         $res=array();
         foreach ($tmp->listFiles() as $file) {
-            if ($ctx->isTeacher()) {
+            /*if ($ctx->isTeacher()) {
                 if (LogUtil::isLogFileOf($file,$ctx->_class)) $res[]=$file;
             } else {
                 if (LogUtil::isLogFileOf($file,$ctx->user)) $res[]=$file;
-            }
+            }*/
+            if (LogUtil::isLogFileOf($file,$class)) $res[]=$file;
         }
         return $res;
     }
@@ -70,12 +71,13 @@ class LogFileToDBController {
     static function run() {
         if (isset($_GET["class"])) {
             $c=$_GET["class"];
+            $class=new BAClass($c);
         } else {
             $ctx=Auth::context();
             $class=$ctx->_class;
             $c=$class->id;
         }
-        $files=self::moveToTmp($c);
+        $files=self::moveToTmp($class);
         $arc=LogUtil::getLogDir()->rel("arc/");
         $arc->mkdir();
         //return ;
