@@ -67,9 +67,13 @@ class LogFileToDBController {
         }
     }*/
     static function run() {
-        $ctx=Auth::context();
-        $class=$ctx->_class;
-        $c=$class->id;
+        if (isset($_GET["class"])) {
+            $c=$_GET["class"];
+        } else {
+            $ctx=Auth::context();
+            $class=$ctx->_class;
+            $c=$class->id;
+        }
         $files=self::moveToTmp($ctx);
         $arc=LogUtil::getLogDir()->rel("arc/");
         $arc->mkdir();
