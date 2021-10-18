@@ -34,13 +34,14 @@ create table log(
 //   oneof tagD,tagE,tagF
 req("LogUtil","auth","pdo","DateUtil","PathUtil");
 class LogFileToDBController {
-    static function moveToTmp($ctx) {
+    static function moveToTmp($c) {
         //echo "moveto tmp run! ";
-        if ($ctx->isTeacher()) {
+        /*if ($ctx->isTeacher()) {
             $files=LogUtil::getLogFilesOf($ctx->_class);
         } else {
             $files=LogUtil::getLogFilesOf($ctx->user);
-        }
+        }*/
+        $files=LogUtil::getLogFilesOf(new BAClass($c));
         $tmp=LogUtil::getLogDir()->rel("tmp/");
         $tmp->mkdir();
         foreach ($files as $file) {
@@ -74,7 +75,7 @@ class LogFileToDBController {
             $class=$ctx->_class;
             $c=$class->id;
         }
-        $files=self::moveToTmp($ctx);
+        $files=self::moveToTmp($c);
         $arc=LogUtil::getLogDir()->rel("arc/");
         $arc->mkdir();
         //return ;
