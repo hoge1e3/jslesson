@@ -9,6 +9,9 @@ native console;
 native Tonyu;
 native Error;
 native BitArrow;
+native RaspiREPL;
+native waitReady;
+native runCmd;
 
 \Math {
     return window.Math;
@@ -56,7 +59,7 @@ native BitArrow;
 \addText(elem,val){
     elem=findElement(elem);
     if (isFormElement(elem)) {
-        elem.val(elem.val()+val);   
+        elem.val(elem.val()+val);
     } else {
         if (document.baWriteTo) {
             var dst=elem[0];
@@ -89,7 +92,7 @@ native BitArrow;
     var usepara,fname;
     if(typeof func == 'function'){
         if (func.methodInfo) {
-            fname=func.methodInfo.name;            
+            fname=func.methodInfo.name;
         }
     } else {
         fname=func+"";
@@ -296,7 +299,7 @@ native BitArrow;
 \getkey(k){
     return keyData[k.toLowerCase()] || 0;
 }
-// dist or within 
+// dist or within
 \dist(x,y){
     return sqrt(x*x+y*y);
 }
@@ -468,4 +471,40 @@ nowait \deg(d) {
     var r;
     r=waitFor(p);
     return r;
+}
+
+
+
+\loadRaspiScript() {
+    var ppath=BitArrow.runtimePath+"lib/python/";
+    waitFor( $.getScript( ppath+"SerialControl.js") );
+    waitFor( $.getScript( ppath+"raspi_repl.js") );
+}
+\startRaspi() {
+    if(raspiStarted) return;
+    loadRaspiScript();
+    raspiREPL=new RaspiREPL();
+    waitFor(raspiREPL.waitReady());
+    execRaspi("import machine");
+    raspiStarted=true;
+}
+\execRaspi(script) {
+    var r;
+    r=waitFor(raspiREPL.runCmd(script));
+    return r;
+}
+\readADC(port, bytes) {
+    var r;
+    startRaspi();
+    r=execRaspi("print(machine.ADC("+port+").read_u16())");
+    return r;
+}
+\getTemperature() {
+    var t;
+    t=readADC(4);
+    var conversion_factor = 3.3 / (65535);
+    var reading = t * conversion_factor;
+    var temperature = 27 - (reading - 0.706)/0.001721;
+    return temperature;
+    
 }

@@ -9293,7 +9293,7 @@ define('ProjectFactory',['require','exports','module','BuilderClient','Util','De
 define('LanguageList',['require','exports','module'],function (require, exports, module) {
     module.exports={
         "js":{en:"JavaScript",ja:"JavaScript",builder:"TJSBuilder",
-            helpURL:"http://bitarrow.eplang.jp/index.php?javascript",mode:"ace/mode/tonyu"},
+            helpURL:"http://bitarrow.eplang.jp/index.php?javascript",mode:"ace/mode/javascript"},
         "dtl":{en:"Dolittle", ja:"ドリトル",builder:"DtlBuilder",
             helpURL:"http://bitarrow.eplang.jp/index.php?dolittle_use"},
         "c":{en:"C", ja:"C",builder:"CBuilder",

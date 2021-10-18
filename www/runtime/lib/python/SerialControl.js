@@ -171,7 +171,7 @@ class SerialControl {
                         //if (wnd.onEcho) wnd.onEcho(value);
                         if (this.onEcho)
                             this.onEcho(value);
-                        console.log(value);
+                        //console.log(value);
                     }
                     if (done) {
                         break;

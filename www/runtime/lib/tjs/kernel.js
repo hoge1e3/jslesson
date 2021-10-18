@@ -109,16 +109,16 @@ Tonyu.klass.define({
         "use strict";
         var _this=this;
         var f;
-        var _it_128;
+        var _it_135;
         
         if (! window.Plotly) {
           window.setTimeout(Tonyu.bindFunc(_this,_this.waitLoadLib),100);
           
         } else {
           _this.Plotly=window.Plotly;
-          _it_128=Tonyu.iterator(_this.loadLibHandlers,1);
-          while(_it_128.next()) {
-            f=_it_128[0];
+          _it_135=Tonyu.iterator(_this.loadLibHandlers,1);
+          while(_it_135.next()) {
+            f=_it_135[0];
             
             f(_this.Plotly);
           }
@@ -131,16 +131,16 @@ Tonyu.klass.define({
         //var _arguments=Tonyu.A(arguments);
         var __pc=0;
         var f;
-        var _it_128;
+        var _it_135;
         
         if (! window.Plotly) {
           window.setTimeout(Tonyu.bindFunc(_this,_this.waitLoadLib),100);
           
         } else {
           _this.Plotly=window.Plotly;
-          _it_128=Tonyu.iterator(_this.loadLibHandlers,1);
-          while(_it_128.next()) {
-            f=_it_128[0];
+          _it_135=Tonyu.iterator(_this.loadLibHandlers,1);
+          while(_it_135.next()) {
+            f=_it_135[0];
             
             f(_this.Plotly);
           }
@@ -753,13 +753,13 @@ Tonyu.klass.define({
         var _this=this;
         var ret;
         var o;
-        var _it_150;
+        var _it_157;
         
         ret = [];
         
-        _it_150=Tonyu.iterator(_this.vec(k),1);
-        while(_it_150.next()) {
-          o=_it_150[0];
+        _it_157=Tonyu.iterator(_this.vec(k),1);
+        while(_it_157.next()) {
+          o=_it_157[0];
           
           if (ret[o[k]]) {
             ret[o[k]]++;
@@ -779,13 +779,13 @@ Tonyu.klass.define({
         var __pc=0;
         var ret;
         var o;
-        var _it_150;
+        var _it_157;
         
         ret = [];
         
-        _it_150=Tonyu.iterator(_this.vec(k),1);
-        while(_it_150.next()) {
-          o=_it_150[0];
+        _it_157=Tonyu.iterator(_this.vec(k),1);
+        while(_it_157.next()) {
+          o=_it_157[0];
           
           if (ret[o[k]]) {
             ret[o[k]]++;
@@ -1259,7 +1259,7 @@ Tonyu.klass.define({
         var _this=this;
         var s;
         var v;
-        var _it_166;
+        var _it_173;
         
         s = 0;
         
@@ -1272,9 +1272,9 @@ Tonyu.klass.define({
           }
           
         } else {
-          _it_166=Tonyu.iterator(_this.vec(k),1);
-          while(_it_166.next()) {
-            v=_it_166[0];
+          _it_173=Tonyu.iterator(_this.vec(k),1);
+          while(_it_173.next()) {
+            v=_it_173[0];
             
             s+=v-0;
             
@@ -1290,7 +1290,7 @@ Tonyu.klass.define({
         var __pc=0;
         var s;
         var v;
-        var _it_166;
+        var _it_173;
         
         s = 0;
         
@@ -1303,9 +1303,9 @@ Tonyu.klass.define({
           }
           
         } else {
-          _it_166=Tonyu.iterator(_this.vec(k),1);
-          while(_it_166.next()) {
-            v=_it_166[0];
+          _it_173=Tonyu.iterator(_this.vec(k),1);
+          while(_it_173.next()) {
+            v=_it_173[0];
             
             s+=v-0;
             
@@ -1361,7 +1361,7 @@ Tonyu.klass.define({
         var a;
         var i;
         var v;
-        var _it_171;
+        var _it_178;
         
         d = [];
         a = 0;
@@ -1378,9 +1378,9 @@ Tonyu.klass.define({
           
         } else {
           a=_this.mean(k);
-          _it_171=Tonyu.iterator(_this.vec(k),1);
-          while(_it_171.next()) {
-            v=_it_171[0];
+          _it_178=Tonyu.iterator(_this.vec(k),1);
+          while(_it_178.next()) {
+            v=_it_178[0];
             
             d.push(v-a);
             
@@ -1398,7 +1398,7 @@ Tonyu.klass.define({
         var a;
         var i;
         var v;
-        var _it_171;
+        var _it_178;
         
         d = [];
         a = 0;
@@ -1429,9 +1429,9 @@ Tonyu.klass.define({
             case 3:
               a=_thread.retVal;
               
-              _it_171=Tonyu.iterator(_this.vec(k),1);
-              while(_it_171.next()) {
-                v=_it_171[0];
+              _it_178=Tonyu.iterator(_this.vec(k),1);
+              while(_it_178.next()) {
+                v=_it_178[0];
                 
                 d.push(v-a);
                 
@@ -1579,7 +1579,7 @@ Tonyu.klass.define({
         var dataCov;
         var k;
         var v;
-        var _it_181;
+        var _it_188;
         
         dev1 = _this.dev(k1);
         
@@ -1587,10 +1587,10 @@ Tonyu.klass.define({
         
         dataCov = 0;
         
-        _it_181=Tonyu.iterator(dev1,2);
-        while(_it_181.next()) {
-          k=_it_181[0];
-          v=_it_181[1];
+        _it_188=Tonyu.iterator(dev1,2);
+        while(_it_188.next()) {
+          k=_it_188[0];
+          v=_it_188[1];
           
           dataCov+=dev1[k]*dev2[k];
           
@@ -1608,7 +1608,7 @@ Tonyu.klass.define({
         var dataCov;
         var k;
         var v;
-        var _it_181;
+        var _it_188;
         
         
         _thread.enter(function _trc_Graph_ent_cov(_thread) {
@@ -1628,10 +1628,10 @@ Tonyu.klass.define({
               
               dataCov = 0;
               
-              _it_181=Tonyu.iterator(dev1,2);
-              while(_it_181.next()) {
-                k=_it_181[0];
-                v=_it_181[1];
+              _it_188=Tonyu.iterator(dev1,2);
+              while(_it_188.next()) {
+                k=_it_188[0];
+                v=_it_188[1];
                 
                 dataCov+=dev1[k]*dev2[k];
                 
@@ -1829,7 +1829,7 @@ Tonyu.klass.define({
         "use strict";
         var _this=this;
         
-        return (function anonymous_453() {
+        return (function anonymous_507() {
           var e;
           
           try {
@@ -1847,7 +1847,7 @@ Tonyu.klass.define({
         //var _arguments=Tonyu.A(arguments);
         var __pc=0;
         
-        _thread.retVal=(function anonymous_453() {
+        _thread.retVal=(function anonymous_507() {
           var e;
           
           try {
@@ -2195,7 +2195,7 @@ Tonyu.klass.define({
           
         }
         if (usepara) {
-          _this.findElement(elem).click(_this.catchException((function anonymous_2292() {
+          _this.findElement(elem).click(_this.catchException((function anonymous_2331() {
             
             _this.parallel(fname);
           })));
@@ -2242,7 +2242,7 @@ Tonyu.klass.define({
             switch (__pc) {
             case 0:
               if (!(usepara)) { __pc=1     ; break; }
-              _this.findElement(elem).click(_this.catchException((function anonymous_2292() {
+              _this.findElement(elem).click(_this.catchException((function anonymous_2331() {
                 
                 _this.parallel(fname);
               })));
@@ -2263,30 +2263,30 @@ Tonyu.klass.define({
         var _this=this;
         
         if (typeof  func=="function") {
-          $("body").on("touchstart",(function anonymous_2566(e) {
+          $("body").on("touchstart",(function anonymous_2605(e) {
             
             func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"start");
           }));
-          $("body").on("touchmove",(function anonymous_2748(e) {
+          $("body").on("touchmove",(function anonymous_2787(e) {
             
             func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"move");
           }));
-          $("body").on("touchend",(function anonymous_2928(e) {
+          $("body").on("touchend",(function anonymous_2967(e) {
             
             func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"end");
           }));
-          $("body").on("mousedown",(function anonymous_3108(e) {
+          $("body").on("mousedown",(function anonymous_3147(e) {
             
             _this.down=true;
             func(e.pageX,e.pageY,"start");
           }));
-          $("body").on("mousemove",(function anonymous_3236(e) {
+          $("body").on("mousemove",(function anonymous_3275(e) {
             
             if (_this.down) {
               func(e.pageX,e.pageY,"move");
             }
           }));
-          $("body").on("mouseup",(function anonymous_3346(e) {
+          $("body").on("mouseup",(function anonymous_3385(e) {
             
             _this.down=false;
             func(e.pageX,e.pageY,"end");
@@ -2301,30 +2301,30 @@ Tonyu.klass.define({
         var __pc=0;
         
         if (typeof  func=="function") {
-          $("body").on("touchstart",(function anonymous_2566(e) {
+          $("body").on("touchstart",(function anonymous_2605(e) {
             
             func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"start");
           }));
-          $("body").on("touchmove",(function anonymous_2748(e) {
+          $("body").on("touchmove",(function anonymous_2787(e) {
             
             func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"move");
           }));
-          $("body").on("touchend",(function anonymous_2928(e) {
+          $("body").on("touchend",(function anonymous_2967(e) {
             
             func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"end");
           }));
-          $("body").on("mousedown",(function anonymous_3108(e) {
+          $("body").on("mousedown",(function anonymous_3147(e) {
             
             _this.down=true;
             func(e.pageX,e.pageY,"start");
           }));
-          $("body").on("mousemove",(function anonymous_3236(e) {
+          $("body").on("mousemove",(function anonymous_3275(e) {
             
             if (_this.down) {
               func(e.pageX,e.pageY,"move");
             }
           }));
-          $("body").on("mouseup",(function anonymous_3346(e) {
+          $("body").on("mouseup",(function anonymous_3385(e) {
             
             _this.down=false;
             func(e.pageX,e.pageY,"end");
@@ -2551,7 +2551,7 @@ Tonyu.klass.define({
         time=time||100;
         t = null;
         
-        runThread = _this.catchException((function anonymous_4986() {
+        runThread = _this.catchException((function anonymous_5025() {
           
           t.steps();
           if (t.preempted) {
@@ -2580,7 +2580,7 @@ Tonyu.klass.define({
           for(var __cnt=100 ; __cnt--;) {
             switch (__pc) {
             case 0:
-              _this.fiber$catchException(_thread, (function anonymous_4986() {
+              _this.fiber$catchException(_thread, (function anonymous_5025() {
                 
                 t.steps();
                 if (t.preempted) {
@@ -2776,7 +2776,7 @@ Tonyu.klass.define({
         
         _this.activityGroup=_this.activityGroup||"default";
         _this.keyData=[];
-        _this.document.onkeydown=(function anonymous_6287(e) {
+        _this.document.onkeydown=(function anonymous_6326(e) {
           var key_code;
           var key_char;
           
@@ -2819,7 +2819,7 @@ Tonyu.klass.define({
             }
           }
         });
-        _this.document.onkeyup=(function anonymous_7364(e) {
+        _this.document.onkeyup=(function anonymous_7403(e) {
           var key_code;
           var key_char;
           
@@ -3047,7 +3047,7 @@ Tonyu.klass.define({
         
         clicked = 0;
         
-        _func = (function anonymous_8626() {
+        _func = (function anonymous_8664() {
           
           clicked=1;
         });
@@ -3070,7 +3070,7 @@ Tonyu.klass.define({
         
         clicked = 0;
         
-        _func = (function anonymous_8626() {
+        _func = (function anonymous_8664() {
           
           clicked=1;
         });
@@ -3109,11 +3109,11 @@ Tonyu.klass.define({
         
         t.suspend();
         _this._err=null;
-        promise.then((function anonymous_8885(r) {
+        promise.then((function anonymous_8923(r) {
           
           _this._res=r;
           t.steps();
-        }),(function anonymous_8936(e) {
+        }),(function anonymous_8974(e) {
           
           _this._err=(e instanceof window.Error?e:new Error(e.responseText||e+""));
           t.steps();
@@ -3130,11 +3130,11 @@ Tonyu.klass.define({
         
         t.suspend();
         _this._err=null;
-        promise.then((function anonymous_8885(r) {
+        promise.then((function anonymous_8923(r) {
           
           _this._res=r;
           t.steps();
-        }),(function anonymous_8936(e) {
+        }),(function anonymous_8974(e) {
           
           _this._err=(e instanceof window.Error?e:new Error(e.responseText||e+""));
           t.steps();
@@ -3668,10 +3668,221 @@ Tonyu.klass.define({
           }
         });
       },
+      loadRaspiScript :function _trc_Parent_loadRaspiScript() {
+        "use strict";
+        var _this=this;
+        var ppath;
+        
+        ppath = BitArrow.runtimePath+"lib/python/";
+        
+        _this.waitFor($.getScript(ppath+"SerialControl.js"));
+        _this.waitFor($.getScript(ppath+"raspi_repl.js"));
+      },
+      fiber$loadRaspiScript :function _trc_Parent_f_loadRaspiScript(_thread) {
+        "use strict";
+        var _this=this;
+        //var _arguments=Tonyu.A(arguments);
+        var __pc=0;
+        var ppath;
+        
+        ppath = BitArrow.runtimePath+"lib/python/";
+        
+        
+        _thread.enter(function _trc_Parent_ent_loadRaspiScript(_thread) {
+          if (_thread.lastEx) __pc=_thread.catchPC;
+          for(var __cnt=100 ; __cnt--;) {
+            switch (__pc) {
+            case 0:
+              _this.fiber$waitFor(_thread, $.getScript(ppath+"SerialControl.js"));
+              __pc=1;return;
+            case 1:
+              
+              _this.fiber$waitFor(_thread, $.getScript(ppath+"raspi_repl.js"));
+              __pc=2;return;
+            case 2:
+              
+              _thread.exit(_this);return;
+            }
+          }
+        });
+      },
+      startRaspi :function _trc_Parent_startRaspi() {
+        "use strict";
+        var _this=this;
+        
+        if (_this.raspiStarted) {
+          return _this;
+        }
+        _this.loadRaspiScript();
+        _this.raspiREPL=new RaspiREPL();
+        _this.waitFor(_this.raspiREPL.waitReady());
+        _this.execRaspi("import machine");
+        _this.raspiStarted=true;
+      },
+      fiber$startRaspi :function _trc_Parent_f_startRaspi(_thread) {
+        "use strict";
+        var _this=this;
+        //var _arguments=Tonyu.A(arguments);
+        var __pc=0;
+        
+        if (_this.raspiStarted) {
+          _thread.retVal=_this;return;
+          
+        }
+        
+        _thread.enter(function _trc_Parent_ent_startRaspi(_thread) {
+          if (_thread.lastEx) __pc=_thread.catchPC;
+          for(var __cnt=100 ; __cnt--;) {
+            switch (__pc) {
+            case 0:
+              _this.fiber$loadRaspiScript(_thread);
+              __pc=1;return;
+            case 1:
+              
+              _this.raspiREPL=new RaspiREPL();
+              _this.fiber$waitFor(_thread, _this.raspiREPL.waitReady());
+              __pc=2;return;
+            case 2:
+              
+              _this.fiber$execRaspi(_thread, "import machine");
+              __pc=3;return;
+            case 3:
+              
+              _this.raspiStarted=true;
+              _thread.exit(_this);return;
+            }
+          }
+        });
+      },
+      execRaspi :function _trc_Parent_execRaspi(script) {
+        "use strict";
+        var _this=this;
+        var r;
+        
+        
+        r=_this.waitFor(_this.raspiREPL.runCmd(script));
+        return r;
+      },
+      fiber$execRaspi :function _trc_Parent_f_execRaspi(_thread,script) {
+        "use strict";
+        var _this=this;
+        //var _arguments=Tonyu.A(arguments);
+        var __pc=0;
+        var r;
+        
+        
+        
+        _thread.enter(function _trc_Parent_ent_execRaspi(_thread) {
+          if (_thread.lastEx) __pc=_thread.catchPC;
+          for(var __cnt=100 ; __cnt--;) {
+            switch (__pc) {
+            case 0:
+              _this.fiber$waitFor(_thread, _this.raspiREPL.runCmd(script));
+              __pc=1;return;
+            case 1:
+              r=_thread.retVal;
+              
+              _thread.exit(r);return;
+              _thread.exit(_this);return;
+            }
+          }
+        });
+      },
+      readADC :function _trc_Parent_readADC(port,bytes) {
+        "use strict";
+        var _this=this;
+        var r;
+        
+        
+        _this.startRaspi();
+        r=_this.execRaspi("print(machine.ADC("+port+").read_u16())");
+        return r;
+      },
+      fiber$readADC :function _trc_Parent_f_readADC(_thread,port,bytes) {
+        "use strict";
+        var _this=this;
+        //var _arguments=Tonyu.A(arguments);
+        var __pc=0;
+        var r;
+        
+        
+        
+        _thread.enter(function _trc_Parent_ent_readADC(_thread) {
+          if (_thread.lastEx) __pc=_thread.catchPC;
+          for(var __cnt=100 ; __cnt--;) {
+            switch (__pc) {
+            case 0:
+              _this.fiber$startRaspi(_thread);
+              __pc=1;return;
+            case 1:
+              
+              _this.fiber$execRaspi(_thread, "print(machine.ADC("+port+").read_u16())");
+              __pc=2;return;
+            case 2:
+              r=_thread.retVal;
+              
+              _thread.exit(r);return;
+              _thread.exit(_this);return;
+            }
+          }
+        });
+      },
+      getTemperature :function _trc_Parent_getTemperature() {
+        "use strict";
+        var _this=this;
+        var t;
+        var conversion_factor;
+        var reading;
+        var temperature;
+        
+        
+        t=_this.readADC(4);
+        conversion_factor = 3.3/(65535);
+        
+        reading = t*conversion_factor;
+        
+        temperature = 27-(reading-0.706)/0.001721;
+        
+        return temperature;
+      },
+      fiber$getTemperature :function _trc_Parent_f_getTemperature(_thread) {
+        "use strict";
+        var _this=this;
+        //var _arguments=Tonyu.A(arguments);
+        var __pc=0;
+        var t;
+        var conversion_factor;
+        var reading;
+        var temperature;
+        
+        
+        
+        _thread.enter(function _trc_Parent_ent_getTemperature(_thread) {
+          if (_thread.lastEx) __pc=_thread.catchPC;
+          for(var __cnt=100 ; __cnt--;) {
+            switch (__pc) {
+            case 0:
+              _this.fiber$readADC(_thread, 4);
+              __pc=1;return;
+            case 1:
+              t=_thread.retVal;
+              
+              conversion_factor = 3.3/(65535);
+              
+              reading = t*conversion_factor;
+              
+              temperature = 27-(reading-0.706)/0.001721;
+              
+              _thread.exit(temperature);return;
+              _thread.exit(_this);return;
+            }
+          }
+        });
+      },
       __dummy: false
     };
   },
-  decls: {"methods":{"main":{"nowait":false},"__getter__Math":{"nowait":true},"__getter__document":{"nowait":true},"setInterval":{"nowait":false},"setTimeout":{"nowait":false},"catchException":{"nowait":false},"findElement":{"nowait":false},"isFormElement":{"nowait":false},"clearContent":{"nowait":false},"addText":{"nowait":false},"setText":{"nowait":false},"getNumber":{"nowait":false},"getText":{"nowait":false},"setNumber":{"nowait":false},"onClick":{"nowait":false},"onTouch":{"nowait":false},"setCanvas":{"nowait":false},"searchCanvas":{"nowait":false},"setColor":{"nowait":false},"fillRect":{"nowait":false},"changeImage":{"nowait":false},"move":{"nowait":false},"transform":{"nowait":false},"rotate":{"nowait":false},"resize":{"nowait":false},"wait":{"nowait":false},"rnd":{"nowait":false},"setBGColor":{"nowait":false},"newElement":{"nowait":false},"fillOval":{"nowait":false},"drawLine":{"nowait":false},"clearRect":{"nowait":false},"fillText":{"nowait":false},"new":{"nowait":false},"getkey":{"nowait":false},"dist":{"nowait":false},"angle":{"nowait":false},"rad":{"nowait":true},"deg":{"nowait":true},"sqrt":{"nowait":false},"sin":{"nowait":false},"cos":{"nowait":false},"tan":{"nowait":false},"parallel":{"nowait":false},"waitClick":{"nowait":false},"_waitFor":{"nowait":false},"waitFor":{"nowait":false},"putToServer":{"nowait":false},"setGroup":{"nowait":false},"getFromServer":{"nowait":false},"addLog":{"nowait":false},"findLog":{"nowait":false},"curProject":{"nowait":false},"createGraph":{"nowait":false},"readFile":{"nowait":false},"writeFile":{"nowait":false}},"fields":{"down":{},"_canvas":{},"ctx":{},"activityGroup":{},"keyData":{},"_err":{},"_res":{},"group":{}}}
+  decls: {"methods":{"main":{"nowait":false},"__getter__Math":{"nowait":true},"__getter__document":{"nowait":true},"setInterval":{"nowait":false},"setTimeout":{"nowait":false},"catchException":{"nowait":false},"findElement":{"nowait":false},"isFormElement":{"nowait":false},"clearContent":{"nowait":false},"addText":{"nowait":false},"setText":{"nowait":false},"getNumber":{"nowait":false},"getText":{"nowait":false},"setNumber":{"nowait":false},"onClick":{"nowait":false},"onTouch":{"nowait":false},"setCanvas":{"nowait":false},"searchCanvas":{"nowait":false},"setColor":{"nowait":false},"fillRect":{"nowait":false},"changeImage":{"nowait":false},"move":{"nowait":false},"transform":{"nowait":false},"rotate":{"nowait":false},"resize":{"nowait":false},"wait":{"nowait":false},"rnd":{"nowait":false},"setBGColor":{"nowait":false},"newElement":{"nowait":false},"fillOval":{"nowait":false},"drawLine":{"nowait":false},"clearRect":{"nowait":false},"fillText":{"nowait":false},"new":{"nowait":false},"getkey":{"nowait":false},"dist":{"nowait":false},"angle":{"nowait":false},"rad":{"nowait":true},"deg":{"nowait":true},"sqrt":{"nowait":false},"sin":{"nowait":false},"cos":{"nowait":false},"tan":{"nowait":false},"parallel":{"nowait":false},"waitClick":{"nowait":false},"_waitFor":{"nowait":false},"waitFor":{"nowait":false},"putToServer":{"nowait":false},"setGroup":{"nowait":false},"getFromServer":{"nowait":false},"addLog":{"nowait":false},"findLog":{"nowait":false},"curProject":{"nowait":false},"createGraph":{"nowait":false},"readFile":{"nowait":false},"writeFile":{"nowait":false},"loadRaspiScript":{"nowait":false},"startRaspi":{"nowait":false},"execRaspi":{"nowait":false},"readADC":{"nowait":false},"getTemperature":{"nowait":false}},"fields":{"down":{},"_canvas":{},"ctx":{},"activityGroup":{},"keyData":{},"_err":{},"_res":{},"group":{},"raspiStarted":{},"raspiREPL":{}}}
 });
 
 //# sourceMappingURL=concat.js.map

@@ -72,6 +72,8 @@ this['addAlias']("Assets","素材");
 this['Assets']['addAlias']("load","読む")['addAlias']("save","書く")['addAlias']("list","一覧");
 this['addAlias']("Ajax","通信");
 this['Ajax']['addAlias']("data","データ")['addAlias']("get","読む")['addAlias']("post","書く");
+this['addAlias']("Raspi","ラズパイ","ラズベリーパイ");
+this['Raspi']['addAlias']("connect","接続")['addAlias']("exec","実行")['addAlias']("writePin","デジタル出力")['addAlias']("readADC","アナログ入力")['addAlias']("getTemperature","温度")['addAlias']("led","LED");
 this['HTML']['読む']=dtlbind(this,function(x){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
 return this['get']((x));

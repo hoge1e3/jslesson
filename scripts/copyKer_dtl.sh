@@ -16,6 +16,7 @@ cp $src/Figure.js* $dst
 cp $src/Group.js* $dst
 cp $src/Japanese.js* $dst
 cp $src/Japanese2.js* $dst
+cp $src/Raspi.js* $dst
 cp $src/TextFile.js* $dst
 cp $src/Timer.js* $dst
 cp $src/Turtle.js* $dst

@@ -163,6 +163,14 @@
     "get" "読む" addAlias
     "post" "書く" addAlias.
     
+    !"Raspi" "ラズパイ" "ラズベリーパイ" addAlias.
+    Raspi ! "connect" "接続" addAlias
+    "exec" "実行" addAlias
+    "writePin" "デジタル出力" addAlias
+    "readADC" "アナログ入力" addAlias
+    "getTemperature" "温度" addAlias
+    "led" "LED" addAlias.
+    
     
     HTML：読む＝[|x| !(x)get].
     HTML：位置＝[|x y| !(x)(y)move].
