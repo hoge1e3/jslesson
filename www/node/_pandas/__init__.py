@@ -342,3 +342,6 @@ interval_range=p.interval_range
 def read_csv(file, **k):
     f=bawrapper.resolve(file)
     return p.read_csv(f, **k)
+def read_excel(file, **k):
+    f=bawrapper.resolve(file)
+    return p.read_excel(f, **k)
