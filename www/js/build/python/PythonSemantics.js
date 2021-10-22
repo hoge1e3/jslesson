@@ -5,6 +5,7 @@ const builtins=PyLib.builtins;//["print","range","int","str","float","input","le
 builtins.push("open");
 const importable={
     datetime:{server:true},
+    dateutil:{server:true},
     random:{browser:["random", "randrange", "randint", "shuffle", "sample", "choice"],server:true},
     math:{browser:["fabs", "ceil", "floor", "sqrt"], server:true},
     //jp:true,
