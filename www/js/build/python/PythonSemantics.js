@@ -21,6 +21,7 @@ const importable={
     json:{server:true},//SPECIAL
     sys:{wrapper:true,server:true},
     matplotlib:{wrapper:true,server:true},
+    folium:{wrapper:true,server:true},
     numpy:{wrapper:true,server:true},
     cv2:{wrapper:true,server:true},
     pandas:{wrapper:true,server:true},

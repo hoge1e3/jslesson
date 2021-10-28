@@ -114,7 +114,11 @@ class RunPythonController {
             $line=preg_replace("/\\r/","",$line);
             if (preg_match("/##PLOT##(.*)/",$line,$m)) {
                 $src=self::copyImg($m[1]);
-                echo "<img src='$src'/>\n";
+                if (preg_match("/\\.html/", $src)) {
+                    echo "<iframe src='$src'></iframe>\n";
+                } else {
+                    echo "<img src='$src'/>\n";
+                }
             } else {
                 echo "$line\n";
             }
