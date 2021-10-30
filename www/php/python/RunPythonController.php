@@ -61,12 +61,7 @@ class RunPythonController {
         $d->text($str);
         $copiedScriptPath=$d->nativePath();
         $homes=Asset::homes();
-        $workDir->rel("config.json")->text(
-            json_encode(array(
-                "super"=>$sp,
-                "asset"=>self::convHomes($homes)
-            ))
-        );
+        self::saveConfig($workDir, $homes,$sp);
         $workDir->rel("stdin.txt")->text(param("stdin","\n\n\n\n\n\n\n\n"));
         $cmd=PYTHON_PATH." \"$copiedScriptPath\"";
         $res=system_ex($cmd);
@@ -95,12 +90,7 @@ class RunPythonController {
         $d->copyFrom($s);
         $copiedScriptPath=$d->nativePath();
         $homes=Asset::homes();
-        $workDir->rel("config.json")->text(
-            json_encode(array(
-                "super"=>$sp,
-                "asset"=>self::convHomes($homes)
-            ))
-        );
+        self::saveConfig($workDir, $homes,$sp);
         $cmd=PYTHON_PATH." \"$copiedScriptPath\"";
         $res=system_ex($cmd);
         if ($res["return"]==0) self::convOut($res["stdout"]);
@@ -139,6 +129,17 @@ class RunPythonController {
         $r=system_ex("echo hoge");
         print ("<pre>[".$r["stdout"]."]</pre>");
     }
+    static function saveConfig($workDir, $homes, $sp=0) {
+        $url=(empty($_SERVER['HTTPS']) ? 'http://' : 'https://') . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+        $url=preg_replace("/\\?.*/", "", $url);
+        $workDir->rel("config.json")->text(
+            json_encode(array(
+                "super"=>$sp,
+                "asset"=>self::convHomes($homes),
+                "topURL"=>$url
+            ))
+        );
+    }
     static function runStr2($str,$stdin=""){
         $nfs=new NativeFS();
         $fs=Auth::getFS();
@@ -149,12 +150,7 @@ class RunPythonController {
         $d->text($str);
         $copiedScriptPath=$d->nativePath();
         $homes=Asset::homes();
-        $workDir->rel("config.json")->text(
-            json_encode(array(
-                "super"=>$sp,
-                "asset"=>self::convHomes($homes)
-            ))
-        );
+        self::saveConfig($workDir, $homes,$sp);
         $workDir->rel("stdin.txt")->text($stdin);
         $cmd=PYTHON_PATH." \"$copiedScriptPath\"";
         $res=system_ex($cmd);
@@ -163,7 +159,10 @@ class RunPythonController {
             return ($res["stderr"]);
         }
     }
-
+    static function largeOut() {
+        $r=system_ex("python c:\\bin\\test.py ".param("num",0));
+        print_r($r);
+    }
 }
 function system_ex($cmd, $stdin = "")
 {
@@ -182,12 +181,15 @@ function system_ex($cmd, $stdin = "")
         fputs($pipes[0], $stdin);
         fclose($pipes[0]);
 
-        while ($error = fgets($pipes[2])){
+        $error_message=stream_get_contents($pipes[2]);
+        /*while ($error = fgets($pipes[2])){
             $error_message .= $error;
-        }
+        }*/
+        $result_message=stream_get_contents($pipes[1]);
+        /*
         while ($result = fgets($pipes[1])){
             $result_message .= $result;
-        }
+        }*/
         foreach ($pipes as $k=>$_rs){
             if (is_resource($_rs)){
                 fclose($_rs);

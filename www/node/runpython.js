@@ -64,7 +64,7 @@ function (FS,PP,S,G) {
                 mesg=mesg.replace(/line ([0-9]+)/g,function (r,ln) {
                     return "line "+(ln-lineAdjust);
                 });
-                console.log(stdout);
+                console.log(trimLines(stdout));
                 console.log(mesg);
             });
         });
@@ -79,3 +79,7 @@ function (FS,PP,S,G) {
     }
 
 });
+function trimLines(str) {
+    // RunPythonController  system_ex stalls with too long lines
+    return str.split("\n").map(line=>line.substring(0,1024)).join("\n");
+}

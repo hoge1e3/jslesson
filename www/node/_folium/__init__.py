@@ -17,3 +17,5 @@ class Marker:
 	def __init__(self,*a,**k):
 		self.__raw=folium.Marker(*a,**k)
 		self.add_to=self.__raw.add_to
+
+Icon=folium.Icon
