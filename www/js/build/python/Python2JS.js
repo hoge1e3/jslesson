@@ -289,6 +289,9 @@ function (Visitor,IndentBuffer,context,PL,S) {
         passStmt: function () {
             this.printf(";");
         },
+        lambdaExpr(node) {
+            this.printf("((%v)=>%v)",node.param, node.returns);
+        },
         superCall: function () {
             this.printf("%s.super(this.__class__, this)",PYLIB);
         },

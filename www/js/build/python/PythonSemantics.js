@@ -20,6 +20,7 @@ const importable={
     requests:{server:true},//SPECIAL
     json:{server:true},//SPECIAL
     sys:{wrapper:true,server:true},
+    MeCab: {wrapper:true, server:true},
     matplotlib:{wrapper:true,server:true},
     folium:{wrapper:true,server:true},
     numpy:{wrapper:true,server:true},
@@ -32,6 +33,7 @@ const importable={
     urllib:{wrapper:true,server:true},
     bs4:{wrapper:true,server:true},
     time:{wrapper:true,server:true},
+    badb:{server:true},
     // turtle: js?
 };
 
@@ -360,6 +362,12 @@ const vdef={
     "arg": function (node) {
         //if (node.name) console.log(node.name);
         this.visit(node.value);
+    },
+    lambdaExpr(node){
+        this.newScope(()=>{
+            this.addScope(node.param+"",{kind:"local",node:node.param});
+            this.visit(node.returns);
+        });
     },
     "literal": function (node) {
 

@@ -176,7 +176,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         var js;
         var anon,node,errSrc,needInput=false;
         if (runAt==="raspi") {
-            node=PP.parse(pysrcF);
+            //node=PP.parse(pysrcF);
             return;
         }
         if (!superMode) {
