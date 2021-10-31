@@ -95,6 +95,8 @@ def makeSecret():
             return wrap(self.__raw.__getitem__(i))
         def __getattr__(self,name):
             return wrap(self.__raw.__getattr__(name))
+        def __iter__(self):
+            return wrap(self.__raw.__iter__())
         def dot(self,other):
             return self.__raw.dot(getRaw(other))
         def to_csv(self, file=None, **k):
