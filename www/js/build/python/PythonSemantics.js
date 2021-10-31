@@ -107,9 +107,14 @@ const vdef={
     define: function (node) {
         //console.log("define",node);
         //this.addScope(node.name,{kind:"function",node});
+        for (let p of node.params.body) {
+            if (p.defVal) {
+                this.visit(p.defVal.value);
+            }
+        }
         this.newScope(()=>{
             for (let p of node.params.body) {
-                this.addScope(p+"",{kind:"local",node:p});
+                this.addScope(p.name+"",{kind:"local",node:p.name});
             }
             this.preScanDefs(node.body);
             for (let b of node.body) {

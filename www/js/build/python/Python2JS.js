@@ -27,6 +27,16 @@ function (Visitor,IndentBuffer,context,PL,S) {
         paramList: function (node) {
             this.printf("(%j)",[",",node.body]);
         },
+        param: function(node) {
+            if (node.defVal) {
+                this.printf("%s=%v",node.name, node.defVal);
+            } else {
+                this.printf("%s",node.name);
+            }
+        },
+        defVal: function (node) {
+            this.printf("%v",node.value);
+        },
         importStmt: function (node) {
             var url=this.options.pyLibPath+"/py_"+node.name+".js";
             if (node.alias) {
