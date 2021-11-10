@@ -34,6 +34,7 @@ const importable={
     bs4:{wrapper:true,server:true},
     time:{wrapper:true,server:true},
     badb:{server:true},
+    cdb:{server:true},
     // turtle: js?
 };
 

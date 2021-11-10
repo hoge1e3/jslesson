@@ -188,6 +188,10 @@ class TeacherController {
             ));
             echo "<div>$name にメール送信しました。</div>";
         }
+        ?>
+        <hr/>
+        <a href="?Teacher/add">もう1件追加する</a>
+        <?php
     }
     static function shadowize() {
         $teacher=Auth::isTeacher2();
