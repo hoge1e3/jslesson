@@ -155,7 +155,19 @@ class TeacherController {
             パスワード <input name="pass" id="pasu"><BR>
             <input type="submit">
         </form>
-        <script>document.querySelector("#pasu").value=(Math.random()+"").substring(2,8);</script>
+        <script>
+        document.querySelector("#pasu").value=(Math.random()+"").substring(2,8);
+        const ui_name=document.querySelector("[name='cname']");
+        function placemail() {
+            const ui_mail=document.querySelector("[name='mail']");
+            const [aff, name, done, mail]=ui_name.value.split("\t");
+            if (!done && mail) {
+                ui_name.value=`${aff} ${name}`;
+                ui_mail.value=mail;
+            }
+        }
+        ui_name.addEventListener("input",placemail)
+        </script>
         <?php
     }
     static function addDone() {
