@@ -11,6 +11,7 @@ const importable={
     //jp:true,
     //fs:{wrapper:true,server:true},
     re:{server:true},
+    decimal:{server:true},
     g:{browser:[
         "fillRect", "writeGraphicsLog", "clear", "update", "setColor",
         "setLineWidth", "drawGrid", "setPen", "movePen", "setTextSize",
