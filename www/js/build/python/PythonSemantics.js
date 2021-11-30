@@ -479,11 +479,11 @@ const Semantics= {
                     }
                 }
                 if (node.type==="letStmt") {
-                    this.procLeft(node);
+                    this.procLeft(node, true);
                 }
             }
         };
-        v.procLeft=function (letStmt) {
+        v.procLeft=function (letStmt, isPrescan) {
             const node=letStmt;
             var v=this;
             function procLElem(node) {
@@ -497,7 +497,8 @@ const Semantics= {
                     }
                     break;
                     default:
-                    v.visit(node);
+                    // a.b = fails  in prescan
+                    if (!isPrescan) v.visit(node);
                 }
             }
             function procSym(sym) {
