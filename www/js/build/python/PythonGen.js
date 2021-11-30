@@ -14,6 +14,16 @@ function (Visitor,IndentBuffer,assert) {
         paramList: function (node) {
             this.printf("(%j)",[",",node.body]);
         },
+        param: function(node) {
+            if (node.defVal) {
+                this.printf("%s=%v",node.name, node.defVal);
+            } else {
+                this.printf("%s",node.name);
+            }
+        },
+        defVal: function (node) {
+            this.printf("%v",node.value);
+        },
         importStmt: function (node) {
             const nameHead=node.name[0];
             const inf=this.importable[nameHead+""];
@@ -166,6 +176,9 @@ function (Visitor,IndentBuffer,assert) {
         infixl: function(node) {
             this.printf("%v%v%v",node.left,node.op,node.right);
         },
+        lambdaExpr(node) {
+            this.printf("lambda %v:%v",node.param, node.returns);
+        },
         isnt: function () {
             this.printf(" is not ");
         },
@@ -206,7 +219,7 @@ function (Visitor,IndentBuffer,assert) {
         }
     };
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
-      ">","<","=",".",":","+","-","*","/","%","(",")",",",
+      ">","<","=",".",":","+","-","*","/","%","(",")",",","in",
       "number","and","or","True","False","None"];
     for (let ve of verbs) {
         vdef[ve]=function (node) {
@@ -225,7 +238,7 @@ function (Visitor,IndentBuffer,assert) {
                 for (let n of node) v.visit(n);
             } else {
                 this.printf("%s(%s)",node+"",(node ? node.type+"": "UNDEF"));
-                //throw new Error("Visiting undef "+(node && node.type));
+                throw new Error(`Visiting undef ${node}( ${node && node.type} )`);
             }
         };
         const buf=IndentBuffer();

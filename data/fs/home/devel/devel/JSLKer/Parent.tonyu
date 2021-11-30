@@ -396,6 +396,17 @@ nowait \deg(d) {
     r=waitFor(p);
     return r;
 }
+\getListFromServer() {
+    var url=window.location.href;
+    var p=window.$.ajax(window.runtimePath+"a.php?KeyValue/ls"+
+    "&url="+url+
+    "&group="+activityGroup
+    );
+    var r;
+    r=waitFor(p);
+    //window.console.log("R",Object.keys(r.data));
+    return Object.keys(r.data);
+}
 \addLog(practice,d1,d2,d3,d4) {
     group=activityGroup;
     var url=window.location.href;
@@ -507,4 +518,18 @@ nowait \deg(d) {
     var temperature = 27 - (reading - 0.706)/0.001721;
     return temperature;
     
+}
+\addCDB(key, data ){
+    var p=window.$.post(window.runtimePath+"a.php?CDB/post") {
+        key, data: window.JSON.stringify(data)
+    };
+    var r;
+    r=waitFor(p);
+    return r;
+}
+\findCDB(key) {
+    var p=window.$.get(window.runtimePath+"a.php?CDB/get&key="+key);
+    var r;
+    r=waitFor(p);
+    return r;
 }

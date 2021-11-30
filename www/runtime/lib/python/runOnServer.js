@@ -30,7 +30,7 @@ function runOnServerWithStdin(prj, file, stdin) {
             r=r.replace(/^[\s\S]*echo off\s*\n?/,'');
             var spl="["+Math.random()+"]";
             var imgs=[];
-            r=r.replace(/<img src='[^']+'\/>/g, function (_) {
+            r=r.replace(/(<img src='[^']+'\/>)|(<iframe src='[^']+'><\/iframe>)/g, function (_) {
                 imgs.push(_);
                 return spl;
             });

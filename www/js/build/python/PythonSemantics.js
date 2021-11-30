@@ -5,11 +5,13 @@ const builtins=PyLib.builtins;//["print","range","int","str","float","input","le
 builtins.push("open");
 const importable={
     datetime:{server:true},
+    dateutil:{server:true},
     random:{browser:["random", "randrange", "randint", "shuffle", "sample", "choice"],server:true},
     math:{browser:["fabs", "ceil", "floor", "sqrt"], server:true},
     //jp:true,
     //fs:{wrapper:true,server:true},
     re:{server:true},
+    decimal:{server:true},
     g:{browser:[
         "fillRect", "writeGraphicsLog", "clear", "update", "setColor",
         "setLineWidth", "drawGrid", "setPen", "movePen", "setTextSize",
@@ -19,7 +21,9 @@ const importable={
     requests:{server:true},//SPECIAL
     json:{server:true},//SPECIAL
     sys:{wrapper:true,server:true},
+    MeCab: {wrapper:true, server:true},
     matplotlib:{wrapper:true,server:true},
+    folium:{wrapper:true,server:true},
     numpy:{wrapper:true,server:true},
     cv2:{wrapper:true,server:true},
     pandas:{wrapper:true,server:true},
@@ -32,6 +36,8 @@ const importable={
     PIL:{server:true},
     bs4:{wrapper:true,server:true},
     time:{wrapper:true,server:true},
+    badb:{server:true},
+    cdb:{server:true},
     // turtle: js?
 };
 
@@ -105,9 +111,14 @@ const vdef={
     define: function (node) {
         //console.log("define",node);
         //this.addScope(node.name,{kind:"function",node});
+        for (let p of node.params.body) {
+            if (p.defVal) {
+                this.visit(p.defVal.value);
+            }
+        }
         this.newScope(()=>{
             for (let p of node.params.body) {
-                this.addScope(p+"",{kind:"local",node:p});
+                this.addScope(p.name+"",{kind:"local",node:p.name});
             }
             this.preScanDefs(node.body);
             for (let b of node.body) {
@@ -361,6 +372,12 @@ const vdef={
         //if (node.name) console.log(node.name);
         this.visit(node.value);
     },
+    lambdaExpr(node){
+        this.newScope(()=>{
+            this.addScope(node.param+"",{kind:"local",node:node.param});
+            this.visit(node.returns);
+        });
+    },
     "literal": function (node) {
 
     },
@@ -465,11 +482,11 @@ const Semantics= {
                     }
                 }
                 if (node.type==="letStmt") {
-                    this.procLeft(node);
+                    this.procLeft(node, true);
                 }
             }
         };
-        v.procLeft=function (letStmt) {
+        v.procLeft=function (letStmt, isPrescan) {
             const node=letStmt;
             var v=this;
             function procLElem(node) {
@@ -483,7 +500,8 @@ const Semantics= {
                     }
                     break;
                     default:
-                    v.visit(node);
+                    // a.b = fails  in prescan
+                    if (!isPrescan) v.visit(node);
                 }
             }
             function procSym(sym) {
