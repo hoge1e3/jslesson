@@ -37,7 +37,7 @@ class Docker {
         $guestAssetPath=$this->guestAssetPath();
         $hostAssetPath=$this->hostAsset()->path();
         $name=$this->name();
-        $r=system_ex("docker container ls -a | grep $name");
+        $r=system_ex("docker container ls -a | grep \\\\s$name".'$');
         //print_r($r);
         if (! $r["stdout"]) {
             $img=DOCKER_IMAGE;
