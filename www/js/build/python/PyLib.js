@@ -434,7 +434,11 @@ define(function (require,exports,module) {
             if (!(name in self)) {
                 return self.__getattr__(name);
             }
-            return self[name];
+            const r=self[name];
+            if (typeof r==="function") {
+                return r.bind(self);
+            }
+            return r;
         },
         __setattr__: function (self, name, value) {
             self[name]=value;

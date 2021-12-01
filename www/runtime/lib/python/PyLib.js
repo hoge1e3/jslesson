@@ -590,7 +590,11 @@ define(function (require, exports, module) {
             if (!(name in self)) {
                 return self.__getattr__(name);
             }
-            return self[name];
+            var r = self[name];
+            if (typeof r === "function") {
+                return r.bind(self);
+            }
+            return r;
         },
         __setattr__: function __setattr__(self, name, value) {
             self[name] = value;
