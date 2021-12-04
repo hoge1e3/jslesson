@@ -20,7 +20,7 @@ function runOnServerWithStdin(str,stdin) {
     var t=setInterval(function () {
         $('#output').append(".");
     },500);
-    $.post(window.controllerPath+'?RunPython/runStr', {str:str,rand:Math.random(),stdin:stdin}).then(
+    $.post(window.controllerPath+'?RunPython/runStr', {str:str,url:location.href, rand:Math.random(),stdin:stdin}).then(
         function (r) {
             clearInterval(t);
             parent.window.echooff=r;

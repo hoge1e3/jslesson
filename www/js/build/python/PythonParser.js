@@ -14,7 +14,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         "for","while","in","return","print","import","as",
         "and","or","not","global","True","False","del",
         "finally","is","None","lambda","try","from" ,"nonlocal","with","yield",
-        "assert","pass","except","raise","super"
+        "assert","pass","except","finally", "raise","super"
        ];
     const resvh={};
     for(let r of reserved) resvh[r]=r;
@@ -133,15 +133,18 @@ function (Grammar,Pos2RC/*,TError*/) {
             }
             return this.tokens;
         }
-        error(mesg) {
+        error(mesg, col=0) {
             const e=new Error(mesg);
-            e.pos=this.pos;
+            e.pos=this.pos+col;
             return e;
         }
         tokenizeLine(line,lineNo) {
             //console.log("parse token",line);
             const r=tokens.get("tokens").parseStr(line);
-            if (!r.success) throw this.error("字句エラー "+(lineNo+1)+":"+(r.src.maxPos+1));
+            if (!r.success) {
+                console.log("Tokenize error", r);
+                throw this.error("字句エラー "+(lineNo+1)+":"+(r.src.maxPos+1), r.src.maxPos);
+            }
             //console.log("r",r.result[0]);
             return r.result[0];
         }
@@ -207,7 +210,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         stmtList: rep1("stmt"),
         // why printStmt -> printStmt3?
         // because if parse print(x), as printStmt3, comma remains unparsed.
-        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt2","fromImportStmt","globalStmt","nodent"),
+        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt2","fromImportStmt","globalStmt","tryStmt","nodent"),
         fromImportStmt: ["from",{name:"packageName"},"import",{localNames:"localNames"}],
         localNames: [{names:or(sep1("symbol",","),"*")}],
         importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
@@ -233,6 +236,10 @@ function (Grammar,Pos2RC/*,TError*/) {
         printStmt: ["print",{values:"exprList"}],
         // print(x,end="") parsed as: printStmt3
         printStmt3: ["print", {args:"args"}],
+        tryStmt: ["try",{body:"block"},{exceptParts:rep0("exceptPart")},{finallyPart:opt("finallyPart")}],
+        exceptPart: ["except",opt("exceptParam"), {body:"block"}],
+        exceptParam: [{eType: "symbol"}, {asName: opt(["as", {name:"symbol"}])}],
+        finallyPart: ["finally",{body:"block"}],
         singleLval: g.expr({
             element: "symbol",
             operators: [
