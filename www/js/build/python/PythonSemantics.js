@@ -140,19 +140,20 @@ const vdef={
         if (node.finallyPart) this.visit(node.finallyPart);
     },
     exceptPart(node) {
-        if (node.exceptParam) this.visit(node.exceptParam);
-        this.visit(node.body);
+        if (node.exceptParam) {
+            const ep=node.exceptParam;
+            //this.printf(" %v",ep.eType);
+            if (ep.asName) {
+                const asName=ep.asName;
+                this.newScope(()=>{
+                    this.addScope(asName.name,{kind:"local",node:asName.name});
+                    this.visit(node.body);
+                });
+            } else this.visit(node.body);
+        } else this.visit(node.body);
     },
-    exceptParam(node) {
-        this.printf(" %v",node.eType);
-        if (node.asType) {
-            this.newScope(()=>{
-                this.addScope(node.asType.name,{kind:"local",node:node.asType.name});
-                this.visit(node.body);
-            });
-        } else {
-            this.visit(node.body);
-        }
+    finallyPart(node) {
+        this.visit(node.body);
     },
     letStmt: function (node) {
         /*var v=this;

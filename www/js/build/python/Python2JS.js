@@ -172,6 +172,28 @@ function (Visitor,IndentBuffer,context,PL,S) {
         printStmt3: function (node) {
             this.printf("%s.print %v;",PYLIB,node.args);
         },
+        tryStmt(node) {
+            this.printf("try");
+            this.visit(node.body);
+            if (node.exceptParts[0]) this.visit(node.exceptParts[0]);
+            if (node.finallyPart) this.visit(node.finallyPart);
+        },
+        exceptPart(node) {
+            this.printf("catch");
+            if (node.exceptParam) this.visit(node.exceptParam);
+            else this.printf("(_excep)");
+            //console.log("node.body", node.body);
+            this.visit(node.body);
+        },
+        exceptParam(node) {
+            if (node.asName) {
+                this.printf("(%s)",node.asName.name);
+            } else this.printf("(_excep)");
+        },
+        finallyPart(node) {
+            this.printf("finally");
+            this.visit(node.body);
+        },
         memberRef: function (node) {
             this.printf(".__getattribute__('%v')",node.name);
         },

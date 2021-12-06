@@ -237,7 +237,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         // print(x,end="") parsed as: printStmt3
         printStmt3: ["print", {args:"args"}],
         tryStmt: ["try",{body:"block"},{exceptParts:rep0("exceptPart")},{finallyPart:opt("finallyPart")}],
-        exceptPart: ["except",opt("exceptParam"), {body:"block"}],
+        exceptPart: ["except",{exceptParam: opt("exceptParam")}, {body:"block"}],
         exceptParam: [{eType: "symbol"}, {asName: opt(["as", {name:"symbol"}])}],
         finallyPart: ["finally",{body:"block"}],
         singleLval: g.expr({

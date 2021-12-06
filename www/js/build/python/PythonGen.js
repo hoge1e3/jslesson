@@ -99,9 +99,12 @@ function (Visitor,IndentBuffer,assert) {
         },
         exceptParam(node) {
             this.printf(" %v",node.eType);
-            if (node.asType) {
+            if (node.asName) {
                 this.printf(" as %s",node.asName.name);
             }
+        },
+        finallyPart(node) {
+            this.printf("finally");
             this.visit(node.body);
         },
         ifStmt: function (node) {
