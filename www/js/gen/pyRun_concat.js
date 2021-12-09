@@ -1620,7 +1620,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         "for","while","in","return","print","import","as",
         "and","or","not","global","True","False","del",
         "finally","is","None","lambda","try","from" ,"nonlocal","with","yield",
-        "assert","pass","except","raise","super"
+        "assert","pass","except","finally", "raise","super"
        ];
     const resvh={};
     for(let r of reserved) resvh[r]=r;
@@ -1739,15 +1739,18 @@ function (Grammar,Pos2RC/*,TError*/) {
             }
             return this.tokens;
         }
-        error(mesg) {
+        error(mesg, col=0) {
             const e=new Error(mesg);
-            e.pos=this.pos;
+            e.pos=this.pos+col;
             return e;
         }
         tokenizeLine(line,lineNo) {
             //console.log("parse token",line);
             const r=tokens.get("tokens").parseStr(line);
-            if (!r.success) throw this.error("字句エラー "+(lineNo+1)+":"+(r.src.maxPos+1));
+            if (!r.success) {
+                console.log("Tokenize error", r);
+                throw this.error("字句エラー "+(lineNo+1)+":"+(r.src.maxPos+1), r.src.maxPos);
+            }
             //console.log("r",r.result[0]);
             return r.result[0];
         }
@@ -1804,14 +1807,16 @@ function (Grammar,Pos2RC/*,TError*/) {
         define: ["def",{name:"symbol"},{params:"paramList"},":indent",
             {body:"stmtList"},
         "dedent"],
-        paramList: ["(",{body:sep0("symbol",",")},")"],
+        paramList: ["(",{body:sep0("param",",")},")"],
+        param: [{name:"symbol"}, {defVal:opt("defVal")}],
+        defVal: ["=",{value:"expr"}],
         ":indent": [":","indent"],
         //nodedent: [rep0("nodent"),"dedent"],
         //defList: rep0("define"),
         stmtList: rep1("stmt"),
         // why printStmt -> printStmt3?
         // because if parse print(x), as printStmt3, comma remains unparsed.
-        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt2","fromImportStmt","globalStmt","nodent"),
+        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt2","fromImportStmt","globalStmt","tryStmt","nodent"),
         fromImportStmt: ["from",{name:"packageName"},"import",{localNames:"localNames"}],
         localNames: [{names:or(sep1("symbol",","),"*")}],
         importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
@@ -1837,6 +1842,10 @@ function (Grammar,Pos2RC/*,TError*/) {
         printStmt: ["print",{values:"exprList"}],
         // print(x,end="") parsed as: printStmt3
         printStmt3: ["print", {args:"args"}],
+        tryStmt: ["try",{body:"block"},{exceptParts:rep0("exceptPart")},{finallyPart:opt("finallyPart")}],
+        exceptPart: ["except",{exceptParam: opt("exceptParam")}, {body:"block"}],
+        exceptParam: [{eType: "symbol"}, {asName: opt(["as", {name:"symbol"}])}],
+        finallyPart: ["finally",{body:"block"}],
         singleLval: g.expr({
             element: "symbol",
             operators: [
@@ -1897,7 +1906,8 @@ function (Grammar,Pos2RC/*,TError*/) {
         slice111: [{start:"expr"},":",{stop:"expr"},":",{step:"expr"}],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: [":indent",{body:"stmtList"},"dedent"],
-        elem: or("symbol","number","None","bool","listComprehension","array","dict","literal3","literal","paren","superCall"),
+        elem: or("symbol","number","None","bool","listComprehension","array","dict","literal3","literal","paren","superCall","lambdaExpr"),
+        lambdaExpr: ["lambda",{param:"symbol"},":",{returns:"expr"}],
         superCall: ["super","(",")"],
         paren: ["(",{body:"exprList"},")"],
         bool: or("True","False"),
@@ -2107,7 +2117,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         var a = PL.parseArgs(arguments);
         console.log("print", arguments, a);
         var end = a.options.end != null ? a.options.end : "\n";
-        if (typeof u(end) !== "string") {
+        if (!PL.isinstance(end, PL.str)) {
             throw new Error("endには文字列を指定してください");
         }
         var out = a.map(PL.str).join(" ") + end;
@@ -2237,7 +2247,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         throw e;
     };
     PL.type = function (s) {
-        switch (typeof s === "undefined" ? "undefined" : _typeof(s)) {
+        switch (_typeof(u(s))) {
             case "number":
                 return Number;
             case "string":
@@ -2253,6 +2263,13 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         }
     };
     PL.isinstance = function (obj, klass) {
+        if (klass === PL.int) {
+            return typeof u(obj) === "number" && Math.floor(obj) === obj;
+        } else if (klass === PL.float || klass === Number) {
+            return typeof u(obj) === "number";
+        } else if (klass === PL.str || klass === String) {
+            return typeof u(obj) === "string";
+        }
         var ocl = obj && obj.__class__;
         return !!ocl && (ocl === klass || PL.isinstance(Object.getPrototypeOf(ocl.prototype), klass));
     };
@@ -2327,9 +2344,9 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         if (e == null) {
             e = b;b = 0;
         }
-        if (typeof b !== "number") throw new Error("rangeの引数には数値を指定してください");
-        if (typeof e !== "number") throw new Error("rangeの引数には数値を指定してください");
-        if (typeof s !== "number") throw new Error("rangeの引数には数値を指定してください");
+        if (!PL.isinstance(b, PL.int)) throw new Error("rangeの引数(開始)には整数を指定してください");
+        if (!PL.isinstance(e, PL.int)) throw new Error("rangeの引数(終了)には整数を指定してください");
+        if (!PL.isinstance(s, PL.int)) throw new Error("rangeの引数(増分)には整数を指定してください");
         var res = [];
         for (; s > 0 && b < e || s < 0 && b > e; b += s) {
             res.push(b);
@@ -2637,7 +2654,11 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             if (!(name in self)) {
                 return self.__getattr__(name);
             }
-            return self[name];
+            var r = self[name];
+            if (typeof r === "function") {
+                return r.bind(self);
+            }
+            return r;
         },
         __setattr__: function __setattr__(self, name, value) {
             self[name] = value;
@@ -3126,6 +3147,7 @@ const importable={
     //jp:true,
     //fs:{wrapper:true,server:true},
     re:{server:true},
+    decimal:{server:true},
     g:{browser:[
         "fillRect", "writeGraphicsLog", "clear", "update", "setColor",
         "setLineWidth", "drawGrid", "setPen", "movePen", "setTextSize",
@@ -3135,7 +3157,9 @@ const importable={
     requests:{server:true},//SPECIAL
     json:{server:true},//SPECIAL
     sys:{wrapper:true,server:true},
+    MeCab: {wrapper:true, server:true},
     matplotlib:{wrapper:true,server:true},
+    folium:{wrapper:true,server:true},
     numpy:{wrapper:true,server:true},
     cv2:{wrapper:true,server:true},
     pandas:{wrapper:true,server:true},
@@ -3146,6 +3170,8 @@ const importable={
     urllib:{wrapper:true,server:true},
     bs4:{wrapper:true,server:true},
     time:{wrapper:true,server:true},
+    badb:{server:true},
+    cdb:{server:true},
     // turtle: js?
 };
 
@@ -3219,9 +3245,14 @@ const vdef={
     define: function (node) {
         //console.log("define",node);
         //this.addScope(node.name,{kind:"function",node});
+        for (let p of node.params.body) {
+            if (p.defVal) {
+                this.visit(p.defVal.value);
+            }
+        }
         this.newScope(()=>{
             for (let p of node.params.body) {
-                this.addScope(p+"",{kind:"local",node:p});
+                this.addScope(p.name+"",{kind:"local",node:p.name});
             }
             this.preScanDefs(node.body);
             for (let b of node.body) {
@@ -3236,6 +3267,29 @@ const vdef={
         for (let name of node.names) {
             this.addScope(name+"",{kind:"global",node:name});
         }
+    },
+    tryStmt(node) {
+        this.visit(node.body);
+        for (let e of node.exceptParts) {
+            this.visit(e);
+        }
+        if (node.finallyPart) this.visit(node.finallyPart);
+    },
+    exceptPart(node) {
+        if (node.exceptParam) {
+            const ep=node.exceptParam;
+            //this.printf(" %v",ep.eType);
+            if (ep.asName) {
+                const asName=ep.asName;
+                this.newScope(()=>{
+                    this.addScope(asName.name,{kind:"local",node:asName.name});
+                    this.visit(node.body);
+                });
+            } else this.visit(node.body);
+        } else this.visit(node.body);
+    },
+    finallyPart(node) {
+        this.visit(node.body);
     },
     letStmt: function (node) {
         /*var v=this;
@@ -3475,6 +3529,12 @@ const vdef={
         //if (node.name) console.log(node.name);
         this.visit(node.value);
     },
+    lambdaExpr(node){
+        this.newScope(()=>{
+            this.addScope(node.param+"",{kind:"local",node:node.param});
+            this.visit(node.returns);
+        });
+    },
     "literal": function (node) {
 
     },
@@ -3578,11 +3638,11 @@ const Semantics= {
                     }
                 }
                 if (node.type==="letStmt") {
-                    this.procLeft(node);
+                    this.procLeft(node, true);
                 }
             }
         };
-        v.procLeft=function (letStmt) {
+        v.procLeft=function (letStmt, isPrescan) {
             const node=letStmt;
             var v=this;
             function procLElem(node) {
@@ -3596,7 +3656,8 @@ const Semantics= {
                     }
                     break;
                     default:
-                    v.visit(node);
+                    // a.b = fails  in prescan
+                    if (!isPrescan) v.visit(node);
                 }
             }
             function procSym(sym) {
@@ -6975,6 +7036,16 @@ function (Visitor,IndentBuffer,assert) {
         paramList: function (node) {
             this.printf("(%j)",[",",node.body]);
         },
+        param: function(node) {
+            if (node.defVal) {
+                this.printf("%s=%v",node.name, node.defVal);
+            } else {
+                this.printf("%s",node.name);
+            }
+        },
+        defVal: function (node) {
+            this.printf("%v",node.value);
+        },
         importStmt: function (node) {
             const nameHead=node.name[0];
             const inf=this.importable[nameHead+""];
@@ -7035,6 +7106,28 @@ function (Visitor,IndentBuffer,assert) {
         },
         whileStmt: function (node) {
             this.printf("while %v%v", node.cond,node.do);
+        },
+        tryStmt(node) {
+            this.printf("try");
+            this.visit(node.body);
+            this.visit(node.exceptParts);
+            if (node.finallyPart) this.visit(node.finallyPart);
+        },
+        exceptPart(node) {
+            this.printf("except");
+            if (node.exceptParam) this.visit(node.exceptParam);
+            //console.log("node.body", node.body);
+            this.visit(node.body);
+        },
+        exceptParam(node) {
+            this.printf(" %v",node.eType);
+            if (node.asName) {
+                this.printf(" as %s",node.asName.name);
+            }
+        },
+        finallyPart(node) {
+            this.printf("finally");
+            this.visit(node.body);
         },
         ifStmt: function (node) {
             this.printf("if %v%v", node.cond,node.then);
@@ -7127,6 +7220,9 @@ function (Visitor,IndentBuffer,assert) {
         infixl: function(node) {
             this.printf("%v%v%v",node.left,node.op,node.right);
         },
+        lambdaExpr(node) {
+            this.printf("lambda %v:%v",node.param, node.returns);
+        },
         isnt: function () {
             this.printf(" is not ");
         },
@@ -7167,7 +7263,7 @@ function (Visitor,IndentBuffer,assert) {
         }
     };
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
-      ">","<","=",".",":","+","-","*","/","%","(",")",",",
+      ">","<","=",".",":","+","-","*","/","%","(",")",",","in",
       "number","and","or","True","False","None"];
     for (let ve of verbs) {
         vdef[ve]=function (node) {
@@ -7186,7 +7282,7 @@ function (Visitor,IndentBuffer,assert) {
                 for (let n of node) v.visit(n);
             } else {
                 this.printf("%s(%s)",node+"",(node ? node.type+"": "UNDEF"));
-                //throw new Error("Visiting undef "+(node && node.type));
+                throw new Error(`Visiting undef ${node}( ${node && node.type} )`);
             }
         };
         const buf=IndentBuffer();
@@ -7228,6 +7324,16 @@ function (Visitor,IndentBuffer,context,PL,S) {
         },
         paramList: function (node) {
             this.printf("(%j)",[",",node.body]);
+        },
+        param: function(node) {
+            if (node.defVal) {
+                this.printf("%s=%v",node.name, node.defVal);
+            } else {
+                this.printf("%s",node.name);
+            }
+        },
+        defVal: function (node) {
+            this.printf("%v",node.value);
         },
         importStmt: function (node) {
             var url=this.options.pyLibPath+"/py_"+node.name+".js";
@@ -7364,6 +7470,28 @@ function (Visitor,IndentBuffer,context,PL,S) {
         printStmt3: function (node) {
             this.printf("%s.print %v;",PYLIB,node.args);
         },
+        tryStmt(node) {
+            this.printf("try");
+            this.visit(node.body);
+            if (node.exceptParts[0]) this.visit(node.exceptParts[0]);
+            if (node.finallyPart) this.visit(node.finallyPart);
+        },
+        exceptPart(node) {
+            this.printf("catch");
+            if (node.exceptParam) this.visit(node.exceptParam);
+            else this.printf("(_excep)");
+            //console.log("node.body", node.body);
+            this.visit(node.body);
+        },
+        exceptParam(node) {
+            if (node.asName) {
+                this.printf("(%s)",node.asName.name);
+            } else this.printf("(_excep)");
+        },
+        finallyPart(node) {
+            this.printf("finally");
+            this.visit(node.body);
+        },
         memberRef: function (node) {
             this.printf(".__getattribute__('%v')",node.name);
         },
@@ -7490,6 +7618,9 @@ function (Visitor,IndentBuffer,context,PL,S) {
         },
         passStmt: function () {
             this.printf(";");
+        },
+        lambdaExpr(node) {
+            this.printf("((%v)=>%v)",node.param, node.returns);
         },
         superCall: function () {
             this.printf("%s.super(this.__class__, this)",PYLIB);
