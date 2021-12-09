@@ -134,6 +134,29 @@ const vdef={
             this.addScope(name+"",{kind:"global",node:name});
         }
     },
+    tryStmt(node) {
+        this.visit(node.body);
+        for (let e of node.exceptParts) {
+            this.visit(e);
+        }
+        if (node.finallyPart) this.visit(node.finallyPart);
+    },
+    exceptPart(node) {
+        if (node.exceptParam) {
+            const ep=node.exceptParam;
+            //this.printf(" %v",ep.eType);
+            if (ep.asName) {
+                const asName=ep.asName;
+                this.newScope(()=>{
+                    this.addScope(asName.name,{kind:"local",node:asName.name});
+                    this.visit(node.body);
+                });
+            } else this.visit(node.body);
+        } else this.visit(node.body);
+    },
+    finallyPart(node) {
+        this.visit(node.body);
+    },
     letStmt: function (node) {
         /*var v=this;
         function procLElem(node) {
