@@ -1,10 +1,10 @@
 /*global SerialControl*/
 define(["assert","DeferredUtil","wget", "IndentBuffer","Sync","FS","SplashScreen","AsyncByGenerator",
 "PythonParser","PythonSemantics","PythonGen","Python2JS","ctrl","root","WebSite","TError","DelayedCompileError",
-"SerialControl"],
+"SerialControl","KeyEventChecker"],
 function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
     PP,S,G,J,ctrl,root,WebSite,TError,DelayedCompileError,
-    _SerialControl) {//<-dtl
+    _SerialControl,KeyEventChecker) {//<-dtl
     var PythonBuilder=function (prj, dst,ide) {//<-Dtl
         this.prj=prj;// TPRC
         this.dst=dst;// SFile in ramdisk
@@ -232,17 +232,19 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         //const superMode=await checkSuperMode();
         //if (superMode) return;
         Menu.deleteMain("runMenu");
+        const runAtServer=async ()=>{
+            await t.ide.run({runAt:"server"});
+        };
         Menu.appendMain(
             {label:"実行",id:"runPython",after:$("#fileMenu"),sub:
             [
                 {label:"ブラウザで実行(F9)",id:"runBrowser",action: async ()=>{
                     await t.ide.run({runAt:"browser"});
                 } } ,
-                {label:"サーバで実行",id:"runServer",action: async ()=>{
-                    await t.ide.run({runAt:"server"});
-                } }
+                {label:"サーバで実行(Ctrl+F9)",id:"runServer",action: runAtServer}
             ]}
         );
+        KeyEventChecker.down(document,"ctrl+F9",runAtServer);
         Menu.appendSub(
             {label:"ツール",id:"tool",after:$("#config")},
             {label:"Raspi-pico接続",id:"raspiPanel",action:this.showRaspiPanel.bind(this)}

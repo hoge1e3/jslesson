@@ -85,6 +85,28 @@ function (Visitor,IndentBuffer,assert) {
         whileStmt: function (node) {
             this.printf("while %v%v", node.cond,node.do);
         },
+        tryStmt(node) {
+            this.printf("try");
+            this.visit(node.body);
+            this.visit(node.exceptParts);
+            if (node.finallyPart) this.visit(node.finallyPart);
+        },
+        exceptPart(node) {
+            this.printf("except");
+            if (node.exceptParam) this.visit(node.exceptParam);
+            //console.log("node.body", node.body);
+            this.visit(node.body);
+        },
+        exceptParam(node) {
+            this.printf(" %v",node.eType);
+            if (node.asName) {
+                this.printf(" as %s",node.asName.name);
+            }
+        },
+        finallyPart(node) {
+            this.printf("finally");
+            this.visit(node.body);
+        },
         ifStmt: function (node) {
             this.printf("if %v%v", node.cond,node.then);
             this.visit(node.elif);

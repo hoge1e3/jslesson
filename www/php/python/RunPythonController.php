@@ -86,14 +86,22 @@ class RunPythonController {
     static function runStr(){
         $nfs=new NativeFS();
         $str=param("str");
-        $fs=Auth::getFS();
+        //$fs=Auth::getFS();
         $sp=self::isSuper(1);
         $wpath=self::workDirPath();
         $workDir=new SFile($nfs,$wpath);
         $d=$workDir->rel("src.py");
         $d->text($str);
         $copiedScriptPath=$d->nativePath();
-        $homes=Asset::homes();
+        if (!Auth::loggedIn()) {
+            //require("BigData");
+            //BigData::selectClassByURL(param("url"));
+            //$class=BigData::getClass();
+            //self::home();
+            $homes=[];
+        } else {
+            $homes=Asset::homes();
+        }
         self::saveConfig($workDir, $homes,$sp);
         $workDir->rel("stdin.txt")->text(param("stdin","\n\n\n\n\n\n\n\n"));
         $cmd=PYTHON_PATH." \"$copiedScriptPath\"";

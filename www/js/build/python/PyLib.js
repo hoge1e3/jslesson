@@ -52,7 +52,7 @@ define(function (require,exports,module) {
         var a=PL.parseArgs(arguments);
         console.log("print",arguments,a);
         var end=a.options.end!=null ? a.options.end: "\n";
-        if (typeof u(end)!=="string") {
+        if (!PL.isinstance(end, PL.str)) {
             throw new Error("endには文字列を指定してください");
         }
         var out=a.map(PL.str).join(" ")+end;
@@ -117,7 +117,7 @@ define(function (require,exports,module) {
         throw e;
     };
     PL.type=function (s) {
-        switch (typeof s) {
+        switch (typeof u(s)) {
             case "number":return Number;
             case "string":return String;
             case "function":return Function;
@@ -129,6 +129,13 @@ define(function (require,exports,module) {
         }
     };
     PL.isinstance=function (obj,klass) {
+        if (klass===PL.int) {
+            return (typeof u(obj)==="number" && Math.floor(obj)===obj);
+        } else if (klass===PL.float || klass===Number) {
+            return (typeof u(obj)==="number");
+        } else if (klass===PL.str || klass===String) {
+            return (typeof u(obj)==="string");
+        }
         const ocl=obj && obj.__class__;
         return !!ocl &&
         (ocl===klass ||
@@ -200,9 +207,9 @@ define(function (require,exports,module) {
     PL.opt=PL.Option;
     PL.range=function (b,e,s=1) {
         if (e==null) {e=b;b=0;}
-        if (typeof b!=="number") throw new Error("rangeの引数には数値を指定してください");
-        if (typeof e!=="number") throw new Error("rangeの引数には数値を指定してください");
-        if (typeof s!=="number") throw new Error("rangeの引数には数値を指定してください");
+        if (!PL.isinstance(b,PL.int)) throw new Error("rangeの引数(開始)には整数を指定してください");
+        if (!PL.isinstance(e,PL.int)) throw new Error("rangeの引数(終了)には整数を指定してください");
+        if (!PL.isinstance(s,PL.int)) throw new Error("rangeの引数(増分)には整数を指定してください");
         var res=[];
         for (; s>0&&b<e || s<0&&b>e ;b+=s) res.push(b);
         return res;
@@ -434,7 +441,11 @@ define(function (require,exports,module) {
             if (!(name in self)) {
                 return self.__getattr__(name);
             }
-            return self[name];
+            const r=self[name];
+            if (typeof r==="function") {
+                return r.bind(self);
+            }
+            return r;
         },
         __setattr__: function (self, name, value) {
             self[name]=value;
