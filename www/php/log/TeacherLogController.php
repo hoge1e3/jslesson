@@ -724,9 +724,129 @@ class TeacherLogController {
       }
 
 
-        //print("$min - $max  max-min=".($max-$min)."count=".count($logs));
-        // 指定された日時の$interval秒前までのログについて，エラーのものがあったらBotに送りつける
-        //               (とりあえずは，エラーだろうがそうでなかろうが，表示するでもいいよ)
+    static function bot_noerr() {
+      date_default_timezone_set('Asia/Tokyo');
+      $class=Auth::curClass2();
+      if (!$class->getOption("showOtherStudentsLogs")) {
+          Auth::assertTeacher();
+      }
+      req("LogFileToDBController");
+      LogFileToDBController::run();
+
+      $thisURL="a.php?TeacherLog/bot_noerr";
+      $now=time();
+      $interval=param('interval',300);
+      if(!param("Y",false)){
+          $min=$now-$interval;
+          $max=$now;
+      }else{
+          $max=strtotime(param('Y')."/".param('m')."/".param('d')." ".param('H').":".param('i').":".param('s'));
+          $min=$max-$interval;
+          //$max=strtotime(param('aY')."/".param('am')."/".param('ad')." ".param('aH').":".param('ai').":".param('as'));
+      }
+      $next=$max+$interval;
+      echo param("Y",false);
+      echo param("s",false);
+      ?>
+      <script>
+      // $interval秒後にリロードされて，$interval秒進んだあとの結果が表示される
+      setTimeout( function () {
+          document.forms.dateform.submit();
+      },<?= $interval*1000 ?>);
+      </script>
+      <form name="dateform" action="<?= $thisURL ?>" method="POST">
+      <input name="Y" value="<?=date("Y",$next)?>" maxlength="4" size="4">年
+      <input name="m" value="<?=date("m",$next)?>" maxlength="2" size="2">月
+      <input name="d" value="<?=date("d",$next)?>" maxlength="2" size="2">日
+      <input name="H" value="<?=date("H",$next)?>" maxlength="2" size="2">時
+      <input name="i" value="<?=date("i",$next)?>" maxlength="2" size="2">分
+      <input name="s" value="<?=date("s",$next)?>" maxlength="2" size="2">秒<br>
+      <input type="submit" value="Botで送る"/>
+      </form><?php
+      $logs=$class->getAllLogs($min,$max);
+      $slack_bot_url=$class->getOption("botURL");
+      print "BOT URL=$slack_bot_url<BR>\n";
+      //print_r ($logs);
+      $buffer="";
+      $prevTime=0;
+      $prevResult=0;
+      $stat=[];
+      foreach ($logs as $log) {
+          $user=$log["user"];
+          $time=$log["time"];
+          $filename=/*json_decode*/($log["filename"]);
+          $code="";
+          $id=$log["id"];
+          if (!isset($stat[$user])) {
+              $stat[$user]=[];
+          }
+          $stat[$user][]=$log;
+      }
+      print_r("--------");
+      //print_r($stat);
+      uasort($stat, function ($a, $b) { return count($a)-count($b); } );
+      //$url="";
+      foreach ($stat as $s) {
+          //print_r($s);
+          print_r("--------");
+          $count=count($s);
+          print_r($s[$count-1]);
+          //$url = $slack_bot_url;
+          $name=$s[$count-1]["user"];
+          $filename=$s[$count-1]["filename"];
+          $id=$s[$count-1]["id"];
+          $lastErrorTime=$s[$count-1]["time"];
+          $user=$class->getUser($name);
+          $a2=self::getActualtime2($user,$filename);
+          if ($a2>900) {
+              $URL=BA_TOP_URL."?TeacherLog/view1new&logid=$id";
+              $option=[
+                  'http' => [
+                      'method'  => 'GET',
+                      'timeout' => 600, // タイムアウト時間
+                  ]
+              ];
+              if (defined("HINT_URL")){
+                  $Hint=@file_get_contents(HINT_URL."?path=/home/$class->id/$name/$filename",false,stream_context_create($option));
+              } else {
+                  $Hint="";
+              }
+
+              $Hint=str_replace('<h1>','',$Hint);
+              $Hint=str_replace('</h1>','',$Hint);
+              $Hint=str_replace('<br/>','',$Hint);
+              $Hint=str_replace('<BR/>','',$Hint);
+              $Hint=str_replace('メインページ','',$Hint);
+
+              //$mesg=substr($mesg,0,100);
+
+              $user=$class->getUser($name);
+
+              $element="test $URL $name ($count 件) $filename \n Actualtime2= $a2 \n $name \n $filename で苦戦中のようなので，ヒントを貼っておきます．それでもわからないなら遠慮なく質問してください． \n$Hint";
+              $buffer.="[".$element."]\n";
+
+          }
+      }
+      if(strlen($buffer)>0) {
+          $data = array(
+          'payload' => json_encode( array(
+          "text"=>$buffer
+          ))
+          );
+
+          $context = array(
+          'http' => array(
+          'method'  => 'POST',
+          'header'  => implode("\r\n", array('Content-Type: application/x-www-form-urlencoded',)),
+          'content' => http_build_query($data)
+          )
+          );
+
+          $html = file_get_contents($slack_bot_url, false, stream_context_create($context));
+          var_dump($http_response_header);
+          echo $html;
+      }
+    }
 
 
     static function view() {
