@@ -788,9 +788,9 @@ class TeacherLogController {
       //$url="";
       foreach ($stat as $s) {
           //print_r($s);
-          print_r("--------");
+          //print_r("--------");
           $count=count($s);
-          print_r($s[$count-1]);
+          //print_r($s[$count-1]);
           //$url = $slack_bot_url;
           $name=$s[$count-1]["user"];
           $filename=$s[$count-1]["filename"];
