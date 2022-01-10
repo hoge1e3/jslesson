@@ -64,12 +64,12 @@ class LogQueryController {
     static function show($output, $class, $date, $user, $file, $limit, $sort) {
         $it=self::get($class, $date, $user, $file, $limit, $sort);
         if ($output==="table") {
+            self::showTable($it);
             if ($user && $file) {
                 req("TeacherLogController");
                 $a=TeacherLogController::getActualtime2($user, $file);
                 echo "actualTime2= $a";
             }
-            self::showTable($it);
         } else self::showJSON($it);
     }
     static function showJSON($it) {
