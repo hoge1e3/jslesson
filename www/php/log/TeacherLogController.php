@@ -767,7 +767,7 @@ class TeacherLogController {
       $slack_bot_url=$class->getOption("botURL");
       print "BOT URL=$slack_bot_url<BR>\n";
       //print_r ($logs);
-      $buffer="";
+      $buffer=[];
       $prevTime=0;
       $prevResult=0;
       $stat=[];
@@ -784,7 +784,6 @@ class TeacherLogController {
       }
       print_r("--------");
       //print_r($stat);
-      uasort($stat, function ($a, $b) { return count($a)-count($b); } );
       //$url="";
       foreach ($stat as $s) {
           //print_r($s);
@@ -822,15 +821,17 @@ class TeacherLogController {
 
               $user=$class->getUser($name);
 
-              $element="test $URL $name ($count 件) $filename \n Actualtime2= $a2 \n $name \n $filename で苦戦中のようなので，ヒントを貼っておきます．それでもわからないなら遠慮なく質問してください． \n$Hint";
-              $buffer.="[".$element."]\n";
+              $element="test $URL $name  $filename \n Actualtime2= $a2 \n $name \n $filename で苦戦中のようなので，ヒントを貼っておきます．それでもわからないなら遠慮なく質問してください． \n$Hint";
+              $buffer[]=[$a2, $element];//"[".$element."]\n";
 
           }
       }
-      if(strlen($buffer)>0) {
+      if(count($buffer)>0) {
+          uasort($buffer, function ($a, $b) { return $b[0]-$a[0]; } );
+          $buffer=array_map(function ($e){return $e[1];}, $buffer);
           $data = array(
           'payload' => json_encode( array(
-          "text"=>$buffer
+          "text"=>implode( "\n", $buffer)
           ))
           );
 
