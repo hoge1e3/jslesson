@@ -438,10 +438,12 @@ class TeacherLogController {
         //    // プログラムの一部を表示
         // }
     }
-    static function getActualtime2($user,$file) {
+    static function getActualtime2($user,$file, $dateMax=null) {
         req("LogQueryController");
         $class=Auth::curClass2();
-        $it=LogQueryController::get($class, null, $user, $file, 100000, "asc");
+        if ($dateMax) $drange=[0,$dateMax];
+        else $drange=null;
+        $it=LogQueryController::get($class, $drange, $user, $file, 100000, "asc");
         $prev=null;
         if (!defined("IDLE_TIME")) define("IDLE_TIME",300);
         $actTime2=0;
@@ -796,7 +798,7 @@ class TeacherLogController {
           $id=$s[$count-1]["id"];
           $lastErrorTime=$s[$count-1]["time"];
           $user=$class->getUser($name);
-          $a2=self::getActualtime2($user,$filename);
+          $a2=self::getActualtime2($user,$filename,$max);
           if ($a2>900) {
               $URL=BA_TOP_URL."?TeacherLog/view1new&logid=$id";
               $option=[

@@ -41,9 +41,15 @@ class LogQueryController {
         $wheres=[];
         $wheres[]=["class=?",$class->id];
         if ($date) {
-            $dateMin=DateUtil::toInt($date);
+            if (is_array($date)) {
+                $dateMin=($date[0] ? DateUtil::toInt($date[0]) : 0);
+                $dateMax=DateUtil::toInt($date[1]);
+            } else {
+                $dateMin=DateUtil::toInt($date);
+                $dateMax=$dateMin+86400;
+            }
             $wheres[]=["time > ?", $dateMin];
-            $wheres[]=["time < ?", $dateMin+86400];
+            $wheres[]=["time < ?", $dateMax];
         }
         if ($user) {
             $wheres[]=["user =?", $user->name];
