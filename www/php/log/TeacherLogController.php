@@ -827,7 +827,7 @@ class TeacherLogController {
           }
       }
       if(count($buffer)>0) {
-          uasort($buffer, function ($a, $b) { return $b[0]-$a[0]; } );
+          uasort($buffer, function ($a, $b) { return $a[0]-$b[0]; } );
           $buffer=array_map(function ($e){return $e[1];}, $buffer);
           $data = array(
           'payload' => json_encode( array(
