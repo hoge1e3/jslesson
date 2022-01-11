@@ -618,7 +618,7 @@ class TeacherLogController {
           //print_r($s);
           print_r("--------");
           $count=count($s);
-          print_r($s[$count-1]);
+          //print_r($s[$count-1]);
           //$url = $slack_bot_url;
           $mesg=$s[$count-1]["mesg"];
           $name=$s[$count-1]["user"];
@@ -717,9 +717,8 @@ class TeacherLogController {
           );
 
           $html = file_get_contents($slack_bot_url, false, stream_context_create($context));
-
+          print ("Sent Message: $buffer");
           var_dump($http_response_header);
-
           echo $html;
         }
 
