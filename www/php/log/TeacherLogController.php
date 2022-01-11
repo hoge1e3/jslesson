@@ -618,7 +618,7 @@ class TeacherLogController {
           //print_r($s);
           print_r("--------");
           $count=count($s);
-          print_r($s[$count-1]);
+          //print_r($s[$count-1]);
           //$url = $slack_bot_url;
           $mesg=$s[$count-1]["mesg"];
           $name=$s[$count-1]["user"];
