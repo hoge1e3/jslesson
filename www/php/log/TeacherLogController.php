@@ -717,9 +717,8 @@ class TeacherLogController {
           );
 
           $html = file_get_contents($slack_bot_url, false, stream_context_create($context));
-
+          print ("Sent Message: $buffer");
           var_dump($http_response_header);
-
           echo $html;
         }
 
