@@ -52,14 +52,26 @@ class RunPythonController {
         }
     }
     static function runInDocker() {
+        //$class=Auth::curClass2();
+        $user=Auth::curUser2();
+        self::runInDocker_withClassUser($user);
+    }
+    static function runInDocker_ntk() {
+        if (!defined("NTK_CLASS")) {
+            die("No NTK_CLASS");
+        }
+        $class=new BAClass(NTK_CLASS);
+        $user=$class->getUser("test");
+        self::runInDocker_withClassUser($user, true);
+    }
+    static function runInDocker_withClassUser($user, $outjson=false) {
+        $class=$user->_class;
         $projectName=param("prj");
         $fileName=param("file");
         $stdin=param("stdin","\n\n\n\n\n\n\n\n");
-        $class=Auth::curClass2();
-        $user=Auth::curUser2();
-        
+        $source=param("source",param("src",null));
+
         $d=Docker::init($class->id);
-        $source=param("source",null);
         if ($source) {
             $prjDir=$d->BAHome()->rel($user->name)->rel($projectName);
             self::pushSource($prjDir, $fileName, $source );
@@ -68,6 +80,11 @@ class RunPythonController {
         $stdinfile="__STDIN.txt";
      	$prjDesc["work"]["host"]->rel($stdinfile)->text($stdin);
      	$res=$d->execInProject($prjDesc, "export MPLBACKEND=\"module://mybackend\" \n timeout 60 python $fileName < $stdinfile");
+        if ($outjson) {
+            header("Content-type: text/json; charset=utf8");
+            print json_encde($res);
+            return;
+        }
      	if ($res["stderr"]=="") self::convOut($res["stdout"], $d->hostWork()->rel($user->name."/")->rel("$projectName/") );
         else {
             http_response_code(500);
