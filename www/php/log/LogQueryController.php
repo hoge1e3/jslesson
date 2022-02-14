@@ -41,9 +41,15 @@ class LogQueryController {
         $wheres=[];
         $wheres[]=["class=?",$class->id];
         if ($date) {
-            $dateMin=DateUtil::toInt($date);
+            if (is_array($date)) {
+                $dateMin=($date[0] ? DateUtil::toInt($date[0]) : 0);
+                $dateMax=DateUtil::toInt($date[1]);
+            } else {
+                $dateMin=DateUtil::toInt($date);
+                $dateMax=$dateMin+86400;
+            }
             $wheres[]=["time > ?", $dateMin];
-            $wheres[]=["time < ?", $dateMin+86400];
+            $wheres[]=["time < ?", $dateMax];
         }
         if ($user) {
             $wheres[]=["user =?", $user->name];
@@ -58,12 +64,12 @@ class LogQueryController {
     static function show($output, $class, $date, $user, $file, $limit, $sort) {
         $it=self::get($class, $date, $user, $file, $limit, $sort);
         if ($output==="table") {
+            self::showTable($it);
             if ($user && $file) {
                 req("TeacherLogController");
                 $a=TeacherLogController::getActualtime2($user, $file);
                 echo "actualTime2= $a";
             }
-            self::showTable($it);
         } else self::showJSON($it);
     }
     static function showJSON($it) {
