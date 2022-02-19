@@ -68,7 +68,8 @@ class RunPythonController {
     static function runInDocker_withClassUser($user, $projectName, $outjson=false) {
         $class=$user->_class;
         $source=param("source",param("src",null));
-        $fileName=param("file",param("filename"));
+        $fileName=param("file",param("filename",null));
+        if (!$fileName) die("Parameter fileName Required");
         $stdin=param("stdin","\n\n\n\n\n\n\n\n");
 
         $d=Docker::init($class->id);
