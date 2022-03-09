@@ -4,8 +4,8 @@ import requests
 class BeautifulSoup:
     def __init__(self, url, *a, **k):
         # if url="..eplang.jp"
-        r=requests.get(url)
-        raw=b.BeautifulSoup(r.text,"html.parser") #*a,**k)
+        r=requests.urlopen(url) if isinstance(url, str) else url
+        raw=b.BeautifulSoup(r.read(),"html.parser") #*a,**k)
         self.BeautifulSoup=raw.BeautifulSoup
         self.find_all=raw.find_all
         self.find=raw.find
