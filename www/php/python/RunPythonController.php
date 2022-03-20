@@ -58,8 +58,11 @@ class RunPythonController {
             $url=param("url");
             req("Published");
             $rec=Published::getRecord($url);
-            $user=new BAUser(new BAClass($rec->{"class"}), $rec->{"user"});
-
+            if($rec) {
+                $user=new BAUser(new BAClass($rec->{"class"}), $rec->{"user"});
+            } else {
+                $user=Auth::curUser2();
+            }
         //}
         $projectName=param("prj");
         self::runInDocker_withClassUser($user, $projectName, false);
