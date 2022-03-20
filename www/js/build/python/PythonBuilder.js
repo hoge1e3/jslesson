@@ -240,7 +240,8 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         KeyEventChecker.down(document,"ctrl+F9",runAtServer);
         Menu.appendSub(
             {label:"ツール",id:"tool",after:$("#config")},
-            {label:"Raspi-pico接続",id:"raspiPanel",action:this.showRaspiPanel.bind(this)}
+            //{label:"Raspi-pico接続",id:"raspiPanel",action:this.showRaspiPanel.bind(this)}
+            {label:"組み込み機器接続",id:"raspiPanel",action:this.showRaspiPanel.bind(this)}
         );
         this.menu=Menu;
     };
@@ -250,7 +251,8 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         $("#tabTop").after(serialDOM);
         this.serialControl=new SerialControl();
         this.serialControl.render(serialDOM[0]);
-        this.menu.appendSub("runPython",{label:"Raspiで実行",id:"runRaspi",action: async ()=>{
+        //this.menu.appendSub("runPython",{label:"Raspiで実行",id:"runRaspi",action: async ()=>{
+        this.menu.appendSub("runPython",{label:"組み込み機器で実行",id:"runRaspi",action: async ()=>{
             await this.ide.run({runAt:"raspi"});
         } });
     };
