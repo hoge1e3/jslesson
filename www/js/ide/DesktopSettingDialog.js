@@ -5,7 +5,7 @@ define(function (require, exports, module) {
         show(ide,options) {
             const d=this.embed(ide,options);
             this.dom=d;
-            d.dialog({width:500,height:300});
+            d.dialog({width:500,height:500});
         }
         embed(ide,options) {
             if (!options) options={};
@@ -15,6 +15,12 @@ define(function (require, exports, module) {
                 desktopEnv.editorFontSize=form.editorFontSize.value-0;
                 desktopEnv.showInvisibles=$(form.showInvisibles).prop("checked");
                 desktopEnv.fileList=form.fileList.value;
+                const prd=desktopEnv.runDialog;
+                desktopEnv.runDialog=form.runDialog.value;
+                if (prd!==desktopEnv.runDialog) {
+                    alert("設定変更に伴い，再読み込みを行います");
+                    location.reload();
+                }
                 ide.saveDesktopEnv();
                 const ei=ide.getCurrentEditorInfo();
                 if (ei) {
@@ -38,6 +44,11 @@ define(function (require, exports, module) {
                             ["input",{type:"radio",name:"fileList",value:"latest",$var:"fileList"}],"更新順",
                             ["input",{type:"radio",name:"fileList",value:"name",$var:"fileList"}],"名前順",
                         ],
+                        ["h3","実行結果の表示位置"],
+                        ["div",
+                            ["input",{type:"radio",name:"runDialog",value:"dialog",$var:"runDialog"}],"ダイアログ",
+                            ["input",{type:"radio",name:"runDialog",value:"split",$var:"runDialog"}],"画面下部",
+                        ],
                         ["button",{on:{click:close}},"OK"]
                     ]);
                 this.vars=this.dom.$vars;
@@ -46,6 +57,7 @@ define(function (require, exports, module) {
             form.editorFontSize.value=(desktopEnv.editorFontSize||18);
             $(form.showInvisibles).prop("checked", !!desktopEnv.showInvisibles);
             form.fileList.value=desktopEnv.fileList||"latest";
+            form.runDialog.value=desktopEnv.runDialog||"dialog";
             return this.dom;
         }
     }

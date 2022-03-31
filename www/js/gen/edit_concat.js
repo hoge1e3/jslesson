@@ -9376,9 +9376,9 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass) {
             this.iframe.attr({
                     width:w,height:h
             });
-            this.targetAttr.width=w;
-            this.targetAttr.height=h;
         }
+        this.targetAttr.width=w;
+        this.targetAttr.height=h;
     };
     p.focus=function () {
         if (this.iframe) this.iframe.focus();
@@ -9913,7 +9913,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
         function handleResize(e,ngeom) {
             //console.log("RSZ",arguments);
             if (res.b/* && res.b.iframe*/) {
-                res.b.resize(d.width(),d.height()-d.$vars.OKButton.height());
+                res.b.resize(d.width(),d.height()-d.$vars.buttonRow.height());
                 if (ngeom) {
                     geom.width=ngeom.size.width;
                     geom.height=ngeom.size.height;
@@ -9939,9 +9939,12 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
         options=options||{};
         if (!res.d) {
             res.d=UI("div",{title:"実行画面ダイアログ",id:"runDlg",css:{overflow:"hidden"}},
+                    (options.targetDOM?["div",{$var:"buttonRow"},"実行結果"]:""),
                     ["div",{$var:"browser"}],
-                    ["button", {type:"button",$var:"OKButton", on:{click: res.close}}, "閉じる"],
-                    ["button", {type:"button",$var:"OKButton", on:{click: res.dlOut}}, "出力を共有……"],
+                    (!options.targetDOM? ["div",{$var:"buttonRow"},
+                        ["button", {type:"button",$var:"OKButton", on:{click: res.close}}, "閉じる"],
+                        ["button", {type:"button",$var:"dlOut", on:{click: res.dlOut}}, "出力を共有……"]
+                    ]:""),
                     (true?"":["button", {type:"button",$var:"WButton", on:{click: function () {
                         if (res.hasLocalBrowserWindow()) res.lbw.close();
                         res.lbw=new LocalBrowserWindow({
@@ -9960,13 +9963,29 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
                 if (res.b && res.b.iframe) {
                     res.b.iframe.attr({
                         width:d.width(),
-                        height:d.height()-res.d.$vars.OKButton.height()});
+                        height:d.height()-res.d.$vars.buttonRow.height()});
                 }
             };
+            res.diagAdjuster=res.da;
+            const bsize={width:400, height:400};
+            if (options.targetDOM) {
+                //console.log("targetDOM",res.targetDOM.width(), res.d.height());
+                const td=options.targetDOM;
+                res.d.appendTo(td);
+                res.fitToTarget=()=>{
+                    bsize.width=td.width();
+                    bsize.height=td.height()-res.d.$vars.buttonRow.height();
+                    if (res.b) {
+                        res.b.resize(bsize.width, bsize.height);
+                    }
+                };
+                res.fitToTarget();
+                //res.da.afterResize(res.d);
+            }
             res.b=new LocalBrowser(res.d.$vars.browser[0],{
                 id:"ifrmDlg",
-                width:400,
-                height:400
+                width:bsize.width,
+                height:bsize.height,
             });
         }
         setTimeout(function () {
@@ -16439,7 +16458,7 @@ define('DesktopSettingDialog',['require','exports','module','UI','jshint'],funct
         show(ide,options) {
             const d=this.embed(ide,options);
             this.dom=d;
-            d.dialog({width:500,height:300});
+            d.dialog({width:500,height:500});
         }
         embed(ide,options) {
             if (!options) options={};
@@ -16449,6 +16468,12 @@ define('DesktopSettingDialog',['require','exports','module','UI','jshint'],funct
                 desktopEnv.editorFontSize=form.editorFontSize.value-0;
                 desktopEnv.showInvisibles=$(form.showInvisibles).prop("checked");
                 desktopEnv.fileList=form.fileList.value;
+                const prd=desktopEnv.runDialog;
+                desktopEnv.runDialog=form.runDialog.value;
+                if (prd!==desktopEnv.runDialog) {
+                    alert("設定変更に伴い，再読み込みを行います");
+                    location.reload();
+                }
                 ide.saveDesktopEnv();
                 const ei=ide.getCurrentEditorInfo();
                 if (ei) {
@@ -16472,6 +16497,11 @@ define('DesktopSettingDialog',['require','exports','module','UI','jshint'],funct
                             ["input",{type:"radio",name:"fileList",value:"latest",$var:"fileList"}],"更新順",
                             ["input",{type:"radio",name:"fileList",value:"name",$var:"fileList"}],"名前順",
                         ],
+                        ["h3","実行結果の表示位置"],
+                        ["div",
+                            ["input",{type:"radio",name:"runDialog",value:"dialog",$var:"runDialog"}],"ダイアログ",
+                            ["input",{type:"radio",name:"runDialog",value:"split",$var:"runDialog"}],"画面下部",
+                        ],
                         ["button",{on:{click:close}},"OK"]
                     ]);
                 this.vars=this.dom.$vars;
@@ -16480,6 +16510,7 @@ define('DesktopSettingDialog',['require','exports','module','UI','jshint'],funct
             form.editorFontSize.value=(desktopEnv.editorFontSize||18);
             $(form.showInvisibles).prop("checked", !!desktopEnv.showInvisibles);
             form.fileList.value=desktopEnv.fileList||"latest";
+            form.runDialog.value=desktopEnv.runDialog||"dialog";
             return this.dom;
         }
     }
@@ -16660,46 +16691,6 @@ function ready() {
         ALWAYS_UPLOAD=true;
         console.log("Firefox tonyu ALWAYS_UPLOAD");
     }
-    /*switch (lang){
-    case "c":
-        requirejs(["CBuilder"],function(_){
-            setupBuilder(_);
-        });
-        helpURL="http://bitarrow.eplang.jp/index.php?c_use";
-    	break;
-    case "js":
-    	requirejs(["TJSBuilder"],function(_){
-            setupBuilder(_);
-    	});
-    	helpURL="http://bitarrow.eplang.jp/index.php?javascript";
-    	break;
-    case "dtl":
-    	requirejs(["DtlBuilder"],function(_){
-            setupBuilder(_);
-    	});
-    	helpURL="http://bitarrow.eplang.jp/index.php?dolittle_use";
-    	break;
-    case "dncl":
-    	requirejs(["DnclBuilder"],setupBuilder);
-    	helpURL="http://bitarrow.eplang.jp/index.php?dncl_use";
-    	break;
-    case "py":
-        //openDummyEditor();// I dont know
-        requirejs(["PythonBuilder"],setupBuilder);
-        ALWAYS_UPLOAD=UA.isIE;
-    	helpURL="http://bitarrow.eplang.jp/index.php?python";
-        break;
-    case "tonyu":
-        //ALWAYS_UPLOAD=true;
-        requirejs(["TonyuBuilder"],setupBuilder);
-        helpURL="http://bitarrow.eplang.jp/index.php?tonyu";
-        break;
-    case "php":
-        //ALWAYS_UPLOAD=true;
-        requirejs(["PHPBuilder"],setupBuilder);
-        helpURL="http://bitarrow.eplang.jp/index.php?php";
-        break;
-    }*/
     function setupBuilder(BuilderClass) {
         $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
         ram=FS.get("/ram/build/");
@@ -16800,7 +16791,8 @@ function ready() {
                      ["a",{class:"tabLink", id:"fullScr",href:JS_NOP}],
                      ["span",{class:"tabLink", id:"toastArea"}]
                   ],
-                  ["div",{id:"progs"}]
+                  ["div",{id:"progs"}],
+                  ["div",{id:"runEmbed"}],
               ]
         );
     }
@@ -16931,19 +16923,32 @@ function ready() {
     checkPublishedURL();
     makeMenu();
 
-    var screenH;
+    let screenH, editorH, runH;
     function onResize() {
         var h=$(window).height()-$("#navBar").height()-$("#tabTop").height();
         h-=20;
-        screenH=h;
+        if (isSplit()) {
+            screenH=h;
+            editorH=h*2/3;
+            runH=h*1/3;
+        } else {
+            screenH=h;
+            editorH=h;
+            runH=0;
+        }
         var rw=$("#runArea").width();
-        $("#progs pre").css("height",h+"px");
+        $("#progs pre").css("height",editorH+"px");
         console.log("canvas size",rw,h);
         $("#fileItemList").height(h);
+        $("#runEmbed").height(runH);
+        console.log("runEmbed", $("#runEmbed").height());
+        if (isSplit() && RunDialog2.fitToTarget) {
+            RunDialog2.fitToTarget();
+        }
     }
-    onResize();
     const desktopEnv=loadDesktopEnv();
     ide.desktopEnv=desktopEnv;
+    onResize();
     window.editorTextSize=desktopEnv.editorFontSize||18;
     var editors={};root._editors=editors;
 
@@ -17371,12 +17376,21 @@ function ready() {
                 return IframeDialog.show(runURL,{width:600,height:400});
             } else {
                 var indexF=buildStatus.indexFile;// ram.rel(lang=="tonyu"?"index.html":curHTMLFile.name());
-                return RunDialog2.show(indexF,{
-                    window:newwnd,
-                    height:RunDialog2.geom.height||screenH-50,
-                    toEditor:focusToEditor,
-                    font:desktopEnv.editorFontSize||18
-                });
+                if (isSplit()) {
+                    return RunDialog2.embed(indexF, {
+                        window:newwnd,
+                        targetDOM: $("#runEmbed"),
+                        toEditor:focusToEditor,
+                        font:desktopEnv.editorFontSize||18
+                    });
+                } else {
+                    return RunDialog2.show(indexF,{
+                        window:newwnd,
+                        height:RunDialog2.geom.height||screenH-50,
+                        toEditor:focusToEditor,
+                        font:desktopEnv.editorFontSize||18
+                    });
+                }
             }
         }catch(e) {
             console.log(e,e.stack);
@@ -17596,7 +17610,7 @@ function ready() {
         $(".selTab").removeClass("selected");
         $(".selTab[data-ext='"+ext+"']").addClass("selected");
         if (!inf) {
-            var progDOM=$("<pre>").css("height", screenH+"px").text(f.text()).appendTo("#progs");
+            var progDOM=$("<pre>").css("height", editorH+"px").text(f.text()).appendTo("#progs");
             progDOM.attr("data-file",f.name());
             var prog=root.ace.edit(progDOM[0]);
             prog.setShowInvisibles(desktopEnv.showInvisibles);
@@ -17673,6 +17687,9 @@ function ready() {
     function saveDesktopEnv() {
         var d=curProjectDir.rel(".desktop");
         d.obj(desktopEnv);
+    }
+    function isSplit() {
+        return desktopEnv.runDialog==="split";
     }
     if (root.progBar) {root.progBar.clear();}
     let desktopSettingDialog;

@@ -22,7 +22,7 @@
 
 <body>
     <script id="BAVersion">
-var BitArrow={version:"20211209115849",//VERSION_STRING
+var BitArrow={version:"20220331191057",//VERSION_STRING
 checkVer:function () {
     if (!localStorage.BAVer || localStorage.BAVer<this.version) {
         console.log("Version up ",localStorage.BAVer," to ",this.version);
@@ -77,7 +77,9 @@ requirejs(["Util"],function (Util){
             //run+="_concat";
         }
     } else {
-        delete localStorage.BAVer;
+        if (!localStorage.enableBreakpoint) {
+            delete localStorage.BAVer;
+        }
     }
     if (Util.getQueryString("clearLocalStorage","false")==="true") {
         for (var k in localStorage) {
