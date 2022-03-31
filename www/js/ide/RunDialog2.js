@@ -57,7 +57,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
         function handleResize(e,ngeom) {
             //console.log("RSZ",arguments);
             if (res.b/* && res.b.iframe*/) {
-                res.b.resize(d.width(),d.height()-d.$vars.OKButton.height());
+                res.b.resize(d.width(),d.height()-d.$vars.buttonRow.height());
                 if (ngeom) {
                     geom.width=ngeom.size.width;
                     geom.height=ngeom.size.height;
@@ -83,9 +83,12 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
         options=options||{};
         if (!res.d) {
             res.d=UI("div",{title:"実行画面ダイアログ",id:"runDlg",css:{overflow:"hidden"}},
+                    (options.targetDOM?["div",{$var:"buttonRow"},"実行結果"]:""),
                     ["div",{$var:"browser"}],
-                    ["button", {type:"button",$var:"OKButton", on:{click: res.close}}, "閉じる"],
-                    ["button", {type:"button",$var:"OKButton", on:{click: res.dlOut}}, "出力を共有……"],
+                    (!options.targetDOM? ["div",{$var:"buttonRow"},
+                        ["button", {type:"button",$var:"OKButton", on:{click: res.close}}, "閉じる"],
+                        ["button", {type:"button",$var:"dlOut", on:{click: res.dlOut}}, "出力を共有……"]
+                    ]:""),
                     (true?"":["button", {type:"button",$var:"WButton", on:{click: function () {
                         if (res.hasLocalBrowserWindow()) res.lbw.close();
                         res.lbw=new LocalBrowserWindow({
@@ -104,7 +107,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
                 if (res.b && res.b.iframe) {
                     res.b.iframe.attr({
                         width:d.width(),
-                        height:d.height()-res.d.$vars.OKButton.height()});
+                        height:d.height()-res.d.$vars.buttonRow.height()});
                 }
             };
             res.diagAdjuster=res.da;
@@ -115,7 +118,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
                 res.d.appendTo(td);
                 res.fitToTarget=()=>{
                     bsize.width=td.width();
-                    bsize.height=td.height()-res.d.$vars.OKButton.height();
+                    bsize.height=td.height()-res.d.$vars.buttonRow.height();
                     if (res.b) {
                         res.b.resize(bsize.width, bsize.height);
                     }
