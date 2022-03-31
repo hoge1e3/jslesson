@@ -189,7 +189,7 @@ define([],function () {
 //----------
 define('extend',[],function (){
    return function extend(d,s) {
-      for (var i in s) {d[i]=s[i];} 
+      for (var i in s) {d[i]=s[i];}
    };
 });
 
@@ -1285,7 +1285,7 @@ function privatize(o){
     return res;
 }
 function extend(d,s) {
-    for (var i in (s||{})) {d[i]=s[i];} 
+    for (var i in (s||{})) {d[i]=s[i];}
     return d;
 }
 return {
@@ -2958,7 +2958,7 @@ define('RootFS',["assert","FSClass","PathUtil","SFile"], function (assert,FS,P,S
             get: function (path) {
                 assert.is(path,P.Absolute);
                 return new SFile(this.resolveFS(path), path);
-            },   
+            },
             addObserver: function () {
                 this.observers=this.observers||[];
                 var path,f;
@@ -4747,9 +4747,9 @@ return Tonyu=function () {
 				parent=m.extendFrom(parent,extend(ctx,{init:false}));
 			});
 			var methods=typeof methodsF==="function"? methodsF(parent):methodsF;
-			if (typeof Profiler!=="undefined") {
+			/*if (typeof Profiler!=="undefined") {
 				Profiler.profile(methods, fullName);
-			}
+			}*/
 			var init=methods.initialize;
 			delete methods.initialize;
 			var res;
@@ -5615,7 +5615,7 @@ var PicoAudio = (function(){
 		this.chorusGainNode.connect(this.masterGainNode);
 		this.masterGainNode.connect(this.context.destination);
 		this.chorusOscillator.start(0);
-		
+
 		// リバーブON設定を引き継ぐ。未設定ならパフォーマンス計測する(Tonyu2用)
 		if(this.isTonyu2){
 			if(_picoAudio){
@@ -6370,7 +6370,7 @@ var PicoAudio = (function(){
 				gainNode2.gain.setTargetAtTime(0, start, option.pitch==86 ? 0.1 : 0.3);
 				stopAudioTime2 = option.pitch==86 ? 0.5 : 1.5;
 				break;
-			default: 
+			default:
 				source.playbackRate.value = option.pitch/69*2;
 				stopAudioTime = 0.05;
 				stopAudioTime2 = 0;
@@ -6905,7 +6905,7 @@ var PicoAudio = (function(){
 					if(curTime + note.startTime < 0) continue;
 					// 演奏開始時間 - 先読み時間(ノート予約) になると演奏予約or演奏開始
 					if(curTime < note.startTime - that.states.updateBufTime/1000) break;
-					if(!settings.isWebMIDI){ 
+					if(!settings.isWebMIDI){
 						// 予約ノート数が急激に増えそうな時、先読み量を小さくしておく
 						if(that.states.stopFuncs.length>=350 && that.states.updateBufTime<1000){
 							that.states.updateBufTime = (that.isFirefox() && !that.isAndroid() ? 12 : 8);
