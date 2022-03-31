@@ -172,46 +172,6 @@ function ready() {
         ALWAYS_UPLOAD=true;
         console.log("Firefox tonyu ALWAYS_UPLOAD");
     }
-    /*switch (lang){
-    case "c":
-        requirejs(["CBuilder"],function(_){
-            setupBuilder(_);
-        });
-        helpURL="http://bitarrow.eplang.jp/index.php?c_use";
-    	break;
-    case "js":
-    	requirejs(["TJSBuilder"],function(_){
-            setupBuilder(_);
-    	});
-    	helpURL="http://bitarrow.eplang.jp/index.php?javascript";
-    	break;
-    case "dtl":
-    	requirejs(["DtlBuilder"],function(_){
-            setupBuilder(_);
-    	});
-    	helpURL="http://bitarrow.eplang.jp/index.php?dolittle_use";
-    	break;
-    case "dncl":
-    	requirejs(["DnclBuilder"],setupBuilder);
-    	helpURL="http://bitarrow.eplang.jp/index.php?dncl_use";
-    	break;
-    case "py":
-        //openDummyEditor();// I dont know
-        requirejs(["PythonBuilder"],setupBuilder);
-        ALWAYS_UPLOAD=UA.isIE;
-    	helpURL="http://bitarrow.eplang.jp/index.php?python";
-        break;
-    case "tonyu":
-        //ALWAYS_UPLOAD=true;
-        requirejs(["TonyuBuilder"],setupBuilder);
-        helpURL="http://bitarrow.eplang.jp/index.php?tonyu";
-        break;
-    case "php":
-        //ALWAYS_UPLOAD=true;
-        requirejs(["PHPBuilder"],setupBuilder);
-        helpURL="http://bitarrow.eplang.jp/index.php?php";
-        break;
-    }*/
     function setupBuilder(BuilderClass) {
         $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
         ram=FS.get("/ram/build/");
@@ -312,7 +272,8 @@ function ready() {
                      ["a",{class:"tabLink", id:"fullScr",href:JS_NOP}],
                      ["span",{class:"tabLink", id:"toastArea"}]
                   ],
-                  ["div",{id:"progs"}]
+                  ["div",{id:"progs"}],
+                  ["div",{id:"runEmbed"}],
               ]
         );
     }
@@ -443,19 +404,32 @@ function ready() {
     checkPublishedURL();
     makeMenu();
 
-    var screenH;
+    let screenH, editorH, runH;
     function onResize() {
         var h=$(window).height()-$("#navBar").height()-$("#tabTop").height();
         h-=20;
-        screenH=h;
+        if (isSplit()) {
+            screenH=h;
+            editorH=h*2/3;
+            runH=h*1/3;
+        } else {
+            screenH=h;
+            editorH=h;
+            runH=0;
+        }
         var rw=$("#runArea").width();
-        $("#progs pre").css("height",h+"px");
+        $("#progs pre").css("height",editorH+"px");
         console.log("canvas size",rw,h);
         $("#fileItemList").height(h);
+        $("#runEmbed").height(runH);
+        console.log("runEmbed", $("#runEmbed").height());
+        if (isSplit() && RunDialog2.fitToTarget) {
+            RunDialog2.fitToTarget();
+        }
     }
-    onResize();
     const desktopEnv=loadDesktopEnv();
     ide.desktopEnv=desktopEnv;
+    onResize();
     window.editorTextSize=desktopEnv.editorFontSize||18;
     var editors={};root._editors=editors;
 
@@ -883,12 +857,21 @@ function ready() {
                 return IframeDialog.show(runURL,{width:600,height:400});
             } else {
                 var indexF=buildStatus.indexFile;// ram.rel(lang=="tonyu"?"index.html":curHTMLFile.name());
-                return RunDialog2.show(indexF,{
-                    window:newwnd,
-                    height:RunDialog2.geom.height||screenH-50,
-                    toEditor:focusToEditor,
-                    font:desktopEnv.editorFontSize||18
-                });
+                if (isSplit()) {
+                    return RunDialog2.embed(indexF, {
+                        window:newwnd,
+                        targetDOM: $("#runEmbed"),
+                        toEditor:focusToEditor,
+                        font:desktopEnv.editorFontSize||18
+                    });
+                } else {
+                    return RunDialog2.show(indexF,{
+                        window:newwnd,
+                        height:RunDialog2.geom.height||screenH-50,
+                        toEditor:focusToEditor,
+                        font:desktopEnv.editorFontSize||18
+                    });
+                }
             }
         }catch(e) {
             console.log(e,e.stack);
@@ -1108,7 +1091,7 @@ function ready() {
         $(".selTab").removeClass("selected");
         $(".selTab[data-ext='"+ext+"']").addClass("selected");
         if (!inf) {
-            var progDOM=$("<pre>").css("height", screenH+"px").text(f.text()).appendTo("#progs");
+            var progDOM=$("<pre>").css("height", editorH+"px").text(f.text()).appendTo("#progs");
             progDOM.attr("data-file",f.name());
             var prog=root.ace.edit(progDOM[0]);
             prog.setShowInvisibles(desktopEnv.showInvisibles);
@@ -1185,6 +1168,9 @@ function ready() {
     function saveDesktopEnv() {
         var d=curProjectDir.rel(".desktop");
         d.obj(desktopEnv);
+    }
+    function isSplit() {
+        return desktopEnv.runDialog==="split";
     }
     if (root.progBar) {root.progBar.clear();}
     let desktopSettingDialog;

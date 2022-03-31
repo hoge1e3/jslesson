@@ -15,9 +15,9 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass) {
             this.iframe.attr({
                     width:w,height:h
             });
-            this.targetAttr.width=w;
-            this.targetAttr.height=h;
         }
+        this.targetAttr.width=w;
+        this.targetAttr.height=h;
     };
     p.focus=function () {
         if (this.iframe) this.iframe.focus();

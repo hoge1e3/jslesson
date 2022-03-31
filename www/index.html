@@ -77,7 +77,9 @@ requirejs(["Util"],function (Util){
             //run+="_concat";
         }
     } else {
-        delete localStorage.BAVer;
+        if (!localStorage.enableBreakpoint) {
+            delete localStorage.BAVer;
+        }
     }
     if (Util.getQueryString("clearLocalStorage","false")==="true") {
         for (var k in localStorage) {

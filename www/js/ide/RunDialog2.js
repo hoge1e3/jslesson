@@ -107,10 +107,26 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
                         height:d.height()-res.d.$vars.OKButton.height()});
                 }
             };
+            res.diagAdjuster=res.da;
+            const bsize={width:400, height:400};
+            if (options.targetDOM) {
+                //console.log("targetDOM",res.targetDOM.width(), res.d.height());
+                const td=options.targetDOM;
+                res.d.appendTo(td);
+                res.fitToTarget=()=>{
+                    bsize.width=td.width();
+                    bsize.height=td.height()-res.d.$vars.OKButton.height();
+                    if (res.b) {
+                        res.b.resize(bsize.width, bsize.height);
+                    }
+                };
+                res.fitToTarget();
+                //res.da.afterResize(res.d);
+            }
             res.b=new LocalBrowser(res.d.$vars.browser[0],{
                 id:"ifrmDlg",
-                width:400,
-                height:400
+                width:bsize.width,
+                height:bsize.height,
             });
         }
         setTimeout(function () {
