@@ -17,7 +17,7 @@ class Docker {
     }
     function name(){
         $className=$this->className;
-        return "$className";
+        return "dock_".$className."_er";
     }
 
     function hostAsset() {
@@ -61,7 +61,7 @@ class Docker {
         $hostWorkPrj=$this->hostWork()->rel("$userName/")->rel("$projectName/");
         self::sync($hostHomePrj,$hostWorkPrj);
         $guestWorkPrjPath=$this->guestWorkPath()."$userName/$projectName/";
-        return array( "userName"=>$userName, "projectName"=>$projectName , 
+        return array( "userName"=>$userName, "projectName"=>$projectName ,
 			"work"=> array(
 				"host"=> $hostWorkPrj,
 				"guestPath"=> $guestWorkPrjPath
