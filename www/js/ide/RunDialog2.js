@@ -83,7 +83,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
         options=options||{};
         if (!res.d) {
             res.d=UI("div",{title:"実行画面ダイアログ",id:"runDlg",css:{overflow:"hidden"}},
-                    (options.targetDOM?["div",{$var:"buttonRow"},"実行結果"]:""),
+                    (options.targetDOM?["h1",{$var:"buttonRow", class:"accessibility"},"実行結果"]:""),
                     ["div",{$var:"browser"}],
                     (!options.targetDOM? ["div",{$var:"buttonRow"},
                         ["button", {type:"button",$var:"OKButton", on:{click: res.close}}, "閉じる"],
