@@ -10803,14 +10803,118 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
     return ProgramFileUploader;
 });
 
+define('DesktopSettingDialog',['require','exports','module','UI','jshint'],function (require, exports, module) {
+    const UI=require("UI");
+    const jshint=require("jshint");
+    class DesktopSettingDialog {
+        show(ide,options) {
+            const d=this.embed(ide,options);
+            this.dom=d;
+            d.dialog({width:500,height:500});
+        }
+        embed(ide,options) {
+            if (!options) options={};
+            const desktopEnv=ide.desktopEnv;
+            const close=()=>{
+                const form=this.vars.form[0];
+                desktopEnv.editorFontSize=form.editorFontSize.value-0;
+                desktopEnv.showInvisibles=$(form.showInvisibles).prop("checked");
+                desktopEnv.fileList=form.fileList.value;
+                const prd=desktopEnv.runDialog;
+                desktopEnv.runDialog=form.runDialog.value;
+                if (prd!==desktopEnv.runDialog) {
+                    alert("設定変更に伴い，再読み込みを行います");
+                    location.reload();
+                }
+                ide.saveDesktopEnv();
+                const ei=ide.getCurrentEditorInfo();
+                if (ei) {
+                    ei.editor.setFontSize(desktopEnv.editorFontSize||18);
+                    ei.editor.setShowInvisibles(!!desktopEnv.showInvisibles);
+                }
+                ide.ls();
+                this.dom.dialog("close");
+            };
+            if (!this.dom) {
+                this.dom=UI("div",{title:"設定"},
+                    ["form",{$var:"form",action:jshint.scriptURL(";")},
+                        ["h3","エディタ"],
+                        ["div","文字の大きさ",
+                            ["input",{name:"editorFontSize",$var:"size",on:{enterkey:close}}]],
+                        ["div",
+                            ["input",{name:"showInvisibles",type:"checkbox",$var:"showInvisibles"}],
+                            "スペースやタブを表示する"],
+                        ["h3","ファイル表示"],
+                        ["div",
+                            ["input",{type:"radio",name:"fileList",value:"latest",$var:"fileList"}],"更新順",
+                            ["input",{type:"radio",name:"fileList",value:"name",$var:"fileList"}],"名前順",
+                        ],
+                        ["h3","実行結果の表示位置"],
+                        ["div",
+                            ["input",{type:"radio",name:"runDialog",value:"dialog",$var:"runDialog"}],"ダイアログ",
+                            ["input",{type:"radio",name:"runDialog",value:"split",$var:"runDialog"}],"画面下部",
+                        ],
+                        ["button",{on:{click:close}},"OK"]
+                    ]);
+                this.vars=this.dom.$vars;
+            }
+            const form=this.vars.form[0];
+            form.editorFontSize.value=(desktopEnv.editorFontSize||18);
+            $(form.showInvisibles).prop("checked", !!desktopEnv.showInvisibles);
+            form.fileList.value=desktopEnv.fileList||"latest";
+            form.runDialog.value=desktopEnv.runDialog||"dialog";
+            return this.dom;
+        }
+    }
+    module.exports=DesktopSettingDialog;
+});
+
+define('globalDesktopSetting',['require','exports','module','DesktopSettingDialog','Sync'],function (require, exports, module) {
+    const DesktopSettingDialog=require("DesktopSettingDialog");
+    const Sync=require("Sync");
+    const desktopSettingDialog=new DesktopSettingDialog();
+    exports.confFile=function (projects) {
+        const settingDir=projects.rel(".setting/");
+        const confFile=settingDir.rel(".desktop");
+        return confFile;
+    };
+    exports.init=async function (projects) {
+        const settingDir=projects.rel(".setting/");
+        const confFile=settingDir.rel(".desktop");
+        const ide={
+            ls(){},
+            desktopEnv: {},
+            getCurrentEditorInfo(){},
+            saveDesktopEnv(){
+                confFile.obj(ide.desktopEnv);
+                Sync.sync(settingDir, settingDir,{v:true}).then(
+                    console.log.bind(console),console.error.bind(console));
+            }
+        };
+        exports.ide=ide;
+        await Sync.sync(settingDir, settingDir,{v:true});
+        if (confFile.exists()) {
+            try {
+                ide.desktopEnv=confFile.obj();
+            } catch(e){
+                console.error(e);
+            }
+        }
+        console.log("ide.desktopEnv", ide.desktopEnv);
+    };
+    exports.open=async function () {
+        desktopSettingDialog.show(exports.ide);
+    };
+});
+
 define('jsl_selProject',["FS","Shell","Shell2",
            "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog","RenameProjectDialog",
            "assert","DeferredUtil","RemoteProject","SplashScreen",
-       "ctrl","root","jshint","ProgramFileUploader"],
+       "ctrl","root","jshint","ProgramFileUploader","globalDesktopSetting"],
     function(FS, sh,sh2,
            NPD, UI, Auth,zip,Sync,NSD,RPD,
            A,DU,RemoteProject,SplashScreen,
-       ctrl,root,jshint, ProgramFileUploader) {
+       ctrl,root,jshint, ProgramFileUploader, globalDesktopSetting) {
     if (location.href.match(/localhost/)) {
         A.setMode(A.MODE_STRICT);
     } else {
@@ -10873,11 +10977,12 @@ function ready() {//-------------------------
     });
     setTimeout(function () {
         $("#syncMesg").empty();
-        $("#userInfo").text(Auth.class+" クラスの"+Auth.user+"さん、こんにちは");
-        $("#userInfo").append(UI("br"));
-        $("#userInfo").append(UI("a",{href:".?Login/form"},"他ユーザでログイン"));
+        $("#userInfo").append(UI("div",Auth.class+" クラスの"+Auth.user+"さん、こんにちは"));
+        $("#userInfo").append(UI("div",["a",{href:".?Login/form"},"他ユーザでログイン"]));
+        $("#userInfo").append(UI("div",["a",{href:jshint.scriptURL(";"),on:{click:()=>globalDesktopSetting.open()}},"設定"]));
     },1000);
     var projects=Auth.localProjects();// FS.resolve("${tonyuHome}/Projects/");
+    globalDesktopSetting.init(projects);
     console.log(projects);
     projects.mkdir();
     sh.cd(projects);
