@@ -38,6 +38,7 @@ define(function (require) {
     const UI=require("UI");
     const ctrl=require("ctrl");
     const DesktopSettingDialog=require("DesktopSettingDialog");
+    const globalDesktopSetting=require("globalDesktopSetting");
     const languageList=require("LanguageList");
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -1154,12 +1155,23 @@ function ready() {
         root.Tonyu.currentProject.dumpJS.apply(this,arguments);
     };
     function loadDesktopEnv() {
-        var d=curProjectDir.rel(".desktop");
-        var res;
+        const globalConfFile=globalDesktopSetting.confFile(curProjectDir.up());
+        let globalEnv={};
+        if (globalConfFile.exists()) {
+            try {
+                globalEnv=globalConfFile.obj();
+            } catch(e){
+                console.error(e);
+            }
+        }
+        const d=curProjectDir.rel(".desktop");
+        let res=globalEnv;
         if (d.exists()) {
-            res=d.obj();
-        } else {
-            res={};
+            try {
+                res=Object.assign(globalEnv,d.obj());
+            } catch(e){
+                console.error(e);
+            }
         }
         if (!res.runMenuOrd) res.runMenuOrd=[];
         //desktopEnv=res;
