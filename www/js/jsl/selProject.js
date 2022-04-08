@@ -1,11 +1,11 @@
 define(["FS","Shell","Shell2",
            "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog","RenameProjectDialog",
            "assert","DeferredUtil","RemoteProject","SplashScreen",
-       "ctrl","root","jshint","ProgramFileUploader"],
+       "ctrl","root","jshint","ProgramFileUploader","globalDesktopSetting"],
     function(FS, sh,sh2,
            NPD, UI, Auth,zip,Sync,NSD,RPD,
            A,DU,RemoteProject,SplashScreen,
-       ctrl,root,jshint, ProgramFileUploader) {
+       ctrl,root,jshint, ProgramFileUploader, globalDesktopSetting) {
     if (location.href.match(/localhost/)) {
         A.setMode(A.MODE_STRICT);
     } else {
@@ -68,11 +68,12 @@ function ready() {//-------------------------
     });
     setTimeout(function () {
         $("#syncMesg").empty();
-        $("#userInfo").text(Auth.class+" クラスの"+Auth.user+"さん、こんにちは");
-        $("#userInfo").append(UI("br"));
-        $("#userInfo").append(UI("a",{href:".?Login/form"},"他ユーザでログイン"));
+        $("#userInfo").append(UI("div",Auth.class+" クラスの"+Auth.user+"さん、こんにちは"));
+        $("#userInfo").append(UI("div",["a",{href:".?Login/form"},"他ユーザでログイン"]));
+        $("#userInfo").append(UI("div",["a",{href:jshint.scriptURL(";"),on:{click:()=>globalDesktopSetting.open()}},"設定"]));
     },1000);
     var projects=Auth.localProjects();// FS.resolve("${tonyuHome}/Projects/");
+    globalDesktopSetting.init(projects);
     console.log(projects);
     projects.mkdir();
     sh.cd(projects);

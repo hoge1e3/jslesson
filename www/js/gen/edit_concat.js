@@ -9939,7 +9939,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
         options=options||{};
         if (!res.d) {
             res.d=UI("div",{title:"実行画面ダイアログ",id:"runDlg",css:{overflow:"hidden"}},
-                    (options.targetDOM?["div",{$var:"buttonRow"},"実行結果"]:""),
+                    (options.targetDOM?["h1",{$var:"buttonRow", class:"accessibility"},"実行結果"]:""),
                     ["div",{$var:"browser"}],
                     (!options.targetDOM? ["div",{$var:"buttonRow"},
                         ["button", {type:"button",$var:"OKButton", on:{click: res.close}}, "閉じる"],
@@ -16517,8 +16517,46 @@ define('DesktopSettingDialog',['require','exports','module','UI','jshint'],funct
     module.exports=DesktopSettingDialog;
 });
 
+define('globalDesktopSetting',['require','exports','module','DesktopSettingDialog','Sync'],function (require, exports, module) {
+    const DesktopSettingDialog=require("DesktopSettingDialog");
+    const Sync=require("Sync");
+    const desktopSettingDialog=new DesktopSettingDialog();
+    exports.confFile=function (projects) {
+        const settingDir=projects.rel(".setting/");
+        const confFile=settingDir.rel(".desktop");
+        return confFile;
+    };
+    exports.init=async function (projects) {
+        const settingDir=projects.rel(".setting/");
+        const confFile=settingDir.rel(".desktop");
+        const ide={
+            ls(){},
+            desktopEnv: {},
+            getCurrentEditorInfo(){},
+            saveDesktopEnv(){
+                confFile.obj(ide.desktopEnv);
+                Sync.sync(settingDir, settingDir,{v:true}).then(
+                    console.log.bind(console),console.error.bind(console));
+            }
+        };
+        exports.ide=ide;
+        await Sync.sync(settingDir, settingDir,{v:true});
+        if (confFile.exists()) {
+            try {
+                ide.desktopEnv=confFile.obj();
+            } catch(e){
+                console.error(e);
+            }
+        }
+        console.log("ide.desktopEnv", ide.desktopEnv);
+    };
+    exports.open=async function () {
+        desktopSettingDialog.show(exports.ide);
+    };
+});
+
 /*global requirejs*/
-define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shell','KeyEventChecker','UIDiag','WebSite','exceptionCatcher','Columns','assert','Menu','DeferredUtil','Sync','RunDialog2','logToServer2','SplashScreen','Auth','DistributeDialog','NotificationDialog','IframeDialog','AssignmentDialog','SubmitDialog','CommentDialog2','NewProjectDialog','ProgramFileUploader','AssetDialog','root','ErrorDialog','ProjectFactory','UserAgent','SocializeDialog','EventHandler','UI','ctrl','DesktopSettingDialog','LanguageList'],function (require) {
+define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shell','KeyEventChecker','UIDiag','WebSite','exceptionCatcher','Columns','assert','Menu','DeferredUtil','Sync','RunDialog2','logToServer2','SplashScreen','Auth','DistributeDialog','NotificationDialog','IframeDialog','AssignmentDialog','SubmitDialog','CommentDialog2','NewProjectDialog','ProgramFileUploader','AssetDialog','root','ErrorDialog','ProjectFactory','UserAgent','SocializeDialog','EventHandler','UI','ctrl','DesktopSettingDialog','globalDesktopSetting','LanguageList'],function (require) {
     var Util=require("Util");
     var FS=require("FS");
     var FileList=require("FileList");
@@ -16557,6 +16595,7 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
     const UI=require("UI");
     const ctrl=require("ctrl");
     const DesktopSettingDialog=require("DesktopSettingDialog");
+    const globalDesktopSetting=require("globalDesktopSetting");
     const languageList=require("LanguageList");
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -17673,12 +17712,23 @@ function ready() {
         root.Tonyu.currentProject.dumpJS.apply(this,arguments);
     };
     function loadDesktopEnv() {
-        var d=curProjectDir.rel(".desktop");
-        var res;
+        const globalConfFile=globalDesktopSetting.confFile(curProjectDir.up());
+        let globalEnv={};
+        if (globalConfFile.exists()) {
+            try {
+                globalEnv=globalConfFile.obj();
+            } catch(e){
+                console.error(e);
+            }
+        }
+        const d=curProjectDir.rel(".desktop");
+        let res=globalEnv;
         if (d.exists()) {
-            res=d.obj();
-        } else {
-            res={};
+            try {
+                res=Object.assign(globalEnv,d.obj());
+            } catch(e){
+                console.error(e);
+            }
         }
         if (!res.runMenuOrd) res.runMenuOrd=[];
         //desktopEnv=res;

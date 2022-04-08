@@ -150,6 +150,7 @@ var reqConf={
             AssignmentDialog:"ide/",
             SubmitDialog:"ide/",
             DesktopSettingDialog:"ide/",
+            globalDesktopSetting:"jsl/",
             SocializeDialog:"ide/SocializeDialog",
             TestsuiteDialog:"ide/TestsuiteDialogHori",
             KernelDiffDialog: "ide/KernelDiffDialog",
