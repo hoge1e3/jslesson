@@ -532,7 +532,7 @@ class TeacherLogController {
                 }
                 if ($detail && isset($detail->pos)) {
                     $pos=$detail->pos;
-                    $code=substr($code, 0, $pos).":exclamation:".substr($code,$pos);
+                    $code=mb_substr($code, 0, $pos).":exclamation:".mb_substr($code,$pos);
                 }
                 if (!($log['time']-$prevTime<=1 &&
                 $log['result']==$prevResult &&
@@ -652,7 +652,7 @@ class TeacherLogController {
           $Hint=str_replace('<BR/>','',$Hint);
           $Hint=str_replace('メインページ','',$Hint);
 
-          $mesg=substr($mesg,0,100);
+          $mesg=mb_substr($mesg,0,100);
 
           $user=$class->getUser($name);
 
@@ -799,7 +799,7 @@ class TeacherLogController {
           $user=$class->getUser($name);
           $a2=self::getActualtime2($user,$filename,$max);
           if ($a2>900) {
-              $URL=BA_TOP_URL."?TeacherLog/view1new&logid=$id";
+              $URL=BA_TOP_URL."?TeacherLog/view1new&logid=$id&all=1";
               $option=[
                   'http' => [
                       'method'  => 'GET',
@@ -818,7 +818,7 @@ class TeacherLogController {
               $Hint=str_replace('<BR/>','',$Hint);
               $Hint=str_replace('メインページ','',$Hint);
 
-              //$mesg=substr($mesg,0,100);
+              //$mesg=mb_substr($mesg,0,100);
 
               $user=$class->getUser($name);
 
