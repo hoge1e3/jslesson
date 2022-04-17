@@ -346,8 +346,11 @@ function openFrame(data){
   var fn=data.filename.replace("/","__");
   fn=fn.replace(".","__");
   //var filehist='<span class="filename" filename="'+fn+'" onClick="showFileHistory(this.getAttribute('+"'"+'filename'+"'"+'))">'+data.filename+'</span>';
-  const filedURL=getQueryString("file",null)? location.href: location.href+"&file="+data.filename;
-  const filehist=`<a class="filename" href=${filedURL}>${data.filename}</a>`;
+  const filedURL=getQueryString("file",null)? location.href:
+    location.href.match(/TeacherLog\/view1/) && location.href.match(/user=/) ?
+    location.href+"&file="+data.filename :
+    `?TeacherLog/view1new&user=${data.user}&file=${data.filename}&logid=${data.id}`;
+  const filehist=`<a class="filename" target="_byfile" href=${filedURL}>${data.filename}</a>`;
   //var filehist=data.filename;
   var lang=raw.code.C ?"c" : raw.code.JavaScript ? "js" : raw.code.Dolittle ? "dtl" : raw.code.DNCL ? "dncl" : raw.code.Python ? "py" :"unknown";
   var detail=raw.detail;
