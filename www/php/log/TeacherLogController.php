@@ -853,7 +853,7 @@ class TeacherLogController {
 
     static function view() {
         date_default_timezone_set('Asia/Tokyo');
-        $showActTime=param("showActTime",false);
+        $showActTime=param("showActTime",true);
         $class=Auth::curClass2();
         if (!$class->getOption("showOtherStudentsLogs")) {
             Auth::assertTeacher();
@@ -990,7 +990,7 @@ class TeacherLogController {
     	    <input type="submit" value="最近90分間"/>
     	</form>
         <form action="<?= $thisURL ?>" method="POST">
-            <div><input type="checkbox" name="showActTime" <?= $showActTime ? "checked": ""?>>着手時間を表示</div>
+            <!--div><input type="checkbox" name="showActTime" <?= $showActTime ? "checked": ""?>>着手時間を表示</div-->
             <input name="Y" value="<?=date("Y",$min)?>" maxlength="4" size="4">年
             <input name="m" value="<?=date("m",$min)?>" maxlength="2" size="2">月
             <input name="d" value="<?=date("d",$min)?>" maxlength="2" size="2">日
@@ -1017,10 +1017,7 @@ class TeacherLogController {
         <a href="?TeacherLog/count&min=<?= $min ?>&max=<?= $max ?>">集計....</a>
         <table border=1 class="tablesorter">
             <thead>
-            <tr><th>ユーザID</th><th>エラー/実行</th><th>実行からの経過時間</th><th>今実行しているファイル</th><th>実行結果履歴</th>
-                <?php if($showActTime) {?>
-                    <th>着手時間</th>
-                <?php } ?>
+            <tr><th>ユーザID</th><th>エラー/実行</th><th>実行からの経過時間</th><th>今実行しているファイル</th><th>着手時間</th><th>実行結果履歴</th>
             </tr>
             </thead>
             <tbody>
@@ -1051,10 +1048,9 @@ class TeacherLogController {
             <tr><td><a href="a.php?TeacherLog/view1new&user=<?=$k?>&day=<?=$max?>" target="view1"><?=$k?></a></td>
             <td data-rate="<?=$rate?>" bgcolor=<?=$errcaution?>><?=$errcount[$k]?>/<?=$v?>(<?=$rate?>%)</td>
             <td bgcolor=<?=$timecaution?>><?=str_pad($time['h'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['m'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['s'],2,0,STR_PAD_LEFT)?></td>
-            <td><?=$latestfile[$k]?></td><td><?=$runhistory[$k]?></td>
-            <?php if($showActTime) {?>
-                <td><?= $latestfile[$k]? self::getActualtime2($class->getUser($k),$latestfile[$k],$max) : "-" ?></td>
-            <?php } ?>
+            <td><?=$latestfile[$k]?></td>
+            <td><?= $latestfile[$k]? self::getActualtime2($class->getUser($k),$latestfile[$k],$max) : "-" ?></td>
+            <td><?=$runhistory[$k]?></td>
             </tr>
 
             <?php
