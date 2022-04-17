@@ -156,3 +156,5 @@ CREATE TABLE `user` (
   `shadow` text,
   `passenc` text
 ) DEFAULT CHARSET=utf8;
+
+create index log_by_class_user_file on log(class,user,filename);
