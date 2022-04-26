@@ -1,0 +1,24 @@
+www.zipを，Webサーバの任意の公開フォルダに展開してください．
+→展開した先のフォルダをBA_WWW フォルダと呼びます
+
+data.zipを，Webサーバで公開されていないフォルダに展開してください
+→展開した先のフォルダをBA_DATA フォルダと呼びます
+
+cd {BA_DATA}
+chmod 777 ./fs/* ./log/ ./log/* ./pythonwork
+
+{BA_WWW}/config/config.phpを編集します．
+
+mysqlのデータベースを作成し，次のコマンドでデータベースを初期化します
+mysql -u {bitarrow_user} {bitarrow_dbname} -p  < {BA_DATA}/schema.sql
+
+{BA_DATA}/config.php を編集します．
+
+管理者ユーザを登録します
+
+php {BA_DATA}/regSysAd.php teacher@example.com password
+
+トップページに行き，教員ユーザログインから，上記管理者ユーザのメールアドレスとパスワードでログインします
+
+
+
