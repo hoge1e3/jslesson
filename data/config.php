@@ -11,7 +11,7 @@ $ba_top_url = preg_replace("/\\?.*/","",$ba_top_url);
 $ba_top_url = preg_replace("/[^\\/]*$/","",$ba_top_url);
 // ^This method is not perfect. It is recommeded that you set the URL directly.
 // $ba_top_url="http://example.com/path/to/ba/";
-define("BA_TOP_URL", $ba_top_url);
+//define("BA_TOP_URL", $ba_top_url);
 define("BA_PUB_URL", $ba_top_url."/fs/pub");
 
 // You should define PDO_* in BA_DATA/config.php to protect passowrd

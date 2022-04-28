@@ -1,5 +1,15 @@
+ソフトウェア要件
+
+apache2
+php7
+mysql
+※apache2は，.htaccessを利用可能にする設定をしておいてください．
+
+インストール方法
+
 www.zipを，Webサーバの任意の公開フォルダに展開してください．
 →展開した先のフォルダをBA_WWW フォルダと呼びます
+※BA_WWWはWebサーバの権限で読み書きできるようにしてください．
 
 data.zipを，Webサーバで公開されていないフォルダに展開してください
 →展開した先のフォルダをBA_DATA フォルダと呼びます
@@ -12,13 +22,53 @@ chmod 777 ./fs/* ./log/ ./log/* ./pythonwork
 mysqlのデータベースを作成し，次のコマンドでデータベースを初期化します
 mysql -u {bitarrow_user} {bitarrow_dbname} -p  < {BA_DATA}/schema.sql
 
+作品公開ページ用のシンボリックリンクを作成します．
+ln -s {BA_DATA}/fs/pub {BA_WWW}/fs/
+
 {BA_DATA}/config.php を編集します．
 
-管理者ユーザを登録します
+管理者ユーザを登録します．
+{BA_DATA}/regSysAd.phpを編集し，BA_WWWを設定してください．
 
-php {BA_DATA}/regSysAd.php teacher@example.com password
+cd {BA_DATA}
+php regSysAd.php teacher@example.com password
 
 トップページに行き，教員ユーザログインから，上記管理者ユーザのメールアドレスとパスワードでログインします
 
+
+
+【Pythonサーバ実行に必要なもの】
+
+python3
+nodejs
+
+コマンド'python' でpython3が起動するようにしてください．もし，コマンドが 'python3'の場合，
+{BA_WWW}/node/runpython.js の
+   exec('python "'+cvSrcF.path()+'"....　
+の行を   
+   exec('python3 "'+cvSrcF.path()+'"
+に変更してください．
+
+また，次のコマンドを実行してください．
+chmod 755 {BA_WWW}/node/pythonjs.sh
+
+nodejsのコマンドが'nodejs'か'node'かを確認してください．
+もし，'nodejs'ではなく'node'だった場合，
+{BA_WWW}/node/pythonjs.shの中の
+ timeout $duration nodejs runpython.js $*
+の行を   
+ timeout $duration node runpython.js $*
+に変更してください．
+
+次のPythonライブラリをインストールしてください．（それぞれのライブラリを使用するプログラムを動かすときに必要です）
+
+scipy
+numpy
+matplotlib
+cv2(OpenCV2)
+folium
+pandas
+bs4(BeautifulSoup)
+sklearn
 
 
