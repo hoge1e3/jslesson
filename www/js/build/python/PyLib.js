@@ -491,12 +491,12 @@ define(function (require,exports,module) {
             }
             return Object.prototype.__add__.call(self,other);
         },
-        __gt__: otherShouldString("gt"),
-        __lt__: otherShouldString("lt"),
-        __ge__: otherShouldString("ge"),
-        __le__: otherShouldString("le"),
-        __eq__: otherShouldString("eq"),
-        __ne__: otherShouldString("ne"),
+        __gt__: otherShouldString("__gt__"),
+        __lt__: otherShouldString("__lt__"),
+        __ge__: otherShouldString("__ge__"),
+        __le__: otherShouldString("__le__"),
+        __eq__: otherShouldString("__eq__"),
+        __ne__: otherShouldString("__ne__"),
         format: function (self,...args) {
             const str=self;
             const o={};
