@@ -265,6 +265,7 @@ class TeacherLogController {
         </script>
         <script src="js/log/logViewer.js"></script>
         <script src="js/log/getlog.js"></script>
+        <title><?= $userName ?></title>
     </head>
     <body>
         <div id="fileList" style="float:left; overflow-y:auto; height:100%; width:20%; resize:horizontal;">
