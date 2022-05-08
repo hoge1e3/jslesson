@@ -17,13 +17,13 @@ define(function (require, exports, module) {
         }();
     }
     var root = getRoot();
-    //test!!
+    //test!!!
     var PL = {};
     PL.import = function (lib) {
         if (PL.import.libs[lib]) return PL.import.libs[lib];
         throw new Error("ライブラリ " + lib + " はインポートできません．(サーバで実行すると動作する可能性があります)");
     };
-    // It seems to be old: add to PythonSemantics and create runtime/lib/python/py_***.js
+    //  It seems to be old: add to PythonSemantics and create runtime/lib/python/py_***.js
     PL.import.libs = {
         random: {
             random: Math.random,
@@ -81,11 +81,19 @@ define(function (require, exports, module) {
     PL.len = function (s) {
         return s.length;
     };
+    function chkNan(v, mesg) {
+        return v;
+    }
     PL.float = function (s) {
-        return s - 0;
+        var v = s - 0;
+        if (v !== v) throw new Error(s + " \u306F float\u306B\u5909\u63DB\u3067\u304D\u307E\u305B\u3093");
+        return v;
     };
     PL.int = function (s) {
-        return parseInt(s - 0);
+        var v = s - 0;
+        if (v !== v) throw new Error(s + " \u306F int\u306B\u5909\u63DB\u3067\u304D\u307E\u305B\u3093");
+        if (s.match(/\./)) throw new Error(s + " \u306F\u5C0F\u6570\u70B9\u3092\u542B\u3093\u3067\u3044\u308B\u306E\u3067int\u306B\u5909\u63DB\u3067\u304D\u307E\u305B\u3093");
+        return v;
     };
     PL.list = function (iter) {
         var res = [];
@@ -1048,4 +1056,3 @@ define(function (require, exports, module) {
     }
     return PL;
 });
-//# sourceMappingURL=PyLib.js.map
