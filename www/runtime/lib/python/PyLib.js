@@ -240,7 +240,7 @@ define(function (require, exports, module) {
         var now = new Date().getTime();
         if (now - PL.startTime > 5000) {
             //console.log(_global.parent, _global.opener);
-            var b = confirm("ループが５秒以上続いています。\n実行を停止するにはOKを押してください。");
+            var b = confirm("ループが5秒以上続いています。\n実行を停止するにはOKを押してください。");
             if (b) {
                 throw new Error("実行を停止しました。");
             } else PL.loop_start2();

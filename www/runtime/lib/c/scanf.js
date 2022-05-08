@@ -292,4 +292,3 @@
 
     _global.sscanfJS = scanf.sscanfJS;
 })();
-//# sourceMappingURL=scanf.js.map

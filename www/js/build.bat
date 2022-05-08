@@ -13,9 +13,10 @@ call r_js -o build_BATestRunner.js
 node updateBAVer.js
 
 cd ..\..
-call babel www\js\gen\edit_concat.js --out-file www\es5\gen\edit_concat.js
-call babel www\js\gen\selPrj_concat.js --out-file www\es5\gen\selPrj_concat.js
-call babel www\js\gen\pyRun_concat.js --out-file www\es5\gen\pyRun_concat.js
+rem call babel www\js\gen\edit_concat.js --out-file www\es5\gen\edit_concat.js
+rem call babel www\js\gen\selPrj_concat.js --out-file www\es5\gen\selPrj_concat.js
+rem call babel www\js\gen\pyRun_concat.js --out-file www\es5\gen\pyRun_concat.js
+call babel www\js\ --out-dir www\es5\
 cd www\js
 rem cd ..
 rem call babel BuilderWorker.js --out-file BuilderWorker.es5.js
