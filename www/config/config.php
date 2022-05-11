@@ -3,7 +3,8 @@
 //   You must set BA_DATA to data directory, it is recommended that BA_DATA cannot access via http
 define("BA_DATA", "/var/www/data/bitarrow");
 define("DOCKER_WORK", "/var/www/data/dpy/work");
-define("DOCKER_IMAGE", "matplotlib5");
+define("DOCKER_IMAGE", "matplotlib10");
+//define("DOCKER_IMAGE", "python");
 define("DOCKER_TASKRUN", "/dpy/taskrun.py");
 define("DOCKER_TIMEOUT", 30);
 //define("BA_DATA", dirname(__DIR__)."/../data");
@@ -22,8 +23,19 @@ $ba_top_url = preg_replace("/[^\\/]*$/","",$ba_top_url);
 define("BA_TOP_URL", $ba_top_url);
 define("BA_PUB_URL", $ba_top_url."/pub");
 
+define("PHP_WORK","/var/www/data/php/html/");
+define("PHP_URL","https://cho.is.meisei-u.ac.jp/bp_{CLASS}/{USER}/{PROJECT}/{FILE}");
+if (empty($_SERVER["HTTPS"])){
+    // http
+} else {
+    // https
+      
+
+}
+
+
 // You should define PDO_* in BA_DATA/config.php to protect passowrd
 require_once(BA_DATA."/config.php");
-
+define("NTK_CLASS","notekey");
 
  ?>
