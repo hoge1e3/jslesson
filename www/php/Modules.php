@@ -129,7 +129,7 @@ function req() {
         require_once $top."/".$fn;
     }
 }
-if (isset($argv) && isset($argv[1])) {
+if (isset($argv) && isset($argv[1]) && $argv[1]=="dumpModules") {
     require_once "fs/NativeFS.php";
     require_once "fs/SFile.php";
     $fs=new NativeFS(".");

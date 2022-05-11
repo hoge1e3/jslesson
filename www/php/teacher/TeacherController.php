@@ -205,6 +205,22 @@ class TeacherController {
         <a href="?Teacher/add">もう1件追加する</a>
         <?php
     }
+    static function regSysad($name, $pass) {
+        $shadow=BATeacher::pass2shadow($pass);
+        $r=pdo_select1("select * from teacher where name=?",$name);
+        if ($r) {
+            pdo_update("teacher",array("name"=>$name), array("shadow"=>$shadow));
+            echo "$name はすでに登録されています．パスワードを更新しました。";
+        } else {
+            pdo_insert("teacher",array("name"=>$name, "shadow"=>$shadow));
+            echo "$name を登録しました．";
+        }
+        $t=new BATeacher($name);
+        if (!$t->isSysAd()) {
+            //("select * from role where user = ? and type = ?")
+            pdo_insert("role",array("user"=>$name, "type"=>Auth::SYSAD));
+        }
+    }
     static function shadowize() {
         $teacher=Auth::isTeacher2();
         if (!$teacher || !$teacher->isSysAd()) {

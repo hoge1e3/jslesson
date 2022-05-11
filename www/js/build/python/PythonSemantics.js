@@ -289,6 +289,9 @@ const vdef={
         //console.log("forStmt", node);
         var loopVars=node.vars;
         this.visit(node.set);
+        if (loopVars.length>1 && this.options.runAt=="browser") {
+            this.error("ブラウザで実行する場合，forの後ろには複数の変数を書くことができません．",node);
+        }
         for(let loopVar of loopVars){
           this.addScope(loopVar,{kind:"local",node:loopVar});
         }

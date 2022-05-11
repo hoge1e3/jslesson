@@ -9,13 +9,13 @@ define(function (require,exports,module) {
         return (function (){return this;})();
     }
     var root=getRoot();
-    //test!!
+    //test!!!
     var PL={};
     PL.import=function (lib) {
         if (PL.import.libs[lib]) return PL.import.libs[lib];
         throw new Error("ライブラリ "+lib+" はインポートできません．(サーバで実行すると動作する可能性があります)");
     };
-    // It seems to be old: add to PythonSemantics and create runtime/lib/python/py_***.js
+    //  It seems to be old: add to PythonSemantics and create runtime/lib/python/py_***.js
     PL.import.libs={
         random:{
             random: Math.random,
@@ -71,8 +71,21 @@ define(function (require,exports,module) {
         return r;
     };
     PL.len=function (s) {return s.length;};
-    PL.float=function (s) {return s-0;};
-    PL.int=function (s) {return parseInt(s-0);};
+    function chkNan(v, mesg) {
+        return v;
+    }
+    PL.float=function (s) {
+        const v=s-0;
+        if (v!==v) throw new Error(`${s} は floatに変換できません`);
+        return v;
+
+    };
+    PL.int=function (s) {
+        const v=s-0;
+        if (v!==v) throw new Error(`${s} は intに変換できません`);
+        if (s.match(/\./)) throw new Error(`${s} は小数点を含んでいるのでintに変換できません`);
+        return v;
+    };
     PL.list=(iter)=>{
         const res=[];
         for (let x in iter) res.push(x);
@@ -158,7 +171,7 @@ define(function (require,exports,module) {
         var now=new Date().getTime();
         if (now-PL.startTime>5000) {
             //console.log(_global.parent, _global.opener);
-            var b=confirm("ループが５秒以上続いています。\n実行を停止するにはOKを押してください。");
+            var b=confirm("ループが5秒以上続いています。\n実行を停止するにはOKを押してください。");
     	    if(b){throw new Error("実行を停止しました。");}
     		else PL.loop_start2();
         }
@@ -491,12 +504,12 @@ define(function (require,exports,module) {
             }
             return Object.prototype.__add__.call(self,other);
         },
-        __gt__: otherShouldString("gt"),
-        __lt__: otherShouldString("lt"),
-        __ge__: otherShouldString("ge"),
-        __le__: otherShouldString("le"),
-        __eq__: otherShouldString("eq"),
-        __ne__: otherShouldString("ne"),
+        __gt__: otherShouldString("__gt__"),
+        __lt__: otherShouldString("__lt__"),
+        __ge__: otherShouldString("__ge__"),
+        __le__: otherShouldString("__le__"),
+        __eq__: otherShouldString("__eq__"),
+        __ne__: otherShouldString("__ne__"),
         format: function (self,...args) {
             const str=self;
             const o={};

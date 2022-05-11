@@ -723,4 +723,3 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
     return root.BA_C.lib;
 })();
 //function print() {throw new Error("print関数はありません。printfの間違いではないですか？");};
-//# sourceMappingURL=lib.js.map

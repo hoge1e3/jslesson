@@ -195,4 +195,3 @@ requirejs(["Klass"],function (k) {
   console.log(p.x,p.y);
 });
 */
-//# sourceMappingURL=Klass.js.map

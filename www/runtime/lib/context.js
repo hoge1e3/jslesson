@@ -59,4 +59,3 @@ define(["root"], function (root) {
 	};
 	return root.context;
 });
-//# sourceMappingURL=context.js.map
