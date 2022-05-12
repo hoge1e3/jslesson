@@ -88,13 +88,26 @@ define(function (require,exports,module) {
     };
     PL.list=(iter)=>{
         const res=[];
-        for (let x in iter) res.push(x);
+        for (let x of iter) res.push(x);
         return res;
     };
     PL.listComprehension=(elem, gen)=>{
-        const res=[];
-        for (let e of gen) res.push(elem(e));
-        return res;
+        return {
+            [Symbol.iterator]: ()=>{
+                const iter=gen[Symbol.iterator]();
+                return {
+                    next() {
+                        const r=iter.next();
+                        if (r.done) return r;
+                        r.value=elem(r.value);
+                        return r;
+                    }
+                };
+            }
+        };
+        //const res=[];
+        //for (let e of gen) yield (elem(e));
+        //return res;
     };
     PL.str=function (s) {
         //  s==false
@@ -155,8 +168,8 @@ define(function (require,exports,module) {
             PL.isinstance(Object.getPrototypeOf(ocl.prototype),klass)
         );
     };
-    PL.sorted=function (a) {
-        return a.slice().sort();
+    PL.sorted=function (a, ...args) {
+        return a.slice().sort(...args);
     };
     PL.loop_start2=function loop_start2(){
         //if (_global.parent) _global.parent.dialogClosed=false;
@@ -279,6 +292,7 @@ define(function (require,exports,module) {
         res.__methodnames__=methodNames;
         res.__str__=()=>`<class '__main__.${res.__name__}'>`;
         res.__bases__=PL.Tuple && PL.Tuple(parent?[parent]:[]);
+        //res.prototype.toString=function(){return this.__str__();};
         for (var k in defs) {
             if (defs.hasOwnProperty(k)) addMethod(k);
         }
@@ -448,7 +462,7 @@ define(function (require,exports,module) {
 
         __getattr__: function (self,name) {
             //__getattr__は、オブジェクトのインスタンス辞書に属性が見つからないときに呼び出されるメソッドです。
-            throw new Error(`field ${name} is not defined`);
+            throw new Error(`フィールド ${name} はありません`);
         },
         __getattribute__: function (self,name) {
             if (!(name in self)) {
@@ -467,6 +481,9 @@ define(function (require,exports,module) {
             delete self[name];
         },
         __getitem__:function (self, key) {
+            if (!(key in self)) {
+                throw new Error(`値${self}[${key}] はありません`);
+            }
             return self[key];
         },
         __setitem__:function (self,key, value) {
@@ -586,7 +603,7 @@ define(function (require,exports,module) {
             self.splice(i,1);
         },
         __str__(self) {
-            return "["+self.join(", ")+"]";
+            return "["+self.map((e)=>PL.str(e)).join(", ")+"]";
         },
         __getitem__:function (self, key) {
             if (key instanceof PL.Slice) {
@@ -597,7 +614,7 @@ define(function (require,exports,module) {
                 return res;
             }
             if (key<0) key=self.length+key;
-            if (key>=self.length) throw new Error("Index "+key+" is out of range");
+            if (key>=self.length) throw new Error(`添字[${key}]は範囲外です(0...${self.length-1})`);
             return self[key];
         },
         __setitem__:function (self,key, value) {
@@ -609,14 +626,14 @@ define(function (require,exports,module) {
                 return value;
             }
             if (key<0) key=self.length+key;
-            if (key>=self.length) throw new Error("Index "+key+" is out of range");
+            if (key>=self.length) throw new Error(`添字[${key}]は範囲外です(0...${self.length-1})`);
             self[key]=value;
         },
         copy: function (self) {
             return self.slice();
         },
-        sorted: function (self) {
-            return self.slice().sort();
+        sorted: function (self, ...args) {
+            return self.slice().sort(...args);
         },
         sort: function (self, comp) {
             comp=comp||((a,b)=>(a>b?1:a<b?-1:0));
@@ -644,9 +661,10 @@ define(function (require,exports,module) {
             }
             return orig_sort.apply(self, [comp]);
         },
-        __contains__: function () {
+        __contains__(self, elem) {
+            return self.indexOf(elem)>=0;
+        },
 
-        }
     });
 
     //---
