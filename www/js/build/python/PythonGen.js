@@ -150,6 +150,9 @@ function (Visitor,IndentBuffer,assert) {
         exprSliceList: function (node) {
             this.printf("%j",[",",node.body]);
         },
+        listComprehension(node){
+            this.printf("(%v for %v in %v)", node.elem, node.vars, node.set);
+        },
         slice: function (node) {
             const empty={type:"literal", toString:()=>""};
             node.start=node.start||empty;
