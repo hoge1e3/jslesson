@@ -2061,6 +2061,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 /* global self,global*/
 define('PyLib',['require','exports','module'],function (require, exports, module) {
     //var PyX=require("./PyX.js");
@@ -2154,20 +2156,14 @@ define('PyLib',['require','exports','module'],function (require, exports, module
     };
     PL.list = function (iter) {
         var res = [];
-        for (var x in iter) {
-            res.push(x);
-        }return res;
-    };
-    PL.listComprehension = function (elem, gen) {
-        var res = [];
         var _iteratorNormalCompletion = true;
         var _didIteratorError = false;
         var _iteratorError = undefined;
 
         try {
-            for (var _iterator = gen[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                var e = _step.value;
-                res.push(elem(e));
+            for (var _iterator = iter[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var x = _step.value;
+                res.push(x);
             }
         } catch (err) {
             _didIteratorError = true;
@@ -2185,6 +2181,22 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         }
 
         return res;
+    };
+    PL.listComprehension = function (elem, gen) {
+        return _defineProperty({}, Symbol.iterator, function () {
+            var iter = gen[Symbol.iterator]();
+            return {
+                next: function next() {
+                    var r = iter.next();
+                    if (r.done) return r;
+                    r.value = elem(r.value);
+                    return r;
+                }
+            };
+        });
+        //const res=[];
+        //for (let e of gen) yield (elem(e));
+        //return res;
     };
     PL.str = function (s) {
         //  s==false
@@ -2282,7 +2294,13 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         return !!ocl && (ocl === klass || PL.isinstance(Object.getPrototypeOf(ocl.prototype), klass));
     };
     PL.sorted = function (a) {
-        return a.slice().sort();
+        var _a$slice;
+
+        for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+            args[_key3 - 1] = arguments[_key3];
+        }
+
+        return (_a$slice = a.slice()).sort.apply(_a$slice, args);
     };
     PL.loop_start2 = function loop_start2() {
         //if (_global.parent) _global.parent.dialogClosed=false;
@@ -2297,7 +2315,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         var now = new Date().getTime();
         if (now - PL.startTime > 5000) {
             //console.log(_global.parent, _global.opener);
-            var b = confirm("ループが５秒以上続いています。\n実行を停止するにはOKを押してください。");
+            var b = confirm("ループが5秒以上続いています。\n実行を停止するにはOKを押してください。");
             if (b) {
                 throw new Error("実行を停止しました。");
             } else PL.loop_start2();
@@ -2414,6 +2432,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             return "<class '__main__." + _res.__name__ + "'>";
         };
         _res.__bases__ = PL.Tuple && PL.Tuple(parent ? [parent] : []);
+        //res.prototype.toString=function(){return this.__str__();};
         for (var k in defs) {
             if (defs.hasOwnProperty(k)) addMethod(k);
         }
@@ -2581,8 +2600,8 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             return "<class object>";
         },
         __call__: function __call__(self) {
-            for (var _len3 = arguments.length, a = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-                a[_key3 - 1] = arguments[_key3];
+            for (var _len4 = arguments.length, a = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+                a[_key4 - 1] = arguments[_key4];
             }
 
             //var a=Array.prototype.slice.call(arguments,1);
@@ -2656,7 +2675,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
 
         __getattr__: function __getattr__(self, name) {
             //__getattr__は、オブジェクトのインスタンス辞書に属性が見つからないときに呼び出されるメソッドです。
-            throw new Error("field " + name + " is not defined");
+            throw new Error("\u30D5\u30A3\u30FC\u30EB\u30C9 " + name + " \u306F\u3042\u308A\u307E\u305B\u3093");
         },
         __getattribute__: function __getattribute__(self, name) {
             if (!(name in self)) {
@@ -2675,6 +2694,9 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             delete self[name];
         },
         __getitem__: function __getitem__(self, key) {
+            if (!(key in self)) {
+                throw new Error("\u5024" + self + "[" + key + "] \u306F\u3042\u308A\u307E\u305B\u3093");
+            }
             return self[key];
         },
         __setitem__: function __setitem__(self, key, value) {
@@ -2726,8 +2748,8 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             var o = {};
             var i = 0;
 
-            for (var _len4 = arguments.length, args = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
-                args[_key4 - 1] = arguments[_key4];
+            for (var _len5 = arguments.length, args = Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
+                args[_key5 - 1] = arguments[_key5];
             }
 
             var _iteratorNormalCompletion4 = true;
@@ -2793,10 +2815,10 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         }
     });
     var orig_sort = Array.prototype.sort;
-    function sliceToIndex(array, _ref) {
-        var start = _ref.start,
-            stop = _ref.stop,
-            step = _ref.step;
+    function sliceToIndex(array, _ref2) {
+        var start = _ref2.start,
+            stop = _ref2.stop,
+            step = _ref2.step;
 
         start = start || 0;
         if (stop == null) stop = array.length;
@@ -2872,15 +2894,15 @@ define('PyLib',['require','exports','module'],function (require, exports, module
     PL.addMonkeyPatch(Array, {
         __class__: PL.list,
         append: function append(self) {
-            for (var _len5 = arguments.length, args = Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
-                args[_key5 - 1] = arguments[_key5];
+            for (var _len6 = arguments.length, args = Array(_len6 > 1 ? _len6 - 1 : 0), _key6 = 1; _key6 < _len6; _key6++) {
+                args[_key6 - 1] = arguments[_key6];
             }
 
             return self.push.apply(self, args);
         },
         __add__: function __add__(self) {
-            for (var _len6 = arguments.length, args = Array(_len6 > 1 ? _len6 - 1 : 0), _key6 = 1; _key6 < _len6; _key6++) {
-                args[_key6 - 1] = arguments[_key6];
+            for (var _len7 = arguments.length, args = Array(_len7 > 1 ? _len7 - 1 : 0), _key7 = 1; _key7 < _len7; _key7++) {
+                args[_key7 - 1] = arguments[_key7];
             }
 
             return self.concat.apply(self, args);
@@ -2889,7 +2911,9 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             self.splice(i, 1);
         },
         __str__: function __str__(self) {
-            return "[" + self.join(", ") + "]";
+            return "[" + self.map(function (e) {
+                return PL.str(e);
+            }).join(", ") + "]";
         },
 
         __getitem__: function __getitem__(self, key) {
@@ -2923,7 +2947,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
                 return res;
             }
             if (key < 0) key = self.length + key;
-            if (key >= self.length) throw new Error("Index " + key + " is out of range");
+            if (key >= self.length) throw new Error("\u6DFB\u5B57[" + key + "]\u306F\u7BC4\u56F2\u5916\u3067\u3059(0..." + (self.length - 1) + ")");
             return self[key];
         },
         __setitem__: function __setitem__(self, key, value) {
@@ -2957,14 +2981,20 @@ define('PyLib',['require','exports','module'],function (require, exports, module
                 return value;
             }
             if (key < 0) key = self.length + key;
-            if (key >= self.length) throw new Error("Index " + key + " is out of range");
+            if (key >= self.length) throw new Error("\u6DFB\u5B57[" + key + "]\u306F\u7BC4\u56F2\u5916\u3067\u3059(0..." + (self.length - 1) + ")");
             self[key] = value;
         },
         copy: function copy(self) {
             return self.slice();
         },
         sorted: function sorted(self) {
-            return self.slice().sort();
+            var _self$slice;
+
+            for (var _len8 = arguments.length, args = Array(_len8 > 1 ? _len8 - 1 : 0), _key8 = 1; _key8 < _len8; _key8++) {
+                args[_key8 - 1] = arguments[_key8];
+            }
+
+            return (_self$slice = self.slice()).sort.apply(_self$slice, args);
         },
         sort: function sort(self, comp) {
             comp = comp || function (a, b) {
@@ -3001,7 +3031,9 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             }
             return orig_sort.apply(self, [comp]);
         },
-        __contains__: function __contains__() {}
+        __contains__: function __contains__(self, elem) {
+            return self.indexOf(elem) >= 0;
+        }
     });
 
     //---
@@ -3113,6 +3145,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
     }
     return PL;
 });
+//# sourceMappingURL=PyLib.js.map;
 define('Annotation',['require','exports','module'],function (require,exports,module) {
     module.exports=class Annotation {
         constructor(debugSymbol) {
@@ -7181,6 +7214,9 @@ function (Visitor,IndentBuffer,assert) {
         },
         exprSliceList: function (node) {
             this.printf("%j",[",",node.body]);
+        },
+        listComprehension(node){
+            this.printf("(%v for %v in %v)", node.elem, node.vars, node.set);
         },
         slice: function (node) {
             const empty={type:"literal", toString:()=>""};
