@@ -188,17 +188,24 @@ class TeacherController {
             pdo_insert("teacher",array("name"=>$name, "shadow"=>$shadow));
             echo "$name を登録しました．";
         }
-        if (defined("BA_MAIL") && defined("BA_MESG_FOR_TEACHER") && $cname!=="") {
+        if (defined("BA_MESG_FOR_TEACHER") && $cname!=="") {
             $mesg=BA_MESG_FOR_TEACHER;
             $mesg=preg_replace("/<NAME>/", $cname,$mesg);
             $mesg=preg_replace("/<MAIL>/", $name,$mesg);
             $mesg=preg_replace("/<PASS>/", $pass,$mesg);
             $mesg=preg_replace("/<BA_MAIL>/", BA_MAIL,$mesg);
 
-            Mail::send($name, "BitArrow教員ID登録のお知らせ", $mesg, array(
+            $opt=array(
                 "From"=>BA_MAIL, "Cc"=> BA_MAIL, "Reply-to"=> BA_MAIL
-            ));
-            echo "<div>$name にメール送信しました。</div>";
+            );
+            if (defined("BA_MAIL")) {
+                Mail::send($name, "BitArrow教員ID登録のお知らせ", $mesg, $opt);
+                echo "<div>$name にメール送信しました。</div>";
+            }
+            ?>
+            <h2>送信本文</h2>
+            <textarea rows=20 cols=80><?= htmlspecialchars(Mail::content($name, "BitArrow教員ID登録のお知らせ", $mesg, $opt)) ?></textarea>
+            <?php
         }
         ?>
         <hr/>
