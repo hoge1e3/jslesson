@@ -35,6 +35,10 @@ define("PHP_WORK","phpwork/");
 define("PHP_URL","http://localhost/phpwork/{USER}/{PROJECT}/{FILE}");
 
 define("BA_MAIL", "bitarrow@example.com");
+define("RESET_TEACHER_PASS_ALTERNATE",<<<EOF
+<a href="">Visit here to reset teacher password</a>
+EOF
+);
 define("BA_MESG_FOR_TEACHER", <<<EOF
 <NAME> 様
 BitArrow登録担当です。

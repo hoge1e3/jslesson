@@ -6,6 +6,17 @@ class Mail {
         $p=preg_replace("/ .*/","",$p);
         return file_exists($p);
     }
+    static function content($to, $sub, $body, $options=array()) {
+        $buf="";
+        $options["To"]=$to;
+        $options["Subject"]=$sub;
+        foreach ($options as $k=>$v) {
+            $buf.="$k: $v\r\n";
+        }
+        $buf.="----\n";
+        $buf.=$body;
+        return $buf;
+    }
     static function send($to, $sub , $body, $options=array()) {
         if (self::available()) {
             $h="";
@@ -14,16 +25,19 @@ class Mail {
             }
             mb_send_mail($to,$sub,$body,$h);
         } else {
-            $options["To"]=$to;
-            $options["Subject"]=$sub;
+            /*$options["To"]=$to;
+            $options["Subject"]=$sub;*/
             $name=time();
             $fp=fopen ("/tmp/mail_$name.txt","w");
             if (!$fp) die("Send fail");
+            fwrite($fp, self::content($to, $sub, $body, $options));
+            /*
             foreach ($options as $k=>$v) {
                 fwrite($fp,"$k: $v\n");
             }
             fwrite($fp,"----\n");
             fwrite($fp,$body);
+            */
             fclose($fp);
         }
     }
