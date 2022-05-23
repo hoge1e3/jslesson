@@ -92,7 +92,7 @@ define(function (require,exports,module) {
         return res;
     };
     PL.listComprehension=(elem, gen)=>{
-        return {
+        /*return {
             [Symbol.iterator]: ()=>{
                 const iter=gen[Symbol.iterator]();
                 return {
@@ -104,10 +104,10 @@ define(function (require,exports,module) {
                     }
                 };
             }
-        };
-        //const res=[];
-        //for (let e of gen) yield (elem(e));
-        //return res;
+        };*/
+        const res=[];
+        for (let e of gen) res.push(elem(e));//yield (elem(e));
+        return res;
     };
     PL.str=function (s) {
         //  s==false
