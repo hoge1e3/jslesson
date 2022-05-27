@@ -15,7 +15,8 @@ $(document).ready(function() {
                 return (parseInt(node.getAttribute("data-rate"))+100)+"";
             }
             return node.innerHTML;
-        }
+        },
+        emptyTo:"bottom",
     });
 });
 function fold(show) {
