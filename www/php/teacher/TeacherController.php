@@ -10,9 +10,10 @@ class TeacherController {
     <title>教員ログイン - Bit Arrow</title>
 		<meta charset="UTF-8">
       <h1>Bit Arrow教員ログイン</h1>
+      <script src="js/lib/spacechecker.js"></script>
     	<form action="a.php?Teacher/check" method="POST">
-    	  メールアドレス<input name="name" value="<?= self::$name ?>"></br>
-    	  パスワード<input name="pass" type="password">
+    	  メールアドレス<input class="spacecheck" name="name" value="<?= self::$name ?>"></br>
+    	  パスワード<input class="spacecheck" name="pass" type="password">
     	  <?php if (isset($_GET["ignoreNonexistent"])) { ?>
     	    <input type="hidden" name="ignoreNonexistent" value="1">
     	  <?php } ?>
@@ -150,10 +151,11 @@ class TeacherController {
         ?>
         <title>教員追加 - Bit Arrow</title>
         <h1>教員追加</h1>
+        <script src="js/lib/spacechecker.js"></script>
         <form action="?Teacher/addDone" method="POST">
-            所属と氏名 <input name="cname" size=50>様<BR>
-            メールアドレス <input name="mail"><BR>
-            パスワード <input name="pass" id="pasu"><BR>
+            所属と氏名 <input class="spacecheck" name="cname" size=50>様<BR>
+            メールアドレス <input class="spacecheck" name="mail"><BR>
+            パスワード <input class="spacecheck" name="pass" id="pasu"><BR>
             <input type="submit">
         </form>
         <script>
