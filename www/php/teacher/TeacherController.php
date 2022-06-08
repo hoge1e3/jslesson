@@ -20,6 +20,7 @@ class TeacherController {
     	  <br/>
     	  <input type="submit" value="OK"/>
     	</form>
+        ※パスワードをお忘れの場合，<a href="https://bitarrow.eplang.jp/index.php?preparation" target="help">教員用アカウントを登録</a>し直してください．以前登録に使用されたメールアドレスも利用可能です．
     <?php
     }
     static function check() {
