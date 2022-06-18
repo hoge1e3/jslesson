@@ -534,6 +534,7 @@ const Semantics= {
                     v.addScope(sym+"",{kind:"local",node});
                     v.anon.put(node,{needVar:true});
                 }
+                v.anon.put(node,{isLeft:true});
             }
             procLElem(node.left);
         };

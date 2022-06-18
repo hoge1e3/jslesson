@@ -339,6 +339,10 @@ define(function (require,exports,module) {
         return this.elems[Symbol.iterator](...args);
     };
     PL.None=null;
+    PL.checkSet=(v, name="Variable")=>{
+        if (v!==undefined) return v;
+        throw new Error(`${name} is not defined.`);
+    };
     PL.Tuple.__bases__=PL.Tuple([]);
     PL.Slice=PL.class({
         __init__:function (self, start, stop, step=1) {
@@ -385,7 +389,7 @@ define(function (require,exports,module) {
 
     PL.invalidOP=function (left, op, right) {
         function typestr(val) {
-            if (val==null) return "None";
+            if (val==PL.None) return "None";
             const res=(typeof u(val));
             if (res!=="object") return res;
             if (val && val.__getTypeName__) return val.__getTypeName__();
