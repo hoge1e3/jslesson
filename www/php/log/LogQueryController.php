@@ -2,6 +2,7 @@
 req("auth","param","DateUtil","pdo","TeacherLogController");
 class LogQueryController {
     static function index() {
+        $allUsers=(param("user",null)==="");
         $p=TeacherLogController::parseUser();
         $user=$p["user"];
         $teacherObj=$p["teacher"];
@@ -14,28 +15,46 @@ class LogQueryController {
 
         $dateExample=DateUtil::toString(DateUtil::toDayTop());
         $output=param("output","table");
+        $groupBy=[];
+        if ($p["canSeeOtherUsersLogs"]) {
+            if ($allUsers) $user=null;
+            if (param("grp_user",false)) {
+                $groupBy[]="user";
+                $user=null;
+            }
+        }
+        if (param("grp_file",false)) {
+            $groupBy[]="file";
+            $file=null;
+        }
         if ($output==="table") {
         ?>
         <div class="header">
         クラス：<?= $class->id ?><Br/>
         <form action=".?LogQuery/index" method=POST>
             日付<input name="date" value="<?= $date ?>"> 例：<?= $dateExample ?><br/>
-            ユーザ名<input name="user" value="<?= $user->name ?>"><br/>
-            ファイル名<input name="file" value="<?= $file ?>"><br/>
+            <?php if ($p["canSeeOtherUsersLogs"]) { ?>
+            ユーザ名<input name="user" value="<?= ($user ? $user->name :"") ?>">
+            <input type="checkbox" value="1" name="grp_user" 
+                <?=param("grp_user",false) ?"checked":""?>>集計<br/>
+            <?php }  else  { ?>
+                ユーザ名 <?= ($user ? $user->name :"") ?><Br/>
+            <?php } ?>
+            ファイル名<input name="file" value="<?= ($file ? $file :"") ?>">
+            <input type="checkbox" value="1" name="grp_file"
+                <?=param("grp_file",false) ?"checked":""?>>集計<br/>
             件数<input name="limit" value="<?= $limit ?>"><br/>
-            <input type="radio" name="sort" value="desc" <?=$sort==="desc"?"checked":"" ?>/>新しい順
-            <input type="radio" name="sort" value="asc" <?=$sort==="asc"?"checked":"" ?>/>古い順<br/>
+            <input type="radio" name="sort" value="desc" <?=$sort==="desc"?"checked":"" ?>/>新しい(多い)順
+            <input type="radio" name="sort" value="asc" <?=$sort==="asc"?"checked":"" ?>/>古い(少ない)順<br/>
             <input type="submit">
         </form>
         <button onclick="document.querySelector('.header').style='display:none;';">Hide Form</button>
         </div>
         <?php
         }
-        //if ($date!=="" && ($user!=="" || $file!=="")) {
-            self::show  ($output, $class, $date, $user, $file, $limit, $sort);
-        //}
+        self::show  ($output, $class, $date, $user, $file, $limit, $sort, $groupBy);
     }
-    static function get($class, $date=null, $user=null, $file=null, $limit=100, $sort="desc") {
+    static function get($class, $date=null, $user=null, $file=null, $limit=100, $sort="desc", $groupBy=null) {
         if ($sort!="desc") $sort="asc";
         if (!is_int($limit)) $limit=100;
         $wheres=[];
@@ -58,11 +77,24 @@ class LogQueryController {
             $wheres[]=["filename =?", $file];
         }
         pdo_enableIter();
-        $it=pdo_select_ands("select * from log where ? order by time $sort limit $limit ",$wheres);
-        return $it;
+        if (!$groupBy || count($groupBy)==0) {
+            $it=pdo_select_ands("select * from log where ? order by time $sort limit $limit ",$wheres);
+            return $it;    
+        } else {
+            $gq=[];
+            foreach ($groupBy as $g) {
+                if ($g==="file"||$g==="filename") $gq[]="filename";
+                if ($g==="user") $gq[]="user";
+            }
+            $gq=implode(", ",$gq);
+            $q="select $gq, count(*) as count from log ".
+                "where ? group by $gq order by count $sort limit $limit";
+            $it=pdo_select_ands($q,$wheres);
+            return $it;
+        }
     }
-    static function show($output, $class, $date, $user, $file, $limit, $sort) {
-        $it=self::get($class, $date, $user, $file, $limit, $sort);
+    static function show($output, $class, $date, $user, $file, $limit, $sort, $groupBy) {
+        $it=self::get($class, $date, $user, $file, $limit, $sort, $groupBy);
         if ($output==="table") {
             self::showTable($it);
             if ($user && $file) {
@@ -95,7 +127,7 @@ class LogQueryController {
                 $thShown=true;
             }
             print "<tr>";
-            $date=DateUtil::toDayTop($rec->time);
+            if (isset($rec->time)) $date=DateUtil::toDayTop($rec->time);
             foreach ($rec as $key=>$val) {
                 if ($key=="raw" || $key=="detail" || $key=="class") continue;
                 if ($key=="time") $val=DateUtil::toString($val);
