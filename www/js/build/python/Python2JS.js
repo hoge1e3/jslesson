@@ -357,7 +357,14 @@ function (Visitor,IndentBuffer,context,PL,S) {
                 // for example, node.text=="__str__", function returns
                 this.printf(this.convertSymbol[node.text]);
             } else {
-                this.printf("%s",node+"");
+                const a=this.anon.get(node);
+                if (a.scopeInfo && !a.isLeft) {
+                    // right val
+                    this.printf("%s.checkSet(%s,'%s')",PYLIB, node+"", node+"");
+                } else {
+                    // left val
+                    this.printf("%s",node+"");
+                }
             }
         },
     };
