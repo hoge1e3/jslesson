@@ -278,6 +278,9 @@ define(function (require,exports,module) {
                     },
                     enumerable: false
                 });
+                Object.defineProperty(res,k,{
+                    value: m
+                });
                 methodNames.push(k);
             } else {
                 res.prototype[k]=m;
