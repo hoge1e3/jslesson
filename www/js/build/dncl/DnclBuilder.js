@@ -10,7 +10,7 @@ function (A,DU,wget,dnclParser,IndentBuffer,Sync,FS,SplashScreen,ABG,root,WebSit
     });
     var dtlibs=["promise","mt","lib","polyk","calibration","devicemotion",
     "Dict","Vec2","Actor","Group","UI","Color","Timer",
-    "Util","Turtle","Figure","DOM","TextFile","Japanese2"].map(
+    "Util","Turtle","Figure","DOM","TextFile","Ajax","Assets","Raspi","Japanese2"].map(
         function (n) {
             return "lib/dtl/"+n+".js";
         }
