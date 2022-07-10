@@ -2,7 +2,7 @@
 req("auth","param","DateUtil","pdo","TeacherLogController");
 class LogQueryController {
     static function index() {
-        $allUsers=(param("user",null)==="");
+        $allUsers=(param("user","")==="");
         $p=TeacherLogController::parseUser();
         $user=$p["user"];
         $teacherObj=$p["teacher"];
