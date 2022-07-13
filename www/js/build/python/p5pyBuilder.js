@@ -146,10 +146,11 @@ define(function (require,exports,module){
              injectBefore: `var p5=${"req"+"uire"}("${p5jsURL}");\n`,
              injectAfter: `var p5main;new p5(function (inst) {
                 p5main=inst;
-                inst.setup=setup;
+                ${["setup","keyPressed","keyReleased","keyTyped","mouseMoved","mouseDragged","mousePressed","mouseClicked"].map((k)=>
+                `if (typeof ${k}==="function") inst.${k}=${k};`).join("\n")}
                 inst.draw=()=>{
                     PYLIB.LoopChecker.reset();
-                    draw();
+                    if (typeof draw==="function") draw();
                 };
              }, document.querySelector("body"));`});
         }
