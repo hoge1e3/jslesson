@@ -1015,7 +1015,8 @@ class TeacherLogController {
     	<?php
     	    echo date("Y/m/d H:i:s",$min)." から ".date("Y/m/d H:i:s",$max)."までの実行状況";
     	?>
-        <a href="?TeacherLog/count&min=<?= $min ?>&max=<?= $max ?>">集計....</a>
+        <!--a href="?TeacherLog/count&min=<?= $min ?>&max=<?= $max ?>">集計....</a-->
+        <a href="?LogQuery/index&date=<?= DateUtil::toString(DateUtil::toDayTop()) ?>">集計....</a>
         <table border=1 class="tablesorter">
             <thead>
             <tr><th>ユーザID</th><th>エラー/実行</th><th>実行からの経過時間</th><th>今実行しているファイル</th><th>着手時間</th><th>実行結果履歴</th>

@@ -77,7 +77,8 @@ function (Visitor,IndentBuffer,assert) {
             this.visit(node.expr);
         },
         returnStmt: function (node) {
-            this.printf("return %v",node.expr);
+            if (node.expr) this.printf("return %v",node.expr);
+            else this.printf("return");
         },
         delStmt: function (node) {
             this.printf("del %v",node.expr);

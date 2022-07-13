@@ -411,7 +411,9 @@ const vdef={
 
     },
     "returnStmt": function (node) {
-        this.visit(node.expr);
+        if (node.expr) {
+            this.visit(node.expr);
+        }
     },
     "paren": function (node) {
         this.visit(node.body);
