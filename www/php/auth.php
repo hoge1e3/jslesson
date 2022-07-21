@@ -268,6 +268,33 @@ class Auth {
     static function homeOfClass($class) {//BAClass
         return new SFile(self::getFS(),"/home/".$class->id."/");
     }
+    static function homeOfUser($user) {//BAUser
+        return self::homeOfClass($user->_class)->rel($user->name."/");
+    }
+    static function userDeletable($user) {
+        return count(self::projectsOf($user))===0;
+    }
+    static function projectsOf($user) {// BAUser
+        // defined also in ProjectController.php TODO
+        $homeDir=self::homeOfUser($user);
+        $res=array();
+        if ($homeDir->exists()) {
+            $dirs=$homeDir->listFiles();
+            foreach ($dirs as $dir) {
+                $of=$dir->rel("options.json");
+                if ($of->exists()) {
+                    $o=$of->obj();
+                    $o["name"]=$dir->name();
+                    $o["lastUpdate"]=$of->lastUpdate();
+                    array_push($res,$o);
+                }
+            }
+        }
+        return $res;
+    }
+    static function classDeletable($class) {
+        return count($class->getAllStu())===0;
+    }
     static function getFS() {
    	    $user=self::curUser2();
    	    $teacher=self::curTeacher();
