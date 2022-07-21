@@ -18,6 +18,7 @@ class ProjectController {
         ] execute
         */
         header("Content-type: text/json; encoding=utf8");
+        //TODO unify into Auth::projects;
         $homeDir=self::homeDir();
         if ($homeDir->exists()) {
             $dirs=$homeDir->listFiles();
