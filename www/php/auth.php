@@ -209,7 +209,7 @@ class Auth {
             throw new Exception("You are not teacher of ".$class->id);
         }
     }
-    static function isTeacherOf($class){
+    static function isTeacherOf($class){// className or BAClass
         //現在ログインしているユーザは$class の教員roleを持つか？
         $t=self::isTeacher2();
         return $t && $t->isTeacherOf(self::getClass($class));
@@ -271,8 +271,8 @@ class Auth {
     static function homeOfUser($user) {//BAUser
         return self::homeOfClass($user->_class)->rel($user->name."/");
     }
-    static function userDeletable($user) {
-        return count(self::projectsOf($user))===0;
+    static function userDeletable($user) {//BAUser
+        return self::isTeacherOf($user->_class) && count(self::projectsOf($user))===0;
     }
     static function projectsOf($user) {// BAUser
         // defined also in ProjectController.php TODO
@@ -293,7 +293,7 @@ class Auth {
         return $res;
     }
     static function classDeletable($class) {
-        return count($class->getAllStu())===0;
+        return self::isTeacherOf($class)&& count($class->getAllStu())===0;
     }
     static function getFS() {
    	    $user=self::curUser2();
