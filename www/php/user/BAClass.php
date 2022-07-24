@@ -136,10 +136,12 @@ class BAClass{
             throw new Exception("クラス ".$this->id." は存在します");
         }
         $pdo=pdo();
+        Auth::assertTeacher();
+        $teacher=Auth::curTeacher();
         $sth=$pdo->prepare("insert into class(id) values(?)");
         $sth->execute(array($this->id));
         $sth=$pdo->prepare("insert into role(user,class,type) values(?,?,?)");
-        $sth->execute(array(Auth::curUser(),$this->id,AUTH::TEACHER));
+        $sth->execute(array($teacher->id,$this->id,AUTH::TEACHER));
         $this->mkdir();
         return true;
     }
