@@ -1,11 +1,11 @@
 define(["FS","Shell","Shell2",
            "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog","RenameProjectDialog",
            "assert","DeferredUtil","RemoteProject","SplashScreen",
-       "ctrl","root","jshint","ProgramFileUploader"],
+       "ctrl","root","jshint","ProgramFileUploader","cleanup"],
     function(FS, sh,sh2,
            NPD, UI, Auth,zip,Sync,NSD,RPD,
            A,DU,RemoteProject,SplashScreen,
-       ctrl,root,jshint, ProgramFileUploader) {
+       ctrl,root,jshint, ProgramFileUploader,cleanup) {
     if (location.href.match(/localhost/)) {
         A.setMode(A.MODE_STRICT);
     } else {
@@ -98,6 +98,9 @@ function ready() {//-------------------------
             if (d.length==0) {
                 $("#prjItemList").css({height:300,width:"100%"});
             }
+            try {
+                cleanup.doCleanup(d);
+            }catch(e){console.error(e);}
         }).fail(function(e){
             console.log("list failed",e);
         });

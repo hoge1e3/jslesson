@@ -130,6 +130,7 @@ var reqConf={
             jsl_selProject_concat: 'gen/selPrj_concat',
             jsl_edit: "jsl/editor",
             jsl_edit_concat: 'gen/edit_concat',
+            cleanup: "jsl/cleanup",
             ProjectFactory: "ide/ProjectFactory",
             Sync: "fs2/sync2",
             root:"lib/root",
