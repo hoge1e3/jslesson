@@ -163,13 +163,13 @@ class Auth {
             MySession::set("class",$user->_class->id);
             MySession::set("user",$user->name);
         } else {
-            throw new Exception("You are not the sudoer");
+            throw new Exception("You are not the sudoer of class '".$user->_class->id."'.");
         }
     }
     static function assertTeacher($ignoreClass=false) {
       $t=self::curTeacher();
       if (!$t) {
-        throw new Exception("You are not the teacher");
+        throw new Exception("You are not logged in as the teacher");
       }
       // when creating class...
       if ($ignoreClass) return $t;
@@ -180,7 +180,7 @@ class Auth {
       if ($t->isTeacherOf($c)) {
         return $t;
       }
-      throw new Exception("You are not the teacher");
+      throw new Exception("You are not the teacher of class '".$c->id."'.");
     }
     static function isTeacher() {//旧バージョン
         return self::curUser()==self::TEACHER;
@@ -206,7 +206,7 @@ class Auth {
             }
             MySession::set("class",$class->id);
         } else {
-            throw new Exception("You are not teacher of ".$class->id);
+            throw new Exception("Cannot select the class. You are not teacher of ".$class->id);
         }
     }
     static function isTeacherOf($class){// className or BAClass
