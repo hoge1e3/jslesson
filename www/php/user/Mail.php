@@ -7,7 +7,10 @@ class Mail {
         return file_exists($p);
     }
     static function send($to, $sub , $body, $options=array()) {
-        if (self::available()) {
+        if (defined("PHPMAILER_PATH")) {
+            require_once (PHPMAILER_PATH);
+            sendmail_PHPMailer($to,$sub,$body,$options);
+        } else if (self::available()) {
             $h="";
             foreach ($options as $k=>$v) {
                 $h.="$k: $v\r\n";
