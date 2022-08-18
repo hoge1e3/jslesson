@@ -24,6 +24,7 @@ class ClassController {
         <style>
         .assignment { display:block;}
         </style>
+        <script src="js/lib/localize.js"></script>
         <script src="runtime/lib/jquery-1.12.1.js"></script>
         <script type="text/javascript">
         $(function () {

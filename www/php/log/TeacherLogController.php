@@ -243,6 +243,7 @@ class TeacherLogController {
         ?>
 <html>
     <head>
+        <script src="js/lib/localize.js"></script>
         <script type="text/javascript" src="js/lib/jquery-1.12.1.js"></script>
         <script type="text/javascript" src="js/lib/jquery-ui.js"></script>
         <script type="text/javascript" src="js/lib/difflib.js"></script>
@@ -946,6 +947,7 @@ class TeacherLogController {
         }
         $thisURL="a.php?TeacherLog/view";
         ?>
+        <script src="js/lib/localize.js"></script>
         <script type="text/javascript" src="js/lib/jquery-1.12.1.js"></script>
         <script type="text/javascript" src="js/lib/jquery-ui.js"></script>
         <script type="text/javascript" src="js/lib/jquery.tablesorter.min.js"></script>
