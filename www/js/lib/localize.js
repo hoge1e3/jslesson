@@ -25,7 +25,7 @@ let dictstr=`
 教員パスワード変更    
 クラス一覧    List of classes
 クラス名    Class name
-最近    List
+最近    Last
 分間    Minutes
 年    year
 集計    count
