@@ -34,14 +34,14 @@ create table log(
 //   oneof tagD,tagE,tagF
 req("LogUtil","auth","pdo","DateUtil","PathUtil");
 class LogFileToDBController {
-    static function moveToTmp($class) {
+    static function moveToTmp($classOrUser) {
         //echo "moveto tmp run! ";
         /*if ($ctx->isTeacher()) {
             $files=LogUtil::getLogFilesOf($ctx->_class);
         } else {
             $files=LogUtil::getLogFilesOf($ctx->user);
         }*/
-        $files=LogUtil::getLogFilesOf($class);
+        $files=LogUtil::getLogFilesOf($classOrUser);
         $tmp=LogUtil::getLogDir()->rel("tmp/");
         $tmp->mkdir();
         foreach ($files as $file) {
@@ -60,7 +60,7 @@ class LogFileToDBController {
             } else {
                 if (LogUtil::isLogFileOf($file,$ctx->user)) $res[]=$file;
             }*/
-            if (LogUtil::isLogFileOf($file,$class)) $res[]=$file;
+            if (LogUtil::isLogFileOf($file,$classOrUser)) $res[]=$file;
         }
         return $res;
     }
@@ -77,7 +77,12 @@ class LogFileToDBController {
             $class=$ctx->_class;
             $c=$class->id;
         }
-        $files=self::moveToTmp($class);
+        $classOrUser=$class;
+        if (isset($_GET["user"])) {
+            $user=$class->getUser($_GET["user"]);
+            $classOrUser=$user;
+        }
+        $files=self::moveToTmp($classOrUser);
         $arc=LogUtil::getLogDir()->rel("arc/");
         $arc->mkdir();
         //return ;

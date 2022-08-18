@@ -1,11 +1,11 @@
 define(["FS","Shell","Shell2",
            "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog","RenameProjectDialog",
            "assert","DeferredUtil","RemoteProject","SplashScreen",
-       "ctrl","root","jshint","ProgramFileUploader","globalDesktopSetting"],
+       "ctrl","root","jshint","ProgramFileUploader","globalDesktopSetting","cleanup"],
     function(FS, sh,sh2,
            NPD, UI, Auth,zip,Sync,NSD,RPD,
            A,DU,RemoteProject,SplashScreen,
-       ctrl,root,jshint, ProgramFileUploader, globalDesktopSetting) {
+       ctrl,root,jshint, ProgramFileUploader, globalDesktopSetting, cleanup) {
     if (location.href.match(/localhost/)) {
         A.setMode(A.MODE_STRICT);
     } else {
@@ -27,8 +27,9 @@ function ready() {//-------------------------
             ["div",{class:"hero-unit"},
             ["div",{id:"userInfo",css:{float:"right"},margin:"50px"},"ようこそ",["br"],["div","同期中です..."]],
             ["h1", ["img",{src:"images/bitarrow-2.png",css:{"display":"inline"},width:"100px"}],"Bit Arrow"]],
-            ["div","【お知らせ】新しいバージョン",["span",{class:"notice"},"(2022_0401)"],"になりました．",
-            ["a",{href:"https://bitarrow.eplang.jp/?change2204",target:"wikiTab"},"主な変更点..."]/*," | ",
+            ["div","【お知らせ】新しいバージョン",["span",{class:"notice"},"(2022_0401)"],"になりました．"," | ",
+            ["a",{href:"https://bitarrow.eplang.jp/?change2204",target:"wikiTab"},"主な変更点..."]," | ",
+            ["a",{href:"https://bitarrow.eplang.jp/index.php?faq",target:"wikiTab"},"困ったときは（よくある質問）"],/*," | ",
             ["a",{href:"https://bitarrow.eplang.jp/2017_0328/",target:"wikiTab"},"以前のバージョン(2017_0328)を使う"]*/],
             ["div",
 	            ["a",{href:"https://bitarrow.eplang.jp/",target:"wikiTab"},"Bit Arrow解説ページ"],
@@ -98,6 +99,9 @@ function ready() {//-------------------------
             if (d.length==0) {
                 $("#prjItemList").css({height:300,width:"100%"});
             }
+            try {
+                cleanup.doCleanup(d);
+            }catch(e){console.error(e);}
         }).fail(function(e){
             console.log("list failed",e);
         });

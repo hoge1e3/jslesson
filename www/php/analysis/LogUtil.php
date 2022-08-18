@@ -64,12 +64,12 @@ class LogUtil {
         if ($cid instanceof BAClass) {
             $cid=$cid->id;
         } else if ($cid instanceof BAUser) {
-            return self::isLogFileOf($file, $cid->_class->id, $cid->name);
+            return self::isLogFileOfUser($file, $cid->_class->id, $cid->name);
         }
-        return ($file->startsWith($cid) && $file->endsWith("-data.log"));
+        return ($file->startsWith($cid."-") && $file->endsWith("data.log"));
     }
     static function isLogFileOfUser($file,$cid,$uid){
-      return ($file->startsWith($cid."-".$uid) && $file->endsWith("-data.log"));
+      return ($file->startsWith($cid."-".$uid."-") && $file->endsWith("data.log"));
     }
     static function readLog($file) {
         return self::readJSONLines($file);

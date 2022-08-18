@@ -15,7 +15,8 @@ $(document).ready(function() {
                 return (parseInt(node.getAttribute("data-rate"))+100)+"";
             }
             return node.innerHTML;
-        }
+        },
+        emptyTo:"bottom",
     });
 });
 function fold(show) {
@@ -355,7 +356,7 @@ function openFrame(data){
   var lang=raw.code.C ?"c" : raw.code.JavaScript ? "js" : raw.code.Dolittle ? "dtl" : raw.code.DNCL ? "dncl" : raw.code.Python ? "py" :"unknown";
   var detail=raw.detail;
   var prjName="Auto_"+lang;
-  var runLink=teacherID && ".?r=jsl_edit&dir=/home/"+classID+"/"+teacherID+"/"+prjName+"/&autologexec="+data.id+"&lang="+lang;
+  var runLink=false;//teacherID && ".?r=jsl_edit&dir=/home/"+classID+"/"+teacherID+"/"+prjName+"/&autologexec="+data.id+"&lang="+lang;
   var userid=data.user;
   const logDOM=$(`#${data.id}`);
   $.get("?TeacherLog/getNameOfUser",{user:userid}).then(r=>$("#userName").text(r));

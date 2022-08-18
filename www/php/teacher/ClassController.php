@@ -57,6 +57,7 @@ class ClassController {
         <?php } ?>
         <hr>
         <a href="." target="student">演習画面へ</a><hr>
+        <a href="a.php?Delete/klass">クラスの削除</a>
         <?php
     }
     static function make() {
@@ -305,6 +306,8 @@ class ClassController {
 
         ?>
         </table>
+        <hr/>
+        <a href="a.php?Delete/users">ユーザの削除</a>
         <?php
     }
     static function su() {

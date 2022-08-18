@@ -15,7 +15,7 @@ class BAClass{
             $teacher=Auth::isTeacher2();
         }
         if (!$teacher) {
-            throw new Exception("You are not a teacher");
+            throw new Exception("Cannot get class list. You are not logged in as a teacher.");
         }
         $pdo = pdo();
         $sth=$pdo->prepare("select * from role where user = ? and type = ?");
@@ -136,16 +136,18 @@ class BAClass{
             throw new Exception("クラス ".$this->id." は存在します");
         }
         $pdo=pdo();
+        Auth::assertTeacher(true);//ignoreclass
+        $teacher=Auth::curTeacher();
         $sth=$pdo->prepare("insert into class(id) values(?)");
         $sth->execute(array($this->id));
         $sth=$pdo->prepare("insert into role(user,class,type) values(?,?,?)");
-        $sth->execute(array(Auth::curUser(),$this->id,AUTH::TEACHER));
+        $sth->execute(array($teacher->id,$this->id,AUTH::TEACHER));
         $this->mkdir();
         return true;
     }
     function mkdir(){
         if (!Auth::isTeacherOf($this)) {
-            throw new Exception(" You are not the teacher of ".$this->id);
+            throw new Exception("Cannot make directory. You are not the teacher of ".$this->id);
         }
         $fs=new NativeFS(BA_FS."/");
         $f=new SFile($fs,"/home/".$this->id."/");

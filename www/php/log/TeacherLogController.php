@@ -1015,7 +1015,8 @@ class TeacherLogController {
     	<?php
     	    echo date("Y/m/d H:i:s",$min)." から ".date("Y/m/d H:i:s",$max)."までの実行状況";
     	?>
-        <a href="?TeacherLog/count&min=<?= $min ?>&max=<?= $max ?>">集計....</a>
+        <!--a href="?TeacherLog/count&min=<?= $min ?>&max=<?= $max ?>">集計....</a-->
+        <a href="?LogQuery/index&date=<?= DateUtil::toString(DateUtil::toDayTop()) ?>">集計....</a>
         <table border=1 class="tablesorter">
             <thead>
             <tr><th>ユーザID</th><th>エラー/実行</th><th>実行からの経過時間</th><th>今実行しているファイル</th><th>着手時間</th><th>実行結果履歴</th>
@@ -1047,11 +1048,15 @@ class TeacherLogController {
             }
             ?>
             <tr><td><a href="a.php?TeacherLog/view1new&user=<?=$k?>&day=<?=$max?>" target="view1"><?=$k?></a></td>
+            <?php if ($v!=0) { ?>
             <td data-rate="<?=$rate?>" bgcolor=<?=$errcaution?>><?=$errcount[$k]?>/<?=$v?>(<?=$rate?>%)</td>
             <td bgcolor=<?=$timecaution?>><?=str_pad($time['h'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['m'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['s'],2,0,STR_PAD_LEFT)?></td>
             <td><?=$latestfile[$k]?></td>
-            <td><?= $latestfile[$k]? self::getActualtime2($class->getUser($k),$latestfile[$k],$max) : "-" ?></td>
+            <td><?= $latestfile[$k]? self::getActualtime2($class->getUser($k),$latestfile[$k],$max) : "" ?></td>
             <td><?=$runhistory[$k]?></td>
+            <?php } else {
+                for ($emp=0; $emp<5; $emp++) print "<td></td>";
+            } ?>
             </tr>
 
             <?php

@@ -411,7 +411,9 @@ const vdef={
 
     },
     "returnStmt": function (node) {
-        this.visit(node.expr);
+        if (node.expr) {
+            this.visit(node.expr);
+        }
     },
     "paren": function (node) {
         this.visit(node.body);
@@ -537,6 +539,7 @@ const Semantics= {
                     v.addScope(sym+"",{kind:"local",node});
                     v.anon.put(node,{needVar:true});
                 }
+                v.anon.put(node,{isLeft:true});
             }
             procLElem(node.left);
         };

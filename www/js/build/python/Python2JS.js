@@ -138,14 +138,14 @@ function (Visitor,IndentBuffer,context,PL,S) {
                 const name=matchPostfix.op.name;
                 console.log("NODEL3",object,name);
                 if (io) {
-                    this.printf("%v.__setattr__('%v', "+
-                        "%s.wrap( %v.__getattribute__('%v') ).__%s__(%v)"+
+                    this.printf("%v.__setattr__('%s', "+
+                        "%s.wrap( %v.__getattribute__('%s') ).__%s__(%v)"+
                     ");",
                         object, name,
                         PYLIB, object, name, io, value
                     );
                 } else {
-                    this.printf("%v.__setattr__('%v', %v);",object, name,value );
+                    this.printf("%v.__setattr__('%s', %v);",object, name,value );
                 }
             } else if (io) {
                 this.printf("%v=%s.wrap(%v).__%s__(%v)" ,
@@ -195,7 +195,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
             this.visit(node.body);
         },
         memberRef: function (node) {
-            this.printf(".__getattribute__('%v')",node.name);
+            this.printf(".__getattribute__('%s')",node.name);
         },
         args: function (node) {
             const noname=node.body.filter((a)=>!a.name);
@@ -357,7 +357,14 @@ function (Visitor,IndentBuffer,context,PL,S) {
                 // for example, node.text=="__str__", function returns
                 this.printf(this.convertSymbol[node.text]);
             } else {
-                this.printf("%s",node+"");
+                const a=this.anon.get(node);
+                if (a.scopeInfo && !a.isLeft) {
+                    // right val
+                    this.printf("%s.checkSet(%s,'%s')",PYLIB, node+"", node+"");
+                } else {
+                    // left val
+                    this.printf("%s",node+"");
+                }
             }
         },
     };

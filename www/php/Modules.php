@@ -1,6 +1,7 @@
 <?php
 $mod_aliases=array(
     //----AUTOGEN
+    "DeleteController"=>"php/teacher/",
     'LogCluster'=>"php/log/",
     "CDBController"=>"php/data/",
     'ProjectController'=>"php/user/",

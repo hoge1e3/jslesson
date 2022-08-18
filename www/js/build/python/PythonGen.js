@@ -77,7 +77,8 @@ function (Visitor,IndentBuffer,assert) {
             this.visit(node.expr);
         },
         returnStmt: function (node) {
-            this.printf("return %v",node.expr);
+            if (node.expr) this.printf("return %v",node.expr);
+            else this.printf("return");
         },
         delStmt: function (node) {
             this.printf("del %v",node.expr);
@@ -149,6 +150,9 @@ function (Visitor,IndentBuffer,assert) {
         },
         exprSliceList: function (node) {
             this.printf("%j",[",",node.body]);
+        },
+        listComprehension(node){
+            this.printf("(%v for %v in %v)", node.elem, node.vars, node.set);
         },
         slice: function (node) {
             const empty={type:"literal", toString:()=>""};

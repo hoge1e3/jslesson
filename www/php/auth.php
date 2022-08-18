@@ -163,13 +163,13 @@ class Auth {
             MySession::set("class",$user->_class->id);
             MySession::set("user",$user->name);
         } else {
-            throw new Exception("You are not the sudoer");
+            throw new Exception("You are not the sudoer of class '".$user->_class->id."'.");
         }
     }
     static function assertTeacher($ignoreClass=false) {
       $t=self::curTeacher();
       if (!$t) {
-        throw new Exception("You are not the teacher");
+        throw new Exception("You are not logged in as the teacher");
       }
       // when creating class...
       if ($ignoreClass) return $t;
@@ -180,7 +180,7 @@ class Auth {
       if ($t->isTeacherOf($c)) {
         return $t;
       }
-      throw new Exception("You are not the teacher");
+      throw new Exception("You are not the teacher of class '".$c->id."'.");
     }
     static function isTeacher() {//旧バージョン
         return self::curUser()==self::TEACHER;
@@ -206,10 +206,10 @@ class Auth {
             }
             MySession::set("class",$class->id);
         } else {
-            throw new Exception("You are not teacher of ".$class->id);
+            throw new Exception("Cannot select the class. You are not teacher of ".$class->id);
         }
     }
-    static function isTeacherOf($class){
+    static function isTeacherOf($class){// className or BAClass
         //現在ログインしているユーザは$class の教員roleを持つか？
         $t=self::isTeacher2();
         return $t && $t->isTeacherOf(self::getClass($class));
@@ -267,6 +267,33 @@ class Auth {
     }
     static function homeOfClass($class) {//BAClass
         return new SFile(self::getFS(),"/home/".$class->id."/");
+    }
+    static function homeOfUser($user) {//BAUser
+        return self::homeOfClass($user->_class)->rel($user->name."/");
+    }
+    static function userDeletable($user) {//BAUser
+        return self::isTeacherOf($user->_class) && count(self::projectsOf($user))===0;
+    }
+    static function projectsOf($user) {// BAUser
+        // defined also in ProjectController.php TODO
+        $homeDir=self::homeOfUser($user);
+        $res=array();
+        if ($homeDir->exists()) {
+            $dirs=$homeDir->listFiles();
+            foreach ($dirs as $dir) {
+                $of=$dir->rel("options.json");
+                if ($of->exists()) {
+                    $o=$of->obj();
+                    $o["name"]=$dir->name();
+                    $o["lastUpdate"]=$of->lastUpdate();
+                    array_push($res,$o);
+                }
+            }
+        }
+        return $res;
+    }
+    static function classDeletable($class) {
+        return self::isTeacherOf($class)&& count($class->getAllStu())===0;
     }
     static function getFS() {
    	    $user=self::curUser2();
