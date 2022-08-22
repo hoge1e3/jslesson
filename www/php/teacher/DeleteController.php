@@ -67,6 +67,7 @@ class DeleteController {
         Auth::assertTeacher();
         $class=Auth::curClass2();
         $head="del_";
+        fix($_POST, file_get_contents('php://input'));
         foreach ($_POST as $key=>$value) {
             if (substr($key, 0, strlen($head))===$head) {
                 $key=substr($key, strlen($head));
@@ -132,5 +133,20 @@ class DeleteController {
         <?php
     }
 }   
+
+function fix(&$target, $source, $discard = true) {
+    if ($discard)
+        $target = array();
+
+    $source = preg_replace_callback(
+        '/(^|(?<=&))[^=[&]+/',
+        function($key) { return bin2hex(urldecode($key[0])); },
+        $source
+    );
+
+    parse_str($source, $post);
+    foreach($post as $key => $val)
+        $target[ hex2bin($key) ] = $val;
+}
 
 ?>
