@@ -113,6 +113,7 @@ async function traverse(dom) {
 }
 window.addEventListener("load", ()=>
 (async function () {
+    return; // disable
     await traverse(document.body);
     let keys=Object.keys(freq);
     keys=keys.filter((s)=>!dict[s]);
