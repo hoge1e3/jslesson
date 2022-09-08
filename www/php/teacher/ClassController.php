@@ -56,9 +56,69 @@ class ClassController {
             <div class="note"><a href="a.php?Note/showAll">学生の全ノートを見る</a></div>
         <?php } ?>
         <hr>
-        <a href="." target="student">演習画面へ</a><hr>
-        <a href="a.php?Delete/klass">クラスの削除</a>
+        <a href="." target="student">演習画面へ</a>
+        <?php if (Auth::isClassAdministrator($class)) { ?>
+            <hr>
+            <h2>クラス管理メニュー</h2>
+            <a href="a.php?Delete/klass">クラスの削除</a><br/>
+            <a href="a.php?Class/collaboratorList">共同担当者を管理</a><br/>
+        <?php } ?>
         <?php
+    }
+    static function collaboratorList() {
+        $class=Auth::curClass2();
+        if (!Auth::isClassAdministrator($class)) {
+            die("You are not admin of class ".$class->id);
+        }
+        ?>
+        <h1><?= $class->id ?>の共同担当者</h1>
+        <?php
+        foreach ($class->getCollaboratorTeachers() as $t) {
+            ?>
+            <?= $t->id ?>
+            <a href="a.php?Class/rmCollaborator&name=<?= htmlspecialchars($t->id) ?>">担当者から外す</a><BR/>
+            <?php
+        }
+        ?>
+        <form action="a.php?Class/addCollaborator" method="POST">
+            <H2>担当者を追加</h2>
+            <input name="name" placeholder="教員メールアドレス">
+            <input type="submit" value="追加する">
+        </form>
+        <hr/>
+        <a href="a.php?Class/show">クラス管理</a>
+        <?php
+
+    }
+    static function addCollaborator() {
+        $class=Auth::curClass2();
+        if (!Auth::isClassAdministrator($class)) {
+            die("You are not admin of class ".$class->id);
+        }
+        $t=new BATeacher(param("name"));
+        if (!$t->exists()) {
+            print $t->id."は登録されていません";
+        } else if ($t->isTeacherOf($class)) {
+            print $t->id."はすでに".$class->id."の共同担当者になっています";
+        } else {
+            $class->addCollaboratorTeacher($t);
+            print $t->id."を".$class->id."の共同担当者にしました";    
+        }
+        ?><a href="a.php?Class/collaboratorList">共同担当者一覧</a><?php
+    }
+    static function rmCollaborator() {
+        $class=Auth::curClass2();
+        if (!Auth::isClassAdministrator($class)) {
+            die("You are not admin of class ".$class->id);
+        }
+        $t=new BATeacher(param("name"));
+        if (!$t->isTeacherOf($class)) {
+            print $t->id."は".$class->id."の共同担当者ではありません";
+        } else {
+            $class->removeCollaboratorTeacher($t);
+            print $t->id."を".$class->id."の共同担当者から外しました";    
+        }
+        ?><a href="a.php?Class/collaboratorList">共同担当者一覧</a><?php
     }
     static function make() {
         Auth::assertTeacher(true);
