@@ -21,6 +21,7 @@ $fs=new NativeFS(BA_DATA."/");
 $userDir=new SFile($fs,"user/");
 class Auth {
     const TEACHER="teacher";
+    const COLLABORATOR="coteacher";
     const SYSAD="sysad";
     static function login($class,$user,$pass=null) {
         // TODO 戻り値：
@@ -210,17 +211,14 @@ class Auth {
         }
     }
     static function isTeacherOf($class){// className or BAClass
-        //現在ログインしているユーザは$class の教員roleを持つか？
+        //現在ログインしているユーザは$class の教員role( teacher or coteacher)を持つか？
         $t=self::isTeacher2();
         return $t && $t->isTeacherOf(self::getClass($class));
-        /*$pdo = pdo();
-    	$sth=$pdo->prepare("select * from role where class = ? and user = ? and type = ?");
-    	$sth->execute(array($class,self::curUser(),self::TEACHER));
-    	if (count($sth->fetchAll())==0){
-	        return false;
-    	}else{
-    	    return true;
-    	}*/
+    }
+    static function isClassAdministrator($class) {// className or BAClass
+        //現在ログインしているユーザは$class のteacher の roleを持つか？
+        $t=self::isTeacher2();
+        return $t && $t->isClassAdministrator(self::getClass($class));
     }
     static function getClass($class) {
         if ($class instanceof BAClass) return $class;
@@ -293,7 +291,7 @@ class Auth {
         return $res;
     }
     static function classDeletable($class) {
-        return self::isTeacherOf($class)&& count($class->getAllStu())===0;
+        return self::isClassAdministrator($class)&& count($class->getAllStu())===0;
     }
     static function getFS() {
    	    $user=self::curUser2();

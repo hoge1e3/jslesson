@@ -18,8 +18,8 @@ class BAClass{
             throw new Exception("Cannot get class list. You are not logged in as a teacher.");
         }
         $pdo = pdo();
-        $sth=$pdo->prepare("select * from role where user = ? and type = ?");
-        $sth->execute(array($teacher->name,AUTH::TEACHER));
+        $sth=$pdo->prepare("select * from role where user = ? and type like ?");
+        $sth->execute(array($teacher->name,"%".AUTH::TEACHER));
         $res=array();
         foreach ($sth->fetchAll() as $rec) {
             $res[]=new BAClass($rec["class"]);
@@ -190,6 +190,31 @@ class BAClass{
             $res[]=$rec;
         }
         return $res;
+    }
+    function getCollaboratorTeachers() {
+        $teachers=pdo_select("select * from role where class=? and type=?",$this->id, Auth::COLLABORATOR);
+        $res=[];
+        foreach ($teachers as $teacher) {
+            $res[]=new BATeacher($teacher->user);
+        }
+        return $res;
+    }
+    function addCollaboratorTeacher($t) {
+        if (!Auth::isClassAdministrator($this)) {
+            die("You can not add");
+        }
+        pdo_insert("role",[
+            "user"=>$t->id,
+            "class"=>$this->id, 
+            "type"=> Auth::COLLABORATOR
+        ]);
+    }
+    function removeCollaboratorTeacher ($teacher){
+        if (!Auth::isClassAdministrator($this)) {
+            die("You can not rm");
+        }
+        pdo_exec("delete from role where class = ? and user = ? and type = ? ",
+    	        $this->id,$teacher->id,Auth::COLLABORATOR);
     }
 }
 
