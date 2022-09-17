@@ -16,6 +16,8 @@ async function addActualTime2(){
         const u=row.find("[data-attr='user']");
         if (!f[0] || !u[0]) continue;
         console.log(u.text(), f.text());
+        if (!u.text()) continue;
+        if (!f.text()) continue;
         const url=`a.php?TeacherLog/getActualtime2&user=${u.text()}&file=${f.text()}`;
         console.log(url);
         try {
