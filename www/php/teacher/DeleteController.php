@@ -4,6 +4,9 @@ class DeleteController {
     static function users() {
         Auth::assertTeacher();
         $class=Auth::curClass2();
+        if (!Auth::isClassAdministrator($class)) {
+            die("このクラスの管理はできません");
+        }
         $students=$class->getAllStu();
 
         ?>
@@ -66,6 +69,10 @@ class DeleteController {
     static function usersDone() {
         Auth::assertTeacher();
         $class=Auth::curClass2();
+        if (!Auth::isClassAdministrator($class)) {
+            die("このクラスの管理はできません");
+        }
+
         $head="del_";
         foreach ($_POST as $key=>$value) {
             if (substr($key, 0, strlen($head))===$head) {
@@ -96,6 +103,9 @@ class DeleteController {
     static function klass() {
         Auth::assertTeacher();
         $class=Auth::curClass2();
+        if (!Auth::isClassAdministrator($class)) {
+            die("このクラスの管理はできません");
+        }
         if (!Auth::classDeletable($class)) {
             ?>
             <?= $class->id ?> にユーザが残っています．まず

@@ -9,6 +9,16 @@ class BATeacher {
     function isTeacherOf($class) {
         //このユーザは$class の教員roleを持つか？
         $pdo = pdo();
+        $sth=$pdo->prepare("select * from role where class = ? and user = ? and type like ?");
+    	$sth->execute(array($class->id,$this->id,"%".Auth::TEACHER));
+    	if (count($sth->fetchAll())==0){
+	        return false;
+    	}else{
+    	    return true;
+    	}
+    }
+    function isClassAdministrator($class) {
+        $pdo = pdo();
         $sth=$pdo->prepare("select * from role where class = ? and user = ? and type = ?");
     	$sth->execute(array($class->id,$this->id,Auth::TEACHER));
     	if (count($sth->fetchAll())==0){
@@ -37,6 +47,9 @@ class BATeacher {
     	}else{
     	    return true;
     	}
+    }
+    function exists() {
+        return pdo_select1("select * from teacher where name=?", $this->id);
     }
     static function pass2shadow($pass) {
         return hash(SHADOW_ALGO,SHADOW_SALT.$pass);
