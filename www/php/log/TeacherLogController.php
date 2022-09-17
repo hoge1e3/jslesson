@@ -439,9 +439,17 @@ class TeacherLogController {
         //    // プログラムの一部を表示
         // }
     }
-    static function getActualtime2($user,$file, $dateMax=null) {
-        req("LogQueryController");
+    static function getActualtime2($user=null,$file=null, $dateMax=null) {
         $class=Auth::curClass2();
+        $isCtrl=false;
+        if ($user===null) {
+            Auth::assertTeacher();
+            $user=$class->getUser(param("user"));
+            $file=param("file");
+            $dateMax=param("dateMax",null);
+            $isCtrl=true;
+        }
+        req("LogQueryController");
         if ($dateMax) $drange=[0,$dateMax];
         else $drange=null;
         $it=LogQueryController::get($class, $drange, $user, $file, 100000, "asc");
@@ -458,6 +466,7 @@ class TeacherLogController {
             }
             $prev=$log;
         }
+        if ($isCtrl) {print $actTime2;}
         return $actTime2;
     }
     static function bot() {

@@ -114,19 +114,23 @@ class LogQueryController {
     }
     static function showTable($it) {
         //print "$datesec ";
+        ?>
+        <Script src="js/lib/jquery-1.12.1.js"></Script>
+        <Script src="js/log/actTime.js"></Script>
+        <?php
         print"<table>";
         $thShown=false;
         foreach ($it as $rec) {
             if (!$thShown) {
-                print "<tr>";
+                print "<tr class='header'>";
                 foreach ($rec as $key=>$val) {
                     if ($key=="raw" || $key=="detail" || $key=="class") continue;
-                    print "<td>$key</td>";
+                    print "<td data-attr='$key'>$key</td>";
                 }
-                print "</tr>";
+                print "</tr>\n";
                 $thShown=true;
             }
-            print "<tr>";
+            print "<tr class='record'>";
             if (isset($rec->time)) $date=DateUtil::toDayTop($rec->time);
             foreach ($rec as $key=>$val) {
                 if ($key=="raw" || $key=="detail" || $key=="class") continue;
@@ -135,9 +139,9 @@ class LogQueryController {
                     $u=$rec->user;
                     $val="<a href='.?TeacherLog/view1&user=$u&day=$date&logid=$val&' target=view1>$val</a>";
                 }
-                print "<td>$val</td>";
+                print "<td data-attr='$key'>$val</td>";
             }
-            print "</tr>";
+            print "</tr>\n";
         }
         print"</table>";
     }
