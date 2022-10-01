@@ -3,6 +3,7 @@
 
 define("PDO_DSN","sqlite:".BA_DATA."/db/db2.sqlite3");
 define("PYTHON_PATH","C:\\bin\\python.bat");
+define("PDO_LOG","C:\\bin\\pdo.log");
 define("SUPER_PYTHON","superpython");
 define("PYTHON_WORK",BA_DATA."/pythonwork/");
 
