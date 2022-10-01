@@ -269,6 +269,9 @@ class LoginController {
         MySession::set("class",$res->class);
         MySession::set("user",$res->user);
     }
+    static function cleanSession() {
+        MySession::clean();
+    } 
 }
 function statusHash($res) {
     $src=BAUTH_SALT;
