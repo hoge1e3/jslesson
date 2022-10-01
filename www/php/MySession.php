@@ -1,5 +1,8 @@
 <?php
 require_once __DIR__."/data/pdo.php";
+if (!defined("SESSION_TIMEOUT")) {
+    define("SESSION_TIMEOUT",60*60*24*30*1);
+}
 class MySession {
     static $id,$data;
     public static function startWith($i) {
@@ -15,7 +18,7 @@ class MySession {
             self::$id=$_COOKIE[$idname];
         } else {
             self::$id=self::publish();
-            setcookie($idname,self::$id,time()+60*60*24*30*1);
+            setcookie($idname,self::$id,time()+SESSION_TIMEOUT);
         }
         self::load();
     }
@@ -59,6 +62,9 @@ class MySession {
     public static function clear() {
         self::start();
         pdo_exec("delete from mysession where id=?",self::$id);
+    }
+    public static function clean() {
+        pdo_exec("delete from mysession where time < ?" ,time()-SESSION_TIMEOUT);
     }
 }
 
