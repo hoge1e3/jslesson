@@ -58,6 +58,7 @@ class MySession {
                 return self::$data=new stdClass();
             }
             $data_json=$rec->data;    
+            $_SESSION[MYSESSION_DATA]=$data_json;
         }
         self::$data=json_decode($data_json);
     }
