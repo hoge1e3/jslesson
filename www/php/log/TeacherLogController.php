@@ -1063,7 +1063,7 @@ class TeacherLogController {
             <td data-rate="<?=$rate?>" bgcolor=<?=$errcaution?>><?=$errcount[$k]?>/<?=$v?>(<?=$rate?>%)</td>
             <td bgcolor=<?=$timecaution?>><?=str_pad($time['h'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['m'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['s'],2,0,STR_PAD_LEFT)?></td>
             <td><?=$latestfile[$k]?></td>
-            <td><?= $latestfile[$k]? self::getActualtime2($class->getUser($k),$latestfile[$k],$max) : "" ?></td>
+            <td><?= $latestfile[$k]? self::getActualtime2($class->getUser("$k"),$latestfile[$k],$max) : "" ?></td>
             <td><?=$runhistory[$k]?></td>
             <?php } else {
                 for ($emp=0; $emp<5; $emp++) print "<td></td>";
