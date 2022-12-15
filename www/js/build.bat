@@ -16,8 +16,8 @@ cd ..\..
 rem call babel www\js\gen\edit_concat.js --out-file www\es5\gen\edit_concat.js
 rem call babel www\js\gen\selPrj_concat.js --out-file www\es5\gen\selPrj_concat.js
 rem call babel www\js\gen\pyRun_concat.js --out-file www\es5\gen\pyRun_concat.js
-call babel www\js\ --out-dir www\es5\
-copy www\es5\build\python\PyLib.js www\runtime\lib\python\
+rem call babel www\js\ --out-dir www\es5\
+copy www\build\python\PyLib.js www\runtime\lib\python\
 cd www\js
 rem cd ..
 rem call babel BuilderWorker.js --out-file BuilderWorker.es5.js
