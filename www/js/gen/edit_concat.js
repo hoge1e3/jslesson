@@ -15211,6 +15211,8 @@ define('LanguageList',['require','exports','module'],function (require, exports,
             helpURL:"http://bitarrow.eplang.jp/index.php?c_use", mode:"ace/mode/c_cpp"},
         "dncl":{en:"DNCL", ja:"DNCL(どんくり)",builder:"DnclBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?dncl_use"},
+        "dncl2":{en:"DNCL2", ja:"DNCL2(どんくり2)",builder:"Dncl2Builder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?dncl2_use"},
         "py": {en:"Python", ja:"Python",builder:"PythonBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
         "tonyu":{en:"Tonyu", ja:"Tonyu",builder:"TonyuBuilder",
@@ -16034,6 +16036,9 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace,EventHandler) {
                 trace=mesg.stack;
                 mesg=(mesg.message||mesg)+"";//detail;
                 appendPos=true;
+            } else if (mesg && mesg.isTError) {
+                pos=mesg.pos;
+                src=mesg.src;
             }
             var elem=t.createDom();
             t.mesgd.text(

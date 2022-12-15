@@ -1955,9 +1955,9 @@ function (Grammar,Pos2RC/*,TError*/) {
             //e.noTrace=true;
             throw er;
         }
-        console.log("G.parse.T",tks);
+        //console.log("G.parse.T",tks);
         const s=P.TokensParser.parse(g.get("program"),tks);
-        console.log("G.Parse.res",s);
+        //console.log("G.Parse.res",s);
         if (!s.success) {
             var ert=tks[s.src.maxPos];
             //console.error("Err",s.src.maxPos,ert.row,ert.col);
