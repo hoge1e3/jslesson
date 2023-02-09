@@ -6,7 +6,11 @@
   "window": {
     "width": 1024,
     "height": 768,
-	"toolbar"	: true
+    "toolbar": true
   },
-  "nodejs":true
+  "nodejs": true,
+  "dependencies": {
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-3": "^6.24.1"
+  }
 }

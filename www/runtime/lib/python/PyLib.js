@@ -82,17 +82,7 @@ define(function (require, exports, module) {
     function chkNan(v, mesg) {
         return v;
     }
-    PL.float = function (s) {
-        var v = s - 0;
-        if (v !== v) throw new Error(s + " \u306F float\u306B\u5909\u63DB\u3067\u304D\u307E\u305B\u3093");
-        return v;
-    };
-    PL.int = function (s) {
-        var v = s - 0;
-        if (v !== v) throw new Error(s + " \u306F int\u306B\u5909\u63DB\u3067\u304D\u307E\u305B\u3093");
-        if (s.match(/\./)) throw new Error(s + " \u306F\u5C0F\u6570\u70B9\u3092\u542B\u3093\u3067\u3044\u308B\u306E\u3067int\u306B\u5909\u63DB\u3067\u304D\u307E\u305B\u3093");
-        return v;
-    };
+
     PL.list = function (iter) {
         var res = [];
         var _iteratorNormalCompletion = true;
@@ -389,21 +379,36 @@ define(function (require, exports, module) {
             }
         }
         _res.__name__ = defs.CLASSNAME;
+        _res.__module__ = "__main__";
         _res.prototype.constructor = _res;
         Object.defineProperty(_res.prototype, "__class__", {
             value: _res,
             enumerable: false
         });
         _res.__methodnames__ = methodNames;
-        _res.__str__ = function () {
-            return "<class '__main__." + _res.__name__ + "'>";
-        };
+        Object.defineProperty(_res, "__str__", {
+            value: function value() {
+                return "<class '" + _res.__module__ + "." + _res.__name__ + "'>";
+            },
+            enumerable: false
+        });
         _res.__bases__ = PL.Tuple && PL.Tuple(parent ? [parent] : []);
         //res.prototype.toString=function(){return this.__str__();};
         for (var k in defs) {
             if (defs.hasOwnProperty(k)) addMethod(k);
         }
         return _res;
+    };
+    PL.float = function (s) {
+        var v = s - 0;
+        if (v !== v) throw new Error(s + " \u306F float\u306B\u5909\u63DB\u3067\u304D\u307E\u305B\u3093");
+        return v;
+    };
+    PL.int = function (s) {
+        var v = s - 0;
+        if (v !== v) throw new Error(s + " \u306F int\u306B\u5909\u63DB\u3067\u304D\u307E\u305B\u3093");
+        if (s.match(/\./)) throw new Error(s + " \u306F\u5C0F\u6570\u70B9\u3092\u542B\u3093\u3067\u3044\u308B\u306E\u3067int\u306B\u5909\u63DB\u3067\u304D\u307E\u305B\u3093");
+        return v;
     };
     PL.super = function (klass, self) {
         //console.log("klass,self, name",klass,self, klass.__name__);
@@ -527,10 +532,11 @@ define(function (require, exports, module) {
     PL.invalidOP = function (left, op, right) {
         function typestr(val) {
             if (val == PL.None) return "None";
-            var res = _typeof(u(val));
-            if (res !== "object") return res;
+            return val && PL.type(val).__name__;
+            /*const res=(typeof u(val));
+            if (res!=="object") return res;
             if (val && val.__getTypeName__) return val.__getTypeName__();
-            return res;
+            return res;*/
         }
         throw new Error("unsupported operand type(s) for " + op + ": '" + typestr(left) + "' and '" + typestr(right) + "'");
     };
@@ -567,11 +573,10 @@ define(function (require, exports, module) {
             });
         }
     };
+    var IDHASH = Symbol("identityHashcode");
     PL.addMonkeyPatch(Object, {
         __class__: Object,
-        __getTypeName__: function __getTypeName__() {
-            return "<class object>";
-        },
+        //__getTypeName__: function (){return "<class object>";},
         __call__: function __call__(self) {
             for (var _len4 = arguments.length, a = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
                 a[_key4 - 1] = arguments[_key4];
@@ -582,7 +587,9 @@ define(function (require, exports, module) {
         },
         //toString: function (self) {return self.value+"";},
         __str__: function __str__(self) {
-            return self + "";
+            self[IDHASH] = self[IDHASH] || Math.random();
+            var t = PL.type(self);
+            return "<" + t.__module__ + "." + t.__name__ + " object at " + this[IDHASH] + ">";
         },
         __add__: function __add__(self, other) {
             return self + u(other);
@@ -679,15 +686,26 @@ define(function (require, exports, module) {
     });
     PL.addMonkeyPatch(Number, {
         __class__: Number,
-        __getTypeName__: function __getTypeName__() {
-            return "<class number>";
+        __str__: function __str__(self) {
+            return self + "";
         }
+    }
+    //__getTypeName__: function (){return "number";},
+    );
+    Object.defineProperty(Number, "__str__", {
+        value: function value() {
+            var n = this;
+            if (Math.floor(n) == n) return "<class 'int'>";else return "<class 'float'>";
+        },
+        enumerable: false
     });
     PL.addMonkeyPatch(String, {
         __class__: String,
-        __getTypeName__: function __getTypeName__() {
-            return "<class str>";
+        __str__: function __str__(self) {
+            return self + "";
         },
+
+        //__getTypeName__: function (){return "str";},
         __mul__: function __mul__(self, other) {
             switch (typeof other === "undefined" ? "undefined" : _typeof(other)) {
                 case "number":
@@ -765,6 +783,12 @@ define(function (require, exports, module) {
             });
         }
     });
+    Object.defineProperty(String, "__str__", {
+        value: function value() {
+            return "<class 'str'>";
+        },
+        enumerable: false
+    });
     function otherShouldString(k) {
         return function (self, other) {
             if (typeof u(other) !== "string") {
@@ -774,18 +798,16 @@ define(function (require, exports, module) {
         };
     }
     PL.addMonkeyPatch(Boolean, {
-        __getTypeName__: function __getTypeName__() {
-            return "<class boolean>";
-        },
+        __class__: Boolean,
+        //: function (){return "boolean";},
         __str__: function __str__(self) {
             //  self is wrapped. always trusy
             return self == true ? "True" : "False";
         }
     });
     PL.addMonkeyPatch(Function, {
-        __getTypeName__: function __getTypeName__() {
-            return "<class function>";
-        }
+        __class__: Function
+        //__getTypeName__: function (){return "function";},
     });
     var orig_sort = Array.prototype.sort;
     function sliceToIndex(array, _ref) {

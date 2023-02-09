@@ -74,18 +74,7 @@ define(function (require,exports,module) {
     function chkNan(v, mesg) {
         return v;
     }
-    PL.float=function (s) {
-        const v=s-0;
-        if (v!==v) throw new Error(`${s} は floatに変換できません`);
-        return v;
-
-    };
-    PL.int=function (s) {
-        const v=s-0;
-        if (v!==v) throw new Error(`${s} は intに変換できません`);
-        if (s.match(/\./)) throw new Error(`${s} は小数点を含んでいるのでintに変換できません`);
-        return v;
-    };
+    
     PL.list=(iter)=>{
         const res=[];
         for (let x of iter) res.push(x);
@@ -287,19 +276,35 @@ define(function (require,exports,module) {
             }
         }
         res.__name__=defs.CLASSNAME;
+        res.__module__="__main__";
         res.prototype.constructor=res;
         Object.defineProperty(res.prototype,"__class__",{
             value:res,
             enumerable: false
         });
         res.__methodnames__=methodNames;
-        res.__str__=()=>`<class '__main__.${res.__name__}'>`;
+        Object.defineProperty(res, "__str__",{
+            value: ()=>`<class '${res.__module__}.${res.__name__}'>`,
+            enumerable: false
+        });
         res.__bases__=PL.Tuple && PL.Tuple(parent?[parent]:[]);
         //res.prototype.toString=function(){return this.__str__();};
         for (var k in defs) {
             if (defs.hasOwnProperty(k)) addMethod(k);
         }
         return res;
+    };
+    PL.float=function (s) {
+        const v=s-0;
+        if (v!==v) throw new Error(`${s} は floatに変換できません`);
+        return v;
+
+    };
+    PL.int=function (s) {
+        const v=s-0;
+        if (v!==v) throw new Error(`${s} は intに変換できません`);
+        if (s.match(/\./)) throw new Error(`${s} は小数点を含んでいるのでintに変換できません`);
+        return v;
     };
     PL.super=function(klass,self) {
         //console.log("klass,self, name",klass,self, klass.__name__);
@@ -390,13 +395,15 @@ define(function (require,exports,module) {
         return v;
     }
 
+    
     PL.invalidOP=function (left, op, right) {
         function typestr(val) {
             if (val==PL.None) return "None";
-            const res=(typeof u(val));
+            return val && PL.type(val).__name__;
+            /*const res=(typeof u(val));
             if (res!=="object") return res;
             if (val && val.__getTypeName__) return val.__getTypeName__();
-            return res;
+            return res;*/
         }
         throw new Error(`unsupported operand type(s) for ${op}: '${typestr(left)}' and '${typestr(right)}'`);
     };
@@ -433,16 +440,19 @@ define(function (require,exports,module) {
             });
         }
     };
+    const IDHASH=Symbol("identityHashcode");
     PL.addMonkeyPatch(Object, {
         __class__:Object,
-        __getTypeName__: function (){return "<class object>";},
+        //__getTypeName__: function (){return "<class object>";},
         __call__: function (self,...a) {
             //var a=Array.prototype.slice.call(arguments,1);
             return self.apply(self, a);
         },
         //toString: function (self) {return self.value+"";},
         __str__: function (self) {
-            return self+"";
+            self[IDHASH]=self[IDHASH]||Math.random();
+            const t=PL.type(self);
+            return `<${t.__module__}.${t.__name__} object at ${this[IDHASH]}>`;
         },
         __add__: function (self,other) {return self+u(other);
         },
@@ -500,11 +510,21 @@ define(function (require,exports,module) {
     });
     PL.addMonkeyPatch(Number,{
         __class__:Number,
-        __getTypeName__: function (){return "<class number>";},
+        __str__(self){return self+"";},
+        //__getTypeName__: function (){return "number";},
+    });
+    Object.defineProperty(Number, "__str__", {
+        value:function () {
+            const n=this;
+            if (Math.floor(n)==n) return "<class 'int'>";
+            else return "<class 'float'>";
+        },
+        enumerable: false,
     });
     PL.addMonkeyPatch(String,({
         __class__:String,
-        __getTypeName__: function (){return "<class str>";},
+        __str__(self){return self+"";},
+        //__getTypeName__: function (){return "str";},
         __mul__: function (self,other) {
             switch (typeof other) {
             case "number":
@@ -556,6 +576,12 @@ define(function (require,exports,module) {
             });
         }
     }));
+    Object.defineProperty(String, "__str__", {
+        value: function () {
+            return "<class 'str'>";
+        },
+        enumerable: false,
+    });
     function otherShouldString(k) {
         return function (self,other) {
             if (typeof u(other)!=="string") {
@@ -565,7 +591,8 @@ define(function (require,exports,module) {
         };
     }
     PL.addMonkeyPatch(Boolean,{
-        __getTypeName__: function (){return "<class boolean>";},
+        __class__: Boolean,
+        //: function (){return "boolean";},
         __str__(self) {
             //  self is wrapped. always trusy
             return self==true?"True":"False";
@@ -573,7 +600,8 @@ define(function (require,exports,module) {
 
     });
     PL.addMonkeyPatch(Function,{
-        __getTypeName__: function (){return "<class function>";},
+        __class__: Function,
+        //__getTypeName__: function (){return "function";},
     });
     const orig_sort=Array.prototype.sort;
     function sliceToIndex(array, {start, stop, step}) {
