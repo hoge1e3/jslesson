@@ -223,13 +223,11 @@ define(function (require, exports, module) {
     PL.type = function (s) {
         switch (_typeof(u(s))) {
             case "number":
-                return Number;
-            case "string":
-                return String;
-            case "function":
-                return Function;
-            case "boolean":
-                return Boolean;
+                if (Math.floor(s) == s) return PL.int;
+                return PL.float;
+            //case "string":return String;
+            //case "function":return Function;
+            //case "boolean":return Boolean;
             default:
                 //if (s && s.__getTypeName__) return s.__getTypeName__();
                 if (s && s.__class__) return s.__class__;
@@ -370,9 +368,11 @@ define(function (require, exports, module) {
                     },
                     enumerable: false
                 });
-                Object.defineProperty(_res, k, {
-                    value: m
-                });
+                if (k !== "__str__") {
+                    Object.defineProperty(_res, k, {
+                        value: m
+                    });
+                }
                 methodNames.push(k);
             } else {
                 _res.prototype[k] = m;
@@ -383,6 +383,10 @@ define(function (require, exports, module) {
         _res.prototype.constructor = _res;
         Object.defineProperty(_res.prototype, "__class__", {
             value: _res,
+            enumerable: false
+        });
+        Object.defineProperty(_res, "__class__", {
+            value: PL.type,
             enumerable: false
         });
         _res.__methodnames__ = methodNames;
@@ -587,9 +591,9 @@ define(function (require, exports, module) {
         },
         //toString: function (self) {return self.value+"";},
         __str__: function __str__(self) {
-            self[IDHASH] = self[IDHASH] || Math.random();
+            self[IDHASH] = self[IDHASH] || ~~(Math.random() * Math.pow(2, 31));
             var t = PL.type(self);
-            return "<" + t.__module__ + "." + t.__name__ + " object at " + this[IDHASH] + ">";
+            return "<" + t.__module__ + "." + t.__name__ + " object at 0x" + this[IDHASH].toString(16) + ">";
         },
         __add__: function __add__(self, other) {
             return self + u(other);
@@ -692,13 +696,28 @@ define(function (require, exports, module) {
     }
     //__getTypeName__: function (){return "number";},
     );
-    Object.defineProperty(Number, "__str__", {
-        value: function value() {
-            var n = this;
-            if (Math.floor(n) == n) return "<class 'int'>";else return "<class 'float'>";
+    function setStr2Class(klass, name) {
+        Object.defineProperty(klass, "__str__", {
+            value: function value() {
+                return "<class '" + name + "'>";
+            },
+            enumerable: false
+        });
+    }
+    setStr2Class(String, "str");
+    setStr2Class(Boolean, "bool");
+    setStr2Class(Function, "function");
+    setStr2Class(PL.int, "int");
+    setStr2Class(PL.float, "float");
+    setStr2Class(PL.type, "type");
+    /*Object.defineProperty(Number, "__str__", {
+        value:function () {
+            const n=this;
+            if (Math.floor(n)==n) return "<class 'int'>";
+            else return "<class 'float'>";
         },
-        enumerable: false
-    });
+        enumerable: false,
+    });*/
     PL.addMonkeyPatch(String, {
         __class__: String,
         __str__: function __str__(self) {
@@ -783,12 +802,7 @@ define(function (require, exports, module) {
             });
         }
     });
-    Object.defineProperty(String, "__str__", {
-        value: function value() {
-            return "<class 'str'>";
-        },
-        enumerable: false
-    });
+
     function otherShouldString(k) {
         return function (self, other) {
             if (typeof u(other) !== "string") {

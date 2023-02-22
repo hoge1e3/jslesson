@@ -133,10 +133,12 @@ define(function (require,exports,module) {
     };
     PL.type=function (s) {
         switch (typeof u(s)) {
-            case "number":return Number;
-            case "string":return String;
-            case "function":return Function;
-            case "boolean":return Boolean;
+            case "number":
+                if (Math.floor(s)==s) return PL.int;
+                return PL.float;
+            //case "string":return String;
+            //case "function":return Function;
+            //case "boolean":return Boolean;
             default:
             //if (s && s.__getTypeName__) return s.__getTypeName__();
             if (s && s.__class__) return s.__class__;
@@ -267,9 +269,11 @@ define(function (require,exports,module) {
                     },
                     enumerable: false
                 });
-                Object.defineProperty(res,k,{
-                    value: m
-                });
+                if (k!=="__str__") {
+                    Object.defineProperty(res,k,{
+                        value: m
+                    });    
+                }
                 methodNames.push(k);
             } else {
                 res.prototype[k]=m;
@@ -282,11 +286,15 @@ define(function (require,exports,module) {
             value:res,
             enumerable: false
         });
+        Object.defineProperty(res,"__class__",{
+            value:PL.type,
+            enumerable: false
+        });
         res.__methodnames__=methodNames;
         Object.defineProperty(res, "__str__",{
             value: ()=>`<class '${res.__module__}.${res.__name__}'>`,
             enumerable: false
-        });
+        });        
         res.__bases__=PL.Tuple && PL.Tuple(parent?[parent]:[]);
         //res.prototype.toString=function(){return this.__str__();};
         for (var k in defs) {
@@ -298,7 +306,6 @@ define(function (require,exports,module) {
         const v=s-0;
         if (v!==v) throw new Error(`${s} は floatに変換できません`);
         return v;
-
     };
     PL.int=function (s) {
         const v=s-0;
@@ -450,9 +457,9 @@ define(function (require,exports,module) {
         },
         //toString: function (self) {return self.value+"";},
         __str__: function (self) {
-            self[IDHASH]=self[IDHASH]||Math.random();
+            self[IDHASH]=self[IDHASH]||(~~(Math.random()*(2**31)));
             const t=PL.type(self);
-            return `<${t.__module__}.${t.__name__} object at ${this[IDHASH]}>`;
+            return `<${t.__module__}.${t.__name__} object at 0x${this[IDHASH].toString(16)}>`;
         },
         __add__: function (self,other) {return self+u(other);
         },
@@ -513,14 +520,28 @@ define(function (require,exports,module) {
         __str__(self){return self+"";},
         //__getTypeName__: function (){return "number";},
     });
-    Object.defineProperty(Number, "__str__", {
+    function setStr2Class(klass,name) {
+        Object.defineProperty(klass, "__str__", {
+            value: function () {
+                return `<class '${name}'>`;
+            },
+            enumerable: false,
+        });
+    }
+    setStr2Class(String,"str");
+    setStr2Class(Boolean,"bool");
+    setStr2Class(Function,"function");
+    setStr2Class(PL.int,"int");
+    setStr2Class(PL.float,"float");
+    setStr2Class(PL.type, "type");
+    /*Object.defineProperty(Number, "__str__", {
         value:function () {
             const n=this;
             if (Math.floor(n)==n) return "<class 'int'>";
             else return "<class 'float'>";
         },
         enumerable: false,
-    });
+    });*/
     PL.addMonkeyPatch(String,({
         __class__:String,
         __str__(self){return self+"";},
@@ -576,12 +597,7 @@ define(function (require,exports,module) {
             });
         }
     }));
-    Object.defineProperty(String, "__str__", {
-        value: function () {
-            return "<class 'str'>";
-        },
-        enumerable: false,
-    });
+    
     function otherShouldString(k) {
         return function (self,other) {
             if (typeof u(other)!=="string") {
