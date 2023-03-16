@@ -440,12 +440,18 @@ root.MinimalParser= function () {
 		.ret(function(lsb,expr,rsb){
 			var $=["[",expr,"]"];
 			//$.isArray=true
-			$.abstract_declarator_info={type:"array", elementLength:(expr+"")-0};
+			let elementLength;
+			if (expr) {
+				elementLength=(expr+"")-0;
+			}
+			$.abstract_declarator_info={type:"array", elementLength};
 			return $;
 		});
 	direct_abstract_declarator=direct_abstract_declarator.or(t("(")
 		.and(parameter_type_list_lazy).and(t(")")).ret(function(lp,parameter_type_list,rp){
-			return ["(",parameter_type_list,")"];
+			return extend(["(",parameter_type_list,")"], {
+				abstract_declarator_info:{type:"function", parameters:  parameter_type_list}
+			});
 		}));
 	direct_abstract_declarator=direct_abstract_declarator.rep0();
 	// \abstract_declarator
@@ -454,7 +460,16 @@ root.MinimalParser= function () {
       | <pointer> <direct-abstract-declarator>
       | <direct-abstract-declarator>
 	*/
-	var abstract_declarator=direct_abstract_declarator;
+	var pointer=t("*");//.and(type_qualifiers.opt()).ret(function(mul,type_qualifiers){return [];});
+	var abstract_pointer_declarator=pointer.ret((p)=>{
+		//throw new Error("PONTEEE");
+		return {abstract_declarator_info:{type:"pointer"}};
+	});
+	var abstract_declarator=
+		abstract_pointer_declarator.opt().and(direct_abstract_declarator).ret((p,a)=>{
+			if (!p) return a;
+			return [p,...a];
+		});
     var baseType=T.Int();
 	// \declaration_specifiers
 	var declaration_specifier=storage_class_specifier.or(type_specifier).or(type_qualifier);
@@ -579,7 +594,6 @@ root.MinimalParser= function () {
     		return $;
 	    }
 	);
-	var pointer=t("*");//.and(type_qualifiers.opt()).ret(function(mul,type_qualifiers){return [];});
     //\declarator = pointer? direct-declarator  (pointer? まだ)
 	declarator=saveBaseType(
 	    pointer.rep0().ret(function (ps) {
@@ -1180,10 +1194,11 @@ root.MinimalParser= function () {
 	postfix_expression.mkPrefix(mkpre);
 	postfix_expression=postfix_expression.build();
     //\unary_expression
+	const par_type_name=t("(").and(type_name_lazy).and(t(")")).ret((_,e)=>e);
 	unary_expression=postfix_expression.ret(chkTypeIsSet("postf600")).or(
-		t("sizeof").and(unary_expression_lazy.or(
-			t("(").and(type_name_lazy).and(t(")")).ret((_,e)=>e)
-		)).ret((_, exp)=>{
+		t("sizeof").and(
+			par_type_name.or(unary_expression_lazy)
+		).ret((_, exp)=>{
 			//exp=unwrapParen(exp);
 			//console.log("sizeof_debug",exp, exp.vtype);
 			return extend({
@@ -1250,6 +1265,12 @@ root.MinimalParser= function () {
 			case "array":
 				res=T.Array(res, a.abstract_declarator_info.elementLength);
 				break;
+			case "pointer":
+				res=T.Pointer(res);
+				break;
+			case "function":
+				res=T.Function(res,a.abstract_declarator_info.parameters);
+				break;	
 			}
 		}
 		return res;
