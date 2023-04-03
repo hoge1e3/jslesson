@@ -1056,6 +1056,7 @@ function ready() {
         var n=curPrj.truncEXT(c);//c.truncExt();//.p5.js
         return [c.up().rel(n+HEXT), c.up().rel(n+EXT)];
     }
+    const hjsel={};
     $(".selTab").click(function () {
         var ext=A.is($(this).attr("data-ext"),String);
         var c=fl.curFile();
@@ -1068,6 +1069,7 @@ function ready() {
         if (!f.exists()) {
             FM.on.createContent(f);
         }
+        hjsel[n]=ext;
         fl.select(f);
     });
     setInterval(watchModified,1000);
@@ -1077,6 +1079,7 @@ function ready() {
     function open(f) {
 	// do not call directly !!  it doesnt change fl.curFile. use fl.select instead
         A.is(f,"SFile");
+        
         if (!window.ace) {
             alert("しばらくしてからもう一度開いてください");
             return true;
