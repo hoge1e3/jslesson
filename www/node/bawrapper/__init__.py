@@ -52,9 +52,11 @@ _str=str
 _int=int
 _zip=zip
 _sum=sum
+_list=list
 #def _int(*a,**k):
 #    return int(*a,**k)
 _float=float
+_isinstance=isinstance
 #def _float(*a,**k):
 #    return float(*a,**k)
 def _len(*a,**k):

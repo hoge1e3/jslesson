@@ -1,5 +1,5 @@
 <?php
-req("param","auth","MySession","AssetController");
+req("param","auth","MySession","AssetController","Docker","Process");
 class RunPythonController {
     static function workDirPath() {
         if (MySession::has("PYTHON_WORK")) {
@@ -15,8 +15,9 @@ class RunPythonController {
         }
         return $wpath;
     }
-    static function copyImg($path) {
-        $w=MySession::get("PYTHON_WORK");
+    static function copyImg($path, $plotBase=null) {
+        if (!PathUtil::isAbsolute($path) && $plotBase) $path=$plotBase->rel($path)->path();
+        $w="python_img";//MySession::get("PYTHON_WORK");
         $pubFilePath=BA_PUB."/$w";
         if (!file_exists($pubFilePath)) mkdir($pubFilePath);
         $ext=PathUtil::ext($path);
@@ -50,23 +51,86 @@ class RunPythonController {
             return $homes;
         }
     }
+    static function runInDocker() {
+        //$class=Auth::curClass2();
+        //$user=Auth::curUser2();
+        //if (!$user) {
+            $url=param("url");
+            req("Published");
+            $rec=Published::getRecord($url);
+            if($rec) {
+                $user=new BAUser(new BAClass($rec->{"class"}), $rec->{"user"});
+            } else {
+                $user=Auth::curUser2();
+            }
+        //}
+        $projectName=param("prj");
+        self::runInDocker_withClassUser($user, $projectName, false);
+    }
+    static function runInDocker_ntk() {
+        if (!defined("NTK_CLASS")) {
+            die("No NTK_CLASS");
+        }
+        $class=new BAClass(NTK_CLASS);
+        $user=$class->getUser("test");
+        self::runInDocker_withClassUser($user, "test", true);
+    }
+    static function runInDocker_withClassUser($user, $projectName, $outjson=false) {
+        $class=$user->_class;
+        $source=param("source",param("src",null));
+        $fileName=param("file",param("filename",null));
+        if (!$fileName) die("Parameter fileName Required");
+        $stdin=param("stdin","\n\n\n\n\n\n\n\n");
+
+        $d=Docker::init($class->id);
+        if ($source) {
+            $prjDir=$d->BAHome()->rel($user->name)->rel($projectName);
+            self::pushSource($prjDir, $fileName, $source );
+        }
+        $prjDesc=$d->openProject($user->name, $projectName);
+        $stdinfile="__STDIN.txt";
+     	$prjDesc["work"]["host"]->rel($stdinfile)->text($stdin);
+     	$res=$d->execInProject($prjDesc, "export MPLBACKEND=\"module://mybackend\" \n timeout 60 python $fileName < $stdinfile");
+        if ($outjson) {
+            header("Content-type: text/json; charset=utf8");
+            print json_encode($res);
+            return;
+        }
+     	if ($res["stderr"]=="") self::convOut($res["stdout"], $d->hostWork()->rel($user->name."/")->rel("$projectName/") );
+        else {
+            http_response_code(500);
+            print($res["stdout"]."\n".$res["stderr"]);
+        }
+ 	    //print_r($r);
+    }
+    static function pushSource($prjDir, $fileName, $source) {
+        if (!$prjDir->exists()) {
+            $prjDir->mkdir();
+            $options=$prjDir->rel("options.json");
+            $options->text(json_encode(array("language"=>"py")));
+        }
+        $prjDir->rel($fileName)->text($source);
+    }
     static function runStr(){
         $nfs=new NativeFS();
         $str=param("str");
-        $fs=Auth::getFS();
+        //$fs=Auth::getFS();
         $sp=self::isSuper(1);
         $wpath=self::workDirPath();
         $workDir=new SFile($nfs,$wpath);
         $d=$workDir->rel("src.py");
         $d->text($str);
         $copiedScriptPath=$d->nativePath();
-        $homes=Asset::homes();
-        $workDir->rel("config.json")->text(
-            json_encode(array(
-                "super"=>$sp,
-                "asset"=>self::convHomes($homes)
-            ))
-        );
+        if (!Auth::loggedIn()) {
+            //require("BigData");
+            //BigData::selectClassByURL(param("url"));
+            //$class=BigData::getClass();
+            //self::home();
+            $homes=[];
+        } else {
+            $homes=Asset::homes();
+        }
+        self::saveConfig($workDir, $homes,$sp);
         $workDir->rel("stdin.txt")->text(param("stdin","\n\n\n\n\n\n\n\n"));
         $cmd=PYTHON_PATH." \"$copiedScriptPath\"";
         $res=system_ex($cmd);
@@ -95,12 +159,7 @@ class RunPythonController {
         $d->copyFrom($s);
         $copiedScriptPath=$d->nativePath();
         $homes=Asset::homes();
-        $workDir->rel("config.json")->text(
-            json_encode(array(
-                "super"=>$sp,
-                "asset"=>self::convHomes($homes)
-            ))
-        );
+        self::saveConfig($workDir, $homes,$sp);
         $cmd=PYTHON_PATH." \"$copiedScriptPath\"";
         $res=system_ex($cmd);
         if ($res["return"]==0) self::convOut($res["stdout"]);
@@ -109,12 +168,16 @@ class RunPythonController {
             print($res["stderr"]);
         }
     }
-    static function convOut($out) {
+    static function convOut($out, $plotBase=null) {
         foreach (explode("\n",$out) as $line) {
             $line=preg_replace("/\\r/","",$line);
             if (preg_match("/##PLOT##(.*)/",$line,$m)) {
-                $src=self::copyImg($m[1]);
-                echo "<img src='$src'/>\n";
+                $src=self::copyImg($m[1],$plotBase);
+                if (preg_match("/\\.html/", $src)) {
+                    echo "<iframe src='$src'></iframe>\n";
+                } else {
+                    echo "<img src='$src'/>\n";
+                }
             } else {
                 echo "$line\n";
             }
@@ -122,7 +185,7 @@ class RunPythonController {
     }
     static function isSuper($called=0) {
         $class=Auth::curClass2();
-        if (defined("SUPER_PYTHON") && $class->id === SUPER_PYTHON) {
+        if (defined("SUPER_PYTHON") && $class && $class->id === SUPER_PYTHON) {
         //if (true) {// special-change
             if (!$called) echo 1;
             return 1;
@@ -135,6 +198,17 @@ class RunPythonController {
         $r=system_ex("echo hoge");
         print ("<pre>[".$r["stdout"]."]</pre>");
     }
+    static function saveConfig($workDir, $homes, $sp=0) {
+        $url=(empty($_SERVER['HTTPS']) ? 'http://' : 'https://') . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+        $url=preg_replace("/\\?.*/", "", $url);
+        $workDir->rel("config.json")->text(
+            json_encode(array(
+                "super"=>$sp,
+                "asset"=>self::convHomes($homes),
+                "topURL"=>$url
+            ))
+        );
+    }
     static function runStr2($str,$stdin=""){
         $nfs=new NativeFS();
         $fs=Auth::getFS();
@@ -145,12 +219,7 @@ class RunPythonController {
         $d->text($str);
         $copiedScriptPath=$d->nativePath();
         $homes=Asset::homes();
-        $workDir->rel("config.json")->text(
-            json_encode(array(
-                "super"=>$sp,
-                "asset"=>self::convHomes($homes)
-            ))
-        );
+        self::saveConfig($workDir, $homes,$sp);
         $workDir->rel("stdin.txt")->text($stdin);
         $cmd=PYTHON_PATH." \"$copiedScriptPath\"";
         $res=system_ex($cmd);
@@ -159,9 +228,12 @@ class RunPythonController {
             return ($res["stderr"]);
         }
     }
-
+    static function largeOut() {
+        $r=system_ex("python c:\\bin\\test.py ".param("num",0));
+        print_r($r);
+    }
 }
-function system_ex($cmd, $stdin = "")
+function system_ex2($cmd, $stdin = "")
 {
     $descriptorspec = array(
         0 => array("pipe", "r"),
@@ -178,12 +250,15 @@ function system_ex($cmd, $stdin = "")
         fputs($pipes[0], $stdin);
         fclose($pipes[0]);
 
-        while ($error = fgets($pipes[2])){
+        $error_message=stream_get_contents($pipes[2]);
+        /*while ($error = fgets($pipes[2])){
             $error_message .= $error;
-        }
+        }*/
+        $result_message=stream_get_contents($pipes[1]);
+        /*
         while ($result = fgets($pipes[1])){
             $result_message .= $result;
-        }
+        }*/
         foreach ($pipes as $k=>$_rs){
             if (is_resource($_rs)){
                 fclose($_rs);

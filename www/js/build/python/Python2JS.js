@@ -27,6 +27,16 @@ function (Visitor,IndentBuffer,context,PL,S) {
         paramList: function (node) {
             this.printf("(%j)",[",",node.body]);
         },
+        param: function(node) {
+            if (node.defVal) {
+                this.printf("%s=%v",node.name, node.defVal);
+            } else {
+                this.printf("%s",node.name);
+            }
+        },
+        defVal: function (node) {
+            this.printf("%v",node.value);
+        },
         importStmt: function (node) {
             var url=this.options.pyLibPath+"/py_"+node.name+".js";
             if (node.alias) {
@@ -100,16 +110,16 @@ function (Visitor,IndentBuffer,context,PL,S) {
             if (this.anon.get(node).needVar) {
                 this.printf("var ");
             }
-            console.log("NODEL",node.left);//lvallist
+            //console.log("NODEL",node.left);//lvallist
             const firstBody=node.left.body && node.left.body[0];
             const io=PL.iops[node.op+""];
-            if (firstBody &&
-                firstBody.type==="postfix" &&
-                firstBody.op.type==="index") {
+            const value=node.right;
+            const matchPostfix=firstBody && firstBody.type==="postfix" && firstBody;
+            if (matchPostfix &&
+                matchPostfix.op.type==="index") {
                 // TODO: [x[5],y]=[2,3]  -> x.__setitem__(5,2), y=3
-                const object=firstBody.left;
-                const index=firstBody.op;
-                const value=node.right;
+                const object=matchPostfix.left;
+                const index=matchPostfix.op;
                 console.log("NODEL2",object,index);
                 if (io) {
                     this.printf("%v.__setitem__(%v, "+
@@ -121,8 +131,23 @@ function (Visitor,IndentBuffer,context,PL,S) {
                 } else {
                     this.printf("%v.__setitem__(%v, %v);",object, index.body,value );
                 }
+            } else if (matchPostfix &&
+                matchPostfix.op.type==="memberRef") {
+                // TODO: [x[5],y]=[2,3]  -> x.__setitem__(5,2), y=3
+                const object=matchPostfix.left;
+                const name=matchPostfix.op.name;
+                console.log("NODEL3",object,name);
+                if (io) {
+                    this.printf("%v.__setattr__('%s', "+
+                        "%s.wrap( %v.__getattribute__('%s') ).__%s__(%v)"+
+                    ");",
+                        object, name,
+                        PYLIB, object, name, io, value
+                    );
+                } else {
+                    this.printf("%v.__setattr__('%s', %v);",object, name,value );
+                }
             } else if (io) {
-                const value=node.right;
                 this.printf("%v=%s.wrap(%v).__%s__(%v)" ,
                 node.left, PYLIB, node.left, io, value);
             } else {
@@ -147,8 +172,30 @@ function (Visitor,IndentBuffer,context,PL,S) {
         printStmt3: function (node) {
             this.printf("%s.print %v;",PYLIB,node.args);
         },
+        tryStmt(node) {
+            this.printf("try");
+            this.visit(node.body);
+            if (node.exceptParts[0]) this.visit(node.exceptParts[0]);
+            if (node.finallyPart) this.visit(node.finallyPart);
+        },
+        exceptPart(node) {
+            this.printf("catch");
+            if (node.exceptParam) this.visit(node.exceptParam);
+            else this.printf("(_excep)");
+            //console.log("node.body", node.body);
+            this.visit(node.body);
+        },
+        exceptParam(node) {
+            if (node.asName) {
+                this.printf("(%s)",node.asName.name);
+            } else this.printf("(_excep)");
+        },
+        finallyPart(node) {
+            this.printf("finally");
+            this.visit(node.body);
+        },
         memberRef: function (node) {
-            this.printf(".%v",node.name);
+            this.printf(".__getattribute__('%s')",node.name);
         },
         args: function (node) {
             const noname=node.body.filter((a)=>!a.name);
@@ -274,6 +321,9 @@ function (Visitor,IndentBuffer,context,PL,S) {
         passStmt: function () {
             this.printf(";");
         },
+        lambdaExpr(node) {
+            this.printf("((%v)=>%v)",node.param, node.returns);
+        },
         superCall: function () {
             this.printf("%s.super(this.__class__, this)",PYLIB);
         },
@@ -302,6 +352,21 @@ function (Visitor,IndentBuffer,context,PL,S) {
         True: function () {this.printf("true");},
         False: function () {this.printf("false");},
         None: function () {this.printf("%s.None",PYLIB);},
+        symbol(node) {
+            if (typeof this.convertSymbol[node.text]==="string") {
+                // for example, node.text=="__str__", function returns
+                this.printf(this.convertSymbol[node.text]);
+            } else {
+                const a=this.anon.get(node);
+                if (a.scopeInfo && !a.isLeft) {
+                    // right val
+                    this.printf("%s.checkSet(%s,'%s')",PYLIB, node+"", node+"");
+                } else {
+                    // left val
+                    this.printf("%s",node+"");
+                }
+            }
+        },
     };
     const cmps={">":1,"<":1,"==":1,">=":1,"<=":1,"!=":1};
     function isCmp(node) {
@@ -318,7 +383,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
     }
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=",
       ">","<","=",".",":","+","-","*","/","%","(",")",",","!",
-      "number","symbol"];
+      "number"];
     for (let ve of verbs) {
         vdef[ve]=function (node) {
             //console.log("verb",node);
@@ -339,6 +404,13 @@ function (Visitor,IndentBuffer,context,PL,S) {
             }
         };
         v.options=options;
+        v.convertSymbol={};
+        for (let im of options.implicitImports||[]) {
+            for (let n of im.names) {
+                v.convertSymbol[n]=im.head+"."+n;
+            }
+        }
+        //console.log("convertSymbol",this.convertSymbol,options.implicitImports);
         v.ctx=context();
         const buf=options.buf||IndentBuffer();
         buf.visitor=v;
@@ -349,10 +421,16 @@ function (Visitor,IndentBuffer,context,PL,S) {
             v.printf("define('__main__',function (require,exports,module) {%{");
             v.printf("var %s=require('%s/PyLib.js');%n",PYLIB,options.pyLibPath);
         }
+        if (options.injectBefore) {
+            v.printf(options.injectBefore);
+        }
         for (let n of PL.builtins) {
             v.printf("var %s=%s.%s;%n",n,PYLIB,n);
         }
         v.visit(node);
+        if (options.injectAfter) {
+            v.printf(options.injectAfter);
+        }
         if (options.genReqJS) {
             v.printf("%}});%n");
             const SEND_LOG=`

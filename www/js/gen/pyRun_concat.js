@@ -1620,7 +1620,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         "for","while","in","return","print","import","as",
         "and","or","not","global","True","False","del",
         "finally","is","None","lambda","try","from" ,"nonlocal","with","yield",
-        "assert","pass","except","raise","super"
+        "assert","pass","except","finally", "raise","super"
        ];
     const resvh={};
     for(let r of reserved) resvh[r]=r;
@@ -1674,7 +1674,19 @@ function (Grammar,Pos2RC/*,TError*/) {
             var lineNo=0;
             let literal3=false; // """ ... """
             const literal3End=/"""/;
-            for (let line of src.split("\n")) {
+            const lineSep=/\r\n|\n|\r/g;
+            const lines=[];
+            let pos=0;
+            while(true) {
+                const m=lineSep.exec(src);
+                if (!m) break;
+                const to=m.index+m[0].length;
+                lines.push(src.substring(pos,to));
+                pos=to;
+            }
+            //console.log("lines",lines);
+            for (let lineBR of lines) {
+                let line=lineBR.replace(/[\r\n]/g,"");
                 if (literal3) {
                     const m=literal3End.exec(line);
                     if (m) {
@@ -1689,7 +1701,6 @@ function (Grammar,Pos2RC/*,TError*/) {
                         continue;
                     }
                 }
-                line=line.replace("\r","");
                 let r=ind.exec(line);
                 const d=r[0].length;
                 //console.log("depth",lineNo+1, d,depths);
@@ -1734,20 +1745,23 @@ function (Grammar,Pos2RC/*,TError*/) {
                     literal3=tks[tks.length-1];
                 }
                 this.tokens=this.tokens.concat(tks);
-                this.pos+=line.length+1;
+                this.pos+=lineBR.length;
                 lineNo++;
             }
             return this.tokens;
         }
-        error(mesg) {
+        error(mesg, col=0) {
             const e=new Error(mesg);
-            e.pos=this.pos;
+            e.pos=this.pos+col;
             return e;
         }
         tokenizeLine(line,lineNo) {
             //console.log("parse token",line);
             const r=tokens.get("tokens").parseStr(line);
-            if (!r.success) throw this.error("字句エラー "+(lineNo+1)+":"+(r.src.maxPos+1));
+            if (!r.success) {
+                console.log("Tokenize error", r);
+                throw this.error("字句エラー "+(lineNo+1)+":"+(r.src.maxPos+1), r.src.maxPos);
+            }
             //console.log("r",r.result[0]);
             return r.result[0];
         }
@@ -1797,21 +1811,24 @@ function (Grammar,Pos2RC/*,TError*/) {
     const gdef={
         //$space: spc,
         program: [{body:rep0(or("stmt","classdef"))},P.TokensParser.eof],
+        dedentOrEOT: or("dedent",P.TokensParser.eof),
         classdef: ["class",{name:"symbol"},{"extends":opt("extends")},":indent",
             {body:"stmtList"},
-        "dedent"],
+        "dedentOrEOT"],
         extends: ["(",{super:"expr"},")"],
         define: ["def",{name:"symbol"},{params:"paramList"},":indent",
             {body:"stmtList"},
-        "dedent"],
-        paramList: ["(",{body:sep0("symbol",",")},")"],
+        "dedentOrEOT"],
+        paramList: ["(",{body:sep0("param",",")},")"],
+        param: [{name:"symbol"}, {defVal:opt("defVal")}],
+        defVal: ["=",{value:"expr"}],
         ":indent": [":","indent"],
         //nodedent: [rep0("nodent"),"dedent"],
         //defList: rep0("define"),
         stmtList: rep1("stmt"),
         // why printStmt -> printStmt3?
         // because if parse print(x), as printStmt3, comma remains unparsed.
-        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt2","fromImportStmt","globalStmt","nodent"),
+        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt2","fromImportStmt","globalStmt","tryStmt","nodent"),
         fromImportStmt: ["from",{name:"packageName"},"import",{localNames:"localNames"}],
         localNames: [{names:or(sep1("symbol",","),"*")}],
         importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
@@ -1820,7 +1837,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         packageName: sep1("symbol","."),
         exprStmt: [{expr:"expr"}],
         delStmt: ["del",{expr:"expr"}],
-        returnStmt: ["return",{expr:"expr"}],
+        returnStmt: ["return",{expr:opt("expr")}],
         //exprTail: or("block","nodent"),
         ifStmt: ["if",{cond:"expr"},{then:"block"},
         {elif:rep0("elifPart")},{else:opt("elsePart")}],
@@ -1837,6 +1854,10 @@ function (Grammar,Pos2RC/*,TError*/) {
         printStmt: ["print",{values:"exprList"}],
         // print(x,end="") parsed as: printStmt3
         printStmt3: ["print", {args:"args"}],
+        tryStmt: ["try",{body:"block"},{exceptParts:rep0("exceptPart")},{finallyPart:opt("finallyPart")}],
+        exceptPart: ["except",{exceptParam: opt("exceptParam")}, {body:"block"}],
+        exceptParam: [{eType: "symbol"}, {asName: opt(["as", {name:"symbol"}])}],
+        finallyPart: ["finally",{body:"block"}],
         singleLval: g.expr({
             element: "symbol",
             operators: [
@@ -1896,8 +1917,9 @@ function (Grammar,Pos2RC/*,TError*/) {
         // x:y:z
         slice111: [{start:"expr"},":",{stop:"expr"},":",{step:"expr"}],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
-        block: [":indent",{body:"stmtList"},"dedent"],
-        elem: or("symbol","number","None","bool","listComprehension","array","dict","literal3","literal","paren","superCall"),
+        block: [":indent",{body:"stmtList"},"dedentOrEOT"],
+        elem: or("symbol","number","None","bool","listComprehension","array","dict","literal3","literal","paren","superCall","lambdaExpr"),
+        lambdaExpr: ["lambda",{param:"symbol"},":",{returns:"expr"}],
         superCall: ["super","(",")"],
         paren: ["(",{body:"exprList"},")"],
         bool: or("True","False"),
@@ -1922,6 +1944,7 @@ function (Grammar,Pos2RC/*,TError*/) {
     g.parse=function (srcFile) {
         let src=srcFile.text();
         src=src.replace(/\s*$/,"\n");
+        //console.log("SRC",JSON.stringify(src));
         const t=new g.Tokenizer(src);
         let tks;
         try {
@@ -1932,9 +1955,9 @@ function (Grammar,Pos2RC/*,TError*/) {
             //e.noTrace=true;
             throw er;
         }
-        //console.log("G.parse.T",tks);
+        console.log("G.parse.T",tks);
         const s=P.TokensParser.parse(g.get("program"),tks);
-        //console.log("G.Parse.res",s);
+        console.log("G.Parse.res",s);
         if (!s.success) {
             var ert=tks[s.src.maxPos];
             //console.error("Err",s.src.maxPos,ert.row,ert.col);
@@ -2045,8 +2068,6 @@ root.context=function () {
 return root.context;
 });
 
-// !!DO NOT EDIT this file!!
-// Edit www/js/build/python//PyLib.js Instead.
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
@@ -2064,13 +2085,13 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         }();
     }
     var root = getRoot();
-    //test!!
+    //test!!!
     var PL = {};
     PL.import = function (lib) {
         if (PL.import.libs[lib]) return PL.import.libs[lib];
         throw new Error("ライブラリ " + lib + " はインポートできません．(サーバで実行すると動作する可能性があります)");
     };
-    // It seems to be old: add to PythonSemantics and create runtime/lib/python/py_***.js
+    //  It seems to be old: add to PythonSemantics and create runtime/lib/python/py_***.js
     PL.import.libs = {
         random: {
             random: Math.random,
@@ -2107,6 +2128,9 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         var a = PL.parseArgs(arguments);
         console.log("print", arguments, a);
         var end = a.options.end != null ? a.options.end : "\n";
+        if (!PL.isinstance(end, PL.str)) {
+            throw new Error("endには文字列を指定してください");
+        }
         var out = a.map(PL.str).join(" ") + end;
         PL.lineBuf += out;
         var lines = PL.lineBuf.split("\n");
@@ -2125,28 +2149,30 @@ define('PyLib',['require','exports','module'],function (require, exports, module
     PL.len = function (s) {
         return s.length;
     };
+    function chkNan(v, mesg) {
+        return v;
+    }
     PL.float = function (s) {
-        return s - 0;
+        var v = s - 0;
+        if (v !== v) throw new Error(s + " \u306F float\u306B\u5909\u63DB\u3067\u304D\u307E\u305B\u3093");
+        return v;
     };
     PL.int = function (s) {
-        return parseInt(s - 0);
+        var v = s - 0;
+        if (v !== v) throw new Error(s + " \u306F int\u306B\u5909\u63DB\u3067\u304D\u307E\u305B\u3093");
+        if (s.match(/\./)) throw new Error(s + " \u306F\u5C0F\u6570\u70B9\u3092\u542B\u3093\u3067\u3044\u308B\u306E\u3067int\u306B\u5909\u63DB\u3067\u304D\u307E\u305B\u3093");
+        return v;
     };
     PL.list = function (iter) {
-        var res = [];
-        for (var x in iter) {
-            res.push(x);
-        }return res;
-    };
-    PL.listComprehension = function (elem, gen) {
         var res = [];
         var _iteratorNormalCompletion = true;
         var _didIteratorError = false;
         var _iteratorError = undefined;
 
         try {
-            for (var _iterator = gen[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                var e = _step.value;
-                res.push(elem(e));
+            for (var _iterator = iter[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var x = _step.value;
+                res.push(x);
             }
         } catch (err) {
             _didIteratorError = true;
@@ -2165,23 +2191,30 @@ define('PyLib',['require','exports','module'],function (require, exports, module
 
         return res;
     };
-    PL.str = function (s) {
-        //  s==false
-        if (s != null && s.__str__) return s.__str__(); // __OP__
-        return s + "";
-    };
-    PL.sum = function (s) {
-        var init = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+    PL.listComprehension = function (elem, gen) {
+        /*return {
+            [Symbol.iterator]: ()=>{
+                const iter=gen[Symbol.iterator]();
+                return {
+                    next() {
+                        const r=iter.next();
+                        if (r.done) return r;
+                        r.value=elem(r.value);
+                        return r;
+                    }
+                };
+            }
+        };*/
+        var res = [];
         var _iteratorNormalCompletion2 = true;
         var _didIteratorError2 = false;
         var _iteratorError2 = undefined;
 
         try {
-            for (var _iterator2 = s[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+            for (var _iterator2 = gen[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
                 var e = _step2.value;
-
-                init = init.__add__(e); // __OP__
-            }
+                res.push(elem(e));
+            } //yield (elem(e));
         } catch (err) {
             _didIteratorError2 = true;
             _iteratorError2 = err;
@@ -2193,6 +2226,40 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             } finally {
                 if (_didIteratorError2) {
                     throw _iteratorError2;
+                }
+            }
+        }
+
+        return res;
+    };
+    PL.str = function (s) {
+        //  s==false
+        if (s != null && s.__str__) return s.__str__(); // __OP__
+        return s + "";
+    };
+    PL.sum = function (s) {
+        var init = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+        var _iteratorNormalCompletion3 = true;
+        var _didIteratorError3 = false;
+        var _iteratorError3 = undefined;
+
+        try {
+            for (var _iterator3 = s[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                var e = _step3.value;
+
+                init = init.__add__(e); // __OP__
+            }
+        } catch (err) {
+            _didIteratorError3 = true;
+            _iteratorError3 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                    _iterator3.return();
+                }
+            } finally {
+                if (_didIteratorError3) {
+                    throw _iteratorError3;
                 }
             }
         }
@@ -2234,7 +2301,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         throw e;
     };
     PL.type = function (s) {
-        switch (typeof s === "undefined" ? "undefined" : _typeof(s)) {
+        switch (_typeof(u(s))) {
             case "number":
                 return Number;
             case "string":
@@ -2250,11 +2317,24 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         }
     };
     PL.isinstance = function (obj, klass) {
+        if (klass === PL.int) {
+            return typeof u(obj) === "number" && Math.floor(obj) === obj;
+        } else if (klass === PL.float || klass === Number) {
+            return typeof u(obj) === "number";
+        } else if (klass === PL.str || klass === String) {
+            return typeof u(obj) === "string";
+        }
         var ocl = obj && obj.__class__;
         return !!ocl && (ocl === klass || PL.isinstance(Object.getPrototypeOf(ocl.prototype), klass));
     };
     PL.sorted = function (a) {
-        return a.slice().sort();
+        var _a$slice;
+
+        for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+            args[_key3 - 1] = arguments[_key3];
+        }
+
+        return (_a$slice = a.slice()).sort.apply(_a$slice, args);
     };
     PL.loop_start2 = function loop_start2() {
         //if (_global.parent) _global.parent.dialogClosed=false;
@@ -2269,7 +2349,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         var now = new Date().getTime();
         if (now - PL.startTime > 5000) {
             //console.log(_global.parent, _global.opener);
-            var b = confirm("ループが５秒以上続いています。\n実行を停止するにはOKを押してください。");
+            var b = confirm("ループが5秒以上続いています。\n実行を停止するにはOKを押してください。");
             if (b) {
                 throw new Error("実行を停止しました。");
             } else PL.loop_start2();
@@ -2324,6 +2404,9 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         if (e == null) {
             e = b;b = 0;
         }
+        if (!PL.isinstance(b, PL.int)) throw new Error("rangeの引数(開始)には整数を指定してください");
+        if (!PL.isinstance(e, PL.int)) throw new Error("rangeの引数(終了)には整数を指定してください");
+        if (!PL.isinstance(s, PL.int)) throw new Error("rangeの引数(増分)には整数を指定してください");
         var res = [];
         for (; s > 0 && b < e || s < 0 && b > e; b += s) {
             res.push(b);
@@ -2367,6 +2450,9 @@ define('PyLib',['require','exports','module'],function (require, exports, module
                     },
                     enumerable: false
                 });
+                Object.defineProperty(_res, k, {
+                    value: m
+                });
                 methodNames.push(k);
             } else {
                 _res.prototype[k] = m;
@@ -2383,6 +2469,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             return "<class '__main__." + _res.__name__ + "'>";
         };
         _res.__bases__ = PL.Tuple && PL.Tuple(parent ? [parent] : []);
+        //res.prototype.toString=function(){return this.__str__();};
         for (var k in defs) {
             if (defs.hasOwnProperty(k)) addMethod(k);
         }
@@ -2410,28 +2497,28 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         }
         //console.log("superprot",superprot.CLASSNAME);
         var res = {};
-        var _iteratorNormalCompletion3 = true;
-        var _didIteratorError3 = false;
-        var _iteratorError3 = undefined;
+        var _iteratorNormalCompletion4 = true;
+        var _didIteratorError4 = false;
+        var _iteratorError4 = undefined;
 
         try {
-            for (var _iterator3 = klass.__methodnames__[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-                var meth = _step3.value;
+            for (var _iterator4 = klass.__methodnames__[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                var meth = _step4.value;
 
                 if (typeof superprot[meth] !== "function") continue;
                 Object.defineProperty(res, meth, { value: superprot[meth].bind(self) });
             }
         } catch (err) {
-            _didIteratorError3 = true;
-            _iteratorError3 = err;
+            _didIteratorError4 = true;
+            _iteratorError4 = err;
         } finally {
             try {
-                if (!_iteratorNormalCompletion3 && _iterator3.return) {
-                    _iterator3.return();
+                if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                    _iterator4.return();
                 }
             } finally {
-                if (_didIteratorError3) {
-                    throw _iteratorError3;
+                if (_didIteratorError4) {
+                    throw _iteratorError4;
                 }
             }
         }
@@ -2455,6 +2542,12 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         return (_elems = this.elems)[Symbol.iterator].apply(_elems, arguments);
     };
     PL.None = null;
+    PL.checkSet = function (v) {
+        var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "Variable";
+
+        if (v !== undefined) return v;
+        throw new Error(name + " is not defined.");
+    };
     PL.Tuple.__bases__ = PL.Tuple([]);
     PL.Slice = PL.class({
         __init__: function __init__(self, start, stop) {
@@ -2501,8 +2594,15 @@ define('PyLib',['require','exports','module'],function (require, exports, module
         return v;
     }
 
-    PL.invalidOP = function (op, to) {
-        throw new Error("Cannot do opration " + op + " to " + to);
+    PL.invalidOP = function (left, op, right) {
+        function typestr(val) {
+            if (val == PL.None) return "None";
+            var res = _typeof(u(val));
+            if (res !== "object") return res;
+            if (val && val.__getTypeName__) return val.__getTypeName__();
+            return res;
+        }
+        throw new Error("unsupported operand type(s) for " + op + ": '" + typestr(left) + "' and '" + typestr(right) + "'");
     };
 
     PL.LoopChecker = {
@@ -2543,8 +2643,8 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             return "<class object>";
         },
         __call__: function __call__(self) {
-            for (var _len3 = arguments.length, a = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-                a[_key3 - 1] = arguments[_key3];
+            for (var _len4 = arguments.length, a = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+                a[_key4 - 1] = arguments[_key4];
             }
 
             //var a=Array.prototype.slice.call(arguments,1);
@@ -2616,10 +2716,30 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             self = self.__pow__(other);return self;
         },
 
+        __getattr__: function __getattr__(self, name) {
+            //__getattr__は、オブジェクトのインスタンス辞書に属性が見つからないときに呼び出されるメソッドです。
+            throw new Error("\u30D5\u30A3\u30FC\u30EB\u30C9 " + name + " \u306F\u3042\u308A\u307E\u305B\u3093");
+        },
+        __getattribute__: function __getattribute__(self, name) {
+            if (!(name in self)) {
+                return self.__getattr__(name);
+            }
+            var r = self[name];
+            if (typeof r === "function") {
+                return r.bind(self);
+            }
+            return r;
+        },
+        __setattr__: function __setattr__(self, name, value) {
+            self[name] = value;
+        },
         __delattr__: function __delattr__(self, name) {
             delete self[name];
         },
         __getitem__: function __getitem__(self, key) {
+            if (!(key in self)) {
+                throw new Error("\u5024" + self + "[" + key + "] \u306F\u3042\u308A\u307E\u305B\u3093");
+            }
             return self[key];
         },
         __setitem__: function __setitem__(self, key, value) {
@@ -2646,7 +2766,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
                         res += self;
                     }return res;
                 default:
-                    PL.invalidOP("__mul__", other);
+                    PL.invalidOP(self, "__mul__", other);
             }
         },
         __mod__: function __mod__(self, other) {
@@ -2660,22 +2780,28 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             }
             return Object.prototype.__add__.call(self, other);
         },
+        __gt__: otherShouldString("__gt__"),
+        __lt__: otherShouldString("__lt__"),
+        __ge__: otherShouldString("__ge__"),
+        __le__: otherShouldString("__le__"),
+        __eq__: otherShouldString("__eq__"),
+        __ne__: otherShouldString("__ne__"),
         format: function format(self) {
             var str = self;
             var o = {};
             var i = 0;
 
-            for (var _len4 = arguments.length, args = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
-                args[_key4 - 1] = arguments[_key4];
+            for (var _len5 = arguments.length, args = Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
+                args[_key5 - 1] = arguments[_key5];
             }
 
-            var _iteratorNormalCompletion4 = true;
-            var _didIteratorError4 = false;
-            var _iteratorError4 = undefined;
+            var _iteratorNormalCompletion5 = true;
+            var _didIteratorError5 = false;
+            var _iteratorError5 = undefined;
 
             try {
-                for (var _iterator4 = args[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-                    var _a = _step4.value;
+                for (var _iterator5 = args[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                    var _a = _step5.value;
 
                     if (_a instanceof PL.Option) {
                         Object.assign(o, _a);
@@ -2685,16 +2811,16 @@ define('PyLib',['require','exports','module'],function (require, exports, module
                     i++;
                 }
             } catch (err) {
-                _didIteratorError4 = true;
-                _iteratorError4 = err;
+                _didIteratorError5 = true;
+                _iteratorError5 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion4 && _iterator4.return) {
-                        _iterator4.return();
+                    if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                        _iterator5.return();
                     }
                 } finally {
-                    if (_didIteratorError4) {
-                        throw _iteratorError4;
+                    if (_didIteratorError5) {
+                        throw _iteratorError5;
                     }
                 }
             }
@@ -2709,6 +2835,14 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             });
         }
     });
+    function otherShouldString(k) {
+        return function (self, other) {
+            if (typeof u(other) !== "string") {
+                PL.invalidOP(self, k, other);
+            }
+            return Object.prototype[k].call(self, other);
+        };
+    }
     PL.addMonkeyPatch(Boolean, {
         __getTypeName__: function __getTypeName__() {
             return "<class boolean>";
@@ -2803,15 +2937,15 @@ define('PyLib',['require','exports','module'],function (require, exports, module
     PL.addMonkeyPatch(Array, {
         __class__: PL.list,
         append: function append(self) {
-            for (var _len5 = arguments.length, args = Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
-                args[_key5 - 1] = arguments[_key5];
+            for (var _len6 = arguments.length, args = Array(_len6 > 1 ? _len6 - 1 : 0), _key6 = 1; _key6 < _len6; _key6++) {
+                args[_key6 - 1] = arguments[_key6];
             }
 
             return self.push.apply(self, args);
         },
         __add__: function __add__(self) {
-            for (var _len6 = arguments.length, args = Array(_len6 > 1 ? _len6 - 1 : 0), _key6 = 1; _key6 < _len6; _key6++) {
-                args[_key6 - 1] = arguments[_key6];
+            for (var _len7 = arguments.length, args = Array(_len7 > 1 ? _len7 - 1 : 0), _key7 = 1; _key7 < _len7; _key7++) {
+                args[_key7 - 1] = arguments[_key7];
             }
 
             return self.concat.apply(self, args);
@@ -2820,46 +2954,14 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             self.splice(i, 1);
         },
         __str__: function __str__(self) {
-            return "[" + self.join(", ") + "]";
+            return "[" + self.map(function (e) {
+                return PL.str(e);
+            }).join(", ") + "]";
         },
 
         __getitem__: function __getitem__(self, key) {
             if (key instanceof PL.Slice) {
                 var res = [];
-                var _iteratorNormalCompletion5 = true;
-                var _didIteratorError5 = false;
-                var _iteratorError5 = undefined;
-
-                try {
-                    for (var _iterator5 = sliceToIndex(this, key)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-                        var i = _step5.value;
-
-                        res.push(this[i]);
-                    }
-                } catch (err) {
-                    _didIteratorError5 = true;
-                    _iteratorError5 = err;
-                } finally {
-                    try {
-                        if (!_iteratorNormalCompletion5 && _iterator5.return) {
-                            _iterator5.return();
-                        }
-                    } finally {
-                        if (_didIteratorError5) {
-                            throw _iteratorError5;
-                        }
-                    }
-                }
-
-                return res;
-            }
-            if (key < 0) key = self.length + key;
-            if (key >= self.length) throw new Error("Index " + key + " is out of range");
-            return self[key];
-        },
-        __setitem__: function __setitem__(self, key, value) {
-            if (key instanceof PL.Slice) {
-                var it = value[Symbol.iterator]();
                 var _iteratorNormalCompletion6 = true;
                 var _didIteratorError6 = false;
                 var _iteratorError6 = undefined;
@@ -2868,7 +2970,7 @@ define('PyLib',['require','exports','module'],function (require, exports, module
                     for (var _iterator6 = sliceToIndex(this, key)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
                         var i = _step6.value;
 
-                        this[i] = it.next().value;
+                        res.push(this[i]);
                     }
                 } catch (err) {
                     _didIteratorError6 = true;
@@ -2885,17 +2987,57 @@ define('PyLib',['require','exports','module'],function (require, exports, module
                     }
                 }
 
+                return res;
+            }
+            if (key < 0) key = self.length + key;
+            if (key >= self.length) throw new Error("\u6DFB\u5B57[" + key + "]\u306F\u7BC4\u56F2\u5916\u3067\u3059(0..." + (self.length - 1) + ")");
+            return self[key];
+        },
+        __setitem__: function __setitem__(self, key, value) {
+            if (key instanceof PL.Slice) {
+                var it = value[Symbol.iterator]();
+                var _iteratorNormalCompletion7 = true;
+                var _didIteratorError7 = false;
+                var _iteratorError7 = undefined;
+
+                try {
+                    for (var _iterator7 = sliceToIndex(this, key)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+                        var i = _step7.value;
+
+                        this[i] = it.next().value;
+                    }
+                } catch (err) {
+                    _didIteratorError7 = true;
+                    _iteratorError7 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion7 && _iterator7.return) {
+                            _iterator7.return();
+                        }
+                    } finally {
+                        if (_didIteratorError7) {
+                            throw _iteratorError7;
+                        }
+                    }
+                }
+
                 return value;
             }
             if (key < 0) key = self.length + key;
-            if (key >= self.length) throw new Error("Index " + key + " is out of range");
+            if (key >= self.length) throw new Error("\u6DFB\u5B57[" + key + "]\u306F\u7BC4\u56F2\u5916\u3067\u3059(0..." + (self.length - 1) + ")");
             self[key] = value;
         },
         copy: function copy(self) {
             return self.slice();
         },
         sorted: function sorted(self) {
-            return self.slice().sort();
+            var _self$slice;
+
+            for (var _len8 = arguments.length, args = Array(_len8 > 1 ? _len8 - 1 : 0), _key8 = 1; _key8 < _len8; _key8++) {
+                args[_key8 - 1] = arguments[_key8];
+            }
+
+            return (_self$slice = self.slice()).sort.apply(_self$slice, args);
         },
         sort: function sort(self, comp) {
             comp = comp || function (a, b) {
@@ -2932,7 +3074,9 @@ define('PyLib',['require','exports','module'],function (require, exports, module
             }
             return orig_sort.apply(self, [comp]);
         },
-        __contains__: function __contains__() {}
+        __contains__: function __contains__(self, elem) {
+            return self.indexOf(elem) >= 0;
+        }
     });
 
     //---
@@ -3044,7 +3188,6 @@ define('PyLib',['require','exports','module'],function (require, exports, module
     }
     return PL;
 });
-//# sourceMappingURL=PyLib.js.map;
 define('Annotation',['require','exports','module'],function (require,exports,module) {
     module.exports=class Annotation {
         constructor(debugSymbol) {
@@ -3080,11 +3223,13 @@ const builtins=PyLib.builtins;//["print","range","int","str","float","input","le
 builtins.push("open");
 const importable={
     datetime:{server:true},
-    random:{browser:["random", "randrange", "randint", "shuffle", "sample", "choice"],server:true },
+    dateutil:{server:true},
+    random:{browser:["random", "randrange", "randint", "shuffle", "sample", "choice"],server:true},
     math:{browser:["fabs", "ceil", "floor", "sqrt"], server:true},
     //jp:true,
     //fs:{wrapper:true,server:true},
     re:{server:true},
+    decimal:{server:true},
     g:{browser:[
         "fillRect", "writeGraphicsLog", "clear", "update", "setColor",
         "setLineWidth", "drawGrid", "setPen", "movePen", "setTextSize",
@@ -3094,7 +3239,9 @@ const importable={
     requests:{server:true},//SPECIAL
     json:{server:true},//SPECIAL
     sys:{wrapper:true,server:true},
+    MeCab: {wrapper:true, server:true},
     matplotlib:{wrapper:true,server:true},
+    folium:{wrapper:true,server:true},
     numpy:{wrapper:true,server:true},
     cv2:{wrapper:true,server:true},
     pandas:{wrapper:true,server:true},
@@ -3103,8 +3250,12 @@ const importable={
     sklearn:{wrapper:true,server:true},
     os:{wrapper:true,server:true},
     urllib:{wrapper:true,server:true},
+    chainer:{server:true},
+    PIL:{server:true},
     bs4:{wrapper:true,server:true},
     time:{wrapper:true,server:true},
+    badb:{server:true},
+    cdb:{server:true},
     // turtle: js?
 };
 
@@ -3178,9 +3329,14 @@ const vdef={
     define: function (node) {
         //console.log("define",node);
         //this.addScope(node.name,{kind:"function",node});
+        for (let p of node.params.body) {
+            if (p.defVal) {
+                this.visit(p.defVal.value);
+            }
+        }
         this.newScope(()=>{
             for (let p of node.params.body) {
-                this.addScope(p+"",{kind:"local",node:p});
+                this.addScope(p.name+"",{kind:"local",node:p.name});
             }
             this.preScanDefs(node.body);
             for (let b of node.body) {
@@ -3195,6 +3351,29 @@ const vdef={
         for (let name of node.names) {
             this.addScope(name+"",{kind:"global",node:name});
         }
+    },
+    tryStmt(node) {
+        this.visit(node.body);
+        for (let e of node.exceptParts) {
+            this.visit(e);
+        }
+        if (node.finallyPart) this.visit(node.finallyPart);
+    },
+    exceptPart(node) {
+        if (node.exceptParam) {
+            const ep=node.exceptParam;
+            //this.printf(" %v",ep.eType);
+            if (ep.asName) {
+                const asName=ep.asName;
+                this.newScope(()=>{
+                    this.addScope(asName.name,{kind:"local",node:asName.name});
+                    this.visit(node.body);
+                });
+            } else this.visit(node.body);
+        } else this.visit(node.body);
+    },
+    finallyPart(node) {
+        this.visit(node.body);
     },
     letStmt: function (node) {
         /*var v=this;
@@ -3328,6 +3507,9 @@ const vdef={
         //console.log("forStmt", node);
         var loopVars=node.vars;
         this.visit(node.set);
+        if (loopVars.length>1 && this.options.runAt=="browser") {
+            this.error("ブラウザで実行する場合，forの後ろには複数の変数を書くことができません．",node);
+        }
         for(let loopVar of loopVars){
           this.addScope(loopVar,{kind:"local",node:loopVar});
         }
@@ -3434,6 +3616,12 @@ const vdef={
         //if (node.name) console.log(node.name);
         this.visit(node.value);
     },
+    lambdaExpr(node){
+        this.newScope(()=>{
+            this.addScope(node.param+"",{kind:"local",node:node.param});
+            this.visit(node.returns);
+        });
+    },
     "literal": function (node) {
 
     },
@@ -3441,7 +3629,9 @@ const vdef={
 
     },
     "returnStmt": function (node) {
-        this.visit(node.expr);
+        if (node.expr) {
+            this.visit(node.expr);
+        }
     },
     "paren": function (node) {
         this.visit(node.body);
@@ -3473,6 +3663,12 @@ const Semantics= {
             v.rootScope[b]=new ScopeInfo(v.rootScope,b,"function");
             v.rootScope[b].builtin=true;
         }
+        for (let im of options.implicitImports||[]) {
+            for (let n of im.names) {
+                v.rootScope[n]=new ScopeInfo(v.rootScope,n,"function");
+                v.rootScope[n].builtin=true;
+            }
+        }
         v.newScope=function (f) {
             var pa=this.ctx.scope||this.rootScope;
             var ns=Object.create(pa);
@@ -3502,7 +3698,8 @@ const Semantics= {
         v.checkImportable=function (nameHead) {
             //const nameHead=node.name[0];
             if (!importable[nameHead]) {
-                this.error(nameHead+" はインポートできません",nameHead);
+                //this.error(nameHead+" はインポートできません",nameHead);
+		importable[nameHead]={server:true};
             }
             if (this.options.runAt && !importable[nameHead][this.options.runAt]) {
                 let hint="．";
@@ -3523,12 +3720,19 @@ const Semantics= {
                 if (node.type==="define") {
                     this.addScope(node.name,{kind:"function",node});
                 }
+                if (node.type==="forStmt") {
+                    this.addScope(node.name,{kind:"function",node});
+                    var loopVars=node.vars;
+                    for(let loopVar of loopVars){
+                      this.addScope(loopVar,{kind:"local",node:loopVar});
+                    }
+                }
                 if (node.type==="letStmt") {
-                    this.procLeft(node);
+                    this.procLeft(node, true);
                 }
             }
         };
-        v.procLeft=function (letStmt) {
+        v.procLeft=function (letStmt, isPrescan) {
             const node=letStmt;
             var v=this;
             function procLElem(node) {
@@ -3542,7 +3746,8 @@ const Semantics= {
                     }
                     break;
                     default:
-                    v.visit(node);
+                    // a.b = fails  in prescan
+                    if (!isPrescan) v.visit(node);
                 }
             }
             function procSym(sym) {
@@ -3552,6 +3757,7 @@ const Semantics= {
                     v.addScope(sym+"",{kind:"local",node});
                     v.anon.put(node,{needVar:true});
                 }
+                v.anon.put(node,{isLeft:true});
             }
             procLElem(node.left);
         };
@@ -6921,6 +7127,16 @@ function (Visitor,IndentBuffer,assert) {
         paramList: function (node) {
             this.printf("(%j)",[",",node.body]);
         },
+        param: function(node) {
+            if (node.defVal) {
+                this.printf("%s=%v",node.name, node.defVal);
+            } else {
+                this.printf("%s",node.name);
+            }
+        },
+        defVal: function (node) {
+            this.printf("%v",node.value);
+        },
         importStmt: function (node) {
             const nameHead=node.name[0];
             const inf=this.importable[nameHead+""];
@@ -6974,13 +7190,36 @@ function (Visitor,IndentBuffer,assert) {
             this.visit(node.expr);
         },
         returnStmt: function (node) {
-            this.printf("return %v",node.expr);
+            if (node.expr) this.printf("return %v",node.expr);
+            else this.printf("return");
         },
         delStmt: function (node) {
             this.printf("del %v",node.expr);
         },
         whileStmt: function (node) {
             this.printf("while %v%v", node.cond,node.do);
+        },
+        tryStmt(node) {
+            this.printf("try");
+            this.visit(node.body);
+            this.visit(node.exceptParts);
+            if (node.finallyPart) this.visit(node.finallyPart);
+        },
+        exceptPart(node) {
+            this.printf("except");
+            if (node.exceptParam) this.visit(node.exceptParam);
+            //console.log("node.body", node.body);
+            this.visit(node.body);
+        },
+        exceptParam(node) {
+            this.printf(" %v",node.eType);
+            if (node.asName) {
+                this.printf(" as %s",node.asName.name);
+            }
+        },
+        finallyPart(node) {
+            this.printf("finally");
+            this.visit(node.body);
         },
         ifStmt: function (node) {
             this.printf("if %v%v", node.cond,node.then);
@@ -7024,6 +7263,9 @@ function (Visitor,IndentBuffer,assert) {
         },
         exprSliceList: function (node) {
             this.printf("%j",[",",node.body]);
+        },
+        listComprehension(node){
+            this.printf("(%v for %v in %v)", node.elem, node.vars, node.set);
         },
         slice: function (node) {
             const empty={type:"literal", toString:()=>""};
@@ -7073,6 +7315,9 @@ function (Visitor,IndentBuffer,assert) {
         infixl: function(node) {
             this.printf("%v%v%v",node.left,node.op,node.right);
         },
+        lambdaExpr(node) {
+            this.printf("lambda %v:%v",node.param, node.returns);
+        },
         isnt: function () {
             this.printf(" is not ");
         },
@@ -7113,7 +7358,7 @@ function (Visitor,IndentBuffer,assert) {
         }
     };
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
-      ">","<","=",".",":","+","-","*","/","%","(",")",",",
+      ">","<","=",".",":","+","-","*","/","%","(",")",",","in",
       "number","and","or","True","False","None"];
     for (let ve of verbs) {
         vdef[ve]=function (node) {
@@ -7132,7 +7377,7 @@ function (Visitor,IndentBuffer,assert) {
                 for (let n of node) v.visit(n);
             } else {
                 this.printf("%s(%s)",node+"",(node ? node.type+"": "UNDEF"));
-                //throw new Error("Visiting undef "+(node && node.type));
+                throw new Error(`Visiting undef ${node}( ${node && node.type} )`);
             }
         };
         const buf=IndentBuffer();
@@ -7174,6 +7419,16 @@ function (Visitor,IndentBuffer,context,PL,S) {
         },
         paramList: function (node) {
             this.printf("(%j)",[",",node.body]);
+        },
+        param: function(node) {
+            if (node.defVal) {
+                this.printf("%s=%v",node.name, node.defVal);
+            } else {
+                this.printf("%s",node.name);
+            }
+        },
+        defVal: function (node) {
+            this.printf("%v",node.value);
         },
         importStmt: function (node) {
             var url=this.options.pyLibPath+"/py_"+node.name+".js";
@@ -7248,16 +7503,16 @@ function (Visitor,IndentBuffer,context,PL,S) {
             if (this.anon.get(node).needVar) {
                 this.printf("var ");
             }
-            console.log("NODEL",node.left);//lvallist
+            //console.log("NODEL",node.left);//lvallist
             const firstBody=node.left.body && node.left.body[0];
             const io=PL.iops[node.op+""];
-            if (firstBody &&
-                firstBody.type==="postfix" &&
-                firstBody.op.type==="index") {
+            const value=node.right;
+            const matchPostfix=firstBody && firstBody.type==="postfix" && firstBody;
+            if (matchPostfix &&
+                matchPostfix.op.type==="index") {
                 // TODO: [x[5],y]=[2,3]  -> x.__setitem__(5,2), y=3
-                const object=firstBody.left;
-                const index=firstBody.op;
-                const value=node.right;
+                const object=matchPostfix.left;
+                const index=matchPostfix.op;
                 console.log("NODEL2",object,index);
                 if (io) {
                     this.printf("%v.__setitem__(%v, "+
@@ -7269,8 +7524,23 @@ function (Visitor,IndentBuffer,context,PL,S) {
                 } else {
                     this.printf("%v.__setitem__(%v, %v);",object, index.body,value );
                 }
+            } else if (matchPostfix &&
+                matchPostfix.op.type==="memberRef") {
+                // TODO: [x[5],y]=[2,3]  -> x.__setitem__(5,2), y=3
+                const object=matchPostfix.left;
+                const name=matchPostfix.op.name;
+                console.log("NODEL3",object,name);
+                if (io) {
+                    this.printf("%v.__setattr__('%s', "+
+                        "%s.wrap( %v.__getattribute__('%s') ).__%s__(%v)"+
+                    ");",
+                        object, name,
+                        PYLIB, object, name, io, value
+                    );
+                } else {
+                    this.printf("%v.__setattr__('%s', %v);",object, name,value );
+                }
             } else if (io) {
-                const value=node.right;
                 this.printf("%v=%s.wrap(%v).__%s__(%v)" ,
                 node.left, PYLIB, node.left, io, value);
             } else {
@@ -7295,8 +7565,30 @@ function (Visitor,IndentBuffer,context,PL,S) {
         printStmt3: function (node) {
             this.printf("%s.print %v;",PYLIB,node.args);
         },
+        tryStmt(node) {
+            this.printf("try");
+            this.visit(node.body);
+            if (node.exceptParts[0]) this.visit(node.exceptParts[0]);
+            if (node.finallyPart) this.visit(node.finallyPart);
+        },
+        exceptPart(node) {
+            this.printf("catch");
+            if (node.exceptParam) this.visit(node.exceptParam);
+            else this.printf("(_excep)");
+            //console.log("node.body", node.body);
+            this.visit(node.body);
+        },
+        exceptParam(node) {
+            if (node.asName) {
+                this.printf("(%s)",node.asName.name);
+            } else this.printf("(_excep)");
+        },
+        finallyPart(node) {
+            this.printf("finally");
+            this.visit(node.body);
+        },
         memberRef: function (node) {
-            this.printf(".%v",node.name);
+            this.printf(".__getattribute__('%s')",node.name);
         },
         args: function (node) {
             const noname=node.body.filter((a)=>!a.name);
@@ -7422,6 +7714,9 @@ function (Visitor,IndentBuffer,context,PL,S) {
         passStmt: function () {
             this.printf(";");
         },
+        lambdaExpr(node) {
+            this.printf("((%v)=>%v)",node.param, node.returns);
+        },
         superCall: function () {
             this.printf("%s.super(this.__class__, this)",PYLIB);
         },
@@ -7450,6 +7745,21 @@ function (Visitor,IndentBuffer,context,PL,S) {
         True: function () {this.printf("true");},
         False: function () {this.printf("false");},
         None: function () {this.printf("%s.None",PYLIB);},
+        symbol(node) {
+            if (typeof this.convertSymbol[node.text]==="string") {
+                // for example, node.text=="__str__", function returns
+                this.printf(this.convertSymbol[node.text]);
+            } else {
+                const a=this.anon.get(node);
+                if (a.scopeInfo && !a.isLeft) {
+                    // right val
+                    this.printf("%s.checkSet(%s,'%s')",PYLIB, node+"", node+"");
+                } else {
+                    // left val
+                    this.printf("%s",node+"");
+                }
+            }
+        },
     };
     const cmps={">":1,"<":1,"==":1,">=":1,"<=":1,"!=":1};
     function isCmp(node) {
@@ -7466,7 +7776,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
     }
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=",
       ">","<","=",".",":","+","-","*","/","%","(",")",",","!",
-      "number","symbol"];
+      "number"];
     for (let ve of verbs) {
         vdef[ve]=function (node) {
             //console.log("verb",node);
@@ -7487,6 +7797,13 @@ function (Visitor,IndentBuffer,context,PL,S) {
             }
         };
         v.options=options;
+        v.convertSymbol={};
+        for (let im of options.implicitImports||[]) {
+            for (let n of im.names) {
+                v.convertSymbol[n]=im.head+"."+n;
+            }
+        }
+        //console.log("convertSymbol",this.convertSymbol,options.implicitImports);
         v.ctx=context();
         const buf=options.buf||IndentBuffer();
         buf.visitor=v;
@@ -7497,10 +7814,16 @@ function (Visitor,IndentBuffer,context,PL,S) {
             v.printf("define('__main__',function (require,exports,module) {%{");
             v.printf("var %s=require('%s/PyLib.js');%n",PYLIB,options.pyLibPath);
         }
+        if (options.injectBefore) {
+            v.printf(options.injectBefore);
+        }
         for (let n of PL.builtins) {
             v.printf("var %s=%s.%s;%n",n,PYLIB,n);
         }
         v.visit(node);
+        if (options.injectAfter) {
+            v.printf(options.injectAfter);
+        }
         if (options.genReqJS) {
             v.printf("%}});%n");
             const SEND_LOG=`

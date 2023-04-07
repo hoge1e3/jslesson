@@ -99,6 +99,11 @@ var reqConf={
                 deps:["Parser","ExpressionParser","context"],
                 exports:"dncl2js"
             },
+            /*SerialControl: {
+                exports: "SerialControl"
+            },
+                See: https://stackoverflow.com/questions/37711603/javascript-es6-class-definition-not-accessible-in-window-global
+            */
             Tonyu:{
                 exports:"Tonyu"
             },
@@ -118,11 +123,14 @@ var reqConf={
             }*/
         },
         "paths": {
+            Tab: "ui/Tab",
+            ExportOutputDialog: "ide/ExportOutputDialog",
             jsl_selProject: "jsl/selProject",
             jsl_selUser: "jsl/selUser",
             jsl_selProject_concat: 'gen/selPrj_concat',
             jsl_edit: "jsl/editor",
             jsl_edit_concat: 'gen/edit_concat',
+            cleanup: "jsl/cleanup",
             ProjectFactory: "ide/ProjectFactory",
             Sync: "fs2/sync2",
             root:"lib/root",
@@ -143,6 +151,7 @@ var reqConf={
             AssignmentDialog:"ide/",
             SubmitDialog:"ide/",
             DesktopSettingDialog:"ide/",
+            globalDesktopSetting:"jsl/",
             SocializeDialog:"ide/SocializeDialog",
             TestsuiteDialog:"ide/TestsuiteDialogHori",
             KernelDiffDialog: "ide/KernelDiffDialog",
@@ -293,6 +302,9 @@ var reqConf={
             PyX: "../runtime/lib/python/PyX",
             PHPBuilder:"build/php/PHPBuilder",
             P5Builder:"build/p5/P5Builder",
+            p5pyBuilder:"build/python/p5pyBuilder",
+            BrythonBuilder:"build/brython/BrythonBuilder",
+            raspiBuilder:"build/python/raspiBuilder",
             SysDebugger_concat:"../runtime/lib/tonyu/SysDebugger_concat.min",
             CBuilder:"build/c/CBuilder",
             TonyuBuilder:"build/tonyu/TonyuBuilder",
@@ -319,6 +331,7 @@ var reqConf={
             GenericTokenizer: "lang/GenericTokenizer",
             CAndDtlTokenizer: "build/CAndDtlTokenizer",
             stacktrace:"lang/",
+            SerialControl: "../runtime/lib/python/SerialControl",
 
             "foo":"bar"
         },

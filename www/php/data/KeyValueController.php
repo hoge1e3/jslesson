@@ -50,6 +50,10 @@ class KeyValueController {
         }
     }
     static function ls() {
+        $url=param("url","");
+        if ($url) {
+            KeyValue::selectClassByURL($url);
+        }
         $g=param("group","default");
         $r=KeyValue::ls($g);
         header("Content-type: text/json;charset=utf8");

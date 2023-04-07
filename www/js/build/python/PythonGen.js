@@ -14,6 +14,16 @@ function (Visitor,IndentBuffer,assert) {
         paramList: function (node) {
             this.printf("(%j)",[",",node.body]);
         },
+        param: function(node) {
+            if (node.defVal) {
+                this.printf("%s=%v",node.name, node.defVal);
+            } else {
+                this.printf("%s",node.name);
+            }
+        },
+        defVal: function (node) {
+            this.printf("%v",node.value);
+        },
         importStmt: function (node) {
             const nameHead=node.name[0];
             const inf=this.importable[nameHead+""];
@@ -67,13 +77,36 @@ function (Visitor,IndentBuffer,assert) {
             this.visit(node.expr);
         },
         returnStmt: function (node) {
-            this.printf("return %v",node.expr);
+            if (node.expr) this.printf("return %v",node.expr);
+            else this.printf("return");
         },
         delStmt: function (node) {
             this.printf("del %v",node.expr);
         },
         whileStmt: function (node) {
             this.printf("while %v%v", node.cond,node.do);
+        },
+        tryStmt(node) {
+            this.printf("try");
+            this.visit(node.body);
+            this.visit(node.exceptParts);
+            if (node.finallyPart) this.visit(node.finallyPart);
+        },
+        exceptPart(node) {
+            this.printf("except");
+            if (node.exceptParam) this.visit(node.exceptParam);
+            //console.log("node.body", node.body);
+            this.visit(node.body);
+        },
+        exceptParam(node) {
+            this.printf(" %v",node.eType);
+            if (node.asName) {
+                this.printf(" as %s",node.asName.name);
+            }
+        },
+        finallyPart(node) {
+            this.printf("finally");
+            this.visit(node.body);
         },
         ifStmt: function (node) {
             this.printf("if %v%v", node.cond,node.then);
@@ -117,6 +150,9 @@ function (Visitor,IndentBuffer,assert) {
         },
         exprSliceList: function (node) {
             this.printf("%j",[",",node.body]);
+        },
+        listComprehension(node){
+            this.printf("(%v for %v in %v)", node.elem, node.vars, node.set);
         },
         slice: function (node) {
             const empty={type:"literal", toString:()=>""};
@@ -166,6 +202,9 @@ function (Visitor,IndentBuffer,assert) {
         infixl: function(node) {
             this.printf("%v%v%v",node.left,node.op,node.right);
         },
+        lambdaExpr(node) {
+            this.printf("lambda %v:%v",node.param, node.returns);
+        },
         isnt: function () {
             this.printf(" is not ");
         },
@@ -206,7 +245,7 @@ function (Visitor,IndentBuffer,assert) {
         }
     };
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
-      ">","<","=",".",":","+","-","*","/","%","(",")",",",
+      ">","<","=",".",":","+","-","*","/","%","(",")",",","in",
       "number","and","or","True","False","None"];
     for (let ve of verbs) {
         vdef[ve]=function (node) {
@@ -225,7 +264,7 @@ function (Visitor,IndentBuffer,assert) {
                 for (let n of node) v.visit(n);
             } else {
                 this.printf("%s(%s)",node+"",(node ? node.type+"": "UNDEF"));
-                //throw new Error("Visiting undef "+(node && node.type));
+                throw new Error(`Visiting undef ${node}( ${node && node.type} )`);
             }
         };
         const buf=IndentBuffer();

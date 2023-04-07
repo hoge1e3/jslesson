@@ -5,11 +5,13 @@ const builtins=PyLib.builtins;//["print","range","int","str","float","input","le
 builtins.push("open");
 const importable={
     datetime:{server:true},
-    random:{browser:["random", "randrange", "randint", "shuffle", "sample", "choice"],server:true },
+    dateutil:{server:true},
+    random:{browser:["random", "randrange", "randint", "shuffle", "sample", "choice"],server:true},
     math:{browser:["fabs", "ceil", "floor", "sqrt"], server:true},
     //jp:true,
     //fs:{wrapper:true,server:true},
     re:{server:true},
+    decimal:{server:true},
     g:{browser:[
         "fillRect", "writeGraphicsLog", "clear", "update", "setColor",
         "setLineWidth", "drawGrid", "setPen", "movePen", "setTextSize",
@@ -19,7 +21,9 @@ const importable={
     requests:{server:true},//SPECIAL
     json:{server:true},//SPECIAL
     sys:{wrapper:true,server:true},
+    MeCab: {wrapper:true, server:true},
     matplotlib:{wrapper:true,server:true},
+    folium:{wrapper:true,server:true},
     numpy:{wrapper:true,server:true},
     cv2:{wrapper:true,server:true},
     pandas:{wrapper:true,server:true},
@@ -28,8 +32,12 @@ const importable={
     sklearn:{wrapper:true,server:true},
     os:{wrapper:true,server:true},
     urllib:{wrapper:true,server:true},
+    chainer:{server:true},
+    PIL:{server:true},
     bs4:{wrapper:true,server:true},
     time:{wrapper:true,server:true},
+    badb:{server:true},
+    cdb:{server:true},
     // turtle: js?
 };
 
@@ -103,9 +111,14 @@ const vdef={
     define: function (node) {
         //console.log("define",node);
         //this.addScope(node.name,{kind:"function",node});
+        for (let p of node.params.body) {
+            if (p.defVal) {
+                this.visit(p.defVal.value);
+            }
+        }
         this.newScope(()=>{
             for (let p of node.params.body) {
-                this.addScope(p+"",{kind:"local",node:p});
+                this.addScope(p.name+"",{kind:"local",node:p.name});
             }
             this.preScanDefs(node.body);
             for (let b of node.body) {
@@ -120,6 +133,29 @@ const vdef={
         for (let name of node.names) {
             this.addScope(name+"",{kind:"global",node:name});
         }
+    },
+    tryStmt(node) {
+        this.visit(node.body);
+        for (let e of node.exceptParts) {
+            this.visit(e);
+        }
+        if (node.finallyPart) this.visit(node.finallyPart);
+    },
+    exceptPart(node) {
+        if (node.exceptParam) {
+            const ep=node.exceptParam;
+            //this.printf(" %v",ep.eType);
+            if (ep.asName) {
+                const asName=ep.asName;
+                this.newScope(()=>{
+                    this.addScope(asName.name,{kind:"local",node:asName.name});
+                    this.visit(node.body);
+                });
+            } else this.visit(node.body);
+        } else this.visit(node.body);
+    },
+    finallyPart(node) {
+        this.visit(node.body);
     },
     letStmt: function (node) {
         /*var v=this;
@@ -253,6 +289,9 @@ const vdef={
         //console.log("forStmt", node);
         var loopVars=node.vars;
         this.visit(node.set);
+        if (loopVars.length>1 && this.options.runAt=="browser") {
+            this.error("ブラウザで実行する場合，forの後ろには複数の変数を書くことができません．",node);
+        }
         for(let loopVar of loopVars){
           this.addScope(loopVar,{kind:"local",node:loopVar});
         }
@@ -359,6 +398,12 @@ const vdef={
         //if (node.name) console.log(node.name);
         this.visit(node.value);
     },
+    lambdaExpr(node){
+        this.newScope(()=>{
+            this.addScope(node.param+"",{kind:"local",node:node.param});
+            this.visit(node.returns);
+        });
+    },
     "literal": function (node) {
 
     },
@@ -366,7 +411,9 @@ const vdef={
 
     },
     "returnStmt": function (node) {
-        this.visit(node.expr);
+        if (node.expr) {
+            this.visit(node.expr);
+        }
     },
     "paren": function (node) {
         this.visit(node.body);
@@ -398,6 +445,12 @@ const Semantics= {
             v.rootScope[b]=new ScopeInfo(v.rootScope,b,"function");
             v.rootScope[b].builtin=true;
         }
+        for (let im of options.implicitImports||[]) {
+            for (let n of im.names) {
+                v.rootScope[n]=new ScopeInfo(v.rootScope,n,"function");
+                v.rootScope[n].builtin=true;
+            }
+        }
         v.newScope=function (f) {
             var pa=this.ctx.scope||this.rootScope;
             var ns=Object.create(pa);
@@ -427,7 +480,8 @@ const Semantics= {
         v.checkImportable=function (nameHead) {
             //const nameHead=node.name[0];
             if (!importable[nameHead]) {
-                this.error(nameHead+" はインポートできません",nameHead);
+                //this.error(nameHead+" はインポートできません",nameHead);
+		importable[nameHead]={server:true};
             }
             if (this.options.runAt && !importable[nameHead][this.options.runAt]) {
                 let hint="．";
@@ -448,12 +502,19 @@ const Semantics= {
                 if (node.type==="define") {
                     this.addScope(node.name,{kind:"function",node});
                 }
+                if (node.type==="forStmt") {
+                    this.addScope(node.name,{kind:"function",node});
+                    var loopVars=node.vars;
+                    for(let loopVar of loopVars){
+                      this.addScope(loopVar,{kind:"local",node:loopVar});
+                    }
+                }
                 if (node.type==="letStmt") {
-                    this.procLeft(node);
+                    this.procLeft(node, true);
                 }
             }
         };
-        v.procLeft=function (letStmt) {
+        v.procLeft=function (letStmt, isPrescan) {
             const node=letStmt;
             var v=this;
             function procLElem(node) {
@@ -467,7 +528,8 @@ const Semantics= {
                     }
                     break;
                     default:
-                    v.visit(node);
+                    // a.b = fails  in prescan
+                    if (!isPrescan) v.visit(node);
                 }
             }
             function procSym(sym) {
@@ -477,6 +539,7 @@ const Semantics= {
                     v.addScope(sym+"",{kind:"local",node});
                     v.anon.put(node,{needVar:true});
                 }
+                v.anon.put(node,{isLeft:true});
             }
             procLElem(node.left);
         };

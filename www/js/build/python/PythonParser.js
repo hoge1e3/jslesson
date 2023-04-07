@@ -14,7 +14,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         "for","while","in","return","print","import","as",
         "and","or","not","global","True","False","del",
         "finally","is","None","lambda","try","from" ,"nonlocal","with","yield",
-        "assert","pass","except","raise","super"
+        "assert","pass","except","finally", "raise","super"
        ];
     const resvh={};
     for(let r of reserved) resvh[r]=r;
@@ -68,7 +68,19 @@ function (Grammar,Pos2RC/*,TError*/) {
             var lineNo=0;
             let literal3=false; // """ ... """
             const literal3End=/"""/;
-            for (let line of src.split("\n")) {
+            const lineSep=/\r\n|\n|\r/g;
+            const lines=[];
+            let pos=0;
+            while(true) {
+                const m=lineSep.exec(src);
+                if (!m) break;
+                const to=m.index+m[0].length;
+                lines.push(src.substring(pos,to));
+                pos=to;
+            }
+            //console.log("lines",lines);
+            for (let lineBR of lines) {
+                let line=lineBR.replace(/[\r\n]/g,"");
                 if (literal3) {
                     const m=literal3End.exec(line);
                     if (m) {
@@ -83,7 +95,6 @@ function (Grammar,Pos2RC/*,TError*/) {
                         continue;
                     }
                 }
-                line=line.replace("\r","");
                 let r=ind.exec(line);
                 const d=r[0].length;
                 //console.log("depth",lineNo+1, d,depths);
@@ -128,20 +139,23 @@ function (Grammar,Pos2RC/*,TError*/) {
                     literal3=tks[tks.length-1];
                 }
                 this.tokens=this.tokens.concat(tks);
-                this.pos+=line.length+1;
+                this.pos+=lineBR.length;
                 lineNo++;
             }
             return this.tokens;
         }
-        error(mesg) {
+        error(mesg, col=0) {
             const e=new Error(mesg);
-            e.pos=this.pos;
+            e.pos=this.pos+col;
             return e;
         }
         tokenizeLine(line,lineNo) {
             //console.log("parse token",line);
             const r=tokens.get("tokens").parseStr(line);
-            if (!r.success) throw this.error("字句エラー "+(lineNo+1)+":"+(r.src.maxPos+1));
+            if (!r.success) {
+                console.log("Tokenize error", r);
+                throw this.error("字句エラー "+(lineNo+1)+":"+(r.src.maxPos+1), r.src.maxPos);
+            }
             //console.log("r",r.result[0]);
             return r.result[0];
         }
@@ -191,21 +205,24 @@ function (Grammar,Pos2RC/*,TError*/) {
     const gdef={
         //$space: spc,
         program: [{body:rep0(or("stmt","classdef"))},P.TokensParser.eof],
+        dedentOrEOT: or("dedent",P.TokensParser.eof),
         classdef: ["class",{name:"symbol"},{"extends":opt("extends")},":indent",
             {body:"stmtList"},
-        "dedent"],
+        "dedentOrEOT"],
         extends: ["(",{super:"expr"},")"],
         define: ["def",{name:"symbol"},{params:"paramList"},":indent",
             {body:"stmtList"},
-        "dedent"],
-        paramList: ["(",{body:sep0("symbol",",")},")"],
+        "dedentOrEOT"],
+        paramList: ["(",{body:sep0("param",",")},")"],
+        param: [{name:"symbol"}, {defVal:opt("defVal")}],
+        defVal: ["=",{value:"expr"}],
         ":indent": [":","indent"],
         //nodedent: [rep0("nodent"),"dedent"],
         //defList: rep0("define"),
         stmtList: rep1("stmt"),
         // why printStmt -> printStmt3?
         // because if parse print(x), as printStmt3, comma remains unparsed.
-        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt2","fromImportStmt","globalStmt","nodent"),
+        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt2","fromImportStmt","globalStmt","tryStmt","nodent"),
         fromImportStmt: ["from",{name:"packageName"},"import",{localNames:"localNames"}],
         localNames: [{names:or(sep1("symbol",","),"*")}],
         importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
@@ -214,7 +231,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         packageName: sep1("symbol","."),
         exprStmt: [{expr:"expr"}],
         delStmt: ["del",{expr:"expr"}],
-        returnStmt: ["return",{expr:"expr"}],
+        returnStmt: ["return",{expr:opt("expr")}],
         //exprTail: or("block","nodent"),
         ifStmt: ["if",{cond:"expr"},{then:"block"},
         {elif:rep0("elifPart")},{else:opt("elsePart")}],
@@ -231,6 +248,10 @@ function (Grammar,Pos2RC/*,TError*/) {
         printStmt: ["print",{values:"exprList"}],
         // print(x,end="") parsed as: printStmt3
         printStmt3: ["print", {args:"args"}],
+        tryStmt: ["try",{body:"block"},{exceptParts:rep0("exceptPart")},{finallyPart:opt("finallyPart")}],
+        exceptPart: ["except",{exceptParam: opt("exceptParam")}, {body:"block"}],
+        exceptParam: [{eType: "symbol"}, {asName: opt(["as", {name:"symbol"}])}],
+        finallyPart: ["finally",{body:"block"}],
         singleLval: g.expr({
             element: "symbol",
             operators: [
@@ -290,8 +311,9 @@ function (Grammar,Pos2RC/*,TError*/) {
         // x:y:z
         slice111: [{start:"expr"},":",{stop:"expr"},":",{step:"expr"}],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
-        block: [":indent",{body:"stmtList"},"dedent"],
-        elem: or("symbol","number","None","bool","listComprehension","array","dict","literal3","literal","paren","superCall"),
+        block: [":indent",{body:"stmtList"},"dedentOrEOT"],
+        elem: or("symbol","number","None","bool","listComprehension","array","dict","literal3","literal","paren","superCall","lambdaExpr"),
+        lambdaExpr: ["lambda",{param:"symbol"},":",{returns:"expr"}],
         superCall: ["super","(",")"],
         paren: ["(",{body:"exprList"},")"],
         bool: or("True","False"),
@@ -316,6 +338,7 @@ function (Grammar,Pos2RC/*,TError*/) {
     g.parse=function (srcFile) {
         let src=srcFile.text();
         src=src.replace(/\s*$/,"\n");
+        //console.log("SRC",JSON.stringify(src));
         const t=new g.Tokenizer(src);
         let tks;
         try {
@@ -326,9 +349,9 @@ function (Grammar,Pos2RC/*,TError*/) {
             //e.noTrace=true;
             throw er;
         }
-        //console.log("G.parse.T",tks);
+        console.log("G.parse.T",tks);
         const s=P.TokensParser.parse(g.get("program"),tks);
-        //console.log("G.Parse.res",s);
+        console.log("G.Parse.res",s);
         if (!s.success) {
             var ert=tks[s.src.maxPos];
             //console.error("Err",s.src.maxPos,ert.row,ert.col);

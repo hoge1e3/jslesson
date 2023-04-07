@@ -48,6 +48,7 @@ class LoginController {
         return preg_match("/^[\+@a-zA-Z_0-9\-\.]+$/",$u);
     }
     static function bauth() {
+        // return whether status is valid
         $status=param("status");
         $status=json_decode($status,true);
         $status2=statusHash($status);
@@ -72,12 +73,15 @@ class LoginController {
         $t=Auth::curTeacher();
         if ($t) $res["teacher"]=$t->name;
         $res["time"]=DateUtil::now();
+        $oa=MySession::get("oauthed_id",null);
+        if ($oa) $res["oauthed_id"]=$oa;
         if (defined("BAUTH_SALT")) {
             $res=statusHash($res);
         }
         $callback=param("callback",null);
         if ($callback) {
-            header("Location: $callback&code=$res");
+            // TODO check callback domains
+            header("Location: $callback&code=".json_encode($res));
             return;
         }
         print json_encode($res);
@@ -182,6 +186,10 @@ class LoginController {
         $user=$_POST["user"];
         $c=new BAClass($class);
     	//TODO:ユーザ登録(パスワードの登録)
+        if (!self::isValidUserName($user) || preg_match("/[\+@]/",$user)) {
+          self::$mesg="ユーザ名に使用できない文字が使われています．使用できるのは「半角英数字」「-(ハイフン)」「.(ピリオド)」「_(アンダースコア)」です．";
+          return self::form();
+        }
         self::$mesg="クラス $class にユーザ  $user が登録されていません。";
     	?>
     	<meta charset="UTF-8">
@@ -261,10 +269,13 @@ class LoginController {
         MySession::set("class",$res->class);
         MySession::set("user",$res->user);
     }
+    static function cleanSession() {
+        MySession::clean();
+    } 
 }
 function statusHash($res) {
     $src=BAUTH_SALT;
-    $keys=["user","class","teacher","time"];
+    $keys=["user","class","teacher","time","oauthed_id"];
     foreach ($keys as $key) {
         if (isset($res[$key])) $src.=",".$res[$key];
     }

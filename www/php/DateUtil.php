@@ -20,14 +20,14 @@ class DateUtil {
         // yyyy-mm-dd
         return self::toInt(substr($s,0,strlen($s)-9));
     }
-    static function toInt($d) {
+    static function toInt($d, $format="Y-m-d H:i:s") {
         if (is_string($d)) {
             if(self::looksLikeInt($d)) return $d-0;
             $d=preg_replace("/\\//","-",$d);
             if (preg_match("/^[0-9]+-[0-9]+-[0-9]+$/",$d)) {
                 $d="$d 00:00:00";
             }
-            $da=DateTime::createFromFormat("Y-m-d H:i:s",$d);
+            $da=DateTime::createFromFormat($format,$d);
             //echo var_dump( DateTime::getLastErrors () );
             return $da->getTimeStamp();
         }

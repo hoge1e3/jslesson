@@ -1,33 +1,36 @@
-function runOnServer2(str,needStdin) {
+//function runOnServer2(str,needStdin) {
+function runOnServer3(prj, file, needStdin) {
     var stdin,t,place;
     if (!needStdin) {
         stdin="\n\n\n\n\n\n\n\n";
-        runOnServerWithStdin(str,stdin);
+        runOnServerWithStdin(prj,file,stdin);
     } else {
         place=$("<div>").appendTo("body");
         $("<div>").text("入力を設定してください(入力値ごとに改行で区切る)").appendTo(place);
         t=$("<textarea>").attr({rows:10,cols:40}).appendTo(place);
         $("<button>").text("実行").click(function () {
             stdin=t.val()+"\n";
-            runOnServerWithStdin(str,stdin);
+            runOnServerWithStdin(prj,file,stdin);
             place.remove();
         }).appendTo(place);
     }
 }
-function runOnServerWithStdin(str,stdin) {
+//function runOnServerWithStdin(str,stdin) {
+function runOnServerWithStdin(prj, file, stdin) {
     jQuery.support.cors = true;
     $('#output').text("Running python on server");
     var t=setInterval(function () {
         $('#output').append(".");
     },500);
-    $.post(window.controllerPath+'?RunPython/runStr', {str:str,rand:Math.random(),stdin:stdin}).then(
+    //$.post(window.controllerPath+'?RunPython/runStr', {str:str,rand:Math.random(),stdin:stdin}).then(
+    $.post(window.controllerPath+'?RunPython/runInDocker', {prj, file ,url:location.href,rand:Math.random(),stdin:stdin}).then(
         function (r) {
             clearInterval(t);
             parent.window.echooff=r;
             r=r.replace(/^[\s\S]*echo off\s*\n?/,'');
             var spl="["+Math.random()+"]";
             var imgs=[];
-            r=r.replace(/<img src='[^']+'\/>/g, function (_) {
+            r=r.replace(/(<img src='[^']+'\/>)|(<iframe src='[^']+'><\/iframe>)/g, function (_) {
                 imgs.push(_);
                 return spl;
             });
@@ -57,6 +60,10 @@ function runOnServerWithStdin(str,stdin) {
                     }
                 }
                 //alert(buf);
+            }
+            if (typeof parent!=="undefined" && parent.sendResult) {
+                const r=$("#output").text();
+                parent.sendResult(r,"Python");
             }
         }
     );

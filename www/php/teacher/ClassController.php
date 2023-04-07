@@ -24,6 +24,7 @@ class ClassController {
         <style>
         .assignment { display:block;}
         </style>
+        <script src="js/lib/localize.js"></script>
         <script src="runtime/lib/jquery-1.12.1.js"></script>
         <script type="text/javascript">
         $(function () {
@@ -56,8 +57,69 @@ class ClassController {
             <div class="note"><a href="a.php?Note/showAll">学生の全ノートを見る</a></div>
         <?php } ?>
         <hr>
-        <a href="." target="student">演習画面へ</a><hr>
+        <a href="." target="student">演習画面へ</a>
+        <?php if (Auth::isClassAdministrator($class)) { ?>
+            <hr>
+            <h2>クラス管理メニュー</h2>
+            <a href="a.php?Delete/klass">クラスの削除</a><br/>
+            <a href="a.php?Class/collaboratorList">共同担当者を管理</a><br/>
+        <?php } ?>
         <?php
+    }
+    static function collaboratorList() {
+        $class=Auth::curClass2();
+        if (!Auth::isClassAdministrator($class)) {
+            die("You are not admin of class ".$class->id);
+        }
+        ?>
+        <h1><?= $class->id ?>の共同担当者</h1>
+        <?php
+        foreach ($class->getCollaboratorTeachers() as $t) {
+            ?>
+            <?= $t->id ?>
+            <a href="a.php?Class/rmCollaborator&name=<?= htmlspecialchars($t->id) ?>">担当者から外す</a><BR/>
+            <?php
+        }
+        ?>
+        <form action="a.php?Class/addCollaborator" method="POST">
+            <H2>担当者を追加</h2>
+            <input name="name" placeholder="教員メールアドレス">
+            <input type="submit" value="追加する">
+        </form>
+        <hr/>
+        <a href="a.php?Class/show">クラス管理</a>
+        <?php
+
+    }
+    static function addCollaborator() {
+        $class=Auth::curClass2();
+        if (!Auth::isClassAdministrator($class)) {
+            die("You are not admin of class ".$class->id);
+        }
+        $t=new BATeacher(param("name"));
+        if (!$t->exists()) {
+            print $t->id."は登録されていません";
+        } else if ($t->isTeacherOf($class)) {
+            print $t->id."はすでに".$class->id."の共同担当者になっています";
+        } else {
+            $class->addCollaboratorTeacher($t);
+            print $t->id."を".$class->id."の共同担当者にしました";    
+        }
+        ?><a href="a.php?Class/collaboratorList">共同担当者一覧</a><?php
+    }
+    static function rmCollaborator() {
+        $class=Auth::curClass2();
+        if (!Auth::isClassAdministrator($class)) {
+            die("You are not admin of class ".$class->id);
+        }
+        $t=new BATeacher(param("name"));
+        if (!$t->isTeacherOf($class)) {
+            print $t->id."は".$class->id."の共同担当者ではありません";
+        } else {
+            $class->removeCollaboratorTeacher($t);
+            print $t->id."を".$class->id."の共同担当者から外しました";    
+        }
+        ?><a href="a.php?Class/collaboratorList">共同担当者一覧</a><?php
     }
     static function make() {
         Auth::assertTeacher(true);
@@ -164,9 +226,35 @@ class ClassController {
         self::optionItems("disableNote");
         self::optionItems("showOtherStudentsLogs");
         self::optionItems("showHint");
+        self::fileMenuTemplate();
         self::botURLForm();
         ?>
         <hr>
+        <?php
+    }
+    static function fileMenuTemplate() {
+        Auth::assertTeacher();
+        $class=Auth::curClass2();
+        $tmpl=$class->getOption("fileMenuTemplate");
+        if (!$tmpl) $tmpl="";
+        ?>
+        <div>ファイルメニュー(試験運用)</div>
+        <form action="a.php?Class/setFileMenuTemplate" method="POST">
+        <textarea rows=5 cols=60 name="tmpl"><?= htmlspecialchars($tmpl) ?></textarea>
+        <input type="submit">
+        </form>
+        <?php
+    }
+    static function setFileMenuTemplate() {
+        Auth::assertTeacher();
+        $class=Auth::curClass2();
+        $tmpl=param("tmpl");
+        $class->setOption("fileMenuTemplate",$tmpl);
+        $redirect="a.php?Class/config";
+        ?>
+        設定しました．
+        <a href="<?= $redirect ?>">設定画面へ</a>
+        <meta http-equiv="refresh" content="2;URL='<?= $redirect ?>'" />
         <?php
     }
     static function botURLForm() {
@@ -279,6 +367,8 @@ class ClassController {
 
         ?>
         </table>
+        <hr/>
+        <a href="a.php?Delete/users">ユーザの削除</a>
         <?php
     }
     static function su() {

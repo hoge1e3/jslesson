@@ -1,0 +1,61 @@
+
+Raspi= ! create.
+Raspi:connect=[|;ba ppath rr|
+    [rp] ! then [] else [
+        ba=(window: BitArrow).
+        ppath=(ba:runtimePath)+"lib/python/".
+        system ! ( ppath+"SerialControl.js") getScript.
+        system ! ( ppath+"raspi_repl.js") getScript.
+        rp=system ! (window: RaspiREPL) new. 
+        //label ! "READY1" create.
+        rp!waitReady.
+        //label ! "READY2" create.
+        ! "import machine" exec.
+    ] execute.
+    self.
+].
+Raspi:exec=[|script|
+    rp ! (script) runCmd.
+].
+Raspi:readADC=[|port bytes|
+    ! connect.
+    ! ("print(machine.ADC("+port+").read_u16())") exec.
+].
+Raspi:conversion_factor = 3.3 / (65535).
+Raspi:getTemperature=[|;t reading|
+    t= ! 4 readADC.
+    reading = t * conversion_factor.
+    (27 - (reading - 0.706)/0.001721).
+].
+Raspi:writePin=[|port value;scr|
+    ! connect.
+    scr="machine.Pin("+port+", machine.Pin.OUT).value("+value+")".
+    //debug !(scr) write.
+    ! (scr) exec.
+].
+Raspi:led=[|value|
+    ! 25 (value) writePin.
+].
+
+/*
+system:jq2promise=[|jq|
+    DtlPromise ! [|succ err|
+        jq ! [|res| succ ! (res) execute] [|e| err !(e)execute] then. 
+    ] new.
+].
+system:getScript=[|url|
+    ! ( (window:$) ! (url) getScript ) jq2promise
+].
+ra=Raspi! create connect.
+ka=turtle ! 0 create.
+ka:x=0.
+debug=label ! create.
+//ra! 1 led.
+
+timer ! create  30 duration [
+    ka ! (ka:x) ( (ra! getTemperature)*3 ) moveTo.
+    ka:x=ka:x+1.
+    r=ra ! ( ka:x % 2) led.
+    debug!(r) write.
+] execute.
+*/

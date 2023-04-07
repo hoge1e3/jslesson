@@ -329,7 +329,7 @@ root.MinimalParser= function () {
 	var func_type=_int.or(float).or(char).or(double).or(_void);
 	var reg_str = RegExp("^[^\"^\”]*");
 	//文字列の正規表現
-	var string = t(/^\"((\\(.|\n))*[^\\\"\n]*)*\"/).ret(function(str){
+	var string = t(/^\"((\\(.|(\r?\n)))|[^\\\"\n])*\"/).ret(function(str){
 		return extend(["str_to_ch_ptr(",str,")"],{type:"string",vtype:T.Array(T.Char()),isConst:true});
 	});
 	var integer_constant=t(/^0[xX][0-9a-fA-F]+/).or(t(/^0[bB][01]+/)).or(t(/^[0-9]+/)).

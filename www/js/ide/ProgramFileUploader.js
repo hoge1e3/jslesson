@@ -1,6 +1,12 @@
 define(["FS","DragDrop","root","UI","LanguageList","Sync","ProjectFactory"],
 function (FS,DragDrop,root,UI,LL,Sync,PF) {
     var P=FS.PathUtil;
+    function getExt(f) {
+        if (typeof f.name==="function") f=f.name();
+        const a=f.split(".");
+        a.shift();
+        return "."+a.join(".");
+    }
     var ProgramFileUploader={
         acceptingEXT(prj) {
             const acext={".html":1};
@@ -14,7 +20,7 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
             const EXT=prj.getEXT(), HEXT=".html";
             DragDrop.accept(fileList.elem, {
                 onCheckFile: function (dst,file) {
-                    if (!acext[P.ext(file.name)]) {
+                    if (!acext[getExt(file.name)]) {
                         return DragDrop.CancelReason(file.name+": このファイルは追加できません");
                     }
                     if (dst.exists()) {
@@ -171,7 +177,7 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
                     imported=true;
                     await t.importFrom(f.up(),ctx);
                 } else {
-                    const ext=f.ext() && f.ext().replace(/^\./,"");
+                    const ext=getExt(f) && getExt(f).replace(/^\./,"");
                     if (LL[ext] && !ctx.detected) {
                         ctx.detected={ext, dir};
                     }

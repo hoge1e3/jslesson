@@ -1,5 +1,9 @@
 <?php
 require_once __DIR__."/data/pdo.php";
+if (!defined("SESSION_TIMEOUT")) {
+    define("SESSION_TIMEOUT",60*60*24*30*1);
+}
+define("MYSESSION_DATA","MYSESSION_DATA");
 class MySession {
     static $id,$data;
     public static function startWith($i) {
@@ -15,7 +19,7 @@ class MySession {
             self::$id=$_COOKIE[$idname];
         } else {
             self::$id=self::publish();
-            setcookie($idname,self::$id,time()+60*60*24*30*1);
+            setcookie($idname,self::$id,time()+SESSION_TIMEOUT);
         }
         self::load();
     }
@@ -45,20 +49,38 @@ class MySession {
         self::save();
     }
     public static function load() {
-        $rec=pdo_select1("select data from mysession where id=?",self::$id);
-        if (!$rec) {
-            return self::$data=new stdClass();
+        self::session_start_once();
+        if (isset($_SESSION[MYSESSION_DATA]) && $_SESSION[MYSESSION_DATA]) {
+            $data_json=$_SESSION[MYSESSION_DATA];
+        } else {
+            $rec=pdo_select1("select data from mysession where id=?",self::$id);
+            if (!$rec) {
+                return self::$data=new stdClass();
+            }
+            $data_json=$rec->data;    
+            $_SESSION[MYSESSION_DATA]=$data_json;
         }
-        $data_json=$rec->data;
         self::$data=json_decode($data_json);
     }
     public static function save() {
+        self::session_start_once();
         $data_json=json_encode(self::$data);
+        $_SESSION[MYSESSION_DATA]=$data_json;
         pdo_insertOrUpdate("mysession",array("id"=>self::$id),array("time"=>time(), "data"=>$data_json));
     }
     public static function clear() {
+        self::session_start_once();
+        if (isset($_SESSION[MYSESSION_DATA])) unset($_SESSION[MYSESSION_DATA]);
         self::start();
         pdo_exec("delete from mysession where id=?",self::$id);
+    }
+    public static function clean() {
+        pdo_exec("delete from mysession where time < ?" ,time()-SESSION_TIMEOUT);
+    }
+    static function session_start_once() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
     }
 }
 

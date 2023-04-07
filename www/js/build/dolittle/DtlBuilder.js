@@ -25,20 +25,20 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG,UI,root,WebS
     var libs=["polyfill","jquery-1.12.1","require","AsyncByGenerator"].map(function (n) {
         return "lib/"+n+".js";
     });
-    var dtlibs=["promise","mt","lib",
+    /*var dtlibs=["promise","mt","lib",
     "parser","ExpressionParser","context","minimal",
     "polyk","calibration","devicemotion",
     "Dict","Vec2","Actor","Group","UI","Color","Timer",
-    "Util","Turtle","Figure","DOM","TextFile","Japanese2","db"].map(
+    "Util","Turtle","Figure","DOM","TextFile","Japanese2","db","Ajax"].map(
         function (n) {
             return "lib/dtl/"+n+".js";
         }
-    );
+    );*/
     var p=DtlBuilder.prototype;
     p.progress=function (m) {
         if (window.SplashScreen) window.SplashScreen.progress(m);
     };
-    p.dlFiles=function () {
+    /*p.dlFiles=function () {
         var dst=this.dst;
         var urls=[];
         //"lib/jquery-1.12.1.js",
@@ -52,7 +52,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG,UI,root,WebS
             if (!dstf.exists()) return wget(base+url, dstf);
         });
         return $.when.apply($,args);
-    };
+    };*/
     p.genHTML=function (f) {
         this.progress("generate "+f.src.html.name());
         //var curHTMLFile=d.rel(name+".html");
@@ -69,6 +69,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG,UI,root,WebS
                 urlArgs:BitArrow.urlArgs,
                 publishedURL:BitArrow.publishedURL,
                 runtimePath:WebSite.runtime,
+                serverTop: WebSite.serverTop,
                 main:f.name};
             $(head).append($("<script>").text("window.BitArrow="+JSON.stringify(ba)+";"));
         }
@@ -89,7 +90,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG,UI,root,WebS
         });
         return f.dst.html.text("<!DOCTYPE HTML>\n<html>"+html.innerHTML+"</html>");
     };
-    p.genHTMLOLD=function (f) {
+    /*p.genHTMLOLD=function (f) {
         this.progress("generate "+f.src.html.name());
         //var curHTMLFile=d.rel(name+".html");
         var dp=new DOMParser();
@@ -128,7 +129,7 @@ function (A,DU,wget,dtlParser,IndentBuffer,Sync,FS,SplashScreen,ABG,UI,root,WebS
             body.appendChild(nn);
         });
         return f.dst.html.text("<!DOCTYPE HTML>\n<html>"+html.innerHTML+"</html>");
-    };
+    };*/
     function isNewer(a,b) {
         if (!a.exists()) return false;
         return a.lastUpdate()>b.lastUpdate();

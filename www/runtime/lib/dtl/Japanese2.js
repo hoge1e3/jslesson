@@ -68,6 +68,12 @@ this['addAlias']("touchSensor","タッチセンサ","タッチセンサー");
 this['touchSensor']['addAlias']("setAction","動作設定")['addAlias']("action","動作")['addAlias']("use","使う")['addAlias']("getTouched","タッチした?","触れた?")['addAlias']("getTouching","タッチしている?","タッチしてる?","触れている?","触れてる?")['addAlias']("getX","横の位置?")['addAlias']("getY","縦の位置?");
 this['addAlias']("gyroSensor","ジャイロセンサ","ジャイロセンサー");
 this['gyroSensor']['addAlias']("setAction","動作設定")['addAlias']("action","動作")['addAlias']("use","使う")['addAlias']("getYaw","ヨー?","水平方向の傾き?","水平の傾き?")['addAlias']("getRoll","ロール?","左右方向の傾き?","左右の傾き?")['addAlias']("getPitch","ピッチ?","前後方向の傾き?","前後の傾き?")['addAlias']("getA","値A")['addAlias']("getB","値B")['addAlias']("getC","値C")['addAlias']("calibrate","調整")['addAlias']("use","使う");
+this['addAlias']("Assets","素材");
+this['Assets']['addAlias']("load","読む")['addAlias']("save","書く")['addAlias']("list","一覧");
+this['addAlias']("Ajax","通信");
+this['Ajax']['addAlias']("data","データ")['addAlias']("get","読む")['addAlias']("post","書く");
+this['addAlias']("Raspi","ラズパイ","ラズベリーパイ");
+this['Raspi']['addAlias']("connect","接続")['addAlias']("exec","実行")['addAlias']("writePin","デジタル出力")['addAlias']("readADC","アナログ入力")['addAlias']("getTemperature","温度")['addAlias']("led","LED");
 this['HTML']['読む']=dtlbind(this,function(x){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
 return this['get']((x));

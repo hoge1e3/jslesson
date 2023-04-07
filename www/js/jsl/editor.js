@@ -38,6 +38,7 @@ define(function (require) {
     const UI=require("UI");
     const ctrl=require("ctrl");
     const DesktopSettingDialog=require("DesktopSettingDialog");
+    const globalDesktopSetting=require("globalDesktopSetting");
     const languageList=require("LanguageList");
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
@@ -54,7 +55,6 @@ define(function (require) {
         return;
     }
     var curProjectDir=FS.get(dir);
-    var curPrj=PF.create("ba",{dir:curProjectDir});
     /*
     getEXT
     getOptions
@@ -114,6 +114,7 @@ define(function (require) {
                     location.href="index.html";
                     return;
                 }
+                console.log("Creating project ",curProjectDir.name());
                 NPD.create(curProjectDir.up(),{name:curProjectDir.name(),lang:lang});
             }
         });
@@ -131,6 +132,7 @@ define(function (require) {
     });
 
 function ready() {
+    const curPrj=PF.create("ba",{dir:curProjectDir});
     if (!Auth.teacher) {
         curPrj.getDir().each(function (f) {
             console.log(f.name());
@@ -167,46 +169,10 @@ function ready() {
         setupBuilder(_);
     });
     helpURL=langInfo.helpURL;
-    /*switch (lang){
-    case "c":
-        requirejs(["CBuilder"],function(_){
-            setupBuilder(_);
-        });
-        helpURL="http://bitarrow.eplang.jp/index.php?c_use";
-    	break;
-    case "js":
-    	requirejs(["TJSBuilder"],function(_){
-            setupBuilder(_);
-    	});
-    	helpURL="http://bitarrow.eplang.jp/index.php?javascript";
-    	break;
-    case "dtl":
-    	requirejs(["DtlBuilder"],function(_){
-            setupBuilder(_);
-    	});
-    	helpURL="http://bitarrow.eplang.jp/index.php?dolittle_use";
-    	break;
-    case "dncl":
-    	requirejs(["DnclBuilder"],setupBuilder);
-    	helpURL="http://bitarrow.eplang.jp/index.php?dncl_use";
-    	break;
-    case "py":
-        //openDummyEditor();// I dont know
-        requirejs(["PythonBuilder"],setupBuilder);
-        ALWAYS_UPLOAD=UA.isIE;
-    	helpURL="http://bitarrow.eplang.jp/index.php?python";
-        break;
-    case "tonyu":
-        //ALWAYS_UPLOAD=true;
-        requirejs(["TonyuBuilder"],setupBuilder);
-        helpURL="http://bitarrow.eplang.jp/index.php?tonyu";
-        break;
-    case "php":
-        //ALWAYS_UPLOAD=true;
-        requirejs(["PHPBuilder"],setupBuilder);
-        helpURL="http://bitarrow.eplang.jp/index.php?php";
-        break;
-    }*/
+    if (navigator.userAgent.match(/Firefox/) && lang==="tonyu") {
+        ALWAYS_UPLOAD=true;
+        console.log("Firefox tonyu ALWAYS_UPLOAD");
+    }
     function setupBuilder(BuilderClass) {
         $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
         ram=FS.get("/ram/build/");
@@ -303,14 +269,17 @@ function ready() {
                      ["span",{id:"modLabel"}],
                      ["span",{class:"tabLink", id:"commentLink"}],
                      ["span",{class:"tabLink", id:"hintLink"}],
+                     ["span",{class:"tabLink", id:"customLink"}],
                      ["a",{class:"tabLink", id:"fullScr",href:JS_NOP}],
                      ["span",{class:"tabLink", id:"toastArea"}]
                   ],
-                  ["div",{id:"progs"}]
+                  ["div",{id:"progs"}],
+                  ["div",{id:"runEmbed"}],
               ]
         );
     }
     makeUI();
+    let fileMenuTemplate="";
     function makeMenu() {
         Menu.make({label:"Bit Arrow",id:"home",sub:
                 [
@@ -337,6 +306,7 @@ function ready() {
             if (!r.showHint) {
                 $("#hintLink").remove();
             }
+            fileMenuTemplate=r.fileMenuTemplate||"";
             disableNote=!!r.disableNote;
         });
         showDistMenu();
@@ -378,6 +348,7 @@ function ready() {
         assignmentDialog.show(inf && inf.file);
     }
     function distributeFile() {
+        DistributeDialog.setDisabled(false);
         var curPrjName=curProjectDir.name();
         var inf=getCurrentEditorInfo();
         if (!inf) {
@@ -385,8 +356,9 @@ function ready() {
             return;
         }
         var curFile=getCurrentEditorInfo().file;
-        DistributeDialog.show(curFile.text(),function(text,overwrite){
+        DistributeDialog.show(curFile.text(),function(text,overwrite,{next}){
             console.log(text,overwrite);
+            DistributeDialog.setDisabled(true);
             $.ajax({
                 type:"POST",
                 url:WebSite.controller+"?Class/distribute",
@@ -400,14 +372,26 @@ function ready() {
                 }
             }).then(
                 function(d){
-                    alert(d);
+                    if (!next) {
+                        alert(d);
+                        DistributeDialog.setDisabled(false);
+                    } else {
+                        try {
+                            fl.selectNext();
+                            setTimeout(distributeFile, 500);
+                        } catch(e) {
+                            console.error(e);
+                            alert(e);
+                        }
+                    }
                 },
                 function(d){
                     alert("配布に失敗しました");
                     console.log(d);
+                    DistributeDialog.setDisabled(false);
                 }
             );
-        });
+        },{ide});
 
     }
     /*function distributePrj() {
@@ -421,19 +405,32 @@ function ready() {
     checkPublishedURL();
     makeMenu();
 
-    var screenH;
+    let screenH, editorH, runH;
     function onResize() {
         var h=$(window).height()-$("#navBar").height()-$("#tabTop").height();
         h-=20;
-        screenH=h;
+        if (isSplit()) {
+            screenH=h;
+            editorH=h*2/3;
+            runH=h*1/3;
+        } else {
+            screenH=h;
+            editorH=h;
+            runH=0;
+        }
         var rw=$("#runArea").width();
-        $("#progs pre").css("height",h+"px");
+        $("#progs pre").css("height",editorH+"px");
         console.log("canvas size",rw,h);
         $("#fileItemList").height(h);
+        $("#runEmbed").height(runH);
+        console.log("runEmbed", $("#runEmbed").height());
+        if (isSplit() && RunDialog2.fitToTarget) {
+            RunDialog2.fitToTarget();
+        }
     }
-    onResize();
     const desktopEnv=loadDesktopEnv();
     ide.desktopEnv=desktopEnv;
+    onResize();
     window.editorTextSize=desktopEnv.editorFontSize||18;
     var editors={};root._editors=editors;
 
@@ -473,6 +470,12 @@ function ready() {
         A.is(e,"Event");
     	save();
     	e.stopPropagation();
+    	e.preventDefault();
+    	return false;
+    }));
+    KeyEventChecker.down(document,"ctrl+m",F(function (e) {
+        fl.selectNext();
+        e.stopPropagation();
     	e.preventDefault();
     	return false;
     }));
@@ -820,10 +823,18 @@ function ready() {
         var curLogicFile=curFiles[1];
         options.curHTMLFile=curHTMLFile;
         options.curLogicFile=curLogicFile;
-	    window.sendResult=function(resDetail, lang){
+	    window.sendResult=function(resDetail, lang, result="Run"){
+            const resCon=r=>{
+                if (typeof r==="string") return r;
+                if (r && r.message) return r.message;
+                return r+"";
+            };
             lang=lang||"c";
             console.log("sendResult",resDetail,lang);
-            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),(langInfo.en||lang)+" Run",resDetail,langInfo.en);
+            if (result==="Run" && resCon(resDetail).match(/Traceback.*most recent call last/)) {
+                result="Runtime Error";
+            }
+            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),(langInfo.en||lang)+" "+result, resDetail,langInfo.en);
         };
         stop();
         save();
@@ -847,12 +858,21 @@ function ready() {
                 return IframeDialog.show(runURL,{width:600,height:400});
             } else {
                 var indexF=buildStatus.indexFile;// ram.rel(lang=="tonyu"?"index.html":curHTMLFile.name());
-                return RunDialog2.show(indexF,{
-                    window:newwnd,
-                    height:RunDialog2.geom.height||screenH-50,
-                    toEditor:focusToEditor,
-                    font:desktopEnv.editorFontSize||18
-                });
+                if (isSplit()) {
+                    return RunDialog2.embed(indexF, {
+                        window:newwnd,
+                        targetDOM: $("#runEmbed"),
+                        toEditor:focusToEditor,
+                        font:desktopEnv.editorFontSize||18
+                    });
+                } else {
+                    return RunDialog2.show(indexF,{
+                        window:newwnd,
+                        height:RunDialog2.geom.height||screenH-50,
+                        toEditor:focusToEditor,
+                        font:desktopEnv.editorFontSize||18
+                    });
+                }
             }
         }catch(e) {
             console.log(e,e.stack);
@@ -951,7 +971,8 @@ function ready() {
         }
     }
     function fixEditorIndent(prog) {
-        if (lang==="dncl" || lang==="py") return;// bad know-how!
+        //if (lang==="dncl" || lang==="py" || lang==="p5.py") return;// bad know-how!
+        if (langInfo.manualIndent) return;
         A.is(prog,"AceEditor");
         var prev=prog.getValue();
         let fixed;
@@ -1071,7 +1092,7 @@ function ready() {
         $(".selTab").removeClass("selected");
         $(".selTab[data-ext='"+ext+"']").addClass("selected");
         if (!inf) {
-            var progDOM=$("<pre>").css("height", screenH+"px").text(f.text()).appendTo("#progs");
+            var progDOM=$("<pre>").css("height", editorH+"px").text(f.text()).appendTo("#progs");
             progDOM.attr("data-file",f.name());
             var prog=root.ace.edit(progDOM[0]);
             prog.setShowInvisibles(desktopEnv.showInvisibles);
@@ -1108,6 +1129,9 @@ function ready() {
             //if(desktopEnv.editorMode=="emacs") inf.editor.setKeyboardHandler("ace/keyboard/emacs");
             //else inf.editor.setKeyboardHandler(defaultKeyboard);
         }
+        const [curHTMLFile, curLogicFile]=fileSet(inf.file);
+        logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Open","開きました",langInfo.en);
+
         commentDialog.getComment(f).then(function (c) {
             $("#commentLink").empty();
             console.log(c);
@@ -1123,6 +1147,11 @@ function ready() {
             UI("a",{"href": ctrl.url("TeacherLog/diffSeq",{hint:1,file:filePath}), "target":"hint"},
             "ヒントを見る")
         );
+        try {
+            $("#customLink").html(fileMenuTemplate.replaceAll("${PATH}",f.path()).replaceAll("${USER}",Auth.user).replaceAll("${CLASS}",Auth.class));
+        } catch(e) {
+
+        }
         $("#curFileLabel").text(curPrj.truncEXT(f)/*f.truncExt()*/);//.p5.js
         if (disableNote===false) socializeDialog.show(inf.file);
     }
@@ -1130,12 +1159,23 @@ function ready() {
         root.Tonyu.currentProject.dumpJS.apply(this,arguments);
     };
     function loadDesktopEnv() {
-        var d=curProjectDir.rel(".desktop");
-        var res;
+        const globalConfFile=globalDesktopSetting.confFile(curProjectDir.up());
+        let globalEnv={};
+        if (globalConfFile.exists()) {
+            try {
+                globalEnv=globalConfFile.obj();
+            } catch(e){
+                console.error(e);
+            }
+        }
+        const d=curProjectDir.rel(".desktop");
+        let res=globalEnv;
         if (d.exists()) {
-            res=d.obj();
-        } else {
-            res={};
+            try {
+                res=Object.assign(globalEnv,d.obj());
+            } catch(e){
+                console.error(e);
+            }
         }
         if (!res.runMenuOrd) res.runMenuOrd=[];
         //desktopEnv=res;
@@ -1144,6 +1184,9 @@ function ready() {
     function saveDesktopEnv() {
         var d=curProjectDir.rel(".desktop");
         d.obj(desktopEnv);
+    }
+    function isSplit() {
+        return desktopEnv.runDialog==="split";
     }
     if (root.progBar) {root.progBar.clear();}
     let desktopSettingDialog;

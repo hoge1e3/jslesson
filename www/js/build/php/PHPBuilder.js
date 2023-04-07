@@ -41,14 +41,27 @@ define(function (require, exports, module) {
                     h.style="display: none;";
                     f.style="display: inline";
                 }
+                function sendResult(html) {
+                    const res=looksLikeError(html) ? "Runtime Error" : "Run";
+                    if (window.parent && window.parent.sendResult) {
+                        window.parent.sendResult(html, "PHP", res);
+                    }
+                }
+                function looksLikeError(html) {
+                    //<b>Notice</b>
+                    //<b>Parse error</b>
+                    //<b>Fatal error</b>
+                    return html.match(/<b>(notice|[\\w\\s]*error)<\\/b>/i);
+                }
                 function refreshURL() {
                     try {
                         const f=document.getElementById("frame");
                         const u=document.getElementById("url");
                         const src=f.contentWindow.location.href;
-                        if (src!==prevURL) {
+                        if (src!=="about:blank" && src!==prevURL) {
                             u.value=src;
                             prevURL=src;
+                            sendResult(f.contentWindow.document.body.innerHTML);
                         }
                     } catch(e) {
 
@@ -104,4 +117,5 @@ define(function (require, exports, module) {
             return Sync.sync(this.dst,pub);
         }
     };
+
 });

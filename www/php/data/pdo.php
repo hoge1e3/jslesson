@@ -11,7 +11,16 @@ function pdo() {
     $pdo_dbh=pdo_new();
     return $pdo_dbh;
 }
+function pdo_log($msg) {
+    if (defined("PDO_LOG")) {
+        req("DateUtil");
+        $fp=fopen(PDO_LOG,"a");
+        fwrite($fp,
+        DateUtil::toString()." - ". $_SERVER['REQUEST_URI'] .": ". $msg."\n");
+    } 
+}
 function pdo_new() {
+    pdo_log("open");
     if (defined("PDO_USER")) {
         $dbh=new PDO(PDO_DSN,PDO_USER,PDO_PASS);
     } else {
@@ -38,6 +47,7 @@ function pdo_exec() {
     $a=func_get_args();
     $q=array_shift($a);
     //echo $q;var_dump($a);
+    //pdo_log($q);
     $sth=$pdo->prepare($q);
     if (count($a)===1 && is_array($a[0])) $a=$a[0];
     $sth->execute($a);
@@ -171,7 +181,7 @@ function pdo_uniqID($table, $column) {
     $count=$cr->c;
     $uid=UniqID::find(function ($id) use($table, $column) {
         return pdo_select1("select * from `$table` where `$column`=?", $id);
-    },$count*2+10,0);
+    },$count*2+10,1);
     return $uid;
 }
 class RecordIterator implements Iterator

@@ -1,11 +1,11 @@
 import bs4 as b
-import requests
+from urllib import request
 
 class BeautifulSoup:
     def __init__(self, url, *a, **k):
         # if url="..eplang.jp"
-        r=requests.get(url)
-        raw=b.BeautifulSoup(r.text,"html.parser") #*a,**k)
+        r=request.urlopen(url) if isinstance(url, str) else url
+        raw=b.BeautifulSoup(r.read(),"html.parser") #*a,**k)
         self.BeautifulSoup=raw.BeautifulSoup
         self.find_all=raw.find_all
         self.find=raw.find

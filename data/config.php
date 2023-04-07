@@ -1,8 +1,25 @@
 <?php
-// This file should NOT place in httpd-reachable folder!
+// This file should NOT be placed in httpd-reachable folder!
+
+define("BA_LOG", BA_DATA."/log");
+define("BA_FS",  BA_DATA."/fs");
+define("BA_HOME",BA_FS."/home");
+define("BA_PUB", BA_FS."/pub");
+
+$ba_top_url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+$ba_top_url = preg_replace("/\\?.*/","",$ba_top_url);
+$ba_top_url = preg_replace("/[^\\/]*$/","",$ba_top_url);
+// ^This method is not perfect. It is recommeded that you set the URL directly.
+// $ba_top_url="http://example.com/path/to/ba/";
+//define("BA_TOP_URL", $ba_top_url);
+define("BA_PUB_URL", $ba_top_url."/fs/pub");
+
+// You should define PDO_* in BA_DATA/config.php to protect passowrd
+
 
 
 define("PYTHON_PATH","C:\\bin\\python.bat");
+define("PDO_LOG","C:\\bin\\pdo.log");
 define("SUPER_PYTHON","superpython");
 define("PYTHON_WORK",BA_DATA."/pythonwork/");
 
@@ -19,6 +36,10 @@ define("PHP_WORK","phpwork/");
 define("PHP_URL","http://localhost/phpwork/{USER}/{PROJECT}/{FILE}");
 
 define("BA_MAIL", "bitarrow@example.com");
+define("RESET_TEACHER_PASS_ALTERNATE",<<<EOF
+<a href="">Visit here to reset teacher password</a>
+EOF
+);
 define("BA_MESG_FOR_TEACHER", <<<EOF
 <NAME> 様
 BitArrow登録担当です。

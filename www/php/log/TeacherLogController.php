@@ -86,9 +86,15 @@ class TeacherLogController {
         <?php
         foreach ($ord as $day) {
             ?>
+            <?= DateUtil::toString($day) ?>(<?=$has[$day] ?>):
             <a href=".?TeacherLog/view1new&day=<?= $day ?>&user=<?= $user->name ?>">
-                <?= DateUtil::toString($day) ?>(<?=$has[$day] ?>)
-            </a><BR/>
+                一部
+            </a>
+            |
+            <a href=".?TeacherLog/view1new&day=<?= $day ?>&user=<?= $user->name ?>&all=1">
+                詳細
+            </a>
+            <BR/>
             <?php
         }
     }
@@ -126,6 +132,40 @@ class TeacherLogController {
         }
         return array("user"=>$targetUser, "teacher"=>$teacherObj,
         "canSeeOtherUsersLogs"=>$canSeeOtherUsersLogs);
+    }
+    static function getLogClusters() {
+        $day=DateUtil::toInt(param("day",DateUtil::now()));
+        $days=param("days",1);
+        // If i can do , i do it.
+        $p=self::parseUser();
+        $targetUser=$p["user"];
+
+        $base=DateUtil::getYear($day)."-".DateUtil::getMonth($day)."-".DateUtil::getDay($day)." 00:00:00";
+        $baseInt=DateUtil::toInt($base);
+        //echo $day." ".$base." ".$baseInt;
+        $all=param("all",false);
+        $prevTime=0;
+        $prevResult="";
+        $logs2=Array();
+        $logs=$targetUser->getAllLogs($baseInt,$baseInt+$days*86400);
+        req("LogCluster");
+        $c=null;
+        foreach($logs as $i=>$l){
+            if (!LogUtil::isValidEntry($l)) {
+                continue;
+            }
+            if (!$c) {
+                $c=new LogCluster();
+            }
+            if (!$c->collect($l)) {
+                $logs2[]=$c->withRaw();
+                $c=new LogCluster();
+                $c->collect($l);
+            }
+        }
+        if ($c) $logs2[]=$c->withRaw();
+        header("Content-type: text/json");
+        print json_encode($logs2);
     }
     static function getLogs() {
         // ある日のあるユーザの全ログ（all=1のとき）を，JSONで返してくれる．
@@ -203,6 +243,7 @@ class TeacherLogController {
         ?>
 <html>
     <head>
+        <script src="js/lib/localize.js"></script>
         <script type="text/javascript" src="js/lib/jquery-1.12.1.js"></script>
         <script type="text/javascript" src="js/lib/jquery-ui.js"></script>
         <script type="text/javascript" src="js/lib/difflib.js"></script>
@@ -210,6 +251,7 @@ class TeacherLogController {
         <script type="text/javascript" src="js/lib/jquery.tablesorter.min.js"></script>
         <link rel="stylesheet" href="css/jquery-ui.css"></link>
         <link rel="stylesheet" href="css/diffview.css"></link>
+        <link rel="stylesheet" href="css/logViewer.css"></link>
         <script>
             classID='<?= $targetUser->_class->id ?>';
             userId='<?= $userName ?>';
@@ -224,6 +266,7 @@ class TeacherLogController {
         </script>
         <script src="js/log/logViewer.js"></script>
         <script src="js/log/getlog.js"></script>
+        <title><?= $userName ?></title>
     </head>
     <body>
         <div id="fileList" style="float:left; overflow-y:auto; height:100%; width:20%; resize:horizontal;">
@@ -243,12 +286,12 @@ class TeacherLogController {
             </script>
             -->
         </div>
-        <div style="float:left; width:30%;">
+        <div id="fileDetail" style="float:left; width:30%;">
             <div id="<?= $userName ?>res"></div><br>
             <textarea id="<?= $userName ?>" style="width:100%;" onclick="this.select(0,this.value.length)" readonly></textarea>
             <textarea id="<?= $userName ?>detail" style="width:100%;" readonly></textarea>
         </div>
-        <div style="float:left;">
+        <div id="diffArea" style="float:left;">
             <span id="<?= $userName ?>diff"></span><br>
             <span id="<?= $userName ?>diffLast"></span>
         </div>
@@ -397,6 +440,36 @@ class TeacherLogController {
         //    // プログラムの一部を表示
         // }
     }
+    static function getActualtime2($user=null,$file=null, $dateMax=null) {
+        $class=Auth::curClass2();
+        $isCtrl=false;
+        if ($user===null) {
+            Auth::assertTeacher();
+            $user=$class->getUser(param("user"));
+            $file=param("file");
+            $dateMax=param("dateMax",null);
+            $isCtrl=true;
+        }
+        req("LogQueryController");
+        if ($dateMax) $drange=[0,$dateMax];
+        else $drange=null;
+        $it=LogQueryController::get($class, $drange, $user, $file, 100000, "asc");
+        $prev=null;
+        if (!defined("IDLE_TIME")) define("IDLE_TIME",300);
+        $actTime2=0;
+        foreach ($it as $log) {
+            if (!$prev) { $prev=$log; continue; }
+            $elapsedFromLast=$log->time-$prev->time;
+            if ($elapsedFromLast>=IDLE_TIME) {
+                $actTime2+=IDLE_TIME;
+            } else {
+                $actTime2+=$elapsedFromLast;
+            }
+            $prev=$log;
+        }
+        if ($isCtrl) {print $actTime2;}
+        return $actTime2;
+    }
     static function bot() {
         date_default_timezone_set('Asia/Tokyo');
         $class=Auth::curClass2();
@@ -463,14 +536,14 @@ class TeacherLogController {
             $detail=json_decode($log["detail"]);
             if(strpos($result,'Error') !== false){
                 // URL設定はdata/config.shadow.php に移転しました。
-                $url = $slack_bot_url;
+                //$url = $slack_bot_url;
                 $mesg="";
                 if ($detail && isset($detail->message)) {
                     $mesg=$detail->message;
                 }
                 if ($detail && isset($detail->pos)) {
                     $pos=$detail->pos;
-                    $code=substr($code, 0, $pos).":exclamation:".substr($code,$pos);
+                    $code=mb_substr($code, 0, $pos).":exclamation:".mb_substr($code,$pos);
                 }
                 if (!($log['time']-$prevTime<=1 &&
                 $log['result']==$prevResult &&
@@ -550,14 +623,14 @@ class TeacherLogController {
         print_r("--------");
         //print_r($stat);
         uasort($stat, function ($a, $b) { return count($a)-count($b); } );
-        $buffer="";
-        $url="";
+        $buffer="エラー：";
+        //$url="";
         foreach ($stat as $s) {
           //print_r($s);
           print_r("--------");
           $count=count($s);
-          print_r($s[$count-1]);
-          $url = $slack_bot_url;
+          //print_r($s[$count-1]);
+          //$url = $slack_bot_url;
           $mesg=$s[$count-1]["mesg"];
           $name=$s[$count-1]["user"];
           $code=$s[$count-1]["code"];
@@ -572,7 +645,31 @@ class TeacherLogController {
   //https://api.slack.com/messaging/webhooks
 
           $URL=BA_TOP_URL."?TeacherLog/view1new&logid=$id";
-          $element="$URL $name ($count 件) $filename $mesg";
+          $option=[
+            'http' => [
+              'method'  => 'GET',
+              'timeout' => 600, // タイムアウト時間
+            ]
+          ];
+          if (defined("HINT_URL")){
+            $Hint=@file_get_contents(HINT_URL."?path=/home/$class->id/$name/$filename",false,stream_context_create($option));
+          } else {
+            $Hint="";
+          }
+
+          $Hint=str_replace('<h1>','',$Hint);
+          $Hint=str_replace('</h1>','',$Hint);
+          $Hint=str_replace('<br/>','',$Hint);
+          $Hint=str_replace('<BR/>','',$Hint);
+          $Hint=str_replace('メインページ','',$Hint);
+
+          $mesg=mb_substr($mesg,0,100);
+
+          $user=$class->getUser($name);
+
+          $a2=self::getActualtime2($user,$filename);
+
+          $element="test $URL $name ($count 件) $filename $mesg \n Actualtime2= $a2 \n $name \n $filename で苦戦中のようなので，ヒントを貼っておきます．それでもわからないなら遠慮なく質問してください． \n$Hint";
 
           $buffer.="[".$element."]\n";
           /*
@@ -608,43 +705,166 @@ class TeacherLogController {
 
 
         }
+        if($solved=="未解決"){
+          $data = array(
+              'payload' => json_encode( array(
+                  "text"=>$buffer
+                  /*"blocks"=>array(
+                      array(    "type"=> "section",
+                          "text"=> array(
+                                "type"=> "mrkdwn",
+                                "text"=> "Danny Torrence left the `following` review for your property:"
+                              ))
+                 )*/
+               ))
+          );
 
-        $data = array(
-            'payload' => json_encode( array(
-                "text"=>$buffer
-                /*"blocks"=>array(
-                    array(    "type"=> "section",
-                        "text"=> array(
-                              "type"=> "mrkdwn",
-                              "text"=> "Danny Torrence left the `following` review for your property:"
-                            ))
-               )*/
-             ))
-        );
+          $context = array(
+              'http' => array(
+                     'method'  => 'POST',
+                     'header'  => implode("\r\n", array('Content-Type: application/x-www-form-urlencoded',)),
+                     'content' => http_build_query($data)
+              )
+          );
 
-        $context = array(
-            'http' => array(
-                   'method'  => 'POST',
-                   'header'  => implode("\r\n", array('Content-Type: application/x-www-form-urlencoded',)),
-                   'content' => http_build_query($data)
-            )
-        );
+          $html = file_get_contents($slack_bot_url, false, stream_context_create($context));
+          print ("Sent Message: $buffer");
+          var_dump($http_response_header);
+          echo $html;
+        }
 
-        $html = file_get_contents($url, false, stream_context_create($context));
-
-        var_dump($http_response_header);
-
-        echo $html;
       }
 
 
-        //print("$min - $max  max-min=".($max-$min)."count=".count($logs));
-        // 指定された日時の$interval秒前までのログについて，エラーのものがあったらBotに送りつける
-        //               (とりあえずは，エラーだろうがそうでなかろうが，表示するでもいいよ)
+    static function bot_noerr() {
+      date_default_timezone_set('Asia/Tokyo');
+      $class=Auth::curClass2();
+      if (!$class->getOption("showOtherStudentsLogs")) {
+          Auth::assertTeacher();
+      }
+      req("LogFileToDBController");
+      LogFileToDBController::run();
+
+      $thisURL="a.php?TeacherLog/bot_noerr";
+      $now=time();
+      $interval=param('interval',300);
+      if(!param("Y",false)){
+          $min=$now-$interval;
+          $max=$now;
+      }else{
+          $max=strtotime(param('Y')."/".param('m')."/".param('d')." ".param('H').":".param('i').":".param('s'));
+          $min=$max-$interval;
+          //$max=strtotime(param('aY')."/".param('am')."/".param('ad')." ".param('aH').":".param('ai').":".param('as'));
+      }
+      $next=$max+$interval;
+      echo param("Y",false);
+      echo param("s",false);
+      ?>
+      <script>
+      // $interval秒後にリロードされて，$interval秒進んだあとの結果が表示される
+      setTimeout( function () {
+          document.forms.dateform.submit();
+      },<?= $interval*1000 ?>);
+      </script>
+      <form name="dateform" action="<?= $thisURL ?>" method="POST">
+      <input name="Y" value="<?=date("Y",$next)?>" maxlength="4" size="4">年
+      <input name="m" value="<?=date("m",$next)?>" maxlength="2" size="2">月
+      <input name="d" value="<?=date("d",$next)?>" maxlength="2" size="2">日
+      <input name="H" value="<?=date("H",$next)?>" maxlength="2" size="2">時
+      <input name="i" value="<?=date("i",$next)?>" maxlength="2" size="2">分
+      <input name="s" value="<?=date("s",$next)?>" maxlength="2" size="2">秒<br>
+      <input type="submit" value="Botで送る"/>
+      </form><?php
+      $logs=$class->getAllLogs($min,$max);
+      $slack_bot_url=$class->getOption("botURL");
+      print "BOT URL=$slack_bot_url<BR>\n";
+      //print_r ($logs);
+      $buffer=[];
+      $prevTime=0;
+      $prevResult=0;
+      $stat=[];
+      foreach ($logs as $log) {
+          $user=$log["user"];
+          $time=$log["time"];
+          $filename=/*json_decode*/($log["filename"]);
+          $code="";
+          $id=$log["id"];
+          if (!isset($stat[$user])) {
+              $stat[$user]=[];
+          }
+          $stat[$user][]=$log;
+      }
+      print_r("--------");
+      //print_r($stat);
+      //$url="";
+      foreach ($stat as $s) {
+          //print_r($s);
+          //print_r("--------");
+          $count=count($s);
+          //print_r($s[$count-1]);
+          //$url = $slack_bot_url;
+          $name=$s[$count-1]["user"];
+          $filename=$s[$count-1]["filename"];
+          $id=$s[$count-1]["id"];
+          $lastErrorTime=$s[$count-1]["time"];
+          $user=$class->getUser($name);
+          $a2=self::getActualtime2($user,$filename,$max);
+          if ($a2>900) {
+              $URL=BA_TOP_URL."?TeacherLog/view1new&logid=$id&all=1";
+              $option=[
+                  'http' => [
+                      'method'  => 'GET',
+                      'timeout' => 600, // タイムアウト時間
+                  ]
+              ];
+              if (defined("HINT_URL")){
+                  $Hint=@file_get_contents(HINT_URL."?path=/home/$class->id/$name/$filename",false,stream_context_create($option));
+              } else {
+                  $Hint="";
+              }
+
+              $Hint=str_replace('<h1>','',$Hint);
+              $Hint=str_replace('</h1>','',$Hint);
+              $Hint=str_replace('<br/>','',$Hint);
+              $Hint=str_replace('<BR/>','',$Hint);
+              $Hint=str_replace('メインページ','',$Hint);
+
+              //$mesg=mb_substr($mesg,0,100);
+
+              $user=$class->getUser($name);
+
+              $element="test $URL $name  $filename \n Actualtime2= $a2 \n $name \n $filename で苦戦中のようなので，ヒントを貼っておきます．それでもわからないなら遠慮なく質問してください． \n$Hint";
+              $buffer[]=[$a2, $element];//"[".$element."]\n";
+
+          }
+      }
+      if(count($buffer)>0) {
+          uasort($buffer, function ($a, $b) { return $a[0]-$b[0]; } );
+          $buffer=array_map(function ($e){return $e[1];}, $buffer);
+          $data = array(
+          'payload' => json_encode( array(
+          "text"=>implode( "\n", $buffer)
+          ))
+          );
+
+          $context = array(
+          'http' => array(
+          'method'  => 'POST',
+          'header'  => implode("\r\n", array('Content-Type: application/x-www-form-urlencoded',)),
+          'content' => http_build_query($data)
+          )
+          );
+
+          $html = file_get_contents($slack_bot_url, false, stream_context_create($context));
+          var_dump($http_response_header);
+          echo $html;
+      }
+    }
 
 
     static function view() {
         date_default_timezone_set('Asia/Tokyo');
+        $showActTime=param("showActTime",true);
         $class=Auth::curClass2();
         if (!$class->getOption("showOtherStudentsLogs")) {
             Auth::assertTeacher();
@@ -667,6 +887,7 @@ class TeacherLogController {
         $reloadMode=param('reloadMode',0);
         $students=$class->getAllStu();
         $runcount=Array();
+        $runhistory=[];
         ?>
         <script>
           logs=[];
@@ -735,6 +956,7 @@ class TeacherLogController {
         }
         $thisURL="a.php?TeacherLog/view";
         ?>
+        <script src="js/lib/localize.js"></script>
         <script type="text/javascript" src="js/lib/jquery-1.12.1.js"></script>
         <script type="text/javascript" src="js/lib/jquery-ui.js"></script>
         <script type="text/javascript" src="js/lib/jquery.tablesorter.min.js"></script>
@@ -780,6 +1002,7 @@ class TeacherLogController {
     	    <input type="submit" value="最近90分間"/>
     	</form>
         <form action="<?= $thisURL ?>" method="POST">
+            <!--div><input type="checkbox" name="showActTime" <?= $showActTime ? "checked": ""?>>着手時間を表示</div-->
             <input name="Y" value="<?=date("Y",$min)?>" maxlength="4" size="4">年
             <input name="m" value="<?=date("m",$min)?>" maxlength="2" size="2">月
             <input name="d" value="<?=date("d",$min)?>" maxlength="2" size="2">日
@@ -803,10 +1026,12 @@ class TeacherLogController {
     	<?php
     	    echo date("Y/m/d H:i:s",$min)." から ".date("Y/m/d H:i:s",$max)."までの実行状況";
     	?>
-        <a href="?TeacherLog/count&min=<?= $min ?>&max=<?= $max ?>">集計....</a>
+        <!--a href="?TeacherLog/count&min=<?= $min ?>&max=<?= $max ?>">集計....</a-->
+        <a href="?LogQuery/index&date=<?= DateUtil::toString(DateUtil::toDayTop()) ?>">集計....</a>
         <table border=1 class="tablesorter">
             <thead>
-            <tr><th>ユーザID</th><th>エラー/実行</th><th>実行からの経過時間</th><th>今実行しているファイル</th><th>実行結果履歴</th></tr>
+            <tr><th>ユーザID</th><th>エラー/実行</th><th>実行からの経過時間</th><th>今実行しているファイル</th><th>着手時間</th><th>実行結果履歴</th>
+            </tr>
             </thead>
             <tbody>
         <?php
@@ -834,9 +1059,15 @@ class TeacherLogController {
             }
             ?>
             <tr><td><a href="a.php?TeacherLog/view1new&user=<?=$k?>&day=<?=$max?>" target="view1"><?=$k?></a></td>
+            <?php if ($v!=0) { ?>
             <td data-rate="<?=$rate?>" bgcolor=<?=$errcaution?>><?=$errcount[$k]?>/<?=$v?>(<?=$rate?>%)</td>
             <td bgcolor=<?=$timecaution?>><?=str_pad($time['h'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['m'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['s'],2,0,STR_PAD_LEFT)?></td>
-            <td><?=$latestfile[$k]?></td><td><?=$runhistory[$k]?></td>
+            <td><?=$latestfile[$k]?></td>
+            <td><?= $latestfile[$k]? self::getActualtime2($class->getUser("$k"),$latestfile[$k],$max) : "" ?></td>
+            <td><?=$runhistory[$k]?></td>
+            <?php } else {
+                for ($emp=0; $emp<5; $emp++) print "<td></td>";
+            } ?>
             </tr>
 
             <?php
@@ -1082,6 +1313,12 @@ class TeacherLogController {
             <?php
         }
         ?></table><?php
+    }
+    static function getNameOfUser() {
+        $p=self::parseUser();
+        $user=$p["user"];
+        $teacher=$p["teacher"];
+        echo $user->getOptions()->name;
     }
 }
 

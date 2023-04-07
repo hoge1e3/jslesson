@@ -1,12 +1,15 @@
 <?php
 req("BigData");
 class BigDataController {
+    static function selectClassByURL() {
+        if (isset($_GET["url"])) {
+            $url=$_GET["url"];
+            BigData::selectClassByURL($url);
+        }
+    }
     static function find() {
         try {
-            if (isset($_GET["url"])) {
-                $url=$_GET["url"];
-                BigData::selectClassByURL($url);
-            }
+            self::selectClassByURL();
             $g=$_GET["group"];
             $p=$_GET["practice"];
             $data1=param("data1",null);
@@ -22,10 +25,7 @@ class BigDataController {
     }
     static function add() {
         try {
-            if (isset($_GET["url"])) {
-                $url=$_GET["url"];
-                BigData::selectClassByURL($url);
-            }
+            self::selectClassByURL();
             $g=$_GET["group"];
             $p=$_GET["practice"];
             //$n=$_GET["name"];

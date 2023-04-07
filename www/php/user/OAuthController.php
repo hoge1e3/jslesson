@@ -6,7 +6,7 @@ define('TOKEN_URL', 'https://accounts.google.com/o/oauth2/token');
 define('AUTH_URL', 'https://accounts.google.com/o/oauth2/auth');
 define('INFO_URL', 'https://www.googleapis.com/oauth2/v1/userinfo');
 define('CALLBACK_URL', 'http://localhost/?OAuth/login');
-// add http://localhost/?OAuth/login to authroized url 
+// add http://localhost/?OAuth/login to authroized url
 //optional
 define('DEFAULT_DOMAIN','@mail.example.com');
 */
@@ -32,7 +32,8 @@ class OAuthController {
             <div><?= $id ?>でログインしています．</div>
             <ul>
                 <li><a href=".?OAuth/select">クラス選択</a></li>
-                <li><a href="<?= $url ?>">他のメールアドレスでログイン</a></li>
+                <li><a href="<?= $url ?>">他のメールアドレスでログイン</a>
+                    ※一旦，Gmail側でログアウト処理をしてください</li>
             </ul>
         <?php } else { ?>
             <ul>
@@ -90,12 +91,12 @@ class OAuthController {
         false, stream_context_create($options));
         $res = json_decode($res, true);
         //echo "<pre>" . print_r($res, true) . "</pre>";
-        $id=getID($res["email"]);
+        $id=($res["email"]);
         MySession::set("oauthed_id",$id);
         header("Location: .?OAuth/select");
     }
     static function select() {
-        $id=MySession::get("oauthed_id");
+        $id=getID(MySession::get("oauthed_id"));
         $r=pdo_select("select class,name from user where name=?;",$id);
         $a=array();
         foreach ($r as $e) {
@@ -106,6 +107,7 @@ class OAuthController {
             ?>
             <?=$id?> - 現在登録されているクラスがありません．
             <?php
+            self::showRedirectMailDomain();
             return;
         } else if (count($a)==1) {
             $className=$a[0];
@@ -141,13 +143,51 @@ class OAuthController {
                     <?= $e ?></a></li>
                 <?php
             }
-            ?></ul><?php
+            ?></ul><?php self::showRedirectMailDomain();
         }
         //echo $id;
+    }
+    static function showRedirectMailDomain() {
+        $url=redirectMailDomain(MySession::get("oauthed_id"));
+        if ($url) {
+            ?>
+            <a href="<?= makeURL("Login","curStatus", ["callback"=>$url]) ?>">他サイトのBitArrowにログイン</a>
+            <?php
+        }
     }
     static function header() {
         echo "<a href='.'>トップ</a><hr>";
     }
+    static function bauth() {
+        if (!defined("BAUTH_SERVER_URL")) {
+            throw new Exception("BAUTH_SERVER_URL is not set");
+        }
+        $code=param("code",null);
+        if ($code) {
+            //print "code= $code";
+            $res=file_get_contents(BAUTH_SERVER_URL."?Login/bauth&status=$code");
+            //print "res = $res";
+            $code=json_decode($code);
+            if ($res==="OK" && isset($code->oauthed_id)) {
+                MySession::set("oauthed_id", $code->oauthed_id);
+                redirect("OAuth/select");
+            } else {
+                redirect("Login/form");
+            }
+            return;
+        }
+    }
+}
+function redirectMailDomain($id) {
+    if (!defined("REDIRECT_MAIL_DOMAINS")) {
+        return null;
+    }
+    foreach (REDIRECT_MAIL_DOMAINS as $domain=>$url) {
+        if (endsWith($id,$domain)) {
+            return $url;
+        }
+    }
+    return null;
 }
 function getID($id) {
     if (defined("DEFAULT_DOMAIN")) {

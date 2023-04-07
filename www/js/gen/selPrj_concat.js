@@ -9298,16 +9298,25 @@ define('LanguageList',['require','exports','module'],function (require, exports,
             helpURL:"http://bitarrow.eplang.jp/index.php?dolittle_use"},
         "c":{en:"C", ja:"C",builder:"CBuilder",
             helpURL:"http://bitarrow.eplang.jp/index.php?c_use", mode:"ace/mode/c_cpp"},
-        "dncl":{en:"DNCL", ja:"DNCL(どんくり)",builder:"DnclBuilder",
+        "dncl":{en:"DNCL", ja:"DNCL(どんくり)",builder:"DnclBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?dncl_use"},
-        "py": {en:"Python", ja:"Python",builder:"PythonBuilder",
+        "py": {en:"Python", ja:"Python",builder:"PythonBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
         "tonyu":{en:"Tonyu", ja:"Tonyu",builder:"TonyuBuilder",
             helpURL:"http://bitarrow.eplang.jp/index.php?tonyu",mode:"ace/mode/tonyu"},
-        //"php":{en:"PHP", ja:"PHP",builder:"PHPBuilder",
-        //    helpURL:"http://bitarrow.eplang.jp/index.php?php",mode:"ace/mode/php"},
+        "php":{en:"PHP", ja:"PHP",builder:"PHPBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?php",mode:"ace/mode/php"},
         "p5.js":{en:"p5.js", ja:"p5.js",builder:"P5Builder",
             helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/javascript"},
+            // lang <= 10
+        "p5.py":{en:"p5Python", ja:"p5 Python mode",builder:"p5pyBuilder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/python"},
+        "bry":{//ext:"py",// not working now
+            en:"brython(Beta)", ja:"Brython(試験運用中)",builder:"BrythonBuilder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
+        /*"ras.py": {//ext:"py",// not working now
+            en: "Raspi-Pico(Beta)", ja:"Raspi-Pico(試験運用中)",builder:"raspiBuilder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},*/
     };
 });
 
@@ -10525,10 +10534,10 @@ define('DragDrop',["FS","root"],function (FS,root) {
             }).catch(function (e) {
                 options.onError(e);
             }).done(function () {
-                if (useTmp) {
+                /*if (useTmp) {
                     FS.unmount(useTmp);
                     console.log("Umount",useTmp);
-                }
+                }*/
             });
             return false;
         }
@@ -10544,7 +10553,7 @@ define('DragDrop',["FS","root"],function (FS,root) {
         }
         function leave(e) {
             var eo=e.originalEvent;
-            console.log("leave",eo.target.innerHTML,e);
+            //console.log("leave",eo.target.innerHTML,e);
             entc--;
             if (entc<=0) dom.removeClass(options.draggingClass);
         }
@@ -10556,6 +10565,12 @@ define('DragDrop',["FS","root"],function (FS,root) {
 define('ProgramFileUploader',["FS","DragDrop","root","UI","LanguageList","Sync","ProjectFactory"],
 function (FS,DragDrop,root,UI,LL,Sync,PF) {
     var P=FS.PathUtil;
+    function getExt(f) {
+        if (typeof f.name==="function") f=f.name();
+        const a=f.split(".");
+        a.shift();
+        return "."+a.join(".");
+    }
     var ProgramFileUploader={
         acceptingEXT(prj) {
             const acext={".html":1};
@@ -10569,7 +10584,7 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
             const EXT=prj.getEXT(), HEXT=".html";
             DragDrop.accept(fileList.elem, {
                 onCheckFile: function (dst,file) {
-                    if (!acext[P.ext(file.name)]) {
+                    if (!acext[getExt(file.name)]) {
                         return DragDrop.CancelReason(file.name+": このファイルは追加できません");
                     }
                     if (dst.exists()) {
@@ -10726,7 +10741,7 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
                     imported=true;
                     await t.importFrom(f.up(),ctx);
                 } else {
-                    const ext=f.ext() && f.ext().replace(/^\./,"");
+                    const ext=getExt(f) && getExt(f).replace(/^\./,"");
                     if (LL[ext] && !ctx.detected) {
                         ctx.detected={ext, dir};
                     }
@@ -10788,14 +10803,118 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
     return ProgramFileUploader;
 });
 
+define('DesktopSettingDialog',['require','exports','module','UI','jshint'],function (require, exports, module) {
+    const UI=require("UI");
+    const jshint=require("jshint");
+    class DesktopSettingDialog {
+        show(ide,options) {
+            const d=this.embed(ide,options);
+            this.dom=d;
+            d.dialog({width:500,height:500});
+        }
+        embed(ide,options) {
+            if (!options) options={};
+            const desktopEnv=ide.desktopEnv;
+            const close=()=>{
+                const form=this.vars.form[0];
+                desktopEnv.editorFontSize=form.editorFontSize.value-0;
+                desktopEnv.showInvisibles=$(form.showInvisibles).prop("checked");
+                desktopEnv.fileList=form.fileList.value;
+                const prd=desktopEnv.runDialog;
+                desktopEnv.runDialog=form.runDialog.value;
+                if (prd!==desktopEnv.runDialog) {
+                    alert("設定変更に伴い，再読み込みを行います");
+                    location.reload();
+                }
+                ide.saveDesktopEnv();
+                const ei=ide.getCurrentEditorInfo();
+                if (ei) {
+                    ei.editor.setFontSize(desktopEnv.editorFontSize||18);
+                    ei.editor.setShowInvisibles(!!desktopEnv.showInvisibles);
+                }
+                ide.ls();
+                this.dom.dialog("close");
+            };
+            if (!this.dom) {
+                this.dom=UI("div",{title:"設定"},
+                    ["form",{$var:"form",action:jshint.scriptURL(";")},
+                        ["h3","エディタ"],
+                        ["div","文字の大きさ",
+                            ["input",{name:"editorFontSize",$var:"size",on:{enterkey:close}}]],
+                        ["div",
+                            ["input",{name:"showInvisibles",type:"checkbox",$var:"showInvisibles"}],
+                            "スペースやタブを表示する"],
+                        ["h3","ファイル表示"],
+                        ["div",
+                            ["input",{type:"radio",name:"fileList",value:"latest",$var:"fileList"}],"更新順",
+                            ["input",{type:"radio",name:"fileList",value:"name",$var:"fileList"}],"名前順",
+                        ],
+                        ["h3","実行結果の表示位置"],
+                        ["div",
+                            ["input",{type:"radio",name:"runDialog",value:"dialog",$var:"runDialog"}],"ダイアログ",
+                            ["input",{type:"radio",name:"runDialog",value:"split",$var:"runDialog"}],"画面下部",
+                        ],
+                        ["button",{on:{click:close}},"OK"]
+                    ]);
+                this.vars=this.dom.$vars;
+            }
+            const form=this.vars.form[0];
+            form.editorFontSize.value=(desktopEnv.editorFontSize||18);
+            $(form.showInvisibles).prop("checked", !!desktopEnv.showInvisibles);
+            form.fileList.value=desktopEnv.fileList||"latest";
+            form.runDialog.value=desktopEnv.runDialog||"dialog";
+            return this.dom;
+        }
+    }
+    module.exports=DesktopSettingDialog;
+});
+
+define('globalDesktopSetting',['require','exports','module','DesktopSettingDialog','Sync'],function (require, exports, module) {
+    const DesktopSettingDialog=require("DesktopSettingDialog");
+    const Sync=require("Sync");
+    const desktopSettingDialog=new DesktopSettingDialog();
+    exports.confFile=function (projects) {
+        const settingDir=projects.rel(".setting/");
+        const confFile=settingDir.rel(".desktop");
+        return confFile;
+    };
+    exports.init=async function (projects) {
+        const settingDir=projects.rel(".setting/");
+        const confFile=settingDir.rel(".desktop");
+        const ide={
+            ls(){},
+            desktopEnv: {},
+            getCurrentEditorInfo(){},
+            saveDesktopEnv(){
+                confFile.obj(ide.desktopEnv);
+                Sync.sync(settingDir, settingDir,{v:true}).then(
+                    console.log.bind(console),console.error.bind(console));
+            }
+        };
+        exports.ide=ide;
+        await Sync.sync(settingDir, settingDir,{v:true});
+        if (confFile.exists()) {
+            try {
+                ide.desktopEnv=confFile.obj();
+            } catch(e){
+                console.error(e);
+            }
+        }
+        console.log("ide.desktopEnv", ide.desktopEnv);
+    };
+    exports.open=async function () {
+        desktopSettingDialog.show(exports.ide);
+    };
+});
+
 define('jsl_selProject',["FS","Shell","Shell2",
            "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog","RenameProjectDialog",
            "assert","DeferredUtil","RemoteProject","SplashScreen",
-       "ctrl","root","jshint","ProgramFileUploader"],
+       "ctrl","root","jshint","ProgramFileUploader","globalDesktopSetting"],
     function(FS, sh,sh2,
            NPD, UI, Auth,zip,Sync,NSD,RPD,
            A,DU,RemoteProject,SplashScreen,
-       ctrl,root,jshint, ProgramFileUploader) {
+       ctrl,root,jshint, ProgramFileUploader, globalDesktopSetting) {
     if (location.href.match(/localhost/)) {
         A.setMode(A.MODE_STRICT);
     } else {
@@ -10817,8 +10936,9 @@ function ready() {//-------------------------
             ["div",{class:"hero-unit"},
             ["div",{id:"userInfo",css:{float:"right"},margin:"50px"},"ようこそ",["br"],["div","同期中です..."]],
             ["h1", ["img",{src:"images/bitarrow-2.png",css:{"display":"inline"},width:"100px"}],"Bit Arrow"]],
-            ["div","【お知らせ】新しいバージョン",["span",{class:"notice"},"(2021_0401)"],"になりました．",
-            ["a",{href:"https://bitarrow.eplang.jp/?change2104",target:"wikiTab"},"主な変更点..."]/*," | ",
+            ["div","【お知らせ】新しいバージョン",["span",{class:"notice"},"(2022_0401)"],"になりました．"," | ",
+            ["a",{href:"https://bitarrow.eplang.jp/?change2204",target:"wikiTab"},"主な変更点..."]," | ",
+            ["a",{href:"https://bitarrow.eplang.jp/index.php?faq",target:"wikiTab"},"困ったときは（よくある質問）"],/*," | ",
             ["a",{href:"https://bitarrow.eplang.jp/2017_0328/",target:"wikiTab"},"以前のバージョン(2017_0328)を使う"]*/],
             ["div",
 	            ["a",{href:"https://bitarrow.eplang.jp/",target:"wikiTab"},"Bit Arrow解説ページ"],
@@ -10858,11 +10978,12 @@ function ready() {//-------------------------
     });
     setTimeout(function () {
         $("#syncMesg").empty();
-        $("#userInfo").text(Auth.class+" クラスの"+Auth.user+"さん、こんにちは");
-        $("#userInfo").append(UI("br"));
-        $("#userInfo").append(UI("a",{href:".?Login/form"},"他ユーザでログイン"));
+        $("#userInfo").append(UI("div",Auth.class+" クラスの"+Auth.user+"さん、こんにちは"));
+        $("#userInfo").append(UI("div",["a",{href:".?Login/form"},"他ユーザでログイン"]));
+        $("#userInfo").append(UI("div",["a",{href:jshint.scriptURL(";"),on:{click:()=>globalDesktopSetting.open()}},"設定"]));
     },1000);
     var projects=Auth.localProjects();// FS.resolve("${tonyuHome}/Projects/");
+    globalDesktopSetting.init(projects);
     console.log(projects);
     projects.mkdir();
     sh.cd(projects);

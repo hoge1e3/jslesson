@@ -64,12 +64,12 @@ class LogUtil {
         if ($cid instanceof BAClass) {
             $cid=$cid->id;
         } else if ($cid instanceof BAUser) {
-            return self::isLogFileOf($file, $cid->_class->id, $cid->name);
+            return self::isLogFileOfUser($file, $cid->_class->id, $cid->name);
         }
-        return ($file->startsWith($cid) && $file->endsWith("-data.log"));
+        return ($file->startsWith($cid."-") && $file->endsWith("data.log"));
     }
     static function isLogFileOfUser($file,$cid,$uid){
-      return ($file->startsWith($cid."-".$uid) && $file->endsWith("-data.log"));
+      return ($file->startsWith($cid."-".$uid."-") && $file->endsWith("data.log"));
     }
     static function readLog($file) {
         return self::readJSONLines($file);
@@ -97,7 +97,7 @@ class LogUtil {
         //print_r($r);
         $user=Auth::curUser2();
         $class=$user->_class;
-        if (Auth::isTeacherOf($class)) {
+        if (Auth::isTeacherOf($class) || $class->getOption("showOtherStudentsLogs")) {
             if ($r->{"class"}!==$class->id) {
                 throw new Exception("ID $id is not of ".$class->id);
             }
@@ -117,6 +117,15 @@ class LogUtil {
             return $code;
         }
         return "";
+    }
+    static function isValidEntry($l){
+        if ($l["filename"]==="") {
+            return false;
+        }
+        if (!json_decode($l["raw"])) {
+            return false;
+        }
+        return true;
     }
 }
 ?>

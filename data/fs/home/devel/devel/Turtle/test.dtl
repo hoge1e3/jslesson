@@ -1,0 +1,12 @@
+system:jq2promise=[|jq|
+    DtlPromise ! [|succ err|
+        jq ! [|res| succ ! (res) execute] [|e| err !(e)execute] then. 
+    ] new.
+].
+system:getScript=[|url|
+    ! ( (window:$) ! (url) getScript ) jq2promise
+].
+
+label ! "ほげ" create.
+system ! "https://code.jquery.com/jquery-3.6.0.js?a" getScript.
+label ! "ふが" create.

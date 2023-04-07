@@ -7,11 +7,13 @@ class TeacherController {
     public static $name="";
     static function login() {
     ?>
+    <title>教員ログイン - Bit Arrow</title>
 		<meta charset="UTF-8">
       <h1>Bit Arrow教員ログイン</h1>
+      <script src="js/lib/spacechecker.js"></script>
     	<form action="a.php?Teacher/check" method="POST">
-    	  メールアドレス<input name="name" value="<?= self::$name ?>"></br>
-    	  パスワード<input name="pass" type="password">
+    	  メールアドレス<input class="spacecheck" name="name" value="<?= self::$name ?>"></br>
+    	  パスワード<input class="spacecheck" name="pass" type="password">
     	  <?php if (isset($_GET["ignoreNonexistent"])) { ?>
     	    <input type="hidden" name="ignoreNonexistent" value="1">
     	  <?php } ?>
@@ -19,6 +21,7 @@ class TeacherController {
     	  <br/>
     	  <input type="submit" value="OK"/>
     	</form>
+        ※パスワードをお忘れの場合，<a href="https://bitarrow.eplang.jp/index.php?preparation" target="help">教員用アカウントを登録</a>し直してください．以前登録に使用されたメールアドレスも利用可能です．
     <?php
     }
     static function check() {
@@ -146,14 +149,28 @@ class TeacherController {
             return;
         }
         ?>
+        <title>教員追加 - Bit Arrow</title>
         <h1>教員追加</h1>
+        <script src="js/lib/spacechecker.js"></script>
         <form action="?Teacher/addDone" method="POST">
-            所属と氏名 <input name="cname" size=50>様<BR>
-            メールアドレス <input name="mail"><BR>
-            パスワード <input name="pass" id="pasu"><BR>
+            所属と氏名 <input class="spacecheck" name="cname" size=50>様<BR>
+            メールアドレス <input class="spacecheck" name="mail"><BR>
+            パスワード <input class="spacecheck" name="pass" id="pasu"><BR>
             <input type="submit">
         </form>
-        <script>document.querySelector("#pasu").value=(Math.random()+"").substring(2,8);</script>
+        <script>
+        document.querySelector("#pasu").value=(Math.random()+"").substring(2,8);
+        const ui_name=document.querySelector("[name='cname']");
+        function placemail() {
+            const ui_mail=document.querySelector("[name='mail']");
+            const [aff, name, done, mail]=ui_name.value.split("\t");
+            if (!done && mail) {
+                ui_name.value=`${aff} ${name}`;
+                ui_mail.value=mail;
+            }
+        }
+        ui_name.addEventListener("input",placemail)
+        </script>
         <?php
     }
     static function addDone() {
@@ -174,17 +191,44 @@ class TeacherController {
             pdo_insert("teacher",array("name"=>$name, "shadow"=>$shadow));
             echo "$name を登録しました．";
         }
-        if (defined("BA_MAIL") && defined("BA_MESG_FOR_TEACHER") && $cname!=="") {
+        if (defined("BA_MESG_FOR_TEACHER") && $cname!=="") {
             $mesg=BA_MESG_FOR_TEACHER;
             $mesg=preg_replace("/<NAME>/", $cname,$mesg);
             $mesg=preg_replace("/<MAIL>/", $name,$mesg);
             $mesg=preg_replace("/<PASS>/", $pass,$mesg);
             $mesg=preg_replace("/<BA_MAIL>/", BA_MAIL,$mesg);
 
-            Mail::send($name, "BitArrow教員ID登録のお知らせ", $mesg, array(
+            $opt=array(
                 "From"=>BA_MAIL, "Cc"=> BA_MAIL, "Reply-to"=> BA_MAIL
-            ));
-            echo "<div>$name にメール送信しました。</div>";
+            );
+            if (defined("BA_MAIL")) {
+                Mail::send($name, "BitArrow教員ID登録のお知らせ", $mesg, $opt);
+                echo "<div>$name にメール送信しました。</div>";
+            }
+            ?>
+            <h2>送信本文</h2>
+            <textarea rows=20 cols=80><?= htmlspecialchars(Mail::content($name, "BitArrow教員ID登録のお知らせ", $mesg, $opt)) ?></textarea>
+            <?php
+        }
+        ?>
+        <hr/>
+        <a href="?Teacher/add">もう1件追加する</a>
+        <?php
+    }
+    static function regSysad($name, $pass) {
+        $shadow=BATeacher::pass2shadow($pass);
+        $r=pdo_select1("select * from teacher where name=?",$name);
+        if ($r) {
+            pdo_update("teacher",array("name"=>$name), array("shadow"=>$shadow));
+            echo "$name はすでに登録されています．パスワードを更新しました。";
+        } else {
+            pdo_insert("teacher",array("name"=>$name, "shadow"=>$shadow));
+            echo "$name を登録しました．";
+        }
+        $t=new BATeacher($name);
+        if (!$t->isSysAd()) {
+            //("select * from role where user = ? and type = ?")
+            pdo_insert("role",array("user"=>$name, "type"=>Auth::SYSAD));
         }
     }
     static function shadowize() {

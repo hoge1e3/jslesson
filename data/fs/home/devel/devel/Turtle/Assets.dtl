@@ -1,0 +1,53 @@
+
+/*
+r=Ajax ! "a.php?Asset/download" create "filename" "output.txt" data get.
+ラベル! (r) create.
+
+ls=Ajax ! "a.php?Asset/list" create get.
+ラベル! (ls) create.
+*/
+
+Assets=!create.
+Assets:list=[|context|
+    ep=! endPoint.
+    ls=Ajax ! (ep+"a.php?Asset/list") create (context) data  get.
+    ls ! [|s; a n|
+        a=s ! "/" split.
+        n= a ! 2 get.
+        context+"/"+n
+    ] map.
+].
+Assets:endPoint=[
+    window:BitArrow:serverTop
+].
+Assets:load=[|path; a c f|
+    a=path ! "/" split.
+    c=a ! 1 get.
+    f=a ! 2 get.
+    ep=! endPoint.
+    Ajax ! (ep+"a.php?Asset/download") create 
+    "context" (c) data
+    "filename" (f) data 
+    get.
+].
+Assets:save=[|path content; a c f|
+    a=path ! "/" split.
+    c=a ! 1 get.
+    f=a ! 2 get.
+    ep=! endPoint.
+    Ajax ! (ep+"a.php?Asset/upload") create 
+    "context" (c) data
+    "filename" (f) data 
+    "content" (content) data
+    post.
+].
+//ラベル! (Assets! "user" list) create.
+//ラベル! (Assets! "user/output.txt" load) create.
+/*
+cnt=Assets! "user/hoge.txt" load.
+cnt=cnt-0+1.
+Assets ! "user/hoge.txt" (cnt) save.
+ラベル!(cnt) create.
+*/
+
+

@@ -7,7 +7,7 @@ function FileList(elem, options) {
     //console.log(elem);
     if (!options) options={};
     var FL={select:select, ls:ls, on:(options.on?options.on:{}), curFile:curFile, curDir: curDir,
-    		setModified:setModified, isModified:isModified,elem:elem};
+    		setModified:setModified, isModified:isModified,elem:elem, selectNext};
     var path=$("<div>");
     var items=$("<div>");
     if (!selbox) elem.append(path).append(items);
@@ -44,6 +44,18 @@ function FileList(elem, options) {
                 item(_curFile).addClass("selected");
             }
         }
+    }
+    function selectNext() {
+        let doNext;
+        items.find(selbox?"option":"span").each(function () {
+    		var t=$(this);
+    		if ( t.data("filename")==_curFile.path()) {
+                doNext=true;
+    		} else if (doNext) {
+                doNext=false;
+                select(FS.get(t.data("filename")));
+            }
+    	});
     }
     function setModified(m) {
     	if (!_curFile) return;

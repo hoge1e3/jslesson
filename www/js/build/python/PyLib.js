@@ -9,13 +9,13 @@ define(function (require,exports,module) {
         return (function (){return this;})();
     }
     var root=getRoot();
-    //test!!
+    //test!!!
     var PL={};
     PL.import=function (lib) {
         if (PL.import.libs[lib]) return PL.import.libs[lib];
         throw new Error("ライブラリ "+lib+" はインポートできません．(サーバで実行すると動作する可能性があります)");
     };
-    // It seems to be old: add to PythonSemantics and create runtime/lib/python/py_***.js
+    //  It seems to be old: add to PythonSemantics and create runtime/lib/python/py_***.js
     PL.import.libs={
         random:{
             random: Math.random,
@@ -52,6 +52,9 @@ define(function (require,exports,module) {
         var a=PL.parseArgs(arguments);
         console.log("print",arguments,a);
         var end=a.options.end!=null ? a.options.end: "\n";
+        if (!PL.isinstance(end, PL.str)) {
+            throw new Error("endには文字列を指定してください");
+        }
         var out=a.map(PL.str).join(" ")+end;
         PL.lineBuf+=out;
         var lines=PL.lineBuf.split("\n");
@@ -68,16 +71,42 @@ define(function (require,exports,module) {
         return r;
     };
     PL.len=function (s) {return s.length;};
-    PL.float=function (s) {return s-0;};
-    PL.int=function (s) {return parseInt(s-0);};
+    function chkNan(v, mesg) {
+        return v;
+    }
+    PL.float=function (s) {
+        const v=s-0;
+        if (v!==v) throw new Error(`${s} は floatに変換できません`);
+        return v;
+
+    };
+    PL.int=function (s) {
+        const v=s-0;
+        if (v!==v) throw new Error(`${s} は intに変換できません`);
+        if (s.match(/\./)) throw new Error(`${s} は小数点を含んでいるのでintに変換できません`);
+        return v;
+    };
     PL.list=(iter)=>{
         const res=[];
-        for (let x in iter) res.push(x);
+        for (let x of iter) res.push(x);
         return res;
     };
     PL.listComprehension=(elem, gen)=>{
+        /*return {
+            [Symbol.iterator]: ()=>{
+                const iter=gen[Symbol.iterator]();
+                return {
+                    next() {
+                        const r=iter.next();
+                        if (r.done) return r;
+                        r.value=elem(r.value);
+                        return r;
+                    }
+                };
+            }
+        };*/
         const res=[];
-        for (let e of gen) res.push(elem(e));
+        for (let e of gen) res.push(elem(e));//yield (elem(e));
         return res;
     };
     PL.str=function (s) {
@@ -114,7 +143,7 @@ define(function (require,exports,module) {
         throw e;
     };
     PL.type=function (s) {
-        switch (typeof s) {
+        switch (typeof u(s)) {
             case "number":return Number;
             case "string":return String;
             case "function":return Function;
@@ -126,14 +155,21 @@ define(function (require,exports,module) {
         }
     };
     PL.isinstance=function (obj,klass) {
+        if (klass===PL.int) {
+            return (typeof u(obj)==="number" && Math.floor(obj)===obj);
+        } else if (klass===PL.float || klass===Number) {
+            return (typeof u(obj)==="number");
+        } else if (klass===PL.str || klass===String) {
+            return (typeof u(obj)==="string");
+        }
         const ocl=obj && obj.__class__;
         return !!ocl &&
         (ocl===klass ||
             PL.isinstance(Object.getPrototypeOf(ocl.prototype),klass)
         );
     };
-    PL.sorted=function (a) {
-        return a.slice().sort();
+    PL.sorted=function (a, ...args) {
+        return a.slice().sort(...args);
     };
     PL.loop_start2=function loop_start2(){
         //if (_global.parent) _global.parent.dialogClosed=false;
@@ -148,7 +184,7 @@ define(function (require,exports,module) {
         var now=new Date().getTime();
         if (now-PL.startTime>5000) {
             //console.log(_global.parent, _global.opener);
-            var b=confirm("ループが５秒以上続いています。\n実行を停止するにはOKを押してください。");
+            var b=confirm("ループが5秒以上続いています。\n実行を停止するにはOKを押してください。");
     	    if(b){throw new Error("実行を停止しました。");}
     		else PL.loop_start2();
         }
@@ -197,6 +233,9 @@ define(function (require,exports,module) {
     PL.opt=PL.Option;
     PL.range=function (b,e,s=1) {
         if (e==null) {e=b;b=0;}
+        if (!PL.isinstance(b,PL.int)) throw new Error("rangeの引数(開始)には整数を指定してください");
+        if (!PL.isinstance(e,PL.int)) throw new Error("rangeの引数(終了)には整数を指定してください");
+        if (!PL.isinstance(s,PL.int)) throw new Error("rangeの引数(増分)には整数を指定してください");
         var res=[];
         for (; s>0&&b<e || s<0&&b>e ;b+=s) res.push(b);
         return res;
@@ -239,6 +278,9 @@ define(function (require,exports,module) {
                     },
                     enumerable: false
                 });
+                Object.defineProperty(res,k,{
+                    value: m
+                });
                 methodNames.push(k);
             } else {
                 res.prototype[k]=m;
@@ -253,6 +295,7 @@ define(function (require,exports,module) {
         res.__methodnames__=methodNames;
         res.__str__=()=>`<class '__main__.${res.__name__}'>`;
         res.__bases__=PL.Tuple && PL.Tuple(parent?[parent]:[]);
+        //res.prototype.toString=function(){return this.__str__();};
         for (var k in defs) {
             if (defs.hasOwnProperty(k)) addMethod(k);
         }
@@ -299,6 +342,10 @@ define(function (require,exports,module) {
         return this.elems[Symbol.iterator](...args);
     };
     PL.None=null;
+    PL.checkSet=(v, name="Variable")=>{
+        if (v!==undefined) return v;
+        throw new Error(`${name} is not defined.`);
+    };
     PL.Tuple.__bases__=PL.Tuple([]);
     PL.Slice=PL.class({
         __init__:function (self, start, stop, step=1) {
@@ -343,8 +390,15 @@ define(function (require,exports,module) {
         return v;
     }
 
-    PL.invalidOP=function (op,to) {
-        throw new Error("Cannot do opration "+op+" to "+to);
+    PL.invalidOP=function (left, op, right) {
+        function typestr(val) {
+            if (val==PL.None) return "None";
+            const res=(typeof u(val));
+            if (res!=="object") return res;
+            if (val && val.__getTypeName__) return val.__getTypeName__();
+            return res;
+        }
+        throw new Error(`unsupported operand type(s) for ${op}: '${typestr(left)}' and '${typestr(right)}'`);
     };
 
     PL.LoopChecker={
@@ -413,10 +467,30 @@ define(function (require,exports,module) {
         __imod__: function (self,other) { self=self.__mod__(other);return self;},
         __ipow__: function (self,other) { self=self.__pow__(other);return self;},
 
+        __getattr__: function (self,name) {
+            //__getattr__は、オブジェクトのインスタンス辞書に属性が見つからないときに呼び出されるメソッドです。
+            throw new Error(`フィールド ${name} はありません`);
+        },
+        __getattribute__: function (self,name) {
+            if (!(name in self)) {
+                return self.__getattr__(name);
+            }
+            const r=self[name];
+            if (typeof r==="function") {
+                return r.bind(self);
+            }
+            return r;
+        },
+        __setattr__: function (self, name, value) {
+            self[name]=value;
+        },
         __delattr__: function (self,name) {
             delete self[name];
         },
         __getitem__:function (self, key) {
+            if (!(key in self)) {
+                throw new Error(`値${self}[${key}] はありません`);
+            }
             return self[key];
         },
         __setitem__:function (self,key, value) {
@@ -428,7 +502,7 @@ define(function (require,exports,module) {
         __class__:Number,
         __getTypeName__: function (){return "<class number>";},
     });
-    PL.addMonkeyPatch(String,{
+    PL.addMonkeyPatch(String,({
         __class__:String,
         __getTypeName__: function (){return "<class str>";},
         __mul__: function (self,other) {
@@ -438,7 +512,7 @@ define(function (require,exports,module) {
                 for (;other;other--) res+=self;
                 return res;
             default:
-                PL.invalidOP("__mul__",other);
+                PL.invalidOP(self, "__mul__",other);
             }
         },
         __mod__: function (self,other) {
@@ -454,6 +528,12 @@ define(function (require,exports,module) {
             }
             return Object.prototype.__add__.call(self,other);
         },
+        __gt__: otherShouldString("__gt__"),
+        __lt__: otherShouldString("__lt__"),
+        __ge__: otherShouldString("__ge__"),
+        __le__: otherShouldString("__le__"),
+        __eq__: otherShouldString("__eq__"),
+        __ne__: otherShouldString("__ne__"),
         format: function (self,...args) {
             const str=self;
             const o={};
@@ -475,7 +555,15 @@ define(function (require,exports,module) {
                 }
             });
         }
-    });
+    }));
+    function otherShouldString(k) {
+        return function (self,other) {
+            if (typeof u(other)!=="string") {
+                PL.invalidOP(self, k,other);
+            }
+            return Object.prototype[k].call(self,other);
+        };
+    }
     PL.addMonkeyPatch(Boolean,{
         __getTypeName__: function (){return "<class boolean>";},
         __str__(self) {
@@ -522,7 +610,7 @@ define(function (require,exports,module) {
             self.splice(i,1);
         },
         __str__(self) {
-            return "["+self.join(", ")+"]";
+            return "["+self.map((e)=>PL.str(e)).join(", ")+"]";
         },
         __getitem__:function (self, key) {
             if (key instanceof PL.Slice) {
@@ -533,7 +621,7 @@ define(function (require,exports,module) {
                 return res;
             }
             if (key<0) key=self.length+key;
-            if (key>=self.length) throw new Error("Index "+key+" is out of range");
+            if (key>=self.length) throw new Error(`添字[${key}]は範囲外です(0...${self.length-1})`);
             return self[key];
         },
         __setitem__:function (self,key, value) {
@@ -545,14 +633,14 @@ define(function (require,exports,module) {
                 return value;
             }
             if (key<0) key=self.length+key;
-            if (key>=self.length) throw new Error("Index "+key+" is out of range");
+            if (key>=self.length) throw new Error(`添字[${key}]は範囲外です(0...${self.length-1})`);
             self[key]=value;
         },
         copy: function (self) {
             return self.slice();
         },
-        sorted: function (self) {
-            return self.slice().sort();
+        sorted: function (self, ...args) {
+            return self.slice().sort(...args);
         },
         sort: function (self, comp) {
             comp=comp||((a,b)=>(a>b?1:a<b?-1:0));
@@ -580,9 +668,10 @@ define(function (require,exports,module) {
             }
             return orig_sort.apply(self, [comp]);
         },
-        __contains__: function () {
+        __contains__(self, elem) {
+            return self.indexOf(elem)>=0;
+        },
 
-        }
     });
 
     //---

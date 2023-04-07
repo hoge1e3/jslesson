@@ -153,6 +153,25 @@
     "calibrate" "調整" addAlias
     "use" "使う" addAlias.
     
+    !"Assets" "素材" addAlias.
+    Assets ! "load" "読む" addAlias
+    "save" "書く" addAlias
+    "list" "一覧" addAlias.
+    
+    !"Ajax" "通信" addAlias.
+    Ajax ! "data" "データ" addAlias
+    "get" "読む" addAlias
+    "post" "書く" addAlias.
+    
+    !"Raspi" "ラズパイ" "ラズベリーパイ" addAlias.
+    Raspi ! "connect" "接続" addAlias
+    "exec" "実行" addAlias
+    "writePin" "デジタル出力" addAlias
+    "readADC" "アナログ入力" addAlias
+    "getTemperature" "温度" addAlias
+    "led" "LED" addAlias.
+    
+    
     HTML：読む＝[|x| !(x)get].
     HTML：位置＝[|x y| !(x)(y)move].
     
@@ -299,7 +318,7 @@
     ! "color" "暗くする" "くらくする" "darker" addAliasFromTable.
     ! "color" "明るくする" "あかるくする" "brighter" addAliasFromTable.
     ! "color" "半透明にする" "はんとうめいにする" "settransparency,maketranslucent" addAliasFromTable.
-    ! "color" "ランダムに作る,くじ引き" "らんだむにつくる,くじびき" "random" addAliasFromTable.
+    ! "color" "ランダムに作る,くじ引き" "らんだむにつくる,くじびき" "randomCreate" addAliasFromTable.
     ! "palette" "混ぜる" "まぜる" "mix" addAliasFromTable.
     ! "guiButton,guiField,guiLabel,guiList,guiMenu,guiSlider,guiArea" "次の行" "つぎのぎょう" "nextline" addAliasFromTable.
     ! "guiButton,guiField,guiLabel,guiList,guiMenu,guiSlider,guiArea" "位置" "いち" "position,moveto" addAliasFromTable.

@@ -1,6 +1,9 @@
 <?php
 $mod_aliases=array(
     //----AUTOGEN
+    "DeleteController"=>"php/teacher/",
+    'LogCluster'=>"php/log/",
+    "CDBController"=>"php/data/",
     'ProjectController'=>"php/user/",
     'AddErrorInfoController' => 'php/analysis/AddErrorInfoController.php',
     'AddScoreInfo' => 'php/analysis/AddScoreInfo.php',
@@ -127,7 +130,7 @@ function req() {
         require_once $top."/".$fn;
     }
 }
-if (isset($argv) && isset($argv[1])) {
+if (isset($argv) && isset($argv[1]) && $argv[1]=="dumpModules") {
     require_once "fs/NativeFS.php";
     require_once "fs/SFile.php";
     $fs=new NativeFS(".");

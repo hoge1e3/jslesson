@@ -85,5 +85,10 @@ class PathUtil {
         }
         return $path;
   }
+  public static function isAbsolute($path) {
+        if (preg_match("/^\\//",$path)) return true;
+        if (preg_match("/^[a-zA-Z]:/",$path)) return true;
+        return false;
+  }
 }
 ?>

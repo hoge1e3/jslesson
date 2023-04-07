@@ -144,8 +144,8 @@ class BAUser {
     function isTeacherOf($class) {
         //このユーザは$class の教員roleを持つか？
         $pdo = pdo();
-        $sth=$pdo->prepare("select * from role where class = ? and user = ? and type = ?");
-    	$sth->execute(array($class->id,$this->name,Auth::TEACHER));
+        $sth=$pdo->prepare("select * from role where class = ? and user = ? and type like ?");
+    	$sth->execute(array($class->id,$this->name,"%".Auth::TEACHER));
     	if (count($sth->fetchAll())==0){
 	        return false;
     	}else{
@@ -203,7 +203,7 @@ class BAUser {
         req("LogFileToDBController");
         LogFileToDBController::run();
         $pdo = pdo();
-        $sth=$pdo->prepare("select * from log where class = ? and user= ? and time > ? and time < ?");
+        $sth=$pdo->prepare("select * from log where class = ? and user= ? and time > ? and time < ? order by time asc");
         $sth->execute(array($this->_class->id,$this->name,$minTime,$maxTime));
         $res=array();
         foreach ($sth->fetchAll() as $rec) {
