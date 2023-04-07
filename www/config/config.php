@@ -1,7 +1,9 @@
 <?php
 
 //   You must set BA_DATA to data directory, it is recommended that BA_DATA cannot access via http
-define("BA_DATA", dirname(__DIR__)."/../data");
+
+define("BA_DATA", "/Library/WebServer/data/bitarrow");
+//define("BA_DATA", dirname(__DIR__)."/../data");
 //define("BA_DATA", dirname(__DIR__));
 
 define("BA_LOG", BA_DATA."/log");
@@ -18,7 +20,7 @@ define("BA_TOP_URL", $ba_top_url);
 define("BA_PUB_URL", $ba_top_url."/fs/pub");
 
 // You should define PDO_* in BA_DATA/config.php to protect passowrd
-require_once(BA_DATA."/config.php");
+require_once(BA_DATA."/config_p.php");
 
 
  ?>
