@@ -45,10 +45,19 @@ class Docker {
             $taskrun=DOCKER_TASKRUN;
             $cmd="python $taskrun $guestWorkPath";
             $dc="docker run -d -v $hostWorkPath:$guestWorkPath -v $hostAssetPath:$guestAssetPath --name $name $img $cmd";
-            //print($dc);
-            $r=system_ex($dc);
-            //print_r($r);
+            if (defined("DOCKER_LAUNCH_REQ_DIR")) {
+                $this->reqLaunch($dc);
+            } else {
+                //print($dc);
+                $r=system_ex($dc);
+                //print_r($r);
+            }
         }
+    }
+    function reqLaunch($cmd) {
+        $fs=new SFile(new NativeFS(),DOCKER_LAUNCH_REQ_DIR);
+        $sh=$fs->rel(random_int(100000,999999).".sh");
+        $sh->text($cmd);
     }
     function filesPath( $userName) {
         $res=array();
