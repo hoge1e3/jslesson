@@ -238,11 +238,15 @@ class RunPythonController {
     }
     static function clean() {
         $work=DOCKER_WORK;
+        $cnt=0;
         $fs=new SFile(new NativeFS(),DOCKER_WORK);
         foreach ($fs->recursive() as $f) {
             $t=time()*1000-$f->lastUpdate();
-            if ($t>500) {
-                print $f->path()." $t <BR>";
+            if ($t>500*1000) {
+                print "rm " .$f->path()." $t <BR>";
+                $f->rm();
+                $cnt++;
+                if ($cnt>100) break;
             }
         }
     }
