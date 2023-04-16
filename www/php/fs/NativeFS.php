@@ -123,9 +123,7 @@ class NativeFS {
 	    }
 	    return $res;
    }
-   public function chmod($mode) {
-        chmod($this->resolve($path), $mode);
-   }
+
 
 }
 ?>

@@ -262,7 +262,9 @@ class SFile{
     public function openWrite() {
         return fopen($this->nativePath(),"w");
     }
-
+    public function chmod($mode) {
+        chmod($this->nativePath(), $mode);
+   }
 }
 
 ?>
