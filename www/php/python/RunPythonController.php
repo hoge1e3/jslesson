@@ -90,7 +90,11 @@ class RunPythonController {
         $prjDesc=$d->openProject($user->name, $projectName);
         $stdinfile="__STDIN.txt";
      	$prjDesc["work"]["host"]->rel($stdinfile)->text($stdin);
-     	$res=$d->execInProject($prjDesc, "export MPLBACKEND=\"module://mybackend\" \n timeout 60 python $fileName < $stdinfile");
+        $tout=10;
+        if (defined("DOCKER_TIMEOUT")) {
+            $tout=DOCKER_TIMEOUT-1;
+        }
+     	$res=$d->execInProject($prjDesc, "export MPLBACKEND=\"module://mybackend\" \n timeout $tout python $fileName < $stdinfile");
         if ($outjson) {
             header("Content-type: text/json; charset=utf8");
             print json_encode($res);
