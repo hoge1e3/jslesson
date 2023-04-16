@@ -359,7 +359,6 @@ function openFrame(data){
   var runLink=false;//teacherID && ".?r=jsl_edit&dir=/home/"+classID+"/"+teacherID+"/"+prjName+"/&autologexec="+data.id+"&lang="+lang;
   var userid=data.user;
   const logDOM=$(`#${data.id}`);
-  $.get("?TeacherLog/getNameOfUser",{user:userid}).then(r=>$("#userName").text(r));
   const rawLink=`?LogQuery/byId&id=${data.id}`;
   $("[id='"+userid+"res']").html(`<Br/>
         <div>
@@ -376,6 +375,7 @@ function openFrame(data){
       `actualTime=<span class='actualTime'>${logDOM.attr("data-actualTime")}</span>`+"<br>"+
       `actualTime2=<span class='actualTime2'>${logDOM.attr("data-actualTime2")}</span>`+"<br>"+
       data.result);
+  $.get("?TeacherLog/getNameOfUser",{user:userid}).then(r=>$("#userName").text(r));
   $("[id='"+userid+"']").height(30);
   $("[id='"+userid+"']").html(res);
   $("[id='"+userid+"']").css("display","inline");
