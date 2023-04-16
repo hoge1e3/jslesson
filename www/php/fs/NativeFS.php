@@ -91,7 +91,8 @@ class NativeFS {
    function getMetaInfo($path) {
        $this->check($path,Permission::READMETA);
         //if (preg_match("/Ireizu/",$path)) return array(lastUpdate=>FALSE);
-        return array( "lastUpdate"=>filemtime($this->resolve($path))*1000 );
+        $rpath=$this->resolve($path);
+        return array( "lastUpdate"=>filemtime($rpath)*1000, "size"=>filesize($rpath) );
    }
    function setMetaInfo($path, $info) {
        global $errStatus;

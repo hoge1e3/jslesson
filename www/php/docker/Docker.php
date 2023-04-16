@@ -128,7 +128,7 @@ class Docker {
                 print "Timeout"; break;
             }
         } while (!$stdoutf->exists() || !$stderrf->exists());
-        $res=array("stdout"=>$stdoutf->text(), "stderr"=>$stderrf->text());
+        $res=array("stdout"=>sizecont($stdoutf), "stderr"=>sizeconf($stderrf));
         self::clean($task);
         return $res;
     }
@@ -150,4 +150,8 @@ class Docker {
             }
         }
     }
+}
+function sizecont($f){
+    if ($f->size()>10000000) return "TOO BIG FILE";
+    return $f->text();   
 }

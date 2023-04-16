@@ -89,6 +89,10 @@ class SFile{
         $m=$this->getMetaInfo();
         return $m["lastUpdate"];
     }
+    public function size() {
+        $m=$this->getMetaInfo();
+        return $m["size"];
+    }
     public function exists() {
         return $this->fs->exists($this->path());
     }
