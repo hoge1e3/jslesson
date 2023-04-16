@@ -85,13 +85,17 @@ class NativeFS {
        $this->check($path,Permission::READMETA);
        return file_exists($this->resolve($path));
    }
+   function isLink($path) {
+        return is_link($this->resolve($path));
+    }
    function isDir($path) {
         return is_dir($this->resolve($path));
    }
    function getMetaInfo($path) {
        $this->check($path,Permission::READMETA);
         //if (preg_match("/Ireizu/",$path)) return array(lastUpdate=>FALSE);
-        return array( "lastUpdate"=>filemtime($this->resolve($path))*1000 );
+        $rpath=$this->resolve($path);
+        return array( "lastUpdate"=>filemtime($rpath)*1000, "size"=>filesize($rpath) );
    }
    function setMetaInfo($path, $info) {
        global $errStatus;
@@ -119,6 +123,7 @@ class NativeFS {
 	    }
 	    return $res;
    }
+
 
 }
 ?>

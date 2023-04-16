@@ -115,7 +115,9 @@ class Docker {
         $id=UniqID::find(function ($id) use ($req, $tasks) {
             return $req->rel("$id.sh")->exists() || $tasks->rel("$id/")->exists();
         });
-        $req->rel("$id.sh")->text($cmd);
+        $sh=$req->rel("$id.sh");
+        $sh->text($cmd);
+        $sh->chmod(0777);
         $task=$tasks->rel("$id/");
         $stdoutf=$task->rel("stdout.txt");
         $stderrf=$task->rel("stderr.txt");
@@ -128,7 +130,7 @@ class Docker {
                 print "Timeout"; break;
             }
         } while (!$stdoutf->exists() || !$stderrf->exists());
-        $res=array("stdout"=>$stdoutf->text(), "stderr"=>$stderrf->text());
+        $res=array("stdout"=>sizecont($stdoutf), "stderr"=>sizecont($stderrf));
         self::clean($task);
         return $res;
     }
@@ -150,4 +152,8 @@ class Docker {
             }
         }
     }
+}
+function sizecont($f){
+    if ($f->size()>10000000) return "TOO BIG FILE";
+    return $f->text();   
 }

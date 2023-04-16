@@ -89,6 +89,10 @@ class SFile{
         $m=$this->getMetaInfo();
         return $m["lastUpdate"];
     }
+    public function size() {
+        $m=$this->getMetaInfo();
+        return $m["size"];
+    }
     public function exists() {
         return $this->fs->exists($this->path());
     }
@@ -99,6 +103,9 @@ class SFile{
     }
     public function isDir() {
         return is_dir($this->nativePath());
+    }
+    public function isLink() {
+        return is_link($this->nativePath());
     }
     public function getContent() {
         return $this->fs->getContent($this->path());
@@ -195,6 +202,7 @@ class SFile{
         $res=array();
         $files=$this->listFiles();
         foreach ($files as $file) {
+            if ($file->isLink()) continue;
             if ($file->isDir()) {
                 $res=array_merge($res,$file->recursive());
             } else {
@@ -240,8 +248,6 @@ class SFile{
     }
     public function resolveLink() {
     }
-    public function isLink() {
-    }
     public function getResolvedLinkPath() {
     }
     public function append($t) {
@@ -256,7 +262,9 @@ class SFile{
     public function openWrite() {
         return fopen($this->nativePath(),"w");
     }
-
+    public function chmod($mode) {
+        chmod($this->nativePath(), $mode);
+   }
 }
 
 ?>
