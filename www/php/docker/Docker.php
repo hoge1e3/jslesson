@@ -115,7 +115,9 @@ class Docker {
         $id=UniqID::find(function ($id) use ($req, $tasks) {
             return $req->rel("$id.sh")->exists() || $tasks->rel("$id/")->exists();
         });
-        $req->rel("$id.sh")->text($cmd);
+        $sh=$req->rel("$id.sh");
+        $sh->text($cmd);
+        $sh->chmod(0777);
         $task=$tasks->rel("$id/");
         $stdoutf=$task->rel("stdout.txt");
         $stderrf=$task->rel("stderr.txt");
