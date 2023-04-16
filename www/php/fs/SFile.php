@@ -248,8 +248,6 @@ class SFile{
     }
     public function resolveLink() {
     }
-    public function isLink() {
-    }
     public function getResolvedLinkPath() {
     }
     public function append($t) {
