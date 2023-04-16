@@ -236,6 +236,14 @@ class RunPythonController {
         $r=system_ex("python c:\\bin\\test.py ".param("num",0));
         print_r($r);
     }
+    static function clean() {
+        $work=DOCKER_WORK;
+        $fs=new SFile(new NativeFS(),DOCKER_WORK);
+        foreach ($fs->recursive() as $f) {
+            $t=time()-$f->lastUpdate();
+            print $f->path()." $t <BR>";
+        }
+    }
 }
 function system_ex2($cmd, $stdin = "")
 {
