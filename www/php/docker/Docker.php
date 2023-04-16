@@ -128,7 +128,7 @@ class Docker {
                 print "Timeout"; break;
             }
         } while (!$stdoutf->exists() || !$stderrf->exists());
-        $res=array("stdout"=>sizecont($stdoutf), "stderr"=>sizeconf($stderrf));
+        $res=array("stdout"=>sizecont($stdoutf), "stderr"=>sizecont($stderrf));
         self::clean($task);
         return $res;
     }
