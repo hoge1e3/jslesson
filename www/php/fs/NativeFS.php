@@ -85,6 +85,9 @@ class NativeFS {
        $this->check($path,Permission::READMETA);
        return file_exists($this->resolve($path));
    }
+   function isLink($path) {
+        return is_link($this->resolve($path));
+    }
    function isDir($path) {
         return is_dir($this->resolve($path));
    }

@@ -104,6 +104,9 @@ class SFile{
     public function isDir() {
         return is_dir($this->nativePath());
     }
+    public function isLink() {
+        return is_link($this->nativePath());
+    }
     public function getContent() {
         return $this->fs->getContent($this->path());
     }
@@ -199,6 +202,7 @@ class SFile{
         $res=array();
         $files=$this->listFiles();
         foreach ($files as $file) {
+            if ($file->isLink()) continue;
             if ($file->isDir()) {
                 $res=array_merge($res,$file->recursive());
             } else {
