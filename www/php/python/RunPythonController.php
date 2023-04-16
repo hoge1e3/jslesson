@@ -240,8 +240,10 @@ class RunPythonController {
         $work=DOCKER_WORK;
         $fs=new SFile(new NativeFS(),DOCKER_WORK);
         foreach ($fs->recursive() as $f) {
-            $t=time()-$f->lastUpdate();
-            print $f->path()." $t <BR>";
+            $t=time()*1000-$f->lastUpdate();
+            if ($t>500) {
+                print $f->path()." $t <BR>";
+            }
         }
     }
 }
