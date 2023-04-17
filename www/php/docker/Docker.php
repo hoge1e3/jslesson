@@ -43,14 +43,15 @@ class Docker {
         $className=$this->className;
         return "dock_".$className."_er";
     }
-
+    /*
     function hostAsset() {
         $url=Published::getURLOfClass($this->className);
         $fs=new SFile(new NativeFS(),BA_PUB);
         return $fs->rel("$url/");
     }
+    */
     function guestWorkPath() {return "/host/";}
-    function guestAssetPath() {return "/asset/";}
+    //function guestAssetPath() {return "/asset/";}
 
     function __construct($className) {
         $this->className=$className;
@@ -58,23 +59,24 @@ class Docker {
         $hostWork=$this->hostWork();
         $hostWorkPath=$hostWork->path();
         $guestWorkPath=$this->guestWorkPath();
-        $guestAssetPath=$this->guestAssetPath();
-        $hostAssetPath=$this->hostAsset()->path();
+        //$guestAssetPath=$this->guestAssetPath();
+        //$hostAssetPath=$this->hostAsset()->path();
         $name=$this->name();
         $r=system_ex("docker container ls -a | grep \\\\s$name".'$');
-        //print_r($r);
+        debug($r);
         if (! $r["stdout"]) {
             $img=DOCKER_IMAGE;
             $work=DOCKER_WORK;
             $taskrun=DOCKER_TASKRUN;
             $cmd="python $taskrun $guestWorkPath";
-            $dc="docker run -d -v $hostWorkPath:$guestWorkPath -v $hostAssetPath:$guestAssetPath --name $name $img $cmd";
+            //$dc="docker run -d -v $hostWorkPath:$guestWorkPath -v $hostAssetPath:$guestAssetPath --name $name $img $cmd";
+            $dc="docker run -d -v $hostWorkPath:$guestWorkPath --name $name $img $cmd";
+            debug($dc);
             if (defined("DOCKER_LAUNCH_REQ_DIR")) {
                 $this->reqLaunch($dc);
             } else {
-                //print($dc);
                 $r=system_ex($dc);
-                //print_r($r);
+                debug($r);
             }
         }
     }
@@ -83,12 +85,12 @@ class Docker {
         $sh=$fs->rel(random_int(100000,999999).".sh");
         $sh->text($cmd);
     }
-    function filesPath( $userName) {
+    /*function assetFilesPath( $userName) {
         $res=array();
         $res["user"]=Published::getURLUserPart($this->className, $userName, "assets");
         $res["class"]=Published::getURLUserPart($this->className, "class", "assets");
         return $res;
-    }
+    }*/
     function openProject($userName, $projectName) {
         $hostHomePrj=$this->BAHome()->rel("$userName/")->rel("$projectName/");
         $hostWorkPrj=$this->hostWork()->rel("$userName/")->rel("$projectName/");
@@ -101,23 +103,15 @@ class Docker {
 	     	)
 	    );
     }
-    function execInProject_old($userName, $projectName, $cmd) {
-        $prjDesc=$this->openProject($userName, $projectName);
-        /*$hostHomePrj=$this->BAHome()->rel("$userName/")->rel("$projectName/");
-        $hostWorkPrj=$this->hostWork()->rel("$userName/")->rel("$projectName/");
-        self::sync($hostHomePrj,$hostWorkPrj);
-        $guestWorkPrjPath=$this->guestWorkPath()."$userName/$projectName/";*/
-        return $this->execInProject2($prjDesc,$cmd);
-    }
     function execInProject($prjDesc, $cmd) {
         $userName=$prjDesc["userName"];
         $guestWorkPrjPath=$prjDesc["work"]["guestPath"];
-        $guestAssetPath=$this->guestAssetPath();
+        //$guestAssetPath=$this->guestAssetPath();
 
         $cmds="";
-        $f=$this->filesPath( $userName);
+        /*$f=$this->assetFilesPath( $userName);
         foreach ($f as $k=>$v) {
-            //print "ln -s $guestHome-$k $guestHome/$projectName/$k";
+            debug("ln -s $guestHome-$k $guestHome/$projectName/$k");
             $lnksrc=$guestAssetPath.$v;
             $lnkdst=$guestWorkPrjPath.$k;
             $cmds.=
@@ -125,11 +119,11 @@ class Docker {
             "if [ ! -L $lnkdst ] ;then\n".
             "   ln -s $lnksrc $lnkdst\n".
             "fi\n";
-            //print_r($r);
-        }
+            debug($r);
+        }*/
         $cmds.="cd $guestWorkPrjPath\n";
         $cmds.=$cmd;
-        //print "Run cmd $cmds";
+        debug("Run cmd $cmds");
         return $this->exec($cmds);
     }
     function exec($cmd) {
@@ -167,8 +161,8 @@ class Docker {
     static function sync($src,$dst) {
         foreach ($src->listFiles() as $sf) {
             $df=$dst->rel($sf->relPath($src));
-            //echo $sf->relPath($src). " ".$df->path()."\n";
-            //echo $sf->path()." [".$sf->isDir()."]\n";
+            debug($sf->relPath($src). " ".$df->path()."\n");
+            debug($sf->path()." [".$sf->isDir()."]\n");
             if ($sf->isDir()) {
                 self::sync($sf,$df);
             } else if (!$df->exists() || $sf->lastUpdate()>$df->lastUpdate()) {
@@ -180,4 +174,12 @@ class Docker {
 function sizecont($f){
     if ($f->size()>10000000) return "TOO BIG FILE";
     return $f->text();   
+}
+function debug($mesg){
+    /*
+    if (!is_string($mesg)) {
+        $mesg=print_r($mesg,true);
+    }
+    print $mesg;
+    }*/
 }
