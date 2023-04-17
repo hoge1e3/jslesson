@@ -1,5 +1,29 @@
 <?php
 
+/*
+hostWork:
+    {class}:
+        {user}:
+            {project}:
+                "class" -> symlink to guestAsset/{pub_class.[user="class",project="assets"]}
+                "user" -> symlink to guestAsset/{pub_user.[user,project]}
+                other files(ex. *.py)
+        "tasks":
+            "req":
+                {genid}.sh
+            {genid}
+                run.sh
+                stdout.txt
+                stderr.txt
+hostAsset:
+    {class}:
+        {pub_class.[user="class",project="assets"]}:
+            class global file
+        {pub_user.[user,project]}:
+            user local file
+
+*/
+
 req("SFile","NativeFS","Process","Published");
 class Docker {
     static function init($className) {
