@@ -90,7 +90,11 @@ class RunPythonController {
         $prjDesc=$d->openProject($user->name, $projectName);
         $stdinfile="__STDIN.txt";
      	$prjDesc["work"]["host"]->rel($stdinfile)->text($stdin);
-     	$res=$d->execInProject($prjDesc, "export MPLBACKEND=\"module://mybackend\" \n timeout 60 python $fileName < $stdinfile");
+        $tout=10;
+        if (defined("DOCKER_TIMEOUT")) {
+            $tout=DOCKER_TIMEOUT-1;
+        }
+     	$res=$d->execInProject($prjDesc, "export MPLBACKEND=\"module://mybackend\" \n timeout $tout python $fileName < $stdinfile");
         if ($outjson) {
             header("Content-type: text/json; charset=utf8");
             print json_encode($res);
@@ -231,6 +235,22 @@ class RunPythonController {
     static function largeOut() {
         $r=system_ex("python c:\\bin\\test.py ".param("num",0));
         print_r($r);
+    }
+    static function clean() {
+        $work=DOCKER_WORK;
+        $cnt=0;
+        $lim=100;
+        if (isset($_GET["lim"])) $lim=$_GET["lim"];
+        $fs=new SFile(new NativeFS(),DOCKER_WORK);
+        foreach ($fs->recursive() as $f) {
+            $t=time()*1000-$f->lastUpdate();
+            if ($t>500*1000) {
+                print "rm " .$f->path()." $t <BR>";
+                $f->rm();
+                $cnt++;
+                if ($cnt>$lim) break;
+            }
+        }
     }
 }
 function system_ex2($cmd, $stdin = "")

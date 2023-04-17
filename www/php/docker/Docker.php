@@ -45,10 +45,19 @@ class Docker {
             $taskrun=DOCKER_TASKRUN;
             $cmd="python $taskrun $guestWorkPath";
             $dc="docker run -d -v $hostWorkPath:$guestWorkPath -v $hostAssetPath:$guestAssetPath --name $name $img $cmd";
-            //print($dc);
-            $r=system_ex($dc);
-            //print_r($r);
+            if (defined("DOCKER_LAUNCH_REQ_DIR")) {
+                $this->reqLaunch($dc);
+            } else {
+                //print($dc);
+                $r=system_ex($dc);
+                //print_r($r);
+            }
         }
+    }
+    function reqLaunch($cmd) {
+        $fs=new SFile(new NativeFS(),DOCKER_LAUNCH_REQ_DIR);
+        $sh=$fs->rel(random_int(100000,999999).".sh");
+        $sh->text($cmd);
     }
     function filesPath( $userName) {
         $res=array();
@@ -106,7 +115,9 @@ class Docker {
         $id=UniqID::find(function ($id) use ($req, $tasks) {
             return $req->rel("$id.sh")->exists() || $tasks->rel("$id/")->exists();
         });
-        $req->rel("$id.sh")->text($cmd);
+        $sh=$req->rel("$id.sh");
+        $sh->text($cmd);
+        $sh->chmod(0777);
         $task=$tasks->rel("$id/");
         $stdoutf=$task->rel("stdout.txt");
         $stderrf=$task->rel("stderr.txt");
@@ -119,7 +130,7 @@ class Docker {
                 print "Timeout"; break;
             }
         } while (!$stdoutf->exists() || !$stderrf->exists());
-        $res=array("stdout"=>$stdoutf->text(), "stderr"=>$stderrf->text());
+        $res=array("stdout"=>sizecont($stdoutf), "stderr"=>sizecont($stderrf));
         self::clean($task);
         return $res;
     }
@@ -141,4 +152,8 @@ class Docker {
             }
         }
     }
+}
+function sizecont($f){
+    if ($f->size()>10000000) return "TOO BIG FILE";
+    return $f->text();   
 }
