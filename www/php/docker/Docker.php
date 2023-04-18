@@ -129,7 +129,9 @@ class Docker {
     function exec($cmd) {
         $hostWork=$this->hostWork();
         $tasks=$hostWork->rel("tasks/");
+        mkdirFree($tasks);
         $req=$tasks->rel("req/");
+        mkdirFree($req);
         $id=UniqID::find(function ($id) use ($req, $tasks) {
             return $req->rel("$id.sh")->exists() || $tasks->rel("$id/")->exists();
         });
@@ -170,6 +172,12 @@ class Docker {
             }
         }
     }
+}
+function mkdirFree($dir) {
+    if (!$dir->exists()) {
+        $dir->mkdir();
+    }
+    $dir->chmod(0777);
 }
 function sizecont($f){
     if ($f->size()>10000000) return "TOO BIG FILE";
