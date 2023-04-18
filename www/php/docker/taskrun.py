@@ -52,7 +52,7 @@ def runTask(p):
             t.chmod(0o777)
         dst=t.joinpath("run.sh")
         p.rename(dst)
-        dst.chmod(0o777)
+        #dst.chmod(0o777)
         (stdout,stderr)=subprocess.Popen(["sh", str(dst)],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE
         ).communicate()
