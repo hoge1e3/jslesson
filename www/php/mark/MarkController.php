@@ -107,6 +107,7 @@ class MarkController {
         fclose($fp);
     }
     static function getLast() {
+        print"{}";/*
         $user=Auth::curUser2();
         $assignmentName=param("assignment",null);
         if ($assignmentName) {
@@ -120,7 +121,7 @@ class MarkController {
             "where submission=? ",$s->id);
         }
         if ($r) print json_encode($r);
-        else print "{}";
+        else print "{}";*/
     }
     static function notMarked() {
         Auth::assertTeacher();

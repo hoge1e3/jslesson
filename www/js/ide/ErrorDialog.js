@@ -79,6 +79,9 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace,EventHandler) {
                 trace=mesg.stack;
                 mesg=(mesg.message||mesg)+"";//detail;
                 appendPos=true;
+            } else if (mesg && mesg.isTError) {
+                pos=mesg.pos;
+                src=mesg.src;
             }
             var elem=t.createDom();
             t.mesgd.text(

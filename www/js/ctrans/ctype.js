@@ -76,6 +76,9 @@ define(["Klass","assert"],function (Klass,assert) {
             return t.Number.super(this,"castableFrom",type);
         },
         binOpable: function (op,right) {
+            if (t.isIntNum(this) && t.isIntNum(right)) {
+                return this;
+            }
             if (right instanceof t.Number) {
                 if (!bitWiseOp[op+""] ) {
                     if (right.numOrd>this.numOrd) return right;
@@ -105,13 +108,18 @@ define(["Klass","assert"],function (Klass,assert) {
     // t.void , t.int could not abolish... used in concat.js like CType['int']
     t.Void=t.Primitive.inherit({name:"void"});
     t.void=t.Void();
-    t.IntNum=t.Number.inherit({
-        binOpable: function (op,right) {
-            if (right instanceof t.IntNum) return this;
-            /*if (right instanceof t.Number &&
-                !bitWiseOp[op+""] ) return this;*/
-            return t.IntNum.super(this,"binOpable",op,right);
+    t.isIntNum=function (vtype) {
+        if (vtype instanceof t.IntNum) return true;
+        if (vtype instanceof t.Number) {
+            if (vtype.e && t.isIntNum(vtype.e)) return true;
         }
+        return false;
+    };
+    t.IntNum=t.Number.inherit({
+        /*binOpable: function (op,right) {
+            if (right instanceof t.IntNum) return this;
+            return t.IntNum.super(this,"binOpable",op,right);
+        }*/
     });
     t.Char=t.IntNum.inherit({name:"char",numOrd:1,max:0xff,_sizeOf:1});
     t.char=t.Char();
@@ -131,6 +139,9 @@ define(["Klass","assert"],function (Klass,assert) {
         },
         numOrd: {
             get: function () {return this.e.numOrd;}
+        },
+        max: {
+            get(){return this.e.max;}
         },
         equals: function (o) {
             return (o instanceof t.Unsigned) &&
@@ -153,6 +164,13 @@ define(["Klass","assert"],function (Klass,assert) {
         numOrd: {
             get: function () {return this.e.numOrd+1;}
         },
+        max: {
+            get(){
+                const m=this.e.max;
+                if (m==0xff) return 0xffff;
+                return 0xffffffff;
+            }
+        },
         equals: function (o) {
             return (o instanceof t.Long) &&
             this.e.equals(o.e);
@@ -162,13 +180,20 @@ define(["Klass","assert"],function (Klass,assert) {
         },
         sizeOf: function () {
             return this.e.sizeOf()*2;// really??
-        }
+        },
     });
     t.Short=t.Number.inherit({
         $:["e"],
         $fields:{e:t.Number},
         numOrd: {
             get: function () {return this.e.numOrd-1;}
+        },
+        max: {
+            get() {
+                const m=this.e.max;
+                if (m<=0xffff) return 0xff;
+                return 0xffff;
+            }
         },
         equals: function (o) {
             return (o instanceof t.Short) &&

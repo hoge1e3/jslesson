@@ -272,7 +272,8 @@ function sprintfJS() {
       width = (isNaN(parseInt(s[i]))) ? 0 : parseInt(s[i++]);
       // precision-specifier
       if (s[i] === "." && !isNaN(parseInt(s[i + 1]))) { precision = parseInt(s[i + 1]); i += 2; }
-
+      // long(ignore)
+      if (s[i] === "l") {i++;}
       switch (s[i]) {
       case "d": v = parseInt2(getArg()).toString(); break;
       case "u": v = parseInt2(getArg()); if (!isNaN(v)) { v = unsign(v).toString(); } break;

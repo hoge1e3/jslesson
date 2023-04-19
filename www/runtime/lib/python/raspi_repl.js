@@ -46,7 +46,7 @@ class RaspiREPL {
             }
             serialCtrl.onEcho=(r) => {
                 let s=d.decode(r).replace(/\r/g,"");
-                console.log("repl s",s);
+                //console.log("repl s",s);
                 buf+=s;
                 if (th) clearTimeout(th);
                 th=setTimeout(()=>{

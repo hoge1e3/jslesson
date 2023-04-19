@@ -91,6 +91,9 @@ var reqConf={
             "dolittle/dtlvm": {
                 deps:["dolittle/minimal", "Visitor", "context"]
             },
+            "build/dncl2/minimal": {
+                exports:"DNCL2"
+            },
             "dncl/minimal": {
                 deps:["Parser","ExpressionParser","context"],
                 exports:"MinimalParser"
@@ -292,6 +295,7 @@ var reqConf={
             TJSBuilder:"build/tjs/TJSBuilder",
             DtlBuilder:"build/dolittle/DtlBuilder",
             DnclBuilder:"build/dncl/DnclBuilder",
+            Dncl2Builder:"build/dncl2/Dncl2Builder",
             PythonBuilder:"build/python/PythonBuilder",
             PythonParser:"build/python/PythonParser",
             PythonSemantics:"build/python/PythonSemantics",
