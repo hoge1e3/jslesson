@@ -335,4 +335,5 @@ class SerialControl {
         });
     }
 }
+window.SerialControl=SerialControl;
 //# sourceMappingURL=SerialControl.js.map
