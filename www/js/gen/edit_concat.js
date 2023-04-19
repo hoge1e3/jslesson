@@ -17619,6 +17619,7 @@ function ready() {
         var n=curPrj.truncEXT(c);//c.truncExt();//.p5.js
         return [c.up().rel(n+HEXT), c.up().rel(n+EXT)];
     }
+    const hjsel={};
     $(".selTab").click(function () {
         var ext=A.is($(this).attr("data-ext"),String);
         var c=fl.curFile();
@@ -17631,6 +17632,8 @@ function ready() {
         if (!f.exists()) {
             FM.on.createContent(f);
         }
+        hjsel[n]=ext;
+        console.log("tab Changed to ",ext, n);
         fl.select(f);
     });
     setInterval(watchModified,1000);
@@ -17640,6 +17643,19 @@ function ready() {
     function open(f) {
 	// do not call directly !!  it doesnt change fl.curFile. use fl.select instead
         A.is(f,"SFile");
+        var n=curPrj.truncEXT(f);//c.truncExt();//.p5.js
+        const ext=(curPrj.isLogicFile(f)?EXT:curPrj.isHTMLFile(f)?HEXT:"");
+        if (hjsel[n]) {
+            let svext=hjsel[n];
+            if(ext!==svext) {
+                let nf=f.up().rel(n+ext);
+                console.log("Will open ",svext, nf.name());
+                setTimeout(()=>{
+                    $(`.selTab[data-ext='${svext}']`).click();
+                },100);    
+            }
+        }
+        
         if (!window.ace) {
             alert("しばらくしてからもう一度開いてください");
             return true;
@@ -17650,7 +17666,6 @@ function ready() {
         save();
         if (curDOM) curDOM.hide();
         var inf=editors[f.path()];
-        const ext=(curPrj.isLogicFile(f)?EXT:curPrj.isHTMLFile(f)?HEXT:"");
         $(".selTab").removeClass("selected");
         $(".selTab[data-ext='"+ext+"']").addClass("selected");
         if (!inf) {

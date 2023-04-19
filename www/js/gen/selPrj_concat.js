@@ -9300,6 +9300,8 @@ define('LanguageList',['require','exports','module'],function (require, exports,
             helpURL:"http://bitarrow.eplang.jp/index.php?c_use", mode:"ace/mode/c_cpp"},
         "dncl":{en:"DNCL", ja:"DNCL(どんくり)",builder:"DnclBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?dncl_use"},
+        "dncl2":{en:"DNCL2", ja:"DNCL2(どんくり2)",builder:"Dncl2Builder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?dncl2_use"},
         "py": {en:"Python", ja:"Python",builder:"PythonBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
         "tonyu":{en:"Tonyu", ja:"Tonyu",builder:"TonyuBuilder",
@@ -10907,14 +10909,32 @@ define('globalDesktopSetting',['require','exports','module','DesktopSettingDialo
     };
 });
 
+define('cleanup',['require','exports','module','FS'],function (require, exports) {
+    let FS=require("FS");
+    exports.doCleanup=(items)=> {
+        let c=FS.LSFS.getCapacity();
+        console.log(c);
+        if (c.using<c.max/2) return;
+        items=items.map(it=>it.dir);
+        items=items.filter(dir=>dir.exists());
+        console.log(items);
+        //f.dir.rm({r:1});
+        let lastItem=items[items.length-1];
+        if (lastItem) {
+            lastItem.rm({r:1});
+            console.log(lastItem.path(), " is removed");
+        }
+    };
+
+});
 define('jsl_selProject',["FS","Shell","Shell2",
            "NewProjectDialog","UI","Auth","zip","Sync","NewSampleDialog","RenameProjectDialog",
            "assert","DeferredUtil","RemoteProject","SplashScreen",
-       "ctrl","root","jshint","ProgramFileUploader","globalDesktopSetting"],
+       "ctrl","root","jshint","ProgramFileUploader","globalDesktopSetting","cleanup"],
     function(FS, sh,sh2,
            NPD, UI, Auth,zip,Sync,NSD,RPD,
            A,DU,RemoteProject,SplashScreen,
-       ctrl,root,jshint, ProgramFileUploader, globalDesktopSetting) {
+       ctrl,root,jshint, ProgramFileUploader, globalDesktopSetting, cleanup) {
     if (location.href.match(/localhost/)) {
         A.setMode(A.MODE_STRICT);
     } else {
@@ -11008,6 +11028,9 @@ function ready() {//-------------------------
             if (d.length==0) {
                 $("#prjItemList").css({height:300,width:"100%"});
             }
+            try {
+                cleanup.doCleanup(d);
+            }catch(e){console.error(e);}
         }).fail(function(e){
             console.log("list failed",e);
         });
