@@ -1,5 +1,5 @@
 <?php
-define("BA_TOP_URL", "http://localhost/");
+//define("BA_TOP_URL", "http://localhost/");
 define("BA_WWW",dirname(__DIR__));
 //   You must set BA_DATA to data directory, it is recommended that BA_DATA cannot access via http
 define("BA_DATA", "/var/www/data/bitarrow");
@@ -7,7 +7,7 @@ define("DOCKER_WORK", "/var/www/data/dpy/work");
 define("DOCKER_IMAGE", "matplotlib10");
 //define("DOCKER_IMAGE", "python");
 define("DOCKER_TASKRUN", "/dpy/taskrun.py");
-define("DOCKER_TIMEOUT", 30);
+define("DOCKER_TIMEOUT", 10);
 //define("BA_DATA", dirname(__DIR__)."/../data");
 //define("BA_DATA", dirname(__DIR__));
 
