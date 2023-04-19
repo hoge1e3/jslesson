@@ -142,7 +142,7 @@
 
         function sscanfJS(str, format) {
             input = str;
-            var re = new RegExp('[^%]*%[0-9]*[A-Za-z][^%]*', 'g');
+            var re = new RegExp('[^%]*%[0-9]*l*[A-Za-z][^%]*', 'g');
             var selector = format.match(re);
             var result = [];
             selector.forEach(function (val) {
@@ -278,6 +278,7 @@
                 case '%o':
                     ret = getOctal(pre, next);
                     break;
+                case '%lf':
                 case '%f':
                     ret = getFloat(pre, next);
                     break;

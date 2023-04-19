@@ -275,6 +275,7 @@ root.MinimalParser= function () {
 	var parameter_list;
 	var initializer;
 	var switch_compound_statement;
+	var type_name_lazy=Parser.lazy(function(){return type_name;});
 	var switch_compound_statement_lazy=Parser.lazy(function(){return switch_compound_statement;});
 	var initializer_lazy=Parser.lazy(function(){return initializer;});
 	var parameter_type_list_lazy=Parser.lazy(function(){return parameter_type_list;});
@@ -435,19 +436,40 @@ root.MinimalParser= function () {
 	//var direct_abstract_declarator=direct_abstract_declarator.opt().and(t("[")).and(/*constant_*/expression_lazy.opt()).and(t("]")).ret(function(direct_abstract_declarator,lsb,const_expr,rsb){return [direct_abstract_declarator,"[",const_expr,"]"];});
 	//direct_abstract_declarator=direct_abstract_declarator.or(direct_abstract_declarator.opt().and(t("(")).and(parameter_type_list_lazy.opt()).and(t(")")).ret(function(direct_abstract_declarator,lp,parameter_type_list,rp){return [direct_abstract_declarator,"(",parameter_type_list,")"];}));
 
-	var direct_abstract_declarator=t("[").and(constant_expression.opt()).and(t("]"))
+	direct_abstract_declarator=t("[").and(constant_expression.opt()).and(t("]"))
 		.ret(function(lsb,expr,rsb){
 			var $=["[",expr,"]"];
 			//$.isArray=true
+			let elementLength;
+			if (expr) {
+				elementLength=(expr+"")-0;
+			}
+			$.abstract_declarator_info={type:"array", elementLength};
 			return $;
 		});
 	direct_abstract_declarator=direct_abstract_declarator.or(t("(")
 		.and(parameter_type_list_lazy).and(t(")")).ret(function(lp,parameter_type_list,rp){
-			return ["(",parameter_type_list,")"];
+			return extend(["(",parameter_type_list,")"], {
+				abstract_declarator_info:{type:"function", parameters:  parameter_type_list}
+			});
 		}));
 	direct_abstract_declarator=direct_abstract_declarator.rep0();
-
-	var abstract_declarator=direct_abstract_declarator;
+	// \abstract_declarator
+	/*
+		<pointer>
+      | <pointer> <direct-abstract-declarator>
+      | <direct-abstract-declarator>
+	*/
+	var pointer=t("*");//.and(type_qualifiers.opt()).ret(function(mul,type_qualifiers){return [];});
+	var abstract_pointer_declarator=pointer.ret((p)=>{
+		//throw new Error("PONTEEE");
+		return {abstract_declarator_info:{type:"pointer"}};
+	});
+	var abstract_declarator=
+		abstract_pointer_declarator.opt().and(direct_abstract_declarator).ret((p,a)=>{
+			if (!p) return a;
+			return [p,...a];
+		});
     var baseType=T.Int();
 	// \declaration_specifiers
 	var declaration_specifier=storage_class_specifier.or(type_specifier).or(type_qualifier);
@@ -572,7 +594,6 @@ root.MinimalParser= function () {
     		return $;
 	    }
 	);
-	var pointer=t("*");//.and(type_qualifiers.opt()).ret(function(mul,type_qualifiers){return [];});
     //\declarator = pointer? direct-declarator  (pointer? まだ)
 	declarator=saveBaseType(
 	    pointer.rep0().ret(function (ps) {
@@ -1173,7 +1194,19 @@ root.MinimalParser= function () {
 	postfix_expression.mkPrefix(mkpre);
 	postfix_expression=postfix_expression.build();
     //\unary_expression
+	const par_type_name=t("(").and(type_name_lazy).and(t(")")).ret((_,e)=>e);
 	unary_expression=postfix_expression.ret(chkTypeIsSet("postf600")).or(
+		t("sizeof").and(
+			par_type_name.or(unary_expression_lazy)
+		).ret((_, exp)=>{
+			//exp=unwrapParen(exp);
+			//console.log("sizeof_debug",exp, exp.vtype);
+			return extend({
+				text:exp.vtype.sizeOf(), 
+				toString(){return ""+this.text;}
+			},{vtype:T.Int(),isConst:true});
+		})
+	).or(
 	    t("++").or(t("--")).and(unary_expression_lazy).ret(function (op,right) {
 	        return extend([op,right], {vtype:right.vtype});
 	    })
@@ -1222,9 +1255,33 @@ root.MinimalParser= function () {
     	    return extend([op,wrapF(right)], {vtype:right.vtype});
 	    })
 	);
+	function encodeAbstractDeclartor(base, abstract_declarator) {
+		let res=base;
+		for (let i=abstract_declarator.length-1;i>=0;i--) {
+			let a=abstract_declarator[i];
+			console.log("encodeA",a);
+			if (!a.abstract_declarator_info) continue;
+			switch(a.abstract_declarator_info.type) {
+			case "array":
+				res=T.Array(res, a.abstract_declarator_info.elementLength);
+				break;
+			case "pointer":
+				res=T.Pointer(res);
+				break;
+			case "function":
+				res=T.Function(res,a.abstract_declarator_info.parameters);
+				break;	
+			}
+		}
+		return res;
+	}
 	var type_name=specifier_qualifier_list.and(abstract_declarator.opt())
 		.ret(function(specifier_qualifier_list,abstract_declarator){
 		    var vtype=typeNamesToType(specifier_qualifier_list);
+			if (abstract_declarator){
+				vtype=encodeAbstractDeclartor(vtype,abstract_declarator);
+				// console.log("type_name", abstract_declarator);
+			}
 			return extend([specifier_qualifier_list,abstract_declarator],{vtype:vtype});
 		});
     // \cast_expression
