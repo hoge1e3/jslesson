@@ -27,7 +27,7 @@ define(function (require,exports,module) {
             },
             shuffle: function (list) {
                 for (let i=list.length-1; i>=0 ;i--) {
-                    const e=list.splice(this.randint(i),1);
+                    const e=list.splice(this.randint(0,i),1);
                     list.push(e[0]);
                 }
                 return list;
