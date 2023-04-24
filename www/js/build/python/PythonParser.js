@@ -9,6 +9,10 @@ function (Grammar,Pos2RC/*,TError*/) {
         s.success=true;
         return s;
     }); */
+    /*
+    メインにreturn
+    range引数
+    */
     const reserved=[
         "class","def","if","else","elif","break","continue",
         "for","while","in","return","print","import","as",
