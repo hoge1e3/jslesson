@@ -443,8 +443,9 @@ class TeacherLogController {
         $class=Auth::curClass2();
         $isCtrl=false;
         if ($user===null) {
-            Auth::assertTeacher();
-            $user=$class->getUser(param("user"));
+            $pu=self::parseUser();
+            //Auth::assertTeacher();
+            $user=$pu["user"];// $class->getUser(param("user"));
             $file=param("file");
             $dateMax=param("dateMax",null);
             $isCtrl=true;
