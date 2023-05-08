@@ -6,7 +6,6 @@ df = pd.DataFrame({
         'hp': [157, 78, 58, 83],
         'mp' : [157, 85, 60, 86]
 })
-
 # 表示
 #df.from_csv("c:/bin/secret.csv")
 #print(df.from_csv)
