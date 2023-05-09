@@ -9943,7 +9943,8 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
                     ["div",{$var:"browser"}],
                     (!options.targetDOM? ["div",{$var:"buttonRow"},
                         ["button", {type:"button",$var:"OKButton", on:{click: res.close}}, "閉じる"],
-                        ["button", {type:"button",$var:"dlOut", on:{click: res.dlOut}}, "出力を共有……"]
+                        ["button", {type:"button",$var:"cpOut", on:{click: res.cpOut}}, "出力をコピー"],
+                        ["button", {type:"button",$var:"dlOut", on:{click: res.dlOut}}, "出力を共有……"],
                     ]:""),
                     (true?"":["button", {type:"button",$var:"WButton", on:{click: function () {
                         if (res.hasLocalBrowserWindow()) res.lbw.close();
@@ -10000,6 +10001,13 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
         });
         //if (res.da) res.da.handleResize();
         return res.d;
+    };
+    res.cpOut=function () {
+        const w=res.b.iframe[0].contentWindow;
+        const d=w.document;
+        const c=d.querySelector("#console") || d.body;
+        
+        navigator.clipboard.writeText(c.innerText);
     };
     res.dlOut=function () {
         const w=res.b.iframe[0].contentWindow;
