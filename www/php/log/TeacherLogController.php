@@ -1065,15 +1065,15 @@ class TeacherLogController {
             ?>
             <tr class="userrow"><td><a href="a.php?TeacherLog/view1new&user=<?=$k?>&day=<?=$max?>" target="view1"><?=$k?></a></td>
             <td><?= isset($name2disp[$k]) ? subtractSubstring( $name2disp[$k],$k)  : "" ?></td>
-            <?php if ($v!=0) { ?>
-            <td data-rate="<?=$rate?>" bgcolor=<?=$errcaution?>><?=$errcount[$k]?>/<?=$v?>(<?=$rate?>%)</td>
+            <?php if ($rate!="--") { ?>
+                <td data-rate="<?=$rate?>" bgcolor=<?=$errcaution?>><?=$errcount[$k]?>/<?=$v?>(<?=$rate?>%)</td>
+            <?php } else {  print "<td></td>"; } ?>
             <td bgcolor=<?=$timecaution?>><?=str_pad($time['h'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['m'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['s'],2,0,STR_PAD_LEFT)?></td>
-            <td><?=$latestfile[$k]?></td>
-            <td><?= $latestfile[$k]? self::getActualtime2($class->getUser("$k"),$latestfile[$k],$max) : "" ?></td>
+            <?php if (isset($latestfile[$k])) {  ?>
+                <td><?=$latestfile[$k]?></td>
+                <td><?= $latestfile[$k]? self::getActualtime2($class->getUser("$k"),$latestfile[$k],$max) : "" ?></td>
+            <?php } else {  print "<td></td><td></td>"; } ?>
             <td><?=$runhistory[$k]?></td>
-            <?php } else {
-                for ($emp=0; $emp<5; $emp++) print "<td></td>";
-            } ?>
             </tr>
 
             <?php
