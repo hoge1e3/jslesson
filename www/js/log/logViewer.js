@@ -18,6 +18,14 @@ $(document).ready(function() {
         },
         emptyTo:"bottom",
     });
+    $("#filter").on("input",function() {
+        const val=this.value;
+        $(".userrow").show();
+        if (!val) return;
+        $(".userrow").filter(function () {
+            if (this.innerText.indexOf(val)<0) return true;
+        }).hide();
+    });
 });
 function fold(show) {
     const items = [];
