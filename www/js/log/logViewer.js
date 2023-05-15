@@ -381,8 +381,8 @@ function openFrame(data){
           "<a target='runCheck' href='"+runLink+"'>実行してみる</a><br>":"")+
       `<span class="userid">${userid}</span>(<span id='userName'></span>)<BR>`+
       filehist+ navByFile(data.filename)+
-      `actualTime=<span class='actualTime'>${logDOM.attr("data-actualTime")}</span>`+"<br>"+
-      `actualTime2=<span class='actualTime2'>${logDOM.attr("data-actualTime2")}</span>`+"<br>"+
+     // `actualTime=<span class='actualTime'>${logDOM.attr("data-actualTime")}</span>`+"<br>"+
+      `actualTime=<span class='actualTime2'>${logDOM.attr("data-actualTime2")}</span>`+"<br>"+
       data.result);
   $("[id='"+userid+"']").height(30);
   $("[id='"+userid+"']").html(res);
