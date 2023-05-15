@@ -310,7 +310,9 @@ define(function (require,exports,module) {
     PL.int=function (s) {
         const v=s-0;
         if (v!==v) throw new Error(`${s} は intに変換できません`);
-        if (s.match(/\./)) throw new Error(`${s} は小数点を含んでいるのでintに変換できません`);
+        if (typeof s==="string") {
+            if (s.match(/\./)) throw new Error(`${s} は小数点を含んでいるのでintに変換できません`);
+        }
         return v;
     };
     PL.super=function(klass,self) {
@@ -549,9 +551,11 @@ define(function (require,exports,module) {
         __mul__: function (self,other) {
             switch (typeof other) {
             case "number":
-                var res="";
+                let res="";
                 for (;other;other--) res+=self;
                 return res;
+            case "boolean":
+                return other ? self+"" :"";
             default:
                 PL.invalidOP(self, "__mul__",other);
             }
@@ -597,7 +601,27 @@ define(function (require,exports,module) {
             });
         }
     }));
-    
+    PL.addMonkeyPatch(Number, {
+        __class__: Number,
+        __add__(self,other) {
+            if (typeof u(other)==="string") {
+                throw new Error("数値に文字列を追加できません．左辺をstr()で変換するか，右辺をint()またはfloat()で変換する必要があります．");
+            }
+            return self+other;
+        },
+        __mul__(self,other) {
+            switch (typeof other) {
+            case "number":
+                return self*other;
+            case "boolean":
+                return other ? self-0 :0;
+            case "string":
+                return other.__mul__(self);
+            default:
+                PL.invalidOP(self, "__mul__",other);
+            }
+        },  
+    });
     function otherShouldString(k) {
         return function (self,other) {
             if (typeof u(other)!=="string") {
@@ -612,8 +636,18 @@ define(function (require,exports,module) {
         __str__(self) {
             //  self is wrapped. always trusy
             return self==true?"True":"False";
+        },
+        __mul__(self, other) {
+            switch (typeof other) {
+                case "number":
+                case "string":
+                    return other.__mul__(self);
+                case "boolean":
+                    return PL.int(self)*PL.int(other);
+                default:
+                    PL.invalidOP(self, "__mul__",other);
+            }
         }
-
     });
     PL.addMonkeyPatch(Function,{
         __class__: Function,
