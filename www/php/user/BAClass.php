@@ -6,7 +6,7 @@ class BAClass{
             throw new Exception(" class->id should be string");
         }
         if (!self::isValidClassName($id)) {
-            throw new Exception("クラス名 $id は適切な名称ではありません．");
+            throw new Exception("クラス名 $id は適切な名称ではありません．英数字とアンダースコア(_)，ハイフン(-)のみを使用してください．");
         }
         $this->id=$id;
     }
@@ -116,8 +116,8 @@ class BAClass{
         $this->setOptions($opts);
     }
     static function isValidClassName($classname) {
-        //TODO
-        return true;
+        $pattern = '/^[a-zA-Z0-9_-]+$/';
+        return preg_match($pattern, $classname);
     }
 
     function exists() {
