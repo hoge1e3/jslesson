@@ -17,6 +17,32 @@ $(document).ready(function() {
             return node.innerHTML;
         }
     });
+        var table = $("table"); // テーブルのIDまたはセレクタ      
+    let sortP=/&sort=([0-9]+),([0-9]+)/;
+    // ヘッダーのクリックイベントを設定
+    table.find("th").click(function() {
+        var columnIndex = $(this).index(); // クリックされたヘッダーの列のインデックス
+    
+        // 現在の列と並び順を取得
+        var sortList = table.get(0).config.sortList;//table.tablesorter().data("tablesorter");//.sortList;
+        var currentColumnIndex = sortList[0][0]; // 現在の列のインデックス
+        var currentSortDirection = sortList[0][1]; // 現在の並び順（0: 昇順、1: 降順）
+        console.log("sortList",columnIndex, currentColumnIndex, currentSortDirection);
+        let url=location.href;
+        if (url.match(sortP)) {
+            url=url.replace(sortP,"&sort="+sortList[0].join(","));
+        } else {
+            url+="&sort="+sortList[0].join(",");
+        }
+        history.replaceState(null,null,url);
+    });
+    let m=sortP.exec(location.href);
+    if (m ) {
+        for (let i=0;i<m[2]-(-1);i++) {
+            table.find("th")[m[1]-0].click();
+        }
+    }
+
 });
 function fold(show) {
     const items = [];
