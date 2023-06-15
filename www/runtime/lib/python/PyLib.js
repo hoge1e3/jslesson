@@ -44,7 +44,8 @@ define(function (require,exports,module) {
             ceil:Math.ceil.bind(Math),
             floor:Math.floor.bind(Math),
             sqrt:Math.sqrt.bind(Math),
-        }
+        },
+        js: root,
     };
     //PyX.install(PL);
     PL.lineBuf="";
@@ -757,6 +758,7 @@ define(function (require,exports,module) {
     "min","max","list","isinstance","zip",
     "fillRect","setColor","setTimeout","clearRect","clear"];
     root.PYLIB=PL;
+    PL.root=root;
 
     function sprintfJS() {
     	//  input -> jsString  output->jsString
