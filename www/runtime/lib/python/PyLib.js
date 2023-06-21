@@ -750,7 +750,13 @@ define(function (require,exports,module) {
         __contains__(self, elem) {
             return self.indexOf(elem)>=0;
         },
-
+        remove(self, item) {
+            let i=self.indexOf(item);
+            if (i<0) {
+                throw new Error("指定された要素は配列にありません");
+            }
+            self.splice(i,1);
+        },
     });
 
     //---
