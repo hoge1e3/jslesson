@@ -889,7 +889,7 @@ class TeacherLogController {
         $students=$class->getAllStu();
         $name2disp=[];
         foreach ($students as $user) {
-            $name2disp[$user->name]=$user->getOptions()->name;
+            $name2disp[$user->name]=(isset($user->getOptions()->name) ? $user->getOptions()->name : $user->name);
         }
         $runcount=Array();
         $runhistory=[];

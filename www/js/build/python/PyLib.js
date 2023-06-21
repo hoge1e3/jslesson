@@ -44,7 +44,8 @@ define(function (require,exports,module) {
             ceil:Math.ceil.bind(Math),
             floor:Math.floor.bind(Math),
             sqrt:Math.sqrt.bind(Math),
-        }
+        },
+        js:root
     };
     //PyX.install(PL);
     PL.lineBuf="";
@@ -61,7 +62,10 @@ define(function (require,exports,module) {
         if(lines.length>10) {
             PL.lineBuf=lines.slice(lines.length-10).join("\n");
         }
-        PL.STDOUT.append($("<span>").text(out));
+        if (PL.STDOUT) {
+            if (typeof $==="function") PL.STDOUT.append($("<span>").text(out));
+            else PL.STDOUT.append(out);
+        }
     };
     PL.input=function (s) {
         if (s) PL.print(s,PL.Option({end:""}));
@@ -749,7 +753,13 @@ define(function (require,exports,module) {
         __contains__(self, elem) {
             return self.indexOf(elem)>=0;
         },
-
+        remove(self, item) {
+            let i=self.indexOf(item);
+            if (i<0) {
+                throw new Error("指定された要素は配列にありません");
+            }
+            self.splice(i,1);
+        },
     });
 
     //---
@@ -757,6 +767,7 @@ define(function (require,exports,module) {
     "min","max","list","isinstance","zip",
     "fillRect","setColor","setTimeout","clearRect","clear"];
     root.PYLIB=PL;
+    PL.root=root;
 
     function sprintfJS() {
     	//  input -> jsString  output->jsString

@@ -48,7 +48,7 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass) {
         var thiz=this;
         window.ifrm=i[0];
         var loaded;
-        i.on("load",function () {
+        i.on("load",function (origLoadEvt) {
             if (loaded) return;
             loaded=true;
             iwin=i[0].contentWindow;
@@ -57,11 +57,12 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass) {
                     iwin[k]=options.globals[k];
                 }
             }*/
+            options.origLoadEvt=origLoadEvt;
             iwin.LocalBrowserInfo=new LocalBrowserInfoClass(thiz,iwin,f,options);
             iwin.LocalBrowserInfo.wrapErrorHandler(onerror);
             //idoc=iwin.document;
             return iwin.LocalBrowserInfo.loadNode(f).then(function () {
-                onload.apply(i[0],[]);
+                onload.apply(i[0],[origLoadEvt]);
             }).fail(onerror);
             /*return $.when().then(F(function () {
                 return iwin.LocalBrowserInfo.appendNode(
