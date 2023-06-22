@@ -655,6 +655,9 @@ define(function (require,exports,module) {
     });
     PL.addMonkeyPatch(Function,{
         __class__: Function,
+        new(self, ...args) {
+            return new self(...args);
+        }
         //__getTypeName__: function (){return "function";},
     });
     const orig_sort=Array.prototype.sort;
