@@ -45,7 +45,7 @@ define(function (require,exports,module) {
             floor:Math.floor.bind(Math),
             sqrt:Math.sqrt.bind(Math),
         },
-        js: root,
+        js:root
     };
     //PyX.install(PL);
     PL.lineBuf="";
@@ -54,7 +54,7 @@ define(function (require,exports,module) {
         console.log("print",arguments,a);
         var end=a.options.end!=null ? a.options.end: "\n";
         if (!PL.isinstance(end, PL.str)) {
-            throw new Error("endには文字列を指定してください"+typeof(end));
+            throw new Error("endには文字列を指定してください");
         }
         var out=a.map(PL.str).join(" ")+end;
         PL.lineBuf+=out;
@@ -62,7 +62,10 @@ define(function (require,exports,module) {
         if(lines.length>10) {
             PL.lineBuf=lines.slice(lines.length-10).join("\n");
         }
-        PL.STDOUT.append($("<span>").text(out));
+        if (PL.STDOUT) {
+            if (typeof $==="function") PL.STDOUT.append($("<span>").text(out));
+            else PL.STDOUT.append(out);
+        }
     };
     PL.input=function (s) {
         if (s) PL.print(s,PL.Option({end:""}));
