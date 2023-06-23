@@ -733,8 +733,8 @@ define(function (require,exports,module) {
                 let key=comp.key;
                 if (typeof key==="string") {
                     const ks=key;
-                    key=o=>o[ks];
-                }
+                    key=(o)=>o[ks];
+                } 
                 if (typeof key==="function") {
                     const sorted=self.map((val,idx)=>({val,idx}) ).sort((a,b)=>{
                         const va=key(a.val);
@@ -745,6 +745,8 @@ define(function (require,exports,module) {
                     }).map(r=>r.val);
                     while(self.length) self.pop();
                     while(sorted.length) self.push(sorted.shift());
+                } else {
+                    self.sort();
                 }
                 if (comp.reverse) {
                     self.reverse();
@@ -834,5 +836,12 @@ define(function (require,exports,module) {
     	//if (!idx && next<argv.length) _global.doNotification("printfの引数が多すぎます．");
     	return line;
     }
+    PL.run=function (main) {
+        requirejs(main, function () {
+            if (typeof window!=="undefined" && window.parent && window.parent.sendResult) {
+                window.parent.sendResult($("#output").text(),"py");                
+            }
+        });
+    };
     return PL;
 });
