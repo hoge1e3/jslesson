@@ -17,7 +17,7 @@ rem call babel www\js\gen\edit_concat.js --out-file www\es5\gen\edit_concat.js
 rem call babel www\js\gen\selPrj_concat.js --out-file www\es5\gen\selPrj_concat.js
 rem call babel www\js\gen\pyRun_concat.js --out-file www\es5\gen\pyRun_concat.js
 rem call babel www\js\ --out-dir www\es5\
-copy www\js\build\python\PyLib.js www\runtime\lib\python\
+rem copy www\js\build\python\PyLib.js www\runtime\lib\python\
 
 copy www\js\ctrans\ctype.js www\runtime\lib\c\
 copy www\js\ctrans\lib.js www\runtime\lib\c\

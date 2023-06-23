@@ -1,3 +1,4 @@
+//DEPRECATED. edit runtime/lib/python/PyLib.js from now on(2023/06/22)
 /* global self,global*/
 define(function (require,exports,module) {
     //var PyX=require("./PyX.js");

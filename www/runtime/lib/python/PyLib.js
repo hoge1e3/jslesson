@@ -45,7 +45,7 @@ define(function (require,exports,module) {
             floor:Math.floor.bind(Math),
             sqrt:Math.sqrt.bind(Math),
         },
-        js: root,
+        js:root
     };
     //PyX.install(PL);
     PL.lineBuf="";
@@ -54,7 +54,7 @@ define(function (require,exports,module) {
         console.log("print",arguments,a);
         var end=a.options.end!=null ? a.options.end: "\n";
         if (!PL.isinstance(end, PL.str)) {
-            throw new Error("endには文字列を指定してください"+typeof(end));
+            throw new Error("endには文字列を指定してください");
         }
         var out=a.map(PL.str).join(" ")+end;
         PL.lineBuf+=out;
@@ -62,7 +62,10 @@ define(function (require,exports,module) {
         if(lines.length>10) {
             PL.lineBuf=lines.slice(lines.length-10).join("\n");
         }
-        PL.STDOUT.append($("<span>").text(out));
+        if (PL.STDOUT) {
+            if (typeof $==="function") PL.STDOUT.append($("<span>").text(out));
+            else PL.STDOUT.append(out);
+        }
     };
     PL.input=function (s) {
         if (s) PL.print(s,PL.Option({end:""}));
@@ -652,6 +655,9 @@ define(function (require,exports,module) {
     });
     PL.addMonkeyPatch(Function,{
         __class__: Function,
+        new(self, ...args) {
+            return new self(...args);
+        }
         //__getTypeName__: function (){return "function";},
     });
     const orig_sort=Array.prototype.sort;
@@ -727,8 +733,8 @@ define(function (require,exports,module) {
                 let key=comp.key;
                 if (typeof key==="string") {
                     const ks=key;
-                    key=o=>o[ks];
-                }
+                    key=(o)=>o[ks];
+                } 
                 if (typeof key==="function") {
                     const sorted=self.map((val,idx)=>({val,idx}) ).sort((a,b)=>{
                         const va=key(a.val);
@@ -739,6 +745,8 @@ define(function (require,exports,module) {
                     }).map(r=>r.val);
                     while(self.length) self.pop();
                     while(sorted.length) self.push(sorted.shift());
+                } else {
+                    self.sort();
                 }
                 if (comp.reverse) {
                     self.reverse();
@@ -828,5 +836,12 @@ define(function (require,exports,module) {
     	//if (!idx && next<argv.length) _global.doNotification("printfの引数が多すぎます．");
     	return line;
     }
+    PL.run=function (main) {
+        requirejs(main, function () {
+            if (typeof window!=="undefined" && window.parent && window.parent.sendResult) {
+                window.parent.sendResult($("#output").text(),"py");                
+            }
+        });
+    };
     return PL;
 });
