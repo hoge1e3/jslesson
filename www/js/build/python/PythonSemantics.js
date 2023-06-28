@@ -41,11 +41,12 @@ const importable={
 };
 
 //-----
+const KIND_GLOBAL="global", KIND_NONGLOBAL="local";
 class ScopeInfo {
     constructor(scope,name,kind,declarator) {
         this.scope=scope;
         this.name=name;
-        this.kind=kind;
+        this.kind=kind;// kind is "global" only delared by statement `global x`, others are "local" even top-level 
         this.declarator=declarator;
     }
 }
@@ -69,7 +70,7 @@ const vdef={
             if (importable[nameHead].server) hint="(「サーバで実行」するとインポートできます)．";
             this.error(nameHead+" はインポートできません"+hint,nameHead);
         }*/
-        this.addScope(node.alias || nameHead,{kind:"module",vtype:importable[nameHead],node});
+        this.addScope(node.alias || nameHead,{vtype:importable[nameHead],node});
     },
     importStmt2: function (node) {
         for (let e of node.elements) this.visit(e);
@@ -77,7 +78,7 @@ const vdef={
     importElement: function (node) {
         const nameHead=node.name[0];
         this.checkImportable(nameHead);
-        this.addScope(node.alias || nameHead,{kind:"module",vtype:importable[nameHead],node});
+        this.addScope(node.alias || nameHead,{vtype:importable[nameHead],node});
     },
     fromImportStmt: function (node) {
         const nameHead=node.name[0];
@@ -86,14 +87,14 @@ const vdef={
             const names=Semantics.importable[nameHead][this.options.runAt];
             if (names && names.join) {
                 for (let localName of names) {
-                    this.addScope(localName,{kind:"local",localName});
+                    this.addScope(localName,{localName});
                 }
             } else {
                 this.error(`from ${nameHead} import * は使えません。*の部分に使いたい命令をカンマ区切りで書いてください。`,node);
             }
         } else {
             for (let localName of node.localNames.names) {
-                this.addScope(localName,{kind:"local",localName});
+                this.addScope(localName,{localName});
             }
         }
     },
@@ -105,11 +106,9 @@ const vdef={
         for (let b of node.body) {
             this.visit(b);
         }
-        this.addScope(node.name , {kind:"class",node});
+        this.addScope(node.name , {node});
     },
     define: function (node) {
-        //console.log("define",node);
-        //this.addScope(node.name,{kind:"function",node});
         for (let p of node.params.body) {
             if (p.defVal) {
                 this.visit(p.defVal.value);
@@ -117,7 +116,7 @@ const vdef={
         }
         this.newScope(()=>{
             for (let p of node.params.body) {
-                this.addScope(p.name+"",{kind:"local",node:p.name});
+                this.addScope(p.name+"",{node:p.name});
             }
             this.preScanDefs(node.body);
             for (let b of node.body) {
@@ -130,7 +129,7 @@ const vdef={
     },
     globalStmt: function (node) {
         for (let name of node.names) {
-            this.addScope(name+"",{kind:"global",node:name});
+            this.addScope(name+"",{kind:KIND_GLOBAL,node:name});
         }
     },
     tryStmt(node) {
@@ -147,7 +146,7 @@ const vdef={
             if (ep.asName) {
                 const asName=ep.asName;
                 this.newScope(()=>{
-                    this.addScope(asName.name,{kind:"local",node:asName.name});
+                    this.addScope(asName.name,{node:asName.name});
                     this.visit(node.body);
                 });
             } else this.visit(node.body);
@@ -157,31 +156,6 @@ const vdef={
         this.visit(node.body);
     },
     letStmt: function (node) {
-        /*var v=this;
-        function procLElem(node) {
-            switch (node.type) {
-                case "symbol":
-                procSym(node);
-                break;
-                case "lvalList":
-                for (let sym of node.body) {
-                    procLElem(sym);
-                }
-                break;
-                default:
-                v.visit(node);
-            }
-        }
-        function procSym(sym) {
-            const info=v.getScope(sym+"");
-            if (info && info.kind==="global") {
-
-            } else if (!info || info.scope!==v.curScope()) {
-                v.addScope(sym+"",{kind:"local",node});
-                v.anon.put(node,{needVar:true});
-            }
-        }
-        procLElem(node.left);*/
         this.procLeft(node);
         this.visit(node.right);
     },
@@ -292,7 +266,7 @@ const vdef={
             this.error("ブラウザで実行する場合，forの後ろには複数の変数を書くことができません．",node);
         }
         for(let loopVar of loopVars){
-          this.addScope(loopVar,{kind:"local",node:loopVar});
+          this.addScope(loopVar,{node:loopVar});
         }
         this.visit(node.do);
         /*this.newScope(()=>{
@@ -306,7 +280,7 @@ const vdef={
         this.visit(node.set);
         this.newScope(() => {
             for(let loopVar of loopVars){
-                this.addScope(loopVar,{kind:"local",node:loopVar});
+                this.addScope(loopVar,{node:loopVar});
             }
             this.visit(node.elem);
         });
@@ -399,7 +373,7 @@ const vdef={
     },
     lambdaExpr(node){
         this.newScope(()=>{
-            this.addScope(node.param+"",{kind:"local",node:node.param});
+            this.addScope(node.param+"",{node:node.param});
             this.visit(node.returns);
         });
     },
@@ -440,13 +414,19 @@ const Semantics= {
             return this.ctx.enter(...args);
         };
         v.rootScope={};
+        v.rootScope[Semantics.SYM_ROOT]=true;
+        v.newScopeInfo=function (scope, name, kind, declarator) {
+            const res=new ScopeInfo(scope, name, kind, declarator);
+            if (scope===v.rootScope || kind===KIND_GLOBAL) res.topLevel=true;
+            return res;
+        };
         for (let b of builtins) {
-            v.rootScope[b]=new ScopeInfo(v.rootScope,b,"function");
+            v.rootScope[b]=v.newScopeInfo(v.rootScope,b);
             v.rootScope[b].builtin=true;
         }
         for (let im of options.implicitImports||[]) {
             for (let n of im.names) {
-                v.rootScope[n]=new ScopeInfo(v.rootScope,n,"function");
+                v.rootScope[n]=v.newScopeInfo(v.rootScope,n);
                 v.rootScope[n].builtin=true;
             }
         }
@@ -461,8 +441,10 @@ const Semantics= {
             if (!info.node && name && name.type) {
                 info.node=name;
             }
-            cs[name+""]=new ScopeInfo(cs,name+"",info.kind, info.node) ;
-            return cs[name+""];
+            const nsi=v.newScopeInfo(cs,name+"",info.kind||KIND_NONGLOBAL, info.node) ;
+            cs[name+""]=nsi;
+            if (info.node) this.anon.put(info.node, {scopeInfo:nsi});
+            return nsi;
         };
         v.getScope=function (name) {
             return this.curScope()[name];
@@ -495,16 +477,18 @@ const Semantics= {
                     v.visit(node);
                 }
                 if (node.type==="classdef") {
-                    this.addScope(node.name,{kind:"class",node});
+                    this.addScope(node.name,{node});
+                    v.visit(node.name);
                 }
                 if (node.type==="define") {
-                    this.addScope(node.name,{kind:"function",node});
+                    this.addScope(node.name,{node});
+                    v.visit(node.name);
                 }
                 if (node.type==="forStmt") {
-                    this.addScope(node.name,{kind:"function",node});
+                    //this.addScope(node.name,{node});
                     var loopVars=node.vars;
                     for(let loopVar of loopVars){
-                      this.addScope(loopVar,{kind:"local",node:loopVar});
+                      this.addScope(loopVar,{node:loopVar});
                     }
                 }
                 if (node.type==="letStmt") {
@@ -531,20 +515,22 @@ const Semantics= {
                 }
             }
             function procSym(sym) {
-                const info=v.getScope(sym+"");
-                if (info && info.kind==="global") {
+                let info=v.getScope(sym+"");
+                if (info && info.kind===KIND_GLOBAL) {
                 } else if (!info || info.scope!==v.curScope()) {
-                    v.addScope(sym+"",{kind:"local",node});
-                    v.anon.put(node,{needVar:true});
+                    info=v.addScope(sym+"",{node:sym});
+                    v.anon.put(node,{needVar:v.curScope()!==v.rootScope});
                 }
-                v.anon.put(node,{isLeft:true});
+                v.anon.put(sym,{isLeft:true, scopeInfo: info});
             }
             procLElem(node.left);
         };
-        v.newScope(()=>v.visit(node));
+        //v.newScope(()=>v.visit(node));
+        v.enter({scope:v.rootScope}, ()=>v.visit(node));
         return v;
     },
     importable
 };
+Semantics.SYM_ROOT=Symbol("rootScope");
 return Semantics;
 });

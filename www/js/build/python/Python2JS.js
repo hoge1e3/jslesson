@@ -1,6 +1,7 @@
 define(["Visitor","IndentBuffer","context","PyLib","PythonSemantics"],
 function (Visitor,IndentBuffer,context,PL,S) {
     var PYLIB="PYLIB";
+    const TOP="__top";
     const vdef={
         program: function (node) {
             this.printf("%s.LoopChecker.reset();%n",PYLIB);
@@ -9,10 +10,12 @@ function (Visitor,IndentBuffer,context,PL,S) {
         classdef: function (node) {
             const sp=b=>node.extends? this.visit(node.extends.super) : b.printf("Object");
             this.ctx.enter({inClass:node},()=>{
-                this.printf("var %s=%s.class(%f,{%{"+
+                let na=this.anon.get(node.name);
+                const topLevel=(na && na.scopeInfo && na.scopeInfo.topLevel);
+                this.printf("%s%s=%s.class(%f,{%{"+
                     "%s:'%s',%j"+
                 "%}});",
-                node.name, PYLIB,sp,
+                (topLevel?"":"var "), (topLevel?TOP+".":"")+node.name, PYLIB, sp,
                     "CLASSNAME",node.name, [",",node.body.filter(b=>b.type==="define")]);
             });
         },//
@@ -20,7 +23,12 @@ function (Visitor,IndentBuffer,context,PL,S) {
             if (this.ctx.inClass) {
                 this.printf("%n%s: function %v{%{%v%}}",node.name,node.params,node.body);
             } else {
-                this.printf("function %s%v{%{%v%}}%n",node.name,node.params,node.body);
+                let na=this.anon.get(node.name);
+                if (na && na.scopeInfo && na.scopeInfo.topLevel) {
+                    this.printf("%s.%s=function %v{%{%v%}}%n",TOP,node.name, node.params,node.body);
+                } else {
+                    this.printf("function %s%v{%{%v%}}%n",node.name,node.params,node.body);
+                }
 
             }
         },
@@ -358,12 +366,14 @@ function (Visitor,IndentBuffer,context,PL,S) {
                 this.printf(this.convertSymbol[node.text]);
             } else {
                 const a=this.anon.get(node);
+                const pre=(a.scopeInfo && a.scopeInfo.topLevel ? TOP+".":"");
+                const nex=pre+node;
                 if (a.scopeInfo && !a.isLeft) {
                     // right val
-                    this.printf("%s.checkSet(%s,'%s')",PYLIB, node+"", node+"");
+                    this.printf("%s.checkSet(%s,'%s')",PYLIB, nex, node+"");
                 } else {
                     // left val
-                    this.printf("%s",node+"");
+                    this.printf("%s",nex);
                 }
             }
         },
@@ -424,9 +434,10 @@ function (Visitor,IndentBuffer,context,PL,S) {
         if (options.injectBefore) {
             v.printf(options.injectBefore);
         }
-        for (let n of PL.builtins) {
+        /*for (let n of PL.builtins) {
             v.printf("var %s=%s.%s;%n",n,PYLIB,n);
-        }
+        }*/
+        v.printf("var %s=Object.create(%s);%n", TOP, PYLIB);
         v.visit(node);
         if (options.injectAfter) {
             v.printf(options.injectAfter);
