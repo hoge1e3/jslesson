@@ -1,8 +1,8 @@
 import bawrapper
 
-p_list=[[ "田中" , 30 , 50 , 80 ],[ "井上" , 80 , 20 , 40 ],[ "鈴木" , 80 , 30 , 40 ],[ "斉藤" , 70 , 78 , 76 ]]
+p_list=[["田中", 30 , 50 , 80 ],["井上", 80 , 20 , 40 ],["鈴木", 80 , 30 , 40 ],["斉藤", 70 , 78 , 76 ]]
 
-sub_list=[ "国語" , "算数" , "社会" ]
+sub_list=["国語","算数","社会"]
 
 
 for i in bawrapper._range( 3 ):
@@ -14,4 +14,4 @@ for i in bawrapper._range( 3 ):
     total=total + v
   
   ave=total / bawrapper._len(p_list)
-  print(sub_list[i] +  "="  + bawrapper._str(ave))
+  print(sub_list[i] + "=" + bawrapper._str(ave))

@@ -9,9 +9,9 @@ def main():
 def tasu(a,b):
   return a + b
 def sub1():
-  print( "sub1" )
+  print("sub1")
 def sub2():
-  print( "sub2" )
+  print("sub2")
 
 
 main()
