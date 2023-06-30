@@ -70,6 +70,7 @@ define(function (require,exports,module) {
     PL.input=function (s) {
         if (s) PL.print(s,PL.Option({end:""}));
         var r=PL.STDIN ? PL.STDIN.shift() : prompt(PL.lineBuf);
+        if (r==null) r="";
         PL.LoopChecker.reset();
         PL.print(r);
         return r;
@@ -522,7 +523,10 @@ define(function (require,exports,module) {
         },
         __setitem__:function (self,key, value) {
             self[key]=value;
-        }
+        },
+        __contains__(self, elem) {
+            return self.hasOwnProperty(elem);
+        },
         //____: function (self,other) { return selfother;},
     });
     PL.addMonkeyPatch(Number,{
