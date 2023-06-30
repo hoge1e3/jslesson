@@ -1,0 +1,21 @@
+<script src="../js/lib/jquery-1.12.1.js"></script>
+<pre id="output"></pre>
+<pre id="stdin" style="display: none;">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre>
+<script src="../js/lib/require.js"></script>
+<script>
+  location.href.replace(/file=(.*)/,(_, file) =>{ 
+     $("<script>").attr({src:file}).appendTo("body");
+  });
+</script>
+<!--script src="calorie.js"></script-->
+
