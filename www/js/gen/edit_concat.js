@@ -9153,6 +9153,7 @@ define('LocalBrowserInfoClass',["FS","Klass","source-map","DeferredUtil"], funct
 			this.options=options||{};
 			this.window=window;
 			this.params=options.params||{};
+			this.origLoadEvt=options.origLoadEvt||{};
 			this.__file__=file;
 			this.file=file;
 			this.base=this.file.up();
@@ -9289,12 +9290,23 @@ define('LocalBrowserInfoClass',["FS","Klass","source-map","DeferredUtil"], funct
 		    var self=this;
 		    var iwin=this.window;
 		    var idoc=iwin.document;
+			let loadEvents=[];
+			iwin.addEventListener_old=iwin.addEventListener;
+            iwin.addEventListener=function (type,...args){
+                if (type==="load") {
+                    loadEvents.push(args[0]);
+                    return;
+                }
+                return iwin.addEventListener_old(type,...args);
+            };
+			let origLoadEvt=this.origLoadEvt;
             return $.when().then(function () {
                 return self.appendNode(
                     src.getElementsByTagName("html")[0],
                     idoc.getElementsByTagName("html")[0]);
             }).then(function () {
-                if(typeof (iwin.onload)==="function") iwin.onload();
+				for (let h of loadEvents) h.apply(iwin,[origLoadEvt]);
+                if(typeof (iwin.onload)==="function") iwin.onload(origLoadEvt);
             });
 		},
 		appendNode:function appendNode(src,dst) {
@@ -9409,7 +9421,7 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass) {
         var thiz=this;
         window.ifrm=i[0];
         var loaded;
-        i.on("load",function () {
+        i.on("load",function (origLoadEvt) {
             if (loaded) return;
             loaded=true;
             iwin=i[0].contentWindow;
@@ -9418,11 +9430,12 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass) {
                     iwin[k]=options.globals[k];
                 }
             }*/
+            options.origLoadEvt=origLoadEvt;
             iwin.LocalBrowserInfo=new LocalBrowserInfoClass(thiz,iwin,f,options);
             iwin.LocalBrowserInfo.wrapErrorHandler(onerror);
             //idoc=iwin.document;
             return iwin.LocalBrowserInfo.loadNode(f).then(function () {
-                onload.apply(i[0],[]);
+                onload.apply(i[0],[origLoadEvt]);
             }).fail(onerror);
             /*return $.when().then(F(function () {
                 return iwin.LocalBrowserInfo.appendNode(
@@ -9943,7 +9956,8 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
                     ["div",{$var:"browser"}],
                     (!options.targetDOM? ["div",{$var:"buttonRow"},
                         ["button", {type:"button",$var:"OKButton", on:{click: res.close}}, "閉じる"],
-                        ["button", {type:"button",$var:"dlOut", on:{click: res.dlOut}}, "出力を共有……"]
+                        ["button", {type:"button",$var:"cpOut", on:{click: res.cpOut}}, "出力をコピー"],
+                        ["button", {type:"button",$var:"dlOut", on:{click: res.dlOut}}, "出力を共有……"],
                     ]:""),
                     (true?"":["button", {type:"button",$var:"WButton", on:{click: function () {
                         if (res.hasLocalBrowserWindow()) res.lbw.close();
@@ -10000,6 +10014,13 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
         });
         //if (res.da) res.da.handleResize();
         return res.d;
+    };
+    res.cpOut=function () {
+        const w=res.b.iframe[0].contentWindow;
+        const d=w.document;
+        const c=d.querySelector("#console") || d.body;
+        
+        navigator.clipboard.writeText(c.innerText);
     };
     res.dlOut=function () {
         const w=res.b.iframe[0].contentWindow;
@@ -17336,6 +17357,7 @@ function ready() {
             alert("実行したいファイルを開いてください。");
             return;
         }
+        let syncBefore=options.runAt==="server";
         var newwnd;
         if (RunDialog2.hasLocalBrowserWindow()) {
             newwnd=window.open("about:blank","LocalBrowserWindow"+Math.random(),"menubar=no,toolbar=no,width=500,height=500");
@@ -17361,6 +17383,9 @@ function ready() {
         };
         stop();
         save();
+        if (syncBefore) {
+            await sync();
+        }
         // display=none
         $("[name=runtimeErrorDialog]").parent().css("display","none");
         displayMode("run");
@@ -17407,7 +17432,7 @@ function ready() {
             }
         } finally {
             SplashScreen.hide();
-            return sync();
+            return syncBefore ? true : sync();
         }
     }
     window.moveFromFrame=function (name) {
