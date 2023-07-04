@@ -8,7 +8,7 @@ for i in bawrapper._range( 1000 ):
   gensyousuu=n[i] * (n[i] / capacity) * zouka
   n.append(n[i] + (zoukasuu - gensyousuu))
 plt.plot(n)
-plt.title( "number of life" )
-plt.xlabel( "time" )
-plt.ylabel( "number" )
+plt.title("number of life")
+plt.xlabel("time")
+plt.ylabel("number")
 plt.show()

@@ -812,6 +812,7 @@ function ready() {
             alert("実行したいファイルを開いてください。");
             return;
         }
+        let syncBefore=options.runAt==="server";
         var newwnd;
         if (RunDialog2.hasLocalBrowserWindow()) {
             newwnd=window.open("about:blank","LocalBrowserWindow"+Math.random(),"menubar=no,toolbar=no,width=500,height=500");
@@ -837,6 +838,9 @@ function ready() {
         };
         stop();
         save();
+        if (syncBefore) {
+            await sync();
+        }
         // display=none
         $("[name=runtimeErrorDialog]").parent().css("display","none");
         displayMode("run");
@@ -883,7 +887,7 @@ function ready() {
             }
         } finally {
             SplashScreen.hide();
-            return sync();
+            return syncBefore ? true : sync();
         }
     }
     window.moveFromFrame=function (name) {

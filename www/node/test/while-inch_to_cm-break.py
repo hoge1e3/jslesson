@@ -1,8 +1,10 @@
-while True:
+c=0
+while c<10:
     print(" --- ")
     s = input("インチは？")
     if s == "": break # 空行なら脱出
     inch = float(s)
     cm = inch * 2.54
     print(str(cm)+"センチです")
+    c+=1
 

@@ -329,6 +329,9 @@ function (Visitor,IndentBuffer,context,PL,S) {
         passStmt: function () {
             this.printf(";");
         },
+        semicolon(node) {
+            this.printf(";");
+        },
         lambdaExpr(node) {
             this.printf("((%v)=>%v)",node.param, node.returns);
         },

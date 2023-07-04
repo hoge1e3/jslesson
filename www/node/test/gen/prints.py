@@ -1,6 +1,6 @@
 import bawrapper
 def a():
-  print( "---" )
+  print("---")
   
 a()
 print( 3 )

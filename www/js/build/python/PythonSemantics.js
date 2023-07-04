@@ -377,6 +377,9 @@ const vdef={
             this.visit(node.returns);
         });
     },
+    semicolon(node) {
+
+    },
     "literal": function (node) {
 
     },

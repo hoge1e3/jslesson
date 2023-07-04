@@ -23,7 +23,7 @@ function (Grammar,Pos2RC/*,TError*/) {
     const resvh={};
     for(let r of reserved) resvh[r]=r;
     const puncts=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
-      ">","<","=",".",":","+","-","*","/","%","(",")","[","]","{","}",","];
+      ">","<","=",".",":","+","-","*","/","%","(",")","[","]","{","}",",",";"];
     const tdef={
         tokens: [{"this":tokens.rep0("token")}, /^\s*/ ,P.StringParser.eof],
         //token: tokens.or(...reserved.concat(["quote","symbol","number","qsymbol",":"])),
@@ -210,6 +210,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         //$space: spc,
         program: [{body:rep0(or("stmt","classdef"))},P.TokensParser.eof],
         dedentOrEOT: or("dedent",P.TokensParser.eof),
+        nodentOrEOT: or("nodent",P.TokensParser.eof),
         classdef: ["class",{name:"symbol"},{"extends":opt("extends")},":indent",
             {body:"stmtList"},
         "dedentOrEOT"],
@@ -224,10 +225,13 @@ function (Grammar,Pos2RC/*,TError*/) {
         //nodedent: [rep0("nodent"),"dedent"],
         //defList: rep0("define"),
         stmtList: rep1("stmt"),
+        oneLineStmtList: rep1("oneLineStmt"),
         // why printStmt -> printStmt3?
         // because if parse print(x), as printStmt3, comma remains unparsed.
-        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt2","fromImportStmt","globalStmt","tryStmt","nodent"),
+        stmt: or("oneLineStmt","nodent"),
+        oneLineStmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt2","fromImportStmt","globalStmt","tryStmt","semicolon"),
         fromImportStmt: ["from",{name:"packageName"},"import",{localNames:"localNames"}],
+        semicolon: [tk(";")],
         localNames: [{names:or(sep1("symbol",","),"*")}],
         importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
         importStmt2: ["import",{elements:sep1("importElement",",")}],
@@ -315,7 +319,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         // x:y:z
         slice111: [{start:"expr"},":",{stop:"expr"},":",{step:"expr"}],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
-        block: [":indent",{body:"stmtList"},"dedentOrEOT"],
+        block: or([":",{body:"oneLineStmtList"},"nodentOrEOT"], [":indent",{body:"stmtList"},"dedentOrEOT"]),
         elem: or("symbol","number","None","bool","listComprehension","array","dict","literal3","literal","paren","superCall","lambdaExpr"),
         lambdaExpr: ["lambda",{param:"symbol"},":",{returns:"expr"}],
         superCall: ["super","(",")"],
