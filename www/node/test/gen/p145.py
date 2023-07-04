@@ -17,7 +17,7 @@ for i in bawrapper._range( 1000 ):
   if y[i] <  0 :
     break
 plt.plot(x,y)
-plt.title( "parabollic motion" )
-plt.xlabel( "distance" )
-plt.ylabel( "height" )
+plt.title("parabollic motion")
+plt.xlabel("distance")
+plt.ylabel("height")
 plt.show()

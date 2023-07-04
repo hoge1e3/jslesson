@@ -1629,7 +1629,7 @@ function (Grammar,Pos2RC/*,TError*/) {
     const resvh={};
     for(let r of reserved) resvh[r]=r;
     const puncts=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
-      ">","<","=",".",":","+","-","*","/","%","(",")","[","]","{","}",","];
+      ">","<","=",".",":","+","-","*","/","%","(",")","[","]","{","}",",",";"];
     const tdef={
         tokens: [{"this":tokens.rep0("token")}, /^\s*/ ,P.StringParser.eof],
         //token: tokens.or(...reserved.concat(["quote","symbol","number","qsymbol",":"])),
@@ -1816,6 +1816,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         //$space: spc,
         program: [{body:rep0(or("stmt","classdef"))},P.TokensParser.eof],
         dedentOrEOT: or("dedent",P.TokensParser.eof),
+        nodentOrEOT: or("nodent",P.TokensParser.eof),
         classdef: ["class",{name:"symbol"},{"extends":opt("extends")},":indent",
             {body:"stmtList"},
         "dedentOrEOT"],
@@ -1830,10 +1831,13 @@ function (Grammar,Pos2RC/*,TError*/) {
         //nodedent: [rep0("nodent"),"dedent"],
         //defList: rep0("define"),
         stmtList: rep1("stmt"),
+        oneLineStmtList: rep1("oneLineStmt"),
         // why printStmt -> printStmt3?
         // because if parse print(x), as printStmt3, comma remains unparsed.
-        stmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt2","fromImportStmt","globalStmt","tryStmt","nodent"),
+        stmt: or("oneLineStmt","nodent"),
+        oneLineStmt: or("define","printStmt","printStmt3","ifStmt","whileStmt","breakStmt","continueStmt","letStmt","exprStmt","passStmt","forStmt","returnStmt","delStmt","importStmt2","fromImportStmt","globalStmt","tryStmt","semicolon"),
         fromImportStmt: ["from",{name:"packageName"},"import",{localNames:"localNames"}],
+        semicolon: [tk(";")],
         localNames: [{names:or(sep1("symbol",","),"*")}],
         importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
         importStmt2: ["import",{elements:sep1("importElement",",")}],
@@ -1921,7 +1925,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         // x:y:z
         slice111: [{start:"expr"},":",{stop:"expr"},":",{step:"expr"}],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
-        block: [":indent",{body:"stmtList"},"dedentOrEOT"],
+        block: or([":",{body:"oneLineStmtList"},"nodentOrEOT"], [":indent",{body:"stmtList"},"dedentOrEOT"]),
         elem: or("symbol","number","None","bool","listComprehension","array","dict","literal3","literal","paren","superCall","lambdaExpr"),
         lambdaExpr: ["lambda",{param:"symbol"},":",{returns:"expr"}],
         superCall: ["super","(",")"],
@@ -2118,7 +2122,8 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
             ceil:Math.ceil.bind(Math),
             floor:Math.floor.bind(Math),
             sqrt:Math.sqrt.bind(Math),
-        }
+        },
+        js:root
     };
     //PyX.install(PL);
     PL.lineBuf="";
@@ -2135,11 +2140,15 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         if(lines.length>10) {
             PL.lineBuf=lines.slice(lines.length-10).join("\n");
         }
-        PL.STDOUT.append($("<span>").text(out));
+        if (PL.STDOUT) {
+            if (typeof $==="function") PL.STDOUT.append($("<span>").text(out));
+            else PL.STDOUT.append(out);
+        }
     };
     PL.input=function (s) {
         if (s) PL.print(s,PL.Option({end:""}));
-        var r=prompt(PL.lineBuf);
+        var r=PL.STDIN ? PL.STDIN.shift() : prompt(PL.lineBuf);
+        if (r==null) r="";
         PL.LoopChecker.reset();
         PL.print(r);
         return r;
@@ -2266,6 +2275,10 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
             if (c.length>0) {
                 PL.STDOUT=c;
             }
+            c=$("#stdin");
+            if (c.length>0) {
+                PL.STDIN=c.text().split("\n");
+            }
         });
     }
     PL.Option=function (o){
@@ -2384,7 +2397,9 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
     PL.int=function (s) {
         const v=s-0;
         if (v!==v) throw new Error(`${s} は intに変換できません`);
-        if (s.match(/\./)) throw new Error(`${s} は小数点を含んでいるのでintに変換できません`);
+        if (typeof s==="string") {
+            if (s.match(/\./)) throw new Error(`${s} は小数点を含んでいるのでintに変換できません`);
+        }
         return v;
     };
     PL.super=function(klass,self) {
@@ -2586,7 +2601,10 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         },
         __setitem__:function (self,key, value) {
             self[key]=value;
-        }
+        },
+        __contains__(self, elem) {
+            return self.hasOwnProperty(elem);
+        },
         //____: function (self,other) { return selfother;},
     });
     PL.addMonkeyPatch(Number,{
@@ -2623,9 +2641,11 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         __mul__: function (self,other) {
             switch (typeof other) {
             case "number":
-                var res="";
+                let res="";
                 for (;other;other--) res+=self;
                 return res;
+            case "boolean":
+                return other ? self+"" :"";
             default:
                 PL.invalidOP(self, "__mul__",other);
             }
@@ -2671,7 +2691,27 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
             });
         }
     }));
-    
+    PL.addMonkeyPatch(Number, {
+        __class__: Number,
+        __add__(self,other) {
+            if (typeof u(other)==="string") {
+                throw new Error("数値に文字列を追加できません．左辺をstr()で変換するか，右辺をint()またはfloat()で変換する必要があります．");
+            }
+            return self+other;
+        },
+        __mul__(self,other) {
+            switch (typeof other) {
+            case "number":
+                return self*other;
+            case "boolean":
+                return other ? self-0 :0;
+            case "string":
+                return other.__mul__(self);
+            default:
+                PL.invalidOP(self, "__mul__",other);
+            }
+        },  
+    });
     function otherShouldString(k) {
         return function (self,other) {
             if (typeof u(other)!=="string") {
@@ -2686,11 +2726,25 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         __str__(self) {
             //  self is wrapped. always trusy
             return self==true?"True":"False";
+        },
+        __mul__(self, other) {
+            switch (typeof other) {
+                case "number":
+                case "string":
+                    return other.__mul__(self);
+                case "boolean":
+                    return PL.int(self)*PL.int(other);
+                default:
+                    PL.invalidOP(self, "__mul__",other);
+            }
         }
 
     });
     PL.addMonkeyPatch(Function,{
         __class__: Function,
+        new(self, ...args) {
+            return new self(...args);
+        }
         //__getTypeName__: function (){return "function";},
     });
     const orig_sort=Array.prototype.sort;
@@ -2766,8 +2820,8 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
                 let key=comp.key;
                 if (typeof key==="string") {
                     const ks=key;
-                    key=o=>o[ks];
-                }
+                    key=(o)=>o[ks];
+                } 
                 if (typeof key==="function") {
                     const sorted=self.map((val,idx)=>({val,idx}) ).sort((a,b)=>{
                         const va=key(a.val);
@@ -2778,6 +2832,8 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
                     }).map(r=>r.val);
                     while(self.length) self.pop();
                     while(sorted.length) self.push(sorted.shift());
+                } else {
+                    self.sort();
                 }
                 if (comp.reverse) {
                     self.reverse();
@@ -2789,7 +2845,13 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         __contains__(self, elem) {
             return self.indexOf(elem)>=0;
         },
-
+        remove(self, item) {
+            let i=self.indexOf(item);
+            if (i<0) {
+                throw new Error("指定された要素は配列にありません");
+            }
+            self.splice(i,1);
+        },
     });
 
     //---
@@ -2797,6 +2859,7 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
     "min","max","list","isinstance","zip",
     "fillRect","setColor","setTimeout","clearRect","clear"];
     root.PYLIB=PL;
+    PL.root=root;
 
     function sprintfJS() {
     	//  input -> jsString  output->jsString
@@ -2860,6 +2923,13 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
     	//if (!idx && next<argv.length) _global.doNotification("printfの引数が多すぎます．");
     	return line;
     }
+    PL.run=function (main) {
+        requirejs(main, function () {
+            if (typeof window!=="undefined" && window.parent && window.parent.sendResult) {
+                window.parent.sendResult($("#output").text(),"py");                
+            }
+        });
+    };
     return PL;
 });
 
@@ -2892,8 +2962,8 @@ define('Annotation',['require','exports','module'],function (require,exports,mod
 });
 
 // MINIJAVA
-define ('PythonSemantics',["Visitor","context","PyLib","Annotation"],
-function (Visitor,context,PyLib,Annotation) {
+define ('PythonSemantics',["Visitor","context","PyLib","Annotation","root"],
+function (Visitor,context,PyLib,Annotation,root) {
 const builtins=PyLib.builtins;//["print","range","int","str","float","input","len"];
 builtins.push("open");
 const importable={
@@ -2931,6 +3001,7 @@ const importable={
     time:{wrapper:true,server:true},
     badb:{server:true},
     cdb:{server:true},
+    js:{browser: Object.keys(root)}
     // turtle: js?
 };
 
@@ -3296,6 +3367,9 @@ const vdef={
             this.addScope(node.param+"",{kind:"local",node:node.param});
             this.visit(node.returns);
         });
+    },
+    semicolon(node) {
+
     },
     "literal": function (node) {
 
@@ -7030,7 +7104,10 @@ function (Visitor,IndentBuffer,assert) {
         },
         "literal":function (node) {
             this.printf("%s",node+"");
-        }
+        },
+        semicolon(node) {
+            this.printf(";");
+        },
     };
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
       ">","<","=",".",":","+","-","*","/","%","(",")",",","in",
@@ -7389,6 +7466,9 @@ function (Visitor,IndentBuffer,context,PL,S) {
         passStmt: function () {
             this.printf(";");
         },
+        semicolon(node) {
+            this.printf(";");
+        },
         lambdaExpr(node) {
             this.printf("((%v)=>%v)",node.param, node.returns);
         },
@@ -7599,7 +7679,7 @@ function (PP,S,G,J,PL,TError,jshint) {
             console.log(genj);
             var f=new jshint.Function(genj);
             console.log(f());
-            if (window.parent && window.parent.sendResult) {
+            if (typeof window!=="undefined" && window.parent && window.parent.sendResult) {
                 window.parent.sendResult($("#output").text(),"py");                
             }
         } catch(e) {

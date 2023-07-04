@@ -242,7 +242,10 @@ function (Visitor,IndentBuffer,assert) {
         },
         "literal":function (node) {
             this.printf("%s",node+"");
-        }
+        },
+        semicolon(node) {
+            this.printf(";");
+        },
     };
     const verbs=[">=","<=","==","!=","+=","-=","*=","/=","%=","**","//",
       ">","<","=",".",":","+","-","*","/","%","(",")",",","in",
