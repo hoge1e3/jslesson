@@ -233,7 +233,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         fromImportStmt: ["from",{name:"packageName"},"import",{localNames:"localNames"}],
         semicolon: [tk(";")],
         localNames: [{names:or(sep1("symbol",","),"*")}],
-        importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
+        //importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
         importStmt2: ["import",{elements:sep1("importElement",",")}],
         importElement: [{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
         packageName: sep1("symbol","."),
@@ -249,7 +249,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         passStmt: ["pass"],
         breakStmt: ["break"],
         continueStmt: ["continue"],
-        forStmt: ["for",{vars:sep1("symbol",",")},"in",{set:"expr"},{do:"block"}],
+        forStmt: ["for",{vars:"lval"},"in",{set:"expr"},{do:"block"}],
         letStmt: [{left:"lval"},{op:or("+=","-=","*=","/=","%=","=")},{right:"exprList"}],
         globalStmt: ["global",{names:sep1("symbol",",")}],
         // print(x,y) parsed as: printStmt(2) with tuple

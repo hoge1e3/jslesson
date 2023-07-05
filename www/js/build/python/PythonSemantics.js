@@ -57,33 +57,23 @@ const vdef={
             this.visit(b);
         }
     },
-    importStmt: function (node) {
-        const nameHead=node.name[0];
-        this.checkImportable(nameHead);
-        /*if (!importable[nameHead]) {
-            this.error(nameHead+" はインポートできません",nameHead);
-        }
-        if (this.options.runAt && !importable[nameHead][this.options.runAt]) {
-            let hint="．";
-            //console.log("IMP",node);
-            if (importable[nameHead].browser) hint="(「ブラウザで実行」するとインポートできます)．";
-            if (importable[nameHead].server) hint="(「サーバで実行」するとインポートできます)．";
-            this.error(nameHead+" はインポートできません"+hint,nameHead);
-        }*/
-        this.addScope(node.alias || nameHead,{vtype:importable[nameHead],node});
-    },
     importStmt2: function (node) {
         for (let e of node.elements) this.visit(e);
     },
     importElement: function (node) {
         const nameHead=node.name[0];
         this.checkImportable(nameHead);
-        this.addScope(node.alias || nameHead,{vtype:importable[nameHead],node});
+        const sym=node.alias || nameHead;
+        this.addScope(sym,{vtype:importable[nameHead],node:sym});
+        this.anon.put(sym, {isLeft: true});
     },
     fromImportStmt: function (node) {
         const nameHead=node.name[0];
         this.checkImportable(nameHead);
         if (node.localNames.names.text==="*") {
+            if (this.curScope()!==this.rootScope) {
+                this.error("import * はトップレベルにしか書けません．");
+            }
             const names=Semantics.importable[nameHead][this.options.runAt];
             if (names && names.join) {
                 for (let localName of names) {
@@ -94,7 +84,8 @@ const vdef={
             }
         } else {
             for (let localName of node.localNames.names) {
-                this.addScope(localName,{localName});
+                this.addScope(localName,{localName, node:localName});
+                this.anon.put(localName, {isLeft: true});
             }
         }
     },
@@ -115,13 +106,19 @@ const vdef={
             }
         }
         this.newScope(()=>{
+            const s=this.curScope();
             for (let p of node.params.body) {
                 this.addScope(p.name+"",{node:p.name});
+                this.anon.put(p.name,{isLeft: true});
             }
+            const params=Object.keys(s);
             this.preScanDefs(node.body);
             for (let b of node.body) {
                 this.visit(b);
             }
+            const lets=Object.keys(s).filter((k)=>params.indexOf(k)<0);
+            this.anon.put(node, {lets});
+            //console.log("LETS", node, lets);
         });
     },
     exprStmt: function (node) {
@@ -156,7 +153,7 @@ const vdef={
         this.visit(node.body);
     },
     letStmt: function (node) {
-        this.procLeft(node);
+        this.procLeft(node.left);
         this.visit(node.right);
     },
     ifStmt: function (node) {
@@ -265,9 +262,10 @@ const vdef={
         if (loopVars.length>1 && this.options.runAt=="browser") {
             this.error("ブラウザで実行する場合，forの後ろには複数の変数を書くことができません．",node);
         }
-        for(let loopVar of loopVars){
+        this.procLeft(loopVars);
+        /*for(let loopVar of loopVars){
           this.addScope(loopVar,{node:loopVar});
-        }
+        }*/
         this.visit(node.do);
         /*this.newScope(()=>{
             this.addScope(loopVar,{type:"local"});
@@ -374,6 +372,7 @@ const vdef={
     lambdaExpr(node){
         this.newScope(()=>{
             this.addScope(node.param+"",{node:node.param});
+            this.anon.put(node.param, {isLeft: true});
             this.visit(node.returns);
         });
     },
@@ -490,17 +489,37 @@ const Semantics= {
                 if (node.type==="forStmt") {
                     //this.addScope(node.name,{node});
                     var loopVars=node.vars;
-                    for(let loopVar of loopVars){
+                    this.procLeft(loopVars, true);
+                    /*for(let loopVar of loopVars){
                       this.addScope(loopVar,{node:loopVar});
-                    }
+                    }*/
                 }
                 if (node.type==="letStmt") {
-                    this.procLeft(node, true);
+                    this.procLeft(node.left, true);
+                }
+                if (node.type==="importStmt2") {
+                    /*for (let e of node.elemtns) {
+                        let name=e.name;
+                        let nameHead=name[0];
+                        let alias=e.alias;
+                        if (alias) {
+                            this.addScope(alias.name,{node:alias});
+                        } else {
+                            this.addScope(name[0]+"",{node:name[0]});
+                        }
+                    }*/
+                    this.visit(node);
+                }
+                if (node.type==="fromImportStmt") {
+                    /*for (let name of node.localNames) {
+
+                    }*/
+                    this.visit(node);
                 }
             }
         };
-        v.procLeft=function (letStmt, isPrescan) {
-            const node=letStmt;
+        v.procLeft=function (lval, isPrescan) {
+            //const node=letStmt;
             var v=this;
             function procLElem(node) {
                 switch (node.type) {
@@ -522,11 +541,11 @@ const Semantics= {
                 if (info && info.kind===KIND_GLOBAL) {
                 } else if (!info || info.scope!==v.curScope()) {
                     info=v.addScope(sym+"",{node:sym});
-                    v.anon.put(node,{needVar:v.curScope()!==v.rootScope});
+                    //v.anon.put(node,{needVar:v.curScope()!==v.rootScope});
                 }
                 v.anon.put(sym,{isLeft:true, scopeInfo: info});
             }
-            procLElem(node.left);
+            procLElem(lval);
         };
         //v.newScope(()=>v.visit(node));
         v.enter({scope:v.rootScope}, ()=>v.visit(node));

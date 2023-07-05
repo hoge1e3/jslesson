@@ -20,16 +20,19 @@ function (Visitor,IndentBuffer,context,PL,S) {
             });
         },//
         define: function (node) {
+            const nan=this.anon.get(node);
+            let lets=nan.lets;
+            if (!lets) {
+                console.log("LETSNO", nan);
+            }
+            if (lets.length==0) lets="";
+            else lets=`let ${lets.join(",")};`;
             if (this.ctx.inClass) {
-                this.printf("%n%s: function %v{%{%v%}}",node.name,node.params,node.body);
+                this.printf("%n%s: function %v{%{%s%n%v%}}",node.name,node.params,lets, node.body);
             } else {
                 let na=this.anon.get(node.name);
-                if (na && na.scopeInfo && na.scopeInfo.topLevel) {
-                    this.printf("%s.%s=function %v{%{%v%}}%n",TOP,node.name, node.params,node.body);
-                } else {
-                    this.printf("function %s%v{%{%v%}}%n",node.name,node.params,node.body);
-                }
-
+                let prefix=(na && na.scopeInfo && na.scopeInfo.topLevel) ? TOP+".": "";
+                this.printf("%s%s=function %v{%{%s%n%v%}};%n", prefix ,node.name, node.params, lets, node.body);
             }
         },
         paramList: function (node) {
@@ -45,16 +48,6 @@ function (Visitor,IndentBuffer,context,PL,S) {
         defVal: function (node) {
             this.printf("%v",node.value);
         },
-        importStmt: function (node) {
-            var url=this.options.pyLibPath+"/py_"+node.name+".js";
-            if (node.alias) {
-                this.printf("var %s=require('%s').install(%s);", node.alias, url, PYLIB);
-                //this.printf("var %s=%s.import('%v');",node.alias,PYLIB,node.name);
-            } else {
-                this.printf("var %s=require('%s').install(%s);", node.name, url, PYLIB);
-                //this.printf("var %s=%s.import('%v');",node.name,PYLIB,node.name);
-            }//this.printf("%n");
-        },
         importStmt2: function (node) {
             for (let e of node.elements) {
                 this.visit(e);
@@ -63,18 +56,17 @@ function (Visitor,IndentBuffer,context,PL,S) {
         importElement: function (node) {
             var url=this.options.pyLibPath+"/py_"+node.name+".js";
             if (node.alias) {
-                this.printf("var %s=require('%s').install(%s);", node.alias, url, PYLIB);
+                this.printf("%v=require('%s').install(%s);", node.alias, url, PYLIB);
             } else {
-                this.printf("var %s=require('%s').install(%s);", node.name, url, PYLIB);
+                this.printf("%v=require('%s').install(%s);", node.name, url, PYLIB);
             }
         },
         fromImportStmt: function (node) {
             var url=this.options.pyLibPath+"/py_"+node.name+".js";
             if (node.localNames.names.text==="*"){
-                this.printf("var {%s}=require('%s').install(%s);",
-                S.importable[node.name].browser.join(","), url, PYLIB);
+                this.printf("Object.assign(%s, require('%s').install(%s));", TOP, url, PYLIB);
             } else {
-                this.printf("var {%j}=require('%s').install(%s);", [",",node.localNames.names], url, PYLIB);
+                this.printf("{%j}=require('%s').install(%s);", [",",node.localNames.names], url, PYLIB);
             }
         },
         exprStmt: function (node) {
@@ -107,7 +99,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
             this.printf("else %v",node.then);
         },
         forStmt: function (node) {
-            this.printf("var %j;%nfor (%v of %v) %v", [",",node.vars],node.vars[0], node.set, node.do);
+            this.printf("for (%v of %v) %v", node.vars, node.set, node.do);
         },
         listComprehension: function (node) {
             const vn=node.vars[0];
@@ -115,9 +107,9 @@ function (Visitor,IndentBuffer,context,PL,S) {
                        PYLIB, vn, node.elem, node.set);
         },
         letStmt: function (node) {
-            if (this.anon.get(node).needVar) {
+            /*if (this.anon.get(node).needVar) {
                 this.printf("var ");
-            }
+            }*/
             //console.log("NODEL",node.left);//lvallist
             const firstBody=node.left.body && node.left.body[0];
             const io=PL.iops[node.op+""];

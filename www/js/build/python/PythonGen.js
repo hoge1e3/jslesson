@@ -120,7 +120,7 @@ function (Visitor,IndentBuffer,assert) {
             this.printf("else%v",node.then);
         },
         forStmt: function (node) {
-            this.printf("for %j in %v%v", [",",node.vars], node.set, node.do);
+            this.printf("for %v in %v%v", node.vars, node.set, node.do);
         },
         letStmt: function (node) {
             this.visit(node.left);
