@@ -228,11 +228,11 @@ function (Visitor,IndentBuffer,assert) {
         },
         symbol: function (node) {
             var a=this.anon.get(node);
-            if (a.scopeInfo && a.scopeInfo.builtin) {
+            /*if (a.scopeInfo && a.scopeInfo.builtin) {
                 this.printf("%s._%s", BAWRAPPER,node+"");
-            } else {
+            } else {*/
                 this.printf("%s",node+"");
-            }
+            //}
         },
         not: function() {
             this.printf("not ");
