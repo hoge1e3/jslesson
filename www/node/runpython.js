@@ -23,7 +23,7 @@ function (FS,PP,S,G) {
     var isSuper=!!conf.super;
     var header="",lineAdjust=0;
     if (!isSuper) {
-        header="import bawrapper\n";
+        header="from bawrapper import *\n";
         lineAdjust=1;
     }
     cvSrcF=workd.rel("conv.py");

@@ -1,4 +1,4 @@
-import bawrapper
+from bawrapper import *
 
 print("これから無人島でしばらく一人で生活しなくてはなりません。")
 print("好きなものを一つだけ持って行くとしたら何を持って行く？")
@@ -7,16 +7,16 @@ print("2: 携帯電話")
 print("3: 漫画")
 
 
-s=bawrapper._input("答えは？")
-i=bawrapper._int(s)
+s=input("答えは？")
+i=int(s)
 
 
 if i <  1 :
   print("範囲外")
-  bawrapper._quit()
+  quit()
 if i >  3 :
   print("範囲外")
-  bawrapper._quit()
+  quit()
 
 
 print("\n----\n")

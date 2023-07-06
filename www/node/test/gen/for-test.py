@@ -1,3 +1,3 @@
-import bawrapper
-for i in bawrapper._range( 5 ):
+from bawrapper import *
+for i in range( 5 ):
   print("ワン。")

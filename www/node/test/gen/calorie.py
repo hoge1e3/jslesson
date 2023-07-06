@@ -1,4 +1,4 @@
-import bawrapper
+from bawrapper import *
 
 def show_calorie(min,weight= 50 ):
   kcal=weight *  2  * (min /  60 ) *  1.05 

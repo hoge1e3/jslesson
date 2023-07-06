@@ -1,4 +1,4 @@
-import bawrapper
+from bawrapper import *
 
 def show_next_olympic(year):
   i= 4  - year %  4 

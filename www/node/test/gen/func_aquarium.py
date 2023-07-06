@@ -1,4 +1,4 @@
-import bawrapper
+from bawrapper import *
 
 def calc_fee(age,is_monday):
   fee= 2000 
@@ -11,7 +11,7 @@ def calc_fee(age,is_monday):
     fee= 1500 
   
   if is_monday:
-    fee=bawrapper._int(fee *  0.8 )
+    fee=int(fee *  0.8 )
   return fee
 
 

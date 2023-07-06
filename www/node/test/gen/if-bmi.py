@@ -1,11 +1,11 @@
-import bawrapper
+from bawrapper import *
 
-w=bawrapper._float(bawrapper._input("体重kgは？"))
-h=bawrapper._float(bawrapper._input("身長cmは？"))
+w=float(input("体重kgは？"))
+h=float(input("身長cmは？"))
 
 
 bmi=w / (h /  100 ) **  2 
-print("BMI=" + bawrapper._str(bmi))
+print("BMI=" + str(bmi))
 
 
 if bmi <  18.5 :

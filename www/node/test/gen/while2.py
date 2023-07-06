@@ -1,5 +1,5 @@
-import bawrapper
+from bawrapper import *
 i= 1 
 while i <=  5 :
-  print("--- " + bawrapper._str(i) + " ---")
+  print("--- " + str(i) + " ---")
   i+= 1 

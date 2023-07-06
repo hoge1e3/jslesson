@@ -13,7 +13,7 @@ function (FS,PP,S,G,J) {
     const gen=testHome.rel("gen/");
     const js=testHome.rel("../../pyjstest/");
     const err=testHome.rel("err/");
-    const header="import bawrapper\n";
+    const header="from bawrapper import *\n";
     testHome.each(pySrcF=>{
         if (!pySrcF.endsWith(".py")) return;
         console.log(pySrcF.path());
@@ -42,7 +42,7 @@ function (FS,PP,S,G,J) {
     });
     let files=js.listFiles().filter((f)=>f.ext()===".js").map(f=>f.name());
     js.rel("files.json").obj(files);
-    console.log(`Test Python: goto ${gen.path()} and run __ALL.bat `);
+    console.log(`Test Python: goto ${gen.path()} and run ALL.bat `);
     console.log(`Test JS: goto meisei18pro1/<TEACHER>/test_pyjs/ or http://localhost/fs/pub/42953d28/Test.html`);
     console.log("Then:")
     console.log("python comparable.py test/gen/output.json > pyres.txt");

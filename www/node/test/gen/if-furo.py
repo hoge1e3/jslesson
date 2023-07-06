@@ -1,4 +1,4 @@
-import bawrapper
+from bawrapper import *
 ondo= 37 
 if ondo <=  40 :
   print("点火処理")

@@ -1,9 +1,9 @@
-import bawrapper
+from bawrapper import *
 
 import re
 import _matplotlib.pyplot as plt
 
-f=bawrapper._open("class/scatter.txt")
+f=open("class/scatter.txt")
 Xs=[]
 Ys=[]
 for line in f:
@@ -11,9 +11,9 @@ for line in f:
   
   x,y=line.split("\t")
   
-  plt.scatter(bawrapper._int(x),bawrapper._int(y))
-  Xs.append(bawrapper._int(x))
-  Ys.append(bawrapper._int(y))
+  plt.scatter(int(x),int(y))
+  Xs.append(int(x))
+  Ys.append(int(y))
 f.close
 plt.show()
 plt.clf()

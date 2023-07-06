@@ -1,11 +1,11 @@
-import bawrapper
+from bawrapper import *
 c= 0 
 while c <  10 :
   print(" --- ")
-  s=bawrapper._input("インチは？")
+  s=input("インチは？")
   if s == "":
     break
-  inch=bawrapper._float(s)
+  inch=float(s)
   cm=inch *  2.54 
-  print(bawrapper._str(cm) + "センチです")
+  print(str(cm) + "センチです")
   c+= 1 

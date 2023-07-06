@@ -2,7 +2,7 @@ import json
 import sys
 
 # JSONファイルの読み込み
-with open(sys.argv[1], 'r') as file:
+with open(sys.argv[1], 'r', encoding="utf8") as file:
     data = json.load(file)
 
 # キーを辞書順にソート
