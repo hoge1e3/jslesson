@@ -79,9 +79,9 @@ function (Visitor,IndentBuffer,context,PL,S) {
         delStmt: function (node) {
             var a=this.anon.get(node);
             if (a.index) {
-                this.printf("%s.wrap(%v).__delattr__(%v);",PYLIB, a.obj, a.index);
+                this.printf("(%v).__delattr__(%v);",a.obj, a.index);
             } else {
-                this.printf("%s.wrap(%v).__delattr__('%s');",PYLIB, a.obj, a.name);
+                this.printf("(%v).__delattr__('%s');",a.obj, a.name);
             }
         },
         whileStmt: function (node) {
@@ -123,10 +123,10 @@ function (Visitor,IndentBuffer,context,PL,S) {
                 console.log("NODEL2",object,index);
                 if (io) {
                     this.printf("%v.__setitem__(%v, "+
-                        "%s.wrap( %v.__getitem__(%v) ).__%s__(%v)"+
+                        "( %v.__getitem__(%v) ).__%s__(%v)"+
                     ");",
                         object, index.body,
-                        PYLIB, object, index.body, io, value
+                        object, index.body, io, value
                     );
                 } else {
                     this.printf("%v.__setitem__(%v, %v);",object, index.body,value );
@@ -139,17 +139,17 @@ function (Visitor,IndentBuffer,context,PL,S) {
                 console.log("NODEL3",object,name);
                 if (io) {
                     this.printf("%v.__setattr__('%s', "+
-                        "%s.wrap( %v.__getattribute__('%s') ).__%s__(%v)"+
+                        "( %v.__getattribute__('%s') ).__%s__(%v)"+
                     ");",
                         object, name,
-                        PYLIB, object, name, io, value
+                        object, name, io, value
                     );
                 } else {
                     this.printf("%v.__setattr__('%s', %v);",object, name,value );
                 }
             } else if (io) {
-                this.printf("%v=%s.wrap(%v).__%s__(%v)" ,
-                node.left, PYLIB, node.left, io, value);
+                this.printf("%v=(%v).__%s__(%v)" ,
+                node.left, node.left, io, value);
             } else {
                 //if (node.left.type)
                 this.visit(node.left);
@@ -294,13 +294,13 @@ function (Visitor,IndentBuffer,context,PL,S) {
             }
             var o=PL.ops[node.op+""],io=PL.iops[node.op+""];
             if (o) {
-                this.printf("%s.wrap(%v).__%s__(%v)",PYLIB, node.left,o, node.right);
+                this.printf("(%v).__%s__(%v)", node.left,o, node.right);
             } else if (io) {
-                this.printf("%v=%s.wrap(%v).__%s__(%v)" ,
-                node.left, PYLIB, node.left, io, node.right);
+                this.printf("%v=(%v).__%s__(%v)" ,
+                node.left, node.left, io, node.right);
             } else if (node.op+""==="in") {
-                this.printf("%s.wrap(%v).__contains__(%v)" ,
-                    PYLIB, node.right, node.left);
+                this.printf("(%v).__contains__(%v)" ,
+                    node.right, node.left);
             } else {
                 throw new Error("No operator for "+node.op);
             }
@@ -365,7 +365,8 @@ function (Visitor,IndentBuffer,context,PL,S) {
                 const nex=pre+node;
                 if (a.scopeInfo && !a.isLeft) {
                     // right val
-                    this.printf("%s.checkSet(%s,'%s')",PYLIB, nex, node+"");
+                    this.printf("%s",nex);
+                    //this.printf("%s.checkSet(%s,'%s')",PYLIB, nex, node+"");
                 } else {
                     // left val
                     this.printf("%s",nex);
@@ -432,7 +433,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
         /*for (let n of PL.builtins) {
             v.printf("var %s=%s.%s;%n",n,PYLIB,n);
         }*/
-        v.printf("var %s=Object.create(%s);%n", TOP, PYLIB);
+        v.printf("var %s=%s.moduleScope(%s);%n", TOP, PYLIB, PYLIB);
         v.visit(node);
         if (options.injectAfter) {
             v.printf(options.injectAfter);

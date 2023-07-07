@@ -47,6 +47,19 @@ define(function (require,exports,module) {
         },
         js:root
     };
+    PL.proxy=(target)=>{
+        return new Proxy(()=>"Hoge", {
+            get(_target, prop, receiver) {
+                return target.__getattribute__(prop);
+            },
+            set(_target, prop, newVal) {
+                target.__setattr__(prop, newVal);
+            },
+            apply(_target, self, ...args) {
+                return target.__call__(target, ...args);
+            }
+        });
+    };
     //PyX.install(PL);
     PL.lineBuf="";
     PL.print=function () {
@@ -217,16 +230,33 @@ define(function (require,exports,module) {
         return res;
     };
     PL.parseArgs2=function(arg, spec) {
-        // spec: [{name:  , defval: }]
-        arg=Array.prototype.slice.call(arg);
+        // spec: [{name:  , def:  , ast: "*" || "**" }]
+        arg=[...arg];
+        spec=[...spec];
         let opt=null;
         if (arg[arg.length-1] instanceof PL.Option) {
             opt=arg.pop();
         }
-        const res=spec.map((s,i)=>
-            i<arg.length ? arg[i] :
-            (opt && opt[s.name]!==undefined) ? opt[s.name] : s.defval
-        );
+        let i=0;
+        const res=[];
+        while (spec.length) {
+            let s=spec.shift();
+            if (typeof s==="string") s={name:s};
+            if (!s.ast) {
+                if (arg.length) res.push(arg.shift());
+                else if (opt && opt.hasOwnProperty(s.name)) res.push(opt[s.name]);
+                else if ("def" in s) res.push(s.def);
+                else throw new Error(`引数${s.name}が渡されていません．`);
+            } else if (s.ast==="*") {
+                res.push(PL.Tuple(arg));
+                arg=[];
+            } else if (s.ast==="**") {
+                res.push(opt);
+            }
+        }
+        if (arg.length) {
+            throw new Error(`余計な引数が${arg.length}個あります．`);
+        }
         return res;
     };
 
@@ -258,7 +288,7 @@ define(function (require,exports,module) {
             a.unshift(res);
             var self=nw.apply(null,a);
             if (self.__init__) self.__init__.apply(self,arguments);
-            return self;
+            return PL.proxy(self);
         };
         res.prototype=Object.create(parent.prototype,{});
         const methodNames=[];
@@ -385,6 +415,15 @@ define(function (require,exports,module) {
         if (typeof m==="function") return m.apply(self, args);
         return m.__call__.apply(m,args);
     };
+    PL.moduleScope=(parent)=> {
+        let target=parent ? Object.create(parent) :{};
+        return new Proxy(target, {
+            get(target, prop, receiver) {
+                if (prop in target) return target[prop];
+                throw new Error(`変数${prop}は定義されていません．`);
+            },
+        });
+    };
     PL.Object=PL.class(Object, {
         __init__: function () {},
     });
@@ -464,7 +503,8 @@ define(function (require,exports,module) {
         //__getTypeName__: function (){return "<class object>";},
         __call__: function (self,...a) {
             //var a=Array.prototype.slice.call(arguments,1);
-            return self.apply(self, a);
+            if (typeof self==="function") return self.apply(self, a);
+            throw new Error("この値は関数呼び出しできません");
         },
         //toString: function (self) {return self.value+"";},
         __str__: function (self) {
