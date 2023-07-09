@@ -118,8 +118,12 @@ define(function (require,exports,module) {
     };
     PL.str=function (s) {
         //  s==false
-        if (s!=null && s.__str__) return s.__str__();// __OP__
-        return s+"";
+        if (s!=null && s.__str__) {
+            const r=s.__str__();// __OP__
+            if (typeof r==="string") return r;
+            throw new Error("__str__の戻り値が文字列以外です："+r);
+        }
+        return "None";
     };
     PL.sum=function (s,init=0) {
         for (let e of s) {
@@ -415,11 +419,17 @@ define(function (require,exports,module) {
         if (typeof m==="function") return m.apply(self, args);
         return m.__call__.apply(m,args);
     };
-    PL.moduleScope=(parent)=> {
+    PL.moduleScope=(parent, useJSRoot)=> {
         let target=parent ? Object.create(parent) :{};
+        target.globals=()=>target;
         return new Proxy(target, {
             get(target, prop, receiver) {
                 if (prop in target) return target[prop];
+                if (useJSRoot && prop in root) {
+                    const r=root[prop];
+                    if (typeof r==="function") return r.bind(root);
+                    return r;
+                }
                 throw new Error(`変数${prop}は定義されていません．`);
             },
         });
@@ -787,8 +797,8 @@ define(function (require,exports,module) {
                     const sorted=self.map((val,idx)=>({val,idx}) ).sort((a,b)=>{
                         const va=key(a.val);
                         const vb=key(b.val);
-                        if (va>vb) return 1;
-                        else if (va<vb) return -1;
+                        if (va.__gt__(vb)) return 1;
+                        else if (va.__lt__(vb)) return -1;
                         else return a.idx-b.idx;
                     }).map(r=>r.val);
                     while(self.length) self.pop();

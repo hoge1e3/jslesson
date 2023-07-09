@@ -360,8 +360,9 @@ const vdef={
             this.useInput=true;
         }
         if (!i) {
-            console.log("symbol undef",node,this.curScope());
-            this.error("変数または関数"+node+"は未定義です",node);
+            i=this.addScope(node+"", {node, scope:this.rootScope});
+            console.log("symbol undef. treated as top level",node,this.curScope());
+            //this.error("変数または関数"+node+"は未定義です",node);
         }
         this.anon.put(node,{scopeInfo:i});
     },
@@ -438,8 +439,9 @@ const Semantics= {
             //ns.PARENT_SCOPE=pa;
             return this.enter({scope:ns},f);
         };
+        // \addScope
         v.addScope=function (name,info) {
-            const cs=this.curScope();
+            const cs=info.scope || this.curScope();
             if (!info.node && name && name.type) {
                 info.node=name;
             }

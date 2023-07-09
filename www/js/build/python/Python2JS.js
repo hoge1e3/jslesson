@@ -433,7 +433,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
         /*for (let n of PL.builtins) {
             v.printf("var %s=%s.%s;%n",n,PYLIB,n);
         }*/
-        v.printf("var %s=%s.moduleScope(%s);%n", TOP, PYLIB, PYLIB);
+        v.printf("var %s=%s.moduleScope(%s, %s);%n", TOP, PYLIB, PYLIB, !!options.useJSRoot);
         v.visit(node);
         if (options.injectAfter) {
             v.printf(options.injectAfter);

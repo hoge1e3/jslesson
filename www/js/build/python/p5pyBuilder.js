@@ -8,8 +8,8 @@ define(function (require,exports,module){
     "setShakeThreshold","_ondeviceorientation","_ondevicemotion","_handleMotion","isKeyPressed","keyIsPressed","key","keyCode","_onkeydown","_onkeyup","_onkeypress","_onblur","keyIsDown","_areDownKeys","movedX","movedY","_hasMouseInteracted","mouseX","mouseY","pmouseX","pmouseY","winMouseX","winMouseY","pwinMouseX","pwinMouseY","mouseButton","mouseIsPressed","_updateNextMouseCoords","_updateMouseCoords","_setMouseButton","_onmousemove","_onmousedown","_onmouseup","_ondragend","_ondragover",
     "_onclick","_ondblclick","_mouseWheelDeltaY","_pmouseWheelDeltaY","_onwheel","requestPointerLock","exitPointerLock","touches","_updateTouchCoords","_ontouchstart","_ontouchmove","_ontouchend","createImage","saveCanvas","saveGif","saveFrames","_makeFrame","loadImage","image","tint","noTint","_getTintedImageCanvas","imageMode","pixels","blend","copy","_copyHelper","filter","get","loadPixels","set","updatePixels","loadJSON","loadStrings","loadTable","loadXML","loadBytes","httpGet","httpPost","httpDo","_pWriters","createWriter","save","saveJSON","saveJSONObject","saveJSONArray","saveStrings","saveTable","writeFile","downloadFile","_checkFileExtension","_isSafari","abs","ceil","constrain","dist","exp","floor","lerp","log","mag","map","max","min","norm","pow","round","sq","sqrt","fract","createVector","noise","noiseDetail","noiseSeed","_lcg","_lcgSetSeed","randomSeed","random","randomGaussian","_angleMode","acos","asin","atan","atan2","cos","sin","tan","degrees","radians","angleMode","_toRadians","_toDegrees","_fromRadians","textAlign","textLeading","textSize","textStyle",
     "textWidth","textAscent","textDescent","_updateTextMetrics","loadFont","text","textFont","append","arrayCopy","concat","reverse","shorten","shuffle","sort","splice","subset","float","int","str","boolean","byte","char","unchar","hex","unhex","join","match","matchAll","nf","nfc","nfp","nfs","split","splitTokens","trim","day","hour","minute","millis","month","second","year","plane","box","sphere","cylinder","cone","ellipsoid","torus","orbitControl","debugMode","noDebugMode","_grid","_axesIcon","ambientLight","specularColor","directionalLight","pointLight","lights","lightFalloff","spotLight","noLights","loadModel","model","loadShader","createShader","shader","resetShader","normalMaterial","texture","textureMode","textureWrap","ambientMaterial","emissiveMaterial","specularMaterial","shininess"];
-    const implicitImports=[{head:"p5main", names:p5props}];
-    const p5jsURL="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.2.0/p5.js";
+    const implicitImports=[];//[{head:"p5main", names:p5props}];
+    const p5jsURL="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.js";
     const root=require("root");
     const WebSite=require("WebSite");
     const FS=require("FS");
@@ -25,7 +25,7 @@ define(function (require,exports,module){
         this.dst=dst;// SFile in ramdisk
         this.ide=ide;
     };
-    var libs=["polyfill","jquery-1.12.1","require"].map(function (n) {
+    var libs=["jquery-1.12.1","require"].map(function (n) {
         return "lib/"+n+".js";
     });
     libs=libs.concat(["lib/python/runOnServer.js"]);
@@ -142,15 +142,30 @@ define(function (require,exports,module){
             buf.printf("%s",errSrc);
         } else {
             J(node,anon,{buf:buf,genReqJS:true, pyLibPath:WebSite.runtime+"lib/python",
-             implicitImports,
-             injectBefore: `var p5=${"req"+"uire"}("${p5jsURL}");\n`,
-             injectAfter: `var p5main;new p5(function (inst) {
+            implicitImports,
+            useJSRoot:true,
+            injectAfter: `
+            let inst=window;
+            ["setup","keyPressed","keyReleased","keyTyped","mouseMoved","mouseDragged","mousePressed","mouseClicked"].map((k)=>{
+                if (typeof __top.globals()[k]==="function") inst[k]=__top[k];
+            });
+            if (!inst.draw && typeof __top.globals().draw==="function") {
+                inst.draw=()=>{
+                    PYLIB.LoopChecker.reset();
+                    __top.draw();
+                };
+            }
+             ${"req"+"uire"}("${p5jsURL}");
+             `,
+             injectBefore_old: `var p5=${"req"+"uire"}("${p5jsURL}");\n`,
+             injectAfter_old: `var p5main;new p5(function (inst) {
                 p5main=inst;
                 ${["setup","keyPressed","keyReleased","keyTyped","mouseMoved","mouseDragged","mousePressed","mouseClicked"].map((k)=>
                 `if (typeof ${k}==="function") inst.${k}=${k};`).join("\n")}
                 inst.draw=()=>{
                     PYLIB.LoopChecker.reset();
                     if (typeof draw==="function") draw();
+
                 };
              }, document.querySelector("body"));`});
         }
