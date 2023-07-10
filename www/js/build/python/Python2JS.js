@@ -356,22 +356,10 @@ function (Visitor,IndentBuffer,context,PL,S) {
         False: function () {this.printf("false");},
         None: function () {this.printf("%s.None",PYLIB);},
         symbol(node) {
-            if (typeof this.convertSymbol[node.text]==="string") {
-                // for example, node.text=="__str__", function returns
-                this.printf(this.convertSymbol[node.text]);
-            } else {
-                const a=this.anon.get(node);
-                const pre=(a.scopeInfo && a.scopeInfo.topLevel ? TOP+".":"");
-                const nex=pre+node;
-                if (a.scopeInfo && !a.isLeft) {
-                    // right val
-                    this.printf("%s",nex);
-                    //this.printf("%s.checkSet(%s,'%s')",PYLIB, nex, node+"");
-                } else {
-                    // left val
-                    this.printf("%s",nex);
-                }
-            }
+            const a=this.anon.get(node);
+            const pre=(a.scopeInfo && a.scopeInfo.topLevel ? TOP+".":"");
+            const nex=pre+node;
+            this.printf("%s",nex);
         },
     };
     const cmps={">":1,"<":1,"==":1,">=":1,"<=":1,"!=":1};
@@ -410,13 +398,6 @@ function (Visitor,IndentBuffer,context,PL,S) {
             }
         };
         v.options=options;
-        v.convertSymbol={};
-        for (let im of options.implicitImports||[]) {
-            for (let n of im.names) {
-                v.convertSymbol[n]=im.head+"."+n;
-            }
-        }
-        //console.log("convertSymbol",this.convertSymbol,options.implicitImports);
         v.ctx=context();
         const buf=options.buf||IndentBuffer();
         buf.visitor=v;

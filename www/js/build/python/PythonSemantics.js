@@ -427,12 +427,6 @@ const Semantics= {
             v.rootScope[b]=v.newScopeInfo(v.rootScope,b);
             v.rootScope[b].builtin=true;
         }
-        for (let im of options.implicitImports||[]) {
-            for (let n of im.names) {
-                v.rootScope[n]=v.newScopeInfo(v.rootScope,n);
-                v.rootScope[n].builtin=true;
-            }
-        }
         v.newScope=function (f) {
             var pa=this.ctx.scope||this.rootScope;
             var ns=Object.create(pa);

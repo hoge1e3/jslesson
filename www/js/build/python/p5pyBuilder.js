@@ -8,7 +8,6 @@ define(function (require,exports,module){
     "setShakeThreshold","_ondeviceorientation","_ondevicemotion","_handleMotion","isKeyPressed","keyIsPressed","key","keyCode","_onkeydown","_onkeyup","_onkeypress","_onblur","keyIsDown","_areDownKeys","movedX","movedY","_hasMouseInteracted","mouseX","mouseY","pmouseX","pmouseY","winMouseX","winMouseY","pwinMouseX","pwinMouseY","mouseButton","mouseIsPressed","_updateNextMouseCoords","_updateMouseCoords","_setMouseButton","_onmousemove","_onmousedown","_onmouseup","_ondragend","_ondragover",
     "_onclick","_ondblclick","_mouseWheelDeltaY","_pmouseWheelDeltaY","_onwheel","requestPointerLock","exitPointerLock","touches","_updateTouchCoords","_ontouchstart","_ontouchmove","_ontouchend","createImage","saveCanvas","saveGif","saveFrames","_makeFrame","loadImage","image","tint","noTint","_getTintedImageCanvas","imageMode","pixels","blend","copy","_copyHelper","filter","get","loadPixels","set","updatePixels","loadJSON","loadStrings","loadTable","loadXML","loadBytes","httpGet","httpPost","httpDo","_pWriters","createWriter","save","saveJSON","saveJSONObject","saveJSONArray","saveStrings","saveTable","writeFile","downloadFile","_checkFileExtension","_isSafari","abs","ceil","constrain","dist","exp","floor","lerp","log","mag","map","max","min","norm","pow","round","sq","sqrt","fract","createVector","noise","noiseDetail","noiseSeed","_lcg","_lcgSetSeed","randomSeed","random","randomGaussian","_angleMode","acos","asin","atan","atan2","cos","sin","tan","degrees","radians","angleMode","_toRadians","_toDegrees","_fromRadians","textAlign","textLeading","textSize","textStyle",
     "textWidth","textAscent","textDescent","_updateTextMetrics","loadFont","text","textFont","append","arrayCopy","concat","reverse","shorten","shuffle","sort","splice","subset","float","int","str","boolean","byte","char","unchar","hex","unhex","join","match","matchAll","nf","nfc","nfp","nfs","split","splitTokens","trim","day","hour","minute","millis","month","second","year","plane","box","sphere","cylinder","cone","ellipsoid","torus","orbitControl","debugMode","noDebugMode","_grid","_axesIcon","ambientLight","specularColor","directionalLight","pointLight","lights","lightFalloff","spotLight","noLights","loadModel","model","loadShader","createShader","shader","resetShader","normalMaterial","texture","textureMode","textureWrap","ambientMaterial","emissiveMaterial","specularMaterial","shininess"];
-    const implicitImports=[];//[{head:"p5main", names:p5props}];
     const p5jsURL="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.js";
     const root=require("root");
     const WebSite=require("WebSite");
@@ -120,7 +119,7 @@ define(function (require,exports,module){
         var anon,node,errSrc,needInput=false;
         try {
             node=PP.parse(pysrcF);
-            var vres=S.check(node,{srcFile:pysrcF, runAt: "browser", implicitImports,});
+            var vres=S.check(node,{srcFile:pysrcF, runAt: "browser",});
 
             needInput=!!vres.useInput;
             anon=vres.anon;
@@ -142,7 +141,6 @@ define(function (require,exports,module){
             buf.printf("%s",errSrc);
         } else {
             J(node,anon,{buf:buf,genReqJS:true, pyLibPath:WebSite.runtime+"lib/python",
-            implicitImports,
             useJSRoot:true,
             injectAfter: `
             let inst=window;
