@@ -218,7 +218,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
             this.printf("[%j]",[",",node.body]);
         },
         dict: function (node) {
-            this.printf("{%j}",[",",node.body]);
+            this.printf("%s.dict({%j})",PYLIB, [",",node.body]);
         },
         dictEntry: function (node) {
             this.printf("%v:%v",node.key,node.value);

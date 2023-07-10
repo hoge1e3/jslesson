@@ -398,6 +398,29 @@ define(function (require,exports,module) {
     PL.Tuple.prototype[Symbol.iterator]=function(...args) {
         return this.elems[Symbol.iterator](...args);
     };
+    PL.dict=PL.class({
+        __init__(self, src) {
+            self.map=new Map();
+            for (let k in src) {
+                self.map.set(k, src[k]);
+            }
+        },
+        __getitem__(self, name) {
+            if (self.map.has(name)) {
+                return self.map.get(name);
+            }
+            throw new Error(`辞書にキー'${name}'がありません．`);
+        },
+        __setitem__(self, name,value) {
+            self.map.set(name, value);
+        },
+        __contains__(self, elem) {
+            return self.map.has(elem);
+        }
+    });
+    PL.dict.prototype[Symbol.iterator]=function(...args) {
+        return this.map.keys();
+    };
     PL.None=null;
     PL.checkSet=(v, name="Variable")=>{
         if (v!==undefined) return v;
@@ -421,7 +444,7 @@ define(function (require,exports,module) {
     };
     PL.moduleScope=(parent, useJSRoot)=> {
         let target=parent ? Object.create(parent) :{};
-        target.globals=()=>target;
+        target.globals=()=>PL.dict(target);
         return new Proxy(target, {
             get(target, prop, receiver) {
                 if (prop in target) return target[prop];
@@ -547,7 +570,7 @@ define(function (require,exports,module) {
 
         __getattr__: function (self,name) {
             //__getattr__は、オブジェクトのインスタンス辞書に属性が見つからないときに呼び出されるメソッドです。
-            throw new Error(`フィールド ${name} はありません`);
+            throw new Error(`フィールド ${name.toString()} はありません`);
         },
         __getattribute__: function (self,name) {
             if (!(name in self)) {
@@ -786,7 +809,11 @@ define(function (require,exports,module) {
             return self.slice().sort(...args);
         },
         sort: function (self, comp) {
-            comp=comp||((a,b)=>(a>b?1:a<b?-1:0));
+            const nat=(a,b)=>{
+                if (a==null || b==null) throw new Error("未定義の値が入っているので並び替えできません");
+                return (a.__gt__(b)?1:a.__lt__(b)?-1:0);
+            };
+            comp=comp||nat;
             if (comp instanceof PL.Option) {
                 let key=comp.key;
                 if (typeof key==="string") {
@@ -804,7 +831,7 @@ define(function (require,exports,module) {
                     while(self.length) self.pop();
                     while(sorted.length) self.push(sorted.shift());
                 } else {
-                    self.sort();
+                    self.sort(nat);
                 }
                 if (comp.reverse) {
                     self.reverse();

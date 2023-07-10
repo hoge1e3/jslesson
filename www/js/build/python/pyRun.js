@@ -21,5 +21,17 @@ function (PP,S,G,J,PL,TError,jshint) {
             }
         }
     }
+    run.PyLib=PL;
     return run;
 });
+/* // in pcg
+var resMod;
+	requirejs(["pyRun"], function (r) {
+	  resMod=r;
+	});
+	if (typeof window!=="undefined" && window.pyRun===undefined) window.pyRun=resMod;
+	if (typeof module!=="undefined") module=resMod;
+  if (typeof global!=="undefined") global.pyRun=resMod;
+	return resMod;
+})(globalThis);
+*/

@@ -159,8 +159,12 @@ define(function (require,exports,module){
                     }
                 };
             }
+            let __g=__top.globals();
             ["draw", "setup","keyPressed","keyReleased","keyTyped","mouseMoved","mouseDragged","mousePressed","mouseClicked"].map((k)=>{
-                if (typeof __top.globals()[k]==="function") inst[k]=(k==="setup"? _wrap(__top[k]) : __top[k]);
+                if (__g.__contains__(k)) {
+                    let v=__g.__getitem__(k);
+                    if (typeof v==="function") inst[k]=(k==="setup"? _wrap(v) : v);
+                }
             });
              ${"req"+"uire"}("${p5jsURL}");
              `,
