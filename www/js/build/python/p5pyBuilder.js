@@ -54,7 +54,7 @@ define(function (require,exports,module){
         $(head).append($("<script>").text("window.runtimePath='"+WebSite.runtime+"';"));
         $(head).append($("<script>").text("window.controllerPath='"+WebSite.controller+"';"));
         $(head).append($("<script>").text("window.onerror=window.onerror||"+
-        function (e) {console.log(arguments);alert(e);}+";"));
+        function (a,b,c,d,e) {console.log(arguments);alert(e);}+";"));
         $(head).append($("<link>").attr({"rel":"stylesheet","href":WebSite.runtime+"css/run_style.css"}));
 
         libs.map(function (r) {
@@ -146,15 +146,24 @@ define(function (require,exports,module){
             useJSRoot:true,
             injectAfter: `
             let inst=window;
-            ["setup","keyPressed","keyReleased","keyTyped","mouseMoved","mouseDragged","mousePressed","mouseClicked"].map((k)=>{
-                if (typeof __top.globals()[k]==="function") inst[k]=__top[k];
-            });
-            if (!inst.draw && typeof __top.globals().draw==="function") {
-                inst.draw=()=>{
-                    PYLIB.LoopChecker.reset();
-                    __top.draw();
+            function _wrap(f) {
+                return function (...args) {
+                    try {
+                        PYLIB.LoopChecker.reset();
+                        return f(...args);
+                    } catch(e) {
+                        console.log(e,onerror);
+                        if (typeof onerror==="function") onerror(null,null,null,null,e);
+                        else {
+                            alert(e);
+                        }
+                        throw e;
+                    }
                 };
             }
+            ["draw", "setup","keyPressed","keyReleased","keyTyped","mouseMoved","mouseDragged","mousePressed","mouseClicked"].map((k)=>{
+                if (typeof __top.globals()[k]==="function") inst[k]=(k==="setup"? _wrap(__top[k]) : __top[k]);
+            });
              ${"req"+"uire"}("${p5jsURL}");
              `,
              injectBefore_old: `var p5=${"req"+"uire"}("${p5jsURL}");\n`,
