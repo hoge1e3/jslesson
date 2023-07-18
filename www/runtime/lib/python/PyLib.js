@@ -105,7 +105,11 @@ define(function (require,exports,module) {
     };
     PL.str=function (s) {
         //  s==false
-        if (s!=null && s.__str__) return s.__str__();// __OP__
+        if (s!=null && s.__str__) {
+            const res=s.__str__();
+            if (typeof res!=="string") throw new Error("__str__の戻り値は文字列である必要があります．");
+            return res;// __OP__
+        }
         return s+"";
     };
     PL.sum=function (s,init=0) {
