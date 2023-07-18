@@ -242,20 +242,24 @@ define(function (require,exports,module) {
             opt=arg.pop();
         }
         let i=0;
-        const res=[];
+        const res={};
         while (spec.length) {
             let s=spec.shift();
             if (typeof s==="string") s={name:s};
             if (!s.ast) {
-                if (arg.length) res.push(arg.shift());
-                else if (opt && opt.hasOwnProperty(s.name)) res.push(opt[s.name]);
-                else if ("def" in s) res.push(s.def);
+                if (arg.length) res[s.name]=(arg.shift());
+                else if (opt && opt.hasOwnProperty(s.name)) {
+                    if (res.hasOwnProperty(s.name)) {
+                        throw new Error(`引数${s.name}はすでに渡されています．`);
+                    }
+                    res[s.name]=(opt[s.name]);
+                } else if ("def" in s) res[s.name]=(s.def);
                 else throw new Error(`引数${s.name}が渡されていません．`);
             } else if (s.ast==="*") {
-                res.push(PL.Tuple(arg));
+                res[s.name]=(PL.Tuple(arg));
                 arg=[];
             } else if (s.ast==="**") {
-                res.push(opt);
+                res[s.name]=(opt);
             }
         }
         if (arg.length) {

@@ -417,7 +417,7 @@ const Semantics= {
             return this.ctx.enter(...args);
         };
         v.rootScope={};
-        v.rootScope[Semantics.SYM_ROOT]=true;
+        v.anon.put(v.rootScope,{level:0});
         v.newScopeInfo=function (scope, name, kind, declarator) {
             const res=new ScopeInfo(scope, name, kind, declarator);
             if (scope===v.rootScope || kind===KIND_GLOBAL) res.topLevel=true;
@@ -430,6 +430,8 @@ const Semantics= {
         v.newScope=function (f) {
             var pa=this.ctx.scope||this.rootScope;
             var ns=Object.create(pa);
+            let paa=v.anon.get(pa);
+            v.anon.put(ns,{level: paa.level+1});
             //ns.PARENT_SCOPE=pa;
             return this.enter({scope:ns},f);
         };
@@ -549,6 +551,5 @@ const Semantics= {
     },
     importable
 };
-Semantics.SYM_ROOT=Symbol("rootScope");
 return Semantics;
 });

@@ -358,6 +358,10 @@ function (Visitor,IndentBuffer,context,PL,S) {
         symbol(node) {
             const a=this.anon.get(node);
             const pre=(a.scopeInfo && a.scopeInfo.topLevel ? TOP+".":"");
+            if (a.scopeInfo && a.scopeInfo.scope) {
+                let sa=this.anon.get(a.scopeInfo.scope);
+                this.printf("/*%s*/",sa.level);
+            }
             const nex=pre+node;
             this.printf("%s",nex);
         },
