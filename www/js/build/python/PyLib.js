@@ -1,3 +1,4 @@
+//DEPRECATED. edit runtime/lib/python/PyLib.js from now on(2023/06/22)
 /* global self,global*/
 define(function (require,exports,module) {
     //var PyX=require("./PyX.js");
@@ -27,7 +28,7 @@ define(function (require,exports,module) {
             },
             shuffle: function (list) {
                 for (let i=list.length-1; i>=0 ;i--) {
-                    const e=list.splice(this.randint(i),1);
+                    const e=list.splice(this.randint(0,i),1);
                     list.push(e[0]);
                 }
                 return list;
@@ -44,7 +45,8 @@ define(function (require,exports,module) {
             ceil:Math.ceil.bind(Math),
             floor:Math.floor.bind(Math),
             sqrt:Math.sqrt.bind(Math),
-        }
+        },
+        js:root
     };
     //PyX.install(PL);
     PL.lineBuf="";
@@ -61,11 +63,14 @@ define(function (require,exports,module) {
         if(lines.length>10) {
             PL.lineBuf=lines.slice(lines.length-10).join("\n");
         }
-        PL.STDOUT.append($("<span>").text(out));
+        if (PL.STDOUT) {
+            if (typeof $==="function") PL.STDOUT.append($("<span>").text(out));
+            else PL.STDOUT.append(out);
+        }
     };
     PL.input=function (s) {
         if (s) PL.print(s,PL.Option({end:""}));
-        var r=prompt(PL.lineBuf);
+        var r=PL.STDIN ? PL.STDIN.shift() : prompt(PL.lineBuf);
         PL.LoopChecker.reset();
         PL.print(r);
         return r;
@@ -74,18 +79,7 @@ define(function (require,exports,module) {
     function chkNan(v, mesg) {
         return v;
     }
-    PL.float=function (s) {
-        const v=s-0;
-        if (v!==v) throw new Error(`${s} は floatに変換できません`);
-        return v;
-
-    };
-    PL.int=function (s) {
-        const v=s-0;
-        if (v!==v) throw new Error(`${s} は intに変換できません`);
-        if (s.match(/\./)) throw new Error(`${s} は小数点を含んでいるのでintに変換できません`);
-        return v;
-    };
+    
     PL.list=(iter)=>{
         const res=[];
         for (let x of iter) res.push(x);
@@ -144,10 +138,12 @@ define(function (require,exports,module) {
     };
     PL.type=function (s) {
         switch (typeof u(s)) {
-            case "number":return Number;
-            case "string":return String;
-            case "function":return Function;
-            case "boolean":return Boolean;
+            case "number":
+                if (Math.floor(s)==s) return PL.int;
+                return PL.float;
+            //case "string":return String;
+            //case "function":return Function;
+            //case "boolean":return Boolean;
             default:
             //if (s && s.__getTypeName__) return s.__getTypeName__();
             if (s && s.__class__) return s.__class__;
@@ -200,6 +196,10 @@ define(function (require,exports,module) {
             var c=$("#output");
             if (c.length>0) {
                 PL.STDOUT=c;
+            }
+            c=$("#stdin");
+            if (c.length>0) {
+                PL.STDIN=c.text().split("\n");
             }
         });
     }
@@ -278,28 +278,51 @@ define(function (require,exports,module) {
                     },
                     enumerable: false
                 });
-                Object.defineProperty(res,k,{
-                    value: m
-                });
+                if (k!=="__str__") {
+                    Object.defineProperty(res,k,{
+                        value: m
+                    });    
+                }
                 methodNames.push(k);
             } else {
                 res.prototype[k]=m;
             }
         }
         res.__name__=defs.CLASSNAME;
+        res.__module__="__main__";
         res.prototype.constructor=res;
         Object.defineProperty(res.prototype,"__class__",{
             value:res,
             enumerable: false
         });
+        Object.defineProperty(res,"__class__",{
+            value:PL.type,
+            enumerable: false
+        });
         res.__methodnames__=methodNames;
-        res.__str__=()=>`<class '__main__.${res.__name__}'>`;
+        Object.defineProperty(res, "__str__",{
+            value: ()=>`<class '${res.__module__}.${res.__name__}'>`,
+            enumerable: false
+        });        
         res.__bases__=PL.Tuple && PL.Tuple(parent?[parent]:[]);
         //res.prototype.toString=function(){return this.__str__();};
         for (var k in defs) {
             if (defs.hasOwnProperty(k)) addMethod(k);
         }
         return res;
+    };
+    PL.float=function (s) {
+        const v=s-0;
+        if (v!==v) throw new Error(`${s} は floatに変換できません`);
+        return v;
+    };
+    PL.int=function (s) {
+        const v=s-0;
+        if (v!==v) throw new Error(`${s} は intに変換できません`);
+        if (typeof s==="string") {
+            if (s.match(/\./)) throw new Error(`${s} は小数点を含んでいるのでintに変換できません`);
+        }
+        return v;
     };
     PL.super=function(klass,self) {
         //console.log("klass,self, name",klass,self, klass.__name__);
@@ -390,13 +413,15 @@ define(function (require,exports,module) {
         return v;
     }
 
+    
     PL.invalidOP=function (left, op, right) {
         function typestr(val) {
             if (val==PL.None) return "None";
-            const res=(typeof u(val));
+            return val && PL.type(val).__name__;
+            /*const res=(typeof u(val));
             if (res!=="object") return res;
             if (val && val.__getTypeName__) return val.__getTypeName__();
-            return res;
+            return res;*/
         }
         throw new Error(`unsupported operand type(s) for ${op}: '${typestr(left)}' and '${typestr(right)}'`);
     };
@@ -433,16 +458,19 @@ define(function (require,exports,module) {
             });
         }
     };
+    const IDHASH=Symbol("identityHashcode");
     PL.addMonkeyPatch(Object, {
         __class__:Object,
-        __getTypeName__: function (){return "<class object>";},
+        //__getTypeName__: function (){return "<class object>";},
         __call__: function (self,...a) {
             //var a=Array.prototype.slice.call(arguments,1);
             return self.apply(self, a);
         },
         //toString: function (self) {return self.value+"";},
         __str__: function (self) {
-            return self+"";
+            self[IDHASH]=self[IDHASH]||(~~(Math.random()*(2**31)));
+            const t=PL.type(self);
+            return `<${t.__module__}.${t.__name__} object at 0x${this[IDHASH].toString(16)}>`;
         },
         __add__: function (self,other) {return self+u(other);
         },
@@ -500,17 +528,43 @@ define(function (require,exports,module) {
     });
     PL.addMonkeyPatch(Number,{
         __class__:Number,
-        __getTypeName__: function (){return "<class number>";},
+        __str__(self){return self+"";},
+        //__getTypeName__: function (){return "number";},
     });
+    function setStr2Class(klass,name) {
+        Object.defineProperty(klass, "__str__", {
+            value: function () {
+                return `<class '${name}'>`;
+            },
+            enumerable: false,
+        });
+    }
+    setStr2Class(String,"str");
+    setStr2Class(Boolean,"bool");
+    setStr2Class(Function,"function");
+    setStr2Class(PL.int,"int");
+    setStr2Class(PL.float,"float");
+    setStr2Class(PL.type, "type");
+    /*Object.defineProperty(Number, "__str__", {
+        value:function () {
+            const n=this;
+            if (Math.floor(n)==n) return "<class 'int'>";
+            else return "<class 'float'>";
+        },
+        enumerable: false,
+    });*/
     PL.addMonkeyPatch(String,({
         __class__:String,
-        __getTypeName__: function (){return "<class str>";},
+        __str__(self){return self+"";},
+        //__getTypeName__: function (){return "str";},
         __mul__: function (self,other) {
             switch (typeof other) {
             case "number":
-                var res="";
+                let res="";
                 for (;other;other--) res+=self;
                 return res;
+            case "boolean":
+                return other ? self+"" :"";
             default:
                 PL.invalidOP(self, "__mul__",other);
             }
@@ -556,6 +610,27 @@ define(function (require,exports,module) {
             });
         }
     }));
+    PL.addMonkeyPatch(Number, {
+        __class__: Number,
+        __add__(self,other) {
+            if (typeof u(other)==="string") {
+                throw new Error("数値に文字列を追加できません．左辺をstr()で変換するか，右辺をint()またはfloat()で変換する必要があります．");
+            }
+            return self+other;
+        },
+        __mul__(self,other) {
+            switch (typeof other) {
+            case "number":
+                return self*other;
+            case "boolean":
+                return other ? self-0 :0;
+            case "string":
+                return other.__mul__(self);
+            default:
+                PL.invalidOP(self, "__mul__",other);
+            }
+        },  
+    });
     function otherShouldString(k) {
         return function (self,other) {
             if (typeof u(other)!=="string") {
@@ -565,15 +640,27 @@ define(function (require,exports,module) {
         };
     }
     PL.addMonkeyPatch(Boolean,{
-        __getTypeName__: function (){return "<class boolean>";},
+        __class__: Boolean,
+        //: function (){return "boolean";},
         __str__(self) {
             //  self is wrapped. always trusy
             return self==true?"True":"False";
+        },
+        __mul__(self, other) {
+            switch (typeof other) {
+                case "number":
+                case "string":
+                    return other.__mul__(self);
+                case "boolean":
+                    return PL.int(self)*PL.int(other);
+                default:
+                    PL.invalidOP(self, "__mul__",other);
+            }
         }
-
     });
     PL.addMonkeyPatch(Function,{
-        __getTypeName__: function (){return "<class function>";},
+        __class__: Function,
+        //__getTypeName__: function (){return "function";},
     });
     const orig_sort=Array.prototype.sort;
     function sliceToIndex(array, {start, stop, step}) {
@@ -671,7 +758,13 @@ define(function (require,exports,module) {
         __contains__(self, elem) {
             return self.indexOf(elem)>=0;
         },
-
+        remove(self, item) {
+            let i=self.indexOf(item);
+            if (i<0) {
+                throw new Error("指定された要素は配列にありません");
+            }
+            self.splice(i,1);
+        },
     });
 
     //---
@@ -679,6 +772,7 @@ define(function (require,exports,module) {
     "min","max","list","isinstance","zip",
     "fillRect","setColor","setTimeout","clearRect","clear"];
     root.PYLIB=PL;
+    PL.root=root;
 
     function sprintfJS() {
     	//  input -> jsString  output->jsString

@@ -7,10 +7,10 @@ for i in bawrapper._range(totalcount):
   x=rd.random()
   y=rd.random()
   if x **  2  + y **  2  <  1.0 :
-    incount +=  1 
-    plt.scatter(x,y,c= "red" )
+    incount+= 1 
+    plt.scatter(x,y,c="red")
   else:
-    plt.scatter(x,y,c= "blue" )
-print( " 円周率 :" ,incount *  4.0  / totalcount)
-plt.title( "Monte Carlo method" )
+    plt.scatter(x,y,c="blue")
+print(" 円周率 :",incount *  4.0  / totalcount)
+plt.title("Monte Carlo method")
 plt.show()

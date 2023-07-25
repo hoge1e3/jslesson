@@ -14,7 +14,7 @@
     var dtlPreLibs=["promise","mt","polyk","calibration"].map(mapDtl);
     dtlPreLibs.push("minimal");
     var dtlLibs=["lib","devicemotion","Dict","Vec2","Actor","Group","UI","Color","Timer",
-    "Util","Turtle","Figure","DOM","TextFile","Ajax","Assets","Raspi","Japanese2","db"].map(mapDtl).map(function (e) {
+    "Util","Turtle","Figure","DOM","TextFile","Ajax","Assets","Raspi","Japanese2","MicroBit","db"].map(mapDtl).map(function (e) {
         return [e];
     });
     requirejs.config({
@@ -44,6 +44,15 @@
     load(0);
     function done() {
         window.onerror=window.onerror||function (e) {alert(e);};
+        const orge=window.onerror;
+        let hsend=setTimeout(()=>{
+            if (typeof window!=="undefined" && window.parent && window.parent.sendResult) {
+                window.parent.sendResult("実行されました"+$("body").text(),"dtl");                
+            }
+        },1000);
+        window.onerror=(...args)=>{
+            orge(...args);clearTimeout(hsend);
+        };
         window.$(function () {
             $("head").append($("<link>").attr({"rel":"stylesheet","href":R+"css/run_style.css"}));
         });

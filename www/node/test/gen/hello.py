@@ -1,4 +1,4 @@
 import bawrapper
-print( 'Hello.' )
-print( 'こんにちは。' )
-print( 'Bonjour' )
+print('Hello.')
+print('こんにちは。')
+print('Bonjour')

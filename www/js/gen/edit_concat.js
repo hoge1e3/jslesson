@@ -9153,6 +9153,7 @@ define('LocalBrowserInfoClass',["FS","Klass","source-map","DeferredUtil"], funct
 			this.options=options||{};
 			this.window=window;
 			this.params=options.params||{};
+			this.origLoadEvt=options.origLoadEvt||{};
 			this.__file__=file;
 			this.file=file;
 			this.base=this.file.up();
@@ -9289,12 +9290,23 @@ define('LocalBrowserInfoClass',["FS","Klass","source-map","DeferredUtil"], funct
 		    var self=this;
 		    var iwin=this.window;
 		    var idoc=iwin.document;
+			let loadEvents=[];
+			iwin.addEventListener_old=iwin.addEventListener;
+            iwin.addEventListener=function (type,...args){
+                if (type==="load") {
+                    loadEvents.push(args[0]);
+                    return;
+                }
+                return iwin.addEventListener_old(type,...args);
+            };
+			let origLoadEvt=this.origLoadEvt;
             return $.when().then(function () {
                 return self.appendNode(
                     src.getElementsByTagName("html")[0],
                     idoc.getElementsByTagName("html")[0]);
             }).then(function () {
-                if(typeof (iwin.onload)==="function") iwin.onload();
+				for (let h of loadEvents) h.apply(iwin,[origLoadEvt]);
+                if(typeof (iwin.onload)==="function") iwin.onload(origLoadEvt);
             });
 		},
 		appendNode:function appendNode(src,dst) {
@@ -9409,7 +9421,7 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass) {
         var thiz=this;
         window.ifrm=i[0];
         var loaded;
-        i.on("load",function () {
+        i.on("load",function (origLoadEvt) {
             if (loaded) return;
             loaded=true;
             iwin=i[0].contentWindow;
@@ -9418,11 +9430,12 @@ function (sh,FS,DU,UI,S,LocalBrowserInfoClass) {
                     iwin[k]=options.globals[k];
                 }
             }*/
+            options.origLoadEvt=origLoadEvt;
             iwin.LocalBrowserInfo=new LocalBrowserInfoClass(thiz,iwin,f,options);
             iwin.LocalBrowserInfo.wrapErrorHandler(onerror);
             //idoc=iwin.document;
             return iwin.LocalBrowserInfo.loadNode(f).then(function () {
-                onload.apply(i[0],[]);
+                onload.apply(i[0],[origLoadEvt]);
             }).fail(onerror);
             /*return $.when().then(F(function () {
                 return iwin.LocalBrowserInfo.appendNode(
@@ -9943,7 +9956,8 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
                     ["div",{$var:"browser"}],
                     (!options.targetDOM? ["div",{$var:"buttonRow"},
                         ["button", {type:"button",$var:"OKButton", on:{click: res.close}}, "閉じる"],
-                        ["button", {type:"button",$var:"dlOut", on:{click: res.dlOut}}, "出力を共有……"]
+                        ["button", {type:"button",$var:"cpOut", on:{click: res.cpOut}}, "出力をコピー"],
+                        ["button", {type:"button",$var:"dlOut", on:{click: res.dlOut}}, "出力を共有……"],
                     ]:""),
                     (true?"":["button", {type:"button",$var:"WButton", on:{click: function () {
                         if (res.hasLocalBrowserWindow()) res.lbw.close();
@@ -10000,6 +10014,13 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
         });
         //if (res.da) res.da.handleResize();
         return res.d;
+    };
+    res.cpOut=function () {
+        const w=res.b.iframe[0].contentWindow;
+        const d=w.document;
+        const c=d.querySelector("#console") || d.body;
+        
+        navigator.clipboard.writeText(c.innerText);
     };
     res.dlOut=function () {
         const w=res.b.iframe[0].contentWindow;
@@ -15211,6 +15232,8 @@ define('LanguageList',['require','exports','module'],function (require, exports,
             helpURL:"http://bitarrow.eplang.jp/index.php?c_use", mode:"ace/mode/c_cpp"},
         "dncl":{en:"DNCL", ja:"DNCL(どんくり)",builder:"DnclBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?dncl_use"},
+        "dncl2":{en:"DNCL2", ja:"DNCL2(どんくり2)",builder:"Dncl2Builder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?dncl2_use"},
         "py": {en:"Python", ja:"Python",builder:"PythonBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
         "tonyu":{en:"Tonyu", ja:"Tonyu",builder:"TonyuBuilder",
@@ -16034,6 +16057,9 @@ function (Klass,FS,UI,Pos2RC,ua,StackTrace,EventHandler) {
                 trace=mesg.stack;
                 mesg=(mesg.message||mesg)+"";//detail;
                 appendPos=true;
+            } else if (mesg && mesg.isTError) {
+                pos=mesg.pos;
+                src=mesg.src;
             }
             var elem=t.createDom();
             t.mesgd.text(
@@ -17370,6 +17396,7 @@ function ready() {
             alert("実行したいファイルを開いてください。");
             return;
         }
+        let syncBefore=options.runAt==="server";
         var newwnd;
         if (RunDialog2.hasLocalBrowserWindow()) {
             newwnd=window.open("about:blank","LocalBrowserWindow"+Math.random(),"menubar=no,toolbar=no,width=500,height=500");
@@ -17395,6 +17422,9 @@ function ready() {
         };
         stop();
         save();
+        if (syncBefore) {
+            await sync();
+        }
         // display=none
         $("[name=runtimeErrorDialog]").parent().css("display","none");
         displayMode("run");
@@ -17441,7 +17471,7 @@ function ready() {
             }
         } finally {
             SplashScreen.hide();
-            return sync();
+            return syncBefore ? true : sync();
         }
     }
     window.moveFromFrame=function (name) {
@@ -17614,6 +17644,7 @@ function ready() {
         var n=curPrj.truncEXT(c);//c.truncExt();//.p5.js
         return [c.up().rel(n+HEXT), c.up().rel(n+EXT)];
     }
+    const hjsel={};
     $(".selTab").click(function () {
         var ext=A.is($(this).attr("data-ext"),String);
         var c=fl.curFile();
@@ -17626,6 +17657,8 @@ function ready() {
         if (!f.exists()) {
             FM.on.createContent(f);
         }
+        hjsel[n]=ext;
+        console.log("tab Changed to ",ext, n);
         fl.select(f);
     });
     setInterval(watchModified,1000);
@@ -17635,6 +17668,19 @@ function ready() {
     function open(f) {
 	// do not call directly !!  it doesnt change fl.curFile. use fl.select instead
         A.is(f,"SFile");
+        var n=curPrj.truncEXT(f);//c.truncExt();//.p5.js
+        const ext=(curPrj.isLogicFile(f)?EXT:curPrj.isHTMLFile(f)?HEXT:"");
+        if (hjsel[n]) {
+            let svext=hjsel[n];
+            if(ext!==svext) {
+                let nf=f.up().rel(n+ext);
+                console.log("Will open ",svext, nf.name());
+                setTimeout(()=>{
+                    $(`.selTab[data-ext='${svext}']`).click();
+                },100);    
+            }
+        }
+        
         if (!window.ace) {
             alert("しばらくしてからもう一度開いてください");
             return true;
@@ -17645,7 +17691,6 @@ function ready() {
         save();
         if (curDOM) curDOM.hide();
         var inf=editors[f.path()];
-        const ext=(curPrj.isLogicFile(f)?EXT:curPrj.isHTMLFile(f)?HEXT:"");
         $(".selTab").removeClass("selected");
         $(".selTab[data-ext='"+ext+"']").addClass("selected");
         if (!inf) {

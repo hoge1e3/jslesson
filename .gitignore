@@ -107,3 +107,9 @@ node_modules
 data/fs/home/logsample
 data/fs/home/0123/arthikkosi
 data/fs/home/aaaa
+www/pyjstest/*.js
+www/pyjstest/*.json
+www/node/test/js
+www/node/test/err
+www/node/pyres.txt
+www/node/jsres.txt

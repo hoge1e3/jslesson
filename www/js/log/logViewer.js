@@ -18,6 +18,59 @@ $(document).ready(function() {
         },
         emptyTo:"bottom",
     });
+    let filterP=/&filterName=([^&]+)/;
+    $("#filter").on("input",doInp);
+    function doInp() {
+        const val=this.value;
+        $(".userrow").show();
+        if (!val) return;
+        $(".userrow").filter(function () {
+            if (this.innerText.indexOf(val)<0) return true;
+        }).hide();
+        let url=location.href;
+        let m=filterP.exec(url);
+        let np="&filterName="+encodeURIComponent(val);
+        if (m){     
+            url=url.replace(filterP,np);
+        } else {
+            url+=np;
+        }
+        history.replaceState(null,null,url)
+    }
+    let m;
+    m=filterP.exec(location.href);
+    if (m) {
+        $("#filter").val(decodeURLComponentEx(m[1]));
+        doInp.apply($("#filter")[0]);
+    }
+        var table = $("table"); // テーブルのIDまたはセレクタ      
+    let sortP=/&sort=([0-9]+),([0-9]+)/;
+    // ヘッダーのクリックイベントを設定
+    table.find("th").click(function() {
+        var columnIndex = $(this).index(); // クリックされたヘッダーの列のインデックス
+    
+        // 現在の列と並び順を取得
+        var sortList = table.get(0).config.sortList;//table.tablesorter().data("tablesorter");//.sortList;
+        if (!sortList || !sortList[0]) return;
+        var currentColumnIndex = sortList[0][0]; // 現在の列のインデックス
+        var currentSortDirection = sortList[0][1]; // 現在の並び順（0: 昇順、1: 降順）
+        console.log("sortList",columnIndex, currentColumnIndex, currentSortDirection);
+        let url=location.href;
+        if (url.match(sortP)) {
+            url=url.replace(sortP,"&sort="+sortList[0].join(","));
+        } else {
+            url+="&sort="+sortList[0].join(",");
+        }
+        history.replaceState(null,null,url);
+    });
+    m=sortP.exec(location.href);
+    function performSort(columnIndex, sortDirection) {
+        var sortList = [[columnIndex, sortDirection]]; // ソート対象の列と並び順
+        table.trigger("sorton", [sortList]); // ソートを実行
+    }
+    if (m ) {
+        performSort(m[1]-0, m[2]-0);
+    }
 });
 function fold(show) {
     const items = [];
@@ -372,8 +425,8 @@ function openFrame(data){
           "<a target='runCheck' href='"+runLink+"'>実行してみる</a><br>":"")+
       `<span class="userid">${userid}</span>(<span id='userNameOf${userid}'></span>)<BR>`+
       filehist+ navByFile(data.filename)+
-      `actualTime=<span class='actualTime'>${logDOM.attr("data-actualTime")}</span>`+"<br>"+
-      `actualTime2=<span class='actualTime2'>${logDOM.attr("data-actualTime2")}</span>`+"<br>"+
+     // `actualTime=<span class='actualTime'>${logDOM.attr("data-actualTime")}</span>`+"<br>"+
+      `actualTime=<span class='actualTime2'>${logDOM.attr("data-actualTime2")}</span>`+"<br>"+
       data.result);
   $.get("?TeacherLog/getNameOfUser",{user:userid}).then(r=>$("#userNameOf"+userid).text(r));
   $("[id='"+userid+"']").height(30);
@@ -446,7 +499,7 @@ function unsetReload(){
 }
 if(reloadMode){
   autoReload=setTimeout(function(){
-    location.href=thisURL+"&interval="+interval+"&reloadMode="+1;
+    location.reload();//href=thisURL+"&interval="+interval+"&reloadMode="+1;
   },180*1000);
 }
 function getPreviousLog(logid){

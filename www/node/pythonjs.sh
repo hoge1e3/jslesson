@@ -2,6 +2,7 @@
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 #env
+ulimit -v 500000
 cd $(dirname "$0")
 cnt=`ps -ax|grep "\bpython\b"|wc -l`
 #if [ $cnt -lt 50 ] ; then  # special-change

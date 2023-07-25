@@ -444,8 +444,9 @@ class TeacherLogController {
         $class=Auth::curClass2();
         $isCtrl=false;
         if ($user===null) {
-            Auth::assertTeacher();
-            $user=$class->getUser(param("user"));
+            $pu=self::parseUser();
+            //Auth::assertTeacher();
+            $user=$pu["user"];// $class->getUser(param("user"));
             $file=param("file");
             $dateMax=param("dateMax",null);
             $isCtrl=true;
@@ -886,6 +887,10 @@ class TeacherLogController {
         }
         $reloadMode=param('reloadMode',0);
         $students=$class->getAllStu();
+        $name2disp=[];
+        foreach ($students as $user) {
+            $name2disp[$user->name]=(isset($user->getOptions()->name) ? $user->getOptions()->name : $user->name);
+        }
         $runcount=Array();
         $runhistory=[];
         ?>
@@ -912,6 +917,7 @@ class TeacherLogController {
         </script>
         <?php
         $logs=$class->getAllLogs($min,$max);
+        $stus=$class->getAllStu();
         foreach($logs as $log){
             if(!isset($runcount[$log['user']])){
                 $runcount[$log['user']]=0;
@@ -1027,10 +1033,11 @@ class TeacherLogController {
     	    echo date("Y/m/d H:i:s",$min)." から ".date("Y/m/d H:i:s",$max)."までの実行状況";
     	?>
         <!--a href="?TeacherLog/count&min=<?= $min ?>&max=<?= $max ?>">集計....</a-->
-        <a href="?LogQuery/index&date=<?= DateUtil::toString(DateUtil::toDayTop()) ?>">集計....</a>
+        <a href="?LogQuery/index&date=<?= DateUtil::toString(DateUtil::toDayTop()) ?>">集計....</a><br/>
+        <input id="filter" placeholder="ユーザ名などでフィルタ..."/><br/>
         <table border=1 class="tablesorter">
             <thead>
-            <tr><th>ユーザID</th><th>エラー/実行</th><th>実行からの経過時間</th><th>今実行しているファイル</th><th>着手時間</th><th>実行結果履歴</th>
+            <tr><th>ユーザID</th><th>名前</th><th>エラー/実行</th><th>実行からの経過時間</th><th>今実行しているファイル</th><th>着手時間</th><th>実行結果履歴</th>
             </tr>
             </thead>
             <tbody>
@@ -1058,16 +1065,17 @@ class TeacherLogController {
                 $timecaution="white";
             }
             ?>
-            <tr><td><a href="a.php?TeacherLog/view1new&user=<?=$k?>&day=<?=$max?>" target="view1"><?=$k?></a></td>
-            <?php if ($v!=0) { ?>
-            <td data-rate="<?=$rate?>" bgcolor=<?=$errcaution?>><?=$errcount[$k]?>/<?=$v?>(<?=$rate?>%)</td>
+            <tr class="userrow"><td><a href="a.php?TeacherLog/view1new&user=<?=$k?>&day=<?=$max?>" target="view1"><?=$k?></a></td>
+            <td><?= isset($name2disp[$k]) ? subtractSubstring( $name2disp[$k],$k)  : "" ?></td>
+            <?php if ($rate!="--") { ?>
+                <td data-rate="<?=$rate?>" bgcolor=<?=$errcaution?>><?=$errcount[$k]?>/<?=$v?>(<?=$rate?>%)</td>
+            <?php } else {  print "<td></td>"; } ?>
             <td bgcolor=<?=$timecaution?>><?=str_pad($time['h'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['m'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['s'],2,0,STR_PAD_LEFT)?></td>
-            <td><?=$latestfile[$k]?></td>
-            <td><?= $latestfile[$k]? self::getActualtime2($class->getUser("$k"),$latestfile[$k],$max) : "" ?></td>
+            <?php if (isset($latestfile[$k])) {  ?>
+                <td><?=$latestfile[$k]?></td>
+                <td><?= $latestfile[$k]? self::getActualtime2($class->getUser("$k"),$latestfile[$k],$max) : "" ?></td>
+            <?php } else {  print "<td></td><td></td>"; } ?>
             <td><?=$runhistory[$k]?></td>
-            <?php } else {
-                for ($emp=0; $emp<5; $emp++) print "<td></td>";
-            } ?>
             </tr>
 
             <?php
@@ -1321,5 +1329,19 @@ class TeacherLogController {
         echo $user->getOptions()->name;
     }
 }
-
+function subtractSubstring($str, $substring) {
+    // $substringが空文字列の場合は$strをそのまま返す
+    if(empty($substring)) {
+      return $str;
+    }
+    
+    // $substringが$strに含まれる場合は、$substringを空文字列に置き換えた文字列を返す
+    if(strpos($str, $substring) !== false) {
+      return str_replace($substring, "", $str);
+    }
+    
+    // $substringが$strに含まれない場合は、$strをそのまま返す
+    return $str;
+  }
+  
 ?>

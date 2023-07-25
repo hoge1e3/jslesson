@@ -1,5 +1,5 @@
 (function(){
-	this["random"]=function(){
+	this["乱数"]=this["random"]=function(){
 		var under,high;
 		switch(arguments.length){
 			case 0:

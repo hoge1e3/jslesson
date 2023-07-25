@@ -10,6 +10,7 @@ define(["FS","Klass","source-map","DeferredUtil"], function (FS,Klass,S,DU) {
 			this.options=options||{};
 			this.window=window;
 			this.params=options.params||{};
+			this.origLoadEvt=options.origLoadEvt||{};
 			this.__file__=file;
 			this.file=file;
 			this.base=this.file.up();
@@ -146,12 +147,23 @@ define(["FS","Klass","source-map","DeferredUtil"], function (FS,Klass,S,DU) {
 		    var self=this;
 		    var iwin=this.window;
 		    var idoc=iwin.document;
+			let loadEvents=[];
+			iwin.addEventListener_old=iwin.addEventListener;
+            iwin.addEventListener=function (type,...args){
+                if (type==="load") {
+                    loadEvents.push(args[0]);
+                    return;
+                }
+                return iwin.addEventListener_old(type,...args);
+            };
+			let origLoadEvt=this.origLoadEvt;
             return $.when().then(function () {
                 return self.appendNode(
                     src.getElementsByTagName("html")[0],
                     idoc.getElementsByTagName("html")[0]);
             }).then(function () {
-                if(typeof (iwin.onload)==="function") iwin.onload();
+				for (let h of loadEvents) h.apply(iwin,[origLoadEvt]);
+                if(typeof (iwin.onload)==="function") iwin.onload(origLoadEvt);
             });
 		},
 		appendNode:function appendNode(src,dst) {

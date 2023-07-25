@@ -5,9 +5,6 @@ class BAClass{
     	if (!is_string($id)) {
             throw new Exception(" class->id should be string");
         }
-        if (!self::isValidClassName($id)) {
-            throw new Exception("クラス名 $id は適切な名称ではありません．");
-        }
         $this->id=$id;
     }
     static function getAll($teacher=null){ // :BATeacher
@@ -116,8 +113,8 @@ class BAClass{
         $this->setOptions($opts);
     }
     static function isValidClassName($classname) {
-        //TODO
-        return true;
+        $pattern = '/^[ a-zA-Z0-9_-]+$/';
+        return preg_match($pattern, $classname);
     }
 
     function exists() {
@@ -134,6 +131,9 @@ class BAClass{
     function make(){
         if ($this->exists()) {
             throw new Exception("クラス ".$this->id." は存在します");
+        }
+        if (!self::isValidClassName($this->id)) {
+            throw new Exception("クラス名 $this->id は適切な名称ではありません．英数字とアンダースコア(_)，ハイフン(-)のみを使用してください．");
         }
         $pdo=pdo();
         Auth::assertTeacher(true);//ignoreclass
