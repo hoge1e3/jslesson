@@ -43,15 +43,15 @@ class Docker {
         $className=$this->className;
         return "dock_".$className."_er";
     }
-    /*
+    
     function hostAsset() {
         $url=Published::getURLOfClass($this->className);
         $fs=new SFile(new NativeFS(),BA_PUB);
         return $fs->rel("$url/");
     }
-    */
+    
     function guestWorkPath() {return "/host/";}
-    //function guestAssetPath() {return "/asset/";}
+    function guestAssetPath() {return "/asset/";}
 
     function __construct($className) {
         $this->className=$className;
@@ -59,8 +59,10 @@ class Docker {
         $hostWork=$this->hostWork();
         $hostWorkPath=$hostWork->path();
         $guestWorkPath=$this->guestWorkPath();
-        //$guestAssetPath=$this->guestAssetPath();
-        //$hostAssetPath=$this->hostAsset()->path();
+        
+        $guestAssetPath=$this->guestAssetPath();
+        $hostAssetPath=$this->hostAsset()->path();
+        
         $name=$this->name();
         $r=system_ex("docker container ls -a | grep \\\\s$name".'$');
         debug($r);
@@ -69,8 +71,8 @@ class Docker {
             $work=DOCKER_WORK;
             $taskrun=DOCKER_TASKRUN;
             $cmd="python $taskrun $guestWorkPath";
-            //$dc="docker run -d -v $hostWorkPath:$guestWorkPath -v $hostAssetPath:$guestAssetPath --name $name $img $cmd";
-            $dc="docker run -d -v $hostWorkPath:$guestWorkPath --name $name $img $cmd";
+            $dc="docker run -d -v $hostWorkPath:$guestWorkPath -v $hostAssetPath:$guestAssetPath --name $name $img $cmd";
+            //$dc="docker run -d -v $hostWorkPath:$guestWorkPath --name $name $img $cmd";
             debug($dc);
             if (defined("DOCKER_LAUNCH_REQ_DIR")) {
                 $this->reqLaunch($dc);
@@ -85,17 +87,18 @@ class Docker {
         $sh=$fs->rel(random_int(100000,999999).".sh");
         $sh->text($cmd);
     }
-    /*function assetFilesPath( $userName) {
+    function assetFilesPath( $userName) {
         $res=array();
         $res["user"]=Published::getURLUserPart($this->className, $userName, "assets");
         $res["class"]=Published::getURLUserPart($this->className, "class", "assets");
         return $res;
-    }*/
+    }
     function openProject($userName, $projectName) {
         $hostHomePrj=$this->BAHome()->rel("$userName/")->rel("$projectName/");
         $hostWorkPrj=$this->hostWork()->rel("$userName/")->rel("$projectName/");
         self::sync($hostHomePrj,$hostWorkPrj);
         $guestWorkPrjPath=$this->guestWorkPath()."$userName/$projectName/";
+        system("chmod 777 ".$hostWorkPrj->path()." 2> /dev/null ");
         return array( "userName"=>$userName, "projectName"=>$projectName ,
 			"work"=> array(
 				"host"=> $hostWorkPrj,
@@ -106,12 +109,15 @@ class Docker {
     function execInProject($prjDesc, $cmd) {
         $userName=$prjDesc["userName"];
         $guestWorkPrjPath=$prjDesc["work"]["guestPath"];
-        //$guestAssetPath=$this->guestAssetPath();
+        $guestAssetPath=$this->guestAssetPath();
 
         $cmds="";
-        /*$f=$this->assetFilesPath( $userName);
+        $f=$this->assetFilesPath( $userName);
+        $hostAssetPath=$this->hostAsset()->path();
         foreach ($f as $k=>$v) {
-            debug("ln -s $guestHome-$k $guestHome/$projectName/$k");
+            //debug("ln -s $guestHome-$k $guestHome/$projectName/$k");
+            
+            system("chmod -R 777 $hostAssetPath/$v/* 2> /dev/null ");
             $lnksrc=$guestAssetPath.$v;
             $lnkdst=$guestWorkPrjPath.$k;
             $cmds.=
@@ -119,10 +125,13 @@ class Docker {
             "if [ ! -L $lnkdst ] ;then\n".
             "   ln -s $lnksrc $lnkdst\n".
             "fi\n";
-            debug($r);
-        }*/
+            //debug($r);
+        }
         $cmds.="cd $guestWorkPrjPath\n";
-        $cmds.=$cmd;
+        $cmds.=$cmd."\n";
+        foreach ($f as $k=>$v) {
+            $cmds.="chmod -R 777 $k/* 2> /dev/null \n";
+        }
         debug("Run cmd $cmds");
         return $this->exec($cmds);
     }
