@@ -22,18 +22,35 @@ function (Visitor,IndentBuffer,context,PL,S) {
         define: function (node) {
             const nan=this.anon.get(node);
             let lets=nan.lets;
+            const sca=this.anon.get(nan.localScope);
             if (!lets) {
                 console.log("LETSNO", nan);
             }
             if (lets.length==0) lets="";
             else lets=`let ${lets.join(",")};`;
+            /*const spec=node.params.body.map((p)=>{
+                let buf={name: p.name};
+                if (p.defVal) s.def=p.defVal;
+                return s;
+            });*/
+            //lets+=`const __local${sca.level}=${PYLIB}.parseArgs2(arguments, ${spec} );\n`;
             if (this.ctx.inClass) {
-                this.printf("%n%s: function %v{%{%s%n%v%}}",node.name,node.params,lets, node.body);
+                this.printf("%n%s: ",node.name);
             } else {
+                //let na=this.anon.get(node.name);
+                //let prefix=(na && na.scopeInfo && na.scopeInfo.topLevel) ? TOP+".": "";
+                this.printf("%v=", /*prefix,*/ node.name);
+            }
+            this.printf("function %v{%{%s%n%v%}}",node.params,lets, node.body);
+            if (this.ctx.inClass) {
+            } else {
+                this.printf(";%n");
+            }
+            /*} else {
                 let na=this.anon.get(node.name);
                 let prefix=(na && na.scopeInfo && na.scopeInfo.topLevel) ? TOP+".": "";
                 this.printf("%s%s=function %v{%{%s%n%v%}};%n", prefix ,node.name, node.params, lets, node.body);
-            }
+            }*/
         },
         paramList: function (node) {
             this.printf("(%j)",[",",node.body]);

@@ -117,7 +117,7 @@ const vdef={
                 this.visit(b);
             }
             const lets=Object.keys(s).filter((k)=>params.indexOf(k)<0);
-            this.anon.put(node, {lets});
+            this.anon.put(node, {lets, localScope: s});
             //console.log("LETS", node, lets);
         });
     },

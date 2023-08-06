@@ -235,11 +235,12 @@ define(function (require,exports,module) {
     };
     PL.parseArgs2=function(arg, spec) {
         // spec: [{name:  , def:  , ast: "*" || "**" }]
-        arg=[...arg];
-        spec=[...spec];
-        let opt=null;
+        arg=Array.from(arg);
+        //spec=[...spec];
+        let opt=null, optKeys={};
         if (arg[arg.length-1] instanceof PL.Option) {
             opt=arg.pop();
+            for (let k of Object.keys(opt)) optKeys[k]=true;
         }
         let i=0;
         const res={};
@@ -252,6 +253,7 @@ define(function (require,exports,module) {
                     if (res.hasOwnProperty(s.name)) {
                         throw new Error(`引数${s.name}はすでに渡されています．`);
                     }
+                    delete optKeys[s.name];
                     res[s.name]=(opt[s.name]);
                 } else if ("def" in s) res[s.name]=(s.def);
                 else throw new Error(`引数${s.name}が渡されていません．`);
@@ -261,6 +263,9 @@ define(function (require,exports,module) {
             } else if (s.ast==="**") {
                 res[s.name]=(opt);
             }
+        }
+        if (Object.keys(optKeys).length) {
+            throw new Error(`引数${Object.keys(optKeys)}はありません．`)
         }
         if (arg.length) {
             throw new Error(`余計な引数が${arg.length}個あります．`);
@@ -367,11 +372,11 @@ define(function (require,exports,module) {
         //console.log("klass.prototype.CLASSNAME",klass.prototype.CLASSNAME);
         if (!klass.__bases__) {
             console.log(klass);
-            throw new Error(`superclass of ${klass.prototype.CLASSNAME} not found`);
+            throw new Error(`${klass.prototype.CLASSNAME}には親クラスがありません．`);
         }
         const superclass=klass.__bases__.elems[0];
         if (!superclass) {
-            throw new Error(`superclass of ${klass.prototype.CLASSNAME} not found`);
+            throw new Error(`${klass.prototype.CLASSNAME}には親クラスがありません．`);
         }
         //console.log("superclass", superclass, superclass.__name__, klass.__methodnames__, superclass.__methodnames__);
         const superprot=superclass.prototype;
