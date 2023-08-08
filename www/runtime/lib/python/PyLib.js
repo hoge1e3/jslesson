@@ -233,13 +233,13 @@ define(function (require,exports,module) {
         }
         return res;
     };
-    PL.parseArgs2=function(arg, spec) {
+    PL.parseArgs2=function(args, spec) {
         // spec: [{name:  , def:  , ast: "*" || "**" }]
-        arg=Array.from(arg);
-        //spec=[...spec];
+        args=Array.from(args);
+        spec=spec.slice();
         let opt=null, optKeys={};
-        if (arg[arg.length-1] instanceof PL.Option) {
-            opt=arg.pop();
+        if (args[args.length-1] instanceof PL.Option) {
+            opt=args.pop();
             for (let k of Object.keys(opt)) optKeys[k]=true;
         }
         let i=0;
@@ -248,7 +248,7 @@ define(function (require,exports,module) {
             let s=spec.shift();
             if (typeof s==="string") s={name:s};
             if (!s.ast) {
-                if (arg.length) res[s.name]=(arg.shift());
+                if (args.length) res[s.name]=(args.shift());
                 else if (opt && opt.hasOwnProperty(s.name)) {
                     if (res.hasOwnProperty(s.name)) {
                         throw new Error(`引数${s.name}はすでに渡されています．`);
@@ -258,8 +258,8 @@ define(function (require,exports,module) {
                 } else if ("def" in s) res[s.name]=(s.def);
                 else throw new Error(`引数${s.name}が渡されていません．`);
             } else if (s.ast==="*") {
-                res[s.name]=(PL.Tuple(arg));
-                arg=[];
+                res[s.name]=(PL.Tuple(args));
+                args=[];
             } else if (s.ast==="**") {
                 res[s.name]=(opt);
             }
@@ -267,12 +267,14 @@ define(function (require,exports,module) {
         if (Object.keys(optKeys).length) {
             throw new Error(`引数${Object.keys(optKeys)}はありません．`)
         }
-        if (arg.length) {
-            throw new Error(`余計な引数が${arg.length}個あります．`);
+        if (args.length) {
+            throw new Error(`余計な引数が${args.length}個あります．`);
         }
         return res;
     };
-
+    PL.f=(spec, body)=>function (...args){
+        return body.call(this,PL.parseArgs2(args, spec));    
+    };
     PL.opt=PL.Option;
     PL.range=function (b,e,s=1) {
         if (e==null) {e=b;b=0;}

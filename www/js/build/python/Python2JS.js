@@ -21,18 +21,18 @@ function (Visitor,IndentBuffer,context,PL,S) {
         },//
         define: function (node) {
             const nan=this.anon.get(node);
-            let lets=nan.lets;
             const sca=this.anon.get(nan.localScope);
-            if (!lets) {
+            //let lets=nan.lets;
+            if (typeof sca.level!=="number") {
+                console.error("level not set", node, nan, sca);
+                throw new Error("level not set");
+            }
+            /*if (!lets) {
                 console.log("LETSNO", nan);
             }
             if (lets.length==0) lets="";
-            else lets=`let ${lets.join(",")};`;
-            /*const spec=node.params.body.map((p)=>{
-                let buf={name: p.name};
-                if (p.defVal) s.def=p.defVal;
-                return s;
-            });*/
+            else lets=`let ${lets.join(",")};`;*/
+            //let hasDefVal=node.params.body.some((p)=>p.defVal);
             //lets+=`const __local${sca.level}=${PYLIB}.parseArgs2(arguments, ${spec} );\n`;
             if (this.ctx.inClass) {
                 this.printf("%n%s: ",node.name);
@@ -41,7 +41,16 @@ function (Visitor,IndentBuffer,context,PL,S) {
                 //let prefix=(na && na.scopeInfo && na.scopeInfo.topLevel) ? TOP+".": "";
                 this.printf("%v=", /*prefix,*/ node.name);
             }
-            this.printf("function %v{%{%s%n%v%}}",node.params,lets, node.body);
+            this.printf("%s.f(%v,",PYLIB,node.params);
+            /*for (let p of node.params.body) {
+                this.printf("{");
+                this.printf("name: %s,",JSON.stringify(p.name+""));
+                if (p.defVal) {
+                    this.printf("def: %v,", p.defVal);
+                }
+                this.printf("},");
+            }*/
+            this.printf("function (%s){%{%v%}})",scopeSymbol(sca.level), node.body);
             if (this.ctx.inClass) {
             } else {
                 this.printf(";%n");
@@ -53,14 +62,21 @@ function (Visitor,IndentBuffer,context,PL,S) {
             }*/
         },
         paramList: function (node) {
-            this.printf("(%j)",[",",node.body]);
+            this.printf("[%j]",[",",node.body]);
         },
         param: function(node) {
+            this.printf("{");
+            this.printf("name: %s,",JSON.stringify(node.name+""));
+            if (node.defVal) {
+                this.printf("def: %v,", node.defVal);
+            }
+            this.printf("}");
+            /*
             if (node.defVal) {
                 this.printf("%s=%v",node.name, node.defVal);
             } else {
                 this.printf("%s",node.name);
-            }
+            }*/
         },
         defVal: function (node) {
             this.printf("%v",node.value);
@@ -342,7 +358,10 @@ function (Visitor,IndentBuffer,context,PL,S) {
             this.printf(";");
         },
         lambdaExpr(node) {
-            this.printf("((%v)=>%v)",node.param, node.returns);
+            const nan=this.anon.get(node);
+            const sca=this.anon.get(nan.localScope);
+            this.printf("%s.f([%j],(%s)=>%v)",
+            PYLIB, [",",node.params], scopeSymbol(sca.level),  node.returns);
         },
         superCall: function () {
             this.printf("%s.super(this.__class__, this)",PYLIB);
@@ -374,15 +393,24 @@ function (Visitor,IndentBuffer,context,PL,S) {
         None: function () {this.printf("%s.None",PYLIB);},
         symbol(node) {
             const a=this.anon.get(node);
-            const pre=(a.scopeInfo && a.scopeInfo.topLevel ? TOP+".":"");
             if (a.scopeInfo && a.scopeInfo.scope) {
+                // global x  -> registerd in scope with level=1 but "as global"
+                const isg=a.scopeInfo.topLevel;// ? TOP+".":"");
                 let sa=this.anon.get(a.scopeInfo.scope);
-                this.printf("/*%s*/",sa.level);
+                const pre=scopeSymbol(isg ? 0 :sa.level);
+                //this.printf("/*%s*/%s",sa.level,pre+"."+node);
+                this.printf("%s",pre+"."+node);
+                return; //pre+"."+node;
             }
-            const nex=pre+node;
-            this.printf("%s",nex);
+            console.error("No scope info",a);
+            throw new Error("No scope info");
+            //const nex=pre+node;
+            //this.printf("%s",nex);
         },
     };
+    function scopeSymbol(level) {
+        return (level==0?TOP:`__${level}`);
+    }
     const cmps={">":1,"<":1,"==":1,">=":1,"<=":1,"!=":1};
     function isCmp(node) {
         return cmps[node.op+""];

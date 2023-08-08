@@ -372,9 +372,15 @@ const vdef={
     },
     lambdaExpr(node){
         this.newScope(()=>{
-            this.addScope(node.param+"",{node:node.param});
-            this.anon.put(node.param, {isLeft: true});
+            for (let p of node.params) {
+                this.addScope(p.name+"",{node:p.name});
+                this.anon.put(p.name,{isLeft: true});
+            }
+            //this.addScope(node.param+"",{node:node.param});
+            //this.anon.put(node.param, {isLeft: true});
             this.visit(node.returns);
+            const s=this.curScope();
+            this.anon.put(node, {localScope: s});
         });
     },
     semicolon(node) {

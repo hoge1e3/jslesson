@@ -203,7 +203,7 @@ function (Visitor,IndentBuffer,assert) {
             this.printf("%v%v%v",node.left,node.op,node.right);
         },
         lambdaExpr(node) {
-            this.printf("lambda %v:%v",node.param, node.returns);
+            this.printf("lambda %j:%v",[",",node.params], node.returns);
         },
         isnt: function () {
             this.printf(" is not ");

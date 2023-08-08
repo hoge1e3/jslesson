@@ -321,7 +321,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: or([":",{body:"oneLineStmtList"},"nodentOrEOT"], [":indent",{body:"stmtList"},"dedentOrEOT"]),
         elem: or("symbol","number","None","bool","listComprehension","array","dict","literal3","literal","paren","superCall","lambdaExpr"),
-        lambdaExpr: ["lambda",{param:"symbol"},":",{returns:"expr"}],
+        lambdaExpr: ["lambda",{params:sep1("param",",")},":",{returns:"expr"}],
         superCall: ["super","(",")"],
         paren: ["(",{body:"exprList"},")"],
         bool: or("True","False"),
