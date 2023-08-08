@@ -50,7 +50,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         $(head).append($("<script>").text("window.runtimePath='"+WebSite.runtime+"';"));
         $(head).append($("<script>").text("window.controllerPath='"+WebSite.controller+"';"));
         $(head).append($("<script>").text("window.onerror=window.onerror||"+
-        function (e) {console.log(arguments);alert(e);}+";"));
+        function (message, file, lineNo, colNo, error) {console.log(arguments);alert(error||message);}+";"));
         $(head).append($("<link>").attr({"rel":"stylesheet","href":WebSite.runtime+"css/run_style.css"}));
 
         libs.map(function (r) {

@@ -48,6 +48,7 @@ define(function (require,exports,module) {
         },
         js:root
     };
+    PL.spreadMod=(mod, names) => names.map((n)=>mod[n]);
     PL.proxy=(target)=>{
         return new Proxy(()=>"Hoge", {
             get(_target, prop, receiver) {
@@ -980,7 +981,7 @@ define(function (require,exports,module) {
                     } else {
                         return n.value.then(()=>{
                             PL.LoopChecker.reset();
-                            t.run(it);
+                            return t.run(it);
                         });
                     }
                 } else {

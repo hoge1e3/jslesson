@@ -99,7 +99,8 @@ function (Visitor,IndentBuffer,context,PL,S) {
             if (node.localNames.names.text==="*"){
                 this.printf("Object.assign(%s, require('%s').install(%s));", TOP, url, PYLIB);
             } else {
-                this.printf("{%j}=require('%s').install(%s);", [",",node.localNames.names], url, PYLIB);
+                this.printf("[%j]=%s.spreadMod(require('%s').install(%s),%s);", 
+                [",",node.localNames.names], PYLIB, url, PYLIB, JSON.stringify(node.localNames.names.map((s)=>s+"")));
             }
         },
         exprStmt: function (node) {
@@ -341,7 +342,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
         },
         postfix: function (node) {
             if (node.op.type==="args" && !this.options.disableAsync) {
-                this.printf("yield* %s.R(%v%v)", PYLIB,node.left,node.op);
+                this.printf("(yield* %s.R(%v%v))", PYLIB,node.left,node.op);
             } else {
                 this.printf("%v%v",node.left,node.op);
             }
@@ -470,7 +471,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
         }
         v.visit(node);
         if (!options.disableAsync) {
-            v.printf("%n%}});");
+            v.printf("%n%}}).then(()=>true, (e)=>window.onerror(0,0,0,0,e));");
         }
         if (options.injectAfter) {
             v.printf(options.injectAfter);
