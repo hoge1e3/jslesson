@@ -2,6 +2,7 @@
 define(function (require,exports,module) {
     //var PyX=require("./PyX.js");
     // same with root.js
+    //const ABG=require("AsyncByGenerator");
     function getRoot(){
         if (typeof window!=="undefined") return window;
         if (typeof self!=="undefined") return self;
@@ -273,7 +274,7 @@ define(function (require,exports,module) {
         return res;
     };
     PL.f=(spec, body)=>function (...args){
-        return body.call(this,PL.parseArgs2(args, spec));    
+        return PL.AsyncByGenerator.toVal(body.call(this,PL.parseArgs2(args, spec)));    
     };
     PL.opt=PL.Option;
     PL.range=function (b,e,s=1) {
@@ -939,5 +940,84 @@ define(function (require,exports,module) {
             }
         });
     };
+
+    PL.AsyncByGenerator = {
+        doReady() {
+            this.isReady = true;
+            if (this.onReady) {
+                this.onReady();
+            }
+        },
+        ready(f) {
+            if (this.isReady) {
+                f();
+            } else {
+                this.onReady = f;
+            }
+        },
+        isPromise(v) {
+            return typeof Promise === "function" && v instanceof Promise; 
+        },
+        isGenerator(v) {
+            return v && (typeof Symbol === "function" && v[Symbol.toStringTag] === "Generator" || this.GeneratorFunction && this.GeneratorFunction.prototype.isPrototypeOf(v));
+        },
+        init() {
+            this.GeneratorFunction = ((function*(){})()).constructor;
+            this.doReady();
+        },
+        run(it) {
+            var t = this;
+            while (true) {
+                var n;
+                try {
+                    n = it.next();
+                } catch (e) {
+                    return Promise.reject(e);
+                }
+                if (this.isPromise(n.value)) {
+                    if (n.done) {
+                        return n.value;
+                    } else {
+                        return n.value.then(()=>{
+                            PL.LoopChecker.reset();
+                            t.run(it);
+                        });
+                    }
+                } else {
+                    if (n.done) {
+                        return Promise.resolve(n.value);
+                    }
+                }
+            }
+        },
+        toGen(v) {
+            if (this.isPromise(v)) {
+                var res;
+                var p=v.then(function (r) {
+                    res=r;
+                });
+                return (function*() {yield p;return res;})();
+            } else if (this.isGenerator(v)) {
+                return v;
+            }
+            return (function*(){return v;})();            
+        },
+        toVal(gen) {
+            var n=gen.next();
+            if (n.done) return n.value;
+            return (function*() {
+                while(true) {
+                    yield n.value;
+                    n=gen.next();
+                    if (n.done) return n.value;
+                }
+            })();
+        }
+    };
+    PL.AsyncByGenerator.init();
+    PL.runAsync=(genF)=>{
+        return PL.AsyncByGenerator.run(genF());
+    };
+    PL.R=(x)=>PL.AsyncByGenerator.toGen(x);
     return PL;
 });

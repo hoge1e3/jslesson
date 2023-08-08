@@ -50,7 +50,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
                 }
                 this.printf("},");
             }*/
-            this.printf("function (%s){%{%v%}})",scopeSymbol(sca.level), node.body);
+            this.printf("function* (%s){%{%v%}})",scopeSymbol(sca.level), node.body);
             if (this.ctx.inClass) {
             } else {
                 this.printf(";%n");
@@ -340,7 +340,11 @@ function (Visitor,IndentBuffer,context,PL,S) {
             //this.printf("%v%v%v",node.left,node.op,node.right);
         },
         postfix: function (node) {
-            this.printf("%v%v",node.left,node.op);
+            if (node.op.type==="args" && !this.options.disableAsync) {
+                this.printf("yield* %s.R(%v%v)", PYLIB,node.left,node.op);
+            } else {
+                this.printf("%v%v",node.left,node.op);
+            }
         },
         prefix: function (node) {
             this.printf("%v%v",node.op,node.right);
@@ -360,7 +364,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
         lambdaExpr(node) {
             const nan=this.anon.get(node);
             const sca=this.anon.get(nan.localScope);
-            this.printf("%s.f([%j],(%s)=>%v)",
+            this.printf("%s.f([%j],function*(%s){return %v;})",
             PYLIB, [",",node.params], scopeSymbol(sca.level),  node.returns);
         },
         superCall: function () {
@@ -460,15 +464,19 @@ function (Visitor,IndentBuffer,context,PL,S) {
         if (options.injectBefore) {
             v.printf(options.injectBefore);
         }
-        /*for (let n of PL.builtins) {
-            v.printf("var %s=%s.%s;%n",n,PYLIB,n);
-        }*/
         v.printf("var %s=%s.moduleScope(%s, %s);%n", TOP, PYLIB, PYLIB, !!options.useJSRoot);
+        if (!options.disableAsync) {
+            v.printf("%s.runAsync(function*() {%{",PYLIB);
+        }
         v.visit(node);
+        if (!options.disableAsync) {
+            v.printf("%n%}});");
+        }
         if (options.injectAfter) {
             v.printf(options.injectAfter);
         }
         if (options.genReqJS) {
+            v.printf("return %s;%n",TOP);
             v.printf("%}});%n");
             const SEND_LOG=`
             if (window.parent && window.parent.sendResult) {
