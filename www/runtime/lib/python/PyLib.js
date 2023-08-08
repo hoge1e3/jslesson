@@ -238,6 +238,7 @@ define(function (require,exports,module) {
     PL.parseArgs2=function(args, spec) {
         // spec: [{name:  , def:  , ast: "*" || "**" }]
         args=Array.from(args);
+        const allowExtra=spec.allowExtra;
         spec=spec.slice();
         let opt=null, optKeys={};
         if (args[args.length-1] instanceof PL.Option) {
@@ -269,13 +270,17 @@ define(function (require,exports,module) {
         if (Object.keys(optKeys).length) {
             throw new Error(`引数${Object.keys(optKeys)}はありません．`)
         }
-        if (args.length) {
+        if (args.length && !allowExtra) {
             throw new Error(`余計な引数が${args.length}個あります．`);
         }
         return res;
     };
-    PL.f=(spec, body)=>function (...args){
-        return PL.AsyncByGenerator.toVal(body.call(this,PL.parseArgs2(args, spec)));    
+    PL.f=(spec, body)=>{
+        const res=function (...args){
+            return PL.AsyncByGenerator.toVal(body.call(this,PL.parseArgs2(args, spec)));    
+        };
+        res.spec=spec;
+        return res;
     };
     PL.opt=PL.Option;
     PL.range=function (b,e,s=1) {
@@ -980,7 +985,7 @@ define(function (require,exports,module) {
                         return n.value;
                     } else {
                         return n.value.then(()=>{
-                            PL.LoopChecker.reset();
+                            //PL.LoopChecker.reset();
                             return t.run(it);
                         });
                     }
@@ -1019,6 +1024,7 @@ define(function (require,exports,module) {
     PL.runAsync=(genF)=>{
         return PL.AsyncByGenerator.run(genF());
     };
+    setInterval(()=>PL.LoopChecker.reset(),2000);
     PL.R=(x)=>PL.AsyncByGenerator.toGen(x);
     return PL;
 });

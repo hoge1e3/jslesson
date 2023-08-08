@@ -163,7 +163,10 @@ define(function (require,exports,module){
             ["draw", "setup","keyPressed","keyReleased","keyTyped","mouseMoved","mouseDragged","mousePressed","mouseClicked"].map((k)=>{
                 if (__g.__contains__(k)) {
                     let v=__g.__getitem__(k);
-                    if (typeof v==="function") inst[k]=(k==="setup"? _wrap(v) : v);
+                    if (typeof v==="function") {
+                        if (v.spec) { v.spec.allowExtra=true; v.spec.name=k; }
+                        inst[k]=(k==="setup"? _wrap(v) : v);
+                    }
                 }
             });
              ${"req"+"uire"}("${p5jsURL}");
