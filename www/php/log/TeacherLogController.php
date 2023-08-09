@@ -446,12 +446,13 @@ class TeacherLogController {
         $usersfiles=json_decode(param("usersfiles"));
         $res=[];
         foreach ($usersfiles as $userfile) {
-            $res[]=self::getActualtime2($userfile[0],$userfile[1]);
+            $res[]=self::getActualtime2($userfile[0],$userfile[1],null, true);
         }
         header("Content-type: text/json");
         print json_encode($res);
     }
-    static function getActualtime2($user=null,$file=null, $dateMax=null) {
+    static function getActualtime2($user=null,$file=null, $dateMax=null, $complete=false) {
+        // complete: return [complate_actTime, all_actTime]
         $class=Auth::curClass2();
         $isCtrl=false;
         if ($user===null) {
@@ -466,13 +467,26 @@ class TeacherLogController {
                 $user=$class->getUser($user);
             }
         }
+        $comp=param("complete", false);
+        if ($comp) $complete=true; 
         req("LogQueryController");
         if ($dateMax) $drange=[0,$dateMax];
         else $drange=null;
+        $lastCode=false;
+        if ($complete) {
+            $itlast=LogQueryController::get($class, $drange, $user, $file, 100, "desc");
+            foreach ($itlast as $log) {
+                //print_r($log->raw);
+                $lastCode=LogUtil::getCode(json_decode($log->raw));
+                if ($lastCode) break;
+            }    
+            //print "LASTCODE =$lastCode";
+        }
         $it=LogQueryController::get($class, $drange, $user, $file, 100000, "asc");
         $prev=null;
         if (!defined("IDLE_TIME")) define("IDLE_TIME",300);
         $actTime2=0;
+        $actTime_complete=false;
         foreach ($it as $log) {
             if (!$prev) { $prev=$log; continue; }
             $elapsedFromLast=$log->time-$prev->time;
@@ -481,9 +495,23 @@ class TeacherLogController {
             } else {
                 $actTime2+=$elapsedFromLast;
             }
+            if ($complete) {
+                $code=LogUtil::getCode(json_decode($log->raw));
+                if ($lastCode && $code===$lastCode && $actTime_complete===false) {
+                    $actTime_complete=$actTime2;
+                }    
+            }
             $prev=$log;
         }
-        if ($isCtrl) {print $actTime2;}
+        if ($isCtrl) {
+            if ($complete) {
+                header("Content-type: text/json");
+                print json_encode([$actTime_complete, $actTime2]);
+            } else {print $actTime2;}
+        }
+        if ($complete) {
+            return [$actTime_complete, $actTime2];
+        }
         return $actTime2;
     }
     static function bot() {

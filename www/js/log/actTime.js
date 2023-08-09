@@ -9,7 +9,8 @@ async function addActualTime2(){
     const u=( header.find("[data-attr='user']")[0]);
     console.log(f,u);
     if (!f || !u) return;
-    header.append($("<th>").attr({"data-attr":"actualTime"}).text("actualTime"));
+    header.append($("<th>").attr({"data-attr":"at_complete"}).text("at_complete"));
+    header.append($("<th>").attr({"data-attr":"at_full"}).text("at_full"));
     const rows=$("tr.record");
     const rowsByFile={};
     let batch=[],batch_size=10;
@@ -31,8 +32,9 @@ async function addActualTime2(){
             let i=0;
             for (let e of r) {
                 const row=batch[i][SYM_ROW];
-                row.append($("<td>").attr({"data-attr":"actualTime"}).text(e));  
-                row[SYM_AT]=e-0;  
+                row.append($("<td>").attr({"data-attr":"at_complete"}).text(e[0]));  
+                row.append($("<td>").attr({"data-attr":"at_full"}).text(e[1]));  
+                row[SYM_AT]=e[0]-0;  
                 i++;
             }
         } catch (e) {
