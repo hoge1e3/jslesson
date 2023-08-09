@@ -137,7 +137,12 @@ class LogQueryController {
                 if ($key=="time") $val=DateUtil::toString($val);
                 if ($key=="id") {
                     $u=$rec->user;
-                    $val="<a href='.?TeacherLog/view1&user=$u&day=$date&logid=$val&' target=view1>$val</a>";
+                    $val="<a href='.?TeacherLog/view1new&user=$u&day=$date&logid=$val&' target=view1>$val</a>";
+                }
+                if ($key=="count") {
+                    if (isset($rec->user) && isset($rec->filename) ) {
+                        $val="<a href='.?TeacherLog/view1new&user=$rec->user&file=$rec->filename' target=view1>$val</a>";
+                    }
                 }
                 print "<td data-attr='$key'>$val</td>";
             }
