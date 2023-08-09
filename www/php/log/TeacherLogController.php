@@ -478,7 +478,10 @@ class TeacherLogController {
             foreach ($itlast as $log) {
                 //print_r($log->raw);
                 $lastCode=LogUtil::getCode(json_decode($log->raw));
-                if ($lastCode) break;
+                if ($lastCode) {
+                    $itlast->close();
+                    break;
+                }
             }    
             //print "LASTCODE =$lastCode";
         }
