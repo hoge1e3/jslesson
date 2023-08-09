@@ -25,7 +25,7 @@ class LogQueryController {
         }
         if (param("grp_file",false)) {
             $groupBy[]="file";
-            $file=null;
+            //$file=null;
         }
         if ($output==="table") {
         ?>
@@ -74,7 +74,7 @@ class LogQueryController {
             $wheres[]=["user =?", $user->name];
         }
         if ($file) {
-            $wheres[]=["filename =?", $file];
+            $wheres[]=["filename like ?", $file];
         }
         pdo_enableIter();
         if (!$groupBy || count($groupBy)==0) {
@@ -116,18 +116,19 @@ class LogQueryController {
         //print "$datesec ";
         ?>
         <Script src="js/lib/jquery-1.12.1.js"></Script>
+        <script type="text/javascript" src="js/lib/jquery.tablesorter.min.js"></script>
         <Script src="js/log/actTime.js"></Script>
         <?php
         print"<table>";
         $thShown=false;
         foreach ($it as $rec) {
             if (!$thShown) {
-                print "<tr class='header'>";
+                print "<thead><tr class='header'>";
                 foreach ($rec as $key=>$val) {
                     if ($key=="raw" || $key=="detail" || $key=="class") continue;
-                    print "<td data-attr='$key'>$key</td>";
+                    print "<th data-attr='$key'>$key</th>";
                 }
-                print "</tr>\n";
+                print "</tr></thead>\n";
                 $thShown=true;
             }
             print "<tr class='record'>";

@@ -439,6 +439,17 @@ class TeacherLogController {
         //    // プログラムの一部を表示
         // }
     }
+    static function getActualtime2Batch() {
+        $pu=self::parseUser();
+        if (!$pu["canSeeOtherUsersLogs"]) return;
+        $usersfiles=json_decode(param("usersfiles"));
+        $res=[];
+        foreach ($usersfiles as $userfile) {
+            $res[]=self::getActualtime2($userfile[0],$userfile[1]);
+        }
+        header("Content-type: text/json");
+        print json_encode($res);
+    }
     static function getActualtime2($user=null,$file=null, $dateMax=null) {
         $class=Auth::curClass2();
         $isCtrl=false;
@@ -449,6 +460,10 @@ class TeacherLogController {
             $file=param("file");
             $dateMax=param("dateMax",null);
             $isCtrl=true;
+        } else {
+            if (is_string($user)) {
+                $user=$class->getUser($user);
+            }
         }
         req("LogQueryController");
         if ($dateMax) $drange=[0,$dateMax];
