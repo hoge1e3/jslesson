@@ -476,7 +476,7 @@ class TeacherLogController {
             $itlast=LogQueryController::get($class, $drange, $user, $file, 100, "desc");
             foreach ($itlast as $log) {
                 //print_r($log->raw);
-                $lastCode=LogUtil::getCode(json_decode($log->raw));
+                $lastCode=removeEmptyLines( LogUtil::getCode(json_decode($log->raw)));
                 if ($lastCode) {
                     $itlast->close();
                     break;
@@ -498,7 +498,7 @@ class TeacherLogController {
                 $actTime2+=$elapsedFromLast;
             }
             if ($complete) {
-                $code=LogUtil::getCode(json_decode($log->raw));
+                $code=removeEmptyLines( LogUtil::getCode(json_decode($log->raw)));
                 if ($lastCode && $code===$lastCode && $actTime_complete===false) {
                     $actTime_complete=$actTime2;
                 }    
@@ -1387,5 +1387,8 @@ function subtractSubstring($str, $substring) {
     // $substringが$strに含まれない場合は、$strをそのまま返す
     return $str;
   }
-  
+  function removeEmptyLines($input) {
+    $pattern = '/^\s*\n/m'; // 正規表現パターン: 空行を表す
+    return preg_replace($pattern, '', $input);
+}
 ?>
