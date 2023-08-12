@@ -1375,7 +1375,7 @@ class TeacherLogController {
 }
 function subtractSubstring($str, $substring) {
     // $substringが空文字列の場合は$strをそのまま返す
-    if(empty($substring)) {
+    if(empty($substring) || !is_string($substring)) {
       return $str;
     }
     
