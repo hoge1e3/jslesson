@@ -1,8 +1,11 @@
 function runOnServer2(str,needStdin) {
     var stdin,t,place;
+    var inq=getQueryString("stdin",null);
     if (!needStdin) {
         stdin="\n\n\n\n\n\n\n\n";
         runOnServerWithStdin(str,stdin);
+    } else if (typeof inq==="string") {
+        runOnServerWithStdin(str,inq);
     } else {
         place=$("<div>").appendTo("body");
         $("<div>").text("入力を設定してください(入力値ごとに改行で区切る)").appendTo(place);
@@ -109,4 +112,18 @@ function runOnServer(srcPath) {
             }
         }
     );
+}
+function getQueryString(key, default_)
+{
+    if (arguments.length===1) default_="";
+   key = key.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+   var regex = new RegExp("[\\?&]"+key+"=([^&#]*)");
+   var qs = regex.exec(location.href);
+   if(qs == null)
+    return default_;
+   else
+    return decodeURLComponentEx(qs[1]);
+}
+function decodeURLComponentEx(s){
+    return decodeURIComponent(s.replace(/\+/g, '%20'));
 }
