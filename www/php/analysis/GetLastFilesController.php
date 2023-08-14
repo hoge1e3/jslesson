@@ -8,7 +8,16 @@ class GetLastFilesController {
 
         $file=param("file");
         pdo_enableIter();
-        $it=pdo_select("select log.user as user, log.id as id, logtag.value as value, log.raw as raw, logtag.name as tagname, logtag.detail as logdetail from log left join logtag on log.id=logtag.log where (tagname is null or tagname='ok') and filename=? and class=? order by time desc ", $file, $class->id);
+        $it=pdo_select("select ".
+        " log.user as user,".
+        " log.id as id,".
+        " logtag.value as value,".
+        " log.raw as raw,".
+        " logtag.name as tagname,".
+        " logtag.detail as logdetail".
+        " from log left join logtag on log.id=logtag.log".
+        " where (logtag.name is null or logtag.name='ok') and filename=? and class=? ".
+        "order by time desc ", $file, $class->id);
         $users=[];
         foreach ($it as $log) {
             //print ($log->tagname);
