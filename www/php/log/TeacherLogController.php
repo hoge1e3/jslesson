@@ -478,15 +478,19 @@ class TeacherLogController {
         $ok=null;
         if ($complete) {
             $itlast=LogQueryController::get($class, $drange, $user, $file, 100, "desc");
+            $lastlog=null;
             foreach ($itlast as $log) {
                 //print_r($log->raw);
                 $lastCode=removeEmptyLines( LogUtil::getCode(json_decode($log->raw)));
                 if ($lastCode) {
-                    $ok=self::getOKTag($log);
+                    $lastlog=$log;
                     $itlast->close();
                     break;
                 }
             }    
+            if ($lastlog) {
+                $ok=self::getOKTag($lastlog);
+            }
             //print "LASTCODE =$lastCode";
         }
         $it=LogQueryController::get($class, $drange, $user, $file, 100000, "asc");
