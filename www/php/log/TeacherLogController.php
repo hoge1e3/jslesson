@@ -450,6 +450,9 @@ class TeacherLogController {
         header("Content-type: text/json");
         print json_encode($res);
     }
+    static function getOKTag($log) {
+        return pdo_select1("select * from logtag where log=?",$log->id);
+    }
     static function getActualtime2($user=null,$file=null, $dateMax=null, $complete=false) {
         // complete: return [complate_actTime, all_actTime]
         $class=Auth::curClass2();
@@ -472,12 +475,14 @@ class TeacherLogController {
         if ($dateMax) $drange=[0,$dateMax];
         else $drange=null;
         $lastCode=false;
+        $ok=null;
         if ($complete) {
             $itlast=LogQueryController::get($class, $drange, $user, $file, 100, "desc");
             foreach ($itlast as $log) {
                 //print_r($log->raw);
                 $lastCode=removeEmptyLines( LogUtil::getCode(json_decode($log->raw)));
                 if ($lastCode) {
+                    $ok=self::getOKTag($log);
                     $itlast->close();
                     break;
                 }
@@ -512,7 +517,12 @@ class TeacherLogController {
             } else {print $actTime2;}
         }
         if ($complete) {
-            return [$actTime_complete, $actTime2];
+            $res=[$actTime_complete, $actTime2];
+            if ($ok) {
+                $res[]=$ok->value;
+                $res[]=$ok->detail;
+            }
+            return $res;
         }
         return $actTime2;
     }
@@ -1387,7 +1397,7 @@ function subtractSubstring($str, $substring) {
     // $substringが$strに含まれない場合は、$strをそのまま返す
     return $str;
   }
-  function removeEmptyLines($input) {
+function removeEmptyLines($input) {
     $pattern = '/^\s*\n/m'; // 正規表現パターン: 空行を表す
     return preg_replace($pattern, '', $input);
 }
