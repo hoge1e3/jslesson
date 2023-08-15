@@ -1,6 +1,13 @@
 <?php
 req("param","auth","MySession","AssetController");
 class RunPythonController {
+    static function getFileFromURL($url) {
+        //$url=param("url");
+        req("Published");
+        $r=Published::filePath($url);
+        //print($r);
+        return (file_get_contents($r));
+    }
     static function workDirPath() {
         if (MySession::has("PYTHON_WORK")) {
             $w=MySession::get("PYTHON_WORK");
@@ -48,6 +55,28 @@ class RunPythonController {
             return $homes->nativePath();
         } else {
             return $homes;
+        }
+    }
+    static function runURL(){
+        $nfs=new NativeFS();
+        $url=param("url");
+        $str=self::getFileFromURL($url);// $str=param("str");
+        //$fs=Auth::getFS();
+        $sp=self::isSuper(1);
+        $wpath=self::workDirPath();
+        $workDir=new SFile($nfs,$wpath);
+        $d=$workDir->rel("src.py");
+        $d->text($str);
+        $copiedScriptPath=$d->nativePath();
+        $homes=Asset::homesFromFullURL($url);
+        self::saveConfig($workDir, $homes,$sp);
+        $workDir->rel("stdin.txt")->text(param("stdin","\n\n\n\n\n\n\n\n"));
+        $cmd=PYTHON_PATH." \"$copiedScriptPath\"";
+        $res=system_ex($cmd);
+        if ($res["return"]==0) self::convOut($res["stdout"]);
+        else {
+            http_response_code(500);
+            print($res["stderr"]);
         }
     }
     static function runStr(){

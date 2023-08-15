@@ -133,6 +133,8 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         var dst=this.dst;
         var t=this;
         var files=[];
+        let upload=options.upload;
+        let publishedURL=options.publishedURL;
         return DU.each(curPrj.dir.ls(),function (n) {
             if (FS.PathUtil.ext(n)!=".html")  return;
             var f=curPrj.dir.rel(n);
@@ -145,7 +147,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
                 dst:{
                     html:dst.rel(name+".html"),
                     js:dst.rel(name+".js"),
-                    //py:dst.rel(name+".py"),
+                    py:dst.rel(name+".py"),
                     map: dst.rel(name+".js.map")
                 }
             });
@@ -162,7 +164,8 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
                     }
                 }
                 console.log("Transpile "+f.src.py.name());
-                t.compile(f,{runAt,isMainFile});
+                //console.log("upload",upload);
+                t.compile(f,{runAt,isMainFile,upload,publishedURL});
                 if (runAt==="raspi") t.genHTML_Raspi(f);
                 else t.genHTML(f);
                 return SplashScreen.waitIfBusy();
@@ -171,7 +174,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
     };
     var superMode=false;
 
-    p.compile=function (f,{runAt,isMainFile}) {
+    p.compile=function (f,{runAt,isMainFile,upload,publishedURL}) {
         var pysrcF=f.src.py;
         var js;
         var anon,node,errSrc,needInput=false;
@@ -199,6 +202,12 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
             runAt="server";
         }
         //console.log("PPToken",PP.Tokenizer(pysrc).tokenize());
+        console.log(upload, runAt, publishedURL);
+        if (upload && runAt==="server") {
+            f.dst.py.text(f.src.py.text());
+            f.dst.js.text(`runOnServerURL(${JSON.stringify(FS.PathUtil.truncSEP(publishedURL)+"/"+f.src.py.name())},${needInput});`);
+            return;
+        }
         var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
         buf.setSrcFile(pysrcF);//<-dtl
         if (errSrc) {
