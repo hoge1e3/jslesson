@@ -10,10 +10,79 @@
     }
     var root=getRoot();
 
+class QueryString {
+    constructor(url) {
+        this.url=url || location.href;
+    }
+    get(param, def) {
+        if (arguments.length<2) {
+            return getQueryString2(this.url, param);
+        }
+        return getQueryString2(this.url, param, def);
+    }
+    put(param, value) {
+        if (typeof param=="object") {
+            let res=this;
+            for (let k of Object.keys(param)) {
+                res=res.put(k, param[k]);
+            }
+            return res;
+        }
+        return new QueryString(setQueryString(this.url, param, value));
+    }
+    delete(param) {
+        let regex = keyValueRegex(param);
+        let m=regex.exec(this.url);
+        if (!m) return this;
+        let repl=this.url.replace(regex,"");
+        if (repl.indexOf("?")<0 && repl.indexOf("&")>=0) {
+            //  ?a=b&c=d
+            // delete a
+            //  &c=d
+            //  ?c=d
+            repl=repl.replace(/&/,"?");
+        }
+        return new QueryString(repl);
+    }
+    paramPart() {
+        let url=this.url;
+        let i=url.indexOf("?");
+        if (i<0) return "";
+        return url.substring(i+1);
+    }
+}
+function keyValueRegex(key) {
+    let keyr = key.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+    let regex = new RegExp(`([\\?&])${keyr}=([^&#]*)`);
+    return regex;
+}
+function setQueryString(url, key, value){
+    let regex = keyValueRegex(key);
+    if (!url.match(regex)) {
+        //console.log("A");
+        return `${url}${url.indexOf("?")>=0 ? "&" : "?"}${key}=${encodeURIComponent(value)}`;
+    }
+    //console.log("B");
+    return url.replace(regex, (_,sp)=> `${sp}${key}=${encodeURIComponent(value)}`);
+}
+function getQueryString2(url, key, default_){
+    const throwIfMissing=(arguments.length<3);
+    if (default_==null) default_="";
+    let regex = keyValueRegex(key);
+    var qs = regex.exec(url);
+    if(qs == null){
+        if (throwIfMissing) throw new Error(`Missing parameter: ${key}`);
+        return default_;
+    } else {
+        return decodeURLComponentEx(qs[2]);
+    }
+}
+
+
 function getQueryString(key, default_)
 {
     if (arguments.length===1) default_="";
-    if (root.LocalBrowserInfo==="object") {
+    if (typeof root.LocalBrowserInfo==="object") {
         return key in root.LocalBrowserInfo.params? root.LocalBrowserInfo.params[key] : default_;
     }
    key = key.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
@@ -212,7 +281,8 @@ root.Util={
     //utf8bytes2str: utf8bytes2str,
     //str2utf8bytes: str2utf8bytes,
     privatize: privatize,
-    extend:extend
+    extend:extend,
+    QueryString,
     /*hasNodeBuffer:hasNodeBuffer,
     isNodeBuffer: isNodeBuffer,
     isBuffer: isBuffer*/
@@ -9890,7 +9960,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
                     if (cons) cons.style.fontSize=options.font+"px";
                 }
             });
-            return res.lbw.open(runFile);
+            return res.lbw.open(runFile,options);
         }
         window.dialogClosed=false;
         var d=res.embed(runFile, options);
@@ -9959,18 +10029,6 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
                         ["button", {type:"button",$var:"cpOut", on:{click: res.cpOut}}, "出力をコピー"],
                         ["button", {type:"button",$var:"dlOut", on:{click: res.dlOut}}, "出力を共有……"],
                     ]:""),
-                    (true?"":["button", {type:"button",$var:"WButton", on:{click: function () {
-                        if (res.hasLocalBrowserWindow()) res.lbw.close();
-                        res.lbw=new LocalBrowserWindow({
-                            onload:function () {
-                                console.log(this);
-                                var cons=this.contentWindow.document.getElementById("console");
-                                if (cons) cons.style.fontSize=options.font+"px";
-                            }
-                        });
-                        res.lbw.open(runFile);
-                        res.d.dialog("close");
-                    }}}, "別ウィンドウ"])
             );
             res.da=new DA(res.d);
             res.da.afterResize=function (d) {
@@ -10006,6 +10064,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
             res.b.focus();
         },100);
         res.b.open(runFile,{
+            params:options.params,
             onload:function () {
                 console.log(this);
                 var cons=this.contentWindow.document.getElementById("console");
@@ -16775,7 +16834,9 @@ function ready() {
                     }
                 }
                 fl.select(pf);
-                run();
+                const stdin=Util.getQueryString("stdin",null);
+                console.log("STDIN",stdin);
+                run(stdin?{stdin}:{});
            }).catch (function (e) {console.error(e);});
         }
     }
@@ -17406,8 +17467,10 @@ function ready() {
                 return IframeDialog.show(runURL,{width:600,height:400});
             } else {
                 var indexF=buildStatus.indexFile;// ram.rel(lang=="tonyu"?"index.html":curHTMLFile.name());
+                const params=options.stdin?{stdin:options.stdin}:{};
                 if (isSplit()) {
                     return RunDialog2.embed(indexF, {
+                        params,
                         window:newwnd,
                         targetDOM: $("#runEmbed"),
                         toEditor:focusToEditor,
@@ -17415,6 +17478,7 @@ function ready() {
                     });
                 } else {
                     return RunDialog2.show(indexF,{
+                        params,
                         window:newwnd,
                         height:RunDialog2.geom.height||screenH-50,
                         toEditor:focusToEditor,
