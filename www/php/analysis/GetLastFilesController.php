@@ -33,12 +33,14 @@ class GetLastFilesController {
         }        
         ?>
         <script src="js/lib/jquery-1.12.1.js"></script>
+        <script src="js/lib/util.js"></script>
         <style>
             .toggled {
                 background-color: #0fa
             }
         </style>
         <script>
+            let QueryString=Util.QueryString;
             function put(t,ok) {
                 let div=$(t).closest("div.entry");
                 let okb=div.find(".ok");
@@ -60,13 +62,28 @@ class GetLastFilesController {
                 console.log("div", div[0].id, detail.val(),ok);
                 $.get("?GetLastFiles/put", {id: div[0].id, detail:detail.val(), ok});
             }
+            function setStdin(t) {
+                const stdin=$(t).val();
+                $("a.autoexec").each(function () {
+                    let a=$(this);
+                    let href=a.attr("href");
+                    let q=new QueryString(href);
+                    q=q.put({stdin});
+                    href=q.url;
+                    a.attr({href});
+                });
+            }
         </script>
+        <div>
+            <div>STDIN</div>
+            <textarea id="stdin" rows=5 cols=40 onchange="setStdin(this)"></textarea>
+        </div>
         <?php
         foreach($users as $user=>$log) {
             //print_r($log);
             ?><div class="entry" id="<?=$log["id"]?>"><h4>
                 <a 
-                target="autoexec"
+                target="autoexec" class="autoexec"
                 href="index.html?r=jsl_edit&dir=/home/<?= $class->id ?>/<?= $t->id ?>/TestC/&autologexec=<?= $log["id"] ?>">
                 <?= $user ?></a></h4>
             <pre><?= htmlspecialchars($log["code"]) ?></pre>

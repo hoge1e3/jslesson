@@ -230,7 +230,9 @@ function ready() {
                     }
                 }
                 fl.select(pf);
-                run();
+                const stdin=Util.getQueryString("stdin",null);
+                console.log("STDIN",stdin);
+                run(stdin?{stdin}:{});
            }).catch (function (e) {console.error(e);});
         }
     }
@@ -861,8 +863,10 @@ function ready() {
                 return IframeDialog.show(runURL,{width:600,height:400});
             } else {
                 var indexF=buildStatus.indexFile;// ram.rel(lang=="tonyu"?"index.html":curHTMLFile.name());
+                const params=options.stdin?{stdin:options.stdin}:{};
                 if (isSplit()) {
                     return RunDialog2.embed(indexF, {
+                        params,
                         window:newwnd,
                         targetDOM: $("#runEmbed"),
                         toEditor:focusToEditor,
@@ -870,6 +874,7 @@ function ready() {
                     });
                 } else {
                     return RunDialog2.show(indexF,{
+                        params,
                         window:newwnd,
                         height:RunDialog2.geom.height||screenH-50,
                         toEditor:focusToEditor,

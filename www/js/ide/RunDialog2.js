@@ -21,7 +21,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
                     if (cons) cons.style.fontSize=options.font+"px";
                 }
             });
-            return res.lbw.open(runFile);
+            return res.lbw.open(runFile,options);
         }
         window.dialogClosed=false;
         var d=res.embed(runFile, options);
@@ -90,18 +90,6 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
                         ["button", {type:"button",$var:"cpOut", on:{click: res.cpOut}}, "出力をコピー"],
                         ["button", {type:"button",$var:"dlOut", on:{click: res.dlOut}}, "出力を共有……"],
                     ]:""),
-                    (true?"":["button", {type:"button",$var:"WButton", on:{click: function () {
-                        if (res.hasLocalBrowserWindow()) res.lbw.close();
-                        res.lbw=new LocalBrowserWindow({
-                            onload:function () {
-                                console.log(this);
-                                var cons=this.contentWindow.document.getElementById("console");
-                                if (cons) cons.style.fontSize=options.font+"px";
-                            }
-                        });
-                        res.lbw.open(runFile);
-                        res.d.dialog("close");
-                    }}}, "別ウィンドウ"])
             );
             res.da=new DA(res.d);
             res.da.afterResize=function (d) {
@@ -137,6 +125,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
             res.b.focus();
         },100);
         res.b.open(runFile,{
+            params:options.params,
             onload:function () {
                 console.log(this);
                 var cons=this.contentWindow.document.getElementById("console");
