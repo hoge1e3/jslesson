@@ -109,16 +109,16 @@ Tonyu.klass.define({
         "use strict";
         var _this=this;
         var f;
-        var _it_1;
+        var _it_147;
         
         if (! window.Plotly) {
           window.setTimeout(Tonyu.bindFunc(_this,_this.waitLoadLib),100);
           
         } else {
           _this.Plotly=window.Plotly;
-          _it_1=Tonyu.iterator(_this.loadLibHandlers,1);
-          while(_it_1.next()) {
-            f=_it_1[0];
+          _it_147=Tonyu.iterator(_this.loadLibHandlers,1);
+          while(_it_147.next()) {
+            f=_it_147[0];
             
             f(_this.Plotly);
           }
@@ -131,16 +131,16 @@ Tonyu.klass.define({
         //var _arguments=Tonyu.A(arguments);
         var __pc=0;
         var f;
-        var _it_1;
+        var _it_147;
         
         if (! window.Plotly) {
           window.setTimeout(Tonyu.bindFunc(_this,_this.waitLoadLib),100);
           
         } else {
           _this.Plotly=window.Plotly;
-          _it_1=Tonyu.iterator(_this.loadLibHandlers,1);
-          while(_it_1.next()) {
-            f=_it_1[0];
+          _it_147=Tonyu.iterator(_this.loadLibHandlers,1);
+          while(_it_147.next()) {
+            f=_it_147[0];
             
             f(_this.Plotly);
           }
@@ -753,13 +753,13 @@ Tonyu.klass.define({
         var _this=this;
         var ret;
         var o;
-        var _it_23;
+        var _it_169;
         
         ret = [];
         
-        _it_23=Tonyu.iterator(_this.vec(k),1);
-        while(_it_23.next()) {
-          o=_it_23[0];
+        _it_169=Tonyu.iterator(_this.vec(k),1);
+        while(_it_169.next()) {
+          o=_it_169[0];
           
           if (ret[o[k]]) {
             ret[o[k]]++;
@@ -779,13 +779,13 @@ Tonyu.klass.define({
         var __pc=0;
         var ret;
         var o;
-        var _it_23;
+        var _it_169;
         
         ret = [];
         
-        _it_23=Tonyu.iterator(_this.vec(k),1);
-        while(_it_23.next()) {
-          o=_it_23[0];
+        _it_169=Tonyu.iterator(_this.vec(k),1);
+        while(_it_169.next()) {
+          o=_it_169[0];
           
           if (ret[o[k]]) {
             ret[o[k]]++;
@@ -1259,7 +1259,7 @@ Tonyu.klass.define({
         var _this=this;
         var s;
         var v;
-        var _it_39;
+        var _it_185;
         
         s = 0;
         
@@ -1272,9 +1272,9 @@ Tonyu.klass.define({
           }
           
         } else {
-          _it_39=Tonyu.iterator(_this.vec(k),1);
-          while(_it_39.next()) {
-            v=_it_39[0];
+          _it_185=Tonyu.iterator(_this.vec(k),1);
+          while(_it_185.next()) {
+            v=_it_185[0];
             
             s+=v-0;
             
@@ -1290,7 +1290,7 @@ Tonyu.klass.define({
         var __pc=0;
         var s;
         var v;
-        var _it_39;
+        var _it_185;
         
         s = 0;
         
@@ -1303,9 +1303,9 @@ Tonyu.klass.define({
           }
           
         } else {
-          _it_39=Tonyu.iterator(_this.vec(k),1);
-          while(_it_39.next()) {
-            v=_it_39[0];
+          _it_185=Tonyu.iterator(_this.vec(k),1);
+          while(_it_185.next()) {
+            v=_it_185[0];
             
             s+=v-0;
             
@@ -1361,7 +1361,7 @@ Tonyu.klass.define({
         var a;
         var i;
         var v;
-        var _it_44;
+        var _it_190;
         
         d = [];
         a = 0;
@@ -1378,9 +1378,9 @@ Tonyu.klass.define({
           
         } else {
           a=_this.mean(k);
-          _it_44=Tonyu.iterator(_this.vec(k),1);
-          while(_it_44.next()) {
-            v=_it_44[0];
+          _it_190=Tonyu.iterator(_this.vec(k),1);
+          while(_it_190.next()) {
+            v=_it_190[0];
             
             d.push(v-a);
             
@@ -1398,7 +1398,7 @@ Tonyu.klass.define({
         var a;
         var i;
         var v;
-        var _it_44;
+        var _it_190;
         
         d = [];
         a = 0;
@@ -1429,9 +1429,9 @@ Tonyu.klass.define({
             case 3:
               a=_thread.retVal;
               
-              _it_44=Tonyu.iterator(_this.vec(k),1);
-              while(_it_44.next()) {
-                v=_it_44[0];
+              _it_190=Tonyu.iterator(_this.vec(k),1);
+              while(_it_190.next()) {
+                v=_it_190[0];
                 
                 d.push(v-a);
                 
@@ -1579,7 +1579,7 @@ Tonyu.klass.define({
         var dataCov;
         var k;
         var v;
-        var _it_54;
+        var _it_200;
         
         dev1 = _this.dev(k1);
         
@@ -1587,10 +1587,10 @@ Tonyu.klass.define({
         
         dataCov = 0;
         
-        _it_54=Tonyu.iterator(dev1,2);
-        while(_it_54.next()) {
-          k=_it_54[0];
-          v=_it_54[1];
+        _it_200=Tonyu.iterator(dev1,2);
+        while(_it_200.next()) {
+          k=_it_200[0];
+          v=_it_200[1];
           
           dataCov+=dev1[k]*dev2[k];
           
@@ -1608,7 +1608,7 @@ Tonyu.klass.define({
         var dataCov;
         var k;
         var v;
-        var _it_54;
+        var _it_200;
         
         
         _thread.enter(function _trc_Graph_ent_cov(_thread) {
@@ -1628,10 +1628,10 @@ Tonyu.klass.define({
               
               dataCov = 0;
               
-              _it_54=Tonyu.iterator(dev1,2);
-              while(_it_54.next()) {
-                k=_it_54[0];
-                v=_it_54[1];
+              _it_200=Tonyu.iterator(dev1,2);
+              while(_it_200.next()) {
+                k=_it_200[0];
+                v=_it_200[1];
                 
                 dataCov+=dev1[k]*dev2[k];
                 
@@ -4005,10 +4005,69 @@ Tonyu.klass.define({
           }
         });
       },
+      callServer :function _trc_Parent_callServer(url,stdin) {
+        "use strict";
+        var _this=this;
+        var p;
+        var r;
+        
+        p = new window.Promise((function anonymous_13614(s) {
+          var ifrm;
+          
+          window.sendResult=(function anonymous_13648(r) {
+            
+            ifrm.remove();
+            s(r);
+          });
+          ifrm = window.$("<iframe>").attr({src: url+"?stdin="+stdin,width: 1,height: 1}).appendTo("body");
+          
+        }));
+        
+        r = _this.waitFor(p);
+        
+        return r;
+      },
+      fiber$callServer :function _trc_Parent_f_callServer(_thread,url,stdin) {
+        "use strict";
+        var _this=this;
+        //var _arguments=Tonyu.A(arguments);
+        var __pc=0;
+        var p;
+        var r;
+        
+        p = new window.Promise((function anonymous_13614(s) {
+          var ifrm;
+          
+          window.sendResult=(function anonymous_13648(r) {
+            
+            ifrm.remove();
+            s(r);
+          });
+          ifrm = window.$("<iframe>").attr({src: url+"?stdin="+stdin,width: 1,height: 1}).appendTo("body");
+          
+        }));
+        
+        
+        _thread.enter(function _trc_Parent_ent_callServer(_thread) {
+          if (_thread.lastEx) __pc=_thread.catchPC;
+          for(var __cnt=100 ; __cnt--;) {
+            switch (__pc) {
+            case 0:
+              _this.fiber$waitFor(_thread, p);
+              __pc=1;return;
+            case 1:
+              r=_thread.retVal;
+              
+              _thread.exit(r);return;
+              _thread.exit(_this);return;
+            }
+          }
+        });
+      },
       __dummy: false
     };
   },
-  decls: {"methods":{"main":{"nowait":false},"__getter__Math":{"nowait":true},"__getter__document":{"nowait":true},"setInterval":{"nowait":false},"setTimeout":{"nowait":false},"catchException":{"nowait":false},"findElement":{"nowait":false},"isFormElement":{"nowait":false},"clearContent":{"nowait":false},"addText":{"nowait":false},"setText":{"nowait":false},"getNumber":{"nowait":false},"getText":{"nowait":false},"setNumber":{"nowait":false},"onClick":{"nowait":false},"onTouch":{"nowait":false},"setCanvas":{"nowait":false},"searchCanvas":{"nowait":false},"setColor":{"nowait":false},"fillRect":{"nowait":false},"changeImage":{"nowait":false},"move":{"nowait":false},"transform":{"nowait":false},"rotate":{"nowait":false},"resize":{"nowait":false},"wait":{"nowait":false},"rnd":{"nowait":false},"setBGColor":{"nowait":false},"newElement":{"nowait":false},"fillOval":{"nowait":false},"drawLine":{"nowait":false},"clearRect":{"nowait":false},"fillText":{"nowait":false},"new":{"nowait":false},"getkey":{"nowait":false},"dist":{"nowait":false},"angle":{"nowait":false},"rad":{"nowait":true},"deg":{"nowait":true},"sqrt":{"nowait":false},"sin":{"nowait":false},"cos":{"nowait":false},"tan":{"nowait":false},"parallel":{"nowait":false},"waitClick":{"nowait":false},"_waitFor":{"nowait":false},"waitFor":{"nowait":false},"putToServer":{"nowait":false},"setGroup":{"nowait":false},"getFromServer":{"nowait":false},"getListFromServer":{"nowait":false},"addLog":{"nowait":false},"findLog":{"nowait":false},"curProject":{"nowait":false},"createGraph":{"nowait":false},"readFile":{"nowait":false},"writeFile":{"nowait":false},"loadRaspiScript":{"nowait":false},"startRaspi":{"nowait":false},"execRaspi":{"nowait":false},"readADC":{"nowait":false},"getTemperature":{"nowait":false},"addCDB":{"nowait":false},"findCDB":{"nowait":false}},"fields":{"down":{},"_canvas":{},"ctx":{},"activityGroup":{},"keyData":{},"_err":{},"_res":{},"group":{},"raspiStarted":{},"raspiREPL":{}}}
+  decls: {"methods":{"main":{"nowait":false},"__getter__Math":{"nowait":true},"__getter__document":{"nowait":true},"setInterval":{"nowait":false},"setTimeout":{"nowait":false},"catchException":{"nowait":false},"findElement":{"nowait":false},"isFormElement":{"nowait":false},"clearContent":{"nowait":false},"addText":{"nowait":false},"setText":{"nowait":false},"getNumber":{"nowait":false},"getText":{"nowait":false},"setNumber":{"nowait":false},"onClick":{"nowait":false},"onTouch":{"nowait":false},"setCanvas":{"nowait":false},"searchCanvas":{"nowait":false},"setColor":{"nowait":false},"fillRect":{"nowait":false},"changeImage":{"nowait":false},"move":{"nowait":false},"transform":{"nowait":false},"rotate":{"nowait":false},"resize":{"nowait":false},"wait":{"nowait":false},"rnd":{"nowait":false},"setBGColor":{"nowait":false},"newElement":{"nowait":false},"fillOval":{"nowait":false},"drawLine":{"nowait":false},"clearRect":{"nowait":false},"fillText":{"nowait":false},"new":{"nowait":false},"getkey":{"nowait":false},"dist":{"nowait":false},"angle":{"nowait":false},"rad":{"nowait":true},"deg":{"nowait":true},"sqrt":{"nowait":false},"sin":{"nowait":false},"cos":{"nowait":false},"tan":{"nowait":false},"parallel":{"nowait":false},"waitClick":{"nowait":false},"_waitFor":{"nowait":false},"waitFor":{"nowait":false},"putToServer":{"nowait":false},"setGroup":{"nowait":false},"getFromServer":{"nowait":false},"getListFromServer":{"nowait":false},"addLog":{"nowait":false},"findLog":{"nowait":false},"curProject":{"nowait":false},"createGraph":{"nowait":false},"readFile":{"nowait":false},"writeFile":{"nowait":false},"loadRaspiScript":{"nowait":false},"startRaspi":{"nowait":false},"execRaspi":{"nowait":false},"readADC":{"nowait":false},"getTemperature":{"nowait":false},"addCDB":{"nowait":false},"findCDB":{"nowait":false},"callServer":{"nowait":false}},"fields":{"down":{},"_canvas":{},"ctx":{},"activityGroup":{},"keyData":{},"_err":{},"_res":{},"group":{},"raspiStarted":{},"raspiREPL":{}}}
 });
 
 //# sourceMappingURL=concat.js.map
