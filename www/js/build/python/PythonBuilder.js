@@ -203,7 +203,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         }
         //console.log("PPToken",PP.Tokenizer(pysrc).tokenize());
         console.log(upload, runAt, publishedURL);
-        if (upload && runAt==="server") {
+        if (upload && (runAt==="server" || !runAt) ) {
             f.dst.py.text(f.src.py.text());
             f.dst.js.text(`runOnServerURL(${JSON.stringify(FS.PathUtil.truncSEP(publishedURL)+"/"+f.src.py.name())},${needInput});`);
             return;
