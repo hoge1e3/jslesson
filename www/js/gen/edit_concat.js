@@ -16667,7 +16667,7 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
     dir(field)-> it should be getDir
     method called from Builders, CommentDialog2, SubmitDialog,AssignmentDialog
     */
-    var ALWAYS_UPLOAD=(localStorage.ALWAYS_UPLOAD==="true");
+    var ALWAYS_UPLOAD=(localStorage.ALWAYS_UPLOAD==="true") || Util.getQueryString("ALWAYS_UPLOAD",false);
     console.log("ALWAYS_UPLOAD",ALWAYS_UPLOAD);
     if (root.BitArrow) root.BitArrow.curProjectDir=curProjectDir.path();
     /*var langList={
@@ -16836,7 +16836,12 @@ function ready() {
                 fl.select(pf);
                 const stdin=Util.getQueryString("stdin",null);
                 console.log("STDIN",stdin);
-                run(stdin?{stdin}:{});
+                const opt={};
+                if (stdin) opt.stdin=stdin;
+                const sendURL=(typeof parent!=="undefined" && parent.sendURL)||
+                (typeof opener!=="undefined" && opener.sendURL);
+                if (ALWAYS_UPLOAD && sendURL) opt.sendURL=sendURL;
+                run(opt);
            }).catch (function (e) {console.error(e);});
         }
     }
@@ -17464,6 +17469,10 @@ function ready() {
                 await builder.upload(pubd);
                 const pub=await Auth.publishedURL(curProjectDir.name());*/
                 var runURL=buildStatus.publishedURL;//pub+(lang=="tonyu"?"index.html": curHTMLFile.name());
+                if (options.sendURL) {
+                    options.sendURL(runURL, location.href);
+                    return;
+                }
                 return IframeDialog.show(runURL,{width:600,height:400});
             } else {
                 var indexF=buildStatus.indexFile;// ram.rel(lang=="tonyu"?"index.html":curHTMLFile.name());
