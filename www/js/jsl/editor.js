@@ -866,7 +866,7 @@ function ready() {
                 const pub=await Auth.publishedURL(curProjectDir.name());*/
                 var runURL=buildStatus.publishedURL;//pub+(lang=="tonyu"?"index.html": curHTMLFile.name());
                 if (options.sendURL) {
-                    options.sendURL(runURL);
+                    options.sendURL(runURL, location.href);
                     return;
                 }
                 return IframeDialog.show(runURL,{width:600,height:400});

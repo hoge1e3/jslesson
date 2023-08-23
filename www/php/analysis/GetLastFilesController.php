@@ -38,6 +38,7 @@ class GetLastFilesController {
             .toggled {
                 background-color: #0fa
             }
+            
         </style>
         <script>
             let QueryString=Util.QueryString;
@@ -73,24 +74,108 @@ class GetLastFilesController {
                     a.attr({href});
                 });
             }
+            function screenInOut(targetElement, onin,onout) {
+                // ターゲット要素を取得
+                // Intersection Observerのコールバック関数
+                onin=onin||(()=>0);
+                onout=onout||(()=>0);
+                const callback = (entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            onin(targetElement);
+                        } else {
+                            onout(targetElement);
+                        }
+                    });
+                };
+                // Intersection Observerを作成
+                const options = {
+                    root: null, // ビューポートをルートとする
+                    rootMargin: '0px', // ビューポートからのマージン
+                    threshold: 0.5 // 要素が50%以上ビューポートと交差するとコールバックが呼ばれる
+                };
+                const observer = new IntersectionObserver(callback, options);
+                // ターゲット要素を監視
+                observer.observe(targetElement);
+            }
+            async function runEntry(ent) {
+                const a=ent.find("a.autoexec");
+                const url=a.attr("href");
+                console.log("runEntry", url, ent);
+                let q=new QueryString(url);
+                q=q.put({ALWAYS_UPLOAD:"true"});
+                const ifrm=$("<iframe>").attr({src: q.url, /*width:500,height:500,*/ allowfullscreen:true}).css({float:"right"});
+                const reloadButton=$("<button>").text("Reload").click(()=>{
+                    ifrm[0].contentWindow.location.reload();
+                    ifrm.focus();
+                });
+                ent.find(".right").append($("<div>").append(reloadButton)).append(ifrm);
+                setInterval(resizeIframe, 100);
+                const runurl=await new Promise((s)=>{
+                    window.sendURL=(u, href)=>{
+                        s(u);
+                    };
+                });
+                q=new QueryString(runurl);
+                const stdin=$("#stdin").val();
+                q=q.put({stdin})
+                ifrm.attr({src:q.url});
+                function resizeIframe() {
+                    let iframe=ifrm[0];
+                    var iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+                    var contentHeight = Math.max(
+                    iframeDocument.body.scrollHeight,
+                    iframeDocument.documentElement.scrollHeight,
+                    iframeDocument.body.offsetHeight,
+                    iframeDocument.documentElement.offsetHeight
+                    );
+                    iframe.style.height = contentHeight + 'px';
+                    var contentWidth = Math.max(
+                    iframeDocument.body.scrollWidth,
+                    iframeDocument.documentElement.scrollWidth,
+                    iframeDocument.body.offsetWidth,
+                    iframeDocument.documentElement.offsetWidth
+                    );
+                    iframe.style.width = contentWidth + 'px';
+                }
+            }
+            async function runAll() {
+                $(".entry").each(function () {
+                    const e=this;
+                    let entered=false;
+                    screenInOut($(e).find("a.autoexec")[0],()=>{
+                        if (entered) return;
+                        entered=true;
+                        runEntry($(e));
+                    }); 
+                });
+            }
         </script>
         <div>
             <div>STDIN</div>
             <textarea id="stdin" rows=5 cols=40 onchange="setStdin(this)"></textarea>
+            <button onclick="runAll()">Run All</button>
         </div>
         <?php
         foreach($users as $user=>$log) {
             //print_r($log);
-            ?><div class="entry" id="<?=$log["id"]?>"><h4>
+            ?><div class="entry" id="<?=$log["id"]?>">
+                <h4>
                 <a 
                 target="autoexec" class="autoexec"
                 href="index.html?r=jsl_edit&dir=/home/<?= $class->id ?>/<?= $t->id ?>/TestC/&autologexec=<?= $log["id"] ?>">
                 <?= $user ?></a></h4>
-            <pre><?= htmlspecialchars($log["code"]) ?></pre>
-            <button class="ok <?= $log["ok"]==="1" ? "toggled" :"" ?>" onclick="put(this,true)">OK</button>
-            <button class="ng <?= $log["ok"]==="0" ? "toggled" :"" ?>" onclick="put(this,false)">NG</button>
-            <input type="text" class="detail" onchange="put(this)" 
-            value="<?= htmlspecialchars($log["detail"]) ?>"/>
+                <table>
+                    <tr><td>
+                <span class="left">
+                    <pre><?= htmlspecialchars($log["code"]) ?></pre>
+                    <button class="ok <?= $log["ok"]==="1" ? "toggled" :"" ?>" onclick="put(this,true)">OK</button>
+                    <button class="ng <?= $log["ok"]==="0" ? "toggled" :"" ?>" onclick="put(this,false)">NG</button>
+                    <input type="text" class="detail" onchange="put(this)" 
+                    value="<?= htmlspecialchars($log["detail"]) ?>"/>
+                </span></td>
+                <td valign="top"><span class="right"></span></td>
+                </tr></table>
             </div>
             <?php
         }
