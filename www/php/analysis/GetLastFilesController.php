@@ -155,12 +155,22 @@ class GetLastFilesController {
                     }); 
                 });
             }
+            function hideChecked() {
+                $(".entry").each(function () {
+                    if ( 
+                        $(this).find(".ok").hasClass("toggled")||
+                        $(this).find(".ng").hasClass("toggled")) {
+                            $(this).hide();
+                        }
+                });
+            }
         </script>
         <div>
             <div>STDIN</div>
             <textarea id="stdin" rows=5 cols=40 onchange="setStdin(this)"></textarea>
             <button onclick="runAll()">Run All</button>
         </div>
+        <div><button onclick="hideChecked()">Hide Checked</button>
         <?php
         foreach($users as $user=>$log) {
             //print_r($log);

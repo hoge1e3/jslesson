@@ -893,6 +893,9 @@ function ready() {
             }
         }catch(e) {
             console.log(e,e.stack);
+            if (ALWAYS_UPLOAD && options.sendURL) {
+                options.sendURL("error://"+e.stack, location.href);
+            }
             if (e.isTError) {
                 errorDialog.show(e);//showErrorPos($("#errorPos"),e);
                 logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Compile Error",/*e.src+":"+e.pos+"\n"+e.mesg*/e,langInfo.en);
