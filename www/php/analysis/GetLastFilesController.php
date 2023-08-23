@@ -111,15 +111,15 @@ class GetLastFilesController {
                 });
                 while(window.sendURL) {
                     await new Promise((s)=>{ setTimeout(s, 10);});
-                }                
+                }   
                 window.sendURL=true;
-                ent.find(".right").append($("<div>").append(reloadButton)).append(ifrm);
-                setInterval(resizeIframe, 100);
                 const runurl=await new Promise((s)=>{
                     window.sendURL=(u, href)=>{
                         delete window.sendURL;
                         s(u);
                     };
+                    ent.find(".right").append($("<div>").append(reloadButton)).append(ifrm);
+                    setInterval(resizeIframe, 100);                    
                 });
                 q=new QueryString(runurl);
                 const stdin=$("#stdin").val();
