@@ -17,7 +17,7 @@ class GetLastFilesController {
         " logtag.detail as logdetail".
         " from log left join logtag on log.id=logtag.log".
         " where (logtag.name is null or logtag.name='ok') and filename=? and class=? ".
-        "order by time desc ", $file, $class->id);
+        "order by time desc, log.id desc ", $file, $class->id);
         $users=[];
         foreach ($it as $log) {
             //print ($log->tagname);
@@ -176,10 +176,12 @@ class GetLastFilesController {
             //print_r($log);
             ?><div class="entry" id="<?=$log["id"]?>">
                 <h4>
-                <a 
+                <a id="<?= $user ?>" 
                 target="autoexec" class="autoexec"
                 href="index.html?r=jsl_edit&dir=/home/<?= $class->id ?>/<?= $t->id ?>/TestC/&autologexec=<?= $log["id"] ?>">
-                <?= $user ?></a></h4>
+                <?= $user ?></a>
+                <a target="log" href="?TeacherLog/view1new&user=<?= $user ?>&file=<?=$file ?>">Log...</a>
+                </h4>
                 <table>
                     <tr><td>
                 <span class="left">
