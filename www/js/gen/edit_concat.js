@@ -5346,6 +5346,11 @@ define('Menu',["UI"], function (UI) {
                             ["span",{"class":"icon-bar"}],
                             ["span",{"class":"icon-bar"}]
                         ],
+                        ["span",{id:"mobileBar",style:"display:none;"},
+                            ["select",{id:"fileSel"}],
+                            ["button",{id:"mobileRun", class:"mobileButton"},"Run"],
+                            //["button",{id:"mobileFind", class:"mobileButton"},"Find"],
+                        ],
                         ["a", {"class":"navbar-brand" ,href:"#",id:title.id},title.label]
                     ],
                     menu
@@ -16730,7 +16735,7 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
     $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"])).
     then(ready).fail(function (e) {
         alert("エラー"+e);
-        console.log(e.stack);
+        console.error(e.stack);
         SplashScreen.hide();
     });
 
@@ -16752,6 +16757,8 @@ function ready() {
     var F=EC.f;
     var JS_NOP="javascriptCOLON;".replace(/COLON/,":");
     root.$LASTPOS=0;
+    var mobile=WebSite.mobile  || localStorage.mobile;
+    
     //Tonyu.globals.$currentProject=curPrj;
     //Tonyu.currentProject=curPrj;
     var EXT=curPrj.getEXT();
@@ -17014,6 +17021,13 @@ function ready() {
     }
     checkPublishedURL();
     makeMenu();
+    if (mobile) {
+        $("#fileViewer").hide();
+        $("#runAreaParent").hide();
+        $("#mainArea").attr("class","col-xs-12");
+        $("#mobileBar").show();
+        $("#homeLink").text("🔙");
+    }
 
     let screenH, editorH, runH;
     function onResize() {
@@ -17070,6 +17084,7 @@ function ready() {
         sh.window();
     });
     KeyEventChecker.down(document,"F9",F(run));
+    $("#mobileRun").click(F(run));
     KeyEventChecker.down(document,"F2",F(function(){
         stop();
         var progs=getCurrentEditor();
@@ -17093,7 +17108,7 @@ function ready() {
     $("body")[0].spellcheck=false;
     sh.cd(curProjectDir);
 
-    var fl=FileList($("#fileItemList"),{
+    var fl=FileList($(mobile?"#fileSel":"#fileItemList"),{
         topDir: curProjectDir,
         on:{
             select: F(open),
@@ -17374,6 +17389,27 @@ function ready() {
                     $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
                 ));
                 cv.append($("<div>").qrcode({width:200,height:200,text:runURL}));
+                const autoopen=    $("<input>").attr({type:"checkbox", id: "autoopen"});
+                const doAutoopen=()=>{
+                    window.open(runURL,"runit");
+                };
+                if (desktopEnv.fullScrAutoOpen) {
+                    autoopen.prop("checked",true);
+                    doAutoopen();
+                }
+                autoopen.on("change", ()=>{
+                    const o=autoopen.prop("checked");
+                    if (o){
+                        doAutoopen();
+                    }
+                    desktopEnv.fullScrAutoOpen=o;
+                    saveDesktopEnv();
+                });
+                cv.append($("<div>").append(
+                    autoopen
+                ).append(
+                    $("<label>").attr({for:"autoopen"}).text("自動的に開く")
+                ));
                 if (builder.qrDialog) builder.qrDialog({
                     dialogJQ:cv,
                     editorInfo:getCurrentEditorInfo(),
@@ -17497,6 +17533,9 @@ function ready() {
             }
         }catch(e) {
             console.log(e,e.stack);
+            if (ALWAYS_UPLOAD && options.sendURL) {
+                options.sendURL("error://"+e.stack, location.href);
+            }
             if (e.isTError) {
                 errorDialog.show(e);//showErrorPos($("#errorPos"),e);
                 logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Compile Error",/*e.src+":"+e.pos+"\n"+e.mesg*/e,langInfo.en);
