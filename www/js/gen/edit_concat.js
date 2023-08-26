@@ -17673,6 +17673,7 @@ function ready() {
             var nw=prog.getValue();
             if (old!=nw) {
                 curFile.text(nw);
+                inf.lastTimeStamp=curFile.lastUpdate();
                 logToServer2(curFile.path(),curFile.text(),/*curHTMLFile.text()*/"HTML","Save","保存しました",langInfo.en);
             }
         }
@@ -17688,6 +17689,11 @@ function ready() {
         	fl.setModified(mod);
     	    $("#modLabel").text(mod?"(変更あり)":"");
     	    if(mod){
+                if (inf.file.exists() && inf.lastTimeStamp<inf.file.lastUpdate()) {
+                    inf.editor.setValue(inf.file.text());
+                    inf.editor.clearSelection();
+                    inf.lastTimeStamp=inf.file.lastUpdate();
+                }
     	        unsaved=true;
     	        unsynced=true;
                 if (typingCheckContent!==prog.getValue()) {
@@ -17783,6 +17789,11 @@ function ready() {
             prog.focus();
             curDOM=progDOM;
         } else {
+            if (inf.file.exists() && inf.lastTimeStamp<inf.file.lastUpdate()) {
+                inf.editor.setValue(inf.file.text());
+                inf.editor.clearSelection();
+                inf.lastTimeStamp=inf.file.lastUpdate();
+            }
             inf.dom.show();
             inf.editor.focus();
             curDOM=inf.dom;
@@ -17813,6 +17824,7 @@ function ready() {
 
         }
         $("#curFileLabel").text(curPrj.truncEXT(f)/*f.truncExt()*/);//.p5.js
+        if (inf.file.exists()) inf.lastTimeStamp=inf.file.lastUpdate();
         if (disableNote===false) socializeDialog.show(inf.file);
     }
     root.d=function () {
