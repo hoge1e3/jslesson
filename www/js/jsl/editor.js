@@ -149,6 +149,12 @@ function ready() {
     var JS_NOP="javascriptCOLON;".replace(/COLON/,":");
     root.$LASTPOS=0;
     var mobile=WebSite.mobile  || localStorage.mobile;
+    let ace_language_tools;
+    if (mobile) {
+        requirejs(["ace-langtool"],()=>{ 
+            ace_language_tools=root.ace.require("ace/ext/language_tools");
+        });
+    }
     
     //Tonyu.globals.$currentProject=curPrj;
     //Tonyu.currentProject=curPrj;
@@ -1170,6 +1176,10 @@ function ready() {
                 prog.getSession().setMode("ace/mode/html");
             }
             prog.getSession().setUseWrapMode(true);
+            if (ace_language_tools) {
+                const completers=[ace_language_tools.textCompleter];
+                prog.setOptions({enableLiveAutocompletion:completers});
+            }
             inf={file:f , editor: prog, dom:progDOM};
             editors[f.path()]=inf;
             progDOM.click(F(function () {

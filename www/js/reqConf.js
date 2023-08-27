@@ -249,6 +249,7 @@ var reqConf={
             "wikiFullScreen": "help/wikiFullScreen",
             "wikiExporter": "help/wikiExporter",
             "ace": "lib/ace-noconflict/ace",
+            "ace-langtool": "lib/ace-noconflict/ext-language_tools",
             copyToKernel: "fs/copyToKernel",
             JSONCol: "lib/JSONCol",
             genROM: "build/genROM",
