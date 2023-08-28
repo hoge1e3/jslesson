@@ -10931,7 +10931,8 @@ function ready() {//-------------------------
                 " | ",["a",{href:".?TeacherLog/view1Dates",target:"logTab"},"ログを見る"],
                 ["span",{class:"assignment"}," | ",
                 ["a",{href:".?Assignment/view",target:"asTab"},"採点結果を見る"]],
-                " | ",["a",{href:".?Teacher/login",target:"teaTab"},"教員用ログイン"]
+                " | ",["a",{href:".?Teacher/login",target:"teaTab"},"教員用ログイン"],
+                ["span", {id:"teacherHome",style:"display:none;"}," | ", ["a",{href:".?Teacher/home",target:"teaTab"},"教員ホーム"] ],
 	        ],
             ["hr",{color:"#000000",size:"4"}],
             //["h2","プロジェクト一覧"],
@@ -10967,6 +10968,7 @@ function ready() {//-------------------------
         $("#userInfo").text(Auth.class+" クラスの"+Auth.user+"さん、こんにちは");
         $("#userInfo").append(UI("br"));
         $("#userInfo").append(UI("a",{href:".?Login/form"},"他ユーザでログイン"));
+        if (Auth.teacher) $("#teacherHome").show();
     },1000);
     var projects=Auth.localProjects();// FS.resolve("${tonyuHome}/Projects/");
     console.log(projects);
