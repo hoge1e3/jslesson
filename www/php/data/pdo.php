@@ -226,6 +226,9 @@ class RecordIterator implements Iterator
     {
         return !!$this->current;
     }
+    public function close() {
+        $this->sth->closeCursor();
+    }
 }
 
 ?>

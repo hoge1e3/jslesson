@@ -10,10 +10,79 @@
     }
     var root=getRoot();
 
+class QueryString {
+    constructor(url) {
+        this.url=url || location.href;
+    }
+    get(param, def) {
+        if (arguments.length<2) {
+            return getQueryString2(this.url, param);
+        }
+        return getQueryString2(this.url, param, def);
+    }
+    put(param, value) {
+        if (typeof param=="object") {
+            let res=this;
+            for (let k of Object.keys(param)) {
+                res=res.put(k, param[k]);
+            }
+            return res;
+        }
+        return new QueryString(setQueryString(this.url, param, value));
+    }
+    delete(param) {
+        let regex = keyValueRegex(param);
+        let m=regex.exec(this.url);
+        if (!m) return this;
+        let repl=this.url.replace(regex,"");
+        if (repl.indexOf("?")<0 && repl.indexOf("&")>=0) {
+            //  ?a=b&c=d
+            // delete a
+            //  &c=d
+            //  ?c=d
+            repl=repl.replace(/&/,"?");
+        }
+        return new QueryString(repl);
+    }
+    paramPart() {
+        let url=this.url;
+        let i=url.indexOf("?");
+        if (i<0) return "";
+        return url.substring(i+1);
+    }
+}
+function keyValueRegex(key) {
+    let keyr = key.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+    let regex = new RegExp(`([\\?&])${keyr}=([^&#]*)`);
+    return regex;
+}
+function setQueryString(url, key, value){
+    let regex = keyValueRegex(key);
+    if (!url.match(regex)) {
+        //console.log("A");
+        return `${url}${url.indexOf("?")>=0 ? "&" : "?"}${key}=${encodeURIComponent(value)}`;
+    }
+    //console.log("B");
+    return url.replace(regex, (_,sp)=> `${sp}${key}=${encodeURIComponent(value)}`);
+}
+function getQueryString2(url, key, default_){
+    const throwIfMissing=(arguments.length<3);
+    if (default_==null) default_="";
+    let regex = keyValueRegex(key);
+    var qs = regex.exec(url);
+    if(qs == null){
+        if (throwIfMissing) throw new Error(`Missing parameter: ${key}`);
+        return default_;
+    } else {
+        return decodeURLComponentEx(qs[2]);
+    }
+}
+
+
 function getQueryString(key, default_)
 {
     if (arguments.length===1) default_="";
-    if (root.LocalBrowserInfo==="object") {
+    if (typeof root.LocalBrowserInfo==="object") {
         return key in root.LocalBrowserInfo.params? root.LocalBrowserInfo.params[key] : default_;
     }
    key = key.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
@@ -212,7 +281,8 @@ root.Util={
     //utf8bytes2str: utf8bytes2str,
     //str2utf8bytes: str2utf8bytes,
     privatize: privatize,
-    extend:extend
+    extend:extend,
+    QueryString,
     /*hasNodeBuffer:hasNodeBuffer,
     isNodeBuffer: isNodeBuffer,
     isBuffer: isBuffer*/
@@ -5276,6 +5346,11 @@ define('Menu',["UI"], function (UI) {
                             ["span",{"class":"icon-bar"}],
                             ["span",{"class":"icon-bar"}]
                         ],
+                        ["span",{id:"mobileBar",style:"display:none;"},
+                            ["select",{id:"fileSel"}],
+                            ["button",{id:"mobileRun", class:"mobileButton"},"Run"],
+                            //["button",{id:"mobileFind", class:"mobileButton"},"Find"],
+                        ],
                         ["a", {"class":"navbar-brand" ,href:"#",id:title.id},title.label]
                     ],
                     menu
@@ -9890,7 +9965,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
                     if (cons) cons.style.fontSize=options.font+"px";
                 }
             });
-            return res.lbw.open(runFile);
+            return res.lbw.open(runFile,options);
         }
         window.dialogClosed=false;
         var d=res.embed(runFile, options);
@@ -9959,18 +10034,6 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
                         ["button", {type:"button",$var:"cpOut", on:{click: res.cpOut}}, "出力をコピー"],
                         ["button", {type:"button",$var:"dlOut", on:{click: res.dlOut}}, "出力を共有……"],
                     ]:""),
-                    (true?"":["button", {type:"button",$var:"WButton", on:{click: function () {
-                        if (res.hasLocalBrowserWindow()) res.lbw.close();
-                        res.lbw=new LocalBrowserWindow({
-                            onload:function () {
-                                console.log(this);
-                                var cons=this.contentWindow.document.getElementById("console");
-                                if (cons) cons.style.fontSize=options.font+"px";
-                            }
-                        });
-                        res.lbw.open(runFile);
-                        res.d.dialog("close");
-                    }}}, "別ウィンドウ"])
             );
             res.da=new DA(res.d);
             res.da.afterResize=function (d) {
@@ -10006,6 +10069,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
             res.b.focus();
         },100);
         res.b.open(runFile,{
+            params:options.params,
             onload:function () {
                 console.log(this);
                 var cons=this.contentWindow.document.getElementById("console");
@@ -16608,7 +16672,7 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
     dir(field)-> it should be getDir
     method called from Builders, CommentDialog2, SubmitDialog,AssignmentDialog
     */
-    var ALWAYS_UPLOAD=(localStorage.ALWAYS_UPLOAD==="true");
+    var ALWAYS_UPLOAD=(localStorage.ALWAYS_UPLOAD==="true") || Util.getQueryString("ALWAYS_UPLOAD",false);
     console.log("ALWAYS_UPLOAD",ALWAYS_UPLOAD);
     if (root.BitArrow) root.BitArrow.curProjectDir=curProjectDir.path();
     /*var langList={
@@ -16671,7 +16735,7 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
     $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"])).
     then(ready).fail(function (e) {
         alert("エラー"+e);
-        console.log(e.stack);
+        console.error(e.stack);
         SplashScreen.hide();
     });
 
@@ -16693,6 +16757,14 @@ function ready() {
     var F=EC.f;
     var JS_NOP="javascriptCOLON;".replace(/COLON/,":");
     root.$LASTPOS=0;
+    var mobile=WebSite.mobile  || localStorage.mobile;
+    let ace_language_tools;
+    if (mobile) {
+        requirejs(["ace-langtool"],()=>{ 
+            ace_language_tools=root.ace.require("ace/ext/language_tools");
+        });
+    }
+    
     //Tonyu.globals.$currentProject=curPrj;
     //Tonyu.currentProject=curPrj;
     var EXT=curPrj.getEXT();
@@ -16775,7 +16847,14 @@ function ready() {
                     }
                 }
                 fl.select(pf);
-                run();
+                const stdin=Util.getQueryString("stdin",null);
+                console.log("STDIN",stdin);
+                const opt={};
+                if (stdin) opt.stdin=stdin;
+                const sendURL=(typeof parent!=="undefined" && parent.sendURL)||
+                (typeof opener!=="undefined" && opener.sendURL);
+                if (ALWAYS_UPLOAD && sendURL) opt.sendURL=sendURL;
+                run(opt);
            }).catch (function (e) {console.error(e);});
         }
     }
@@ -16948,6 +17027,13 @@ function ready() {
     }
     checkPublishedURL();
     makeMenu();
+    if (mobile) {
+        $("#fileViewer").hide();
+        $("#runAreaParent").hide();
+        $("#mainArea").attr("class","col-xs-12");
+        $("#mobileBar").show();
+        $("#homeLink").text("🔙");
+    }
 
     let screenH, editorH, runH;
     function onResize() {
@@ -17004,6 +17090,7 @@ function ready() {
         sh.window();
     });
     KeyEventChecker.down(document,"F9",F(run));
+    $("#mobileRun").click(F(run));
     KeyEventChecker.down(document,"F2",F(function(){
         stop();
         var progs=getCurrentEditor();
@@ -17027,7 +17114,7 @@ function ready() {
     $("body")[0].spellcheck=false;
     sh.cd(curProjectDir);
 
-    var fl=FileList($("#fileItemList"),{
+    var fl=FileList($(mobile?"#fileSel":"#fileItemList"),{
         topDir: curProjectDir,
         on:{
             select: F(open),
@@ -17308,6 +17395,27 @@ function ready() {
                     $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
                 ));
                 cv.append($("<div>").qrcode({width:200,height:200,text:runURL}));
+                const autoopen=    $("<input>").attr({type:"checkbox", id: "autoopen"});
+                const doAutoopen=()=>{
+                    window.open(runURL,"runit");
+                };
+                if (desktopEnv.fullScrAutoOpen) {
+                    autoopen.prop("checked",true);
+                    doAutoopen();
+                }
+                autoopen.on("change", ()=>{
+                    const o=autoopen.prop("checked");
+                    if (o){
+                        doAutoopen();
+                    }
+                    desktopEnv.fullScrAutoOpen=o;
+                    saveDesktopEnv();
+                });
+                cv.append($("<div>").append(
+                    autoopen
+                ).append(
+                    $("<label>").attr({for:"autoopen"}).text("自動的に開く")
+                ));
                 if (builder.qrDialog) builder.qrDialog({
                     dialogJQ:cv,
                     editorInfo:getCurrentEditorInfo(),
@@ -17403,11 +17511,17 @@ function ready() {
                 await builder.upload(pubd);
                 const pub=await Auth.publishedURL(curProjectDir.name());*/
                 var runURL=buildStatus.publishedURL;//pub+(lang=="tonyu"?"index.html": curHTMLFile.name());
+                if (options.sendURL) {
+                    options.sendURL(runURL, location.href);
+                    return;
+                }
                 return IframeDialog.show(runURL,{width:600,height:400});
             } else {
                 var indexF=buildStatus.indexFile;// ram.rel(lang=="tonyu"?"index.html":curHTMLFile.name());
+                const params=options.stdin?{stdin:options.stdin}:{};
                 if (isSplit()) {
                     return RunDialog2.embed(indexF, {
+                        params,
                         window:newwnd,
                         targetDOM: $("#runEmbed"),
                         toEditor:focusToEditor,
@@ -17415,6 +17529,7 @@ function ready() {
                     });
                 } else {
                     return RunDialog2.show(indexF,{
+                        params,
                         window:newwnd,
                         height:RunDialog2.geom.height||screenH-50,
                         toEditor:focusToEditor,
@@ -17424,6 +17539,9 @@ function ready() {
             }
         }catch(e) {
             console.log(e,e.stack);
+            if (ALWAYS_UPLOAD && options.sendURL) {
+                options.sendURL("error://"+e.stack, location.href);
+            }
             if (e.isTError) {
                 errorDialog.show(e);//showErrorPos($("#errorPos"),e);
                 logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Compile Error",/*e.src+":"+e.pos+"\n"+e.mesg*/e,langInfo.en);
@@ -17561,6 +17679,7 @@ function ready() {
             var nw=prog.getValue();
             if (old!=nw) {
                 curFile.text(nw);
+                inf.lastTimeStamp=curFile.lastUpdate();
                 logToServer2(curFile.path(),curFile.text(),/*curHTMLFile.text()*/"HTML","Save","保存しました",langInfo.en);
             }
         }
@@ -17576,6 +17695,11 @@ function ready() {
         	fl.setModified(mod);
     	    $("#modLabel").text(mod?"(変更あり)":"");
     	    if(mod){
+                if (inf.file.exists() && inf.lastTimeStamp<inf.file.lastUpdate()) {
+                    inf.editor.setValue(inf.file.text());
+                    inf.editor.clearSelection();
+                    inf.lastTimeStamp=inf.file.lastUpdate();
+                }
     	        unsaved=true;
     	        unsynced=true;
                 if (typingCheckContent!==prog.getValue()) {
@@ -17661,6 +17785,10 @@ function ready() {
                 prog.getSession().setMode("ace/mode/html");
             }
             prog.getSession().setUseWrapMode(true);
+            if (ace_language_tools) {
+                const completers=[ace_language_tools.textCompleter];
+                prog.setOptions({enableLiveAutocompletion:completers});
+            }
             inf={file:f , editor: prog, dom:progDOM};
             editors[f.path()]=inf;
             progDOM.click(F(function () {
@@ -17671,6 +17799,11 @@ function ready() {
             prog.focus();
             curDOM=progDOM;
         } else {
+            if (inf.file.exists() && inf.lastTimeStamp<inf.file.lastUpdate()) {
+                inf.editor.setValue(inf.file.text());
+                inf.editor.clearSelection();
+                inf.lastTimeStamp=inf.file.lastUpdate();
+            }
             inf.dom.show();
             inf.editor.focus();
             curDOM=inf.dom;
@@ -17701,6 +17834,7 @@ function ready() {
 
         }
         $("#curFileLabel").text(curPrj.truncEXT(f)/*f.truncExt()*/);//.p5.js
+        if (inf.file.exists()) inf.lastTimeStamp=inf.file.lastUpdate();
         if (disableNote===false) socializeDialog.show(inf.file);
     }
     root.d=function () {
