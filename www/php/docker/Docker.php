@@ -52,7 +52,34 @@ class Docker {
     
     function guestWorkPath() {return "/host/";}
     function guestAssetPath() {return "/asset/";}
+    function mk_docker_compose() {
+        $hostWork=$this->hostWork();
+        $hostWorkPath=$hostWork->path();
+        $guestWorkPath=$this->guestWorkPath();
+        
+        $guestAssetPath=$this->guestAssetPath();
+        $hostAssetPath=$this->hostAsset()->path();
+        
+        $img=DOCKER_IMAGE;
+        $work=DOCKER_WORK;
+        $taskrun=DOCKER_TASKRUN;
 
+        $className=$this->className;
+        $comp=DOCKER_LAUNCH_REQ_DIR. "/$className/" ;
+        if (!file_exists($comp)) mkdir($comp);
+        file_put_contents( "$comp/docker-compose.yml", <<<"EOF"
+version: '2'
+services:
+    python:
+        image: $img
+        command: python $taskrun $guestWorkPath
+        volumes:
+            - $hostWorkPath:$guestWorkPath
+            - $hostAssetPath:$guestAssetPath
+
+EOF
+);
+    }
     function __construct($className) {
         $this->className=$className;
 
@@ -63,23 +90,28 @@ class Docker {
         $guestAssetPath=$this->guestAssetPath();
         $hostAssetPath=$this->hostAsset()->path();
         
-        $name=$this->name();
-        $r=system_ex("docker container ls -a | grep \\\\s$name".'$');
-        debug($r);
-        if (! $r["stdout"]) {
-            $img=DOCKER_IMAGE;
+        if (defined("DOCKER_LAUNCH_REQ_DIR")) {
+            $this->mk_docker_compose();
+            /*$img=DOCKER_IMAGE;
             $work=DOCKER_WORK;
-            $taskrun=DOCKER_TASKRUN;
-            $cmd="python $taskrun $guestWorkPath";
-            $dc="docker run -d -v $hostWorkPath:$guestWorkPath -v $hostAssetPath:$guestAssetPath --name $name $img $cmd";
-            //$dc="docker run -d -v $hostWorkPath:$guestWorkPath --name $name $img $cmd";
-            debug($dc);
-            if (defined("DOCKER_LAUNCH_REQ_DIR")) {
-                $this->reqLaunch($dc);
-            } else {
+            $taskrun=DOCKER_TASKRUN;*/
+            $className=$this->className;
+            $this->reqLaunch("./dksh $className");// $img $taskrun $hostWorkPath $guestWorkPath $hostAssetPath $guestAssetPath");
+        } else {
+            $name=$this->name();
+            $r=system_ex("docker container ls -a | grep \\\\s$name".'$');
+            debug($r);
+            if (! $r["stdout"]) {
+                $img=DOCKER_IMAGE;
+                $work=DOCKER_WORK;
+                $taskrun=DOCKER_TASKRUN;
+                $cmd="python $taskrun $guestWorkPath";
+                $dc="docker run -d -v $hostWorkPath:$guestWorkPath -v $hostAssetPath:$guestAssetPath --name $name $img $cmd";
+                //$dc="docker run -d -v $hostWorkPath:$guestWorkPath --name $name $img $cmd";
+                debug($dc);
                 $r=system_ex($dc);
                 debug($r);
-            }
+            }    
         }
     }
     function reqLaunch($cmd) {
@@ -116,7 +148,8 @@ class Docker {
         $hostAssetPath=$this->hostAsset()->path();
         foreach ($f as $k=>$v) {
             //debug("ln -s $guestHome-$k $guestHome/$projectName/$k");
-            
+            system("mkdir $hostAssetPath/$v 2> /dev/null ");
+            system("chmod 777 $hostAssetPath/$v 2> /dev/null ");
             system("chmod -R 777 $hostAssetPath/$v/* 2> /dev/null ");
             $lnksrc=$guestAssetPath.$v;
             $lnkdst=$guestWorkPrjPath.$k;

@@ -25,7 +25,7 @@ define("BA_TOP_URL", $ba_top_url);
 //define("BA_PUB_URL", $ba_top_url."/fs/pub");
 define("BA_PUB_URL", $ba_top_url."/pub");
 
-define("PHP_WORK","/var/www/data/php/html/");
+define("PHP_WORK","/Library/WebServer/data/bitarrow/php/html/");
 define("PHP_URL","https://prosuke.is.meisei-u.ac.jp/bp_{CLASS}/{USER}/{PROJECT}/{FILE}");
 
 // You should define PDO_* in BA_DATA/config.php to protect passowrd
