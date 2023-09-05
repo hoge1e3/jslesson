@@ -560,8 +560,16 @@ define(function (require,exports,module) {
         },
         enumerable: false,
     });*/
+    String.prototype.split_orig=String.prototype.split;
     PL.addMonkeyPatch(String,({
         __class__:String,
+        split(self, ...args) {
+            if (args.length===0) {
+                return self.replace(/^\s*/,"").replace(/\s*$/,"").split_orig(/\s+/);
+            } else {
+                return self.split_orig(...args);
+            }
+        },
         __str__(self){return self+"";},
         //__getTypeName__: function (){return "str";},
         __mul__: function (self,other) {
@@ -707,7 +715,9 @@ define(function (require,exports,module) {
             self.splice(i,1);
         },
         __str__(self) {
-            return "["+self.map((e)=>PL.str(e)).join(", ")+"]";
+            return "["+self.map((e)=>
+                typeof e==="string" ? JSON.stringify(e).replace(/^"/,"'").replace(/"$/,"'") : PL.str(e)
+            ).join(", ")+"]";
         },
         __getitem__:function (self, key) {
             if (key instanceof PL.Slice) {
