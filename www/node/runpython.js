@@ -1,4 +1,7 @@
 /*global require, process*/
+/* example:
+node runpython.js C:\bin\Dropbox\workspace\jslesson\data\pythonwork\443377\src.py
+*/
 const ngword=null; // /\b(open|eval|getattr|setattr|sys|os)\b/;
 //const ngword=/\b(breakpoint|compile|exec|globals|__builtins__|subprocess|pathlib|glob|open|eval|getattr|setattr|sys|os)\b/;  // special-change
 const JS="../js/";
