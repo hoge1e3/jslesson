@@ -446,12 +446,16 @@ class TeacherLogController {
         $usersfiles=json_decode(param("usersfiles"));
         $res=[];
         foreach ($usersfiles as $userfile) {
-            $res[]=self::getActualtime2($userfile[0],$userfile[1]);
+            $res[]=self::getActualtime2($userfile[0],$userfile[1],null, true);
         }
         header("Content-type: text/json");
         print json_encode($res);
     }
-    static function getActualtime2($user=null,$file=null, $dateMax=null) {
+    static function getOKTag($log) {
+        return pdo_select1("select * from logtag where log=?",$log->id);
+    }
+    static function getActualtime2($user=null,$file=null, $dateMax=null, $complete=false) {
+        // complete: return [complate_actTime, all_actTime]
         $class=Auth::curClass2();
         $isCtrl=false;
         if ($user===null) {
@@ -466,13 +470,35 @@ class TeacherLogController {
                 $user=$class->getUser($user);
             }
         }
+        $comp=param("complete", false);
+        if ($comp) $complete=true; 
         req("LogQueryController");
         if ($dateMax) $drange=[0,$dateMax];
         else $drange=null;
+        $lastCode=false;
+        $ok=null;
+        if ($complete) {
+            $itlast=LogQueryController::get($class, $drange, $user, $file, 100, "desc");
+            $lastlog=null;
+            foreach ($itlast as $log) {
+                //print_r($log->raw);
+                $lastCode=removeEmptyLines( LogUtil::getCode(json_decode($log->raw)));
+                if ($lastCode) {
+                    $lastlog=$log;
+                    $itlast->close();
+                    break;
+                }
+            }    
+            if ($lastlog) {
+                $ok=self::getOKTag($lastlog);
+            }
+            //print "LASTCODE =$lastCode";
+        }
         $it=LogQueryController::get($class, $drange, $user, $file, 100000, "asc");
         $prev=null;
         if (!defined("IDLE_TIME")) define("IDLE_TIME",300);
         $actTime2=0;
+        $actTime_complete=false;
         foreach ($it as $log) {
             if (!$prev) { $prev=$log; continue; }
             $elapsedFromLast=$log->time-$prev->time;
@@ -481,9 +507,28 @@ class TeacherLogController {
             } else {
                 $actTime2+=$elapsedFromLast;
             }
+            if ($complete) {
+                $code=removeEmptyLines( LogUtil::getCode(json_decode($log->raw)));
+                if ($lastCode && $code===$lastCode && $actTime_complete===false) {
+                    $actTime_complete=$actTime2;
+                }    
+            }
             $prev=$log;
         }
-        if ($isCtrl) {print $actTime2;}
+        if ($isCtrl) {
+            if ($complete) {
+                header("Content-type: text/json");
+                print json_encode([$actTime_complete, $actTime2]);
+            } else {print $actTime2;}
+        }
+        if ($complete) {
+            $res=[$actTime_complete, $actTime2];
+            if ($ok) {
+                $res[]=$ok->value;
+                $res[]=$ok->detail;
+            }
+            return $res;
+        }
         return $actTime2;
     }
     static function bot() {
@@ -1346,7 +1391,7 @@ class TeacherLogController {
 }
 function subtractSubstring($str, $substring) {
     // $substringが空文字列の場合は$strをそのまま返す
-    if(empty($substring)) {
+    if(empty($substring) || !is_string($substring)) {
       return $str;
     }
     
@@ -1358,5 +1403,8 @@ function subtractSubstring($str, $substring) {
     // $substringが$strに含まれない場合は、$strをそのまま返す
     return $str;
   }
-  
+function removeEmptyLines($input) {
+    $pattern = '/^\s*\n/m'; // 正規表現パターン: 空行を表す
+    return preg_replace($pattern, '', $input);
+}
 ?>

@@ -533,3 +533,14 @@ nowait \deg(d) {
     r=waitFor(p);
     return r;
 }
+\callServer(url, stdin) {
+    var p=new window.Promise\(s) {
+        window.sendResult=\(r) {
+            ifrm.remove();
+            s(r);
+        };
+        var ifrm=window.$("<iframe>").attr{src:url+"?stdin="+stdin, width:1,height:1}.appendTo("body");
+    };
+    var r=waitFor(p);
+    return r;
+}

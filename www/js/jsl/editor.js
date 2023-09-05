@@ -64,7 +64,7 @@ define(function (require) {
     dir(field)-> it should be getDir
     method called from Builders, CommentDialog2, SubmitDialog,AssignmentDialog
     */
-    var ALWAYS_UPLOAD=(localStorage.ALWAYS_UPLOAD==="true");
+    var ALWAYS_UPLOAD=(localStorage.ALWAYS_UPLOAD==="true") || Util.getQueryString("ALWAYS_UPLOAD",false);
     console.log("ALWAYS_UPLOAD",ALWAYS_UPLOAD);
     if (root.BitArrow) root.BitArrow.curProjectDir=curProjectDir.path();
     /*var langList={
@@ -127,7 +127,7 @@ define(function (require) {
     $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"])).
     then(ready).fail(function (e) {
         alert("エラー"+e);
-        console.log(e.stack);
+        console.error(e.stack);
         SplashScreen.hide();
     });
 
@@ -149,6 +149,14 @@ function ready() {
     var F=EC.f;
     var JS_NOP="javascriptCOLON;".replace(/COLON/,":");
     root.$LASTPOS=0;
+    var mobile=WebSite.mobile  || localStorage.mobile;
+    let ace_language_tools;
+    if (mobile) {
+        requirejs(["ace-langtool"],()=>{ 
+            ace_language_tools=root.ace.require("ace/ext/language_tools");
+        });
+    }
+    
     //Tonyu.globals.$currentProject=curPrj;
     //Tonyu.currentProject=curPrj;
     var EXT=curPrj.getEXT();
@@ -231,7 +239,14 @@ function ready() {
                     }
                 }
                 fl.select(pf);
-                run();
+                const stdin=Util.getQueryString("stdin",null);
+                console.log("STDIN",stdin);
+                const opt={};
+                if (stdin) opt.stdin=stdin;
+                const sendURL=(typeof parent!=="undefined" && parent.sendURL)||
+                (typeof opener!=="undefined" && opener.sendURL);
+                if (ALWAYS_UPLOAD && sendURL) opt.sendURL=sendURL;
+                run(opt);
            }).catch (function (e) {console.error(e);});
         }
     }
@@ -404,6 +419,13 @@ function ready() {
     }
     checkPublishedURL();
     makeMenu();
+    if (mobile) {
+        $("#fileViewer").hide();
+        $("#runAreaParent").hide();
+        $("#mainArea").attr("class","col-xs-12");
+        $("#mobileBar").show();
+        $("#homeLink").text("🔙");
+    }
 
     let screenH, editorH, runH;
     function onResize() {
@@ -460,6 +482,7 @@ function ready() {
         sh.window();
     });
     KeyEventChecker.down(document,"F9",F(run));
+    $("#mobileRun").click(F(run));
     KeyEventChecker.down(document,"F2",F(function(){
         stop();
         var progs=getCurrentEditor();
@@ -483,7 +506,7 @@ function ready() {
     $("body")[0].spellcheck=false;
     sh.cd(curProjectDir);
 
-    var fl=FileList($("#fileItemList"),{
+    var fl=FileList($(mobile?"#fileSel":"#fileItemList"),{
         topDir: curProjectDir,
         on:{
             select: F(open),
@@ -764,6 +787,27 @@ function ready() {
                     $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
                 ));
                 cv.append($("<div>").qrcode({width:200,height:200,text:runURL}));
+                const autoopen=    $("<input>").attr({type:"checkbox", id: "autoopen"});
+                const doAutoopen=()=>{
+                    window.open(runURL,"runit");
+                };
+                if (desktopEnv.fullScrAutoOpen) {
+                    autoopen.prop("checked",true);
+                    doAutoopen();
+                }
+                autoopen.on("change", ()=>{
+                    const o=autoopen.prop("checked");
+                    if (o){
+                        doAutoopen();
+                    }
+                    desktopEnv.fullScrAutoOpen=o;
+                    saveDesktopEnv();
+                });
+                cv.append($("<div>").append(
+                    autoopen
+                ).append(
+                    $("<label>").attr({for:"autoopen"}).text("自動的に開く")
+                ));
                 if (builder.qrDialog) builder.qrDialog({
                     dialogJQ:cv,
                     editorInfo:getCurrentEditorInfo(),
@@ -859,11 +903,17 @@ function ready() {
                 await builder.upload(pubd);
                 const pub=await Auth.publishedURL(curProjectDir.name());*/
                 var runURL=buildStatus.publishedURL;//pub+(lang=="tonyu"?"index.html": curHTMLFile.name());
+                if (options.sendURL) {
+                    options.sendURL(runURL, location.href);
+                    return;
+                }
                 return IframeDialog.show(runURL,{width:600,height:400});
             } else {
                 var indexF=buildStatus.indexFile;// ram.rel(lang=="tonyu"?"index.html":curHTMLFile.name());
+                const params=options.stdin?{stdin:options.stdin}:{};
                 if (isSplit()) {
                     return RunDialog2.embed(indexF, {
+                        params,
                         window:newwnd,
                         targetDOM: $("#runEmbed"),
                         toEditor:focusToEditor,
@@ -871,6 +921,7 @@ function ready() {
                     });
                 } else {
                     return RunDialog2.show(indexF,{
+                        params,
                         window:newwnd,
                         height:RunDialog2.geom.height||screenH-50,
                         toEditor:focusToEditor,
@@ -880,6 +931,9 @@ function ready() {
             }
         }catch(e) {
             console.log(e,e.stack);
+            if (ALWAYS_UPLOAD && options.sendURL) {
+                options.sendURL("error://"+e.stack, location.href);
+            }
             if (e.isTError) {
                 errorDialog.show(e);//showErrorPos($("#errorPos"),e);
                 logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Compile Error",/*e.src+":"+e.pos+"\n"+e.mesg*/e,langInfo.en);
@@ -1017,6 +1071,7 @@ function ready() {
             var nw=prog.getValue();
             if (old!=nw) {
                 curFile.text(nw);
+                inf.lastTimeStamp=curFile.lastUpdate();
                 logToServer2(curFile.path(),curFile.text(),/*curHTMLFile.text()*/"HTML","Save","保存しました",langInfo.en);
             }
         }
@@ -1032,6 +1087,11 @@ function ready() {
         	fl.setModified(mod);
     	    $("#modLabel").text(mod?"(変更あり)":"");
     	    if(mod){
+                if (inf.file.exists() && inf.lastTimeStamp<inf.file.lastUpdate()) {
+                    inf.editor.setValue(inf.file.text());
+                    inf.editor.clearSelection();
+                    inf.lastTimeStamp=inf.file.lastUpdate();
+                }
     	        unsaved=true;
     	        unsynced=true;
                 if (typingCheckContent!==prog.getValue()) {
@@ -1132,6 +1192,10 @@ function ready() {
                 prog.getSession().setMode("ace/mode/html");
             }
             prog.getSession().setUseWrapMode(true);
+            if (ace_language_tools) {
+                const completers=[ace_language_tools.textCompleter];
+                prog.setOptions({enableLiveAutocompletion:completers});
+            }
             inf={file:f , editor: prog, dom:progDOM};
             editors[f.path()]=inf;
             progDOM.click(F(function () {
@@ -1142,6 +1206,11 @@ function ready() {
             prog.focus();
             curDOM=progDOM;
         } else {
+            if (inf.file.exists() && inf.lastTimeStamp<inf.file.lastUpdate()) {
+                inf.editor.setValue(inf.file.text());
+                inf.editor.clearSelection();
+                inf.lastTimeStamp=inf.file.lastUpdate();
+            }
             inf.dom.show();
             inf.editor.focus();
             curDOM=inf.dom;
@@ -1172,6 +1241,7 @@ function ready() {
 
         }
         $("#curFileLabel").text(curPrj.truncEXT(f)/*f.truncExt()*/);//.p5.js
+        if (inf.file.exists()) inf.lastTimeStamp=inf.file.lastUpdate();
         if (disableNote===false) socializeDialog.show(inf.file);
     }
     root.d=function () {

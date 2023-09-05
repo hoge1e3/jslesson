@@ -15,7 +15,7 @@
 
     function getQueryString(key, default_) {
         if (arguments.length === 1) default_ = "";
-        if (root.LocalBrowserInfo === "object") {
+        if (typeof root.LocalBrowserInfo === "object") {
             return key in root.LocalBrowserInfo.params ? root.LocalBrowserInfo.params[key] : default_;
         }
         key = key.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");

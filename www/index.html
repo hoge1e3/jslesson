@@ -22,7 +22,7 @@
 
 <body>
     <script id="BAVersion">
-var BitArrow={version:"20230703212539",//VERSION_STRING
+var BitArrow={version:"20230828164808",//VERSION_STRING
 checkVer:function () {
     if (!localStorage.BAVer || localStorage.BAVer<this.version) {
         console.log("Version up ",localStorage.BAVer," to ",this.version);
@@ -68,7 +68,7 @@ requirejs(["Util"],function (Util){
         localStorage.noconcat=noconcat+"";
     }
     console.log("noconcat",noconcat);
-    var alu=Util.getQueryString("ALWAYS_UPLOAD","emp");
+    var alu=Util.getQueryString("SET_ALWAYS_UPLOAD","emp");
     if (alu!=="emp") localStorage.ALWAYS_UPLOAD=(alu==="true");
     if (!noconcat) {
         console.log(reqConf.paths[run+"_concat"]);

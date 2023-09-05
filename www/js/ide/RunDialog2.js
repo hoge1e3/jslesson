@@ -21,7 +21,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
                     if (cons) cons.style.fontSize=options.font+"px";
                 }
             });
-            return res.lbw.open(runFile);
+            return res.lbw.open(runFile,options);
         }
         window.dialogClosed=false;
         var d=res.embed(runFile, options);
@@ -137,6 +137,7 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
             res.b.focus();
         },100);
         res.b.open(runFile,{
+            params:options.params,
             onload:function () {
                 console.log(this);
                 var cons=this.contentWindow.document.getElementById("console");
