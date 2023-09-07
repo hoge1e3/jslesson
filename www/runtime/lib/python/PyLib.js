@@ -3,6 +3,7 @@ define(function (require,exports,module) {
     //var PyX=require("./PyX.js");
     // same with root.js
     //const ABG=require("AsyncByGenerator");
+    //const ctrl=require("ctrl");
     function getRoot(){
         if (typeof window!=="undefined") return window;
         if (typeof self!=="undefined") return self;
@@ -148,7 +149,7 @@ define(function (require,exports,module) {
         }
         return Math.max(...args);
     };
-    PL.open=function () {throw new Error("openを使うには，「サーバで実行」を選んでください．");};
+    //PL.open=function () {throw new Error("openを使うには，「サーバで実行」を選んでください．");};
     PL.quit=function (s) {PL.exit();};
     PL.exit=function (s) {
         var e=new Error("exit でプログラムが終了しました。");
@@ -335,6 +336,13 @@ define(function (require,exports,module) {
                         value: m
                     });    
                 }
+                if (k==="__iter__") {
+                    Object.defineProperty(res.prototype, Symbol.iterator, {
+                        value(){
+                            return PL.pyiter(m.apply(this,[this]));
+                        }
+                    });
+                }
                 methodNames.push(k);
             } else {
                 res.prototype[k]=m;
@@ -363,6 +371,20 @@ define(function (require,exports,module) {
         }
         return res;
     };
+    PL.pyiter=function (iter) {
+        return {
+            next() {
+                try {
+                    return {done:false, value: iter.__next__()};
+                }catch(e) {
+                    if (e instanceof PL.StopIteration) return {done:true, value:null};
+                    throw e;
+                }
+            }
+        };
+    };
+    PL.StopIteration=function (){};
+    PL.StopIteration.prototype=new Error();
     PL.float=function (s) {
         const v=s-0;
         if (v!==v) throw new Error(`${s} は floatに変換できません`);
@@ -440,6 +462,105 @@ define(function (require,exports,module) {
         return this.map.keys();
     };
     PL.None=null;
+    let Encoding;
+    PL.open=async function (...args) {
+        const {filename, mode, encoding}=PL.parseArgs2(args,["filename","mode",{name:"encoding",def:"utf8"}]);
+        let cp;
+        filename.replace(/^(user|class)\/(.*)/,(_,context,path)=>cp={context,path});
+        let content="";
+        if (!cp) {
+            throw new Error("ファイル名はuser/ か class/で始めてください．: "+filename);
+        }
+        if (mode.match(/[ra]/)) {
+            if (encoding!=="utf8") {
+                if (!Encoding) {
+                    Encoding=await new Promise((s)=>
+                        requirejs(["https://cdnjs.cloudflare.com/ajax/libs/encoding-japanese/2.0.0/encoding.min.js"], s));
+                }
+                //alert(Encoding);
+            }
+            const {files, prefix, baseUrl}=await ctrl.get("Asset/list2",{context:cp.context});
+            const fileName=files.find((fileName)=>fileName===cp.path);
+            if (!fileName) {
+                throw new Error("ファイル" +cp.context+"/"+cp.path+"はありません．「ファイル」→「素材管理」からファイル名を確認してください．");
+            }
+            const urlFull=baseUrl+fileName;// WebSite.published+u;
+            //alert(urlFull);
+            if(encoding!=="utf8") {
+                const ary=await $.ajax({
+                    url: urlFull,
+                    type: "GET",
+                    dataType: 'binary',
+                    responseType:'arraybuffer',
+                    processData: false
+                });
+                const ary8=new Uint8Array(ary);
+                const unicodeArray=Encoding.convert(ary8, {
+                    to: 'UNICODE',
+                    from: encoding
+                });
+                //console.log(ary8, unicodeArray);
+                content = Encoding.codeToString(unicodeArray);
+            } else content=await $.get(urlFull);
+            if (!mode.match(/a/)) return PL.ReaderFile(content);
+        } 
+        if (mode.match(/[wa]/)) {
+            return PL.WriterFile(cp.context, cp.path, content);
+        }
+        throw new Error("第2引数（モード指定）に誤りがあります："+mode);
+    };
+    PL.ReaderFile=PL.class({
+        __init__(self, content) {self.content=content;},
+        __iter__(self) {
+            //self._line=0;
+            self.lines=self.content.split("\n");
+            return self;
+        },
+        __next__(self) {
+            if (self.lines.length) return self.lines.shift();
+            throw new PL.StopIteration();
+        },
+        close(self){
+            self.closed=true;
+        },
+    });
+    PL.WriterFile=PL.class({
+        __init__(self, context, filename, content="") {
+            self.context=context;
+            self.filename=filename;
+            self.content=content;
+            self.flushTimer=null;
+        },
+        write(self, str) {
+            self.content+=str;
+            if (self.flushTimer) {
+                clearTimeout(self.flushTimer);
+            }
+            self.flushTimer=setTimeout(()=>{
+                self.flush();
+            },1000);
+        },
+        close(self) {
+            self.flush();
+            self.closed=true;
+        },
+        flush(self) {
+            if (self.flushTimer) {
+                clearTimeout(self.flushTimer);
+            }
+            const blob=new Blob([self.content],{type:"text/plain"});
+            const formData = new FormData();
+            formData.append('acceptImage', blob, self.filename);
+            formData.append("context",self.context);
+            return $.ajax({
+                type: 'POST',
+                url: ctrl.url("Asset/upload"),
+                data: formData,
+                contentType: false,
+                processData: false
+            });
+        },
+    });
     PL.checkSet=(v, name="Variable")=>{
         if (v!==undefined) return v;
         throw new Error(`${name} is not defined.`);
@@ -588,6 +709,14 @@ define(function (require,exports,module) {
 
         __getattr__: function (self,name) {
             //__getattr__は、オブジェクトのインスタンス辞書に属性が見つからないときに呼び出されるメソッドです。
+            if (name==="then") {
+                // 'then' will be checked on return of async function
+                return undefined;
+            }
+            console.log("Field ", name, " not found in ",self);
+            if (name===Symbol.iterator) {
+                throw new Error(`このオブジェクトは繰り返し可能ではありません．`);
+            }
             throw new Error(`フィールド ${name.toString()} はありません`);
         },
         __getattribute__: function (self,name) {
@@ -883,7 +1012,7 @@ define(function (require,exports,module) {
     //---
     PL.builtins=["range","input","str","int","sum","float","object","len","type","quit","exit","sorted","abs",
     "min","max","list","isinstance","zip",
-    "fillRect","setColor","setTimeout","clearRect","clear"];
+    "fillRect","setColor","setTimeout","clearRect","clear","StopIteration"];
     root.PYLIB=PL;
     PL.root=root;
 
@@ -994,6 +1123,7 @@ define(function (require,exports,module) {
                     if (n.done) {
                         return n.value;
                     } else {
+                        //console.log("Getting then from1 ",n.value);
                         return n.value.then(()=>{
                             //PL.LoopChecker.reset();
                             return t.run(it);
@@ -1001,7 +1131,8 @@ define(function (require,exports,module) {
                     }
                 } else {
                     if (n.done) {
-                        return Promise.resolve(n.value);
+                        // Promise.resolve(n.value) -> field then not found
+                        return new Promise((s)=>s(n.value));
                     }
                 }
             }
@@ -1009,6 +1140,7 @@ define(function (require,exports,module) {
         toGen(v) {
             if (this.isPromise(v)) {
                 var res;
+                //console.log("Getting then from2 ",v);
                 var p=v.then(function (r) {
                     res=r;
                 });
@@ -1031,6 +1163,29 @@ define(function (require,exports,module) {
         }
     };
     PL.AsyncByGenerator.init();
+    const ctrl={};
+    ctrl.url=function (path,params) {
+        let res=".?"+path;
+        if (params) {
+            res+=Object.keys(params).map (k=>`&${k}=${params[k]}`).join("");
+        }
+        return res;
+    };
+    ctrl.run=function (method,path,params) {
+        params=params||{};
+        return $.ajax({
+            url: ctrl.url(path),
+            data:params,
+            cache: false,
+            type:method
+        });
+    };
+    ctrl.get=function (path,params) {
+        return ctrl.run("get",path,params);
+    };
+    ctrl.post=function (path,params) {
+        return ctrl.run("post",path,params);
+    };
     PL.runAsync=(genF)=>{
         return PL.AsyncByGenerator.run(genF());
     };

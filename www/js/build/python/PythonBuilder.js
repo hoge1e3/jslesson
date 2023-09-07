@@ -10,7 +10,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         this.dst=dst;// SFile in ramdisk
         this.ide=ide;
     };
-    var libs=["polyfill","jquery-1.12.1","require"].map(function (n) {
+    var libs=["polyfill","jquery-1.12.1","jquery.binarytransport","require"].map(function (n) {
         return "lib/"+n+".js";
     });
     libs=libs.concat(["lib/python/runOnServer.js"]);
