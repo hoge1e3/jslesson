@@ -53,6 +53,7 @@ define(function (require,exports,module) {
     PL.proxy=(target)=>{
         return new Proxy(()=>"Hoge", {
             get(_target, prop, receiver) {
+                if (prop==="__unproxy__") return ()=>target;
                 return target.__getattribute__(prop);
             },
             set(_target, prop, newVal) {
@@ -60,7 +61,10 @@ define(function (require,exports,module) {
             },
             apply(_target, self, ...args) {
                 return target.__call__(target, ...args);
-            }
+            },
+            has(_target, name) {
+                return name in target;
+            },
         });
     };
     //PyX.install(PL);
@@ -170,7 +174,15 @@ define(function (require,exports,module) {
             return "object";
         }
     };
+    PL.issubclass=function (sub,sup) {
+        if (sub===sup) return true;
+        if (!sub.__bases__ || !sub.__bases__[0]) return false;
+        return PL.issubclass(sub.__bases__[0], sup);
+    };
     PL.isinstance=function (obj,klass) {
+        if (obj==null) {
+            return klass===PL.NoneType;
+        }
         if (klass===PL.int) {
             return (typeof u(obj)==="number" && Math.floor(obj)===obj);
         } else if (klass===PL.float || klass===Number) {
@@ -179,10 +191,8 @@ define(function (require,exports,module) {
             return (typeof u(obj)==="string");
         }
         const ocl=obj && obj.__class__;
-        return !!ocl &&
-        (ocl===klass ||
-            PL.isinstance(Object.getPrototypeOf(ocl.prototype),klass)
-        );
+        if (!ocl) return false;
+        return PL.issubclass(ocl, klass);
     };
     PL.sorted=function (a, ...args) {
         return a.slice().sort(...args);
@@ -348,7 +358,7 @@ define(function (require,exports,module) {
                 res.prototype[k]=m;
             }
         }
-        res.__name__=defs.CLASSNAME;
+        res.__name__=defs.__name__ || defs.CLASSNAME;
         res.__module__="__main__";
         res.prototype.constructor=res;
         Object.defineProperty(res.prototype,"__class__",{
@@ -371,6 +381,7 @@ define(function (require,exports,module) {
         }
         return res;
     };
+    PL.NoneType=PL.class({});
     PL.pyiter=function (iter) {
         return {
             next() {
@@ -383,6 +394,8 @@ define(function (require,exports,module) {
             }
         };
     };
+    PL.AttributeError=class extends Error {};
+    //PL.AttributeError.prototype=new Error();
     PL.StopIteration=function (){};
     PL.StopIteration.prototype=new Error();
     PL.float=function (s) {
@@ -427,6 +440,7 @@ define(function (require,exports,module) {
         return res;
     };
     PL.Tuple=PL.class({
+        __name__: "tuple",
         __init__:function (self, elems) {
             self.elems=elems;
             for (let i=0;i<elems.length;i++) self[i]=elems[i];
@@ -435,10 +449,12 @@ define(function (require,exports,module) {
             return "("+self.elems.join(", ")+")";
         }
     });
+    PL.Tuple.__bases__=PL.Tuple([]);
     PL.Tuple.prototype[Symbol.iterator]=function(...args) {
         return this.elems[Symbol.iterator](...args);
     };
     PL.dict=PL.class({
+        __name__: "dict",
         __init__(self, src) {
             self.map=new Map();
             for (let k in src) {
@@ -482,26 +498,29 @@ define(function (require,exports,module) {
             const {files, prefix, baseUrl}=await ctrl.get("Asset/list2",{context:cp.context});
             const fileName=files.find((fileName)=>fileName===cp.path);
             if (!fileName) {
-                throw new Error("ファイル" +cp.context+"/"+cp.path+"はありません．「ファイル」→「素材管理」からファイル名を確認してください．");
+                if (!mode.match(/a/)) {
+                    throw new Error("ファイル" +cp.context+"/"+cp.path+"はありません．「ファイル」→「素材管理」からファイル名を確認してください．");
+                }
+            } else {
+                const urlFull=baseUrl+fileName;// WebSite.published+u;
+                //alert(urlFull);
+                if(encoding!=="utf8") {
+                    const ary=await $.ajax({
+                        url: urlFull,
+                        type: "GET",
+                        dataType: 'binary',
+                        responseType:'arraybuffer',
+                        processData: false
+                    });
+                    const ary8=new Uint8Array(ary);
+                    const unicodeArray=Encoding.convert(ary8, {
+                        to: 'UNICODE',
+                        from: encoding
+                    });
+                    //console.log(ary8, unicodeArray);
+                    content = Encoding.codeToString(unicodeArray);
+                } else content=await $.get(urlFull);    
             }
-            const urlFull=baseUrl+fileName;// WebSite.published+u;
-            //alert(urlFull);
-            if(encoding!=="utf8") {
-                const ary=await $.ajax({
-                    url: urlFull,
-                    type: "GET",
-                    dataType: 'binary',
-                    responseType:'arraybuffer',
-                    processData: false
-                });
-                const ary8=new Uint8Array(ary);
-                const unicodeArray=Encoding.convert(ary8, {
-                    to: 'UNICODE',
-                    from: encoding
-                });
-                //console.log(ary8, unicodeArray);
-                content = Encoding.codeToString(unicodeArray);
-            } else content=await $.get(urlFull);
             if (!mode.match(/a/)) return PL.ReaderFile(content);
         } 
         if (mode.match(/[wa]/)) {
@@ -513,7 +532,14 @@ define(function (require,exports,module) {
         __init__(self, content) {self.content=content;},
         __iter__(self) {
             //self._line=0;
-            self.lines=self.content.split("\n");
+            if (self.content==="") self.lines=[];
+            const lastHasBR=self.content[self.content.length-1]=="\n";
+            self.lines=self.content.split("\n").map((s)=>s+"\n");
+            if (lastHasBR) {
+                self.lines.pop();
+            } else {
+                self.lines[self.lines.length-1]=self.lines[self.lines.length-1].trim();
+            }
             return self;
         },
         __next__(self) {
@@ -540,11 +566,11 @@ define(function (require,exports,module) {
                 self.flush();
             },1000);
         },
-        close(self) {
-            self.flush();
+        async close(self) {
+            await self.flush();
             self.closed=true;
         },
-        flush(self) {
+        async flush(self) {
             if (self.flushTimer) {
                 clearTimeout(self.flushTimer);
             }
@@ -552,7 +578,7 @@ define(function (require,exports,module) {
             const formData = new FormData();
             formData.append('acceptImage', blob, self.filename);
             formData.append("context",self.context);
-            return $.ajax({
+            return await $.ajax({
                 type: 'POST',
                 url: ctrl.url("Asset/upload"),
                 data: formData,
@@ -564,6 +590,64 @@ define(function (require,exports,module) {
     PL.checkSet=(v, name="Variable")=>{
         if (v!==undefined) return v;
         throw new Error(`${name} is not defined.`);
+    };
+    PL.hasattr=(o, name)=>{
+        try {
+            if (!o) return false;
+            o.__getattribute__(name);
+            return true;
+        } catch(e) {
+            if (e instanceof PL.AttributeError) return false;
+            throw e;
+        }
+    };
+    PL.hasattr_js=(o, name)=>{
+        if (!o) return;
+        o=o.__unproxy__();
+        const inable=(e)=>typeof e==="object"||typeof e==="function";
+        return (inable(o) && name in o) || o[name]!==undefined;
+    };
+    PL.typeof_field=(o, field, type)=> {
+        /*if (o instanceof String) {
+            console.log("WHY" , o, field, type);
+            //return false;
+        }
+        if (!o || typeof o!=="object") return false;*/
+        //console.log("typeof_field", o, field, type);
+        if (typeof field==="object") {
+            for (let k in field) {
+                if (typeof field[k] instanceof String) {
+                    console.log(field, k ,field[k]);
+                    throw new Error("Invalid field spec");
+                }
+                if (!PL.typeof_field(o,k,field[k])) return false;
+            }
+            return true;
+        }
+        if (type) {
+            return PL.typeof_field(o, field)===type;
+        }
+        if (!PL.hasattr_js(o, field)) {
+            return "undefined";
+        }
+        return typeof o[field]; 
+    };
+    PL.isArray=(v)=>{
+        if (!v) return false;
+        v=v.__unproxy__();
+        return (v instanceof Array) || (
+            (PL.typeof_field(v,{length:"number", slice:"function", map:"function"})));
+    };
+    PL.isArrayLike=(v)=> {
+        if (!v) return false;
+        if (typeof v==="string" || v instanceof String) return false;
+        v=v.__unproxy__();
+        return PL.isArray(v) || (
+            typeof v==="object" && PL.typeof_field(v,{length:"number"}) &&(
+                v.length===0 ||
+                (0 in v && v.length-1 in v)
+            )
+        );
     };
     PL.Tuple.__bases__=PL.Tuple([]);
     PL.Slice=PL.class({
@@ -586,6 +670,7 @@ define(function (require,exports,module) {
         target.globals=()=>PL.dict(target);
         return new Proxy(target, {
             get(target, prop, receiver) {
+                if (prop==="__unproxy__") return target;
                 if (prop in target) return target[prop];
                 if (useJSRoot && prop in root) {
                     const r=root[prop];
@@ -676,6 +761,7 @@ define(function (require,exports,module) {
         __call__: function (self,...a) {
             //var a=Array.prototype.slice.call(arguments,1);
             if (typeof self==="function") return self.apply(self, a);
+            console.log("Cannot call", self);
             throw new Error("この値は関数呼び出しできません");
         },
         //toString: function (self) {return self.value+"";},
@@ -709,22 +795,23 @@ define(function (require,exports,module) {
 
         __getattr__: function (self,name) {
             //__getattr__は、オブジェクトのインスタンス辞書に属性が見つからないときに呼び出されるメソッドです。
-            if (name==="then") {
+            if (name===Symbol.iterator) {
+                throw new PL.AttributeError(`このオブジェクトは繰り返し可能ではありません．`);
+            }
+            if (name==="then" || typeof name!=="string" ) {
                 // 'then' will be checked on return of async function
+                // Symbol(Symbol.toStringTag) is also
                 return undefined;
             }
             console.log("Field ", name, " not found in ",self);
-            if (name===Symbol.iterator) {
-                throw new Error(`このオブジェクトは繰り返し可能ではありません．`);
-            }
-            throw new Error(`フィールド ${name.toString()} はありません`);
+            throw new PL.AttributeError(`フィールド ${name.toString()} はありません`);
         },
         __getattribute__: function (self,name) {
-            if (!(name in self)) {
+            if (!PL.hasattr_js(self, name)) {
                 return self.__getattr__(name);
             }
             const r=self[name];
-            if (typeof r==="function") {
+            if (typeof r==="function" && !PL.isinstance(r, PL.type)) {
                 return r.bind(self);
             }
             return r;
@@ -745,8 +832,9 @@ define(function (require,exports,module) {
             self[key]=value;
         },
         __contains__(self, elem) {
-            return self.hasOwnProperty(elem);
+            return self.hasOwnProperty(elem) || elem in self;
         },
+        __unproxy__(self) {return self;},
         //____: function (self,other) { return selfother;},
     });
     PL.addMonkeyPatch(Number,{
@@ -839,7 +927,8 @@ define(function (require,exports,module) {
                     return PL.str(o[name]);
                 }
             });
-        }
+        },
+        __unproxy__(self) {return self+"";},
     }));
     PL.addMonkeyPatch(Number, {
         __class__: Number,
@@ -861,6 +950,7 @@ define(function (require,exports,module) {
                 PL.invalidOP(self, "__mul__",other);
             }
         },  
+        __unproxy__(self) {return self-0;},
     });
     function otherShouldString(k) {
         return function (self,other) {
@@ -887,7 +977,8 @@ define(function (require,exports,module) {
                 default:
                     PL.invalidOP(self, "__mul__",other);
             }
-        }
+        },
+        __unproxy__(self) {return !!self;},
     });
     PL.addMonkeyPatch(Function,{
         __class__: Function,
@@ -1186,10 +1277,12 @@ define(function (require,exports,module) {
     ctrl.post=function (path,params) {
         return ctrl.run("post",path,params);
     };
+    PL.ctrl=ctrl;
     PL.runAsync=(genF)=>{
         return PL.AsyncByGenerator.run(genF());
     };
     setInterval(()=>PL.LoopChecker.reset(),2000);
     PL.R=(x)=>PL.AsyncByGenerator.toGen(x);
+    PL.initializedAll=true;
     return PL;
 });
