@@ -19,7 +19,7 @@ const importable={
         "fillOval", "getkey", "wait", "setTimeout"]},
     turtle:{browser:["Turtle","forward","right","left","clear","position"] },
     requests:{server:true},//SPECIAL
-    json:{server:true},//SPECIAL
+    json:{server:true,browser:true},//SPECIAL
     sys:{wrapper:true,server:true},
     MeCab: {wrapper:true, server:true},
     matplotlib:{wrapper:true,server:true},
@@ -35,7 +35,7 @@ const importable={
     bs4:{wrapper:true,server:true},
     time:{wrapper:true,server:true,browser:["sleep"]},
     badb:{server:true},
-    cdb:{server:true},
+    cdb:{server:true,browser:true},
     csv:{server:true},
     js:{browser: Object.keys(root)}
     // turtle: js?
