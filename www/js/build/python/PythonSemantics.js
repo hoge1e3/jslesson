@@ -363,7 +363,9 @@ const vdef={
         if (!i) {
             i=this.addScope(node+"", {node, scope:this.rootScope});
             console.log("symbol undef. treated as top level",node,this.curScope());
-            //this.error("変数または関数"+node+"は未定義です",node);
+            if (this.options.runAt!=="browser") {
+                this.error("変数または関数"+node+"は未定義です",node);
+            }
         }
         this.anon.put(node,{scopeInfo:i});
     },
