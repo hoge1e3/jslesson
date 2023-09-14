@@ -208,7 +208,9 @@ function system_ex($cmd, $stdin = "")
         1 => array("pipe", "w"),
         2 => array("pipe", "w")
         );
-
+    if (defined("SYSTEM_EX_OUT")) {
+        $cmd.=" > ".SYSTEM_EX_OUT;
+    }
     $process = proc_open($cmd, $descriptorspec, $pipes);
     $result_message = "";
     $error_message = "";
@@ -222,7 +224,11 @@ function system_ex($cmd, $stdin = "")
         /*while ($error = fgets($pipes[2])){
             $error_message .= $error;
         }*/
-        $result_message=stream_get_contents($pipes[1]);
+        if (defined("SYSTEM_EX_OUT")) {
+            $result_message=file_get_contents(SYSTEM_EX_OUT);
+        } else {
+            $result_message=stream_get_contents($pipes[1]);
+        }
         /*
         while ($result = fgets($pipes[1])){
             $result_message .= $result;
