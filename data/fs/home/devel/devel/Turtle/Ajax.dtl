@@ -12,12 +12,13 @@ Ajax:data=[|key value|
 ].
 Ajax:execute=[|;s|
     s=self.
-    DtlPromise ! [|succ|
+    DtlPromise ! [|succ err|
         opt=system![]new．
         opt:method=s:method.
         opt:url=s:url．
         opt:data=s:params.
         opt:success=succ．
+        opt:error=err．
         //(window:console) ! (opt) log. 
         (window:$) ! (opt) ajax.
     ] new.
