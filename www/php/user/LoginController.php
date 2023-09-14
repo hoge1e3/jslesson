@@ -47,6 +47,13 @@ class LoginController {
     static function isValidUserName($u) {
         return preg_match("/^[\+@a-zA-Z_0-9\-\.]+$/",$u);
     }
+    static function hasClass() {
+        req("BAClass");
+        $class=param("class");
+        $c=new BAClass($class);
+        header("Content-type: text/json");
+        echo json_encode(["class"=>$class, "exists"=>$c->exists()]);
+    }
     static function bauth() {
         // return whether status is valid
         $status=param("status");

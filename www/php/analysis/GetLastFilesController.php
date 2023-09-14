@@ -102,29 +102,34 @@ class GetLastFilesController {
                 const a=ent.find("a.autoexec");
                 const url=a.attr("href");
                 console.log("runEntry", url, ent);
-                let q=new QueryString(url);
-                q=q.put({ALWAYS_UPLOAD:"true"});
-                const ifrm=$("<iframe>").attr({src: q.url, /*width:500,height:500,*/ allowfullscreen:true}).css({float:"right"});
-                const reloadButton=$("<button>").text("Reload").click(()=>{
-                    ifrm[0].contentWindow.location.reload();
+                const q=new QueryString(url).put({ALWAYS_UPLOAD:"true"});
+                const ifrm=$("<iframe>").attr({allowfullscreen:true}).css({float:"right"});
+                const reloadButton=$("<button>").text("Reload").prop({disabled:true});
+                ent.find(".right").append($("<div>").append(reloadButton)).append(ifrm);
+                setInterval(resizeIframe, 100);                    
+                async function doRun() {
+                    while(window.sendURL) {
+                        await new Promise((s)=>{ setTimeout(s, 10);});
+                    }   
+                    window.sendURL=true;
+                    ifrm.attr({src:q.url});
+                    const runurl=await new Promise((s)=>{
+                        window.sendURL=(u, href)=>{
+                            delete window.sendURL;
+                            s(u);
+                        };
+                    });
+                    const stdin=$("#stdin").val();
+                    const rq=new QueryString(runurl).put({stdin});
+                    ifrm.attr({src:rq.url});
+                    reloadButton.prop({disabled:false});
+                }
+                await doRun();
+                reloadButton.click(()=>{
+                    reloadButton.prop({disabled:true});
+                    doRun();
                     ifrm.focus();
                 });
-                while(window.sendURL) {
-                    await new Promise((s)=>{ setTimeout(s, 10);});
-                }   
-                window.sendURL=true;
-                const runurl=await new Promise((s)=>{
-                    window.sendURL=(u, href)=>{
-                        delete window.sendURL;
-                        s(u);
-                    };
-                    ent.find(".right").append($("<div>").append(reloadButton)).append(ifrm);
-                    setInterval(resizeIframe, 100);                    
-                });
-                q=new QueryString(runurl);
-                const stdin=$("#stdin").val();
-                q=q.put({stdin})
-                ifrm.attr({src:q.url});
                 function resizeIframe() {
                     let iframe=ifrm[0];
                     var iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
