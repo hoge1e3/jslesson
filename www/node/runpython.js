@@ -69,6 +69,7 @@ function (FS,PP,S,G) {
                 });
                 console.log(trimLines(stdout));
                 console.log(mesg);
+                process.exit(0);
             });
         });
     } catch(e) {

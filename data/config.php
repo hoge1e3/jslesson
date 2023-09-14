@@ -19,6 +19,7 @@ define("BA_PUB_URL", $ba_top_url."/fs/pub");
 
 define("PDO_DSN","sqlite:".BA_DATA."/db/db2.sqlite3");
 define("PYTHON_PATH","C:\\bin\\python.bat");
+define("SYSTEM_EX_OUT","c:\\bin\\out.txt");
 define("PDO_LOG","C:\\bin\\pdo.log");
 define("SUPER_PYTHON","superpython");
 define("PYTHON_WORK",BA_DATA."/pythonwork/");
