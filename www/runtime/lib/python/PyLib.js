@@ -670,7 +670,7 @@ define(function (require,exports,module) {
         target.globals=()=>PL.dict(target);
         return new Proxy(target, {
             get(target, prop, receiver) {
-                if (prop==="__unproxy__") return target;
+                if (prop==="__unproxy__") return ()=>target;
                 if (prop in target) return target[prop];
                 if (useJSRoot && prop in root) {
                     const r=root[prop];
@@ -1288,6 +1288,12 @@ define(function (require,exports,module) {
     };
     setInterval(()=>PL.LoopChecker.reset(),2000);
     PL.R=(x)=>PL.AsyncByGenerator.toGen(x);
+    PL.await=function *(p){
+        let res,err;
+        yield p.then((r)=>{res=r;}, (e)=>{err=e;});
+        if (err) throw err;
+        return res;
+    };
     PL.initializedAll=true;
     return PL;
 });

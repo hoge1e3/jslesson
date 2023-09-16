@@ -87,20 +87,35 @@ function (Visitor,IndentBuffer,context,PL,S) {
             }
         },
         importElement: function (node) {
-            var url=this.options.pyLibPath+"/py_"+node.name+".js";
-            if (node.alias) {
-                this.printf("%v=require('%s').install(%s);", node.alias, url, PYLIB);
+            const a=this.anon.get(node);
+            const name=node.alias || node.name;
+            if (a.userLib) {
+                const url=node.name;
+                this.printf("%v=yield* %s.await(require('%s').load());", name, PYLIB, url);
             } else {
-                this.printf("%v=require('%s').install(%s);", node.name, url, PYLIB);
+                const url=this.options.pyLibPath+"/py_"+node.name+".js";
+                this.printf("%v=require('%s').install(%s);", name, url, PYLIB);
             }
         },
         fromImportStmt: function (node) {
-            var url=this.options.pyLibPath+"/py_"+node.name+".js";
+            const a=this.anon.get(node);
+            var url=a.userLib? node.name+"": this.options.pyLibPath+"/py_"+node.name+".js";
             if (node.localNames.names.text==="*"){
-                this.printf("Object.assign(%s, require('%s').install(%s));", TOP, url, PYLIB);
+                if (a.userLib) {
+                    this.printf("Object.assign( %s, yield* %s.await(require('%s').load()) );", TOP, PYLIB, url );
+                } else {
+                    this.printf("Object.assign(%s, require('%s').install(%s));", TOP, url, PYLIB);
+                }
             } else {
-                this.printf("[%j]=%s.spreadMod(require('%s').install(%s),%s);", 
-                [",",node.localNames.names], PYLIB, url, PYLIB, JSON.stringify(node.localNames.names.map((s)=>s+"")));
+                const names=node.localNames.names;
+                const names_json=JSON.stringify( names.map((s)=>s+"") );
+                if (a.userLib) {
+                    this.printf("[%j]=%s.spreadMod(yield* %s.await(require('%s').load()), %s);", 
+                        [",",names], PYLIB,            PYLIB,              url,     names_json);
+                } else {
+                    this.printf("[%j]=%s.spreadMod(require('%s').install(%s),%s);", 
+                        [",",names], PYLIB,            url,        PYLIB, names_json);
+                }
             }
         },
         exprStmt: function (node) {
@@ -471,7 +486,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
         v.printf(        "var %s=%s.moduleScope(%s, %s);%n", TOP, PYLIB, PYLIB, !!options.useJSRoot);
         v.visit(node);
         if (!options.disableAsync) {
-            v.printf(    "return %s;%n",TOP);
+            v.printf(    "%nreturn %s;%n",TOP);
             v.printf(  "%}});");//.then(()=>true, (e)=>window.onerror(0,0,0,0,e));");
         }
         if (options.injectAfter) {

@@ -33,7 +33,7 @@ const importable={
     os:{wrapper:true,server:true},
     urllib:{wrapper:true,server:true},
     bs4:{wrapper:true,server:true},
-    time:{wrapper:true,server:true,browser:["sleep"]},
+    time:{wrapper:true,server:true,browser:true},
     badb:{server:true},
     cdb:{server:true,browser:true},
     csv:{server:true},
@@ -65,22 +65,27 @@ const vdef={
         const nameHead=node.name[0];
         this.checkImportable(nameHead);
         const sym=node.alias || nameHead;
-        this.addScope(sym,{vtype:importable[nameHead],node:sym});
+        const u=this.userImportable(nameHead);
+        this.addScope(sym,{vtype:u||importable[nameHead],node:sym});
         this.anon.put(sym, {isLeft: true});
+        this.anon.put(node, {userLib:u});
     },
     fromImportStmt: function (node) {
         const nameHead=node.name[0];
         this.checkImportable(nameHead);
+        const u=this.userImportable(nameHead);
+        this.anon.put(node, {userLib:u});
         if (node.localNames.names.text==="*") {
             if (this.curScope()!==this.rootScope) {
                 this.error("import * はトップレベルにしか書けません．");
             }
+            if (u) return;
             const names=Semantics.importable[nameHead][this.options.runAt];
             if (names && names.join) {
                 for (let localName of names) {
                     this.addScope(localName,{localName});
                 }
-            } else {
+            } else if (this.options.runAt!=="browser") {
                 this.error(`from ${nameHead} import * は使えません。*の部分に使いたい命令をカンマ区切りで書いてください。`,node);
             }
         } else {
@@ -468,8 +473,19 @@ const Semantics= {
             //e.noTrace=true;
             throw e;
         };
+        v.userImportable=function (name) {
+            if (!this.options.files)return false;
+            if (this.options.runAt!=="browser") return false;
+            name=name+"";
+            console.log("userImportable", this.options.files, name);
+            return this.options.files.find(e=>e.name===name);
+        };
         v.checkImportable=function (nameHead) {
             //const nameHead=node.name[0];
+            if (this.options.runAt==="browser") {
+                const u=this.userImportable(nameHead);
+                if (u) return u;
+            }
             if (!importable[nameHead]) {
                 this.error(nameHead+" はインポートできません",nameHead);
             }
