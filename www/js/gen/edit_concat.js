@@ -16851,8 +16851,8 @@ function ready() {
                 console.log("STDIN",stdin);
                 const opt={};
                 if (stdin) opt.stdin=stdin;
-                const sendURL=(typeof parent!=="undefined" && parent.sendURL)||
-                (typeof opener!=="undefined" && opener.sendURL);
+                const sendURL=(typeof parent!=="undefined" && parent && parent.sendURL)||
+                (typeof opener!=="undefined" && opener && opener.sendURL);
                 if (ALWAYS_UPLOAD && sendURL) opt.sendURL=sendURL;
                 run(opt);
            }).catch (function (e) {console.error(e);});
