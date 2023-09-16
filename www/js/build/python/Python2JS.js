@@ -459,31 +459,31 @@ function (Visitor,IndentBuffer,context,PL,S) {
         v.buf=buf;
         if (options.genReqJS) {
             options.pyLibPath=options.pyLibPath||".";//"PyLib";
-            v.printf("define('__main__',function (require,exports,module) {%{");
-            v.printf("var %s=require('%s/PyLib.js');%n",PYLIB,options.pyLibPath);
+            v.printf("define(function (require,exports,module) {%{");
+            v.printf(  "var %s=require('%s/PyLib.js');%n",PYLIB,options.pyLibPath);
         }
         if (options.injectBefore) {
             v.printf(options.injectBefore);
         }
-        v.printf("var %s=%s.moduleScope(%s, %s);%n", TOP, PYLIB, PYLIB, !!options.useJSRoot);
         if (!options.disableAsync) {
-            v.printf("%s.runAsync(function*() {%{",PYLIB);
+            v.printf(  "exports.load=()=>%s.runAsync(function*() {%{",PYLIB);
         }
+        v.printf(        "var %s=%s.moduleScope(%s, %s);%n", TOP, PYLIB, PYLIB, !!options.useJSRoot);
         v.visit(node);
         if (!options.disableAsync) {
-            v.printf("%n%}}).then(()=>true, (e)=>window.onerror(0,0,0,0,e));");
+            v.printf(    "return %s;%n",TOP);
+            v.printf(  "%}});");//.then(()=>true, (e)=>window.onerror(0,0,0,0,e));");
         }
         if (options.injectAfter) {
             v.printf(options.injectAfter);
         }
         if (options.genReqJS) {
-            v.printf("return %s;%n",TOP);
             v.printf("%}});%n");
-            const SEND_LOG=`
+            /*const SEND_LOG=`
             if (window.parent && window.parent.sendResult) {
                 window.parent.sendResult($("#output").text(),"py");
             }`;
-            v.printf("requirejs(['__main__'],function(){%s});%n",SEND_LOG);
+            v.printf("requirejs(['__main__'],function(){%s});%n",SEND_LOG);*/
         }
         //console.log("pgen res",buf.buf);
         return buf.buf;

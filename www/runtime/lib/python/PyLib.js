@@ -677,6 +677,11 @@ define(function (require,exports,module) {
                     if (typeof r==="function") return r.bind(root);
                     return r;
                 }
+                if (prop==="then" || typeof prop!=="string" ) {
+                    // 'then' will be checked on return of async function
+                    // Symbol(Symbol.toStringTag) is also
+                    return undefined;
+                }
                 throw new Error(`変数${prop}は定義されていません．`);
             },
         });
