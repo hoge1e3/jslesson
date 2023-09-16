@@ -104,3 +104,5 @@ data/fs/home/logsample
 /node_modules
 setup
 data/fs/home/aaaa
+www/node/jsres_3.txt
+www/pyjstest/*.js
