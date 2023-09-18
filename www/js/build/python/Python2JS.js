@@ -357,7 +357,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
         },
         postfix: function (node) {
             if (node.op.type==="args" && !this.options.disableAsync) {
-                this.printf("(yield* %s.R(%v%v))", PYLIB,node.left,node.op);
+                this.printf("(yield* %s.G(%v%v))", PYLIB,node.left,node.op);
             } else {
                 this.printf("%v%v",node.left,node.op);
             }

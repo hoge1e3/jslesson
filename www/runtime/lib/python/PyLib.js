@@ -1287,7 +1287,8 @@ define(function (require,exports,module) {
         return PL.AsyncByGenerator.run(genF());
     };
     setInterval(()=>PL.LoopChecker.reset(),2000);
-    PL.R=(x)=>PL.AsyncByGenerator.toGen(x);
+    PL.G=PL.R=(x)=>PL.AsyncByGenerator.toGen(x);
+    PL.V=(g)=>PL.AsyncByGenerator.toVal(g);
     PL.await=function *(p){
         let res,err;
         yield p.then((r)=>{res=r;}, (e)=>{err=e;});
