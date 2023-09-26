@@ -123,7 +123,13 @@ define(function (require) {
         console.error("Err",e);
         alert(e);
     });
-    $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"])).
+    async function getURLInfo() {
+        const info=await ctrl.get("BAURL/show");
+        console.log(info);
+        WebSite.pub_controller=info.BA_SERVICE_URL;
+        if (info.BA_PUB_URL) WebSite.published=info.BA_PUB_URL;
+    }
+    $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"]),getURLInfo()).
     then(ready).fail(function (e) {
         alert("エラー"+e);
         console.error(e.stack);
