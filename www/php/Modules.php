@@ -110,6 +110,7 @@ $mod_aliases=array(
     "Note"=>"php/user/",
     "NoteController"=>"php/user/",
     'OAuthController' => 'php/user',
+    "BAURLController"=>"php/",
     //----/AUTOGEN
     'Auth' => 'php/auth.php',
     "config"=>"config/config.php",

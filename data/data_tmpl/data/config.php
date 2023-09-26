@@ -2,6 +2,7 @@
 // Legends :[!] Mandatory settings, [?] optional settings
 
 // BA_WWW, BA_DATA and BA_TOP_URL should be set at BA_WWW/config/config.php
+// (It is convenient when place multiple BitArrow instance.)
 // These settings may not be changed.
 define("BA_LOG", BA_DATA."/log");
 define("BA_FS",  BA_DATA."/fs");

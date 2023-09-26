@@ -48,7 +48,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
             $(head).append($("<script>").text("window.BitArrow="+JSON.stringify(ba)+";"));
         }
         $(head).append($("<script>").text("window.runtimePath='"+WebSite.runtime+"';"));
-        $(head).append($("<script>").text("window.controllerPath='"+WebSite.controller+"';"));
+        $(head).append($("<script>").text("window.controllerPath='"+(WebSite.pub_controller||WebSite.controller)+"';"));
         $(head).append($("<script>").text("window.onerror=window.onerror||"+
         function (e) {console.log(arguments);alert(e);}+";"));
         $(head).append($("<link>").attr({"rel":"stylesheet","href":WebSite.runtime+"css/run_style.css"}));
