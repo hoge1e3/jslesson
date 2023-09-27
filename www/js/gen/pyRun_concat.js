@@ -2183,7 +2183,11 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
     };
     PL.str=function (s) {
         //  s==false
-        if (s!=null && s.__str__) return s.__str__();// __OP__
+        if (s!=null && s.__str__) {
+            const res=s.__str__();
+            if (typeof res!=="string") throw new Error("__str__の戻り値は文字列である必要があります．");
+            return res;// __OP__
+        }
         return s+"";
     };
     PL.sum=function (s,init=0) {
@@ -2634,8 +2638,16 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         },
         enumerable: false,
     });*/
+    String.prototype.split_orig=String.prototype.split;
     PL.addMonkeyPatch(String,({
         __class__:String,
+        split(self, ...args) {
+            if (args.length===0) {
+                return self.replace(/^\s*/,"").replace(/\s*$/,"").split_orig(/\s+/);
+            } else {
+                return self.split_orig(...args);
+            }
+        },
         __str__(self){return self+"";},
         //__getTypeName__: function (){return "str";},
         __mul__: function (self,other) {
@@ -2738,7 +2750,6 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
                     PL.invalidOP(self, "__mul__",other);
             }
         }
-
     });
     PL.addMonkeyPatch(Function,{
         __class__: Function,
@@ -2782,7 +2793,9 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
             self.splice(i,1);
         },
         __str__(self) {
-            return "["+self.map((e)=>PL.str(e)).join(", ")+"]";
+            return "["+self.map((e)=>
+                typeof e==="string" ? JSON.stringify(e).replace(/^"/,"'").replace(/"$/,"'") : PL.str(e)
+            ).join(", ")+"]";
         },
         __getitem__:function (self, key) {
             if (key instanceof PL.Slice) {
