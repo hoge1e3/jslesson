@@ -127,10 +127,12 @@ define(function (require) {
     async function getURLInfo() {
         const info=await ctrl.get("BAURL/show");
         console.log(info);
-        WebSite.pub_controller=info.BA_SERVICE_URL;
+        if (info.BA_SERVICE_URL) {
+            WebSite.pub_controller=info.BA_SERVICE_URL;
+            WebSite.pub_runtime=FS.PathUtil.truncSEP(info.BA_SERVICE_URL)+"/runtime/"
+        }
         if (info.BA_PUB_URL) {
-            WebSite.published=info.BA_PUB_URL;
-            if (!WebSite.published.match(/\/$/)) WebSite.published+="/";
+            WebSite.published=FS.PathUtil.truncSEP(info.BA_PUB_URL)+"/";
         }
     }
     $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"]),getURLInfo()).
