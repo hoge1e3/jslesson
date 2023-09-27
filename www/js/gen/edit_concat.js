@@ -16787,7 +16787,10 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
         const info=await ctrl.get("BAURL/show");
         console.log(info);
         WebSite.pub_controller=info.BA_SERVICE_URL;
-        if (info.BA_PUB_URL) WebSite.published=info.BA_PUB_URL;
+        if (info.BA_PUB_URL) {
+            WebSite.published=info.BA_PUB_URL;
+            if (!WebSite.published.match(/\/$/)) WebSite.published+="/";
+        }
     }
     $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"]),getURLInfo()).
     then(ready).fail(function (e) {
