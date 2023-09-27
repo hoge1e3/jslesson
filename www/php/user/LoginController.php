@@ -16,7 +16,7 @@ class LoginController {
         <?php
     }
     static function form() {
-        redirectIfDifferentDomain();
+        self::redirectIfDifferentDomain();
         $class=param("class","");
         /*if (!isset($_GET["class"])) {
             $class="";
