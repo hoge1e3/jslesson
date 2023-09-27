@@ -2,7 +2,21 @@
 req("auth", "DateUtil");
 class LoginController {
     static $mesg;
+    static function redirectIfDifferentDomain() {
+        if (!defined("BA_TOP_URL")) return;
+        ?>
+        <script>
+        let top=<?= json_encode(BA_TOP_URL) ?>; 
+        top=new URL(top);
+        let cur=location.host;
+        if (top.host!==cur) {
+            location.href=top;
+        }
+        </script>
+        <?php
+    }
     static function form() {
+        redirectIfDifferentDomain();
         $class=param("class","");
         /*if (!isset($_GET["class"])) {
             $class="";
