@@ -6,12 +6,14 @@ class LoginController {
         if (!defined("BA_TOP_URL")) return;
         ?>
         <script>
-        let top=<?= json_encode(BA_TOP_URL) ?>; 
-        top=new URL(top);
-        let cur=location.host;
-        if (top.host!==cur) {
-            location.href=top;
-        }
+        (function (){
+            let top=<?= json_encode(BA_TOP_URL) ?>; 
+            top=new URL(top);
+            let cur=location.host;
+            if (top.host!==cur) {
+                location.href=top;
+            }
+        })();
         </script>
         <?php
     }
