@@ -60,6 +60,26 @@ function procResult(r) {
         parent.sendResult(r,"Python");
     }
 }
+
+function procError(e){
+    clearIndicator();
+    if (typeof e==="string") $('#output').append(e);
+    //else if (e.responseText) alert(e.responseText);
+    //else if (e.statusText) alert(e.statusText);
+    else if (typeof e==="object") {
+        //var buf="Fail "+window.controllerPath+'?RunPython/run'+ "\n";
+        for (var k in e) {
+            if (typeof e[k]!=="function"){
+                $('#output').append(k+": "+e[k]+", ");
+            }
+        }
+        //alert(buf);
+    }
+    if (typeof parent!=="undefined" && parent.sendResult) {
+        const r=$("#output").text();
+        parent.sendResult(r,"Python");
+    }
+}
 //function runOnServerWithStdin(str,stdin) {
 function runOnServerWithStdin(prj, file, stdin) {
     jQuery.support.cors = true;
