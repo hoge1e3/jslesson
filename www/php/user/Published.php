@@ -58,8 +58,20 @@ class Published {
     }
     static function getClass($url) {// full url
         $r=self::getRecord($url);
-        if ($r) return $r->class;
+        if ($r) {
+            req("BAClass");
+            return new BAClass( $r->class );
+        }
         return null;
+    }
+    static function getUser($url) {
+        $r=self::getRecord($url);
+        if ($r) {
+            req("BAClass");
+            return (new BAClass( $r->class ))->getUser($r->user);
+        }
+        return null;
+        
     }
     static function listProjects($classID,$projectName=null) {// Why projectName? -> list of specified project for all users
         if ($projectName) {

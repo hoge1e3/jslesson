@@ -14,10 +14,7 @@ class KeyValue {
     static function selectClassByURL($url) {
         //TODO: will deprecate by security issues
         req("Published");
-        $class=Published::getClass($url);
-        if ($class) {
-            self::$class=new BAClass($class);
-        }
+        self::$class=Published::getClass($url);
     }
     static function getCurClass() {
         if (!self::$class) {

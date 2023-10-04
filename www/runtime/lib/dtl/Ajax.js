@@ -17,8 +17,8 @@ this['Ajax']['execute']=dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
 var s;
 return AsyncByGenerator.toVal((function*() {s=this;
-return (yield* AsyncByGenerator.toGen(this['DtlPromise']['new'](dtlbind(this,function(succ){
-var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
+return (yield* AsyncByGenerator.toGen(this['DtlPromise']['new'](dtlbind(this,function(succ,err){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,2);
 return AsyncByGenerator.toVal((function*() {this['opt']=(yield* AsyncByGenerator.toGen(this['system']['new'](dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
 return AsyncByGenerator.toVal((function*() {return }).apply(this));}))));
@@ -26,6 +26,7 @@ this['opt']['method']=s['method'];
 this['opt']['url']=s['url'];
 this['opt']['data']=s['params'];
 this['opt']['success']=succ;
+this['opt']['error']=err;
 return (yield* AsyncByGenerator.toGen((this['window']['$'])['ajax']((this['opt']))));
 }).apply(this));}))));
 }).apply(this));});

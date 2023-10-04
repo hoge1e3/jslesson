@@ -300,7 +300,8 @@ class Auth {
    	        $ap=new Permission(new AuthInfo($user,$teacher));
             return new NativeFS(BA_FS."/",$ap);
 	   	} else {
-	   	    return null;
+            $ap=new Permission(null);
+            return new NativeFS(BA_FS."/",$ap);
 	   	}
     }
     static function getPublishedDir($project) {

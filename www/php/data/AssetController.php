@@ -66,8 +66,8 @@ class AssetController {
         $hu=$home["url"];
         $pub=Asset::pub();
         $prefix=$h->relPath($pub);
+        $files=[];
         if ($h->exists()) {
-            $files=[];
             foreach ($h->listFiles() as $file) {
                 array_push($files,$file->relPath($h));
             }

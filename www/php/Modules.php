@@ -1,6 +1,7 @@
 <?php
 $mod_aliases=array(
     //----AUTOGEN
+    "GetLastFilesController"=>"php/analysis/",
     "DeleteController"=>"php/teacher/",
     'LogCluster'=>"php/log/",
     "CDBController"=>"php/data/",
@@ -109,6 +110,7 @@ $mod_aliases=array(
     "Note"=>"php/user/",
     "NoteController"=>"php/user/",
     'OAuthController' => 'php/user',
+    "BAURLController"=>"php/",
     //----/AUTOGEN
     'Auth' => 'php/auth.php',
     "config"=>"config/config.php",

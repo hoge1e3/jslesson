@@ -48,7 +48,16 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
             $(head).append($("<script>").text("window.BitArrow="+JSON.stringify(ba)+";"));
         }
         $(head).append($("<script>").text("window.runtimePath='"+WebSite.runtime+"';"));
-        $(head).append($("<script>").text("window.controllerPath='"+WebSite.controller+"';"));
+        $(head).append($("<script>").text(`
+        BitArrow.isPublished=window.location.hostname;
+        if (BitArrow.isPublished) {
+            BitArrow.runtimePath=${JSON.stringify(WebSite.pub_runtime)};
+            window.controllerPath=${JSON.stringify(WebSite.pub_controller)};
+        } else {
+            window.controllerPath=${JSON.stringify(WebSite.controller)};
+        }
+        `));
+        //$(head).append($("<script>").text("window.controllerPath='"+(WebSite.pub_controller||WebSite.controller)+"';"));
         $(head).append($("<script>").text("window.onerror=window.onerror||"+
         function (e) {console.log(arguments);alert(e);}+";"));
         $(head).append($("<link>").attr({"rel":"stylesheet","href":WebSite.runtime+"css/run_style.css"}));
@@ -133,6 +142,8 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         var dst=this.dst;
         var t=this;
         var files=[];
+        let upload=options.upload;
+        let publishedURL=options.publishedURL;
         return DU.each(curPrj.dir.ls(),function (n) {
             if (FS.PathUtil.ext(n)!=".html")  return;
             var f=curPrj.dir.rel(n);
@@ -145,7 +156,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
                 dst:{
                     html:dst.rel(name+".html"),
                     js:dst.rel(name+".js"),
-                    //py:dst.rel(name+".py"),
+                    py:dst.rel(name+".py"),
                     map: dst.rel(name+".js.map")
                 }
             });
@@ -162,7 +173,8 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
                     }
                 }
                 console.log("Transpile "+f.src.py.name());
-                t.compile(f,{runAt,isMainFile});
+                //console.log("upload",upload);
+                t.compile(f,{runAt,isMainFile,upload,publishedURL});
                 if (runAt==="raspi") t.genHTML_Raspi(f);
                 else t.genHTML(f);
                 return SplashScreen.waitIfBusy();
@@ -171,7 +183,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
     };
     //var superMode=true;// docker
 
-    p.compile=function (f,{runAt,isMainFile}) {
+    p.compile=function (f,{runAt,isMainFile,upload,publishedURL}) {
         var pysrcF=f.src.py;
         var js;
         var anon,node,errSrc,needInput=false;
@@ -201,6 +213,12 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
             needInput=(!!pysrcF.text().match(/\binput\b\s*\(/))+"";
         }
         //console.log("PPToken",PP.Tokenizer(pysrc).tokenize());
+        console.log(upload, runAt, publishedURL);
+        if (upload && (runAt==="server" || !runAt) ) {
+            f.dst.py.text(f.src.py.text());
+            f.dst.js.text(`runOnServerURL(${JSON.stringify(FS.PathUtil.truncSEP(publishedURL)+"/"+f.src.py.name())},${needInput});`);
+            return;
+        }
         var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
         buf.setSrcFile(pysrcF);//<-dtl
         if (errSrc) {

@@ -39,6 +39,9 @@ class Permission {
         if ($class=="lesson_samples" && ($opr & $anyRead) ) {// ls, read
             return true;
         }
+        if (!($this->authInfo)) { // Not logged in
+            return false;
+        }
         // other class
         if ($class!==$this->authInfo->getClassID()) {
             return false;

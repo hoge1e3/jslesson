@@ -78,7 +78,7 @@ class LogQueryController {
         }
         pdo_enableIter();
         if (!$groupBy || count($groupBy)==0) {
-            $it=pdo_select_ands("select * from log where ? order by time $sort limit $limit ",$wheres);
+            $it=pdo_select_ands("select * from log where ? order by time $sort, id $sort limit $limit ",$wheres);
             return $it;    
         } else {
             $gq=[];

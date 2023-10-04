@@ -157,7 +157,7 @@ _global.fscanf=function fscanf() {
 _global.scanf=function scanf() {
 	var args=Array.prototype.slice.call(arguments);
     if (scanf.STDIN) {
-		return afterScan(scanf.STDIN.shift());
+		return afterScan(scanf.STDIN.shift()||"");
 	} else if (typeof window==="undefined") {
 		if (!scanf.nodeInterface) {
 			var readline = global.require('readline');

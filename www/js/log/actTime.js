@@ -11,7 +11,8 @@ async function addActualTime2(){
     if (!f || !u) return;
     header.append($("<th>").attr({"data-attr":"at_complete"}).text("at_complete"));
     header.append($("<th>").attr({"data-attr":"at_full"}).text("at_full"));
-    const rows=$("tr.record");
+    header.append($("<th>").attr({"data-attr":"ok"}).text("ok"));
+    const rows=[...$("tr.record")].map((row)=>$(row));
     const rowsByFile={};
     let batch=[],batch_size=10;
     async function addBatch(row, user,file) {
@@ -34,6 +35,12 @@ async function addActualTime2(){
                 const row=batch[i][SYM_ROW];
                 row.append($("<td>").attr({"data-attr":"at_complete"}).text(e[0]));  
                 row.append($("<td>").attr({"data-attr":"at_full"}).text(e[1]));  
+                row.append($("<td>").attr({"data-attr":"ok"}).append(
+                    $("<a>").attr({
+                        target:"ok",
+                        href: `?GetLastFiles/index&file=${batch[i][1]}#${batch[i][0]}`
+                    }).text(e[2]==1?"OK":e[2]==0?"NG":"未採点")
+                ));  
                 row[SYM_AT]=e[0]-0;  
                 i++;
             }
@@ -44,29 +51,26 @@ async function addActualTime2(){
         }
     }
     for (let row of rows) {
-        //console.log(row);
-        row=$(row);
         const f=row.find("[data-attr='filename']");
         const u=row.find("[data-attr='user']");
-        rowsByFile[f]=rowsByFile[f]||[];
-        rowsByFile[f].push(row);
+        //rowsByFile[f]=rowsByFile[f]||[];
+        //rowsByFile[f].push(row);
         if (!f[0] || !u[0]) continue;
         //console.log(u.text(), f.text());
         if (!u.text()) continue;
         if (!f.text()) continue;
         await addBatch(row, u.text(), f.text());
-        /*const url=`a.php?TeacherLog/getActualtime2&user=${u.text()}&file=${f.text()}`;
-        console.log(url);
-        try {
-            const r=await $.get(url);
-            row.append($("<td>").attr({"data-attr":"actualTime"}).text(r));  
-            row[SYM_AT]=r-0;  
-        } catch (e) {
-            console.log(e);
-        }*/
     }
     await flushBatch();
+    for (let row of rows) {
+        const f=row.find("[data-attr='filename']");
+        const ok=row.find("[data-attr='ok']");
+        const key=f.text()+"_"+ok.text();
+        rowsByFile[key]=rowsByFile[key]||[];
+        rowsByFile[key].push(row);
+    }
     header.append($("<th>").attr({"data-attr":"outlier"}).text("outlier"));
+    console.log(rowsByFile);
     for (let f of Object.keys(rowsByFile)) {
         outlier(rowsByFile[f]);
     }

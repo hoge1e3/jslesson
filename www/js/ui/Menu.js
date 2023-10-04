@@ -75,6 +75,11 @@ define(["UI"], function (UI) {
                             ["span",{"class":"icon-bar"}],
                             ["span",{"class":"icon-bar"}]
                         ],
+                        ["span",{id:"mobileBar",style:"display:none;"},
+                            ["select",{id:"fileSel"}],
+                            ["button",{id:"mobileRun", class:"mobileButton"},"Run"],
+                            //["button",{id:"mobileFind", class:"mobileButton"},"Find"],
+                        ],
                         ["a", {"class":"navbar-brand" ,href:"#",id:title.id},title.label]
                     ],
                     menu
