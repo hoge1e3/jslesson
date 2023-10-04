@@ -2750,7 +2750,6 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
                     PL.invalidOP(self, "__mul__",other);
             }
         }
-
     });
     PL.addMonkeyPatch(Function,{
         __class__: Function,
