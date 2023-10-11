@@ -63,9 +63,33 @@ class RunPythonController {
             } else {
                 $user=Auth::curUser2();
             }
+            if (!$user) {
+                die("Cannot get user info from url: $url");
+            }
         //}
         $projectName=param("prj");
         self::runInDocker_withClassUser($user, $projectName, false);
+    }
+    static function runInDocker_interactive() {
+        $url=param("url");
+        req("Published");
+        $rec=Published::getRecord($url);
+        if($rec) {
+            $user=new BAUser(new BAClass($rec->{"class"}), $rec->{"user"});
+        } else {
+            $user=Auth::curUser2();
+        }
+        $projectName=param("prj");
+        $reqid=param("reqid",null);
+        if ($reqid) {
+            $d=Docker::init($user->_class->id);
+            $res=$d->execCont($reqid, param("stdin",""));
+            $res["stdout"]=self::convOut_asstr($res["stdout"], $d->hostWork()->rel($user->name."/")->rel("$projectName/"));
+            header("Content-type: text/json; charset=utf8");
+            print json_encode($res);
+        } else {
+            self::runInDocker_withClassUser_interactive($user, $projectName, false);
+        }
     }
     static function runInDocker_ntk() {
         if (!defined("NTK_CLASS")) {
@@ -94,7 +118,7 @@ class RunPythonController {
         if (defined("DOCKER_TIMEOUT")) {
             $tout=DOCKER_TIMEOUT-1;
         }
-     	$res=$d->execInProject($prjDesc, "export MPLBACKEND=\"module://mybackend\" \n timeout $tout python $fileName < $stdinfile");
+     	$res=$d->execInProject($prjDesc, "export MPLBACKEND=\"module://mybackend\" \n timeout $tout python $fileName < $stdinfile ");
         if ($outjson) {
             header("Content-type: text/json; charset=utf8");
             print json_encode($res);
@@ -106,6 +130,23 @@ class RunPythonController {
             print($res["stdout"]."\n".$res["stderr"]);
         }
  	    //print_r($r);
+    }
+    static function runInDocker_withClassUser_interactive($user, $projectName) {
+        $class=$user->_class;        
+        $source=param("source",param("src",null));
+        $fileName=param("file",param("filename",null));
+        if (!$fileName) die("Parameter fileName Required");
+
+        $d=Docker::init($class->id);
+        if ($source) {
+            $prjDir=$d->BAHome()->rel($user->name)->rel($projectName);
+            self::pushSource($prjDir, $fileName, $source );
+        }
+        $prjDesc=$d->openProject($user->name, $projectName);
+     	$res=$d->execInProject($prjDesc, "export MPLBACKEND=\"module://mybackend\" \n python $fileName \n exit ");
+        $res["stdout"]=self::convOut_asstr($res["stdout"], $d->hostWork()->rel($user->name."/")->rel("$projectName/"));
+        header("Content-type: text/json; charset=utf8");
+        print json_encode($res);
     }
     static function pushSource($prjDir, $fileName, $source) {
         if (!$prjDir->exists()) {
@@ -173,19 +214,24 @@ class RunPythonController {
         }
     }
     static function convOut($out, $plotBase=null) {
+        echo self::convOut_asstr($out,$plotBase);
+    }
+    static function convOut_asstr($out, $plotBase=null) {
+        $res="";
         foreach (explode("\n",$out) as $line) {
             $line=preg_replace("/\\r/","",$line);
             if (preg_match("/##PLOT##(.*)/",$line,$m)) {
                 $src=self::copyImg($m[1],$plotBase);
                 if (preg_match("/\\.html/", $src)) {
-                    echo "<iframe src='$src'></iframe>\n";
+                    $res.="<iframe src='$src'></iframe>\n";
                 } else {
-                    echo "<img src='$src'/>\n";
+                    $res.="<img src='$src'/>\n";
                 }
             } else {
-                echo "$line\n";
+                $res.="$line\n";
             }
         }
+        return $res;
     }
     static function isSuper($called=0) {
         $class=Auth::curClass2();

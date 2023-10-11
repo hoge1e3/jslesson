@@ -168,6 +168,25 @@ EOF
         debug("Run cmd $cmds");
         return $this->exec($cmds);
     }
+    function execCont($id, $stdin) {
+        $hostWork=$this->hostWork();
+        $tasks=$hostWork->rel("tasks/");
+        $task=$tasks->rel("$id/");
+        $stdinf=$task->rel("stdin.txt");
+        $stdinf->append($stdin);
+        $stdoutf=$task->rel("stdout.txt");
+        $stderrf=$task->rel("stderr.txt");
+        sleep(1);
+        return self::handleWithStdin($id, $task, $stdoutf, $stderrf);
+    }
+    function handleWithStdin($id, $task, $stdoutf, $stderrf) {
+        if (file_status($stdoutf) && file_status($stderrf)) {
+            $res= array("stdout"=>sizecont($stdoutf), "stderr"=>sizecont($stderrf));
+            self::clean2($task);
+            return $res;
+        }
+        return array("reqid"=>$id, "stdout"=>sizecont($stdoutf), "stderr"=>sizecont($stderrf));
+    }
     function exec($cmd) {
         $hostWork=$this->hostWork();
         $tasks=$hostWork->rel("tasks/");
@@ -181,6 +200,7 @@ EOF
         $sh->text($cmd);
         $sh->chmod(0777);
         $task=$tasks->rel("$id/");
+        $stdinf=$task->rel("stdin.txt");
         $stdoutf=$task->rel("stdout.txt");
         $stderrf=$task->rel("stderr.txt");
         $cnt=0;
@@ -192,10 +212,19 @@ EOF
                 print "Timeout"; break;
             }
         } while (!$stdoutf->exists() || !$stderrf->exists());
+        if ($stdinf->exists()) {
+            return self::handleWithStdin($id, $task, $stdoutf, $stderrf);
+        }
         $res=array("stdout"=>sizecont($stdoutf), "stderr"=>sizecont($stderrf));
         self::clean($task);
         return $res;
     }
+    static function clean2($dir) {
+        $dir->rel("stdin.txt")->rm();
+        $dir->rel("stdout.txt")->rm();
+        $dir->rel("stderr.txt")->rm();
+        rmdir($dir->path());
+    }  
     static function clean($dir) {
         $dir->rel("run.sh")->rm();
         $dir->rel("stdout.txt")->rm();
@@ -220,6 +249,11 @@ function mkdirFree($dir) {
         $dir->mkdir();
     }
     $dir->chmod(0777);
+}
+function file_status($f) {
+    if (strstr($f->text(),"===DONE===")) return "DONE";
+    if (strstr($f->text(),"===TIMEOUT===")) return "TIMEOUT";
+    return false;
 }
 function sizecont($f){
     if ($f->size()>10000000) return "TOO BIG FILE";
