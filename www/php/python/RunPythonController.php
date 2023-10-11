@@ -220,8 +220,9 @@ class RunPythonController {
         $res="";
         foreach (explode("\n",$out) as $line) {
             $line=preg_replace("/\\r/","",$line);
-            if (preg_match("/##PLOT##(.*)/",$line,$m)) {
-                $src=self::copyImg($m[1],$plotBase);
+            if (preg_match("/(.*)##PLOT##(.*)/",$line,$m)) {
+                $res.=$m[1];
+                $src=self::copyImg($m[2],$plotBase);
                 if (preg_match("/\\.html/", $src)) {
                     $res.="<iframe src='$src'></iframe>\n";
                 } else {
@@ -231,7 +232,7 @@ class RunPythonController {
                 $res.="$line\n";
             }
         }
-        return $res;
+        return chop($res);
     }
     static function isSuper($called=0) {
         $class=Auth::curClass2();
