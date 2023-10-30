@@ -16828,7 +16828,7 @@ function ready() {
         console.log("AE",autoexec);
         if (autoexec) {
             fl.select(curProjectDir.rel(autoexec));
-            run();
+            run({sendURL: getSendURL()});
         }
     }
     function autologexec() {
@@ -16862,12 +16862,18 @@ function ready() {
                 console.log("STDIN",stdin);
                 const opt={};
                 if (stdin) opt.stdin=stdin;
-                const sendURL=(typeof parent!=="undefined" && parent && parent.sendURL)||
+                opt.sendURL=getSendURL();
+                /*const sendURL=(typeof parent!=="undefined" && parent && parent.sendURL)||
                 (typeof opener!=="undefined" && opener && opener.sendURL);
-                if (ALWAYS_UPLOAD && sendURL) opt.sendURL=sendURL;
+                if (ALWAYS_UPLOAD && sendURL) opt.sendURL=sendURL;*/
                 run(opt);
            }).catch (function (e) {console.error(e);});
         }
+    }
+    function getSendURL() {
+        const sendURL=(typeof parent!=="undefined" && parent && parent.sendURL)||
+        (typeof opener!=="undefined" && opener && opener.sendURL);
+        if (ALWAYS_UPLOAD && sendURL) return sendURL;
     }
     function autosubexec() {
         var id=Util.getQueryString("autosubexec",null);
@@ -17551,7 +17557,7 @@ function ready() {
         }catch(e) {
             console.log(e,e.stack);
             if (ALWAYS_UPLOAD && options.sendURL) {
-                options.sendURL("error://"+e.stack, location.href);
+                options.sendURL(e/*"error://"+e.stack*/, location.href);
             }
             if (e.isTError) {
                 errorDialog.show(e);//showErrorPos($("#errorPos"),e);
