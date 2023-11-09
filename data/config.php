@@ -1,6 +1,8 @@
 <?php
 // This file should NOT place in httpd-reachable folder!
 
+//define("NEWS","<a href='https://bitarrow.eplang.jp/'>NEWS: KOWARETA</a>");
+//define("MAINTENANCE","KOWARETEIMASU");
 define("PDO_DSN","sqlite:".BA_DATA."/db/db2.sqlite3");
 define("PYTHON_PATH","C:\\bin\\python.bat");
 define("PDO_LOG","C:\\bin\\pdo.log");
