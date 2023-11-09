@@ -27,6 +27,7 @@ function ready() {//-------------------------
             ["div",{class:"hero-unit"},
             ["div",{id:"userInfo",css:{float:"right"},margin:"50px"},"ようこそ",["br"],["div","同期中です..."]],
             ["h1", ["img",{src:"images/bitarrow-2.png",css:{"display":"inline"},width:"100px"}],"Bit Arrow"]],
+            ["div",{id:"news"}],
             ["div","【お知らせ】新しいバージョン",["span",{class:"notice"},"(2022_0401)"],"になりました．",
             ["a",{href:"https://bitarrow.eplang.jp/?change2204",target:"wikiTab"},"主な変更点..."]/*," | ",
             ["a",{href:"https://bitarrow.eplang.jp/2017_0328/",target:"wikiTab"},"以前のバージョン(2017_0328)を使う"]*/],
@@ -66,6 +67,7 @@ function ready() {//-------------------------
             $(".assignment").show();
         }
     });
+    ctrl.get("Login/news").then((r)=>$("#news").html(r));
     setTimeout(function () {
         $("#syncMesg").empty();
         $("#userInfo").text(Auth.class+" クラスの"+Auth.user+"さん、こんにちは");

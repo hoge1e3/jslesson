@@ -2,6 +2,9 @@
 req("auth", "DateUtil");
 class LoginController {
     static $mesg;
+    static function news() {
+        if (defined("NEWS")) echo NEWS;
+    }
     static function form() {
         $class=param("class","");
         /*if (!isset($_GET["class"])) {
