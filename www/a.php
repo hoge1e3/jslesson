@@ -3,6 +3,10 @@
 require_once __DIR__."/php/Modules.php";
 require_once __DIR__."/php/param.php";
 req("config","ErrorHandler");
+if (defined("MAINTENANCE")) {
+    echo MAINTENANCE;
+    exit;
+}
 function makeURL($action,$controller,$params=null) {
     $u=preg_replace("/\\?.*/","",$_SERVER["REQUEST_URI"]);
     $u="$u?$action/$controller";
