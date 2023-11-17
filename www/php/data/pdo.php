@@ -12,7 +12,7 @@ function pdo() {
     return $pdo_dbh;
 }
 function pdo_log($msg) {
-    if (defined("PDO_LOG")) {
+    if (defined("PDO_LOG") && isset($_SERVER['REQUEST_URI'])) {
         req("DateUtil");
         $fp=fopen(PDO_LOG,"a");
         fwrite($fp,

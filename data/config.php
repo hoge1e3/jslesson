@@ -5,6 +5,7 @@ define("BA_LOG", BA_DATA."/log");
 define("BA_FS",  BA_DATA."/fs");
 define("BA_HOME",BA_FS."/home");
 define("BA_PUB", BA_FS."/pub");
+define("BA_MIGRATION", BA_DATA."/migration");
 //define("NEWS","<a href='https://bitarrow.eplang.jp/'>NEWS: KOWARETA</a>");
 //define("MAINTENANCE","KOWARETEIMASU");
 //$ba_top_url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
