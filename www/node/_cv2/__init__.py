@@ -3,9 +3,9 @@ import bawrapper
 import os
 
 seq=0
-def imread(file):
+def imread(file,*a,**k):
     f=bawrapper.resolve(file)
-    return c.imread(f)
+    return c.imread(f,*a,**k)
 #cv2.resize(img , (int(width*0.5), int(height*0.5)))
 def resize(*a,**k):
     return c.resize(*a,**k)
@@ -35,6 +35,7 @@ COLOR_BGR2GRAY=c.COLOR_BGR2GRAY
 COLOR_BGR2HSV=c.COLOR_BGR2HSV
 COLOR_HSV2BGR=c.COLOR_HSV2BGR
 COLOR_RGB2BGR=c.COLOR_RGB2BGR
+COLOR_GRAY2BGR=c.COLOR_GRAY2BGR
 #def resize(*a,**k):
 #    return c.resize(*a,**k)
 def bitwise_not(*a,**k):
