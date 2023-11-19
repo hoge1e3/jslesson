@@ -25,6 +25,12 @@ if (isset($argv[1]) && $argv[1]!="") {
     $qs=$argv[1];
     req("MySession");
     MySession::startWith($argv[2]);
+    $params=[];
+    parse_str($qs,$params);
+    //print_r($params);
+    foreach ($params as $k=>$v) {
+        $_GET[$k]=$v;
+    }
 } else {
     $qs=$_SERVER["QUERY_STRING"];
 }
