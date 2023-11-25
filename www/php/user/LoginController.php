@@ -6,6 +6,7 @@ class LoginController {
         if (defined("NEWS")) echo NEWS;
     }
     static function form() {
+        redirectFromServiceDomain();
         $class=param("class","");
         /*if (!isset($_GET["class"])) {
             $class="";
@@ -292,4 +293,26 @@ function statusHash($res) {
     $res["hash"]=md5($src);
     return $res;
 }
+function redirectFromServiceDomain() {
+    if (defined("BA_TOP_URL") && defined("BA_SERVICE_URL") &&
+    getHost(BA_TOP_URL)!==getHost(BA_SERVICE_URL) &&
+    $_SERVER["HTTP_HOST"]===getHost(BA_SERVICE_URL)
+    ) {
+        header("Location: ".BA_TOP_URL);
+        exit;
+    }
+}
+function getHost($url) { 
+    $parseUrl = parse_url(trim($url)); 
+    if(isset($parseUrl['host']))
+    {
+        $host = $parseUrl['host'];
+    }
+    else
+    {
+         $path = explode('/', $parseUrl['path']);
+         $host = $path[0];
+    }
+    return trim($host); 
+ } 
 ?>

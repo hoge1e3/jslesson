@@ -32,7 +32,7 @@ class ZipController {
 		$p=$dir->nativePath();
 		$classid=$class->id;
 		$work=BA_MIGRATION."/$classid";
-		print("Export start: $classid<BR>");//		ob_flush();flush();
+		print("Export start: $classid\n");//		ob_flush();flush();
 		if (!file_exists($work)) mkdir($work);
 		self::copyPub($classid);
 		print("Copy files: $classid ");
@@ -78,6 +78,23 @@ class ZipController {
 			fwrite($fp,json_encode($r)."\n");
 		}
 		fclose($fp);		
+	}
+	static function import() {
+		Auth::assertTeacher();
+		$teacher=Auth::isTeacher2();
+		if ($teacher->isSysAd() && param("class",null)) {
+			$classid=param("class");
+			$class=new BAClass($classid);
+		} else {
+			die("NO".param("class",3));
+			$class=Auth::curClass2();
+		}
+		$dir=Auth::homeOfClass($class);
+		$p=$dir->nativePath();
+		$classid=$class->id;
+		$work=BA_MIGRATION."/$classid";
+		print("Import start: $classid\n");
+		
 	}
 }
 ?>
