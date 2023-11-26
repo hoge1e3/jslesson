@@ -5,7 +5,26 @@ req("auth","BAClass","DateUtil","Mail");
 class TeacherController {
     public static $mesg="";
     public static $name="";
+    static function bauth() {
+        $code=param("code",null);
+        if (!$code) {
+            header("Location: ".TEACHER_BAUTH_URL."?Teacher/login&callback=".BA_TOP_URL."/?Teacher/bauth");
+            return;
+        }
+        $r=file_get_contents(TEACHER_BAUTH_URL."?Login/bauth&status=$code");
+        if ($r==="OK") {
+            $s=json_decode($code);
+            MySession::set("teacher",$s->teacher);
+	        MySession::set("user",$s->user);
+            header("Location: ".BA_TOP_URL."/?Teacher/home");
+        } else {
+            print $r;
+        }
+    }
     static function login() {
+        if (defined("TEACHER_BAUTH_URL")) {
+            return self::bauth();
+        }
     ?>
     <title>教員ログイン - Bit Arrow</title>
 		<meta charset="UTF-8">
@@ -14,6 +33,8 @@ class TeacherController {
     	<form action="a.php?Teacher/check" method="POST">
     	  メールアドレス<input class="spacecheck" name="name" value="<?= self::$name ?>"></br>
     	  パスワード<input class="spacecheck" name="pass" type="password">
+          <input type="hidden" name="callback" 
+          value="<?= htmlspecialchars(param("callback","")) ?>" />
     	  <?php if (isset($_GET["ignoreNonexistent"])) { ?>
     	    <input type="hidden" name="ignoreNonexistent" value="1">
     	  <?php } ?>
@@ -30,7 +51,13 @@ class TeacherController {
     	$ignoreNonexistent=isset($_POST["ignoreNonexistent"]);
     	self::$mesg=Auth::loginTeacher2(self::$name,$pass,$ignoreNonexistent);
     	if (self::$mesg===true) {
-    	    redirect("Teacher/home");
+            $c=param("callback","");
+            if ($c) {
+                LoginController::curStatus();
+                return;
+            } else {
+                redirect("Teacher/home");
+            }
         } else {
             self::login();
         }
