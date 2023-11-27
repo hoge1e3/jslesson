@@ -128,7 +128,10 @@ define(function (require) {
         console.log(info);
         if (info.BA_SERVICE_URL) {
             WebSite.pub_controller=info.BA_SERVICE_URL;
-            WebSite.pub_runtime=FS.PathUtil.truncSEP(info.BA_SERVICE_URL)+"/runtime/"
+            WebSite.pub_runtime=FS.PathUtil.truncSEP(info.BA_SERVICE_URL)+"/runtime/";
+        }
+        if (info.BA_SERVICE_PUB_URL) {
+            WebSite.pub_in_service=FS.PathUtil.truncSEP(info.BA_SERVICE_PUB_URL);
         }
         if (info.BA_PUB_URL) {
             WebSite.published=FS.PathUtil.truncSEP(info.BA_PUB_URL)+"/";
