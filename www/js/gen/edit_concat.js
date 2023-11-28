@@ -16736,8 +16736,8 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
         const info=await ctrl.get("BAURL/show");
         console.log(info);
         if (info.BA_SERVICE_URL) {
-            WebSite.pub_controller=info.BA_SERVICE_URL;
-            WebSite.pub_runtime=FS.PathUtil.truncSEP(info.BA_SERVICE_URL)+"/runtime/"
+            WebSite.controller_in_service=info.BA_SERVICE_URL;
+            WebSite.runtime_in_service=FS.PathUtil.truncSEP(info.BA_SERVICE_URL)+"/runtime/"
         }
         if (info.BA_PUB_URL) {
             WebSite.published=FS.PathUtil.truncSEP(info.BA_PUB_URL)+"/";

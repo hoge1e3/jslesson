@@ -48,18 +48,18 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
             $(head).append($("<script>").text("window.BitArrow="+JSON.stringify(ba)+";"));
         }
         $(head).append($("<script>").text("window.runtimePath='"+WebSite.runtime+"';"));
-        if (WebSite.pub_runtime && WebSite.pub_controller) {
+        if (WebSite.runtime_in_service && WebSite.controller_in_service) {
             $(head).append($("<script>").text(`
             BitArrow.isPublished=window.location.hostname;
             if (BitArrow.isPublished) {
-                BitArrow.runtimePath=${JSON.stringify(WebSite.pub_runtime)};
-                window.controllerPath=${JSON.stringify(WebSite.pub_controller)};
+                BitArrow.runtimePath=${JSON.stringify(WebSite.runtime_in_service)};
+                window.controllerPath=${JSON.stringify(WebSite.controller_in_service)};
             } else {
                 window.controllerPath=${JSON.stringify(WebSite.controller)};
             }
             `));    
         } else {
-            $(head).append($("<script>").text("window.controllerPath='"+(WebSite.pub_controller||WebSite.controller)+"';"));
+            $(head).append($("<script>").text("window.controllerPath='"+(WebSite.controller_in_service||WebSite.controller)+"';"));
         }
         $(head).append($("<script>").text("window.onerror=window.onerror||"+
         function (e) {console.log(arguments);alert(e);}+";"));
