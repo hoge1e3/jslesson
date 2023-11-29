@@ -34,28 +34,35 @@ class ZipController {
 		$work=BA_MIGRATION."/$classid";
 		print("Export start: $classid\n");//		ob_flush();flush();
 		if (!file_exists($work)) mkdir($work);
-		self::copyPub($classid);
+		self::exportPub($classid);
 		print("Copy files: $classid ");
 		exec("cp -Ra $p $work/$classid");
-		self::copyDB($classid);
+		self::exportClassOptions($classid);
+		self::exportDB($classid);
 		$mi=preg_replace("/\\\\/","/",BA_MIGRATION);
 		$work=preg_replace("/\\\\/","/",$work);
 		chdir(BA_MIGRATION);
 		print("\ntar czvf $classid.tar.gz $classid/\n");
 		exec("tar czvf $classid.tar.gz $classid/");
 	}
-	static function copyDB($classid) {
+	static function exportClassOptions($classid) {
+		$r=pdo_select1("select options from class where id=?",$classid);
+		$work=BA_MIGRATION."/$classid";
+		file_put_contents("$work/options.json", $r->options);
+	}
+	static function exportDB($classid) {
 		//log
 		pdo_enableIter();
-		self::copyTable($classid,"log");
-		self::copyTable($classid,"user");
-		self::copyTable($classid,"published");
+		self::exportTable($classid,"log");
+		self::exportTable($classid,"user");
+		self::exportTable($classid,"published");
+		self::exportTable($classid,"role");
 		//user
 		//published		
 
 	}
-	static function copyPub($classid) {
-		print("Copy published: $classid");		//ob_flush();flush();
+	static function exportPub($classid) {
+		print("Export published: $classid");		//ob_flush();flush();
 		$work=BA_MIGRATION."/$classid";
 		$pubs=BA_PUB;
 		$pubd="$work/pub";
@@ -64,10 +71,10 @@ class ZipController {
 			print($r->url." ");
 			exec("cp -Ra $pubs/$r->url $pubd");
 		}
-		print("<BR>");
+		print("\n");
 	}
-	static function copyTable($classid,$table) {
-		print("Copy database: $classid.$table <BR>");	//	ob_flush();flush();
+	static function exportTable($classid,$table) {
+		print("Export database: $classid.$table \n");	//	ob_flush();flush();
 		$work=BA_MIGRATION."/$classid";
 		$fp=fopen("$work/$table.jsonl","w");
 		$c=0;
@@ -86,15 +93,68 @@ class ZipController {
 			$classid=param("class");
 			$class=new BAClass($classid);
 		} else {
-			die("NO".param("class",3));
+			die("NO class specified ".param("class",""));
 			$class=Auth::curClass2();
 		}
 		$dir=Auth::homeOfClass($class);
 		$p=$dir->nativePath();
 		$classid=$class->id;
-		$work=BA_MIGRATION."/$classid";
+		chdir(BA_MIGRATION);
+		$work="$classid";
+		$tar="$classid.tar.gz";
 		print("Import start: $classid\n");
-		
+		if (!file_exists($tar)) {
+			die ("$tar is not found");
+		}
+		print("\ntar xzvf $tar \n");
+		exec("tar xzvf $tar ");
+		exec("mv $tar $tar.imported.at.".time()); // prevent overwrite by old backup
+		self::importPub($classid);
+		print("Copy files: $classid ");
+		exec("cp -Ra $p $work/$classid");
+		self::importClassOptions($classid);
+		self::importDB($classid);
+		//$mi=preg_replace("/\\\\/","/",BA_MIGRATION);
+		//$work=preg_replace("/\\\\/","/",$work);
 	}
+	static function importPub($classid) {
+		print("Import published: $classid");		//ob_flush();flush();
+		$work=BA_MIGRATION."/$classid";
+		$pubs="$work/pub";
+		$pubd=BA_PUB;
+		exec("cp -R $pubs/* $pubd");
+		print(" done\n");
+	}
+	static function importClassOptions($classid) {
+		$work=BA_MIGRATION."/$classid";
+		$o=file_get_contents("$work/options.json");
+		pdo_exec("delete from class where id=?",$classid);
+		pdo_exec("insert into class(id,options) values(?,?)", $classid,$o);
+	}
+	static function importDB($classid) {
+		pdo_enableIter();
+		self::importTable($classid,"log");
+		self::importTable($classid,"user");
+		self::importTable($classid,"published");
+		self::importTable($classid,"role");
+	}
+	static function importTable($classid,$table) {
+		print("Import database: $classid.$table \n");	//	ob_flush();flush();
+		$work=BA_MIGRATION."/$classid";
+		pdo_exec("delete from $table where class=?",$classid);
+		$fp=fopen("$work/$table.jsonl","r");
+		$c=0;
+		while (!feof($fp)) {
+			$line=fgets($fp);
+			$o=json_decode($line);
+			if ($o) {
+				if ($c%100==0) print(".");
+				$c++;
+				pdo_insert($table, $o);
+			}
+		}
+		fclose($fp);		
+	}
+
 }
 ?>
