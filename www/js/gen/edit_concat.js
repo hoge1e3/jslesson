@@ -9257,7 +9257,7 @@ define('LocalBrowserInfoClass',["FS","Klass","source-map","DeferredUtil"], funct
 				return this.fileMap[url].blobUrl;
 			}
 			var urlHead=url.replace(urlparam,"");
-			if (FS.PathUtil.isURL(urlHead)) {
+			if (FS.PathUtil.isURL(urlHead) || urlHead.match(/^data:/)) {
 				return url;
 			}
 			var base=this.base;
@@ -15199,11 +15199,13 @@ module.exports=WorkerService;
 },{}]},{},[2])(2)
 });
 
-define('ProjectFactory',['require','exports','module','BuilderClient','Util','DeferredUtil'],function (require, exports, module) {
+define('ProjectFactory',['require','exports','module','BuilderClient','Util','DeferredUtil','WebSite','FS'],function (require, exports, module) {
     const BuilderClient=require("BuilderClient");
     const F=BuilderClient.ProjectFactory;
     const Util=require("Util");
     const DU=require("DeferredUtil");
+    const WebSite=require("WebSite");
+    const FS=require("FS");
     const HEXT=".html";
     function getName(file) {
         if (typeof file.name==="function") file=file.name();
@@ -15250,16 +15252,15 @@ define('ProjectFactory',['require','exports','module','BuilderClient','Util','De
         	fixOptions: function (opt) {
         		if (!opt.compiler) opt.compiler={};
         	},
-            getPublishedURL: function () {//ADDBA
+            getPublishedURL: async function () {//ADDBA
                 const TPR=this;
-        		if (TPR._publishedURL) return DU.resolve(TPR._publishedURL);
-        		return DU.requirejs(["Auth"]).then(function (Auth) {
-        			return Auth.publishedURL(TPR.getName()+"/");
-        		}).then(function (r) {
-        			TPR._publishedURL=r;
-        			return r;
-        		});
-        	},
+                if (TPR._publishedURL) return (TPR._publishedURL);
+                const Auth=await DU.requirejs(["Auth"]);
+                const hash=await Auth.getHash(TPR.getName()+"/");
+                const r=FS.PathUtil.truncSEP(WebSite.pub_in_top)+"/"+hash;
+                TPR._publishedURL=r;
+                return r;
+            },
             sourceFiles: function () {// nsp==null => all
                 //nsp=nsp || TPR.getNamespace();//DELJSL
                 const TPR=this;
@@ -16737,9 +16738,14 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
         console.log(info);
         if (info.BA_SERVICE_URL) {
             WebSite.controller_in_service=info.BA_SERVICE_URL;
-            WebSite.runtime_in_service=FS.PathUtil.truncSEP(info.BA_SERVICE_URL)+"/runtime/"
+            WebSite.runtime_in_service=FS.PathUtil.truncSEP(info.BA_SERVICE_URL)+"/runtime/";
+        }
+        if (info.BA_PUB_URL_IN_TOP) {
+            WebSite.pub_in_top=FS.PathUtil.truncSEP(info.BA_PUB_URL_IN_TOP);
         }
         if (info.BA_PUB_URL) {
+            // BitArrow.publishedURL: URL of THIS project.
+            // WebSite.published: ROOT URL of published. 
             WebSite.published=FS.PathUtil.truncSEP(info.BA_PUB_URL)+"/";
         }
     }
