@@ -130,13 +130,15 @@ define(function (require) {
             WebSite.controller_in_service=info.BA_SERVICE_URL;
             WebSite.runtime_in_service=FS.PathUtil.truncSEP(info.BA_SERVICE_URL)+"/runtime/";
         }
-        if (info.BA_PUB_URL_IN_TOP) {
-            WebSite.pub_in_top=FS.PathUtil.truncSEP(info.BA_PUB_URL_IN_TOP);
-        }
         if (info.BA_PUB_URL) {
             // BitArrow.publishedURL: URL of THIS project.
             // WebSite.published: ROOT URL of published. 
             WebSite.published=FS.PathUtil.truncSEP(info.BA_PUB_URL)+"/";
+        }
+        if (info.BA_PUB_URL_IN_TOP) {
+            WebSite.pub_in_top=FS.PathUtil.truncSEP(info.BA_PUB_URL_IN_TOP);
+        } else {
+            WebSite.pub_in_top=WebSite.published;
         }
     }
     $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"]),getURLInfo()).
