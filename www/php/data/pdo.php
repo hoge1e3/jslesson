@@ -63,8 +63,8 @@ function pdo_select_iter() {
 }
 function pdo_insert($tbl, $vals) {
     $pdo=pdo();
-    if (count($vals)==0) {
-        throw new Error("No values set when inserting into $tbl");
+    if (!$vals) {
+        throw new Error("Invalid value $vals when inserting into $tbl");
     }
     $q="insert into `$tbl`(";
     $vs="";$com="";$vary=array();
@@ -75,6 +75,9 @@ function pdo_insert($tbl, $vals) {
         array_push($vary,$v);
     }
     $q.=") values ($vs)";
+    if (count($vary)==0) {
+        throw new Error("No values set when inserting into $tbl");
+    }
     //echo $q;var_dump($vary);
     $sth=$pdo->prepare($q);
     $sth->execute($vary);

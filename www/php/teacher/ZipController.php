@@ -19,7 +19,7 @@ class ZipController {
 		unlink($f);
 	}
 	static function export() {
-		Auth::assertTeacher();
+		//Auth::assertTeacher();
 		$teacher=Auth::isTeacher2();
 		if ($teacher->isSysAd() && param("class",null)) {
 			$classid=param("class");
@@ -87,7 +87,7 @@ class ZipController {
 		fclose($fp);		
 	}
 	static function import() {
-		Auth::assertTeacher();
+		//Auth::assertTeacher();
 		$teacher=Auth::isTeacher2();
 		if ($teacher->isSysAd() && param("class",null)) {
 			$classid=param("class");
@@ -149,9 +149,15 @@ class ZipController {
 			$line=fgets($fp);
 			$o=json_decode($line);
 			if ($o) {
-				if ($c%100==0) print(".");
-				$c++;
-				pdo_insert($table, $o);
+				try{
+					if ($c%100==0) print(".");
+					$c++;
+					setErrStatus("at work/$table.jsonl $c: $line\n");
+					pdo_insert($table, $o);
+				}catch(Exception $e){
+					print("at work/$table.jsonl $c: $line\n");
+					throw $e;
+				}
 			}
 		}
 		fclose($fp);		
