@@ -26,6 +26,8 @@ class TeacherController {
         if (defined("TEACHER_BAUTH_URL")) {
             return self::bauth();
         }
+        req("LoginController");
+        redirectFromServiceDomain();
     ?>
     <title>教員ログイン - Bit Arrow</title>
 		<meta charset="UTF-8">

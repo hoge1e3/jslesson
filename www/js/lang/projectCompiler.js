@@ -1,9 +1,9 @@
 define(["Tonyu","Tonyu.Compiler.JSGenerator","Tonyu.Compiler.Semantics",
 		"Tonyu.TraceTbl","FS","assert","DeferredUtil","compiledProject",
-		"source-map","TypeChecker"],
+		"source-map","TypeChecker","WebSite"],
 		function (Tonyu,JSGenerator,Semantics,
 				ttb,FS,A,DU,CPR,
-				S,TypeChecker) {
+				S,TypeChecker,WebSite) {
 var TPRC=function (dir) {
 	A(FS.isFile(dir) && dir.isDir(), "projectCompiler: "+dir+" is not dir obj");
 	var TPR={env:{}};
@@ -94,14 +94,13 @@ var TPRC=function (dir) {
 		var opt=TPR.getOptions();
 		return A(opt.compiler.namespace,"namespace not specified opt="+JSON.stringify(opt));
 	};
-	TPR.getPublishedURL=function () {//ADDBA
-		if (TPR._publishedURL) return DU.resolve(TPR._publishedURL);
-		return DU.requirejs(["Auth"]).then(function (Auth) {
-			return Auth.publishedURL(TPR.getName()+"/");
-		}).then(function (r) {
-			TPR._publishedURL=r;
-			return r;
-		});
+	TPR.getPublishedURL=async function () {//ADDBA
+		if (TPR._publishedURL) return (TPR._publishedURL);
+		const Auth=await DU.requirejs(["Auth"]);
+		const hash=await Auth.getHash(TPR.getName()+"/");
+		const r=FS.PathUtil.truncSep(WebSite.pub_in_top)+"/"+hash;
+		TPR._publishedURL=r;
+		return r;
 	};
 	TPR.getOutputFile=function (lang) {
 		var opt=TPR.getOptions();
