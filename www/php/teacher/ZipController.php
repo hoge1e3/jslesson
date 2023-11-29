@@ -35,7 +35,7 @@ class ZipController {
 		print("Export start: $classid\n");//		ob_flush();flush();
 		if (!file_exists($work)) mkdir($work);
 		self::exportPub($classid);
-		print("Copy files: $classid ");
+		print("Export files: $classid ");
 		exec("cp -Ra $p $work/$classid");
 		self::exportClassOptions($classid);
 		self::exportDB($classid);
@@ -110,8 +110,9 @@ class ZipController {
 		exec("tar xzvf $tar ");
 		exec("mv $tar $tar.imported.at.".time()); // prevent overwrite by old backup
 		self::importPub($classid);
-		print("Copy files: $classid ");
-		exec("cp -Ra $p $work/$classid");
+		print("Import files: $work/$classid to $p \n");
+		if (!file_exists($p)) mkdir($p);
+		exec("cp -Ra $work/$classid/* $p ");
 		self::importClassOptions($classid);
 		self::importDB($classid);
 		//$mi=preg_replace("/\\\\/","/",BA_MIGRATION);
