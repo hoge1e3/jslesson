@@ -16736,6 +16736,8 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
     async function getURLInfo() {
         const info=await ctrl.get("BAURL/show");
         console.log(info);
+        const withSep=(s)=>FS.PathUtil.truncSEP(s)+"/";
+        WebSite.urlInfo=info;
         if (info.BA_SERVICE_URL) {
             WebSite.controller_in_service=info.BA_SERVICE_URL;
             WebSite.runtime_in_service=FS.PathUtil.truncSEP(info.BA_SERVICE_URL)+"/runtime/";
@@ -16750,6 +16752,20 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
         } else {
             WebSite.pub_in_top=WebSite.published;
         }
+        WebSite.hosts={
+            ide: {
+                top: withSep(info.BA_TOP_URL),
+                published: withSep(WebSite.pub_in_top) ,
+                runtime: withSep(WebSite.runtime),
+            },
+            service: {
+                top: withSep(info.BA_SERVICE_URL || info.BA_TOP_URL) ,
+                published: withSep(WebSite.published),
+                runtime: withSep(WebSite.runtime_in_service),
+            },
+        };
+        WebSite.hosts.ide.controller=WebSite.hosts.ide.top;
+        WebSite.hosts.service.controller=WebSite.hosts.service.top;
     }
     $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"]),getURLInfo()).
     then(ready).fail(function (e) {
