@@ -114,3 +114,6 @@ www/node/test/err
 www/node/pyres.txt
 www/node/jsres.txt
 www/node/jsres_3.txt
+data/migration
+data/fs/home/joho2_sys
+importclass.bat
