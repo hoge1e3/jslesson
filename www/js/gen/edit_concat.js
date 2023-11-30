@@ -10753,7 +10753,11 @@ function (UI ,DA) {
             resize:handleResize
         });//,height:options.height?options.height-50:400});
         setTimeout(function () {
-            if (!res.iframe[0].contentWindow.onerror) res.iframe[0].contentWindow.onerror=window.onerror;
+            try {
+                if (!res.iframe[0].contentWindow.onerror) res.iframe[0].contentWindow.onerror=window.onerror;
+            } catch(e) {
+                console.log(e);
+            }
         },100);
         handleResize();
         function handleResize() {
@@ -10793,7 +10797,11 @@ function (UI ,DA) {
                 }
             };
         } else {
-            res.iframe[0].contentWindow.location.href=url;
+            try {
+                res.iframe[0].contentWindow.location.href=url;
+            } catch(e) {
+                res.iframe.attr({src:url});
+            }
         }
         setTimeout(function () {
             res.iframe.focus();
@@ -17529,6 +17537,9 @@ function ready() {
                 result="Runtime Error";
             }
             logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),(langInfo.en||lang)+" "+result, resDetail,langInfo.en);
+        };
+        window.onmessage=(e)=>{
+            console.log("MESG",e);
         };
         stop();
         save();
