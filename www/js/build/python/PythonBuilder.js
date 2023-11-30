@@ -44,16 +44,18 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
                 version:BitArrow.version,
                 urlArgs:BitArrow.urlArgs,
                 publishedURL:BitArrow.publishedURL,
-                runtimePath:WebSite.runtime};
+                runtimePath:WebSite.runtime,
+                hosts: WebSite.hosts,
+            };
             $(head).append($("<script>").text("window.BitArrow="+JSON.stringify(ba)+";"));
         }
         $(head).append($("<script>").text("window.runtimePath='"+WebSite.runtime+"';"));
-        if (WebSite.runtime_in_service && WebSite.controller_in_service) {
+        if (WebSite.hosts) {
             $(head).append($("<script>").text(`
-            BitArrow.isPublished=window.location.hostname;
-            if (BitArrow.isPublished) {
-                BitArrow.runtimePath=${JSON.stringify(WebSite.runtime_in_service)};
-                window.controllerPath=${JSON.stringify(WebSite.controller_in_service)};
+            BitArrow.inService=window.location.hostname===new URL(BitArrow.hosts.service.top).host;
+            if (BitArrow.inService) {
+                BitArrow.runtimePath=${JSON.stringify(WebSite.hosts.service.runtime)};
+                window.controllerPath=${JSON.stringify(WebSite.hosts.service.controller)};
             } else {
                 window.controllerPath=${JSON.stringify(WebSite.controller)};
             }
@@ -62,7 +64,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
             $(head).append($("<script>").text("window.controllerPath='"+(WebSite.controller_in_service||WebSite.controller)+"';"));
         }
         $(head).append($("<script>").text("window.onerror=window.onerror||"+
-        function (e) {console.log(arguments);alert(e);}+";"));
+        function (message, file, lineNo, colNo, error) {console.log(arguments);alert(error||message);}+";"));
         $(head).append($("<link>").attr({"rel":"stylesheet","href":WebSite.runtime+"css/run_style.css"}));
 
         libs.map(function (r) {

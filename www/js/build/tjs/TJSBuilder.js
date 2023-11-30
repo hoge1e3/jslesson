@@ -87,7 +87,9 @@ function (A,DU,wget,Sync,WebSite,Tonyu,BuilderClient,Util,FS,F,root) {
                 version:window.BitArrow.version,
                 urlArgs:window.BitArrow.urlArgs,
                 publishedURL:window.BitArrow.publishedURL,
-                runtimePath:WebSite.runtime};
+                runtimePath:WebSite.runtime,
+                hosts: WebSite.hosts,
+            };
             $(head).append($("<script>").text("window.BitArrow="+JSON.stringify(ba)+";"));
         }
         $(head).append($("<script>").text("window.$LASTPOS=0;window.runtimePath='"+WebSite.runtime+"';"));
