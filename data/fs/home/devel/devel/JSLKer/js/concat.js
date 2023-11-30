@@ -109,16 +109,16 @@ Tonyu.klass.define({
         "use strict";
         var _this=this;
         var f;
-        var _it_1;
+        var _it_151;
         
         if (! window.Plotly) {
           window.setTimeout(Tonyu.bindFunc(_this,_this.waitLoadLib),100);
           
         } else {
           _this.Plotly=window.Plotly;
-          _it_1=Tonyu.iterator(_this.loadLibHandlers,1);
-          while(_it_1.next()) {
-            f=_it_1[0];
+          _it_151=Tonyu.iterator(_this.loadLibHandlers,1);
+          while(_it_151.next()) {
+            f=_it_151[0];
             
             f(_this.Plotly);
           }
@@ -131,16 +131,16 @@ Tonyu.klass.define({
         //var _arguments=Tonyu.A(arguments);
         var __pc=0;
         var f;
-        var _it_1;
+        var _it_151;
         
         if (! window.Plotly) {
           window.setTimeout(Tonyu.bindFunc(_this,_this.waitLoadLib),100);
           
         } else {
           _this.Plotly=window.Plotly;
-          _it_1=Tonyu.iterator(_this.loadLibHandlers,1);
-          while(_it_1.next()) {
-            f=_it_1[0];
+          _it_151=Tonyu.iterator(_this.loadLibHandlers,1);
+          while(_it_151.next()) {
+            f=_it_151[0];
             
             f(_this.Plotly);
           }
@@ -753,13 +753,13 @@ Tonyu.klass.define({
         var _this=this;
         var ret;
         var o;
-        var _it_23;
+        var _it_173;
         
         ret = [];
         
-        _it_23=Tonyu.iterator(_this.vec(k),1);
-        while(_it_23.next()) {
-          o=_it_23[0];
+        _it_173=Tonyu.iterator(_this.vec(k),1);
+        while(_it_173.next()) {
+          o=_it_173[0];
           
           if (ret[o[k]]) {
             ret[o[k]]++;
@@ -779,13 +779,13 @@ Tonyu.klass.define({
         var __pc=0;
         var ret;
         var o;
-        var _it_23;
+        var _it_173;
         
         ret = [];
         
-        _it_23=Tonyu.iterator(_this.vec(k),1);
-        while(_it_23.next()) {
-          o=_it_23[0];
+        _it_173=Tonyu.iterator(_this.vec(k),1);
+        while(_it_173.next()) {
+          o=_it_173[0];
           
           if (ret[o[k]]) {
             ret[o[k]]++;
@@ -1259,7 +1259,7 @@ Tonyu.klass.define({
         var _this=this;
         var s;
         var v;
-        var _it_39;
+        var _it_189;
         
         s = 0;
         
@@ -1272,9 +1272,9 @@ Tonyu.klass.define({
           }
           
         } else {
-          _it_39=Tonyu.iterator(_this.vec(k),1);
-          while(_it_39.next()) {
-            v=_it_39[0];
+          _it_189=Tonyu.iterator(_this.vec(k),1);
+          while(_it_189.next()) {
+            v=_it_189[0];
             
             s+=v-0;
             
@@ -1290,7 +1290,7 @@ Tonyu.klass.define({
         var __pc=0;
         var s;
         var v;
-        var _it_39;
+        var _it_189;
         
         s = 0;
         
@@ -1303,9 +1303,9 @@ Tonyu.klass.define({
           }
           
         } else {
-          _it_39=Tonyu.iterator(_this.vec(k),1);
-          while(_it_39.next()) {
-            v=_it_39[0];
+          _it_189=Tonyu.iterator(_this.vec(k),1);
+          while(_it_189.next()) {
+            v=_it_189[0];
             
             s+=v-0;
             
@@ -1361,7 +1361,7 @@ Tonyu.klass.define({
         var a;
         var i;
         var v;
-        var _it_44;
+        var _it_194;
         
         d = [];
         a = 0;
@@ -1378,9 +1378,9 @@ Tonyu.klass.define({
           
         } else {
           a=_this.mean(k);
-          _it_44=Tonyu.iterator(_this.vec(k),1);
-          while(_it_44.next()) {
-            v=_it_44[0];
+          _it_194=Tonyu.iterator(_this.vec(k),1);
+          while(_it_194.next()) {
+            v=_it_194[0];
             
             d.push(v-a);
             
@@ -1398,7 +1398,7 @@ Tonyu.klass.define({
         var a;
         var i;
         var v;
-        var _it_44;
+        var _it_194;
         
         d = [];
         a = 0;
@@ -1429,9 +1429,9 @@ Tonyu.klass.define({
             case 3:
               a=_thread.retVal;
               
-              _it_44=Tonyu.iterator(_this.vec(k),1);
-              while(_it_44.next()) {
-                v=_it_44[0];
+              _it_194=Tonyu.iterator(_this.vec(k),1);
+              while(_it_194.next()) {
+                v=_it_194[0];
                 
                 d.push(v-a);
                 
@@ -1579,7 +1579,7 @@ Tonyu.klass.define({
         var dataCov;
         var k;
         var v;
-        var _it_54;
+        var _it_204;
         
         dev1 = _this.dev(k1);
         
@@ -1587,10 +1587,10 @@ Tonyu.klass.define({
         
         dataCov = 0;
         
-        _it_54=Tonyu.iterator(dev1,2);
-        while(_it_54.next()) {
-          k=_it_54[0];
-          v=_it_54[1];
+        _it_204=Tonyu.iterator(dev1,2);
+        while(_it_204.next()) {
+          k=_it_204[0];
+          v=_it_204[1];
           
           dataCov+=dev1[k]*dev2[k];
           
@@ -1608,7 +1608,7 @@ Tonyu.klass.define({
         var dataCov;
         var k;
         var v;
-        var _it_54;
+        var _it_204;
         
         
         _thread.enter(function _trc_Graph_ent_cov(_thread) {
@@ -1628,10 +1628,10 @@ Tonyu.klass.define({
               
               dataCov = 0;
               
-              _it_54=Tonyu.iterator(dev1,2);
-              while(_it_54.next()) {
-                k=_it_54[0];
-                v=_it_54[1];
+              _it_204=Tonyu.iterator(dev1,2);
+              while(_it_204.next()) {
+                k=_it_204[0];
+                v=_it_204[1];
                 
                 dataCov+=dev1[k]*dev2[k];
                 
@@ -4008,34 +4008,21 @@ Tonyu.klass.define({
       callServer :function _trc_Parent_callServer(url,stdin) {
         "use strict";
         var _this=this;
-        var h;
-        var u;
-        var ih;
         var p;
         var r;
         
-        if (BitArrow&&BitArrow.hosts) {
-          h = BitArrow.hosts;
-          
-          u = new URL(url);
-          
-          ih = new URL(h.ide.top).host;
-          
-          BitArrow.inIDE=(! window.location.hostname)||window.location.hostname===ih;
-          if (BitArrow.inIDE) {
-            u.host=ih;
-            url=u+"";
-            
-          }
-          
-        }
-        p = new window.Promise((function anonymous_13967(s) {
+        p = new window.Promise((function anonymous_13971(s) {
           var ifrm;
           
-          window.sendResult=(function anonymous_14001(r) {
+          window.sendResult=(function anonymous_14005(r) {
             
             ifrm.remove();
             s(r);
+          });
+          window.onmessage=(function anonymous_14097(e) {
+            
+            ifrm.remove();
+            s(e.data.result);
           });
           ifrm = window.$("<iframe>").attr({src: url+"?stdin="+stdin,width: 1,height: 1}).appendTo("body");
           
@@ -4050,34 +4037,21 @@ Tonyu.klass.define({
         var _this=this;
         //var _arguments=Tonyu.A(arguments);
         var __pc=0;
-        var h;
-        var u;
-        var ih;
         var p;
         var r;
         
-        if (BitArrow&&BitArrow.hosts) {
-          h = BitArrow.hosts;
-          
-          u = new URL(url);
-          
-          ih = new URL(h.ide.top).host;
-          
-          BitArrow.inIDE=(! window.location.hostname)||window.location.hostname===ih;
-          if (BitArrow.inIDE) {
-            u.host=ih;
-            url=u+"";
-            
-          }
-          
-        }
-        p = new window.Promise((function anonymous_13967(s) {
+        p = new window.Promise((function anonymous_13971(s) {
           var ifrm;
           
-          window.sendResult=(function anonymous_14001(r) {
+          window.sendResult=(function anonymous_14005(r) {
             
             ifrm.remove();
             s(r);
+          });
+          window.onmessage=(function anonymous_14097(e) {
+            
+            ifrm.remove();
+            s(e.data.result);
           });
           ifrm = window.$("<iframe>").attr({src: url+"?stdin="+stdin,width: 1,height: 1}).appendTo("body");
           

@@ -45,7 +45,9 @@ function clearIndicator() {
 }
 function procResult(r) {
     clearIndicator();
-    parent.window.echooff=r;
+    try {
+        parent.window.echooff=r;
+    } catch(e) {}
     r=r.replace(/^[\s\S]*echo off\s*\n?/,'');
     var spl="["+Math.random()+"]";
     var imgs=[];
@@ -62,8 +64,12 @@ function procResult(r) {
             out.append($(imgs.shift()));
         }
     });
-    if (typeof parent!=="undefined" && parent.sendResult) {
-        parent.sendResult(r,"Python");
+    if (typeof parent!=="undefined") {
+        try {
+            parent.sendResult(r,"Python");
+        } catch (e) {
+            parent.postMessage({type:"sendResult",result:r, lang:"Python"},BitArrow.hosts.ide.top);
+        }
     }
 }
 function procError(e){
@@ -80,9 +86,15 @@ function procError(e){
         }
         //alert(buf);
     }
-    if (typeof parent!=="undefined" && parent.sendResult) {
+    if (typeof parent!=="undefined") {
         const r=$("#output").text();
-        parent.sendResult(r,"Python");
+        try {
+            parent.sendResult(r,"Python");
+        }catch(e) {
+            parent.postMessage({
+                type:"sendResult",result:r, lang:"Python",isError:true,
+            }, BitArrow.hosts.ide.top);
+        }     
     }
 }
 function runOnServerURLWithStdin(url,stdin) {

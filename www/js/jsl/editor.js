@@ -920,6 +920,9 @@ function ready() {
             }
             logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),(langInfo.en||lang)+" "+result, resDetail,langInfo.en);
         };
+        window.onmessage=(e)=>{
+            console.log("MESG",e);
+        };
         stop();
         save();
         if (syncBefore) {

@@ -72,3 +72,26 @@ bs4(BeautifulSoup)
 sklearn
 
 
+# 公開用ホスト名と編集用ホスト名の分離【推奨】
+
+「別ページで実行」で表示されるページのホスト名（公開用ホスト名）を，
+BitArrowのトップページのホスト名（編集用ホスト名）と分ける方法
+
+ここでは，編集用ホスト名をide.example.com，公開用ホスト名をrun.example.comとします．
+それぞれが同じサーバ（BitArrowをインストールしたWebサーバ）を指すようにDNSを設定してください．
+
+config.phpに次の定数を設定：
+
+define("BA_TOP_URL", "https://ide.example.com/");
+define("BA_SERVICE_URL", "https://run.example.com/");
+define("BA_PUB_URL", BA_SERVICE_URL."fs/pub");
+define("BA_PUB_URL_IN_TOP", BA_TOP_URL."fs/pub");
+
+pub/.htaccess に次を設定
+<IfModule mod_rewrite.c>
+    RewriteEngine on
+    RewriteCond %{HTTP_HOST} ide\.example\.com
+    RewriteCond %{REQUEST_URI} \.(html|htm)$
+    RewriteRule ^(.*)$ https://run\.example\.com%{REQUEST_URI} [R=301,L]
+</IfModule>
+

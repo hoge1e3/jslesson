@@ -536,7 +536,7 @@ nowait \deg(d) {
     return r;
 }
 \callServer(url, stdin) {
-    if (BitArrow && BitArrow.hosts) {
+    /*if (BitArrow && BitArrow.hosts) {
         var h=BitArrow.hosts;
         var u=new URL(url);
         var ih=new URL(h.ide.top).host;
@@ -545,11 +545,15 @@ nowait \deg(d) {
             u.host=ih;
             url=u+"";
         }
-    }
+    }*/
     var p=new window.Promise\(s) {
         window.sendResult=\(r) {
             ifrm.remove();
             s(r);
+        };
+        window.onmessage=\(e) {
+            ifrm.remove();
+            s(e.data.result);
         };
         var ifrm=window.$("<iframe>").attr{src:url+"?stdin="+stdin, width:1,height:1}.appendTo("body");
     };
