@@ -32,7 +32,7 @@ def _open(filename,mode="r",encoding="UTF-8"):
     rf=resolve(filename)
     if not os.path.exists(os.path.dirname(rf)):
         os.makedirs(os.path.dirname(rf))
-    return open(rf,mode)
+    return open(rf,mode,encoding=encoding)
 def _range(*a,**k):
     return range(*a,**k)
 def _input(*a,**k):
