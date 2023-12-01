@@ -9273,11 +9273,13 @@ module.exports=WorkerService;
 },{}]},{},[2])(2)
 });
 
-define('ProjectFactory',['require','exports','module','BuilderClient','Util','DeferredUtil'],function (require, exports, module) {
+define('ProjectFactory',['require','exports','module','BuilderClient','Util','DeferredUtil','WebSite','FS'],function (require, exports, module) {
     const BuilderClient=require("BuilderClient");
     const F=BuilderClient.ProjectFactory;
     const Util=require("Util");
     const DU=require("DeferredUtil");
+    const WebSite=require("WebSite");
+    const FS=require("FS");
     const HEXT=".html";
     function getName(file) {
         if (typeof file.name==="function") file=file.name();
@@ -9324,16 +9326,15 @@ define('ProjectFactory',['require','exports','module','BuilderClient','Util','De
         	fixOptions: function (opt) {
         		if (!opt.compiler) opt.compiler={};
         	},
-            getPublishedURL: function () {//ADDBA
+            getPublishedURL: async function () {//ADDBA
                 const TPR=this;
-        		if (TPR._publishedURL) return DU.resolve(TPR._publishedURL);
-        		return DU.requirejs(["Auth"]).then(function (Auth) {
-        			return Auth.publishedURL(TPR.getName()+"/");
-        		}).then(function (r) {
-        			TPR._publishedURL=r;
-        			return r;
-        		});
-        	},
+                if (TPR._publishedURL) return (TPR._publishedURL);
+                const Auth=await DU.requirejs(["Auth"]);
+                const hash=await Auth.getHash(TPR.getName()+"/");
+                const r=FS.PathUtil.truncSEP(WebSite.pub_in_top)+"/"+hash;
+                TPR._publishedURL=r;
+                return r;
+            },
             sourceFiles: function () {// nsp==null => all
                 //nsp=nsp || TPR.getNamespace();//DELJSL
                 const TPR=this;
@@ -10922,6 +10923,7 @@ function ready() {//-------------------------
             ["div",{class:"hero-unit"},
             ["div",{id:"userInfo",css:{float:"right"},margin:"50px"},"ようこそ",["br"],["div","同期中です..."]],
             ["h1", ["img",{src:"images/bitarrow-2.png",css:{"display":"inline"},width:"100px"}],"Bit Arrow"]],
+            ["div",{id:"news"}],
             ["div","【お知らせ】新しいバージョン",["span",{class:"notice"},"(2022_0401)"],"になりました．"," | ",
             ["a",{href:"https://bitarrow.eplang.jp/?change2204",target:"wikiTab"},"主な変更点..."]," | ",
             ["a",{href:"https://bitarrow.eplang.jp/index.php?faq",target:"wikiTab"},"困ったときは（よくある質問）"],/*," | ",
@@ -10963,6 +10965,7 @@ function ready() {//-------------------------
             $(".assignment").show();
         }
     });
+    ctrl.get("Login/news").then((r)=>$("#news").html(r));
     setTimeout(function () {
         $("#syncMesg").empty();
         $("#userInfo").text(Auth.class+" クラスの"+Auth.user+"さん、こんにちは");

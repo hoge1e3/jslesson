@@ -123,7 +123,41 @@ define(function (require) {
         console.error("Err",e);
         alert(e);
     });
-    $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"])).
+    async function getURLInfo() {
+        const info=await ctrl.get("BAURL/show");
+        console.log(info);
+        const withSep=(s)=>FS.PathUtil.truncSEP(s)+"/";
+        WebSite.urlInfo=info;
+        if (info.BA_SERVICE_URL) {
+            WebSite.controller_in_service=info.BA_SERVICE_URL;
+            WebSite.runtime_in_service=FS.PathUtil.truncSEP(info.BA_SERVICE_URL)+"/runtime/";
+        }
+        if (info.BA_PUB_URL) {
+            // BitArrow.publishedURL: URL of THIS project.
+            // WebSite.published: ROOT URL of published. 
+            WebSite.published=FS.PathUtil.truncSEP(info.BA_PUB_URL)+"/";
+        }
+        if (info.BA_PUB_URL_IN_TOP) {
+            WebSite.pub_in_top=FS.PathUtil.truncSEP(info.BA_PUB_URL_IN_TOP);
+        } else {
+            WebSite.pub_in_top=WebSite.published;
+        }
+        WebSite.hosts={
+            ide: {
+                top: withSep(info.BA_TOP_URL),
+                published: withSep(WebSite.pub_in_top) ,
+                runtime: withSep(WebSite.runtime),
+            },
+            service: {
+                top: withSep(info.BA_SERVICE_URL || info.BA_TOP_URL) ,
+                published: withSep(WebSite.published),
+                runtime: withSep(WebSite.runtime_in_service),
+            },
+        };
+        WebSite.hosts.ide.controller=WebSite.hosts.ide.top;
+        WebSite.hosts.service.controller=WebSite.hosts.service.top;
+    }
+    $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"]),getURLInfo()).
     then(ready).fail(function (e) {
         alert("エラー"+e);
         console.error(e.stack);
@@ -208,7 +242,7 @@ function ready() {
         console.log("AE",autoexec);
         if (autoexec) {
             fl.select(curProjectDir.rel(autoexec));
-            run();
+            run({sendURL: getSendURL()});
         }
     }
     function autologexec() {
@@ -242,12 +276,18 @@ function ready() {
                 console.log("STDIN",stdin);
                 const opt={};
                 if (stdin) opt.stdin=stdin;
-                const sendURL=(typeof parent!=="undefined" && parent.sendURL)||
-                (typeof opener!=="undefined" && opener.sendURL);
-                if (ALWAYS_UPLOAD && sendURL) opt.sendURL=sendURL;
+                opt.sendURL=getSendURL();
+                /*const sendURL=(typeof parent!=="undefined" && parent && parent.sendURL)||
+                (typeof opener!=="undefined" && opener && opener.sendURL);
+                if (ALWAYS_UPLOAD && sendURL) opt.sendURL=sendURL;*/
                 run(opt);
            }).catch (function (e) {console.error(e);});
         }
+    }
+    function getSendURL() {
+        const sendURL=(typeof parent!=="undefined" && parent && parent.sendURL)||
+        (typeof opener!=="undefined" && opener && opener.sendURL);
+        if (ALWAYS_UPLOAD && sendURL) return sendURL;
     }
     function autosubexec() {
         var id=Util.getQueryString("autosubexec",null);
@@ -880,6 +920,9 @@ function ready() {
             }
             logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),(langInfo.en||lang)+" "+result, resDetail,langInfo.en);
         };
+        window.onmessage=(e)=>{
+            console.log("MESG",e);
+        };
         stop();
         save();
         if (syncBefore) {
@@ -931,7 +974,7 @@ function ready() {
         }catch(e) {
             console.log(e,e.stack);
             if (ALWAYS_UPLOAD && options.sendURL) {
-                options.sendURL("error://"+e.stack, location.href);
+                options.sendURL(e/*"error://"+e.stack*/, location.href);
             }
             if (e.isTError) {
                 errorDialog.show(e);//showErrorPos($("#errorPos"),e);

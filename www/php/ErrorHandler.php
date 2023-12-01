@@ -13,6 +13,10 @@ if (!function_exists('http_response_code'))
         return $code;
     }
 }
+function setErrStatus($s){
+    global $errStatus;
+    $errStatus=$s; 
+}
 function h_err($errno, $errstr, $errfile, $errline) {
     global $errStatus;
     if (!isset($errStatus)) $errStatus=""; 

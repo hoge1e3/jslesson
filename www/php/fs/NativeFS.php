@@ -31,6 +31,10 @@ class NativeFS {
        $this->check($path,Permission::READ);
        if (!$this->exists($path)) $this->notFound($path);
        $filename = $this->resolve($path);
+        if (isBinaryFile($filename)) {
+            return fileToDataURL($filename);
+        }
+
        $sz=filesize($filename);
        if ($sz==0) return "";
  	   $handle = fopen($filename, "r");
@@ -66,6 +70,9 @@ class NativeFS {
        $this->check($path,Permission::WRITE);
        $filename = $this->resolve($path);
        $this->mkdir(PathUtil::up($path));
+       if (isBinaryFile($filename) && is_string($cont)) {
+            return dataURLtoFile($filename, $cont);
+       }
        $handle = fopen($filename, "w");
        $contents = fwrite($handle, $cont);
        fclose($handle);
@@ -119,6 +126,86 @@ class NativeFS {
 	    }
 	    return $res;
    }
-
 }
+function dataURLtoFile($filePath, $dataURL) {
+    $parts = explode(',', $dataURL);
+    if(count($parts) === 2) {
+        $data = base64_decode($parts[1]);
+        if(file_put_contents($filePath, $data) !== false) {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
+function fileToDataURL($filePath) {
+    if(file_exists($filePath)) {
+        $data = file_get_contents($filePath);
+        $mime = mime_content_type($filePath);
+        $base64 = base64_encode($data);
+        $dataURL = 'data:' . $mime . ';base64,' . $base64;
+        return $dataURL;
+    } else {
+        return false; 
+    }
+}
+$mimetypes=[
+    ".png"=>"image/png",
+    ".gif"=>"image/gif",
+    ".jpeg"=>"image/jpeg",
+    ".jpg"=>"image/jpeg",
+    ".ico"=>"image/icon",
+    ".wav"=>"audio/x-wav",
+    ".mp3"=>"audio/mp3",
+    ".ogg"=>"audio/ogg",
+    ".midi"=>"audio/midi",
+    ".mid"=>"audio/midi",
+    ".mzo"=>"audio/mzo",
+    ".txt"=>"text/plain",
+    ".html"=>"text/html",
+    ".htm"=>"text/html",
+    ".css"=>"text/css",
+    ".js"=>"text/javascript",
+    ".json"=>"text/json",
+    ".zip"=>"application/zip",
+    ".swf"=>"application/x-shockwave-flash",
+    ".pdf"=>"application/pdf",
+    ".doc"=>"application/word",
+    ".xls"=>"application/excel",
+    ".ppt"=>"application/powerpoint",
+    '.docx'=>'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.docm'=>'application/vnd.ms-word.document.macroEnabled.12',
+    '.dotx'=>'application/vnd.openxmlformats-officedocument.wordprocessingml.template',
+    '.dotm'=>'application/vnd.ms-word.template.macroEnabled.12',
+    '.xlsx'=>'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    '.xlsm'=>'application/vnd.ms-excel.sheet.macroEnabled.12',
+    '.xltx'=>'application/vnd.openxmlformats-officedocument.spreadsheetml.template',
+    '.xltm'=>'application/vnd.ms-excel.template.macroEnabled.12',
+    '.xlsb'=>'application/vnd.ms-excel.sheet.binary.macroEnabled.12',
+    '.xlam'=>'application/vnd.ms-excel.addin.macroEnabled.12',
+    '.pptx'=>'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    '.pptm'=>'application/vnd.ms-powerpoint.presentation.macroEnabled.12',
+    '.potx'=>'application/vnd.openxmlformats-officedocument.presentationml.template',
+    '.potm'=>'application/vnd.ms-powerpoint.template.macroEnabled.12',
+    '.ppsx'=>'application/vnd.openxmlformats-officedocument.presentationml.slideshow',
+    '.ppsm'=>'application/vnd.ms-powerpoint.slideshow.macroEnabled.12',
+    '.ppam'=>'application/vnd.ms-powerpoint.addin.macroEnabled.12',
+    ".tonyu"=>"text/tonyu",
+    ".c"=>"text/c",
+    ".dtl"=>"text/dolittle"
+    
+];
+function isBinaryFile($filePath) {
+    req("PathUtil");
+    $ext=PathUtil::ext($filePath);
+    global $mimetypes;
+    if (!isset($mimetypes[$ext]))return false;
+    $t=$mimetypes[$ext];
+    $t=explode("/",$t);
+    return $t[0]!=="text";
+}
+
+
 ?>

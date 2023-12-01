@@ -1,18 +1,33 @@
 <?php
 // This file should NOT be placed in httpd-reachable folder!
 
+define("BA_WWW",dirname(__DIR__));
+//   You must set BA_DATA to data directory, it is recommended that BA_DATA cannot access via http
+
+// BA_SERVICE_URL: URL for server-side program or other resources accessed from published pages. 
+//  It recommended that placed another domain and accessing using Virtual Host.
+//  The any page of https://BA_SERVICE_URL/* should serve same function as https://BA_TOP_URL/* 
+//  But login is prohibited. https://BA_SERVICE_URL/?Login/* redirects to https://BA_TOP_URL/
+define("BA_SERVICE_URL", "http://127.0.0.1/");
+define("BA_PUB_URL", BA_SERVICE_URL."fs/pub");
+// BA_PUB_URL_IN_TOP: URL for assets accessed from IDE domain. 
+//  It is used mainly Tonyu, that need to load image/sound files with full features.
+define("BA_PUB_URL_IN_TOP", BA_TOP_URL."fs/pub");
+
 define("BA_LOG", BA_DATA."/log");
 define("BA_FS",  BA_DATA."/fs");
 define("BA_HOME",BA_FS."/home");
 define("BA_PUB", BA_FS."/pub");
-
-$ba_top_url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-$ba_top_url = preg_replace("/\\?.*/","",$ba_top_url);
-$ba_top_url = preg_replace("/[^\\/]*$/","",$ba_top_url);
+define("BA_MIGRATION", BA_DATA."/migration");
+//define("TEACHER_BAUTH_URL","https://bitarrow.eplang.jp/beta2204/");
+//define("NEWS","<a href='https://bitarrow.eplang.jp/'>NEWS: KOWARETA</a>");
+//define("MAINTENANCE","KOWARETEIMASU");
+//$ba_top_url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+//$ba_top_url = preg_replace("/\\?.*/","",$ba_top_url);
+//$ba_top_url = preg_replace("/[^\\/]*$/","",$ba_top_url);
 // ^This method is not perfect. It is recommeded that you set the URL directly.
 // $ba_top_url="http://example.com/path/to/ba/";
 //define("BA_TOP_URL", $ba_top_url);
-define("BA_PUB_URL", $ba_top_url."/fs/pub");
 
 // You should define PDO_* in BA_DATA/config.php to protect passowrd
 

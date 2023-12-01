@@ -33,5 +33,5 @@ def open(filename,mode="r",encoding="UTF-8"):
     rf=resolve(filename)
     if not os.path.exists(os.path.dirname(rf)):
         os.makedirs(os.path.dirname(rf))
-    return b.open(rf,mode)
+    return b.open(rf,mode,encoding=encoding)
 

@@ -186,11 +186,11 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","Bui
 <html><head>
 <title>Tonyu System 2</title>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<script>window.runtimePath="${WebSite.runtime}/";</script>
+<script>window.runtimePath="${WebSite.runtime_in_service || WebSite.runtime}/";</script>
 <script>
 WebSite={};
 WebSite.urlAliases={};
-WebSite.runtime="${WebSite.runtime}";
+WebSite.runtime="${WebSite.runtime_in_service || WebSite.runtime}";
 WebSite_runType="manual";
 WebSite.serverType="BA";
 WebSite.surpressCreateThumbnail=true;

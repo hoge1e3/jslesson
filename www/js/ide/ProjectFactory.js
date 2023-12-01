@@ -3,6 +3,8 @@ define(function (require, exports, module) {
     const F=BuilderClient.ProjectFactory;
     const Util=require("Util");
     const DU=require("DeferredUtil");
+    const WebSite=require("WebSite");
+    const FS=require("FS");
     const HEXT=".html";
     function getName(file) {
         if (typeof file.name==="function") file=file.name();
@@ -49,16 +51,15 @@ define(function (require, exports, module) {
         	fixOptions: function (opt) {
         		if (!opt.compiler) opt.compiler={};
         	},
-            getPublishedURL: function () {//ADDBA
+            getPublishedURL: async function () {//ADDBA
                 const TPR=this;
-        		if (TPR._publishedURL) return DU.resolve(TPR._publishedURL);
-        		return DU.requirejs(["Auth"]).then(function (Auth) {
-        			return Auth.publishedURL(TPR.getName()+"/");
-        		}).then(function (r) {
-        			TPR._publishedURL=r;
-        			return r;
-        		});
-        	},
+                if (TPR._publishedURL) return (TPR._publishedURL);
+                const Auth=await DU.requirejs(["Auth"]);
+                const hash=await Auth.getHash(TPR.getName()+"/");
+                const r=FS.PathUtil.truncSEP(WebSite.pub_in_top)+"/"+hash;
+                TPR._publishedURL=r;
+                return r;
+            },
             sourceFiles: function () {// nsp==null => all
                 //nsp=nsp || TPR.getNamespace();//DELJSL
                 const TPR=this;

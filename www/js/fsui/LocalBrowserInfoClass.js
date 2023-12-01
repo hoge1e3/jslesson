@@ -39,7 +39,7 @@ define(["FS","Klass","source-map","DeferredUtil"], function (FS,Klass,S,DU) {
 				return this.fileMap[url].blobUrl;
 			}
 			var urlHead=url.replace(urlparam,"");
-			if (FS.PathUtil.isURL(urlHead)) {
+			if (FS.PathUtil.isURL(urlHead) || urlHead.match(/^data:/)) {
 				return url;
 			}
 			var base=this.base;

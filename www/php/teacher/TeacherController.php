@@ -1,11 +1,33 @@
 <?php
-req("auth","BAClass","DateUtil","Mail");
+req("auth","BAClass","DateUtil","Mail","PathUtil");
 //require_once"php/auth.php";
 //require_once"php/teacher/Classes.php";
 class TeacherController {
     public static $mesg="";
     public static $name="";
+    static function bauth() {
+        $code=param("code",null);
+        $ba_top_url=PathUtil::truncSep(BA_TOP_URL);
+        if (!$code) {
+            header("Location: ".TEACHER_BAUTH_URL."?Teacher/login&callback=$ba_top_url/?Teacher/bauth");
+            return;
+        }
+        $r=file_get_contents(TEACHER_BAUTH_URL."?Login/bauth&status=$code");
+        if ($r==="OK") {
+            $s=json_decode($code);
+            MySession::set("teacher",$s->teacher);
+	        MySession::set("user",$s->teacher);
+            header("Location: $ba_top_url/?Teacher/home");
+        } else {
+            print $r;
+        }
+    }
     static function login() {
+        if (defined("TEACHER_BAUTH_URL")) {
+            return self::bauth();
+        }
+        req("LoginController");
+        redirectFromServiceDomain();
     ?>
     <title>教員ログイン - Bit Arrow</title>
 		<meta charset="UTF-8">
@@ -14,6 +36,8 @@ class TeacherController {
     	<form action="a.php?Teacher/check" method="POST">
     	  メールアドレス<input class="spacecheck" name="name" value="<?= self::$name ?>"></br>
     	  パスワード<input class="spacecheck" name="pass" type="password">
+          <input type="hidden" name="callback" 
+          value="<?= htmlspecialchars(param("callback","")) ?>" />
     	  <?php if (isset($_GET["ignoreNonexistent"])) { ?>
     	    <input type="hidden" name="ignoreNonexistent" value="1">
     	  <?php } ?>
@@ -30,7 +54,14 @@ class TeacherController {
     	$ignoreNonexistent=isset($_POST["ignoreNonexistent"]);
     	self::$mesg=Auth::loginTeacher2(self::$name,$pass,$ignoreNonexistent);
     	if (self::$mesg===true) {
-    	    redirect("Teacher/home");
+            $c=param("callback","");
+            if ($c) {
+                req("LoginController");
+                LoginController::curStatus();
+                return;
+            } else {
+                redirect("Teacher/home");
+            }
         } else {
             self::login();
         }
@@ -41,6 +72,10 @@ class TeacherController {
             header("Location: a.php?Teacher/login");
             return;
         }
+        if (defined("TEACHER_BAUTH_URL") && defined("BA_TOP_URL")) {
+            header("Location: ".PathUtil::truncSep(TEACHER_BAUTH_URL)."/a.php?Teacher/changePass&batop=".BA_TOP_URL);
+            return;
+        }
         ?>
     	<title><?= $teacher->id ?> - 教員パスワード変更</title>
     	<h1><?= $teacher->id ?> - 教員パスワード変更</h1>
@@ -49,16 +84,25 @@ class TeacherController {
 	        現在のパスワード<input name="nowpass" type="password"><br>
     	    新しいパスワード<input name="newpass1" type="password"><br>
     	    新しいパスワード(確認用)<input name="newpass2" type="password"><br>
+            <input type="hidden" name="batop" value="<?= htmlspecialchars( param("batop","")) ?>" />
     	    <input type="submit" value="変更"/>
 	    </form>
-	    <br><a href='?Teacher/home'>教員トップに戻る</a>
-	    <?php
+	    <br>
+        <?php if (param("batop","")) { ?>
+            <a href='<?= param("batop") ?>/?Teacher/home'>教員トップに戻る</a>
+        <?php } else { ?>
+            <a href='?Teacher/home'>教員トップに戻る</a>
+	    <?php }
     }
     static function changePassCheck(){
         $teacher=Auth::isTeacher2();
         $nowPass=$_POST["nowpass"];
         $newPass1=$_POST["newpass1"];
         $newPass2=$_POST["newpass2"];
+        $batop=param("batop","");
+        if ($batop) {
+            $batop=PathUtil::truncSep($batop)."/";
+        }
         if(Auth::loginTeacher2($teacher->name,$nowPass)!==true){
             echo "パスワードが違います";
             echo "<br><a href='?Teacher/changePass'>変更画面に戻る</a>";
@@ -73,7 +117,7 @@ class TeacherController {
                 echo "<br><a href='?Teacher/changePass'>変更画面に戻る</a>";
             }
         }
-        echo "<br><a href='?Teacher/home'>教員トップに戻る</a>";
+        echo "<br><a href='$batop?Teacher/home'>教員トップに戻る</a>";
     }
     static function home($mesg=null) {
         $teacher=Auth::isTeacher2();

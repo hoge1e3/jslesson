@@ -12,6 +12,8 @@ native BitArrow;
 native RaspiREPL;
 native waitReady;
 native runCmd;
+native BitArrow;
+native URL;
 
 \Math {
     return window.Math;
@@ -534,10 +536,24 @@ nowait \deg(d) {
     return r;
 }
 \callServer(url, stdin) {
+    /*if (BitArrow && BitArrow.hosts) {
+        var h=BitArrow.hosts;
+        var u=new URL(url);
+        var ih=new URL(h.ide.top).host;
+        BitArrow.inIDE=(!window.location.hostname) || window.location.hostname===ih;
+        if (BitArrow.inIDE) {
+            u.host=ih;
+            url=u+"";
+        }
+    }*/
     var p=new window.Promise\(s) {
         window.sendResult=\(r) {
             ifrm.remove();
             s(r);
+        };
+        window.onmessage=\(e) {
+            ifrm.remove();
+            s(e.data.result);
         };
         var ifrm=window.$("<iframe>").attr{src:url+"?stdin="+stdin, width:1,height:1}.appendTo("body");
     };
