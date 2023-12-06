@@ -169,6 +169,22 @@ class GetLastFilesController {
                         }
                 });
             }
+            function hideOK() {
+                $(".entry").each(function () {
+                    if ( 
+                        $(this).find(".ok").hasClass("toggled")) {
+                            $(this).hide();
+                        }
+                });
+            }
+            function hideNG() {
+                $(".entry").each(function () {
+                    if ( 
+                        $(this).find(".ng").hasClass("toggled")) {
+                            $(this).hide();
+                        }
+                });
+            }
         </script>
         <div>
             <div>STDIN</div>
@@ -176,6 +192,8 @@ class GetLastFilesController {
             <button onclick="runAll()">Run All</button>
         </div>
         <div><button onclick="hideChecked()">Hide Checked</button>
+        <button onclick="hideOK()">Hide OK</button>
+        <button onclick="hideNG()">Hide NG</button>
         <?php
         foreach($users as $user=>$log) {
             //print_r($log);
