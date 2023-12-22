@@ -106,3 +106,7 @@ setup
 data/fs/home/aaaa
 www/node/jsres_3.txt
 www/pyjstest/*.js
+data/migration
+data/fs/home/joho2_sys
+data/fs/home/dddd
+importclass.bat
