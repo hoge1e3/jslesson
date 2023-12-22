@@ -157,7 +157,7 @@ class BAClass{
     }
     function getAllLogs($minTime,$maxTime){
         req("LogFileToDBController");
-        LogFileToDBController::run();
+        LogFileToDBController::run($this);
         $pdo = pdo();
         $sth=$pdo->prepare("select * from log where class = ? and time > ? and time < ?");
         $sth->execute(array($this->id,$minTime,$maxTime));

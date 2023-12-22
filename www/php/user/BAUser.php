@@ -201,7 +201,7 @@ class BAUser {
 
     function getAllLogs($minTime,$maxTime){
         req("LogFileToDBController");
-        LogFileToDBController::run();
+        LogFileToDBController::run($this);
         $pdo = pdo();
         $sth=$pdo->prepare("select * from log where class = ? and user= ? and time > ? and time < ?");
         $sth->execute(array($this->_class->id,$this->name,$minTime,$maxTime));

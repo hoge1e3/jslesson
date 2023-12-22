@@ -61,6 +61,7 @@ class TeacherLogController {
             $user=Auth::curUser2();
         }*/
         //print $class->id." , ".$user->name;
+        LogFileToDBController::run($user);
         $it=pdo_select_iter("select time,result from log where class=? and user=? order by time desc ",$class->id, $user->name);
         $has=array();
         $ord=array();
@@ -101,7 +102,7 @@ class TeacherLogController {
     static function parseUser() {
         enableIter();
         req("LogFileToDBController");
-        LogFileToDBController::run();
+        //LogFileToDBController::run();
         $class=Auth::curClass2();
         $teacherObj=Auth::curTeacher();
         $canSeeOtherUsersLogs=0;
@@ -466,7 +467,7 @@ class TeacherLogController {
             Auth::assertTeacher();
         }
         req("LogFileToDBController");
-        LogFileToDBController::run();
+        //LogFileToDBController::run();
 
         $thisURL="a.php?TeacherLog/bot";
         $now=time();
@@ -732,7 +733,7 @@ class TeacherLogController {
           Auth::assertTeacher();
       }
       req("LogFileToDBController");
-      LogFileToDBController::run();
+      //LogFileToDBController::run();
 
       $thisURL="a.php?TeacherLog/bot_noerr";
       $now=time();
