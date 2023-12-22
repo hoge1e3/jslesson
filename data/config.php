@@ -10,6 +10,7 @@ define("BA_WWW",dirname(__DIR__));
 //  But login is prohibited. https://BA_SERVICE_URL/?Login/* redirects to https://BA_TOP_URL/
 define("BA_SERVICE_URL", "http://127.0.0.1/");
 define("BA_PUB_URL", BA_SERVICE_URL."fs/pub");
+//define("LOG_STOPPED",1);
 // BA_PUB_URL_IN_TOP: URL for assets accessed from IDE domain. 
 //  It is used mainly Tonyu, that need to load image/sound files with full features.
 define("BA_PUB_URL_IN_TOP", BA_TOP_URL."fs/pub");

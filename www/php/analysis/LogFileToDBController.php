@@ -68,7 +68,8 @@ class LogFileToDBController {
         foreach ($files as $file) {
         }
     }*/
-    static function run() {
+    static function run($_c_or_u=null) {
+        if (defined("LOG_STOPPED")) return;
         if (isset($_GET["class"])) {
             $c=$_GET["class"];
             $class=new BAClass($c);
@@ -82,6 +83,7 @@ class LogFileToDBController {
             $user=$class->getUser($_GET["user"]);
             $classOrUser=$user;
         }
+        if ($_c_or_u) $classOrUser=$_c_or_u;
         $files=self::moveToTmp($classOrUser);
         $arc=LogUtil::getLogDir()->rel("arc/");
         $arc->mkdir();
