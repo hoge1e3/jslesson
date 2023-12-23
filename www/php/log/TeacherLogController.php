@@ -11,7 +11,7 @@ class TeacherLogController {
         $user=$p["user"];
         $teacher=$p["teacher"];
         $class=$user->getClass();
-        if (!$teacher && !$class->getOption("showOtherStudentsLogs")) {
+        if (!$teacher && !showOtherStudentsLogs($class)) {
             throw new Exception("You cannot see logs");
         }
         $classid=param("classid",NULL);
@@ -35,12 +35,19 @@ class TeacherLogController {
         //echo $day;
     }
     static function view1Dates() {
+        req("LogFileToDBController");
         $day=DateUtil::toInt(param("day",DateUtil::now()));
         $p=self::parseUser();
         $user=$p["user"];
         $teacher=$p["teacher"];
         $class=$user->getClass();
-        if ($teacher || $class->getOption("showOtherStudentsLogs")) {
+        if (checkClassConsistency($class)) return;
+        if (isExternal($class)) {
+            LogFileToDBController::run($user);
+            checkExternal($class);                        
+            return;   
+        }
+        if ($teacher || showOtherStudentsLogs($class)) {
             ?>
             <a href=".?TeacherLog/view">他ユーザのログを見る</a>
             <?php
@@ -101,10 +108,15 @@ class TeacherLogController {
     }
     static function parseUser() {
         enableIter();
-        req("LogFileToDBController");
-        //LogFileToDBController::run();
         $class=Auth::curClass2();
         $teacherObj=Auth::curTeacher();
+
+        if (defined("LOG_VIEWER_ONLY")) {
+            if (!$class) {
+                header("Location: .?TeacherLog/bauth");
+                exit;
+            }
+        }
         $canSeeOtherUsersLogs=0;
         if($teacherObj && $teacherObj->isTeacherOf($class)) {
             $teacher=$teacherObj->id;
@@ -122,7 +134,7 @@ class TeacherLogController {
             if (!$targetUser) {
                 die("Not logged in");
             }
-            if ($class->getOption("showOtherStudentsLogs")) {
+            if (showOtherStudentsLogs($class)) {
                 $canSeeOtherUsersLogs=1;
                 $user=param("user",null);
                 if ($user) {
@@ -132,7 +144,8 @@ class TeacherLogController {
             //$user=$targetUser->name;
         }
         return array("user"=>$targetUser, "teacher"=>$teacherObj,
-        "canSeeOtherUsersLogs"=>$canSeeOtherUsersLogs);
+        "canSeeOtherUsersLogs"=>$canSeeOtherUsersLogs,
+        "class"=>$class);
     }
     static function getLogClusters() {
         $day=DateUtil::toInt(param("day",DateUtil::now()));
@@ -241,6 +254,13 @@ class TeacherLogController {
         } else {
             $teacherID="";
         }
+        req("LogFileToDBController");
+        if (checkClassConsistency($targetUser->_class)) return;
+        if (isExternal($targetUser->_class)) {
+            LogFileToDBController::run($targetUser);
+            checkExternal($targetUser->_class);
+            return;
+        }
         ?>
 <html>
     <head>
@@ -299,10 +319,14 @@ class TeacherLogController {
         <?php
     }
     static function view1() {
+        req("LogFileToDBController");
         // focus to one student
         $day=DateUtil::toInt(param("day",DateUtil::now()));
         // If i can do , i do it.
         $class=Auth::curClass2();
+        if (checkExternal($class)) {
+            return;   
+        }
         $teacherObj=Auth::curTeacher();
         if($teacherObj) {
             $teacher=Auth::curTeacher()->id;
@@ -463,12 +487,11 @@ class TeacherLogController {
     static function bot() {
         date_default_timezone_set('Asia/Tokyo');
         $class=Auth::curClass2();
-        if (!$class->getOption("showOtherStudentsLogs")) {
+        if (!showOtherStudentsLogs($class)) {
             Auth::assertTeacher();
         }
         req("LogFileToDBController");
-        //LogFileToDBController::run();
-
+        
         $thisURL="a.php?TeacherLog/bot";
         $now=time();
         $interval=param('interval',300);
@@ -729,12 +752,11 @@ class TeacherLogController {
     static function bot_noerr() {
       date_default_timezone_set('Asia/Tokyo');
       $class=Auth::curClass2();
-      if (!$class->getOption("showOtherStudentsLogs")) {
+      if (!showOtherStudentsLogs($class)) {
           Auth::assertTeacher();
       }
       req("LogFileToDBController");
-      //LogFileToDBController::run();
-
+      
       $thisURL="a.php?TeacherLog/bot_noerr";
       $now=time();
       $interval=param('interval',300);
@@ -855,15 +877,30 @@ class TeacherLogController {
     static function view() {
         date_default_timezone_set('Asia/Tokyo');
         $class=Auth::curClass2();
-        if (!$class->getOption("showOtherStudentsLogs")) {
-            Auth::assertTeacher();
+        if (checkClassConsistency($class)) return;
+        if (!showOtherStudentsLogs($class)) {
+            if (defined("LOG_VIEWER_ONLY")) {
+
+            } else {
+                Auth::assertTeacher();
+            }
         }
         $teacherObj=Auth::curTeacher();
         if ($teacherObj) {
             $teacher=$teacherObj->id;
         } else {
             $teacher="";
+            if (defined("LOG_VIEWER_ONLY")) {
+                die("You are not teacher");
+            }
         }
+        req("LogFileToDBController");
+        if (isExternal($class)) {
+            LogFileToDBController::run($class);
+            checkExternal($class);
+            return;
+        }
+
         $now=time();
         $interval=param('interval',600);
         if(!param("Y",false)){
@@ -874,7 +911,16 @@ class TeacherLogController {
             $max=strtotime(param('aY')."/".param('am')."/".param('ad')." ".param('aH').":".param('ai').":".param('as'));
         }
         $reloadMode=param('reloadMode',0);
-        $students=$class->getAllStu();
+        if (defined("LOG_VIEWER_ONLY")) {
+            $students=[];
+            foreach (
+                pdo_select("select distinct user from log where class=?;", $class->id)
+                as $u) {
+                    $students[]=$class->getUser($u->user);
+            }
+        } else {
+            $students=$class->getAllStu();
+        }
         $runcount=Array();
         $runhistory=[];
         ?>
@@ -900,7 +946,8 @@ class TeacherLogController {
         if ("<?=$teacher?>") logs["<?=$teacher?>"]=[];
         </script>
         <?php
-        $logs=$class->getAllLogs($min,$max);
+        $logs=$class->getAllLogs($min,$max);     
+        //
         foreach($logs as $log){
             if(!isset($runcount[$log['user']])){
                 $runcount[$log['user']]=0;
@@ -1007,8 +1054,10 @@ class TeacherLogController {
         <hr>
         <a target="panorama" href="?TeacherLog/panorama">最新のソースコード一覧</a>
     	<hr>
+        <?php if(!defined("LOG_VIEWER_ONLY")) { ?>
       <iframe src="./js/log/timeline/index.html?day=<?=date("Y",$max)?>-<?=date("m",$max)?>-<?=date("d",$max)?>"></iframe><br>
       <a href="./js/log/timeline/index.html?day=<?=date("Y",$max)?>-<?=date("m",$max)?>-<?=date("d",$max)?>" target="_timeline">タイムラインを別画面で見る</a>
+        <?php } ?>
       <hr>
     	<?php
     	    echo date("Y/m/d H:i:s",$min)." から ".date("Y/m/d H:i:s",$max)."までの実行状況";
@@ -1072,7 +1121,7 @@ class TeacherLogController {
         $user=$p["user"];
         $teacher=$p["teacher"];
         $class=$user->getClass();
-        if (!$teacher && !$class->getOption("showOtherStudentsLogs")) {
+        if (!$teacher && !showOtherStudentsLogs($class)) {
             throw new Exception("You cannot see logs");
         }
         $file=param("file",null);
@@ -1297,8 +1346,74 @@ class TeacherLogController {
         $p=self::parseUser();
         $user=$p["user"];
         $teacher=$p["teacher"];
-        echo $user->getOptions()->name;
+        if (defined("LOG_VIEWER_ONLY")) {
+            echo $user->name;
+        } else {
+            echo $user->getOptions()->name;
+        }
     }
-}
+    static function bauth() {        
+        $code=param("code",null);
+        $ba_top_url=PathUtil::truncSep(BA_TOP_URL);
+        if (!$code) {
+            header("Location: ".LOG_VIEWER_ONLY."?Login/curStatus&callback=$ba_top_url/?TeacherLog/bauth");
+            return;
+        }
+        $r=file_get_contents(LOG_VIEWER_ONLY."?Login/bauth&status=$code");
+        if ($r==="OK") {
+            MySession::set("log_viewer_auth", $code);
+            $s=json_decode($code);
+            MySession::set("user",$s->user);
+            if (isset($s->{"class"})) {
+                MySession::set("class",$s->{"class"});
+            }
+            if (isset($s->teacher)) {
+                MySession::set("teacher",$s->teacher);
+                header("Location: $ba_top_url/?TeacherLog/view");
+            } else {
+                header("Location: $ba_top_url/?TeacherLog/view1Dates");
+            }            
+        } else {
+            print $r;
+        }
+    }
 
+}
+function subtractSubstring($str, $substring) {
+    // $substringが空文字列の場合は$strをそのまま返す
+    if(empty($substring) || !is_string($substring)) {
+      return $str;
+    }
+    
+    // $substringが$strに含まれる場合は、$substringを空文字列に置き換えた文字列を返す
+    if(strpos($str, $substring) !== false) {
+      return str_replace($substring, "", $str);
+    }
+    
+    // $substringが$strに含まれない場合は、$strをそのまま返す
+    return $str;
+  }
+function removeEmptyLines($input) {
+    $pattern = '/^\s*\n/m'; // 正規表現パターン: 空行を表す
+    return preg_replace($pattern, '', $input);
+}
+function showOtherStudentsLogs($class){
+    if (defined("LOG_VIEWER_ONLY")) return false;
+    return $class->getOption("showOtherStudentsLogs");
+}
+function checkExternal($class){
+    if (isExternal($class)) {
+        header("Location: ".EXTERNAL_LOG_VIEWER."?".$_SERVER["QUERY_STRING"]."&class=".$class->id);
+            return true;   
+    }
+    return false;
+}
+function checkClassConsistency($class) {
+    if (!defined("LOG_VIEWER_ONLY")) return false;
+    $pclass=param("class",null);
+    if (!$pclass) return false;
+    if ($pclass===$class->id) return false;
+    header("Location: ?TeacherLog/bauth");    
+    return true;
+}
 ?>
