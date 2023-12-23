@@ -61,6 +61,7 @@ class TeacherLogController {
             $user=Auth::curUser2();
         }*/
         //print $class->id." , ".$user->name;
+        req("LogFileToDBController");
         LogFileToDBController::run($user);
         $it=pdo_select_iter("select time,result from log where class=? and user=? order by time desc ",$class->id, $user->name);
         $has=array();
@@ -101,10 +102,17 @@ class TeacherLogController {
     }
     static function parseUser() {
         enableIter();
-        req("LogFileToDBController");
+        //req("LogFileToDBController");
         //LogFileToDBController::run();
         $class=Auth::curClass2();
         $teacherObj=Auth::curTeacher();
+
+        if (defined("LOG_VIEWER_ONLY")) {
+            if (!$class) {
+                header("Location: .?TeacherLog/bauth");
+                exit;
+            }
+        }
         $canSeeOtherUsersLogs=0;
         if($teacherObj && $teacherObj->isTeacherOf($class)) {
             $teacher=$teacherObj->id;
@@ -132,7 +140,8 @@ class TeacherLogController {
             //$user=$targetUser->name;
         }
         return array("user"=>$targetUser, "teacher"=>$teacherObj,
-        "canSeeOtherUsersLogs"=>$canSeeOtherUsersLogs);
+        "canSeeOtherUsersLogs"=>$canSeeOtherUsersLogs,
+        "class"=>$class);
     }
     static function getLogClusters() {
         $day=DateUtil::toInt(param("day",DateUtil::now()));
@@ -1387,6 +1396,32 @@ class TeacherLogController {
         $teacher=$p["teacher"];
         echo $user->getOptions()->name;
     }
+    static function bauth() {        
+        $code=param("code",null);
+        $ba_top_url=PathUtil::truncSep(BA_TOP_URL);
+        if (!$code) {
+            header("Location: ".LOG_VIEWER_ONLY."?Login/curStatus&callback=$ba_top_url/?TeacherLog/bauth");
+            return;
+        }
+        $r=file_get_contents(LOG_VIEWER_ONLY."?Login/bauth&status=$code");
+        if ($r==="OK") {
+            MySession::set("log_viewer_auth", $code);
+            $s=json_decode($code);
+            MySession::set("user",$s->user);
+            if (isset($s->{"class"})) {
+                MySession::set("class",$s->{"class"});
+            }
+            if (isset($s->teacher)) {
+                MySession::set("teacher",$s->teacher);
+                header("Location: $ba_top_url/?TeacherLog/view");
+            } else {
+                header("Location: $ba_top_url/?TeacherLog/view1Dates");
+            }            
+        } else {
+            print $r;
+        }
+    }
+
 }
 function subtractSubstring($str, $substring) {
     // $substringが空文字列の場合は$strをそのまま返す
