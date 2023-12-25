@@ -11,7 +11,7 @@ class TeacherLogController {
         $user=$p["user"];
         $teacher=$p["teacher"];
         $class=$user->getClass();
-        if (!$teacher && !$class->getOption("showOtherStudentsLogs")) {
+        if (!$teacher && !showOtherStudentsLogs($class)) {
             throw new Exception("You cannot see logs");
         }
         $classid=param("classid",NULL);
@@ -40,7 +40,7 @@ class TeacherLogController {
         $user=$p["user"];
         $teacher=$p["teacher"];
         $class=$user->getClass();
-        if ($teacher || $class->getOption("showOtherStudentsLogs")) {
+        if ($teacher || showOtherStudentsLogs($class)) {
             ?>
             <a href=".?TeacherLog/view">他ユーザのログを見る</a>
             <?php
@@ -130,7 +130,7 @@ class TeacherLogController {
             if (!$targetUser) {
                 die("Not logged in");
             }
-            if ($class->getOption("showOtherStudentsLogs")) {
+            if (showOtherStudentsLogs($class)) {
                 $canSeeOtherUsersLogs=1;
                 $user=param("user",null);
                 if ($user) {
@@ -543,7 +543,7 @@ class TeacherLogController {
     static function bot() {
         date_default_timezone_set('Asia/Tokyo');
         $class=Auth::curClass2();
-        if (!$class->getOption("showOtherStudentsLogs")) {
+        if (!showOtherStudentsLogs($class)) {
             Auth::assertTeacher();
         }
         req("LogFileToDBController");
@@ -809,7 +809,7 @@ class TeacherLogController {
     static function bot_noerr() {
       date_default_timezone_set('Asia/Tokyo');
       $class=Auth::curClass2();
-      if (!$class->getOption("showOtherStudentsLogs")) {
+      if (!showOtherStudentsLogs($class)) {
           Auth::assertTeacher();
       }
       req("LogFileToDBController");
@@ -936,7 +936,7 @@ class TeacherLogController {
         date_default_timezone_set('Asia/Tokyo');
         $showActTime=param("showActTime",true);
         $class=Auth::curClass2();
-        if (!$class->getOption("showOtherStudentsLogs")) {
+        if (!showOtherStudentsLogs($class)) {
             Auth::assertTeacher();
         }
         $teacherObj=Auth::curTeacher();
@@ -958,7 +958,11 @@ class TeacherLogController {
         $students=$class->getAllStu();
         $name2disp=[];
         foreach ($students as $user) {
-            $name2disp[$user->name]=(isset($user->getOptions()->name) ? $user->getOptions()->name : $user->name);
+            if (defined("LOG_VIEWER_ONLY")) {
+                $name2disp[$user->name]=$user->name;
+            } else {
+                $name2disp[$user->name]=(isset($user->getOptions()->name) ? $user->getOptions()->name : $user->name);
+            }
         }
         $runcount=Array();
         $runhistory=[];
@@ -1169,7 +1173,7 @@ class TeacherLogController {
         $user=$p["user"];
         $teacher=$p["teacher"];
         $class=$user->getClass();
-        if (!$teacher && !$class->getOption("showOtherStudentsLogs")) {
+        if (!$teacher && !showOtherStudentsLogs($class)) {
             throw new Exception("You cannot see logs");
         }
         $file=param("file",null);
@@ -1394,7 +1398,11 @@ class TeacherLogController {
         $p=self::parseUser();
         $user=$p["user"];
         $teacher=$p["teacher"];
-        echo $user->getOptions()->name;
+        if (defined("LOG_VIEWER_ONLY")) {
+            echo $user->name;
+        } else {
+            echo $user->getOptions()->name;
+        }
     }
     static function bauth() {        
         $code=param("code",null);
@@ -1440,5 +1448,9 @@ function subtractSubstring($str, $substring) {
 function removeEmptyLines($input) {
     $pattern = '/^\s*\n/m'; // 正規表現パターン: 空行を表す
     return preg_replace($pattern, '', $input);
+}
+function showOtherStudentsLogs($class){
+    if (defined("LOG_VIEWER_ONLY")) return false;
+    return $class->getOption("showOtherStudentsLogs");
 }
 ?>
