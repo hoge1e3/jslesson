@@ -937,13 +937,20 @@ class TeacherLogController {
         $showActTime=param("showActTime",true);
         $class=Auth::curClass2();
         if (!showOtherStudentsLogs($class)) {
-            Auth::assertTeacher();
+            if (defined("LOG_VIEWER_ONLY")) {
+
+            } else {
+                Auth::assertTeacher();
+            }
         }
         $teacherObj=Auth::curTeacher();
         if ($teacherObj) {
             $teacher=$teacherObj->id;
         } else {
             $teacher="";
+            if (defined("LOG_VIEWER_ONLY")) {
+                die("You are not teacher");
+            }
         }
         $now=time();
         $interval=param('interval',600);
