@@ -997,7 +997,17 @@ class TeacherLogController {
         </script>
         <?php
         $logs=$class->getAllLogs($min,$max);
-        $stus=$class->getAllStu();
+        if (defined("LOG_VIEWER_ONLY")) {
+            $stus=[];
+            foreach (
+                pdo_select("select distinct user from log where class=?;", $class->id)
+                as $u) {
+                $stus[]=$class->getUser($u->user);
+            }
+        } else {
+            $stus=$class->getAllStu();
+        }        
+        //
         foreach($logs as $log){
             if(!isset($runcount[$log['user']])){
                 $runcount[$log['user']]=0;
@@ -1105,8 +1115,10 @@ class TeacherLogController {
         <hr>
         <a target="panorama" href="?TeacherLog/panorama">最新のソースコード一覧</a>
     	<hr>
+        <?php if(!defined("LOG_VIEWER_ONLY")) { ?>
       <iframe src="./js/log/timeline/index.html?day=<?=date("Y",$max)?>-<?=date("m",$max)?>-<?=date("d",$max)?>"></iframe><br>
       <a href="./js/log/timeline/index.html?day=<?=date("Y",$max)?>-<?=date("m",$max)?>-<?=date("d",$max)?>" target="_timeline">タイムラインを別画面で見る</a>
+        <?php } ?>
       <hr>
     	<?php
     	    echo date("Y/m/d H:i:s",$min)." から ".date("Y/m/d H:i:s",$max)."までの実行状況";
