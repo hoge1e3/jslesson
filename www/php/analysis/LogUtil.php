@@ -94,6 +94,9 @@ class LogUtil {
         if (!$r) {
             throw new Exception("ID $id is not found");
         }
+        if (defined("LOG_VIEWER_ONLY")) {
+            return $r;
+        }
         //print_r($r);
         $user=Auth::curUser2();
         $class=$user->_class;
