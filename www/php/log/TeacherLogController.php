@@ -962,7 +962,16 @@ class TeacherLogController {
             $max=strtotime(param('aY')."/".param('am')."/".param('ad')." ".param('aH').":".param('ai').":".param('as'));
         }
         $reloadMode=param('reloadMode',0);
-        $students=$class->getAllStu();
+        if (defined("LOG_VIEWER_ONLY")) {
+            $students=[];
+            foreach (
+                pdo_select("select distinct user from log where class=?;", $class->id)
+                as $u) {
+                    $students[]=$class->getUser($u->user);
+            }
+        } else {
+            $students=$class->getAllStu();
+        }
         $name2disp=[];
         foreach ($students as $user) {
             if (defined("LOG_VIEWER_ONLY")) {
@@ -996,17 +1005,7 @@ class TeacherLogController {
         if ("<?=$teacher?>") logs["<?=$teacher?>"]=[];
         </script>
         <?php
-        $logs=$class->getAllLogs($min,$max);
-        if (defined("LOG_VIEWER_ONLY")) {
-            $stus=[];
-            foreach (
-                pdo_select("select distinct user from log where class=?;", $class->id)
-                as $u) {
-                $stus[]=$class->getUser($u->user);
-            }
-        } else {
-            $stus=$class->getAllStu();
-        }        
+        $logs=$class->getAllLogs($min,$max);     
         //
         foreach($logs as $log){
             if(!isset($runcount[$log['user']])){
