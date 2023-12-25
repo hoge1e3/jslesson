@@ -30,7 +30,14 @@ class TeacherController {
     	$ignoreNonexistent=isset($_POST["ignoreNonexistent"]);
     	self::$mesg=Auth::loginTeacher2(self::$name,$pass,$ignoreNonexistent);
     	if (self::$mesg===true) {
-    	    redirect("Teacher/home");
+            $c=param("callback","");
+            if ($c) {
+                req("LoginController");
+                LoginController::curStatus();
+                return;
+            } else {
+                redirect("Teacher/home");
+            }
         } else {
             self::login();
         }
