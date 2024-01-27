@@ -35,11 +35,18 @@ class TeacherLogController {
         //echo $day;
     }
     static function view1Dates() {
+        req("LogFileToDBController");
         $day=DateUtil::toInt(param("day",DateUtil::now()));
         $p=self::parseUser();
         $user=$p["user"];
         $teacher=$p["teacher"];
         $class=$user->getClass();
+        if (checkClassConsistency($class)) return;
+        if (isExternal($class)) {
+            LogFileToDBController::run($user);
+            checkExternal($class);                        
+            return;   
+        }
         if ($teacher || showOtherStudentsLogs($class)) {
             ?>
             <a href=".?TeacherLog/view">他ユーザのログを見る</a>
@@ -61,7 +68,6 @@ class TeacherLogController {
             $user=Auth::curUser2();
         }*/
         //print $class->id." , ".$user->name;
-        req("LogFileToDBController");
         LogFileToDBController::run($user);
         $it=pdo_select_iter("select time,result from log where class=? and user=? order by time desc ",$class->id, $user->name);
         $has=array();
@@ -102,8 +108,6 @@ class TeacherLogController {
     }
     static function parseUser() {
         enableIter();
-        //req("LogFileToDBController");
-        //LogFileToDBController::run();
         $class=Auth::curClass2();
         $teacherObj=Auth::curTeacher();
 
@@ -250,6 +254,13 @@ class TeacherLogController {
         } else {
             $teacherID="";
         }
+        req("LogFileToDBController");
+        if (checkClassConsistency($targetUser->_class)) return;
+        if (isExternal($targetUser->_class)) {
+            LogFileToDBController::run($targetUser);
+            checkExternal($targetUser->_class);
+            return;
+        }
         ?>
 <html>
     <head>
@@ -309,10 +320,14 @@ class TeacherLogController {
         <?php
     }
     static function view1() {
+        req("LogFileToDBController");
         // focus to one student
         $day=DateUtil::toInt(param("day",DateUtil::now()));
         // If i can do , i do it.
         $class=Auth::curClass2();
+        if (checkExternal($class)) {
+            return;   
+        }
         $teacherObj=Auth::curTeacher();
         if($teacherObj) {
             $teacher=Auth::curTeacher()->id;
@@ -547,8 +562,7 @@ class TeacherLogController {
             Auth::assertTeacher();
         }
         req("LogFileToDBController");
-        //LogFileToDBController::run();
-
+        
         $thisURL="a.php?TeacherLog/bot";
         $now=time();
         $interval=param('interval',300);
@@ -813,8 +827,7 @@ class TeacherLogController {
           Auth::assertTeacher();
       }
       req("LogFileToDBController");
-      //LogFileToDBController::run();
-
+      
       $thisURL="a.php?TeacherLog/bot_noerr";
       $now=time();
       $interval=param('interval',300);
@@ -936,6 +949,7 @@ class TeacherLogController {
         date_default_timezone_set('Asia/Tokyo');
         $showActTime=param("showActTime",true);
         $class=Auth::curClass2();
+        if (checkClassConsistency($class)) return;
         if (!showOtherStudentsLogs($class)) {
             if (defined("LOG_VIEWER_ONLY")) {
 
@@ -952,6 +966,13 @@ class TeacherLogController {
                 die("You are not teacher");
             }
         }
+        req("LogFileToDBController");
+        if (isExternal($class)) {
+            LogFileToDBController::run($class);
+            checkExternal($class);
+            return;
+        }
+
         $now=time();
         $interval=param('interval',600);
         if(!param("Y",false)){
@@ -1470,5 +1491,20 @@ function removeEmptyLines($input) {
 function showOtherStudentsLogs($class){
     if (defined("LOG_VIEWER_ONLY")) return false;
     return $class->getOption("showOtherStudentsLogs");
+}
+function checkExternal($class){
+    if (isExternal($class)) {
+        header("Location: ".EXTERNAL_LOG_VIEWER."?".$_SERVER["QUERY_STRING"]."&class=".$class->id);
+            return true;   
+    }
+    return false;
+}
+function checkClassConsistency($class) {
+    if (!defined("LOG_VIEWER_ONLY")) return false;
+    $pclass=param("class",null);
+    if (!$pclass) return false;
+    if ($pclass===$class->id) return false;
+    header("Location: ?TeacherLog/bauth");    
+    return true;
 }
 ?>

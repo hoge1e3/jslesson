@@ -20,8 +20,18 @@ define("BA_FS",  BA_DATA."/fs");
 define("BA_HOME",BA_FS."/home");
 define("BA_PUB", BA_FS."/pub");
 define("BA_MIGRATION", BA_DATA."/migration");
-//define("TEACHER_BAUTH_URL","https://bitarrow.eplang.jp/beta2204/");
-//define("LOG_VIEWER_ONLY","https://bitarrow.eplang.jp/bitarrow/");
+
+//--- set to bitarrow.eplang.jp/*
+//define("EXTERNAL_LOG_VIEWER","https://bitarrow3.eplang.jp/logview/");
+//define("SENDLOG","c:\\bin\\sendlog.bat");
+//define("EXTERNAL_LOG_VIEWER_CLASSES",["meisei18pro1","meisei19pro1","so"]);
+//---
+
+//--- set to bitarrow3.eplang.jp/logview
+define("TEACHER_BAUTH_URL","https://bitarrow.eplang.jp/beta2204/");
+define("LOG_VIEWER_ONLY","https://bitarrow.eplang.jp/beta2204/");
+//---
+
 //define("NEWS","<a href='https://bitarrow.eplang.jp/'>NEWS: KOWARETA</a>");
 //define("MAINTENANCE","KOWARETEIMASU");
 //$ba_top_url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
