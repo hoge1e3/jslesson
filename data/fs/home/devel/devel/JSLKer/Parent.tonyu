@@ -40,6 +40,7 @@ native URL;
 }
 \findElement(elem) {
     if (elem instanceof $) return elem;
+    if (elem instanceof window.Node) return $(elem);
     var res=$("[name="+elem+"]");
     if (res[0]) return res;
     return $("#"+elem);
@@ -89,9 +90,26 @@ native URL;
 \setNumber(elem,num){
     setText(elem,num);
 }
-
-\onClick(elem,func){
+\arrayLike(a) {
+    if (typeof a.length!=="number") return false;
+    if (a.length==0) return true;
+    return a[a.length-1]!==undefined;
+}
+\getAttr(elem,name) {
+    elem=findElement(elem);
+    return elem.attr(name);
+}
+\setAttr(elem,name,value) {
+    elem=findElement(elem);
+    return elem.attr(name,value);
+}
+\onClick(elem,func,args){
     var usepara,fname;
+    elem=findElement(elem);
+    if (args!=null && !arrayLike(args)) {
+        args=[args];
+    }
+    args=args||[elem];
     if(typeof func == 'function'){
         if (func.methodInfo) {
             fname=func.methodInfo.name;
@@ -106,12 +124,14 @@ native URL;
         }
     }
     if (usepara) {
-        findElement(elem).click(catchException \ {
-            parallel(fname);
+        elem.click(catchException \ {
+            parallel.apply(this, [fname].concat(args));
         });
     } else {
         //document.getElementsByName(elem)[0].onclick=func;
-        findElement(elem).click(catchException(func));
+        elem.click(catchException \{
+            return func.apply(this, args);
+        });
     }
 }
 \onTouch(func){
@@ -225,10 +245,33 @@ native URL;
 }
 
 // 動的DOM生成
-\newElement(elem,n){
-    var e= document.createElement(elem);
-    e.setAttribute("name", n);
-    document.body.appendChild(e);
+\newElement(elem, n, innerHTML){
+    var e=document.createElement(elem);
+    var parent=$(document.body);
+    var after={};
+    if (typeof n==="string") {
+        e.setAttribute("name", n);
+    } else {
+        if (n.parent) {
+            parent=findElement(n.parent);
+            if (typeof n.parent!=="string") delete n.parent;
+        }
+        if (n.onClick) {
+            after.onClick=n.onClick;
+            delete n.onClick;
+        }    
+        for (var k,v in n) {
+            e.setAttribute(k,v);
+        }
+    }
+    if (innerHTML) {
+        e.innerHTML=innerHTML;
+    }
+    parent.append(e);
+    if (after.onClick) {
+        onClick(e, after.onClick);
+    }
+    return $(e);
 }
 \fillOval(x,y,w,h){
     if(searchCanvas()){
