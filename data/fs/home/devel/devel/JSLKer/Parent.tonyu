@@ -346,14 +346,20 @@ nowait \deg(d) {
 }
 \_waitFor(promise) {
     var t=_thread;
+    var runThread=catchException \{
+        t.steps();
+        if (t.preempted) {
+            setTimeout(runThread,0);
+        }
+    };
     t.suspend();
     _err=null;
     promise.then(\(r) {
         _res=r;
-        t.steps();
+        runThread();
     },\(e) {
         _err=(e instanceof window.Error ? e : new Error(e.responseText || e+""));
-        t.steps();
+        runThread();
     });
 }
 \waitFor(promise) {
@@ -555,7 +561,7 @@ nowait \deg(d) {
             ifrm.remove();
             s(e.data.result);
         };
-        var ifrm=window.$("<iframe>").attr{src:url+"?stdin="+stdin, width:1,height:1}.appendTo("body");
+        var ifrm=window.$("<iframe>").attr{src:url+"?stdin="+window.encodeURI(stdin), width:1,height:1}.appendTo("body");
     };
     var r=waitFor(p);
     return r;
