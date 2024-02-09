@@ -109,16 +109,16 @@ Tonyu.klass.define({
         "use strict";
         var _this=this;
         var f;
-        var _it_155;
+        var _it_316;
         
         if (! window.Plotly) {
           window.setTimeout(Tonyu.bindFunc(_this,_this.waitLoadLib),100);
           
         } else {
           _this.Plotly=window.Plotly;
-          _it_155=Tonyu.iterator(_this.loadLibHandlers,1);
-          while(_it_155.next()) {
-            f=_it_155[0];
+          _it_316=Tonyu.iterator(_this.loadLibHandlers,1);
+          while(_it_316.next()) {
+            f=_it_316[0];
             
             f(_this.Plotly);
           }
@@ -131,16 +131,16 @@ Tonyu.klass.define({
         //var _arguments=Tonyu.A(arguments);
         var __pc=0;
         var f;
-        var _it_155;
+        var _it_316;
         
         if (! window.Plotly) {
           window.setTimeout(Tonyu.bindFunc(_this,_this.waitLoadLib),100);
           
         } else {
           _this.Plotly=window.Plotly;
-          _it_155=Tonyu.iterator(_this.loadLibHandlers,1);
-          while(_it_155.next()) {
-            f=_it_155[0];
+          _it_316=Tonyu.iterator(_this.loadLibHandlers,1);
+          while(_it_316.next()) {
+            f=_it_316[0];
             
             f(_this.Plotly);
           }
@@ -753,13 +753,13 @@ Tonyu.klass.define({
         var _this=this;
         var ret;
         var o;
-        var _it_177;
+        var _it_338;
         
         ret = [];
         
-        _it_177=Tonyu.iterator(_this.vec(k),1);
-        while(_it_177.next()) {
-          o=_it_177[0];
+        _it_338=Tonyu.iterator(_this.vec(k),1);
+        while(_it_338.next()) {
+          o=_it_338[0];
           
           if (ret[o[k]]) {
             ret[o[k]]++;
@@ -779,13 +779,13 @@ Tonyu.klass.define({
         var __pc=0;
         var ret;
         var o;
-        var _it_177;
+        var _it_338;
         
         ret = [];
         
-        _it_177=Tonyu.iterator(_this.vec(k),1);
-        while(_it_177.next()) {
-          o=_it_177[0];
+        _it_338=Tonyu.iterator(_this.vec(k),1);
+        while(_it_338.next()) {
+          o=_it_338[0];
           
           if (ret[o[k]]) {
             ret[o[k]]++;
@@ -1259,7 +1259,7 @@ Tonyu.klass.define({
         var _this=this;
         var s;
         var v;
-        var _it_193;
+        var _it_354;
         
         s = 0;
         
@@ -1272,9 +1272,9 @@ Tonyu.klass.define({
           }
           
         } else {
-          _it_193=Tonyu.iterator(_this.vec(k),1);
-          while(_it_193.next()) {
-            v=_it_193[0];
+          _it_354=Tonyu.iterator(_this.vec(k),1);
+          while(_it_354.next()) {
+            v=_it_354[0];
             
             s+=v-0;
             
@@ -1290,7 +1290,7 @@ Tonyu.klass.define({
         var __pc=0;
         var s;
         var v;
-        var _it_193;
+        var _it_354;
         
         s = 0;
         
@@ -1303,9 +1303,9 @@ Tonyu.klass.define({
           }
           
         } else {
-          _it_193=Tonyu.iterator(_this.vec(k),1);
-          while(_it_193.next()) {
-            v=_it_193[0];
+          _it_354=Tonyu.iterator(_this.vec(k),1);
+          while(_it_354.next()) {
+            v=_it_354[0];
             
             s+=v-0;
             
@@ -1361,7 +1361,7 @@ Tonyu.klass.define({
         var a;
         var i;
         var v;
-        var _it_198;
+        var _it_359;
         
         d = [];
         a = 0;
@@ -1378,9 +1378,9 @@ Tonyu.klass.define({
           
         } else {
           a=_this.mean(k);
-          _it_198=Tonyu.iterator(_this.vec(k),1);
-          while(_it_198.next()) {
-            v=_it_198[0];
+          _it_359=Tonyu.iterator(_this.vec(k),1);
+          while(_it_359.next()) {
+            v=_it_359[0];
             
             d.push(v-a);
             
@@ -1398,7 +1398,7 @@ Tonyu.klass.define({
         var a;
         var i;
         var v;
-        var _it_198;
+        var _it_359;
         
         d = [];
         a = 0;
@@ -1429,9 +1429,9 @@ Tonyu.klass.define({
             case 3:
               a=_thread.retVal;
               
-              _it_198=Tonyu.iterator(_this.vec(k),1);
-              while(_it_198.next()) {
-                v=_it_198[0];
+              _it_359=Tonyu.iterator(_this.vec(k),1);
+              while(_it_359.next()) {
+                v=_it_359[0];
                 
                 d.push(v-a);
                 
@@ -1579,7 +1579,7 @@ Tonyu.klass.define({
         var dataCov;
         var k;
         var v;
-        var _it_208;
+        var _it_369;
         
         dev1 = _this.dev(k1);
         
@@ -1587,10 +1587,10 @@ Tonyu.klass.define({
         
         dataCov = 0;
         
-        _it_208=Tonyu.iterator(dev1,2);
-        while(_it_208.next()) {
-          k=_it_208[0];
-          v=_it_208[1];
+        _it_369=Tonyu.iterator(dev1,2);
+        while(_it_369.next()) {
+          k=_it_369[0];
+          v=_it_369[1];
           
           dataCov+=dev1[k]*dev2[k];
           
@@ -1608,7 +1608,7 @@ Tonyu.klass.define({
         var dataCov;
         var k;
         var v;
-        var _it_208;
+        var _it_369;
         
         
         _thread.enter(function _trc_Graph_ent_cov(_thread) {
@@ -1628,10 +1628,10 @@ Tonyu.klass.define({
               
               dataCov = 0;
               
-              _it_208=Tonyu.iterator(dev1,2);
-              while(_it_208.next()) {
-                k=_it_208[0];
-                v=_it_208[1];
+              _it_369=Tonyu.iterator(dev1,2);
+              while(_it_369.next()) {
+                k=_it_369[0];
+                v=_it_369[1];
                 
                 dataCov+=dev1[k]*dev2[k];
                 
@@ -1829,7 +1829,7 @@ Tonyu.klass.define({
         "use strict";
         var _this=this;
         
-        return (function anonymous_538() {
+        return (function anonymous_560() {
           var e;
           
           try {
@@ -1847,7 +1847,7 @@ Tonyu.klass.define({
         //var _arguments=Tonyu.A(arguments);
         var __pc=0;
         
-        _thread.retVal=(function anonymous_538() {
+        _thread.retVal=(function anonymous_560() {
           var e;
           
           try {
@@ -2299,13 +2299,13 @@ Tonyu.klass.define({
           
         }
         if (usepara) {
-          elem.click(_this.catchException((function anonymous_2856() {
+          elem.click(_this.catchException((function anonymous_2878() {
             
             Tonyu.bindFunc(_this,_this.parallel).apply(_this,[fname].concat(args));
           })));
           
         } else {
-          elem.click(_this.catchException((function anonymous_3040() {
+          elem.click(_this.catchException((function anonymous_3062() {
             
             return func.apply(_this,args);
           })));
@@ -2360,14 +2360,14 @@ Tonyu.klass.define({
               }
               if (!(usepara)) { __pc=2     ; break; }
               {
-                elem.click(_this.catchException((function anonymous_2856() {
+                elem.click(_this.catchException((function anonymous_2878() {
                   
                   Tonyu.bindFunc(_this,_this.parallel).apply(_this,[fname].concat(args));
                 })));
               }
               __pc=3     ;break;
             case 2     :
-              elem.click(_this.catchException((function anonymous_3040() {
+              elem.click(_this.catchException((function anonymous_3062() {
                 
                 return func.apply(_this,args);
               })));
@@ -2383,30 +2383,30 @@ Tonyu.klass.define({
         var _this=this;
         
         if (typeof  func=="function") {
-          $("body").on("touchstart",(function anonymous_3196(e) {
+          $("body").on("touchstart",(function anonymous_3218(e) {
             
             func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"start");
           }));
-          $("body").on("touchmove",(function anonymous_3378(e) {
+          $("body").on("touchmove",(function anonymous_3400(e) {
             
             func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"move");
           }));
-          $("body").on("touchend",(function anonymous_3558(e) {
+          $("body").on("touchend",(function anonymous_3580(e) {
             
             func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"end");
           }));
-          $("body").on("mousedown",(function anonymous_3738(e) {
+          $("body").on("mousedown",(function anonymous_3760(e) {
             
             _this.down=true;
             func(e.pageX,e.pageY,"start");
           }));
-          $("body").on("mousemove",(function anonymous_3866(e) {
+          $("body").on("mousemove",(function anonymous_3888(e) {
             
             if (_this.down) {
               func(e.pageX,e.pageY,"move");
             }
           }));
-          $("body").on("mouseup",(function anonymous_3976(e) {
+          $("body").on("mouseup",(function anonymous_3998(e) {
             
             _this.down=false;
             func(e.pageX,e.pageY,"end");
@@ -2421,30 +2421,30 @@ Tonyu.klass.define({
         var __pc=0;
         
         if (typeof  func=="function") {
-          $("body").on("touchstart",(function anonymous_3196(e) {
+          $("body").on("touchstart",(function anonymous_3218(e) {
             
             func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"start");
           }));
-          $("body").on("touchmove",(function anonymous_3378(e) {
+          $("body").on("touchmove",(function anonymous_3400(e) {
             
             func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"move");
           }));
-          $("body").on("touchend",(function anonymous_3558(e) {
+          $("body").on("touchend",(function anonymous_3580(e) {
             
             func(e.originalEvent.changedTouches[0].pageX,e.originalEvent.changedTouches[0].pageY,"end");
           }));
-          $("body").on("mousedown",(function anonymous_3738(e) {
+          $("body").on("mousedown",(function anonymous_3760(e) {
             
             _this.down=true;
             func(e.pageX,e.pageY,"start");
           }));
-          $("body").on("mousemove",(function anonymous_3866(e) {
+          $("body").on("mousemove",(function anonymous_3888(e) {
             
             if (_this.down) {
               func(e.pageX,e.pageY,"move");
             }
           }));
-          $("body").on("mouseup",(function anonymous_3976(e) {
+          $("body").on("mouseup",(function anonymous_3998(e) {
             
             _this.down=false;
             func(e.pageX,e.pageY,"end");
@@ -2671,7 +2671,7 @@ Tonyu.klass.define({
         time=time||100;
         t = null;
         
-        runThread = _this.catchException((function anonymous_5616() {
+        runThread = _this.catchException((function anonymous_5638() {
           
           t.steps();
           if (t.preempted) {
@@ -2700,7 +2700,7 @@ Tonyu.klass.define({
           for(var __cnt=100 ; __cnt--;) {
             switch (__pc) {
             case 0:
-              _this.fiber$catchException(_thread, (function anonymous_5616() {
+              _this.fiber$catchException(_thread, (function anonymous_5638() {
                 
                 t.steps();
                 if (t.preempted) {
@@ -2760,7 +2760,7 @@ Tonyu.klass.define({
         var after;
         var k;
         var v;
-        var _it_237;
+        var _it_398;
         
         e = _this.document.createElement(elem);
         
@@ -2784,10 +2784,10 @@ Tonyu.klass.define({
             delete n.onClick;
             
           }
-          _it_237=Tonyu.iterator(n,2);
-          while(_it_237.next()) {
-            k=_it_237[0];
-            v=_it_237[1];
+          _it_398=Tonyu.iterator(n,2);
+          while(_it_398.next()) {
+            k=_it_398[0];
+            v=_it_398[1];
             
             e.setAttribute(k,v);
             
@@ -2815,7 +2815,7 @@ Tonyu.klass.define({
         var after;
         var k;
         var v;
-        var _it_237;
+        var _it_398;
         
         e = _this.document.createElement(elem);
         
@@ -2851,10 +2851,10 @@ Tonyu.klass.define({
                 delete n.onClick;
                 
               }
-              _it_237=Tonyu.iterator(n,2);
-              while(_it_237.next()) {
-                k=_it_237[0];
-                v=_it_237[1];
+              _it_398=Tonyu.iterator(n,2);
+              while(_it_398.next()) {
+                k=_it_398[0];
+                v=_it_398[1];
                 
                 e.setAttribute(k,v);
                 
@@ -2999,7 +2999,7 @@ Tonyu.klass.define({
         
         _this.activityGroup=_this.activityGroup||"default";
         _this.keyData=[];
-        _this.document.onkeydown=(function anonymous_7500(e) {
+        _this.document.onkeydown=(function anonymous_7522(e) {
           var key_code;
           var key_char;
           
@@ -3042,7 +3042,7 @@ Tonyu.klass.define({
             }
           }
         });
-        _this.document.onkeyup=(function anonymous_8577(e) {
+        _this.document.onkeyup=(function anonymous_8599(e) {
           var key_code;
           var key_char;
           
@@ -3270,7 +3270,7 @@ Tonyu.klass.define({
         
         clicked = 0;
         
-        _func = (function anonymous_9838() {
+        _func = (function anonymous_9860() {
           
           clicked=1;
         });
@@ -3293,7 +3293,7 @@ Tonyu.klass.define({
         
         clicked = 0;
         
-        _func = (function anonymous_9838() {
+        _func = (function anonymous_9860() {
           
           clicked=1;
         });
@@ -3331,7 +3331,7 @@ Tonyu.klass.define({
         
         t = null;
         
-        runThread = _this.catchException((function anonymous_10079() {
+        runThread = _this.catchException((function anonymous_10101() {
           
           t.steps();
           if (t.preempted) {
@@ -3342,11 +3342,11 @@ Tonyu.klass.define({
         
         t.suspend();
         _this._err=null;
-        promise.then((function anonymous_10239(r) {
+        promise.then((function anonymous_10261(r) {
           
           _this._res=r;
           runThread();
-        }),(function anonymous_10292(e) {
+        }),(function anonymous_10314(e) {
           
           _this._err=(e instanceof window.Error?e:new Error(e.responseText||e+""));
           runThread();
@@ -3368,7 +3368,7 @@ Tonyu.klass.define({
           for(var __cnt=100 ; __cnt--;) {
             switch (__pc) {
             case 0:
-              _this.fiber$catchException(_thread, (function anonymous_10079() {
+              _this.fiber$catchException(_thread, (function anonymous_10101() {
                 
                 t.steps();
                 if (t.preempted) {
@@ -3382,11 +3382,11 @@ Tonyu.klass.define({
               
               t.suspend();
               _this._err=null;
-              promise.then((function anonymous_10239(r) {
+              promise.then((function anonymous_10261(r) {
                 
                 _this._res=r;
                 runThread();
-              }),(function anonymous_10292(e) {
+              }),(function anonymous_10314(e) {
                 
                 _this._err=(e instanceof window.Error?e:new Error(e.responseText||e+""));
                 runThread();
@@ -4262,24 +4262,50 @@ Tonyu.klass.define({
       callServer :function _trc_Parent_callServer(url,stdin) {
         "use strict";
         var _this=this;
+        var t;
+        var timeout;
         var p;
         var r;
         
-        p = new window.Promise((function anonymous_15260(s) {
-          var ifrm;
+        if (typeof  url!=="string") {
+          throw new Error("callServer: "+url+"はURLの文字列ではありません．");
           
-          window.sendResult=(function anonymous_15294(r) {
+          
+        }
+        
+        
+        p = new window.Promise((function anonymous_15092(s) {
+          var fullURL;
+          var ifrm;
+          function clean() {
             
             ifrm.remove();
+            clearTimeout(t);
+            if (timeout) {
+              timeout.remove();
+            }
+          }
+          
+          window.sendResult=(function anonymous_15267(r) {
+            
+            clean();
             s(r);
           });
-          window.onmessage=(function anonymous_15386(e) {
+          window.onmessage=(function anonymous_15353(e) {
             
-            ifrm.remove();
+            clean();
             s(e.data.result);
           });
-          ifrm = window.$("<iframe>").attr({src: url+"?stdin="+window.encodeURI(stdin),width: 1,height: 1}).appendTo("body");
+          fullURL = url+"?stdin="+window.encodeURI(stdin);
           
+          ifrm = window.$("<iframe>").attr({src: fullURL,width: 1,height: 1}).appendTo("body");
+          
+          t=setTimeout((function anonymous_15600() {
+            
+            ifrm.attr({width: 600,height: 300});
+            timeout=window.$("<div>").append("サーバからの応答に時間がかかっています．").append(window.$("<a>").attr({target: "debug",href: fullURL}).text("処理を確認..."));
+            ifrm.before(timeout);
+          }),5000);
         }));
         
         r = _this.waitFor(p);
@@ -4291,24 +4317,50 @@ Tonyu.klass.define({
         var _this=this;
         //var _arguments=Tonyu.A(arguments);
         var __pc=0;
+        var t;
+        var timeout;
         var p;
         var r;
         
-        p = new window.Promise((function anonymous_15260(s) {
-          var ifrm;
+        if (typeof  url!=="string") {
+          throw new Error("callServer: "+url+"はURLの文字列ではありません．");
           
-          window.sendResult=(function anonymous_15294(r) {
+          
+        }
+        
+        
+        p = new window.Promise((function anonymous_15092(s) {
+          var fullURL;
+          var ifrm;
+          function clean() {
             
             ifrm.remove();
+            clearTimeout(t);
+            if (timeout) {
+              timeout.remove();
+            }
+          }
+          
+          window.sendResult=(function anonymous_15267(r) {
+            
+            clean();
             s(r);
           });
-          window.onmessage=(function anonymous_15386(e) {
+          window.onmessage=(function anonymous_15353(e) {
             
-            ifrm.remove();
+            clean();
             s(e.data.result);
           });
-          ifrm = window.$("<iframe>").attr({src: url+"?stdin="+window.encodeURI(stdin),width: 1,height: 1}).appendTo("body");
+          fullURL = url+"?stdin="+window.encodeURI(stdin);
           
+          ifrm = window.$("<iframe>").attr({src: fullURL,width: 1,height: 1}).appendTo("body");
+          
+          t=setTimeout((function anonymous_15600() {
+            
+            ifrm.attr({width: 600,height: 300});
+            timeout=window.$("<div>").append("サーバからの応答に時間がかかっています．").append(window.$("<a>").attr({target: "debug",href: fullURL}).text("処理を確認..."));
+            ifrm.before(timeout);
+          }),5000);
         }));
         
         

@@ -3,6 +3,7 @@
 // cd scripts
 // ./copyKey.sh
 native setTimeout;
+native clearTimeout;
 native $;
 native window;
 native console;
@@ -585,26 +586,37 @@ nowait \deg(d) {
     return r;
 }
 \callServer(url, stdin) {
-    /*if (BitArrow && BitArrow.hosts) {
-        var h=BitArrow.hosts;
-        var u=new URL(url);
-        var ih=new URL(h.ide.top).host;
-        BitArrow.inIDE=(!window.location.hostname) || window.location.hostname===ih;
-        if (BitArrow.inIDE) {
-            u.host=ih;
-            url=u+"";
-        }
-    }*/
+    if (typeof url!=="string") {
+        throw new Error("callServer: "+url+"はURLの文字列ではありません．");
+    }
+    var t;
+    var timeout;
     var p=new window.Promise\(s) {
-        window.sendResult=\(r) {
+        function clean() {
             ifrm.remove();
+            clearTimeout(t);
+            if (timeout) timeout.remove();
+        }
+        window.sendResult=\(r) {
+            clean();
             s(r);
         };
         window.onmessage=\(e) {
-            ifrm.remove();
+            clean();
             s(e.data.result);
         };
-        var ifrm=window.$("<iframe>").attr{src:url+"?stdin="+window.encodeURI(stdin), width:1,height:1}.appendTo("body");
+        var fullURL=url+"?stdin="+window.encodeURI(stdin);
+        var ifrm=window.$("<iframe>").attr{src:fullURL, width:1,height:1}.appendTo("body");
+        t=setTimeout(\{
+            ifrm.attr{width:600, height:300};
+            timeout=window.$("<div>").
+            append("サーバからの応答に時間がかかっています．").
+            append(
+            window.$("<a>").attr{target:"debug",href:fullURL}.
+            text("処理を確認...")
+            );
+            ifrm.before(timeout);
+        },5000);
     };
     var r=waitFor(p);
     return r;
