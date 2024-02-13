@@ -605,7 +605,7 @@ nowait \deg(d) {
             clean();
             s(e.data.result);
         };
-        var fullURL=url+"?stdin="+window.encodeURI(stdin);
+        var fullURL=url+(stdin? "?stdin="+window.encodeURI(stdin) :"");
         var ifrm=window.$("<iframe>").attr{src:fullURL, width:1,height:1}.appendTo("body");
         t=setTimeout(\{
             ifrm.attr{width:600, height:300};
