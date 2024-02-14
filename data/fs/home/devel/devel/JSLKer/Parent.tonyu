@@ -591,10 +591,14 @@ nowait \deg(d) {
     }
     var t;
     var timeout;
-    var p=new window.Promise\(s) {
+    var p=new window.Promise\(_s) {
+        var s=\(str) {
+            str=str.replace(/\s*$/,"");
+            _s(str);
+        };
         function clean() {
             ifrm.remove();
-            clearTimeout(t);
+            window.clearTimeout(t);
             if (timeout) timeout.remove();
         }
         window.sendResult=\(r) {
@@ -607,7 +611,7 @@ nowait \deg(d) {
         };
         var fullURL=url+(stdin? "?stdin="+window.encodeURI(stdin) :"");
         var ifrm=window.$("<iframe>").attr{src:fullURL, width:1,height:1}.appendTo("body");
-        t=setTimeout(\{
+        t=window.setTimeout(\{
             ifrm.attr{width:600, height:300};
             timeout=window.$("<div>").
             append("サーバからの応答に時間がかかっています．").

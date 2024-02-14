@@ -109,16 +109,16 @@ Tonyu.klass.define({
         "use strict";
         var _this=this;
         var f;
-        var _it_474;
+        var _it_1;
         
         if (! window.Plotly) {
           window.setTimeout(Tonyu.bindFunc(_this,_this.waitLoadLib),100);
           
         } else {
           _this.Plotly=window.Plotly;
-          _it_474=Tonyu.iterator(_this.loadLibHandlers,1);
-          while(_it_474.next()) {
-            f=_it_474[0];
+          _it_1=Tonyu.iterator(_this.loadLibHandlers,1);
+          while(_it_1.next()) {
+            f=_it_1[0];
             
             f(_this.Plotly);
           }
@@ -131,16 +131,16 @@ Tonyu.klass.define({
         //var _arguments=Tonyu.A(arguments);
         var __pc=0;
         var f;
-        var _it_474;
+        var _it_1;
         
         if (! window.Plotly) {
           window.setTimeout(Tonyu.bindFunc(_this,_this.waitLoadLib),100);
           
         } else {
           _this.Plotly=window.Plotly;
-          _it_474=Tonyu.iterator(_this.loadLibHandlers,1);
-          while(_it_474.next()) {
-            f=_it_474[0];
+          _it_1=Tonyu.iterator(_this.loadLibHandlers,1);
+          while(_it_1.next()) {
+            f=_it_1[0];
             
             f(_this.Plotly);
           }
@@ -753,13 +753,13 @@ Tonyu.klass.define({
         var _this=this;
         var ret;
         var o;
-        var _it_496;
+        var _it_23;
         
         ret = [];
         
-        _it_496=Tonyu.iterator(_this.vec(k),1);
-        while(_it_496.next()) {
-          o=_it_496[0];
+        _it_23=Tonyu.iterator(_this.vec(k),1);
+        while(_it_23.next()) {
+          o=_it_23[0];
           
           if (ret[o[k]]) {
             ret[o[k]]++;
@@ -779,13 +779,13 @@ Tonyu.klass.define({
         var __pc=0;
         var ret;
         var o;
-        var _it_496;
+        var _it_23;
         
         ret = [];
         
-        _it_496=Tonyu.iterator(_this.vec(k),1);
-        while(_it_496.next()) {
-          o=_it_496[0];
+        _it_23=Tonyu.iterator(_this.vec(k),1);
+        while(_it_23.next()) {
+          o=_it_23[0];
           
           if (ret[o[k]]) {
             ret[o[k]]++;
@@ -1259,7 +1259,7 @@ Tonyu.klass.define({
         var _this=this;
         var s;
         var v;
-        var _it_512;
+        var _it_39;
         
         s = 0;
         
@@ -1272,9 +1272,9 @@ Tonyu.klass.define({
           }
           
         } else {
-          _it_512=Tonyu.iterator(_this.vec(k),1);
-          while(_it_512.next()) {
-            v=_it_512[0];
+          _it_39=Tonyu.iterator(_this.vec(k),1);
+          while(_it_39.next()) {
+            v=_it_39[0];
             
             s+=v-0;
             
@@ -1290,7 +1290,7 @@ Tonyu.klass.define({
         var __pc=0;
         var s;
         var v;
-        var _it_512;
+        var _it_39;
         
         s = 0;
         
@@ -1303,9 +1303,9 @@ Tonyu.klass.define({
           }
           
         } else {
-          _it_512=Tonyu.iterator(_this.vec(k),1);
-          while(_it_512.next()) {
-            v=_it_512[0];
+          _it_39=Tonyu.iterator(_this.vec(k),1);
+          while(_it_39.next()) {
+            v=_it_39[0];
             
             s+=v-0;
             
@@ -1361,7 +1361,7 @@ Tonyu.klass.define({
         var a;
         var i;
         var v;
-        var _it_517;
+        var _it_44;
         
         d = [];
         a = 0;
@@ -1378,9 +1378,9 @@ Tonyu.klass.define({
           
         } else {
           a=_this.mean(k);
-          _it_517=Tonyu.iterator(_this.vec(k),1);
-          while(_it_517.next()) {
-            v=_it_517[0];
+          _it_44=Tonyu.iterator(_this.vec(k),1);
+          while(_it_44.next()) {
+            v=_it_44[0];
             
             d.push(v-a);
             
@@ -1398,7 +1398,7 @@ Tonyu.klass.define({
         var a;
         var i;
         var v;
-        var _it_517;
+        var _it_44;
         
         d = [];
         a = 0;
@@ -1429,9 +1429,9 @@ Tonyu.klass.define({
             case 3:
               a=_thread.retVal;
               
-              _it_517=Tonyu.iterator(_this.vec(k),1);
-              while(_it_517.next()) {
-                v=_it_517[0];
+              _it_44=Tonyu.iterator(_this.vec(k),1);
+              while(_it_44.next()) {
+                v=_it_44[0];
                 
                 d.push(v-a);
                 
@@ -1579,7 +1579,7 @@ Tonyu.klass.define({
         var dataCov;
         var k;
         var v;
-        var _it_527;
+        var _it_54;
         
         dev1 = _this.dev(k1);
         
@@ -1587,10 +1587,10 @@ Tonyu.klass.define({
         
         dataCov = 0;
         
-        _it_527=Tonyu.iterator(dev1,2);
-        while(_it_527.next()) {
-          k=_it_527[0];
-          v=_it_527[1];
+        _it_54=Tonyu.iterator(dev1,2);
+        while(_it_54.next()) {
+          k=_it_54[0];
+          v=_it_54[1];
           
           dataCov+=dev1[k]*dev2[k];
           
@@ -1608,7 +1608,7 @@ Tonyu.klass.define({
         var dataCov;
         var k;
         var v;
-        var _it_527;
+        var _it_54;
         
         
         _thread.enter(function _trc_Graph_ent_cov(_thread) {
@@ -1628,10 +1628,10 @@ Tonyu.klass.define({
               
               dataCov = 0;
               
-              _it_527=Tonyu.iterator(dev1,2);
-              while(_it_527.next()) {
-                k=_it_527[0];
-                v=_it_527[1];
+              _it_54=Tonyu.iterator(dev1,2);
+              while(_it_54.next()) {
+                k=_it_54[0];
+                v=_it_54[1];
                 
                 dataCov+=dev1[k]*dev2[k];
                 
@@ -2760,7 +2760,7 @@ Tonyu.klass.define({
         var after;
         var k;
         var v;
-        var _it_556;
+        var _it_83;
         
         e = _this.document.createElement(elem);
         
@@ -2784,10 +2784,10 @@ Tonyu.klass.define({
             delete n.onClick;
             
           }
-          _it_556=Tonyu.iterator(n,2);
-          while(_it_556.next()) {
-            k=_it_556[0];
-            v=_it_556[1];
+          _it_83=Tonyu.iterator(n,2);
+          while(_it_83.next()) {
+            k=_it_83[0];
+            v=_it_83[1];
             
             e.setAttribute(k,v);
             
@@ -2815,7 +2815,7 @@ Tonyu.klass.define({
         var after;
         var k;
         var v;
-        var _it_556;
+        var _it_83;
         
         e = _this.document.createElement(elem);
         
@@ -2851,10 +2851,10 @@ Tonyu.klass.define({
                 delete n.onClick;
                 
               }
-              _it_556=Tonyu.iterator(n,2);
-              while(_it_556.next()) {
-                k=_it_556[0];
-                v=_it_556[1];
+              _it_83=Tonyu.iterator(n,2);
+              while(_it_83.next()) {
+                k=_it_83[0];
+                v=_it_83[1];
                 
                 e.setAttribute(k,v);
                 
@@ -4274,7 +4274,8 @@ Tonyu.klass.define({
         }
         
         
-        p = new window.Promise((function anonymous_15092(s) {
+        p = new window.Promise((function anonymous_15092(_s) {
+          var s;
           var fullURL;
           var ifrm;
           function clean() {
@@ -4285,13 +4286,19 @@ Tonyu.klass.define({
               timeout.remove();
             }
           }
+          s = (function anonymous_15115(str) {
+            
+            str=str.replace(/\s*$/,"");
+            _s(str);
+          });
           
-          window.sendResult=(function anonymous_15267(r) {
+          
+          window.sendResult=(function anonymous_15367(r) {
             
             clean();
             s(r);
           });
-          window.onmessage=(function anonymous_15353(e) {
+          window.onmessage=(function anonymous_15453(e) {
             
             clean();
             s(e.data.result);
@@ -4300,7 +4307,7 @@ Tonyu.klass.define({
           
           ifrm = window.$("<iframe>").attr({src: fullURL,width: 1,height: 1}).appendTo("body");
           
-          t=setTimeout((function anonymous_15613() {
+          t=setTimeout((function anonymous_15713() {
             
             ifrm.attr({width: 600,height: 300});
             timeout=window.$("<div>").append("サーバからの応答に時間がかかっています．").append(window.$("<a>").attr({target: "debug",href: fullURL}).text("処理を確認..."));
@@ -4329,7 +4336,8 @@ Tonyu.klass.define({
         }
         
         
-        p = new window.Promise((function anonymous_15092(s) {
+        p = new window.Promise((function anonymous_15092(_s) {
+          var s;
           var fullURL;
           var ifrm;
           function clean() {
@@ -4340,13 +4348,19 @@ Tonyu.klass.define({
               timeout.remove();
             }
           }
+          s = (function anonymous_15115(str) {
+            
+            str=str.replace(/\s*$/,"");
+            _s(str);
+          });
           
-          window.sendResult=(function anonymous_15267(r) {
+          
+          window.sendResult=(function anonymous_15367(r) {
             
             clean();
             s(r);
           });
-          window.onmessage=(function anonymous_15353(e) {
+          window.onmessage=(function anonymous_15453(e) {
             
             clean();
             s(e.data.result);
@@ -4355,7 +4369,7 @@ Tonyu.klass.define({
           
           ifrm = window.$("<iframe>").attr({src: fullURL,width: 1,height: 1}).appendTo("body");
           
-          t=setTimeout((function anonymous_15613() {
+          t=setTimeout((function anonymous_15713() {
             
             ifrm.attr({width: 600,height: 300});
             timeout=window.$("<div>").append("サーバからの応答に時間がかかっています．").append(window.$("<a>").attr({target: "debug",href: fullURL}).text("処理を確認..."));
