@@ -69,7 +69,11 @@ class RunPythonController {
         $d->text($str);
         $copiedScriptPath=$d->nativePath();
         $homes=Asset::homesFromFullURL($url);
-        self::saveConfig($workDir, $homes,$sp);
+        //session_start();
+        if (!isset($_SESSION["session_id"])) {
+            $_SESSION["session_id"]=random_int(1000000,9000000);
+        }
+        self::saveConfig($workDir, $homes,$sp,$_SESSION["session_id"]);
         $workDir->rel("stdin.txt")->text(param("stdin","\n\n\n\n\n\n\n\n"));
         $cmd=PYTHON_PATH." \"$copiedScriptPath\"";
         $res=system_ex($cmd);
@@ -166,14 +170,15 @@ class RunPythonController {
         $r=system_ex("echo hoge");
         print ("<pre>[".$r["stdout"]."]</pre>");
     }
-    static function saveConfig($workDir, $homes, $sp=0) {
+    static function saveConfig($workDir, $homes, $sp=0, $session="") {
         $url=(empty($_SERVER['HTTPS']) ? 'http://' : 'https://') . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
         $url=preg_replace("/\\?.*/", "", $url);
         $workDir->rel("config.json")->text(
             json_encode(array(
                 "super"=>$sp,
                 "asset"=>self::convHomes($homes),
-                "topURL"=>$url
+                "topURL"=>$url,
+                "session"=>$session
             ))
         );
     }

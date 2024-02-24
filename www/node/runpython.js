@@ -24,6 +24,7 @@ function (FS,PP,S,G) {
     var workd=pySrcF.up();
     var conf=workd.rel("config.json").obj();
     var isSuper=!!conf.super;
+    var sessionID=conf.session;
     var header="",lineAdjust=0;
     if (!isSuper) {
         header="from bawrapper import *\n";
@@ -48,6 +49,7 @@ function (FS,PP,S,G) {
 
         }
         process.env.PYTHONPATH=process.cwd()+(process.cwd().indexOf("\\")>=0?";":":")+process.env.PYTHONPATH;
+        process.env.SESSIONID=sessionID||"";
         //process.env.BAASSETPATH=asset;
         //console.log("Passed",'python '+pySrcF.path());
         process.chdir(workd.path());

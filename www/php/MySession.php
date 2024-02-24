@@ -3,7 +3,9 @@ require_once __DIR__."/data/pdo.php";
 if (!defined("SESSION_TIMEOUT")) {
     define("SESSION_TIMEOUT",60*60*24*30*1);
 }
-define("MYSESSION_DATA","MYSESSION_DATA");
+if (!defined("MYSESSION_DATA")) {
+    define("MYSESSION_DATA","MYSESSION_DATA");
+}
 class MySession {
     static $id,$data;
     public static function startWith($i) {

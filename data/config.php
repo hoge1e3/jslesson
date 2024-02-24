@@ -10,6 +10,7 @@ define("BA_WWW",dirname(__DIR__));
 //  But login is prohibited. https://BA_SERVICE_URL/?Login/* redirects to https://BA_TOP_URL/
 define("BA_SERVICE_URL", "http://127.0.0.1/");
 define("BA_PUB_URL", BA_SERVICE_URL."fs/pub");
+//define("LOG_STOPPED",1);
 // BA_PUB_URL_IN_TOP: URL for assets accessed from IDE domain. 
 //  It is used mainly Tonyu, that need to load image/sound files with full features.
 define("BA_PUB_URL_IN_TOP", BA_TOP_URL."fs/pub");
@@ -19,7 +20,19 @@ define("BA_FS",  BA_DATA."/fs");
 define("BA_HOME",BA_FS."/home");
 define("BA_PUB", BA_FS."/pub");
 define("BA_MIGRATION", BA_DATA."/migration");
-//define("TEACHER_BAUTH_URL","https://bitarrow.eplang.jp/beta2204/");
+//define("NO_MORE_CLASS",1);
+//define("NEWS","あかん");
+//--- set to bitarrow.eplang.jp/*
+//define("EXTERNAL_LOG_VIEWER","https://bitarrow3.eplang.jp/logview/");
+//define("SENDLOG","c:\\bin\\sendlog.bat");
+//define("EXTERNAL_LOG_VIEWER_CLASSES",["meisei18pro1","meisei19pro1","so"]);
+//---
+
+//--- set to bitarrow3.eplang.jp/logview
+define("TEACHER_BAUTH_URL","https://bitarrow.eplang.jp/beta2204/");
+define("LOG_VIEWER_ONLY","https://bitarrow.eplang.jp/beta2204/");
+//---
+
 //define("NEWS","<a href='https://bitarrow.eplang.jp/'>NEWS: KOWARETA</a>");
 //define("MAINTENANCE","KOWARETEIMASU");
 //$ba_top_url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";

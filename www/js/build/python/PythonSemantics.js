@@ -36,6 +36,8 @@ const importable={
     time:{wrapper:true,server:true,browser:true},
     badb:{server:true},
     cdb:{server:true,browser:true},
+    session:{server:true},
+
     csv:{server:true},
     js:{browser: Object.keys(root)}
     // turtle: js?

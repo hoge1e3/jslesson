@@ -144,11 +144,20 @@ class TeacherController {
         <?php
 	    }
         ?>
+        <?php if(!defined("NO_MORE_CLASS")) { ?>
         <form action="a.php?Class/make" method="POST">
             <font color="red"><?= self::$mesg ?></font><br/>
+            <div id="news"></div>
             クラス名<input name="classname">
             <input type="submit" value="新規クラス作成"/>
         </form>
+        <?php } else { ?>
+            <div id="news"></div>
+        <?php } ?>
+        <script src="js/lib/jquery-1.12.1.js" type="text/javascript"></script>
+        <script>
+            $.get("a.php?Login/news").then((r)=>$("#news").html(r));
+        </script>
         <?php
         if ($teacher->isSysAd()) {
             ?>
