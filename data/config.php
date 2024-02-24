@@ -20,7 +20,8 @@ define("BA_FS",  BA_DATA."/fs");
 define("BA_HOME",BA_FS."/home");
 define("BA_PUB", BA_FS."/pub");
 define("BA_MIGRATION", BA_DATA."/migration");
-
+//define("NO_MORE_CLASS",1);
+//define("NEWS","あかん");
 //--- set to bitarrow.eplang.jp/*
 //define("EXTERNAL_LOG_VIEWER","https://bitarrow3.eplang.jp/logview/");
 //define("SENDLOG","c:\\bin\\sendlog.bat");
