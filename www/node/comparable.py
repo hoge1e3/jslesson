@@ -9,6 +9,7 @@ with open(sys.argv[1], 'r', encoding="utf8") as file:
 sorted_keys = sorted(data.keys())
 
 # キーと値の表示
-for key in sorted_keys:
-    value = data[key]
-    print(f'[{key}]\n{value}\n')
+with open(sys.argv[2],"w",encoding="utf8") as out:
+    for key in sorted_keys:
+        value = data[key]
+        out.write(f'[{key}]\n{value}\n')

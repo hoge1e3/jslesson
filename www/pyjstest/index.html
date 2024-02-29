@@ -14,7 +14,12 @@
 <script src="../js/lib/require.js"></script>
 <script>
   location.href.replace(/file=(.*)/,(_, file) =>{ 
-     $("<script>").attr({src:file}).appendTo("body");
+    requirejs([file],function(r){
+      if (typeof r.load==="function") {
+        r.load();
+      }
+    });
+    // $("<script>").attr({src:file}).appendTo("body");
   });
 </script>
 <!--script src="calorie.js"></script-->

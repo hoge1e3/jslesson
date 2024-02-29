@@ -42,10 +42,10 @@ function (FS,PP,S,G,J) {
     });
     let files=js.listFiles().filter((f)=>f.ext()===".js").map(f=>f.name());
     js.rel("files.json").obj(files);
-    console.log(`Test Python: goto ${gen.path()} and run ALL.bat `);
-    console.log(`Test JS: goto meisei18pro1/<TEACHER>/test_pyjs/ or http://localhost/fs/pub/42953d28/Test.html`);
+    console.log(`Test Python: goto ${gen.path()} and run __ALL.bat `);
+    console.log(`Test JS: goto http://localhost/pyjstest/runall.html`);
     console.log("Then:")
-    console.log("python comparable.py test/gen/output.json > pyres.txt");
-    console.log("python comparable.py ../pyjstest/output.json > jsres.txt");
+    console.log("python comparable.py test/gen/output.json pyres.txt");
+    console.log("python comparable.py ../pyjstest/output.json jsres.txt");
     console.log("diff pyres.txt jsres.txt");
 });
