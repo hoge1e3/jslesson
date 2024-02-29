@@ -58,9 +58,51 @@ define(function (require,exports,module){
 
         libs.map(function (r) {
             return WebSite.runtime+r;
-        }).concat([f.name+".js"]).forEach(function (src) {
+        }).forEach(function (src) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
+            nn.setAttribute("src",addParam(src));
+            body.appendChild(nn);
+        });
+        //.concat([f.name+".js"])
+        var nn=document.createElement("script");
+        nn.setAttribute("charset","utf-8");
+        nn.innerHTML=`
+        requirejs([${JSON.stringify(addParam(f.name+".js"))}], function(mod){
+            (async function (){
+                const __top=await mod.load();
+                let inst=window;
+                function _wrap(f) {
+                    return function (...args) {
+                        try {
+                            PYLIB.LoopChecker.reset();
+                            return f(...args);
+                        } catch(e) {
+                            console.log(e,onerror);
+                            if (typeof onerror==="function") onerror(null,null,null,null,e);
+                            else {
+                                alert(e);
+                            }
+                            throw e;
+                        }
+                    };
+                }
+                let __g=__top.globals();
+                ["draw", "setup","keyPressed","keyReleased","keyTyped","mouseMoved","mouseDragged","mousePressed","mouseClicked"].map((k)=>{
+                    if (__g.__contains__(k)) {
+                        let v=__g.__getitem__(k);
+                        if (typeof v==="function") {
+                            if (v.spec) { v.spec.allowExtra=true; v.spec.name=k; }
+                            inst[k]=(k==="setup"? _wrap(v) : v);
+                        }
+                    }
+                });
+                ${"req"+"uirejs"}(["${p5jsURL}"], function(){});
+            })();
+        });
+        `;
+        body.appendChild(nn);
+        function addParam(src) {
             var src2;
             var requirejs=root.requirejs;
             if (FS.PathUtil.isURL(src) && requirejs.version!=="2.1.9" && typeof requirejs.s.contexts._.config.urlArgs==="function") {
@@ -68,9 +110,8 @@ define(function (require,exports,module){
             } else {
                 src2=src+(src.indexOf("?")<0?"?":"&")+Math.random();
             }
-            nn.setAttribute("src",src2);
-            body.appendChild(nn);
-        });
+            return src2;
+        }
         return f.dst.html.text("<!DOCTYPE HTML>\n<html>"+html.innerHTML+"</html>");
     };
     function isNewer(a,b) {
@@ -142,7 +183,7 @@ define(function (require,exports,module){
         } else {
             J(node,anon,{buf:buf,genReqJS:true, pyLibPath:WebSite.runtime+"lib/python",
             useJSRoot:true,
-            injectAfter: `
+            injectAfter_oldd: `
             let inst=window;
             function _wrap(f) {
                 return function (...args) {
