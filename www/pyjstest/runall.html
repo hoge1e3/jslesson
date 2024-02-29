@@ -1,0 +1,28 @@
+<html>
+    <script src="../runtime/lib/jquery-1.12.1.js"></script>
+    <div id="status"></div>
+   
+<script>
+    const wait=(t)=>new Promise(s=>setTimeout(s,t));
+    (async function () {
+let f=await ($.get("files.json"));
+let res={};
+for (var k of f) {
+    //document.writeln(k);
+    if (k.match(/mugen/)) continue;
+    frm=$("<iframe>").attr({src:"index.html?file="+k}).appendTo("body");
+    await wait(100);
+    res[k]=frm[0].contentWindow.document.querySelector("#output").innerText;
+    frm.remove();
+}
+
+res=await ( $.post("send.php", {content:JSON.stringify(res)}) );
+document.querySelector("#status").innerHTML=res;
+
+
+    })();
+
+</script>
+
+
+</html>
