@@ -43,7 +43,7 @@ function (FS,PP,S,G,J) {
     console.log(`Test Python: goto ${gen.path()} and run __ALL.bat `);
     console.log(`Test JS: goto http://localhost/pyjstest/runall.html`);
     console.log("Then:")
-    console.log("python comparable.py test/gen/output.json > pyres.txt");
-    console.log("python comparable.py ../pyjstest/output.json > jsres.txt");
+    console.log("python comparable.py test/gen/output.json pyres.txt");
+    console.log("python comparable.py ../pyjstest/output.json jsres.txt");
     console.log("diff pyres.txt jsres.txt");
 });
