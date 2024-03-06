@@ -1,6 +1,6 @@
-import bawrapper
+from bawrapper import *
 def linsearch(a,p):
-  for i in bawrapper._range( 0 ,bawrapper._len(a), 1 ):
+  for i in range( 0 ,len(a), 1 ):
     if a[i] == p:
       print(i,"番目に 見つかりました ")
       break

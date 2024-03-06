@@ -1,4 +1,4 @@
-import bawrapper
+from bawrapper import *
 
 import random
 import _time as time
@@ -8,7 +8,7 @@ a= 0
 b= 0 
 goal= 20 
 
-user=bawrapper._input("aとbのどちらのカメが勝つか？")
+user=input("aとbのどちらのカメが勝つか？")
 
 
 print("競争開始！")

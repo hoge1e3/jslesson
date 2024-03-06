@@ -1,4 +1,4 @@
-import bawrapper
-m=bawrapper._input("何メートル？")
-cm=bawrapper._float(m) *  100 
-print("答えは..." + bawrapper._str(cm) + "cmです")
+from bawrapper import *
+m=input("何メートル？")
+cm=float(m) *  100 
+print("答えは..." + str(cm) + "cmです")

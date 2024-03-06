@@ -1,10 +1,10 @@
-import bawrapper
+from bawrapper import *
 print("インチからセンチへの変換")
 print("プログラムを終わるには,[Ctrl]+[C]キーを押します。")
 c= 0 
 while c <  10 :
   print(" --- ")
-  inch=bawrapper._float(bawrapper._input("インチは？"))
+  inch=float(input("インチは？"))
   cm=inch *  2.54 
-  print(bawrapper._str(cm) + "センチです")
+  print(str(cm) + "センチです")
   c+= 1 

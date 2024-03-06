@@ -13,18 +13,20 @@ function (FS,PP,S,G,J) {
     const gen=testHome.rel("gen/");
     const js=testHome.rel("../../pyjstest/");
     const err=testHome.rel("err/");
-    const header="import bawrapper\n";
+    const header="from bawrapper import *\n";
     testHome.each(pySrcF=>{
         if (!pySrcF.endsWith(".py")) return;
         console.log(pySrcF.path());
         try {
+            const cvSrcF=gen.rel(pySrcF.relPath(srcHome));
+            const jsSrcF=js.rel(pySrcF.relPath(srcHome).replace(/\.py$/,".js"));
+            if (cvSrcF.exists()) cvSrcF.rm();
+            if (jsSrcF.exists()) jsSrcF.rm();
             const node=PP.parse(pySrcF);
             const v=S.check(node,pySrcF);
             const code=G(node,v.anon,S);
-            const cvSrcF=gen.rel(pySrcF.relPath(srcHome));
             cvSrcF.text(header+code);
             const jscode=J(node,v.anon,{genReqJS:true,pyLibPath:"http://localhost/runtime/lib/python"});
-            const jsSrcF=js.rel(pySrcF.relPath(srcHome).replace(/\.py$/,".js"));
             jsSrcF.text(jscode);
 
         } catch(e) {

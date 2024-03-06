@@ -1,9 +1,9 @@
-import bawrapper
+from bawrapper import *
 def binsearch(a,p):
   i= 0 
-  j=bawrapper._len(a) -  1 
+  j=len(a) -  1 
   while i <= j:
-    m=bawrapper._int((i + j) /  2 )
+    m=int((i + j) /  2 )
     if a[m] == p:
       print(m,"番目に 見つかりました ")
       break

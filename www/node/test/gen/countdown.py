@@ -1,4 +1,4 @@
-import bawrapper
+from bawrapper import *
 import datetime
 
 
@@ -10,7 +10,7 @@ def calc_days(y,m,d):
   perday= 24  *  60  *  60 
   days=(olympic - target) // perday
   
-  s="{0}/{1}/{2}から{3}日後".format(y,m,d,bawrapper._int(days))
+  s="{0}/{1}/{2}から{3}日後".format(y,m,d,int(days))
   print(s)
 
 

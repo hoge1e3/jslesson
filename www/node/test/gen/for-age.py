@@ -1,5 +1,5 @@
-import bawrapper
+from bawrapper import *
 base_year= 2018 
-for i in bawrapper._range( 100 ):
+for i in range( 100 ):
   y=base_year - i
-  print("西暦" + bawrapper._str(y) + "年 = 満" + bawrapper._str(i) + "歳")
+  print("西暦" + str(y) + "年 = 満" + str(i) + "歳")

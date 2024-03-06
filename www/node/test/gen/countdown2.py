@@ -1,4 +1,4 @@
-import bawrapper
+from bawrapper import *
 import datetime
 
 
@@ -6,8 +6,8 @@ def calc_days(y,m,d):
   olympic=datetime.date( 2020 , 7 , 24 )
   target=datetime.date(y,m,d)
   days=(olympic - target).days
-  s=bawrapper._str(y) + "/" + bawrapper._str(m) + "/" + bawrapper._str(d) + "から"
-  print(s + bawrapper._str(days) + "日後")
+  s=str(y) + "/" + str(m) + "/" + str(d) + "から"
+  print(s + str(days) + "日後")
 
 
 calc_days( 2017 , 12 , 1 )

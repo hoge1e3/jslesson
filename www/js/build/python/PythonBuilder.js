@@ -10,10 +10,9 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         this.dst=dst;// SFile in ramdisk
         this.ide=ide;
     };
-    var libs=["polyfill","jquery-1.12.1","require"].map(function (n) {
+    var libs=["polyfill","jquery-1.12.1","jquery.binarytransport","require"].map(function (n) {
         return "lib/"+n+".js";
     });
-    libs=libs.concat(["lib/python/runOnServer.js"]);
     var p=PythonBuilder.prototype;//<-dtl
     p.progress=function (m) {
         if (window.SplashScreen) window.SplashScreen.progress(m);
@@ -29,8 +28,42 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         });
         return $.when.apply($,args);
     };
-    p.genHTML=function (f) {
-        this.progress("generate "+f.src.html.name());
+    p.genHTML_Browser=function (f) {
+        this.progress("generate for browser: "+f.src.html.name());
+        const {html,head,body,dom}=commonHeader(f);
+        const libsP=[...libs];//, "lib/python/PyLib.js"];
+        libsP.map(function (r) {
+            return WebSite.runtime+r;
+        })/*.concat([f.name+".js"])*/.forEach(function (src) {
+            var nn=scriptTag(src);
+            body.appendChild(nn);
+        });
+        addScript(body,`requirejs(["${f.name}"], ${function (mod) {
+            console.log("Run end", mod);
+            mod.load().then((mod)=>{
+                console.log(mod);
+                if (window.parent && window.parent.sendResult) {
+                    window.parent.sendResult($("#output").text(),"py");
+                }    
+            },(err)=>{
+                window.onerror(0,0,0,0,err);
+            });
+        }+""});`);
+        return f.dst.html.text("<!DOCTYPE HTML>\n<html>"+html.innerHTML+"</html>");
+    };
+    p.genHTML_Server=function (f) {
+        this.progress("generate for server: "+f.src.html.name());
+        const {html,head,body,dom}=commonHeader(f);
+        const libsP=[...libs, "lib/python/runOnServer.js"];
+        libsP.map(function (r) {
+            return WebSite.runtime+r;
+        }).concat([f.name+".js"]).forEach(function (src) {
+            var nn=scriptTag(src);
+            body.appendChild(nn);
+        });
+        return f.dst.html.text("<!DOCTYPE HTML>\n<html>"+html.innerHTML+"</html>");
+    };
+    function commonHeader(f) {
         var dp=new DOMParser();
         var dom=dp.parseFromString(f.src.html.text()||"<html></html>","text/html");
         var html=dom.getElementsByTagName("html")[0];
@@ -49,7 +82,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
             };
             addScript(head,"window.BitArrow="+JSON.stringify(ba)+";");
         }
-        addScript(head,"window.runtimePath='"+WebSite.runtime+"';");
+        addScript(head, "window.runtimePath='"+WebSite.runtime+"';");
         if (WebSite.hosts) {
             addScript(head,`
             BitArrow.inService=window.location.hostname===new URL(BitArrow.hosts.service.top).host;
@@ -63,18 +96,11 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         } else {
             addScript(head,"window.controllerPath='"+(WebSite.controller_in_service||WebSite.controller)+"';");
         }
-        addScript(head,"window.onerror=window.onerror||"+
+        addScript(head, "window.onerror=window.onerror||"+
         function (message, file, lineNo, colNo, error) {console.log(arguments);alert(error||message);}+";");
         $(head).append($("<link>").attr({"rel":"stylesheet","href":WebSite.runtime+"css/run_style.css"}));
-
-        libs.map(function (r) {
-            return WebSite.runtime+r;
-        }).concat([f.name+".js"]).forEach(function (src) {
-            var nn=scriptTag(src);
-            body.appendChild(nn);
-        });
-        return f.dst.html.text("<!DOCTYPE HTML>\n<html>"+html.innerHTML+"</html>");
-    };
+        return {dom, html, head, body};
+    }
     function addScript(elem, src) {
         elem.appendChild($("<script>").text(src)[0]);
     }
@@ -186,16 +212,17 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
                 }
                 console.log("Transpile "+f.src.py.name());
                 //console.log("upload",upload);
-                t.compile(f,{runAt,isMainFile,upload,publishedURL});
+                t.compile(f,{runAt,isMainFile,upload,publishedURL,files});
                 if (runAt==="raspi") t.genHTML_Raspi(f);
-                else t.genHTML(f);
+                else if (runAt==="browser") t.genHTML_Browser(f);
+                else t.genHTML_Server(f);
                 return SplashScreen.waitIfBusy();
             });
         }));
     };
     var superMode=false;
 
-    p.compile=function (f,{runAt,isMainFile,upload,publishedURL}) {
+    p.compile=function (f,{runAt,isMainFile,upload,publishedURL,files}) {
         var pysrcF=f.src.py;
         var js;
         var anon,node,errSrc,needInput=false;
@@ -206,7 +233,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         if (!superMode) {
             try {
                 node=PP.parse(pysrcF);
-                var vres=S.check(node,{srcFile:pysrcF, runAt});
+                var vres=S.check(node,{srcFile:pysrcF, runAt, files});
                 needInput=!!vres.useInput;
                 anon=vres.anon;
             } catch(e) {

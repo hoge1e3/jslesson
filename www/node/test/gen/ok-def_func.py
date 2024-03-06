@@ -1,4 +1,4 @@
-import bawrapper
+from bawrapper import *
 
 def main():
   print(tasu( 3 , 5 ))

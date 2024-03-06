@@ -1,4 +1,4 @@
-import bawrapper
+from bawrapper import *
 
 s="""
 サンマ,カツオ,サンマ,サンマ,マグロ,フグ,マグロ,マグロ,マグロ,サンマ,ニシン,イワシ,サンマ,サンマ,カツオ,サンマ,カツオ,サンマ,カツオ,サンマ,マグロ,マグロ,マグロ,ニシン
@@ -22,4 +22,4 @@ for name in s_list:
 
 
 for name,v in result.items():
-  print(name + " = " + bawrapper._str(v))
+  print(name + " = " + str(v))

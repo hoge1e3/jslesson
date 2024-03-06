@@ -1839,7 +1839,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         fromImportStmt: ["from",{name:"packageName"},"import",{localNames:"localNames"}],
         semicolon: [tk(";")],
         localNames: [{names:or(sep1("symbol",","),"*")}],
-        importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
+        //importStmt: ["import",{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
         importStmt2: ["import",{elements:sep1("importElement",",")}],
         importElement: [{name:"packageName"},{$extend:opt(["as",{alias:"symbol"}])}],
         packageName: sep1("symbol","."),
@@ -1855,7 +1855,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         passStmt: ["pass"],
         breakStmt: ["break"],
         continueStmt: ["continue"],
-        forStmt: ["for",{vars:sep1("symbol",",")},"in",{set:"expr"},{do:"block"}],
+        forStmt: ["for",{vars:"lval"},"in",{set:"expr"},{do:"block"}],
         letStmt: [{left:"lval"},{op:or("+=","-=","*=","/=","%=","=")},{right:"exprList"}],
         globalStmt: ["global",{names:sep1("symbol",",")}],
         // print(x,y) parsed as: printStmt(2) with tuple
@@ -2125,6 +2125,19 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         },
         js:root
     };
+    PL.proxy=(target)=>{
+        return new Proxy(()=>"Hoge", {
+            get(_target, prop, receiver) {
+                return target.__getattribute__(prop);
+            },
+            set(_target, prop, newVal) {
+                target.__setattr__(prop, newVal);
+            },
+            apply(_target, self, ...args) {
+                return target.__call__(target, ...args);
+            }
+        });
+    };
     //PyX.install(PL);
     PL.lineBuf="";
     PL.print=function () {
@@ -2184,11 +2197,11 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
     PL.str=function (s) {
         //  s==false
         if (s!=null && s.__str__) {
-            const res=s.__str__();
-            if (typeof res!=="string") throw new Error("__str__の戻り値は文字列である必要があります．");
-            return res;// __OP__
+            const r=s.__str__();// __OP__
+            if (typeof r==="string") return r;
+            throw new Error("__str__の戻り値が文字列以外です："+r);
         }
-        return s+"";
+        return "None";
     };
     PL.sum=function (s,init=0) {
         for (let e of s) {
@@ -2299,16 +2312,33 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         return res;
     };
     PL.parseArgs2=function(arg, spec) {
-        // spec: [{name:  , defval: }]
-        arg=Array.prototype.slice.call(arg);
+        // spec: [{name:  , def:  , ast: "*" || "**" }]
+        arg=[...arg];
+        spec=[...spec];
         let opt=null;
         if (arg[arg.length-1] instanceof PL.Option) {
             opt=arg.pop();
         }
-        const res=spec.map((s,i)=>
-            i<arg.length ? arg[i] :
-            (opt && opt[s.name]!==undefined) ? opt[s.name] : s.defval
-        );
+        let i=0;
+        const res=[];
+        while (spec.length) {
+            let s=spec.shift();
+            if (typeof s==="string") s={name:s};
+            if (!s.ast) {
+                if (arg.length) res.push(arg.shift());
+                else if (opt && opt.hasOwnProperty(s.name)) res.push(opt[s.name]);
+                else if ("def" in s) res.push(s.def);
+                else throw new Error(`引数${s.name}が渡されていません．`);
+            } else if (s.ast==="*") {
+                res.push(PL.Tuple(arg));
+                arg=[];
+            } else if (s.ast==="**") {
+                res.push(opt);
+            }
+        }
+        if (arg.length) {
+            throw new Error(`余計な引数が${arg.length}個あります．`);
+        }
         return res;
     };
 
@@ -2340,7 +2370,7 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
             a.unshift(res);
             var self=nw.apply(null,a);
             if (self.__init__) self.__init__.apply(self,arguments);
-            return self;
+            return PL.proxy(self);
         };
         res.prototype=Object.create(parent.prototype,{});
         const methodNames=[];
@@ -2446,6 +2476,29 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
     PL.Tuple.prototype[Symbol.iterator]=function(...args) {
         return this.elems[Symbol.iterator](...args);
     };
+    PL.dict=PL.class({
+        __init__(self, src) {
+            self.map=new Map();
+            for (let k in src) {
+                self.map.set(k, src[k]);
+            }
+        },
+        __getitem__(self, name) {
+            if (self.map.has(name)) {
+                return self.map.get(name);
+            }
+            throw new Error(`辞書にキー'${name}'がありません．`);
+        },
+        __setitem__(self, name,value) {
+            self.map.set(name, value);
+        },
+        __contains__(self, elem) {
+            return self.map.has(elem);
+        }
+    });
+    PL.dict.prototype[Symbol.iterator]=function(...args) {
+        return this.map.keys();
+    };
     PL.None=null;
     PL.checkSet=(v, name="Variable")=>{
         if (v!==undefined) return v;
@@ -2466,6 +2519,21 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         var m=self[name];
         if (typeof m==="function") return m.apply(self, args);
         return m.__call__.apply(m,args);
+    };
+    PL.moduleScope=(parent, useJSRoot)=> {
+        let target=parent ? Object.create(parent) :{};
+        target.globals=()=>PL.dict(target);
+        return new Proxy(target, {
+            get(target, prop, receiver) {
+                if (prop in target) return target[prop];
+                if (useJSRoot && prop in root) {
+                    const r=root[prop];
+                    if (typeof r==="function") return r.bind(root);
+                    return r;
+                }
+                throw new Error(`変数${prop}は定義されていません．`);
+            },
+        });
     };
     PL.Object=PL.class(Object, {
         __init__: function () {},
@@ -2546,7 +2614,8 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         //__getTypeName__: function (){return "<class object>";},
         __call__: function (self,...a) {
             //var a=Array.prototype.slice.call(arguments,1);
-            return self.apply(self, a);
+            if (typeof self==="function") return self.apply(self, a);
+            throw new Error("この値は関数呼び出しできません");
         },
         //toString: function (self) {return self.value+"";},
         __str__: function (self) {
@@ -2579,7 +2648,7 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
 
         __getattr__: function (self,name) {
             //__getattr__は、オブジェクトのインスタンス辞書に属性が見つからないときに呼び出されるメソッドです。
-            throw new Error(`フィールド ${name} はありません`);
+            throw new Error(`フィールド ${name.toString()} はありません`);
         },
         __getattribute__: function (self,name) {
             if (!(name in self)) {
@@ -2638,16 +2707,8 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         },
         enumerable: false,
     });*/
-    String.prototype.split_orig=String.prototype.split;
     PL.addMonkeyPatch(String,({
         __class__:String,
-        split(self, ...args) {
-            if (args.length===0) {
-                return self.replace(/^\s*/,"").replace(/\s*$/,"").split_orig(/\s+/);
-            } else {
-                return self.split_orig(...args);
-            }
-        },
         __str__(self){return self+"";},
         //__getTypeName__: function (){return "str";},
         __mul__: function (self,other) {
@@ -2793,9 +2854,7 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
             self.splice(i,1);
         },
         __str__(self) {
-            return "["+self.map((e)=>
-                typeof e==="string" ? JSON.stringify(e).replace(/^"/,"'").replace(/"$/,"'") : PL.str(e)
-            ).join(", ")+"]";
+            return "["+self.map((e)=>PL.str(e)).join(", ")+"]";
         },
         __getitem__:function (self, key) {
             if (key instanceof PL.Slice) {
@@ -2828,7 +2887,11 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
             return self.slice().sort(...args);
         },
         sort: function (self, comp) {
-            comp=comp||((a,b)=>(a>b?1:a<b?-1:0));
+            const nat=(a,b)=>{
+                if (a==null || b==null) throw new Error("未定義の値が入っているので並び替えできません");
+                return (a.__gt__(b)?1:a.__lt__(b)?-1:0);
+            };
+            comp=comp||nat;
             if (comp instanceof PL.Option) {
                 let key=comp.key;
                 if (typeof key==="string") {
@@ -2839,14 +2902,14 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
                     const sorted=self.map((val,idx)=>({val,idx}) ).sort((a,b)=>{
                         const va=key(a.val);
                         const vb=key(b.val);
-                        if (va>vb) return 1;
-                        else if (va<vb) return -1;
+                        if (va.__gt__(vb)) return 1;
+                        else if (va.__lt__(vb)) return -1;
                         else return a.idx-b.idx;
                     }).map(r=>r.val);
                     while(self.length) self.pop();
                     while(sorted.length) self.push(sorted.shift());
                 } else {
-                    self.sort();
+                    self.sort(nat);
                 }
                 if (comp.reverse) {
                     self.reverse();
@@ -3012,17 +3075,17 @@ const importable={
     time:{wrapper:true,server:true},
     badb:{server:true},
     cdb:{server:true},
-    csv:{server:true},
     js:{browser: Object.keys(root)}
     // turtle: js?
 };
 
 //-----
+const KIND_GLOBAL="global", KIND_NONGLOBAL="local";
 class ScopeInfo {
     constructor(scope,name,kind,declarator) {
         this.scope=scope;
         this.name=name;
-        this.kind=kind;
+        this.kind=kind;// kind is "global" only delared by statement `global x`, others are "local" even top-level 
         this.declarator=declarator;
     }
 }
@@ -3033,44 +3096,35 @@ const vdef={
             this.visit(b);
         }
     },
-    importStmt: function (node) {
-        const nameHead=node.name[0];
-        this.checkImportable(nameHead);
-        /*if (!importable[nameHead]) {
-            this.error(nameHead+" はインポートできません",nameHead);
-        }
-        if (this.options.runAt && !importable[nameHead][this.options.runAt]) {
-            let hint="．";
-            //console.log("IMP",node);
-            if (importable[nameHead].browser) hint="(「ブラウザで実行」するとインポートできます)．";
-            if (importable[nameHead].server) hint="(「サーバで実行」するとインポートできます)．";
-            this.error(nameHead+" はインポートできません"+hint,nameHead);
-        }*/
-        this.addScope(node.alias || nameHead,{kind:"module",vtype:importable[nameHead],node});
-    },
     importStmt2: function (node) {
         for (let e of node.elements) this.visit(e);
     },
     importElement: function (node) {
         const nameHead=node.name[0];
         this.checkImportable(nameHead);
-        this.addScope(node.alias || nameHead,{kind:"module",vtype:importable[nameHead],node});
+        const sym=node.alias || nameHead;
+        this.addScope(sym,{vtype:importable[nameHead],node:sym});
+        this.anon.put(sym, {isLeft: true});
     },
     fromImportStmt: function (node) {
         const nameHead=node.name[0];
         this.checkImportable(nameHead);
         if (node.localNames.names.text==="*") {
+            if (this.curScope()!==this.rootScope) {
+                this.error("import * はトップレベルにしか書けません．");
+            }
             const names=Semantics.importable[nameHead][this.options.runAt];
             if (names && names.join) {
                 for (let localName of names) {
-                    this.addScope(localName,{kind:"local",localName});
+                    this.addScope(localName,{localName});
                 }
             } else {
                 this.error(`from ${nameHead} import * は使えません。*の部分に使いたい命令をカンマ区切りで書いてください。`,node);
             }
         } else {
             for (let localName of node.localNames.names) {
-                this.addScope(localName,{kind:"local",localName});
+                this.addScope(localName,{localName, node:localName});
+                this.anon.put(localName, {isLeft: true});
             }
         }
     },
@@ -3082,24 +3136,28 @@ const vdef={
         for (let b of node.body) {
             this.visit(b);
         }
-        this.addScope(node.name , {kind:"class",node});
+        this.addScope(node.name , {node});
     },
     define: function (node) {
-        //console.log("define",node);
-        //this.addScope(node.name,{kind:"function",node});
         for (let p of node.params.body) {
             if (p.defVal) {
                 this.visit(p.defVal.value);
             }
         }
         this.newScope(()=>{
+            const s=this.curScope();
             for (let p of node.params.body) {
-                this.addScope(p.name+"",{kind:"local",node:p.name});
+                this.addScope(p.name+"",{node:p.name});
+                this.anon.put(p.name,{isLeft: true});
             }
+            const params=Object.keys(s);
             this.preScanDefs(node.body);
             for (let b of node.body) {
                 this.visit(b);
             }
+            const lets=Object.keys(s).filter((k)=>params.indexOf(k)<0);
+            this.anon.put(node, {lets});
+            //console.log("LETS", node, lets);
         });
     },
     exprStmt: function (node) {
@@ -3107,7 +3165,7 @@ const vdef={
     },
     globalStmt: function (node) {
         for (let name of node.names) {
-            this.addScope(name+"",{kind:"global",node:name});
+            this.addScope(name+"",{kind:KIND_GLOBAL,node:name});
         }
     },
     tryStmt(node) {
@@ -3124,7 +3182,7 @@ const vdef={
             if (ep.asName) {
                 const asName=ep.asName;
                 this.newScope(()=>{
-                    this.addScope(asName.name,{kind:"local",node:asName.name});
+                    this.addScope(asName.name,{node:asName.name});
                     this.visit(node.body);
                 });
             } else this.visit(node.body);
@@ -3134,32 +3192,7 @@ const vdef={
         this.visit(node.body);
     },
     letStmt: function (node) {
-        /*var v=this;
-        function procLElem(node) {
-            switch (node.type) {
-                case "symbol":
-                procSym(node);
-                break;
-                case "lvalList":
-                for (let sym of node.body) {
-                    procLElem(sym);
-                }
-                break;
-                default:
-                v.visit(node);
-            }
-        }
-        function procSym(sym) {
-            const info=v.getScope(sym+"");
-            if (info && info.kind==="global") {
-
-            } else if (!info || info.scope!==v.curScope()) {
-                v.addScope(sym+"",{kind:"local",node});
-                v.anon.put(node,{needVar:true});
-            }
-        }
-        procLElem(node.left);*/
-        this.procLeft(node);
+        this.procLeft(node.left);
         this.visit(node.right);
     },
     ifStmt: function (node) {
@@ -3268,9 +3301,10 @@ const vdef={
         if (loopVars.length>1 && this.options.runAt=="browser") {
             this.error("ブラウザで実行する場合，forの後ろには複数の変数を書くことができません．",node);
         }
-        for(let loopVar of loopVars){
-          this.addScope(loopVar,{kind:"local",node:loopVar});
-        }
+        this.procLeft(loopVars);
+        /*for(let loopVar of loopVars){
+          this.addScope(loopVar,{node:loopVar});
+        }*/
         this.visit(node.do);
         /*this.newScope(()=>{
             this.addScope(loopVar,{type:"local"});
@@ -3283,7 +3317,7 @@ const vdef={
         this.visit(node.set);
         this.newScope(() => {
             for(let loopVar of loopVars){
-                this.addScope(loopVar,{kind:"local",node:loopVar});
+                this.addScope(loopVar,{node:loopVar});
             }
             this.visit(node.elem);
         });
@@ -3365,8 +3399,9 @@ const vdef={
             this.useInput=true;
         }
         if (!i) {
-            console.log("symbol undef",node,this.curScope());
-            this.error("変数または関数"+node+"は未定義です",node);
+            i=this.addScope(node+"", {node, scope:this.rootScope});
+            console.log("symbol undef. treated as top level",node,this.curScope());
+            //this.error("変数または関数"+node+"は未定義です",node);
         }
         this.anon.put(node,{scopeInfo:i});
     },
@@ -3376,7 +3411,8 @@ const vdef={
     },
     lambdaExpr(node){
         this.newScope(()=>{
-            this.addScope(node.param+"",{kind:"local",node:node.param});
+            this.addScope(node.param+"",{node:node.param});
+            this.anon.put(node.param, {isLeft: true});
             this.visit(node.returns);
         });
     },
@@ -3420,15 +3456,15 @@ const Semantics= {
             return this.ctx.enter(...args);
         };
         v.rootScope={};
+        v.rootScope[Semantics.SYM_ROOT]=true;
+        v.newScopeInfo=function (scope, name, kind, declarator) {
+            const res=new ScopeInfo(scope, name, kind, declarator);
+            if (scope===v.rootScope || kind===KIND_GLOBAL) res.topLevel=true;
+            return res;
+        };
         for (let b of builtins) {
-            v.rootScope[b]=new ScopeInfo(v.rootScope,b,"function");
+            v.rootScope[b]=v.newScopeInfo(v.rootScope,b);
             v.rootScope[b].builtin=true;
-        }
-        for (let im of options.implicitImports||[]) {
-            for (let n of im.names) {
-                v.rootScope[n]=new ScopeInfo(v.rootScope,n,"function");
-                v.rootScope[n].builtin=true;
-            }
         }
         v.newScope=function (f) {
             var pa=this.ctx.scope||this.rootScope;
@@ -3436,13 +3472,16 @@ const Semantics= {
             //ns.PARENT_SCOPE=pa;
             return this.enter({scope:ns},f);
         };
+        // \addScope
         v.addScope=function (name,info) {
-            const cs=this.curScope();
+            const cs=info.scope || this.curScope();
             if (!info.node && name && name.type) {
                 info.node=name;
             }
-            cs[name+""]=new ScopeInfo(cs,name+"",info.kind, info.node) ;
-            return cs[name+""];
+            const nsi=v.newScopeInfo(cs,name+"",info.kind||KIND_NONGLOBAL, info.node) ;
+            cs[name+""]=nsi;
+            if (info.node) this.anon.put(info.node, {scopeInfo:nsi});
+            return nsi;
         };
         v.getScope=function (name) {
             return this.curScope()[name];
@@ -3475,25 +3514,47 @@ const Semantics= {
                     v.visit(node);
                 }
                 if (node.type==="classdef") {
-                    this.addScope(node.name,{kind:"class",node});
+                    this.addScope(node.name,{node});
+                    v.visit(node.name);
                 }
                 if (node.type==="define") {
-                    this.addScope(node.name,{kind:"function",node});
+                    this.addScope(node.name,{node});
+                    v.visit(node.name);
                 }
                 if (node.type==="forStmt") {
-                    this.addScope(node.name,{kind:"function",node});
+                    //this.addScope(node.name,{node});
                     var loopVars=node.vars;
-                    for(let loopVar of loopVars){
-                      this.addScope(loopVar,{kind:"local",node:loopVar});
-                    }
+                    this.procLeft(loopVars, true);
+                    /*for(let loopVar of loopVars){
+                      this.addScope(loopVar,{node:loopVar});
+                    }*/
                 }
                 if (node.type==="letStmt") {
-                    this.procLeft(node, true);
+                    this.procLeft(node.left, true);
+                }
+                if (node.type==="importStmt2") {
+                    /*for (let e of node.elemtns) {
+                        let name=e.name;
+                        let nameHead=name[0];
+                        let alias=e.alias;
+                        if (alias) {
+                            this.addScope(alias.name,{node:alias});
+                        } else {
+                            this.addScope(name[0]+"",{node:name[0]});
+                        }
+                    }*/
+                    this.visit(node);
+                }
+                if (node.type==="fromImportStmt") {
+                    /*for (let name of node.localNames) {
+
+                    }*/
+                    this.visit(node);
                 }
             }
         };
-        v.procLeft=function (letStmt, isPrescan) {
-            const node=letStmt;
+        v.procLeft=function (lval, isPrescan) {
+            //const node=letStmt;
             var v=this;
             function procLElem(node) {
                 switch (node.type) {
@@ -3511,21 +3572,23 @@ const Semantics= {
                 }
             }
             function procSym(sym) {
-                const info=v.getScope(sym+"");
-                if (info && info.kind==="global") {
+                let info=v.getScope(sym+"");
+                if (info && info.kind===KIND_GLOBAL) {
                 } else if (!info || info.scope!==v.curScope()) {
-                    v.addScope(sym+"",{kind:"local",node});
-                    v.anon.put(node,{needVar:true});
+                    info=v.addScope(sym+"",{node:sym});
+                    //v.anon.put(node,{needVar:v.curScope()!==v.rootScope});
                 }
-                v.anon.put(node,{isLeft:true});
+                v.anon.put(sym,{isLeft:true, scopeInfo: info});
             }
-            procLElem(node.left);
+            procLElem(lval);
         };
-        v.newScope(()=>v.visit(node));
+        //v.newScope(()=>v.visit(node));
+        v.enter({scope:v.rootScope}, ()=>v.visit(node));
         return v;
     },
     importable
 };
+Semantics.SYM_ROOT=Symbol("rootScope");
 return Semantics;
 });
 
@@ -6993,7 +7056,7 @@ function (Visitor,IndentBuffer,assert) {
             this.printf("else%v",node.then);
         },
         forStmt: function (node) {
-            this.printf("for %j in %v%v", [",",node.vars], node.set, node.do);
+            this.printf("for %v in %v%v", node.vars, node.set, node.do);
         },
         letStmt: function (node) {
             this.visit(node.left);
@@ -7101,11 +7164,11 @@ function (Visitor,IndentBuffer,assert) {
         },
         symbol: function (node) {
             var a=this.anon.get(node);
-            if (a.scopeInfo && a.scopeInfo.builtin) {
+            /*if (a.scopeInfo && a.scopeInfo.builtin) {
                 this.printf("%s._%s", BAWRAPPER,node+"");
-            } else {
+            } else {*/
                 this.printf("%s",node+"");
-            }
+            //}
         },
         not: function() {
             this.printf("not ");
@@ -7157,6 +7220,7 @@ function (Visitor,IndentBuffer,assert) {
 define('Python2JS',["Visitor","IndentBuffer","context","PyLib","PythonSemantics"],
 function (Visitor,IndentBuffer,context,PL,S) {
     var PYLIB="PYLIB";
+    const TOP="__top";
     const vdef={
         program: function (node) {
             this.printf("%s.LoopChecker.reset();%n",PYLIB);
@@ -7165,19 +7229,29 @@ function (Visitor,IndentBuffer,context,PL,S) {
         classdef: function (node) {
             const sp=b=>node.extends? this.visit(node.extends.super) : b.printf("Object");
             this.ctx.enter({inClass:node},()=>{
-                this.printf("var %s=%s.class(%f,{%{"+
+                let na=this.anon.get(node.name);
+                const topLevel=(na && na.scopeInfo && na.scopeInfo.topLevel);
+                this.printf("%s%s=%s.class(%f,{%{"+
                     "%s:'%s',%j"+
                 "%}});",
-                node.name, PYLIB,sp,
+                (topLevel?"":"var "), (topLevel?TOP+".":"")+node.name, PYLIB, sp,
                     "CLASSNAME",node.name, [",",node.body.filter(b=>b.type==="define")]);
             });
         },//
         define: function (node) {
+            const nan=this.anon.get(node);
+            let lets=nan.lets;
+            if (!lets) {
+                console.log("LETSNO", nan);
+            }
+            if (lets.length==0) lets="";
+            else lets=`let ${lets.join(",")};`;
             if (this.ctx.inClass) {
-                this.printf("%n%s: function %v{%{%v%}}",node.name,node.params,node.body);
+                this.printf("%n%s: function %v{%{%s%n%v%}}",node.name,node.params,lets, node.body);
             } else {
-                this.printf("function %s%v{%{%v%}}%n",node.name,node.params,node.body);
-
+                let na=this.anon.get(node.name);
+                let prefix=(na && na.scopeInfo && na.scopeInfo.topLevel) ? TOP+".": "";
+                this.printf("%s%s=function %v{%{%s%n%v%}};%n", prefix ,node.name, node.params, lets, node.body);
             }
         },
         paramList: function (node) {
@@ -7193,16 +7267,6 @@ function (Visitor,IndentBuffer,context,PL,S) {
         defVal: function (node) {
             this.printf("%v",node.value);
         },
-        importStmt: function (node) {
-            var url=this.options.pyLibPath+"/py_"+node.name+".js";
-            if (node.alias) {
-                this.printf("var %s=require('%s').install(%s);", node.alias, url, PYLIB);
-                //this.printf("var %s=%s.import('%v');",node.alias,PYLIB,node.name);
-            } else {
-                this.printf("var %s=require('%s').install(%s);", node.name, url, PYLIB);
-                //this.printf("var %s=%s.import('%v');",node.name,PYLIB,node.name);
-            }//this.printf("%n");
-        },
         importStmt2: function (node) {
             for (let e of node.elements) {
                 this.visit(e);
@@ -7211,18 +7275,17 @@ function (Visitor,IndentBuffer,context,PL,S) {
         importElement: function (node) {
             var url=this.options.pyLibPath+"/py_"+node.name+".js";
             if (node.alias) {
-                this.printf("var %s=require('%s').install(%s);", node.alias, url, PYLIB);
+                this.printf("%v=require('%s').install(%s);", node.alias, url, PYLIB);
             } else {
-                this.printf("var %s=require('%s').install(%s);", node.name, url, PYLIB);
+                this.printf("%v=require('%s').install(%s);", node.name, url, PYLIB);
             }
         },
         fromImportStmt: function (node) {
             var url=this.options.pyLibPath+"/py_"+node.name+".js";
             if (node.localNames.names.text==="*"){
-                this.printf("var {%s}=require('%s').install(%s);",
-                S.importable[node.name].browser.join(","), url, PYLIB);
+                this.printf("Object.assign(%s, require('%s').install(%s));", TOP, url, PYLIB);
             } else {
-                this.printf("var {%j}=require('%s').install(%s);", [",",node.localNames.names], url, PYLIB);
+                this.printf("{%j}=require('%s').install(%s);", [",",node.localNames.names], url, PYLIB);
             }
         },
         exprStmt: function (node) {
@@ -7235,9 +7298,9 @@ function (Visitor,IndentBuffer,context,PL,S) {
         delStmt: function (node) {
             var a=this.anon.get(node);
             if (a.index) {
-                this.printf("%s.wrap(%v).__delattr__(%v);",PYLIB, a.obj, a.index);
+                this.printf("(%v).__delattr__(%v);",a.obj, a.index);
             } else {
-                this.printf("%s.wrap(%v).__delattr__('%s');",PYLIB, a.obj, a.name);
+                this.printf("(%v).__delattr__('%s');",a.obj, a.name);
             }
         },
         whileStmt: function (node) {
@@ -7255,7 +7318,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
             this.printf("else %v",node.then);
         },
         forStmt: function (node) {
-            this.printf("var %j;%nfor (%v of %v) %v", [",",node.vars],node.vars[0], node.set, node.do);
+            this.printf("for (%v of %v) %v", node.vars, node.set, node.do);
         },
         listComprehension: function (node) {
             const vn=node.vars[0];
@@ -7263,9 +7326,9 @@ function (Visitor,IndentBuffer,context,PL,S) {
                        PYLIB, vn, node.elem, node.set);
         },
         letStmt: function (node) {
-            if (this.anon.get(node).needVar) {
+            /*if (this.anon.get(node).needVar) {
                 this.printf("var ");
-            }
+            }*/
             //console.log("NODEL",node.left);//lvallist
             const firstBody=node.left.body && node.left.body[0];
             const io=PL.iops[node.op+""];
@@ -7279,10 +7342,10 @@ function (Visitor,IndentBuffer,context,PL,S) {
                 console.log("NODEL2",object,index);
                 if (io) {
                     this.printf("%v.__setitem__(%v, "+
-                        "%s.wrap( %v.__getitem__(%v) ).__%s__(%v)"+
+                        "( %v.__getitem__(%v) ).__%s__(%v)"+
                     ");",
                         object, index.body,
-                        PYLIB, object, index.body, io, value
+                        object, index.body, io, value
                     );
                 } else {
                     this.printf("%v.__setitem__(%v, %v);",object, index.body,value );
@@ -7295,17 +7358,17 @@ function (Visitor,IndentBuffer,context,PL,S) {
                 console.log("NODEL3",object,name);
                 if (io) {
                     this.printf("%v.__setattr__('%s', "+
-                        "%s.wrap( %v.__getattribute__('%s') ).__%s__(%v)"+
+                        "( %v.__getattribute__('%s') ).__%s__(%v)"+
                     ");",
                         object, name,
-                        PYLIB, object, name, io, value
+                        object, name, io, value
                     );
                 } else {
                     this.printf("%v.__setattr__('%s', %v);",object, name,value );
                 }
             } else if (io) {
-                this.printf("%v=%s.wrap(%v).__%s__(%v)" ,
-                node.left, PYLIB, node.left, io, value);
+                this.printf("%v=(%v).__%s__(%v)" ,
+                node.left, node.left, io, value);
             } else {
                 //if (node.left.type)
                 this.visit(node.left);
@@ -7374,7 +7437,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
             this.printf("[%j]",[",",node.body]);
         },
         dict: function (node) {
-            this.printf("{%j}",[",",node.body]);
+            this.printf("%s.dict({%j})",PYLIB, [",",node.body]);
         },
         dictEntry: function (node) {
             this.printf("%v:%v",node.key,node.value);
@@ -7450,13 +7513,13 @@ function (Visitor,IndentBuffer,context,PL,S) {
             }
             var o=PL.ops[node.op+""],io=PL.iops[node.op+""];
             if (o) {
-                this.printf("%s.wrap(%v).__%s__(%v)",PYLIB, node.left,o, node.right);
+                this.printf("(%v).__%s__(%v)", node.left,o, node.right);
             } else if (io) {
-                this.printf("%v=%s.wrap(%v).__%s__(%v)" ,
-                node.left, PYLIB, node.left, io, node.right);
+                this.printf("%v=(%v).__%s__(%v)" ,
+                node.left, node.left, io, node.right);
             } else if (node.op+""==="in") {
-                this.printf("%s.wrap(%v).__contains__(%v)" ,
-                    PYLIB, node.right, node.left);
+                this.printf("(%v).__contains__(%v)" ,
+                    node.right, node.left);
             } else {
                 throw new Error("No operator for "+node.op);
             }
@@ -7512,19 +7575,10 @@ function (Visitor,IndentBuffer,context,PL,S) {
         False: function () {this.printf("false");},
         None: function () {this.printf("%s.None",PYLIB);},
         symbol(node) {
-            if (typeof this.convertSymbol[node.text]==="string") {
-                // for example, node.text=="__str__", function returns
-                this.printf(this.convertSymbol[node.text]);
-            } else {
-                const a=this.anon.get(node);
-                if (a.scopeInfo && !a.isLeft) {
-                    // right val
-                    this.printf("%s.checkSet(%s,'%s')",PYLIB, node+"", node+"");
-                } else {
-                    // left val
-                    this.printf("%s",node+"");
-                }
-            }
+            const a=this.anon.get(node);
+            const pre=(a.scopeInfo && a.scopeInfo.topLevel ? TOP+".":"");
+            const nex=pre+node;
+            this.printf("%s",nex);
         },
     };
     const cmps={">":1,"<":1,"==":1,">=":1,"<=":1,"!=":1};
@@ -7563,13 +7617,6 @@ function (Visitor,IndentBuffer,context,PL,S) {
             }
         };
         v.options=options;
-        v.convertSymbol={};
-        for (let im of options.implicitImports||[]) {
-            for (let n of im.names) {
-                v.convertSymbol[n]=im.head+"."+n;
-            }
-        }
-        //console.log("convertSymbol",this.convertSymbol,options.implicitImports);
         v.ctx=context();
         const buf=options.buf||IndentBuffer();
         buf.visitor=v;
@@ -7583,9 +7630,10 @@ function (Visitor,IndentBuffer,context,PL,S) {
         if (options.injectBefore) {
             v.printf(options.injectBefore);
         }
-        for (let n of PL.builtins) {
+        /*for (let n of PL.builtins) {
             v.printf("var %s=%s.%s;%n",n,PYLIB,n);
-        }
+        }*/
+        v.printf("var %s=%s.moduleScope(%s, %s);%n", TOP, PYLIB, PYLIB, !!options.useJSRoot);
         v.visit(node);
         if (options.injectAfter) {
             v.printf(options.injectAfter);
@@ -7702,9 +7750,21 @@ function (PP,S,G,J,PL,TError,jshint) {
             }
         }
     }
+    run.PyLib=PL;
     return run;
 });
-
+/* // in pcg
+var resMod;
+	requirejs(["pyRun"], function (r) {
+	  resMod=r;
+	});
+	if (typeof window!=="undefined" && window.pyRun===undefined) window.pyRun=resMod;
+	if (typeof module!=="undefined") module=resMod;
+  if (typeof global!=="undefined") global.pyRun=resMod;
+	return resMod;
+})(globalThis);
+*/
+;
 //-----------
 	var resMod;
 	requirejs(["pyRun"], function (r) {

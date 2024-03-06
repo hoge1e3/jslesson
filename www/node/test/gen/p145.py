@@ -1,4 +1,4 @@
-import bawrapper
+from bawrapper import *
 import math as math
 import _matplotlib.pyplot as plt
 dt= 0.01 
@@ -9,7 +9,7 @@ y=[ 0 ]
 angle= 45.0  * math.pi /  180.0 
 vx=[v0 * math.cos(angle)]
 vy=[v0 * math.sin(angle)]
-for i in bawrapper._range( 1000 ):
+for i in range( 1000 ):
   vx.append(vx[i])
   vy.append(vy[i] - g * dt)
   x.append(x[i] + vx[i] * dt)

@@ -1,7 +1,7 @@
-import bawrapper
+from bawrapper import *
 
 def quicksort(a,start,end):
-  m=bawrapper._int((start + end) /  2 )
+  m=int((start + end) /  2 )
   i=start
   j=end
   while (i < j):
@@ -27,5 +27,5 @@ def quicksort(a,start,end):
 
 a=[ 7 , 22 , 11 , 34 , 17 , 52 , 26 , 13 , 40 , 20 , 10 , 5 , 16 , 8 , 4 , 2 , 1 ]
 print(" ソート前 ",a)
-quicksort(a, 0 ,bawrapper._len(a) -  1 )
+quicksort(a, 0 ,len(a) -  1 )
 print(" ソート後 ",a)

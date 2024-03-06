@@ -1,9 +1,9 @@
-import bawrapper
+from bawrapper import *
 swc= 0 
 def selectionsort(a):
   global swc
-  for i in bawrapper._range( 0 ,bawrapper._len(a), 1 ):
-    for j in bawrapper._range(i +  1 ,bawrapper._len(a), 1 ):
+  for i in range( 0 ,len(a), 1 ):
+    for j in range(i +  1 ,len(a), 1 ):
       if a[j] < a[i]:
         swc+= 1 
         temp=a[i]

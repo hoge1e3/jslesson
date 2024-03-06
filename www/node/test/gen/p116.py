@@ -1,4 +1,4 @@
-import bawrapper
+from bawrapper import *
 x= 40 
 if x >=  60 :
   print(" 合格 ")

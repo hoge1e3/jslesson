@@ -8,8 +8,7 @@ define(function (require,exports,module){
     "setShakeThreshold","_ondeviceorientation","_ondevicemotion","_handleMotion","isKeyPressed","keyIsPressed","key","keyCode","_onkeydown","_onkeyup","_onkeypress","_onblur","keyIsDown","_areDownKeys","movedX","movedY","_hasMouseInteracted","mouseX","mouseY","pmouseX","pmouseY","winMouseX","winMouseY","pwinMouseX","pwinMouseY","mouseButton","mouseIsPressed","_updateNextMouseCoords","_updateMouseCoords","_setMouseButton","_onmousemove","_onmousedown","_onmouseup","_ondragend","_ondragover",
     "_onclick","_ondblclick","_mouseWheelDeltaY","_pmouseWheelDeltaY","_onwheel","requestPointerLock","exitPointerLock","touches","_updateTouchCoords","_ontouchstart","_ontouchmove","_ontouchend","createImage","saveCanvas","saveGif","saveFrames","_makeFrame","loadImage","image","tint","noTint","_getTintedImageCanvas","imageMode","pixels","blend","copy","_copyHelper","filter","get","loadPixels","set","updatePixels","loadJSON","loadStrings","loadTable","loadXML","loadBytes","httpGet","httpPost","httpDo","_pWriters","createWriter","save","saveJSON","saveJSONObject","saveJSONArray","saveStrings","saveTable","writeFile","downloadFile","_checkFileExtension","_isSafari","abs","ceil","constrain","dist","exp","floor","lerp","log","mag","map","max","min","norm","pow","round","sq","sqrt","fract","createVector","noise","noiseDetail","noiseSeed","_lcg","_lcgSetSeed","randomSeed","random","randomGaussian","_angleMode","acos","asin","atan","atan2","cos","sin","tan","degrees","radians","angleMode","_toRadians","_toDegrees","_fromRadians","textAlign","textLeading","textSize","textStyle",
     "textWidth","textAscent","textDescent","_updateTextMetrics","loadFont","text","textFont","append","arrayCopy","concat","reverse","shorten","shuffle","sort","splice","subset","float","int","str","boolean","byte","char","unchar","hex","unhex","join","match","matchAll","nf","nfc","nfp","nfs","split","splitTokens","trim","day","hour","minute","millis","month","second","year","plane","box","sphere","cylinder","cone","ellipsoid","torus","orbitControl","debugMode","noDebugMode","_grid","_axesIcon","ambientLight","specularColor","directionalLight","pointLight","lights","lightFalloff","spotLight","noLights","loadModel","model","loadShader","createShader","shader","resetShader","normalMaterial","texture","textureMode","textureWrap","ambientMaterial","emissiveMaterial","specularMaterial","shininess"];
-    const implicitImports=[{head:"p5main", names:p5props}];
-    const p5jsURL="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.2.0/p5.js";
+    const p5jsURL="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.js";
     const root=require("root");
     const WebSite=require("WebSite");
     const FS=require("FS");
@@ -25,7 +24,7 @@ define(function (require,exports,module){
         this.dst=dst;// SFile in ramdisk
         this.ide=ide;
     };
-    var libs=["polyfill","jquery-1.12.1","require"].map(function (n) {
+    var libs=["jquery-1.12.1","require"].map(function (n) {
         return "lib/"+n+".js";
     });
     libs=libs.concat(["lib/python/runOnServer.js"]);
@@ -54,14 +53,56 @@ define(function (require,exports,module){
         $(head).append($("<script>").text("window.runtimePath='"+WebSite.runtime+"';"));
         $(head).append($("<script>").text("window.controllerPath='"+WebSite.controller+"';"));
         $(head).append($("<script>").text("window.onerror=window.onerror||"+
-        function (e) {console.log(arguments);alert(e);}+";"));
+        function (a,b,c,d,e) {console.log(arguments);alert(e);}+";"));
         $(head).append($("<link>").attr({"rel":"stylesheet","href":WebSite.runtime+"css/run_style.css"}));
 
         libs.map(function (r) {
             return WebSite.runtime+r;
-        }).concat([f.name+".js"]).forEach(function (src) {
+        }).forEach(function (src) {
             var nn=document.createElement("script");
             nn.setAttribute("charset","utf-8");
+            nn.setAttribute("src",addParam(src));
+            body.appendChild(nn);
+        });
+        //.concat([f.name+".js"])
+        var nn=document.createElement("script");
+        nn.setAttribute("charset","utf-8");
+        nn.innerHTML=`
+        requirejs([${JSON.stringify(addParam(f.name+".js"))}], function(mod){
+            (async function (){
+                const __top=await mod.load();
+                let inst=window;
+                function _wrap(f) {
+                    return function (...args) {
+                        try {
+                            PYLIB.LoopChecker.reset();
+                            return f(...args);
+                        } catch(e) {
+                            console.log(e,onerror);
+                            if (typeof onerror==="function") onerror(null,null,null,null,e);
+                            else {
+                                alert(e);
+                            }
+                            throw e;
+                        }
+                    };
+                }
+                let __g=__top.globals();
+                ["draw", "setup","keyPressed","keyReleased","keyTyped","mouseMoved","mouseDragged","mousePressed","mouseClicked"].map((k)=>{
+                    if (__g.__contains__(k)) {
+                        let v=__g.__getitem__(k);
+                        if (typeof v==="function") {
+                            if (v.spec) { v.spec.allowExtra=true; v.spec.name=k; }
+                            inst[k]=(k==="setup"? _wrap(v) : v);
+                        }
+                    }
+                });
+                ${"req"+"uirejs"}(["${p5jsURL}"], function(){});
+            })();
+        });
+        `;
+        body.appendChild(nn);
+        function addParam(src) {
             var src2;
             var requirejs=root.requirejs;
             if (FS.PathUtil.isURL(src) && requirejs.version!=="2.1.9" && typeof requirejs.s.contexts._.config.urlArgs==="function") {
@@ -69,9 +110,8 @@ define(function (require,exports,module){
             } else {
                 src2=src+(src.indexOf("?")<0?"?":"&")+Math.random();
             }
-            nn.setAttribute("src",src2);
-            body.appendChild(nn);
-        });
+            return src2;
+        }
         return f.dst.html.text("<!DOCTYPE HTML>\n<html>"+html.innerHTML+"</html>");
     };
     function isNewer(a,b) {
@@ -120,7 +160,7 @@ define(function (require,exports,module){
         var anon,node,errSrc,needInput=false;
         try {
             node=PP.parse(pysrcF);
-            var vres=S.check(node,{srcFile:pysrcF, runAt: "browser", implicitImports,});
+            var vres=S.check(node,{srcFile:pysrcF, runAt: "browser",});
 
             needInput=!!vres.useInput;
             anon=vres.anon;
@@ -142,15 +182,45 @@ define(function (require,exports,module){
             buf.printf("%s",errSrc);
         } else {
             J(node,anon,{buf:buf,genReqJS:true, pyLibPath:WebSite.runtime+"lib/python",
-             implicitImports,
-             injectBefore: `var p5=${"req"+"uire"}("${p5jsURL}");\n`,
-             injectAfter: `var p5main;new p5(function (inst) {
+            useJSRoot:true,
+            injectAfter_oldd: `
+            let inst=window;
+            function _wrap(f) {
+                return function (...args) {
+                    try {
+                        PYLIB.LoopChecker.reset();
+                        return f(...args);
+                    } catch(e) {
+                        console.log(e,onerror);
+                        if (typeof onerror==="function") onerror(null,null,null,null,e);
+                        else {
+                            alert(e);
+                        }
+                        throw e;
+                    }
+                };
+            }
+            let __g=__top.globals();
+            ["draw", "setup","keyPressed","keyReleased","keyTyped","mouseMoved","mouseDragged","mousePressed","mouseClicked"].map((k)=>{
+                if (__g.__contains__(k)) {
+                    let v=__g.__getitem__(k);
+                    if (typeof v==="function") {
+                        if (v.spec) { v.spec.allowExtra=true; v.spec.name=k; }
+                        inst[k]=(k==="setup"? _wrap(v) : v);
+                    }
+                }
+            });
+             ${"req"+"uire"}("${p5jsURL}");
+             `,
+             injectBefore_old: `var p5=${"req"+"uire"}("${p5jsURL}");\n`,
+             injectAfter_old: `var p5main;new p5(function (inst) {
                 p5main=inst;
                 ${["setup","keyPressed","keyReleased","keyTyped","mouseMoved","mouseDragged","mousePressed","mouseClicked"].map((k)=>
                 `if (typeof ${k}==="function") inst.${k}=${k};`).join("\n")}
                 inst.draw=()=>{
                     PYLIB.LoopChecker.reset();
                     if (typeof draw==="function") draw();
+
                 };
              }, document.querySelector("body"));`});
         }

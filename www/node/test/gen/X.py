@@ -1,8 +1,8 @@
-import bawrapper
+from bawrapper import *
 import g
 
 g.drawGrid()
-for i in bawrapper._range( 10 ):
+for i in range( 10 ):
   g.fillRect(i *  20 , 30 , 10 , 50 )
 x= 10 
 y= 10 

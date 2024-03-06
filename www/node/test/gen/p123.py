@@ -1,4 +1,4 @@
-import bawrapper
+from bawrapper import *
 import random
 a= 5 
 r=random.randrange( 10 )
