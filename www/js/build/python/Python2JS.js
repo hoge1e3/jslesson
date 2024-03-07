@@ -151,9 +151,11 @@ function (Visitor,IndentBuffer,context,PL,S) {
             this.printf("for (%v of %v) %v", node.vars, node.set, node.do);
         },
         listComprehension: function (node) {
+            const nan=this.anon.get(node);
+            const sca=this.anon.get(nan.localScope);
             const vn=node.vars[0];
-            this.printf("%s.listComprehension(%s=>%v, %v)",
-                       PYLIB, vn, node.elem, node.set);
+            this.printf("%s.listComprehension('%s',(%s)=>%v, %v)",
+                       PYLIB, vn, scopeSymbol(sca.level), node.elem, node.set);
         },
         letStmt: function (node) {
             /*if (this.anon.get(node).needVar) {
