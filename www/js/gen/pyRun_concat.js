@@ -1927,7 +1927,7 @@ function (Grammar,Pos2RC/*,TError*/) {
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: or([":",{body:"oneLineStmtList"},"nodentOrEOT"], [":indent",{body:"stmtList"},"dedentOrEOT"]),
         elem: or("symbol","number","None","bool","listComprehension","array","dict","literal3","literal","paren","superCall","lambdaExpr"),
-        lambdaExpr: ["lambda",{param:"symbol"},":",{returns:"expr"}],
+        lambdaExpr: ["lambda",{params:sep1("param",",")},":",{returns:"expr"}],
         superCall: ["super","(",")"],
         paren: ["(",{body:"exprList"},")"],
         bool: or("True","False"),
@@ -2080,6 +2080,8 @@ return root.context;
 define('PyLib',['require','exports','module'],function (require,exports,module) {
     //var PyX=require("./PyX.js");
     // same with root.js
+    //const ABG=require("AsyncByGenerator");
+    //const ctrl=require("ctrl");
     function getRoot(){
         if (typeof window!=="undefined") return window;
         if (typeof self!=="undefined") return self;
@@ -2125,9 +2127,11 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         },
         js:root
     };
+    PL.spreadMod=(mod, names) => names.map((n)=>mod[n]);
     PL.proxy=(target)=>{
         return new Proxy(()=>"Hoge", {
             get(_target, prop, receiver) {
+                if (prop==="__unproxy__") return ()=>target;
                 return target.__getattribute__(prop);
             },
             set(_target, prop, newVal) {
@@ -2135,7 +2139,10 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
             },
             apply(_target, self, ...args) {
                 return target.__call__(target, ...args);
-            }
+            },
+            has(_target, name) {
+                return name in target;
+            },
         });
     };
     //PyX.install(PL);
@@ -2197,9 +2204,9 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
     PL.str=function (s) {
         //  s==false
         if (s!=null && s.__str__) {
-            const r=s.__str__();// __OP__
-            if (typeof r==="string") return r;
-            throw new Error("__str__の戻り値が文字列以外です："+r);
+            const res=s.__str__();
+            if (typeof res!=="string") throw new Error("__str__の戻り値は文字列である必要があります．");
+            return res;// __OP__
         }
         return "None";
     };
@@ -2224,7 +2231,7 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         }
         return Math.max(...args);
     };
-    PL.open=function () {throw new Error("openを使うには，「サーバで実行」を選んでください．");};
+    //PL.open=function () {throw new Error("openを使うには，「サーバで実行」を選んでください．");};
     PL.quit=function (s) {PL.exit();};
     PL.exit=function (s) {
         var e=new Error("exit でプログラムが終了しました。");
@@ -2245,7 +2252,15 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
             return "object";
         }
     };
+    PL.issubclass=function (sub,sup) {
+        if (sub===sup) return true;
+        if (!sub.__bases__ || !sub.__bases__[0]) return false;
+        return PL.issubclass(sub.__bases__[0], sup);
+    };
     PL.isinstance=function (obj,klass) {
+        if (obj==null) {
+            return klass===PL.NoneType;
+        }
         if (klass===PL.int) {
             return (typeof u(obj)==="number" && Math.floor(obj)===obj);
         } else if (klass===PL.float || klass===Number) {
@@ -2254,10 +2269,8 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
             return (typeof u(obj)==="string");
         }
         const ocl=obj && obj.__class__;
-        return !!ocl &&
-        (ocl===klass ||
-            PL.isinstance(Object.getPrototypeOf(ocl.prototype),klass)
-        );
+        if (!ocl) return false;
+        return PL.issubclass(ocl, klass);
     };
     PL.sorted=function (a, ...args) {
         return a.slice().sort(...args);
@@ -2311,37 +2324,53 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         }
         return res;
     };
-    PL.parseArgs2=function(arg, spec) {
+    PL.parseArgs2=function(args, spec) {
         // spec: [{name:  , def:  , ast: "*" || "**" }]
-        arg=[...arg];
-        spec=[...spec];
-        let opt=null;
-        if (arg[arg.length-1] instanceof PL.Option) {
-            opt=arg.pop();
+        args=Array.from(args);
+        const allowExtra=spec.allowExtra;
+        spec=spec.slice();
+        let opt=null, optKeys={};
+        if (args[args.length-1] instanceof PL.Option) {
+            opt=args.pop();
+            for (let k of Object.keys(opt)) optKeys[k]=true;
         }
         let i=0;
-        const res=[];
+        const res={};
         while (spec.length) {
             let s=spec.shift();
             if (typeof s==="string") s={name:s};
             if (!s.ast) {
-                if (arg.length) res.push(arg.shift());
-                else if (opt && opt.hasOwnProperty(s.name)) res.push(opt[s.name]);
-                else if ("def" in s) res.push(s.def);
+                if (args.length) res[s.name]=(args.shift());
+                else if (opt && opt.hasOwnProperty(s.name)) {
+                    if (res.hasOwnProperty(s.name)) {
+                        throw new Error(`引数${s.name}はすでに渡されています．`);
+                    }
+                    delete optKeys[s.name];
+                    res[s.name]=(opt[s.name]);
+                } else if ("def" in s) res[s.name]=(s.def);
                 else throw new Error(`引数${s.name}が渡されていません．`);
             } else if (s.ast==="*") {
-                res.push(PL.Tuple(arg));
-                arg=[];
+                res[s.name]=(PL.Tuple(args));
+                args=[];
             } else if (s.ast==="**") {
-                res.push(opt);
+                res[s.name]=(opt);
             }
         }
-        if (arg.length) {
-            throw new Error(`余計な引数が${arg.length}個あります．`);
+        if (Object.keys(optKeys).length) {
+            throw new Error(`引数${Object.keys(optKeys)}はありません．`)
+        }
+        if (args.length && !allowExtra) {
+            throw new Error(`余計な引数が${args.length}個あります．`);
         }
         return res;
     };
-
+    PL.f=(spec, body)=>{
+        const res=function (...args){
+            return PL.AsyncByGenerator.toVal(body.call(this,PL.parseArgs2(args, spec)));    
+        };
+        res.spec=spec;
+        return res;
+    };
     PL.opt=PL.Option;
     PL.range=function (b,e,s=1) {
         if (e==null) {e=b;b=0;}
@@ -2395,12 +2424,19 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
                         value: m
                     });    
                 }
+                if (k==="__iter__") {
+                    Object.defineProperty(res.prototype, Symbol.iterator, {
+                        value(){
+                            return PL.pyiter(m.apply(this,[this]));
+                        }
+                    });
+                }
                 methodNames.push(k);
             } else {
                 res.prototype[k]=m;
             }
         }
-        res.__name__=defs.CLASSNAME;
+        res.__name__=defs.__name__ || defs.CLASSNAME;
         res.__module__="__main__";
         res.prototype.constructor=res;
         Object.defineProperty(res.prototype,"__class__",{
@@ -2423,6 +2459,23 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         }
         return res;
     };
+    PL.NoneType=PL.class({});
+    PL.pyiter=function (iter) {
+        return {
+            next() {
+                try {
+                    return {done:false, value: iter.__next__()};
+                }catch(e) {
+                    if (e instanceof PL.StopIteration) return {done:true, value:null};
+                    throw e;
+                }
+            }
+        };
+    };
+    PL.AttributeError=class extends Error {};
+    //PL.AttributeError.prototype=new Error();
+    PL.StopIteration=function (){};
+    PL.StopIteration.prototype=new Error();
     PL.float=function (s) {
         const v=s-0;
         if (v!==v) throw new Error(`${s} は floatに変換できません`);
@@ -2441,11 +2494,11 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         //console.log("klass.prototype.CLASSNAME",klass.prototype.CLASSNAME);
         if (!klass.__bases__) {
             console.log(klass);
-            throw new Error(`superclass of ${klass.prototype.CLASSNAME} not found`);
+            throw new Error(`${klass.prototype.CLASSNAME}には親クラスがありません．`);
         }
         const superclass=klass.__bases__.elems[0];
         if (!superclass) {
-            throw new Error(`superclass of ${klass.prototype.CLASSNAME} not found`);
+            throw new Error(`${klass.prototype.CLASSNAME}には親クラスがありません．`);
         }
         //console.log("superclass", superclass, superclass.__name__, klass.__methodnames__, superclass.__methodnames__);
         const superprot=superclass.prototype;
@@ -2465,6 +2518,7 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         return res;
     };
     PL.Tuple=PL.class({
+        __name__: "tuple",
         __init__:function (self, elems) {
             self.elems=elems;
             for (let i=0;i<elems.length;i++) self[i]=elems[i];
@@ -2473,10 +2527,12 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
             return "("+self.elems.join(", ")+")";
         }
     });
+    PL.Tuple.__bases__=PL.Tuple([]);
     PL.Tuple.prototype[Symbol.iterator]=function(...args) {
         return this.elems[Symbol.iterator](...args);
     };
     PL.dict=PL.class({
+        __name__: "dict",
         __init__(self, src) {
             self.map=new Map();
             for (let k in src) {
@@ -2500,9 +2556,176 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         return this.map.keys();
     };
     PL.None=null;
+    let Encoding;
+    PL.open=async function (...args) {
+        const {filename, mode, encoding}=PL.parseArgs2(args,["filename","mode",{name:"encoding",def:"utf8"}]);
+        let cp;
+        filename.replace(/^(user|class)\/(.*)/,(_,context,path)=>cp={context,path});
+        let content="";
+        if (!cp) {
+            throw new Error("ファイル名はuser/ か class/で始めてください．: "+filename);
+        }
+        if (mode.match(/[ra]/)) {
+            if (encoding!=="utf8") {
+                if (!Encoding) {
+                    Encoding=await new Promise((s)=>
+                        requirejs(["https://cdnjs.cloudflare.com/ajax/libs/encoding-japanese/2.0.0/encoding.min.js"], s));
+                }
+                //alert(Encoding);
+            }
+            const {files, prefix, baseUrl}=await ctrl.get("Asset/list2",{context:cp.context});
+            const fileName=files.find((fileName)=>fileName===cp.path);
+            if (!fileName) {
+                if (!mode.match(/a/)) {
+                    throw new Error("ファイル" +cp.context+"/"+cp.path+"はありません．「ファイル」→「素材管理」からファイル名を確認してください．");
+                }
+            } else {
+                const urlFull=baseUrl+fileName;// WebSite.published+u;
+                //alert(urlFull);
+                if(encoding!=="utf8") {
+                    const ary=await $.ajax({
+                        url: urlFull,
+                        type: "GET",
+                        dataType: 'binary',
+                        responseType:'arraybuffer',
+                        processData: false
+                    });
+                    const ary8=new Uint8Array(ary);
+                    const unicodeArray=Encoding.convert(ary8, {
+                        to: 'UNICODE',
+                        from: encoding
+                    });
+                    //console.log(ary8, unicodeArray);
+                    content = Encoding.codeToString(unicodeArray);
+                } else content=await $.get(urlFull);    
+            }
+            if (!mode.match(/a/)) return PL.ReaderFile(content);
+        } 
+        if (mode.match(/[wa]/)) {
+            return PL.WriterFile(cp.context, cp.path, content);
+        }
+        throw new Error("第2引数（モード指定）に誤りがあります："+mode);
+    };
+    PL.ReaderFile=PL.class({
+        __init__(self, content) {self.content=content;},
+        __iter__(self) {
+            //self._line=0;
+            if (self.content==="") self.lines=[];
+            const lastHasBR=self.content[self.content.length-1]=="\n";
+            self.lines=self.content.split("\n").map((s)=>s+"\n");
+            if (lastHasBR) {
+                self.lines.pop();
+            } else {
+                self.lines[self.lines.length-1]=self.lines[self.lines.length-1].trim();
+            }
+            return self;
+        },
+        __next__(self) {
+            if (self.lines.length) return self.lines.shift();
+            throw new PL.StopIteration();
+        },
+        close(self){
+            self.closed=true;
+        },
+    });
+    PL.WriterFile=PL.class({
+        __init__(self, context, filename, content="") {
+            self.context=context;
+            self.filename=filename;
+            self.content=content;
+            self.flushTimer=null;
+        },
+        write(self, str) {
+            self.content+=str;
+            if (self.flushTimer) {
+                clearTimeout(self.flushTimer);
+            }
+            self.flushTimer=setTimeout(()=>{
+                self.flush();
+            },1000);
+        },
+        async close(self) {
+            await self.flush();
+            self.closed=true;
+        },
+        async flush(self) {
+            if (self.flushTimer) {
+                clearTimeout(self.flushTimer);
+            }
+            const blob=new Blob([self.content],{type:"text/plain"});
+            const formData = new FormData();
+            formData.append('acceptImage', blob, self.filename);
+            formData.append("context",self.context);
+            return await $.ajax({
+                type: 'POST',
+                url: ctrl.url("Asset/upload"),
+                data: formData,
+                contentType: false,
+                processData: false
+            });
+        },
+    });
     PL.checkSet=(v, name="Variable")=>{
         if (v!==undefined) return v;
         throw new Error(`${name} is not defined.`);
+    };
+    PL.hasattr=(o, name)=>{
+        try {
+            if (!o) return false;
+            o.__getattribute__(name);
+            return true;
+        } catch(e) {
+            if (e instanceof PL.AttributeError) return false;
+            throw e;
+        }
+    };
+    PL.hasattr_js=(o, name)=>{
+        if (!o) return;
+        o=o.__unproxy__();
+        const inable=(e)=>typeof e==="object"||typeof e==="function";
+        return (inable(o) && name in o) || o[name]!==undefined;
+    };
+    PL.typeof_field=(o, field, type)=> {
+        /*if (o instanceof String) {
+            console.log("WHY" , o, field, type);
+            //return false;
+        }
+        if (!o || typeof o!=="object") return false;*/
+        //console.log("typeof_field", o, field, type);
+        if (typeof field==="object") {
+            for (let k in field) {
+                if (typeof field[k] instanceof String) {
+                    console.log(field, k ,field[k]);
+                    throw new Error("Invalid field spec");
+                }
+                if (!PL.typeof_field(o,k,field[k])) return false;
+            }
+            return true;
+        }
+        if (type) {
+            return PL.typeof_field(o, field)===type;
+        }
+        if (!PL.hasattr_js(o, field)) {
+            return "undefined";
+        }
+        return typeof o[field]; 
+    };
+    PL.isArray=(v)=>{
+        if (!v) return false;
+        v=v.__unproxy__();
+        return (v instanceof Array) || (
+            (PL.typeof_field(v,{length:"number", slice:"function", map:"function"})));
+    };
+    PL.isArrayLike=(v)=> {
+        if (!v) return false;
+        if (typeof v==="string" || v instanceof String) return false;
+        v=v.__unproxy__();
+        return PL.isArray(v) || (
+            typeof v==="object" && PL.typeof_field(v,{length:"number"}) &&(
+                v.length===0 ||
+                (0 in v && v.length-1 in v)
+            )
+        );
     };
     PL.Tuple.__bases__=PL.Tuple([]);
     PL.Slice=PL.class({
@@ -2525,11 +2748,17 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         target.globals=()=>PL.dict(target);
         return new Proxy(target, {
             get(target, prop, receiver) {
+                if (prop==="__unproxy__") return ()=>target;
                 if (prop in target) return target[prop];
                 if (useJSRoot && prop in root) {
                     const r=root[prop];
                     if (typeof r==="function") return r.bind(root);
                     return r;
+                }
+                if (prop==="then" || typeof prop!=="string" ) {
+                    // 'then' will be checked on return of async function
+                    // Symbol(Symbol.toStringTag) is also
+                    return undefined;
                 }
                 throw new Error(`変数${prop}は定義されていません．`);
             },
@@ -2615,6 +2844,7 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         __call__: function (self,...a) {
             //var a=Array.prototype.slice.call(arguments,1);
             if (typeof self==="function") return self.apply(self, a);
+            console.log("Cannot call", self);
             throw new Error("この値は関数呼び出しできません");
         },
         //toString: function (self) {return self.value+"";},
@@ -2648,14 +2878,23 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
 
         __getattr__: function (self,name) {
             //__getattr__は、オブジェクトのインスタンス辞書に属性が見つからないときに呼び出されるメソッドです。
-            throw new Error(`フィールド ${name.toString()} はありません`);
+            if (name===Symbol.iterator) {
+                throw new PL.AttributeError(`このオブジェクトは繰り返し可能ではありません．`);
+            }
+            if (name==="then" || typeof name!=="string" ) {
+                // 'then' will be checked on return of async function
+                // Symbol(Symbol.toStringTag) is also
+                return undefined;
+            }
+            console.log("Field ", name, " not found in ",self);
+            throw new PL.AttributeError(`フィールド ${name.toString()} はありません`);
         },
         __getattribute__: function (self,name) {
-            if (!(name in self)) {
+            if (!PL.hasattr_js(self, name)) {
                 return self.__getattr__(name);
             }
             const r=self[name];
-            if (typeof r==="function") {
+            if (typeof r==="function" && !PL.isinstance(r, PL.type)) {
                 return r.bind(self);
             }
             return r;
@@ -2676,8 +2915,9 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
             self[key]=value;
         },
         __contains__(self, elem) {
-            return self.hasOwnProperty(elem);
+            return self.hasOwnProperty(elem) || elem in self;
         },
+        __unproxy__(self) {return self;},
         //____: function (self,other) { return selfother;},
     });
     PL.addMonkeyPatch(Number,{
@@ -2707,8 +2947,16 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         },
         enumerable: false,
     });*/
+    String.prototype.split_orig=String.prototype.split;
     PL.addMonkeyPatch(String,({
         __class__:String,
+        split(self, ...args) {
+            if (args.length===0) {
+                return self.replace(/^\s*/,"").replace(/\s*$/,"").split_orig(/\s+/);
+            } else {
+                return self.split_orig(...args);
+            }
+        },
         __str__(self){return self+"";},
         //__getTypeName__: function (){return "str";},
         __mul__: function (self,other) {
@@ -2762,7 +3010,8 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
                     return PL.str(o[name]);
                 }
             });
-        }
+        },
+        __unproxy__(self) {return self+"";},
     }));
     PL.addMonkeyPatch(Number, {
         __class__: Number,
@@ -2784,6 +3033,7 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
                 PL.invalidOP(self, "__mul__",other);
             }
         },  
+        __unproxy__(self) {return self-0;},
     });
     function otherShouldString(k) {
         return function (self,other) {
@@ -2810,7 +3060,8 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
                 default:
                     PL.invalidOP(self, "__mul__",other);
             }
-        }
+        },
+        __unproxy__(self) {return !!self;},
     });
     PL.addMonkeyPatch(Function,{
         __class__: Function,
@@ -2854,7 +3105,9 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
             self.splice(i,1);
         },
         __str__(self) {
-            return "["+self.map((e)=>PL.str(e)).join(", ")+"]";
+            return "["+self.map((e)=>
+                typeof e==="string" ? JSON.stringify(e).replace(/^"/,"'").replace(/"$/,"'") : PL.str(e)
+            ).join(", ")+"]";
         },
         __getitem__:function (self, key) {
             if (key instanceof PL.Slice) {
@@ -2933,7 +3186,7 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
     //---
     PL.builtins=["range","input","str","int","sum","float","object","len","type","quit","exit","sorted","abs",
     "min","max","list","isinstance","zip",
-    "fillRect","setColor","setTimeout","clearRect","clear"];
+    "fillRect","setColor","setTimeout","clearRect","clear","StopIteration"];
     root.PYLIB=PL;
     PL.root=root;
 
@@ -3006,6 +3259,121 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
             }
         });
     };
+
+    PL.AsyncByGenerator = {
+        doReady() {
+            this.isReady = true;
+            if (this.onReady) {
+                this.onReady();
+            }
+        },
+        ready(f) {
+            if (this.isReady) {
+                f();
+            } else {
+                this.onReady = f;
+            }
+        },
+        isPromise(v) {
+            return typeof Promise === "function" && v instanceof Promise; 
+        },
+        isGenerator(v) {
+            return v && (typeof Symbol === "function" && v[Symbol.toStringTag] === "Generator" || this.GeneratorFunction && this.GeneratorFunction.prototype.isPrototypeOf(v));
+        },
+        init() {
+            this.GeneratorFunction = ((function*(){})()).constructor;
+            this.doReady();
+        },
+        run(it) {
+            var t = this;
+            while (true) {
+                var n;
+                try {
+                    n = it.next();
+                } catch (e) {
+                    return Promise.reject(e);
+                }
+                if (this.isPromise(n.value)) {
+                    if (n.done) {
+                        return n.value;
+                    } else {
+                        //console.log("Getting then from1 ",n.value);
+                        return n.value.then(()=>{
+                            //PL.LoopChecker.reset();
+                            return t.run(it);
+                        });
+                    }
+                } else {
+                    if (n.done) {
+                        // Promise.resolve(n.value) -> field then not found
+                        return new Promise((s)=>s(n.value));
+                    }
+                }
+            }
+        },
+        toGen(v) {
+            if (this.isPromise(v)) {
+                var res;
+                //console.log("Getting then from2 ",v);
+                var p=v.then(function (r) {
+                    res=r;
+                });
+                return (function*() {yield p;return res;})();
+            } else if (this.isGenerator(v)) {
+                return v;
+            }
+            return (function*(){return v;})();            
+        },
+        toVal(gen) {
+            var n=gen.next();
+            if (n.done) return n.value;
+            return (function*() {
+                while(true) {
+                    yield n.value;
+                    n=gen.next();
+                    if (n.done) return n.value;
+                }
+            })();
+        }
+    };
+    PL.AsyncByGenerator.init();
+    const ctrl={};
+    ctrl.url=function (path,params) {
+        let res=".?"+path;
+        if (params) {
+            res+=Object.keys(params).map (k=>`&${k}=${params[k]}`).join("");
+        }
+        return res;
+    };
+    ctrl.run=function (method,path,params) {
+        params=params||{};
+        return $.ajax({
+            url: ctrl.url(path),
+            data:params,
+            cache: false,
+            type:method
+        });
+    };
+    ctrl.get=function (path,params) {
+        return ctrl.run("get",path,params);
+    };
+    ctrl.post=function (path,params) {
+        return ctrl.run("post",path,params);
+    };
+    PL.ctrl=ctrl;
+    PL.runAsync=(genF)=>{
+        return PL.AsyncByGenerator.run(genF());
+    };
+    setInterval(()=>PL.LoopChecker.reset(),2000);
+    PL.G=PL.R=(x)=>PL.AsyncByGenerator.toGen(x);
+    PL.V=(g)=>PL.AsyncByGenerator.toVal(g);
+    PL.await=function *(p){
+        let res,err;
+        yield p.then((r)=>{res=r;}, (e)=>{err=e;});
+        if (err) throw err;
+        return res;
+    };
+    PL.initializedAll=true;
     return PL;
 });
 
@@ -3058,7 +3426,7 @@ const importable={
         "fillOval", "getkey", "wait", "setTimeout"]},
     turtle:{browser:["Turtle","forward","right","left","clear","position"] },
     requests:{server:true},//SPECIAL
-    json:{server:true},//SPECIAL
+    json:{server:true,browser:true},//SPECIAL
     sys:{wrapper:true,server:true},
     MeCab: {wrapper:true, server:true},
     matplotlib:{wrapper:true,server:true},
@@ -3072,9 +3440,12 @@ const importable={
     os:{wrapper:true,server:true},
     urllib:{wrapper:true,server:true},
     bs4:{wrapper:true,server:true},
-    time:{wrapper:true,server:true},
+    time:{wrapper:true,server:true,browser:true},
     badb:{server:true},
-    cdb:{server:true},
+    cdb:{server:true,browser:true},
+    session:{server:true},
+
+    csv:{server:true},
     js:{browser: Object.keys(root)}
     // turtle: js?
 };
@@ -3103,22 +3474,27 @@ const vdef={
         const nameHead=node.name[0];
         this.checkImportable(nameHead);
         const sym=node.alias || nameHead;
-        this.addScope(sym,{vtype:importable[nameHead],node:sym});
+        const u=this.userImportable(nameHead);
+        this.addScope(sym,{vtype:u||importable[nameHead],node:sym});
         this.anon.put(sym, {isLeft: true});
+        this.anon.put(node, {userLib:u});
     },
     fromImportStmt: function (node) {
         const nameHead=node.name[0];
         this.checkImportable(nameHead);
+        const u=this.userImportable(nameHead);
+        this.anon.put(node, {userLib:u});
         if (node.localNames.names.text==="*") {
             if (this.curScope()!==this.rootScope) {
                 this.error("import * はトップレベルにしか書けません．");
             }
+            if (u) return;
             const names=Semantics.importable[nameHead][this.options.runAt];
             if (names && names.join) {
                 for (let localName of names) {
                     this.addScope(localName,{localName});
                 }
-            } else {
+            } else if (this.options.runAt!=="browser") {
                 this.error(`from ${nameHead} import * は使えません。*の部分に使いたい命令をカンマ区切りで書いてください。`,node);
             }
         } else {
@@ -3156,7 +3532,7 @@ const vdef={
                 this.visit(b);
             }
             const lets=Object.keys(s).filter((k)=>params.indexOf(k)<0);
-            this.anon.put(node, {lets});
+            this.anon.put(node, {lets, localScope: s});
             //console.log("LETS", node, lets);
         });
     },
@@ -3401,7 +3777,9 @@ const vdef={
         if (!i) {
             i=this.addScope(node+"", {node, scope:this.rootScope});
             console.log("symbol undef. treated as top level",node,this.curScope());
-            //this.error("変数または関数"+node+"は未定義です",node);
+            if (this.options.runAt!=="browser") {
+                this.error("変数または関数"+node+"は未定義です",node);
+            }
         }
         this.anon.put(node,{scopeInfo:i});
     },
@@ -3411,9 +3789,15 @@ const vdef={
     },
     lambdaExpr(node){
         this.newScope(()=>{
-            this.addScope(node.param+"",{node:node.param});
-            this.anon.put(node.param, {isLeft: true});
+            for (let p of node.params) {
+                this.addScope(p.name+"",{node:p.name});
+                this.anon.put(p.name,{isLeft: true});
+            }
+            //this.addScope(node.param+"",{node:node.param});
+            //this.anon.put(node.param, {isLeft: true});
             this.visit(node.returns);
+            const s=this.curScope();
+            this.anon.put(node, {localScope: s});
         });
     },
     semicolon(node) {
@@ -3456,7 +3840,7 @@ const Semantics= {
             return this.ctx.enter(...args);
         };
         v.rootScope={};
-        v.rootScope[Semantics.SYM_ROOT]=true;
+        v.anon.put(v.rootScope,{level:0});
         v.newScopeInfo=function (scope, name, kind, declarator) {
             const res=new ScopeInfo(scope, name, kind, declarator);
             if (scope===v.rootScope || kind===KIND_GLOBAL) res.topLevel=true;
@@ -3466,9 +3850,12 @@ const Semantics= {
             v.rootScope[b]=v.newScopeInfo(v.rootScope,b);
             v.rootScope[b].builtin=true;
         }
+        // \newScope
         v.newScope=function (f) {
             var pa=this.ctx.scope||this.rootScope;
             var ns=Object.create(pa);
+            let paa=v.anon.get(pa);
+            v.anon.put(ns,{level: paa.level+1});
             //ns.PARENT_SCOPE=pa;
             return this.enter({scope:ns},f);
         };
@@ -3495,8 +3882,19 @@ const Semantics= {
             //e.noTrace=true;
             throw e;
         };
+        v.userImportable=function (name) {
+            if (!this.options.files)return false;
+            if (this.options.runAt!=="browser") return false;
+            name=name+"";
+            console.log("userImportable", this.options.files, name);
+            return this.options.files.find(e=>e.name===name);
+        };
         v.checkImportable=function (nameHead) {
             //const nameHead=node.name[0];
+            if (this.options.runAt==="browser") {
+                const u=this.userImportable(nameHead);
+                if (u) return u;
+            }
             if (!importable[nameHead]) {
                 this.error(nameHead+" はインポートできません",nameHead);
             }
@@ -3588,7 +3986,6 @@ const Semantics= {
     },
     importable
 };
-Semantics.SYM_ROOT=Symbol("rootScope");
 return Semantics;
 });
 
@@ -7139,7 +7536,7 @@ function (Visitor,IndentBuffer,assert) {
             this.printf("%v%v%v",node.left,node.op,node.right);
         },
         lambdaExpr(node) {
-            this.printf("lambda %v:%v",node.param, node.returns);
+            this.printf("lambda %j:%v",[",",node.params], node.returns);
         },
         isnt: function () {
             this.printf(" is not ");
@@ -7240,29 +7637,62 @@ function (Visitor,IndentBuffer,context,PL,S) {
         },//
         define: function (node) {
             const nan=this.anon.get(node);
-            let lets=nan.lets;
-            if (!lets) {
+            const sca=this.anon.get(nan.localScope);
+            //let lets=nan.lets;
+            if (typeof sca.level!=="number") {
+                console.error("level not set", node, nan, sca);
+                throw new Error("level not set");
+            }
+            /*if (!lets) {
                 console.log("LETSNO", nan);
             }
             if (lets.length==0) lets="";
-            else lets=`let ${lets.join(",")};`;
+            else lets=`let ${lets.join(",")};`;*/
+            //let hasDefVal=node.params.body.some((p)=>p.defVal);
+            //lets+=`const __local${sca.level}=${PYLIB}.parseArgs2(arguments, ${spec} );\n`;
             if (this.ctx.inClass) {
-                this.printf("%n%s: function %v{%{%s%n%v%}}",node.name,node.params,lets, node.body);
+                this.printf("%n%s: ",node.name);
             } else {
+                //let na=this.anon.get(node.name);
+                //let prefix=(na && na.scopeInfo && na.scopeInfo.topLevel) ? TOP+".": "";
+                this.printf("%v=", /*prefix,*/ node.name);
+            }
+            this.printf("%s.f(%v,",PYLIB,node.params);
+            /*for (let p of node.params.body) {
+                this.printf("{");
+                this.printf("name: %s,",JSON.stringify(p.name+""));
+                if (p.defVal) {
+                    this.printf("def: %v,", p.defVal);
+                }
+                this.printf("},");
+            }*/
+            this.printf("function* (%s){%{%v%}})",scopeSymbol(sca.level), node.body);
+            if (this.ctx.inClass) {
+            } else {
+                this.printf(";%n");
+            }
+            /*} else {
                 let na=this.anon.get(node.name);
                 let prefix=(na && na.scopeInfo && na.scopeInfo.topLevel) ? TOP+".": "";
                 this.printf("%s%s=function %v{%{%s%n%v%}};%n", prefix ,node.name, node.params, lets, node.body);
-            }
+            }*/
         },
         paramList: function (node) {
-            this.printf("(%j)",[",",node.body]);
+            this.printf("[%j]",[",",node.body]);
         },
         param: function(node) {
+            this.printf("{");
+            this.printf("name: %s,",JSON.stringify(node.name+""));
+            if (node.defVal) {
+                this.printf("def: %v,", node.defVal);
+            }
+            this.printf("}");
+            /*
             if (node.defVal) {
                 this.printf("%s=%v",node.name, node.defVal);
             } else {
                 this.printf("%s",node.name);
-            }
+            }*/
         },
         defVal: function (node) {
             this.printf("%v",node.value);
@@ -7273,19 +7703,35 @@ function (Visitor,IndentBuffer,context,PL,S) {
             }
         },
         importElement: function (node) {
-            var url=this.options.pyLibPath+"/py_"+node.name+".js";
-            if (node.alias) {
-                this.printf("%v=require('%s').install(%s);", node.alias, url, PYLIB);
+            const a=this.anon.get(node);
+            const name=node.alias || node.name;
+            if (a.userLib) {
+                const url=node.name;
+                this.printf("%v=yield* %s.await(require('%s').load());", name, PYLIB, url);
             } else {
-                this.printf("%v=require('%s').install(%s);", node.name, url, PYLIB);
+                const url=this.options.pyLibPath+"/py_"+node.name+".js";
+                this.printf("%v=require('%s').install(%s);", name, url, PYLIB);
             }
         },
         fromImportStmt: function (node) {
-            var url=this.options.pyLibPath+"/py_"+node.name+".js";
+            const a=this.anon.get(node);
+            var url=a.userLib? node.name+"": this.options.pyLibPath+"/py_"+node.name+".js";
             if (node.localNames.names.text==="*"){
-                this.printf("Object.assign(%s, require('%s').install(%s));", TOP, url, PYLIB);
+                if (a.userLib) {
+                    this.printf("Object.assign( %s, yield* %s.await(require('%s').load()) );", TOP, PYLIB, url );
+                } else {
+                    this.printf("Object.assign(%s, require('%s').install(%s));", TOP, url, PYLIB);
+                }
             } else {
-                this.printf("{%j}=require('%s').install(%s);", [",",node.localNames.names], url, PYLIB);
+                const names=node.localNames.names;
+                const names_json=JSON.stringify( names.map((s)=>s+"") );
+                if (a.userLib) {
+                    this.printf("[%j]=%s.spreadMod(yield* %s.await(require('%s').load()), %s);", 
+                        [",",names], PYLIB,            PYLIB,              url,     names_json);
+                } else {
+                    this.printf("[%j]=%s.spreadMod(require('%s').install(%s),%s);", 
+                        [",",names], PYLIB,            url,        PYLIB, names_json);
+                }
             }
         },
         exprStmt: function (node) {
@@ -7367,7 +7813,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
                     this.printf("%v.__setattr__('%s', %v);",object, name,value );
                 }
             } else if (io) {
-                this.printf("%v=(%v).__%s__(%v)" ,
+                this.printf("%v=(%v).__%s__(%v);" ,
                 node.left, node.left, io, value);
             } else {
                 //if (node.left.type)
@@ -7526,7 +7972,11 @@ function (Visitor,IndentBuffer,context,PL,S) {
             //this.printf("%v%v%v",node.left,node.op,node.right);
         },
         postfix: function (node) {
-            this.printf("%v%v",node.left,node.op);
+            if (node.op.type==="args" && !this.options.disableAsync) {
+                this.printf("(yield* %s.G(%v%v))", PYLIB,node.left,node.op);
+            } else {
+                this.printf("%v%v",node.left,node.op);
+            }
         },
         prefix: function (node) {
             this.printf("%v%v",node.op,node.right);
@@ -7544,7 +7994,10 @@ function (Visitor,IndentBuffer,context,PL,S) {
             this.printf(";");
         },
         lambdaExpr(node) {
-            this.printf("((%v)=>%v)",node.param, node.returns);
+            const nan=this.anon.get(node);
+            const sca=this.anon.get(nan.localScope);
+            this.printf("%s.f([%j],function*(%s){return %v;})",
+            PYLIB, [",",node.params], scopeSymbol(sca.level),  node.returns);
         },
         superCall: function () {
             this.printf("%s.super(this.__class__, this)",PYLIB);
@@ -7576,11 +8029,24 @@ function (Visitor,IndentBuffer,context,PL,S) {
         None: function () {this.printf("%s.None",PYLIB);},
         symbol(node) {
             const a=this.anon.get(node);
-            const pre=(a.scopeInfo && a.scopeInfo.topLevel ? TOP+".":"");
-            const nex=pre+node;
-            this.printf("%s",nex);
+            if (a.scopeInfo && a.scopeInfo.scope) {
+                // global x  -> registerd in scope with level=1 but "as global"
+                const isg=a.scopeInfo.topLevel;// ? TOP+".":"");
+                let sa=this.anon.get(a.scopeInfo.scope);
+                const pre=scopeSymbol(isg ? 0 :sa.level);
+                //this.printf("/*%s*/%s",sa.level,pre+"."+node);
+                this.printf("%s",pre+"."+node);
+                return; //pre+"."+node;
+            }
+            console.error("No scope info",a);
+            throw new Error("No scope info");
+            //const nex=pre+node;
+            //this.printf("%s",nex);
         },
     };
+    function scopeSymbol(level) {
+        return (level==0?TOP:`__${level}`);
+    }
     const cmps={">":1,"<":1,"==":1,">=":1,"<=":1,"!=":1};
     function isCmp(node) {
         return cmps[node.op+""];
@@ -7624,27 +8090,31 @@ function (Visitor,IndentBuffer,context,PL,S) {
         v.buf=buf;
         if (options.genReqJS) {
             options.pyLibPath=options.pyLibPath||".";//"PyLib";
-            v.printf("define('__main__',function (require,exports,module) {%{");
-            v.printf("var %s=require('%s/PyLib.js');%n",PYLIB,options.pyLibPath);
+            v.printf("define(function (require,exports,module) {%{");
+            v.printf(  "var %s=require('%s/PyLib.js');%n",PYLIB,options.pyLibPath);
         }
         if (options.injectBefore) {
             v.printf(options.injectBefore);
         }
-        /*for (let n of PL.builtins) {
-            v.printf("var %s=%s.%s;%n",n,PYLIB,n);
-        }*/
-        v.printf("var %s=%s.moduleScope(%s, %s);%n", TOP, PYLIB, PYLIB, !!options.useJSRoot);
+        if (!options.disableAsync) {
+            v.printf(  "exports.load=()=>%s.runAsync(function*() {%{",PYLIB);
+        }
+        v.printf(        "var %s=%s.moduleScope(%s, %s);%n", TOP, PYLIB, PYLIB, !!options.useJSRoot);
         v.visit(node);
+        if (!options.disableAsync) {
+            v.printf(    "%nreturn %s;%n",TOP);
+            v.printf(  "%}});");//.then(()=>true, (e)=>window.onerror(0,0,0,0,e));");
+        }
         if (options.injectAfter) {
             v.printf(options.injectAfter);
         }
         if (options.genReqJS) {
             v.printf("%}});%n");
-            const SEND_LOG=`
+            /*const SEND_LOG=`
             if (window.parent && window.parent.sendResult) {
                 window.parent.sendResult($("#output").text(),"py");
             }`;
-            v.printf("requirejs(['__main__'],function(){%s});%n",SEND_LOG);
+            v.printf("requirejs(['__main__'],function(){%s});%n",SEND_LOG);*/
         }
         //console.log("pgen res",buf.buf);
         return buf.buf;

@@ -9891,6 +9891,7 @@ define('ExportOutputDialog',['require','exports','module','UI','Tab','ctrl'],fun
                     if (!data) {
                         return alert("データがありません");
                     }
+                    console.log("cdb sending ",{key, data:JSON.stringify(data)});
                     const key=vars.name.val();
                     await ctrl.post("CDB/post", {key, data:JSON.stringify(data)});
                     break;
