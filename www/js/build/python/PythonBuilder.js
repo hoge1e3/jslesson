@@ -180,6 +180,8 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         var dst=this.dst;
         var t=this;
         var files=[];
+        let upload=options.upload;
+        let publishedURL=options.publishedURL;
         return DU.each(curPrj.dir.ls(),function (n) {
             if (FS.PathUtil.ext(n)!=".html")  return;
             var f=curPrj.dir.rel(n);
