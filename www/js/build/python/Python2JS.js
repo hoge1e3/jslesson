@@ -197,7 +197,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
                     this.printf("%v.__setattr__('%s', %v);",object, name,value );
                 }
             } else if (io) {
-                this.printf("%v=(%v).__%s__(%v)" ,
+                this.printf("%v=(%v).__%s__(%v);" ,
                 node.left, node.left, io, value);
             } else {
                 //if (node.left.type)
