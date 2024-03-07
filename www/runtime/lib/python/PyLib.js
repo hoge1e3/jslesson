@@ -105,7 +105,7 @@ define(function (require,exports,module) {
         for (let x of iter) res.push(x);
         return res;
     };
-    PL.listComprehension=(elem, gen)=>{
+    PL.listComprehension=(vn, elem, gen)=>{
         /*return {
             [Symbol.iterator]: ()=>{
                 const iter=gen[Symbol.iterator]();
@@ -120,7 +120,7 @@ define(function (require,exports,module) {
             }
         };*/
         const res=[];
-        for (let e of gen) res.push(elem(e));//yield (elem(e));
+        for (let e of gen) res.push(elem({[vn]:e}));//yield (elem(e));
         return res;
     };
     PL.str=function (s) {

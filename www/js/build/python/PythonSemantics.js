@@ -289,6 +289,8 @@ const vdef={
                 this.addScope(loopVar,{node:loopVar});
             }
             this.visit(node.elem);
+            const s=this.curScope();
+            this.anon.put(node, {localScope: s});
         });
     },
     infixr: function(node) {
