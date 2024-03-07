@@ -1,4 +1,4 @@
-import bawrapper
+from bawrapper import *
 
 url="http://weather.livedoor.com/forecast/webservice/json/v1"
 url+="?city=130010"

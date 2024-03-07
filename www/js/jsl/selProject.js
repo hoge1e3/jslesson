@@ -68,6 +68,7 @@ function ready() {//-------------------------
             $(".assignment").show();
         }
     });
+    ctrl.get("Login/news").then((r)=>$("#news").html(r));
     setTimeout(function () {
         $("#syncMesg").empty();
         $("#userInfo").append(UI("div",Auth.class+" クラスの"+Auth.user+"さん、こんにちは"));

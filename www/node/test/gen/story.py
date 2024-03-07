@@ -1,5 +1,5 @@
-import bawrapper
-name=bawrapper._input("お名前は?")
+from bawrapper import *
+name=input("お名前は?")
 s1="これは、勇者" + name + "の物語だ。\n"
 s2="ある日、" + name + "が歩いていると...\n"
 s3="盗賊が現れた！\n"

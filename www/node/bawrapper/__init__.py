@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import json
+import builtins as b
 #print("Running "+sys.argv[0])
 workd=os.path.dirname(sys.argv[0])
 conff=workd+"/config.json"
@@ -28,44 +29,9 @@ def resolve(filename):
     else:
         raise Exception("directory %s is not found "%(context))
 
-def _open(filename,mode="r",encoding="UTF-8"):
+def open(filename,mode="r",encoding="UTF-8"):
     rf=resolve(filename)
     if not os.path.exists(os.path.dirname(rf)):
         os.makedirs(os.path.dirname(rf))
-    return open(rf,mode)
-def _range(*a,**k):
-    return range(*a,**k)
-def _input(*a,**k):
-    r=input(*a,**k)
-    #print (r)
-    return r
-#def _str(*a,**k):
-#    return str(*a,**k)
-_str=str
-_int=int
-_zip=zip
-_sum=sum
-_list=list
-#def _int(*a,**k):
-#    return int(*a,**k)
-_float=float
-_isinstance=isinstance
-#def _float(*a,**k):
-#    return float(*a,**k)
-def _len(*a,**k):
-    return len(*a,**k)
-def _type(*a,**k):
-    return type(*a,**k)
-def _exit(*a,**k):
-    return exit(*a,**k)
-def _quit(*a,**k):
-    return quit(*a,**k)
-def _sorted(*a,**k):
-    return sorted(*a,**k)
-def _abs(*a,**k):
-    return abs(*a,**k)
-def _min(*a,**k):
-    return min(*a,**k)
-def _max(*a,**k):
-    return max(*a,**k)
-_object=object
+    return b.open(rf,mode,encoding=encoding)
+

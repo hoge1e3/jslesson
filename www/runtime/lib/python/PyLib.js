@@ -2,6 +2,8 @@
 define(function (require,exports,module) {
     //var PyX=require("./PyX.js");
     // same with root.js
+    //const ABG=require("AsyncByGenerator");
+    //const ctrl=require("ctrl");
     function getRoot(){
         if (typeof window!=="undefined") return window;
         if (typeof self!=="undefined") return self;
@@ -46,6 +48,24 @@ define(function (require,exports,module) {
             sqrt:Math.sqrt.bind(Math),
         },
         js:root
+    };
+    PL.spreadMod=(mod, names) => names.map((n)=>mod[n]);
+    PL.proxy=(target)=>{
+        return new Proxy(()=>"Hoge", {
+            get(_target, prop, receiver) {
+                if (prop==="__unproxy__") return ()=>target;
+                return target.__getattribute__(prop);
+            },
+            set(_target, prop, newVal) {
+                target.__setattr__(prop, newVal);
+            },
+            apply(_target, self, ...args) {
+                return target.__call__(target, ...args);
+            },
+            has(_target, name) {
+                return name in target;
+            },
+        });
     };
     //PyX.install(PL);
     PL.lineBuf="";
@@ -110,7 +130,7 @@ define(function (require,exports,module) {
             if (typeof res!=="string") throw new Error("__str__の戻り値は文字列である必要があります．");
             return res;// __OP__
         }
-        return s+"";
+        return "None";
     };
     PL.sum=function (s,init=0) {
         for (let e of s) {
@@ -133,7 +153,7 @@ define(function (require,exports,module) {
         }
         return Math.max(...args);
     };
-    PL.open=function () {throw new Error("openを使うには，「サーバで実行」を選んでください．");};
+    //PL.open=function () {throw new Error("openを使うには，「サーバで実行」を選んでください．");};
     PL.quit=function (s) {PL.exit();};
     PL.exit=function (s) {
         var e=new Error("exit でプログラムが終了しました。");
@@ -154,7 +174,15 @@ define(function (require,exports,module) {
             return "object";
         }
     };
+    PL.issubclass=function (sub,sup) {
+        if (sub===sup) return true;
+        if (!sub.__bases__ || !sub.__bases__[0]) return false;
+        return PL.issubclass(sub.__bases__[0], sup);
+    };
     PL.isinstance=function (obj,klass) {
+        if (obj==null) {
+            return klass===PL.NoneType;
+        }
         if (klass===PL.int) {
             return (typeof u(obj)==="number" && Math.floor(obj)===obj);
         } else if (klass===PL.float || klass===Number) {
@@ -163,10 +191,8 @@ define(function (require,exports,module) {
             return (typeof u(obj)==="string");
         }
         const ocl=obj && obj.__class__;
-        return !!ocl &&
-        (ocl===klass ||
-            PL.isinstance(Object.getPrototypeOf(ocl.prototype),klass)
-        );
+        if (!ocl) return false;
+        return PL.issubclass(ocl, klass);
     };
     PL.sorted=function (a, ...args) {
         return a.slice().sort(...args);
@@ -220,20 +246,53 @@ define(function (require,exports,module) {
         }
         return res;
     };
-    PL.parseArgs2=function(arg, spec) {
-        // spec: [{name:  , defval: }]
-        arg=Array.prototype.slice.call(arg);
-        let opt=null;
-        if (arg[arg.length-1] instanceof PL.Option) {
-            opt=arg.pop();
+    PL.parseArgs2=function(args, spec) {
+        // spec: [{name:  , def:  , ast: "*" || "**" }]
+        args=Array.from(args);
+        const allowExtra=spec.allowExtra;
+        spec=spec.slice();
+        let opt=null, optKeys={};
+        if (args[args.length-1] instanceof PL.Option) {
+            opt=args.pop();
+            for (let k of Object.keys(opt)) optKeys[k]=true;
         }
-        const res=spec.map((s,i)=>
-            i<arg.length ? arg[i] :
-            (opt && opt[s.name]!==undefined) ? opt[s.name] : s.defval
-        );
+        let i=0;
+        const res={};
+        while (spec.length) {
+            let s=spec.shift();
+            if (typeof s==="string") s={name:s};
+            if (!s.ast) {
+                if (args.length) res[s.name]=(args.shift());
+                else if (opt && opt.hasOwnProperty(s.name)) {
+                    if (res.hasOwnProperty(s.name)) {
+                        throw new Error(`引数${s.name}はすでに渡されています．`);
+                    }
+                    delete optKeys[s.name];
+                    res[s.name]=(opt[s.name]);
+                } else if ("def" in s) res[s.name]=(s.def);
+                else throw new Error(`引数${s.name}が渡されていません．`);
+            } else if (s.ast==="*") {
+                res[s.name]=(PL.Tuple(args));
+                args=[];
+            } else if (s.ast==="**") {
+                res[s.name]=(opt);
+            }
+        }
+        if (Object.keys(optKeys).length) {
+            throw new Error(`引数${Object.keys(optKeys)}はありません．`)
+        }
+        if (args.length && !allowExtra) {
+            throw new Error(`余計な引数が${args.length}個あります．`);
+        }
         return res;
     };
-
+    PL.f=(spec, body)=>{
+        const res=function (...args){
+            return PL.AsyncByGenerator.toVal(body.call(this,PL.parseArgs2(args, spec)));    
+        };
+        res.spec=spec;
+        return res;
+    };
     PL.opt=PL.Option;
     PL.range=function (b,e,s=1) {
         if (e==null) {e=b;b=0;}
@@ -262,7 +321,7 @@ define(function (require,exports,module) {
             a.unshift(res);
             var self=nw.apply(null,a);
             if (self.__init__) self.__init__.apply(self,arguments);
-            return self;
+            return PL.proxy(self);
         };
         res.prototype=Object.create(parent.prototype,{});
         const methodNames=[];
@@ -287,12 +346,19 @@ define(function (require,exports,module) {
                         value: m
                     });    
                 }
+                if (k==="__iter__") {
+                    Object.defineProperty(res.prototype, Symbol.iterator, {
+                        value(){
+                            return PL.pyiter(m.apply(this,[this]));
+                        }
+                    });
+                }
                 methodNames.push(k);
             } else {
                 res.prototype[k]=m;
             }
         }
-        res.__name__=defs.CLASSNAME;
+        res.__name__=defs.__name__ || defs.CLASSNAME;
         res.__module__="__main__";
         res.prototype.constructor=res;
         Object.defineProperty(res.prototype,"__class__",{
@@ -315,6 +381,23 @@ define(function (require,exports,module) {
         }
         return res;
     };
+    PL.NoneType=PL.class({});
+    PL.pyiter=function (iter) {
+        return {
+            next() {
+                try {
+                    return {done:false, value: iter.__next__()};
+                }catch(e) {
+                    if (e instanceof PL.StopIteration) return {done:true, value:null};
+                    throw e;
+                }
+            }
+        };
+    };
+    PL.AttributeError=class extends Error {};
+    //PL.AttributeError.prototype=new Error();
+    PL.StopIteration=function (){};
+    PL.StopIteration.prototype=new Error();
     PL.float=function (s) {
         const v=s-0;
         if (v!==v) throw new Error(`${s} は floatに変換できません`);
@@ -333,11 +416,11 @@ define(function (require,exports,module) {
         //console.log("klass.prototype.CLASSNAME",klass.prototype.CLASSNAME);
         if (!klass.__bases__) {
             console.log(klass);
-            throw new Error(`superclass of ${klass.prototype.CLASSNAME} not found`);
+            throw new Error(`${klass.prototype.CLASSNAME}には親クラスがありません．`);
         }
         const superclass=klass.__bases__.elems[0];
         if (!superclass) {
-            throw new Error(`superclass of ${klass.prototype.CLASSNAME} not found`);
+            throw new Error(`${klass.prototype.CLASSNAME}には親クラスがありません．`);
         }
         //console.log("superclass", superclass, superclass.__name__, klass.__methodnames__, superclass.__methodnames__);
         const superprot=superclass.prototype;
@@ -357,6 +440,7 @@ define(function (require,exports,module) {
         return res;
     };
     PL.Tuple=PL.class({
+        __name__: "tuple",
         __init__:function (self, elems) {
             self.elems=elems;
             for (let i=0;i<elems.length;i++) self[i]=elems[i];
@@ -365,13 +449,205 @@ define(function (require,exports,module) {
             return "("+self.elems.join(", ")+")";
         }
     });
+    PL.Tuple.__bases__=PL.Tuple([]);
     PL.Tuple.prototype[Symbol.iterator]=function(...args) {
         return this.elems[Symbol.iterator](...args);
     };
+    PL.dict=PL.class({
+        __name__: "dict",
+        __init__(self, src) {
+            self.map=new Map();
+            for (let k in src) {
+                self.map.set(k, src[k]);
+            }
+        },
+        __getitem__(self, name) {
+            if (self.map.has(name)) {
+                return self.map.get(name);
+            }
+            throw new Error(`辞書にキー'${name}'がありません．`);
+        },
+        __setitem__(self, name,value) {
+            self.map.set(name, value);
+        },
+        __contains__(self, elem) {
+            return self.map.has(elem);
+        }
+    });
+    PL.dict.prototype[Symbol.iterator]=function(...args) {
+        return this.map.keys();
+    };
     PL.None=null;
+    let Encoding;
+    PL.open=async function (...args) {
+        const {filename, mode, encoding}=PL.parseArgs2(args,["filename","mode",{name:"encoding",def:"utf8"}]);
+        let cp;
+        filename.replace(/^(user|class)\/(.*)/,(_,context,path)=>cp={context,path});
+        let content="";
+        if (!cp) {
+            throw new Error("ファイル名はuser/ か class/で始めてください．: "+filename);
+        }
+        if (mode.match(/[ra]/)) {
+            if (encoding!=="utf8") {
+                if (!Encoding) {
+                    Encoding=await new Promise((s)=>
+                        requirejs(["https://cdnjs.cloudflare.com/ajax/libs/encoding-japanese/2.0.0/encoding.min.js"], s));
+                }
+                //alert(Encoding);
+            }
+            const {files, prefix, baseUrl}=await ctrl.get("Asset/list2",{context:cp.context});
+            const fileName=files.find((fileName)=>fileName===cp.path);
+            if (!fileName) {
+                if (!mode.match(/a/)) {
+                    throw new Error("ファイル" +cp.context+"/"+cp.path+"はありません．「ファイル」→「素材管理」からファイル名を確認してください．");
+                }
+            } else {
+                const urlFull=baseUrl+fileName;// WebSite.published+u;
+                //alert(urlFull);
+                if(encoding!=="utf8") {
+                    const ary=await $.ajax({
+                        url: urlFull,
+                        type: "GET",
+                        dataType: 'binary',
+                        responseType:'arraybuffer',
+                        processData: false
+                    });
+                    const ary8=new Uint8Array(ary);
+                    const unicodeArray=Encoding.convert(ary8, {
+                        to: 'UNICODE',
+                        from: encoding
+                    });
+                    //console.log(ary8, unicodeArray);
+                    content = Encoding.codeToString(unicodeArray);
+                } else content=await $.get(urlFull);    
+            }
+            if (!mode.match(/a/)) return PL.ReaderFile(content);
+        } 
+        if (mode.match(/[wa]/)) {
+            return PL.WriterFile(cp.context, cp.path, content);
+        }
+        throw new Error("第2引数（モード指定）に誤りがあります："+mode);
+    };
+    PL.ReaderFile=PL.class({
+        __init__(self, content) {self.content=content;},
+        __iter__(self) {
+            //self._line=0;
+            if (self.content==="") self.lines=[];
+            const lastHasBR=self.content[self.content.length-1]=="\n";
+            self.lines=self.content.split("\n").map((s)=>s+"\n");
+            if (lastHasBR) {
+                self.lines.pop();
+            } else {
+                self.lines[self.lines.length-1]=self.lines[self.lines.length-1].trim();
+            }
+            return self;
+        },
+        __next__(self) {
+            if (self.lines.length) return self.lines.shift();
+            throw new PL.StopIteration();
+        },
+        close(self){
+            self.closed=true;
+        },
+    });
+    PL.WriterFile=PL.class({
+        __init__(self, context, filename, content="") {
+            self.context=context;
+            self.filename=filename;
+            self.content=content;
+            self.flushTimer=null;
+        },
+        write(self, str) {
+            self.content+=str;
+            if (self.flushTimer) {
+                clearTimeout(self.flushTimer);
+            }
+            self.flushTimer=setTimeout(()=>{
+                self.flush();
+            },1000);
+        },
+        async close(self) {
+            await self.flush();
+            self.closed=true;
+        },
+        async flush(self) {
+            if (self.flushTimer) {
+                clearTimeout(self.flushTimer);
+            }
+            const blob=new Blob([self.content],{type:"text/plain"});
+            const formData = new FormData();
+            formData.append('acceptImage', blob, self.filename);
+            formData.append("context",self.context);
+            return await $.ajax({
+                type: 'POST',
+                url: ctrl.url("Asset/upload"),
+                data: formData,
+                contentType: false,
+                processData: false
+            });
+        },
+    });
     PL.checkSet=(v, name="Variable")=>{
         if (v!==undefined) return v;
         throw new Error(`${name} is not defined.`);
+    };
+    PL.hasattr=(o, name)=>{
+        try {
+            if (!o) return false;
+            o.__getattribute__(name);
+            return true;
+        } catch(e) {
+            if (e instanceof PL.AttributeError) return false;
+            throw e;
+        }
+    };
+    PL.hasattr_js=(o, name)=>{
+        if (!o) return;
+        o=o.__unproxy__();
+        const inable=(e)=>typeof e==="object"||typeof e==="function";
+        return (inable(o) && name in o) || o[name]!==undefined;
+    };
+    PL.typeof_field=(o, field, type)=> {
+        /*if (o instanceof String) {
+            console.log("WHY" , o, field, type);
+            //return false;
+        }
+        if (!o || typeof o!=="object") return false;*/
+        //console.log("typeof_field", o, field, type);
+        if (typeof field==="object") {
+            for (let k in field) {
+                if (typeof field[k] instanceof String) {
+                    console.log(field, k ,field[k]);
+                    throw new Error("Invalid field spec");
+                }
+                if (!PL.typeof_field(o,k,field[k])) return false;
+            }
+            return true;
+        }
+        if (type) {
+            return PL.typeof_field(o, field)===type;
+        }
+        if (!PL.hasattr_js(o, field)) {
+            return "undefined";
+        }
+        return typeof o[field]; 
+    };
+    PL.isArray=(v)=>{
+        if (!v) return false;
+        v=v.__unproxy__();
+        return (v instanceof Array) || (
+            (PL.typeof_field(v,{length:"number", slice:"function", map:"function"})));
+    };
+    PL.isArrayLike=(v)=> {
+        if (!v) return false;
+        if (typeof v==="string" || v instanceof String) return false;
+        v=v.__unproxy__();
+        return PL.isArray(v) || (
+            typeof v==="object" && PL.typeof_field(v,{length:"number"}) &&(
+                v.length===0 ||
+                (0 in v && v.length-1 in v)
+            )
+        );
     };
     PL.Tuple.__bases__=PL.Tuple([]);
     PL.Slice=PL.class({
@@ -388,6 +664,27 @@ define(function (require,exports,module) {
         var m=self[name];
         if (typeof m==="function") return m.apply(self, args);
         return m.__call__.apply(m,args);
+    };
+    PL.moduleScope=(parent, useJSRoot)=> {
+        let target=parent ? Object.create(parent) :{};
+        target.globals=()=>PL.dict(target);
+        return new Proxy(target, {
+            get(target, prop, receiver) {
+                if (prop==="__unproxy__") return ()=>target;
+                if (prop in target) return target[prop];
+                if (useJSRoot && prop in root) {
+                    const r=root[prop];
+                    if (typeof r==="function") return r.bind(root);
+                    return r;
+                }
+                if (prop==="then" || typeof prop!=="string" ) {
+                    // 'then' will be checked on return of async function
+                    // Symbol(Symbol.toStringTag) is also
+                    return undefined;
+                }
+                throw new Error(`変数${prop}は定義されていません．`);
+            },
+        });
     };
     PL.Object=PL.class(Object, {
         __init__: function () {},
@@ -468,7 +765,9 @@ define(function (require,exports,module) {
         //__getTypeName__: function (){return "<class object>";},
         __call__: function (self,...a) {
             //var a=Array.prototype.slice.call(arguments,1);
-            return self.apply(self, a);
+            if (typeof self==="function") return self.apply(self, a);
+            console.log("Cannot call", self);
+            throw new Error("この値は関数呼び出しできません");
         },
         //toString: function (self) {return self.value+"";},
         __str__: function (self) {
@@ -501,14 +800,23 @@ define(function (require,exports,module) {
 
         __getattr__: function (self,name) {
             //__getattr__は、オブジェクトのインスタンス辞書に属性が見つからないときに呼び出されるメソッドです。
-            throw new Error(`フィールド ${name} はありません`);
+            if (name===Symbol.iterator) {
+                throw new PL.AttributeError(`このオブジェクトは繰り返し可能ではありません．`);
+            }
+            if (name==="then" || typeof name!=="string" ) {
+                // 'then' will be checked on return of async function
+                // Symbol(Symbol.toStringTag) is also
+                return undefined;
+            }
+            console.log("Field ", name, " not found in ",self);
+            throw new PL.AttributeError(`フィールド ${name.toString()} はありません`);
         },
         __getattribute__: function (self,name) {
-            if (!(name in self)) {
+            if (!PL.hasattr_js(self, name)) {
                 return self.__getattr__(name);
             }
             const r=self[name];
-            if (typeof r==="function") {
+            if (typeof r==="function" && !PL.isinstance(r, PL.type)) {
                 return r.bind(self);
             }
             return r;
@@ -529,8 +837,9 @@ define(function (require,exports,module) {
             self[key]=value;
         },
         __contains__(self, elem) {
-            return self.hasOwnProperty(elem);
+            return self.hasOwnProperty(elem) || elem in self;
         },
+        __unproxy__(self) {return self;},
         //____: function (self,other) { return selfother;},
     });
     PL.addMonkeyPatch(Number,{
@@ -623,7 +932,8 @@ define(function (require,exports,module) {
                     return PL.str(o[name]);
                 }
             });
-        }
+        },
+        __unproxy__(self) {return self+"";},
     }));
     PL.addMonkeyPatch(Number, {
         __class__: Number,
@@ -645,6 +955,7 @@ define(function (require,exports,module) {
                 PL.invalidOP(self, "__mul__",other);
             }
         },  
+        __unproxy__(self) {return self-0;},
     });
     function otherShouldString(k) {
         return function (self,other) {
@@ -671,7 +982,8 @@ define(function (require,exports,module) {
                 default:
                     PL.invalidOP(self, "__mul__",other);
             }
-        }
+        },
+        __unproxy__(self) {return !!self;},
     });
     PL.addMonkeyPatch(Function,{
         __class__: Function,
@@ -750,7 +1062,11 @@ define(function (require,exports,module) {
             return self.slice().sort(...args);
         },
         sort: function (self, comp) {
-            comp=comp||((a,b)=>(a>b?1:a<b?-1:0));
+            const nat=(a,b)=>{
+                if (a==null || b==null) throw new Error("未定義の値が入っているので並び替えできません");
+                return (a.__gt__(b)?1:a.__lt__(b)?-1:0);
+            };
+            comp=comp||nat;
             if (comp instanceof PL.Option) {
                 let key=comp.key;
                 if (typeof key==="string") {
@@ -761,14 +1077,14 @@ define(function (require,exports,module) {
                     const sorted=self.map((val,idx)=>({val,idx}) ).sort((a,b)=>{
                         const va=key(a.val);
                         const vb=key(b.val);
-                        if (va>vb) return 1;
-                        else if (va<vb) return -1;
+                        if (va.__gt__(vb)) return 1;
+                        else if (va.__lt__(vb)) return -1;
                         else return a.idx-b.idx;
                     }).map(r=>r.val);
                     while(self.length) self.pop();
                     while(sorted.length) self.push(sorted.shift());
                 } else {
-                    self.sort();
+                    self.sort(nat);
                 }
                 if (comp.reverse) {
                     self.reverse();
@@ -792,7 +1108,7 @@ define(function (require,exports,module) {
     //---
     PL.builtins=["range","input","str","int","sum","float","object","len","type","quit","exit","sorted","abs",
     "min","max","list","isinstance","zip",
-    "fillRect","setColor","setTimeout","clearRect","clear"];
+    "fillRect","setColor","setTimeout","clearRect","clear","StopIteration"];
     root.PYLIB=PL;
     PL.root=root;
 
@@ -865,5 +1181,120 @@ define(function (require,exports,module) {
             }
         });
     };
+
+    PL.AsyncByGenerator = {
+        doReady() {
+            this.isReady = true;
+            if (this.onReady) {
+                this.onReady();
+            }
+        },
+        ready(f) {
+            if (this.isReady) {
+                f();
+            } else {
+                this.onReady = f;
+            }
+        },
+        isPromise(v) {
+            return typeof Promise === "function" && v instanceof Promise; 
+        },
+        isGenerator(v) {
+            return v && (typeof Symbol === "function" && v[Symbol.toStringTag] === "Generator" || this.GeneratorFunction && this.GeneratorFunction.prototype.isPrototypeOf(v));
+        },
+        init() {
+            this.GeneratorFunction = ((function*(){})()).constructor;
+            this.doReady();
+        },
+        run(it) {
+            var t = this;
+            while (true) {
+                var n;
+                try {
+                    n = it.next();
+                } catch (e) {
+                    return Promise.reject(e);
+                }
+                if (this.isPromise(n.value)) {
+                    if (n.done) {
+                        return n.value;
+                    } else {
+                        //console.log("Getting then from1 ",n.value);
+                        return n.value.then(()=>{
+                            //PL.LoopChecker.reset();
+                            return t.run(it);
+                        });
+                    }
+                } else {
+                    if (n.done) {
+                        // Promise.resolve(n.value) -> field then not found
+                        return new Promise((s)=>s(n.value));
+                    }
+                }
+            }
+        },
+        toGen(v) {
+            if (this.isPromise(v)) {
+                var res;
+                //console.log("Getting then from2 ",v);
+                var p=v.then(function (r) {
+                    res=r;
+                });
+                return (function*() {yield p;return res;})();
+            } else if (this.isGenerator(v)) {
+                return v;
+            }
+            return (function*(){return v;})();            
+        },
+        toVal(gen) {
+            var n=gen.next();
+            if (n.done) return n.value;
+            return (function*() {
+                while(true) {
+                    yield n.value;
+                    n=gen.next();
+                    if (n.done) return n.value;
+                }
+            })();
+        }
+    };
+    PL.AsyncByGenerator.init();
+    const ctrl={};
+    ctrl.url=function (path,params) {
+        let res=".?"+path;
+        if (params) {
+            res+=Object.keys(params).map (k=>`&${k}=${params[k]}`).join("");
+        }
+        return res;
+    };
+    ctrl.run=function (method,path,params) {
+        params=params||{};
+        return $.ajax({
+            url: ctrl.url(path),
+            data:params,
+            cache: false,
+            type:method
+        });
+    };
+    ctrl.get=function (path,params) {
+        return ctrl.run("get",path,params);
+    };
+    ctrl.post=function (path,params) {
+        return ctrl.run("post",path,params);
+    };
+    PL.ctrl=ctrl;
+    PL.runAsync=(genF)=>{
+        return PL.AsyncByGenerator.run(genF());
+    };
+    setInterval(()=>PL.LoopChecker.reset(),2000);
+    PL.G=PL.R=(x)=>PL.AsyncByGenerator.toGen(x);
+    PL.V=(g)=>PL.AsyncByGenerator.toVal(g);
+    PL.await=function *(p){
+        let res,err;
+        yield p.then((r)=>{res=r;}, (e)=>{err=e;});
+        if (err) throw err;
+        return res;
+    };
+    PL.initializedAll=true;
     return PL;
 });

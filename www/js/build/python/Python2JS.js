@@ -1,6 +1,7 @@
 define(["Visitor","IndentBuffer","context","PyLib","PythonSemantics"],
 function (Visitor,IndentBuffer,context,PL,S) {
     var PYLIB="PYLIB";
+    const TOP="__top";
     const vdef={
         program: function (node) {
             this.printf("%s.LoopChecker.reset();%n",PYLIB);
@@ -9,43 +10,76 @@ function (Visitor,IndentBuffer,context,PL,S) {
         classdef: function (node) {
             const sp=b=>node.extends? this.visit(node.extends.super) : b.printf("Object");
             this.ctx.enter({inClass:node},()=>{
-                this.printf("var %s=%s.class(%f,{%{"+
+                let na=this.anon.get(node.name);
+                const topLevel=(na && na.scopeInfo && na.scopeInfo.topLevel);
+                this.printf("%s%s=%s.class(%f,{%{"+
                     "%s:'%s',%j"+
                 "%}});",
-                node.name, PYLIB,sp,
+                (topLevel?"":"var "), (topLevel?TOP+".":"")+node.name, PYLIB, sp,
                     "CLASSNAME",node.name, [",",node.body.filter(b=>b.type==="define")]);
             });
         },//
         define: function (node) {
-            if (this.ctx.inClass) {
-                this.printf("%n%s: function %v{%{%v%}}",node.name,node.params,node.body);
-            } else {
-                this.printf("function %s%v{%{%v%}}%n",node.name,node.params,node.body);
-
+            const nan=this.anon.get(node);
+            const sca=this.anon.get(nan.localScope);
+            //let lets=nan.lets;
+            if (typeof sca.level!=="number") {
+                console.error("level not set", node, nan, sca);
+                throw new Error("level not set");
             }
+            /*if (!lets) {
+                console.log("LETSNO", nan);
+            }
+            if (lets.length==0) lets="";
+            else lets=`let ${lets.join(",")};`;*/
+            //let hasDefVal=node.params.body.some((p)=>p.defVal);
+            //lets+=`const __local${sca.level}=${PYLIB}.parseArgs2(arguments, ${spec} );\n`;
+            if (this.ctx.inClass) {
+                this.printf("%n%s: ",node.name);
+            } else {
+                //let na=this.anon.get(node.name);
+                //let prefix=(na && na.scopeInfo && na.scopeInfo.topLevel) ? TOP+".": "";
+                this.printf("%v=", /*prefix,*/ node.name);
+            }
+            this.printf("%s.f(%v,",PYLIB,node.params);
+            /*for (let p of node.params.body) {
+                this.printf("{");
+                this.printf("name: %s,",JSON.stringify(p.name+""));
+                if (p.defVal) {
+                    this.printf("def: %v,", p.defVal);
+                }
+                this.printf("},");
+            }*/
+            this.printf("function* (%s){%{%v%}})",scopeSymbol(sca.level), node.body);
+            if (this.ctx.inClass) {
+            } else {
+                this.printf(";%n");
+            }
+            /*} else {
+                let na=this.anon.get(node.name);
+                let prefix=(na && na.scopeInfo && na.scopeInfo.topLevel) ? TOP+".": "";
+                this.printf("%s%s=function %v{%{%s%n%v%}};%n", prefix ,node.name, node.params, lets, node.body);
+            }*/
         },
         paramList: function (node) {
-            this.printf("(%j)",[",",node.body]);
+            this.printf("[%j]",[",",node.body]);
         },
         param: function(node) {
+            this.printf("{");
+            this.printf("name: %s,",JSON.stringify(node.name+""));
+            if (node.defVal) {
+                this.printf("def: %v,", node.defVal);
+            }
+            this.printf("}");
+            /*
             if (node.defVal) {
                 this.printf("%s=%v",node.name, node.defVal);
             } else {
                 this.printf("%s",node.name);
-            }
+            }*/
         },
         defVal: function (node) {
             this.printf("%v",node.value);
-        },
-        importStmt: function (node) {
-            var url=this.options.pyLibPath+"/py_"+node.name+".js";
-            if (node.alias) {
-                this.printf("var %s=require('%s').install(%s);", node.alias, url, PYLIB);
-                //this.printf("var %s=%s.import('%v');",node.alias,PYLIB,node.name);
-            } else {
-                this.printf("var %s=require('%s').install(%s);", node.name, url, PYLIB);
-                //this.printf("var %s=%s.import('%v');",node.name,PYLIB,node.name);
-            }//this.printf("%n");
         },
         importStmt2: function (node) {
             for (let e of node.elements) {
@@ -53,20 +87,35 @@ function (Visitor,IndentBuffer,context,PL,S) {
             }
         },
         importElement: function (node) {
-            var url=this.options.pyLibPath+"/py_"+node.name+".js";
-            if (node.alias) {
-                this.printf("var %s=require('%s').install(%s);", node.alias, url, PYLIB);
+            const a=this.anon.get(node);
+            const name=node.alias || node.name;
+            if (a.userLib) {
+                const url=node.name;
+                this.printf("%v=yield* %s.await(require('%s').load());", name, PYLIB, url);
             } else {
-                this.printf("var %s=require('%s').install(%s);", node.name, url, PYLIB);
+                const url=this.options.pyLibPath+"/py_"+node.name+".js";
+                this.printf("%v=require('%s').install(%s);", name, url, PYLIB);
             }
         },
         fromImportStmt: function (node) {
-            var url=this.options.pyLibPath+"/py_"+node.name+".js";
+            const a=this.anon.get(node);
+            var url=a.userLib? node.name+"": this.options.pyLibPath+"/py_"+node.name+".js";
             if (node.localNames.names.text==="*"){
-                this.printf("var {%s}=require('%s').install(%s);",
-                S.importable[node.name].browser.join(","), url, PYLIB);
+                if (a.userLib) {
+                    this.printf("Object.assign( %s, yield* %s.await(require('%s').load()) );", TOP, PYLIB, url );
+                } else {
+                    this.printf("Object.assign(%s, require('%s').install(%s));", TOP, url, PYLIB);
+                }
             } else {
-                this.printf("var {%j}=require('%s').install(%s);", [",",node.localNames.names], url, PYLIB);
+                const names=node.localNames.names;
+                const names_json=JSON.stringify( names.map((s)=>s+"") );
+                if (a.userLib) {
+                    this.printf("[%j]=%s.spreadMod(yield* %s.await(require('%s').load()), %s);", 
+                        [",",names], PYLIB,            PYLIB,              url,     names_json);
+                } else {
+                    this.printf("[%j]=%s.spreadMod(require('%s').install(%s),%s);", 
+                        [",",names], PYLIB,            url,        PYLIB, names_json);
+                }
             }
         },
         exprStmt: function (node) {
@@ -79,9 +128,9 @@ function (Visitor,IndentBuffer,context,PL,S) {
         delStmt: function (node) {
             var a=this.anon.get(node);
             if (a.index) {
-                this.printf("%s.wrap(%v).__delattr__(%v);",PYLIB, a.obj, a.index);
+                this.printf("(%v).__delattr__(%v);",a.obj, a.index);
             } else {
-                this.printf("%s.wrap(%v).__delattr__('%s');",PYLIB, a.obj, a.name);
+                this.printf("(%v).__delattr__('%s');",a.obj, a.name);
             }
         },
         whileStmt: function (node) {
@@ -99,7 +148,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
             this.printf("else %v",node.then);
         },
         forStmt: function (node) {
-            this.printf("var %j;%nfor (%v of %v) %v", [",",node.vars],node.vars[0], node.set, node.do);
+            this.printf("for (%v of %v) %v", node.vars, node.set, node.do);
         },
         listComprehension: function (node) {
             const vn=node.vars[0];
@@ -107,9 +156,9 @@ function (Visitor,IndentBuffer,context,PL,S) {
                        PYLIB, vn, node.elem, node.set);
         },
         letStmt: function (node) {
-            if (this.anon.get(node).needVar) {
+            /*if (this.anon.get(node).needVar) {
                 this.printf("var ");
-            }
+            }*/
             //console.log("NODEL",node.left);//lvallist
             const firstBody=node.left.body && node.left.body[0];
             const io=PL.iops[node.op+""];
@@ -123,10 +172,10 @@ function (Visitor,IndentBuffer,context,PL,S) {
                 console.log("NODEL2",object,index);
                 if (io) {
                     this.printf("%v.__setitem__(%v, "+
-                        "%s.wrap( %v.__getitem__(%v) ).__%s__(%v)"+
+                        "( %v.__getitem__(%v) ).__%s__(%v)"+
                     ");",
                         object, index.body,
-                        PYLIB, object, index.body, io, value
+                        object, index.body, io, value
                     );
                 } else {
                     this.printf("%v.__setitem__(%v, %v);",object, index.body,value );
@@ -139,17 +188,17 @@ function (Visitor,IndentBuffer,context,PL,S) {
                 console.log("NODEL3",object,name);
                 if (io) {
                     this.printf("%v.__setattr__('%s', "+
-                        "%s.wrap( %v.__getattribute__('%s') ).__%s__(%v)"+
+                        "( %v.__getattribute__('%s') ).__%s__(%v)"+
                     ");",
                         object, name,
-                        PYLIB, object, name, io, value
+                        object, name, io, value
                     );
                 } else {
                     this.printf("%v.__setattr__('%s', %v);",object, name,value );
                 }
             } else if (io) {
-                this.printf("%v=%s.wrap(%v).__%s__(%v)" ,
-                node.left, PYLIB, node.left, io, value);
+                this.printf("%v=(%v).__%s__(%v)" ,
+                node.left, node.left, io, value);
             } else {
                 //if (node.left.type)
                 this.visit(node.left);
@@ -218,7 +267,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
             this.printf("[%j]",[",",node.body]);
         },
         dict: function (node) {
-            this.printf("{%j}",[",",node.body]);
+            this.printf("%s.dict({%j})",PYLIB, [",",node.body]);
         },
         dictEntry: function (node) {
             this.printf("%v:%v",node.key,node.value);
@@ -294,20 +343,24 @@ function (Visitor,IndentBuffer,context,PL,S) {
             }
             var o=PL.ops[node.op+""],io=PL.iops[node.op+""];
             if (o) {
-                this.printf("%s.wrap(%v).__%s__(%v)",PYLIB, node.left,o, node.right);
+                this.printf("(%v).__%s__(%v)", node.left,o, node.right);
             } else if (io) {
-                this.printf("%v=%s.wrap(%v).__%s__(%v)" ,
-                node.left, PYLIB, node.left, io, node.right);
+                this.printf("%v=(%v).__%s__(%v)" ,
+                node.left, node.left, io, node.right);
             } else if (node.op+""==="in") {
-                this.printf("%s.wrap(%v).__contains__(%v)" ,
-                    PYLIB, node.right, node.left);
+                this.printf("(%v).__contains__(%v)" ,
+                    node.right, node.left);
             } else {
                 throw new Error("No operator for "+node.op);
             }
             //this.printf("%v%v%v",node.left,node.op,node.right);
         },
         postfix: function (node) {
-            this.printf("%v%v",node.left,node.op);
+            if (node.op.type==="args" && !this.options.disableAsync) {
+                this.printf("(yield* %s.G(%v%v))", PYLIB,node.left,node.op);
+            } else {
+                this.printf("%v%v",node.left,node.op);
+            }
         },
         prefix: function (node) {
             this.printf("%v%v",node.op,node.right);
@@ -325,7 +378,10 @@ function (Visitor,IndentBuffer,context,PL,S) {
             this.printf(";");
         },
         lambdaExpr(node) {
-            this.printf("((%v)=>%v)",node.param, node.returns);
+            const nan=this.anon.get(node);
+            const sca=this.anon.get(nan.localScope);
+            this.printf("%s.f([%j],function*(%s){return %v;})",
+            PYLIB, [",",node.params], scopeSymbol(sca.level),  node.returns);
         },
         superCall: function () {
             this.printf("%s.super(this.__class__, this)",PYLIB);
@@ -356,21 +412,25 @@ function (Visitor,IndentBuffer,context,PL,S) {
         False: function () {this.printf("false");},
         None: function () {this.printf("%s.None",PYLIB);},
         symbol(node) {
-            if (typeof this.convertSymbol[node.text]==="string") {
-                // for example, node.text=="__str__", function returns
-                this.printf(this.convertSymbol[node.text]);
-            } else {
-                const a=this.anon.get(node);
-                if (a.scopeInfo && !a.isLeft) {
-                    // right val
-                    this.printf("%s.checkSet(%s,'%s')",PYLIB, node+"", node+"");
-                } else {
-                    // left val
-                    this.printf("%s",node+"");
-                }
+            const a=this.anon.get(node);
+            if (a.scopeInfo && a.scopeInfo.scope) {
+                // global x  -> registerd in scope with level=1 but "as global"
+                const isg=a.scopeInfo.topLevel;// ? TOP+".":"");
+                let sa=this.anon.get(a.scopeInfo.scope);
+                const pre=scopeSymbol(isg ? 0 :sa.level);
+                //this.printf("/*%s*/%s",sa.level,pre+"."+node);
+                this.printf("%s",pre+"."+node);
+                return; //pre+"."+node;
             }
+            console.error("No scope info",a);
+            throw new Error("No scope info");
+            //const nex=pre+node;
+            //this.printf("%s",nex);
         },
     };
+    function scopeSymbol(level) {
+        return (level==0?TOP:`__${level}`);
+    }
     const cmps={">":1,"<":1,"==":1,">=":1,"<=":1,"!=":1};
     function isCmp(node) {
         return cmps[node.op+""];
@@ -407,13 +467,6 @@ function (Visitor,IndentBuffer,context,PL,S) {
             }
         };
         v.options=options;
-        v.convertSymbol={};
-        for (let im of options.implicitImports||[]) {
-            for (let n of im.names) {
-                v.convertSymbol[n]=im.head+"."+n;
-            }
-        }
-        //console.log("convertSymbol",this.convertSymbol,options.implicitImports);
         v.ctx=context();
         const buf=options.buf||IndentBuffer();
         buf.visitor=v;
@@ -421,26 +474,31 @@ function (Visitor,IndentBuffer,context,PL,S) {
         v.buf=buf;
         if (options.genReqJS) {
             options.pyLibPath=options.pyLibPath||".";//"PyLib";
-            v.printf("define('__main__',function (require,exports,module) {%{");
-            v.printf("var %s=require('%s/PyLib.js');%n",PYLIB,options.pyLibPath);
+            v.printf("define(function (require,exports,module) {%{");
+            v.printf(  "var %s=require('%s/PyLib.js');%n",PYLIB,options.pyLibPath);
         }
         if (options.injectBefore) {
             v.printf(options.injectBefore);
         }
-        for (let n of PL.builtins) {
-            v.printf("var %s=%s.%s;%n",n,PYLIB,n);
+        if (!options.disableAsync) {
+            v.printf(  "exports.load=()=>%s.runAsync(function*() {%{",PYLIB);
         }
+        v.printf(        "var %s=%s.moduleScope(%s, %s);%n", TOP, PYLIB, PYLIB, !!options.useJSRoot);
         v.visit(node);
+        if (!options.disableAsync) {
+            v.printf(    "%nreturn %s;%n",TOP);
+            v.printf(  "%}});");//.then(()=>true, (e)=>window.onerror(0,0,0,0,e));");
+        }
         if (options.injectAfter) {
             v.printf(options.injectAfter);
         }
         if (options.genReqJS) {
             v.printf("%}});%n");
-            const SEND_LOG=`
+            /*const SEND_LOG=`
             if (window.parent && window.parent.sendResult) {
                 window.parent.sendResult($("#output").text(),"py");
             }`;
-            v.printf("requirejs(['__main__'],function(){%s});%n",SEND_LOG);
+            v.printf("requirejs(['__main__'],function(){%s});%n",SEND_LOG);*/
         }
         //console.log("pgen res",buf.buf);
         return buf.buf;

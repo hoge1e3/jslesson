@@ -1,4 +1,4 @@
-import bawrapper
+from bawrapper import *
 import random
 
 
@@ -6,15 +6,15 @@ win= 0
 draw= 0 
 
 
-for i in bawrapper._range( 3 ):
-  print("■じゃんけん" + bawrapper._str(i +  1 ) + "回目")
+for i in range( 3 ):
+  print("■じゃんけん" + str(i +  1 ) + "回目")
   print("> 0:グー、1:チョキ、2:パー")
   
   com=random.randint( 0 , 2 )
   
-  you=bawrapper._int(bawrapper._input("あなたの手は? "))
+  you=int(input("あなたの手は? "))
   
-  print("コンピュータの手=" + bawrapper._str(com))
+  print("コンピュータの手=" + str(com))
   
   n=(com - you +  3 ) %  3 
   if n ==  0 :
@@ -28,4 +28,4 @@ for i in bawrapper._range( 3 ):
   print("---")
 
 
-print("結果=3戦" + bawrapper._str(win) + "勝" + bawrapper._str(draw) + "引分")
+print("結果=3戦" + str(win) + "勝" + str(draw) + "引分")

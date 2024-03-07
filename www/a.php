@@ -3,6 +3,10 @@
 require_once __DIR__."/php/Modules.php";
 require_once __DIR__."/php/param.php";
 req("config","ErrorHandler");
+if (defined("MAINTENANCE")) {
+    echo MAINTENANCE;
+    exit;
+}
 function makeURL($action,$controller,$params=null) {
     $u=preg_replace("/\\?.*/","",$_SERVER["REQUEST_URI"]);
     $u="$u?$action/$controller";
@@ -21,6 +25,12 @@ if (isset($argv[1]) && $argv[1]!="") {
     $qs=$argv[1];
     req("MySession");
     MySession::startWith($argv[2]);
+    $params=[];
+    parse_str($qs,$params);
+    //print_r($params);
+    foreach ($params as $k=>$v) {
+        $_GET[$k]=$v;
+    }
 } else {
     $qs=$_SERVER["QUERY_STRING"];
 }

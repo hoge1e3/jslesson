@@ -1,4 +1,4 @@
-import bawrapper
+from bawrapper import *
 print("開始")
 i= 0 
 v= 0 

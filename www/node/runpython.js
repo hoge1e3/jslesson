@@ -1,4 +1,7 @@
 /*global require, process*/
+/* example:
+node runpython.js C:\bin\Dropbox\workspace\jslesson\data\pythonwork\443377\src.py
+*/
 const ngword=null; // /\b(open|eval|getattr|setattr|sys|os)\b/;
 //const ngword=/\b(breakpoint|compile|exec|globals|__builtins__|subprocess|pathlib|glob|open|eval|getattr|setattr|sys|os)\b/;  // special-change
 const JS="../js/";
@@ -21,9 +24,10 @@ function (FS,PP,S,G) {
     var workd=pySrcF.up();
     var conf=workd.rel("config.json").obj();
     var isSuper=!!conf.super;
+    var sessionID=conf.session;
     var header="",lineAdjust=0;
     if (!isSuper) {
-        header="import bawrapper\n";
+        header="from bawrapper import *\n";
         lineAdjust=1;
     }
     cvSrcF=workd.rel("conv.py");
@@ -45,6 +49,7 @@ function (FS,PP,S,G) {
 
         }
         process.env.PYTHONPATH=process.cwd()+(process.cwd().indexOf("\\")>=0?";":":")+process.env.PYTHONPATH;
+        process.env.SESSIONID=sessionID||"";
         //process.env.BAASSETPATH=asset;
         //console.log("Passed",'python '+pySrcF.path());
         process.chdir(workd.path());

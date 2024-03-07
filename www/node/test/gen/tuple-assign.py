@@ -1,4 +1,4 @@
-import bawrapper
+from bawrapper import *
 
 
 

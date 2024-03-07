@@ -1,4 +1,4 @@
-import bawrapper
-inch=bawrapper._input("何インチ？")
-cm=bawrapper._float(inch) *  2.54 
-print("答えは..." + bawrapper._str(cm) + "cmです")
+from bawrapper import *
+inch=input("何インチ？")
+cm=float(inch) *  2.54 
+print("答えは..." + str(cm) + "cmです")

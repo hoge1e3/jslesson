@@ -1,3 +1,3 @@
-import bawrapper
+from bawrapper import *
 
 cards={}

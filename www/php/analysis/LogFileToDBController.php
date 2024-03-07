@@ -68,7 +68,8 @@ class LogFileToDBController {
         foreach ($files as $file) {
         }
     }*/
-    static function run() {
+    static function run($_c_or_u=null) {
+        if (defined("LOG_STOPPED")) return;
         if (isset($_GET["class"])) {
             $c=$_GET["class"];
             $class=new BAClass($c);
@@ -82,10 +83,25 @@ class LogFileToDBController {
             $user=$class->getUser($_GET["user"]);
             $classOrUser=$user;
         }
+        if ($_c_or_u) $classOrUser=$_c_or_u;
         $files=self::moveToTmp($classOrUser);
         $arc=LogUtil::getLogDir()->rel("arc/");
         $arc->mkdir();
         //return ;
+        if (isExternal($class)) {
+            foreach ($files as $file) {
+                $output=null;
+                $retval=null;
+                exec(SENDLOG." ".$file->name()."  2>&1 ", $output, $retval);
+                if ($retval) {
+                    print_r($output);
+                    exit;
+                }
+                $file->appendTo($arc->rel($file->name()) );
+                $file->rm();
+            }
+            return;
+        }
         $pdo = pdo();
 	    $sth=$pdo->prepare("insert into ".
 	    "log   (time,class,user,lang,filename,result,detail,raw,errorType,errorPos) ".
@@ -162,6 +178,17 @@ class LogFileToDBController {
     	$sth->execute($a);
     }
 }
-
+function isExternal($classOrUser) {
+    if (!defined("EXTERNAL_LOG_VIEWER")) return false;
+    if ($classOrUser instanceof BAUser) {
+        $class=$classOrUser->_class;
+    } else {
+        $class=$classOrUser;
+    }
+    if (defined("EXTERNAL_LOG_VIEWER_CLASSES")) {
+        return array_search( $class->id , EXTERNAL_LOG_VIEWER_CLASSES)!==false;
+    }
+    return true;
+}
 
 ?>

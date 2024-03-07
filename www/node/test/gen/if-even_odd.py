@@ -1,6 +1,6 @@
-import bawrapper
-s=bawrapper._input("判定したい数は？")
-i=bawrapper._int(s)
+from bawrapper import *
+s=input("判定したい数は？")
+i=int(s)
 if i %  2  ==  0 :
   print("偶数")
 else:

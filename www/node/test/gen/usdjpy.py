@@ -1,4 +1,4 @@
-import bawrapper
+from bawrapper import *
 rate= 110 
 dvd= 2200 
 total=dvd *  3 

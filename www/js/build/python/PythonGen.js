@@ -120,7 +120,7 @@ function (Visitor,IndentBuffer,assert) {
             this.printf("else%v",node.then);
         },
         forStmt: function (node) {
-            this.printf("for %j in %v%v", [",",node.vars], node.set, node.do);
+            this.printf("for %v in %v%v", node.vars, node.set, node.do);
         },
         letStmt: function (node) {
             this.visit(node.left);
@@ -203,7 +203,7 @@ function (Visitor,IndentBuffer,assert) {
             this.printf("%v%v%v",node.left,node.op,node.right);
         },
         lambdaExpr(node) {
-            this.printf("lambda %v:%v",node.param, node.returns);
+            this.printf("lambda %j:%v",[",",node.params], node.returns);
         },
         isnt: function () {
             this.printf(" is not ");
@@ -228,11 +228,11 @@ function (Visitor,IndentBuffer,assert) {
         },
         symbol: function (node) {
             var a=this.anon.get(node);
-            if (a.scopeInfo && a.scopeInfo.builtin) {
+            /*if (a.scopeInfo && a.scopeInfo.builtin) {
                 this.printf("%s._%s", BAWRAPPER,node+"");
-            } else {
+            } else {*/
                 this.printf("%s",node+"");
-            }
+            //}
         },
         not: function() {
             this.printf("not ");

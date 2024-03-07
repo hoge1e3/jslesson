@@ -13,18 +13,20 @@ function (FS,PP,S,G,J) {
     const gen=testHome.rel("gen/");
     const js=testHome.rel("../../pyjstest/");
     const err=testHome.rel("err/");
-    const header="import bawrapper\n";
+    const header="from bawrapper import *\n";
     testHome.each(pySrcF=>{
         if (!pySrcF.endsWith(".py")) return;
         console.log(pySrcF.path());
         try {
+            const cvSrcF=gen.rel(pySrcF.relPath(srcHome));
+            const jsSrcF=js.rel(pySrcF.relPath(srcHome).replace(/\.py$/,".js"));
+            if (cvSrcF.exists()) cvSrcF.rm();
+            if (jsSrcF.exists()) jsSrcF.rm();
             const node=PP.parse(pySrcF);
             const v=S.check(node,pySrcF);
             const code=G(node,v.anon,S);
-            const cvSrcF=gen.rel(pySrcF.relPath(srcHome));
             cvSrcF.text(header+code);
             const jscode=J(node,v.anon,{genReqJS:true,pyLibPath:"http://localhost/runtime/lib/python"});
-            const jsSrcF=js.rel(pySrcF.relPath(srcHome).replace(/\.py$/,".js"));
             jsSrcF.text(jscode);
 
         } catch(e) {
@@ -41,9 +43,9 @@ function (FS,PP,S,G,J) {
     let files=js.listFiles().filter((f)=>f.ext()===".js").map(f=>f.name());
     js.rel("files.json").obj(files);
     console.log(`Test Python: goto ${gen.path()} and run __ALL.bat `);
-    console.log(`Test JS: goto meisei18pro1/<TEACHER>/test_pyjs/ or http://localhost/fs/pub/42953d28/Test.html`);
+    console.log(`Test JS: goto http://localhost/pyjstest/runall.html`);
     console.log("Then:")
-    console.log("python comparable.py test/gen/output.json > pyres.txt");
-    console.log("python comparable.py ../pyjstest/output.json > jsres.txt");
+    console.log("python comparable.py test/gen/output.json pyres.txt");
+    console.log("python comparable.py ../pyjstest/output.json jsres.txt");
     console.log("diff pyres.txt jsres.txt");
 });

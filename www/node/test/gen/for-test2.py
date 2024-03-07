@@ -1,3 +1,3 @@
-import bawrapper
-for i in bawrapper._range( 10 ):
-  print("--- " + bawrapper._str(i) + " ---")
+from bawrapper import *
+for i in range( 10 ):
+  print("--- " + str(i) + " ---")

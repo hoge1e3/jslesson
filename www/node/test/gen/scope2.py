@@ -1,4 +1,4 @@
-import bawrapper
+from bawrapper import *
 value= 30 
 
 def hoge1():

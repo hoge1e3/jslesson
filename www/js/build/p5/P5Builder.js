@@ -1,7 +1,7 @@
 define(function (require, exports, module) {
     const Sync=require("Sync");
     const ctrl=require("ctrl");
-    const p5jsURL="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.2.0/p5.js";
+    const p5jsURL="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.js";
 
     module.exports=class P5Builder {
         constructor(prj, dst,ide) {//<-Dtl
@@ -24,6 +24,25 @@ define(function (require, exports, module) {
             //dh.text(`<html><script>location.href="${url}";</script></html>`);
             html.text(`<html>
                 <script src="${p5.name()}"></script>
+                <script>
+                function _wrap(f) {
+                    return function (...args) {
+                        try {
+                            return f(...args);
+                        } catch(e) {
+                            if (typeof onerror==="function") onerror(null,null,null,null,e);
+                            else {
+                                alert(e);
+                            }
+                            throw e;
+                        }
+                    };
+                }
+                if (typeof window.setup==="function") window.setup=_wrap(window.setup);
+                /*for (let m of ["draw","setup","keyPressed","keyReleased","keyTyped","mouseMoved","mouseDragged","mousePressed","mouseClicked"]) {
+                    if (typeof window[m]==="function") window[m]=_wrap(window[m]);
+                }*/
+                </script>
                 <script src="${p5jsURL}"></script>
             </html>`);
             //return url;

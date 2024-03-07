@@ -202,14 +202,15 @@ class RunPythonController {
         $r=system_ex("echo hoge");
         print ("<pre>[".$r["stdout"]."]</pre>");
     }
-    static function saveConfig($workDir, $homes, $sp=0) {
+    static function saveConfig($workDir, $homes, $sp=0, $session="") {
         $url=(empty($_SERVER['HTTPS']) ? 'http://' : 'https://') . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
         $url=preg_replace("/\\?.*/", "", $url);
         $workDir->rel("config.json")->text(
             json_encode(array(
                 "super"=>$sp,
                 "asset"=>self::convHomes($homes),
-                "topURL"=>$url
+                "topURL"=>$url,
+                "session"=>$session
             ))
         );
     }

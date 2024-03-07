@@ -1,8 +1,8 @@
-import bawrapper
+from bawrapper import *
 import _numpy.random as rd
 totalcount= 1000 
 incount= 0 
-for i in bawrapper._range(totalcount):
+for i in range(totalcount):
   x=rd.random()
   y=rd.random()
   if x **  2  + y **  2  <  1.0 :

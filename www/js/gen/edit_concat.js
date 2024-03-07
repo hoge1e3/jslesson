@@ -9257,7 +9257,7 @@ define('LocalBrowserInfoClass',["FS","Klass","source-map","DeferredUtil"], funct
 				return this.fileMap[url].blobUrl;
 			}
 			var urlHead=url.replace(urlparam,"");
-			if (FS.PathUtil.isURL(urlHead)) {
+			if (FS.PathUtil.isURL(urlHead) || urlHead.match(/^data:/)) {
 				return url;
 			}
 			var base=this.base;
@@ -10765,7 +10765,11 @@ function (UI ,DA) {
             resize:handleResize
         });//,height:options.height?options.height-50:400});
         setTimeout(function () {
-            if (!res.iframe[0].contentWindow.onerror) res.iframe[0].contentWindow.onerror=window.onerror;
+            try {
+                if (!res.iframe[0].contentWindow.onerror) res.iframe[0].contentWindow.onerror=window.onerror;
+            } catch(e) {
+                console.log(e);
+            }
         },100);
         handleResize();
         function handleResize() {
@@ -10805,7 +10809,11 @@ function (UI ,DA) {
                 }
             };
         } else {
-            res.iframe[0].contentWindow.location.href=url;
+            try {
+                res.iframe[0].contentWindow.location.href=url;
+            } catch(e) {
+                res.iframe.attr({src:url});
+            }
         }
         setTimeout(function () {
             res.iframe.focus();
@@ -15211,11 +15219,13 @@ module.exports=WorkerService;
 },{}]},{},[2])(2)
 });
 
-define('ProjectFactory',['require','exports','module','BuilderClient','Util','DeferredUtil'],function (require, exports, module) {
+define('ProjectFactory',['require','exports','module','BuilderClient','Util','DeferredUtil','WebSite','FS'],function (require, exports, module) {
     const BuilderClient=require("BuilderClient");
     const F=BuilderClient.ProjectFactory;
     const Util=require("Util");
     const DU=require("DeferredUtil");
+    const WebSite=require("WebSite");
+    const FS=require("FS");
     const HEXT=".html";
     function getName(file) {
         if (typeof file.name==="function") file=file.name();
@@ -15262,16 +15272,15 @@ define('ProjectFactory',['require','exports','module','BuilderClient','Util','De
         	fixOptions: function (opt) {
         		if (!opt.compiler) opt.compiler={};
         	},
-            getPublishedURL: function () {//ADDBA
+            getPublishedURL: async function () {//ADDBA
                 const TPR=this;
-        		if (TPR._publishedURL) return DU.resolve(TPR._publishedURL);
-        		return DU.requirejs(["Auth"]).then(function (Auth) {
-        			return Auth.publishedURL(TPR.getName()+"/");
-        		}).then(function (r) {
-        			TPR._publishedURL=r;
-        			return r;
-        		});
-        	},
+                if (TPR._publishedURL) return (TPR._publishedURL);
+                const Auth=await DU.requirejs(["Auth"]);
+                const hash=await Auth.getHash(TPR.getName()+"/");
+                const r=FS.PathUtil.truncSEP(WebSite.pub_in_top)+"/"+hash;
+                TPR._publishedURL=r;
+                return r;
+            },
             sourceFiles: function () {// nsp==null => all
                 //nsp=nsp || TPR.getNamespace();//DELJSL
                 const TPR=this;
@@ -16783,7 +16792,41 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
         console.error("Err",e);
         alert(e);
     });
-    $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"])).
+    async function getURLInfo() {
+        const info=await ctrl.get("BAURL/show");
+        console.log(info);
+        const withSep=(s)=>FS.PathUtil.truncSEP(s)+"/";
+        WebSite.urlInfo=info;
+        if (info.BA_SERVICE_URL) {
+            WebSite.controller_in_service=info.BA_SERVICE_URL;
+            WebSite.runtime_in_service=FS.PathUtil.truncSEP(info.BA_SERVICE_URL)+"/runtime/";
+        }
+        if (info.BA_PUB_URL) {
+            // BitArrow.publishedURL: URL of THIS project.
+            // WebSite.published: ROOT URL of published. 
+            WebSite.published=FS.PathUtil.truncSEP(info.BA_PUB_URL)+"/";
+        }
+        if (info.BA_PUB_URL_IN_TOP) {
+            WebSite.pub_in_top=FS.PathUtil.truncSEP(info.BA_PUB_URL_IN_TOP);
+        } else {
+            WebSite.pub_in_top=WebSite.published;
+        }
+        WebSite.hosts={
+            ide: {
+                top: withSep(info.BA_TOP_URL),
+                published: withSep(WebSite.pub_in_top) ,
+                runtime: withSep(WebSite.runtime),
+            },
+            service: {
+                top: withSep(info.BA_SERVICE_URL || info.BA_TOP_URL) ,
+                published: withSep(WebSite.published),
+                runtime: withSep(WebSite.runtime_in_service),
+            },
+        };
+        WebSite.hosts.ide.controller=WebSite.hosts.ide.top;
+        WebSite.hosts.service.controller=WebSite.hosts.service.top;
+    }
+    $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"]),getURLInfo()).
     then(ready).fail(function (e) {
         alert("エラー"+e);
         console.error(e.stack);
@@ -16868,7 +16911,7 @@ function ready() {
         console.log("AE",autoexec);
         if (autoexec) {
             fl.select(curProjectDir.rel(autoexec));
-            run();
+            run({sendURL: getSendURL()});
         }
     }
     function autologexec() {
@@ -16902,12 +16945,18 @@ function ready() {
                 console.log("STDIN",stdin);
                 const opt={};
                 if (stdin) opt.stdin=stdin;
-                const sendURL=(typeof parent!=="undefined" && parent && parent.sendURL)||
+                opt.sendURL=getSendURL();
+                /*const sendURL=(typeof parent!=="undefined" && parent && parent.sendURL)||
                 (typeof opener!=="undefined" && opener && opener.sendURL);
-                if (ALWAYS_UPLOAD && sendURL) opt.sendURL=sendURL;
+                if (ALWAYS_UPLOAD && sendURL) opt.sendURL=sendURL;*/
                 run(opt);
            }).catch (function (e) {console.error(e);});
         }
+    }
+    function getSendURL() {
+        const sendURL=(typeof parent!=="undefined" && parent && parent.sendURL)||
+        (typeof opener!=="undefined" && opener && opener.sendURL);
+        if (ALWAYS_UPLOAD && sendURL) return sendURL;
     }
     function autosubexec() {
         var id=Util.getQueryString("autosubexec",null);
@@ -17540,6 +17589,9 @@ function ready() {
             }
             logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),(langInfo.en||lang)+" "+result, resDetail,langInfo.en);
         };
+        window.onmessage=(e)=>{
+            console.log("MESG",e);
+        };
         stop();
         save();
         if (syncBefore) {
@@ -17591,7 +17643,7 @@ function ready() {
         }catch(e) {
             console.log(e,e.stack);
             if (ALWAYS_UPLOAD && options.sendURL) {
-                options.sendURL("error://"+e.stack, location.href);
+                options.sendURL(e/*"error://"+e.stack*/, location.href);
             }
             if (e.isTError) {
                 errorDialog.show(e);//showErrorPos($("#errorPos"),e);

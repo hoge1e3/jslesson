@@ -118,6 +118,12 @@ class BAClass{
     }
 
     function exists() {
+        if (defined("TEACHER_BAUTH_URL")) {
+            $r=file_get_contents(TEACHER_BAUTH_URL."?Login/hasClass&class=".urlencode($this->id));
+            //print $r;
+            $r=json_decode($r);
+            if ($r->exists) return $r->exists;
+        }
         $pdo=pdo();
         $sth=$pdo->prepare("select * from class where id = ?");
         $sth->execute(array($this->id));
@@ -157,7 +163,7 @@ class BAClass{
     }
     function getAllLogs($minTime,$maxTime){
         req("LogFileToDBController");
-        LogFileToDBController::run();
+        LogFileToDBController::run($this);
         $pdo = pdo();
         $sth=$pdo->prepare("select * from log where class = ? and time > ? and time < ?");
         $sth->execute(array($this->id,$minTime,$maxTime));
