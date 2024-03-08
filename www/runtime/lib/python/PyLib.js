@@ -13,6 +13,14 @@ define(function (require,exports,module) {
     var root=getRoot();
     //test!!!
     var PL={};
+    PL.unproxy=function (o) {
+        if (o==null) return o;
+        if (typeof o.__unproxy__!=="function") return o;
+        return o.__unproxy__();
+    };
+    PL.typeof=function (o) {
+        return typeof PL.unproxy(o);
+    };
     PL.import=function (lib) {
         if (PL.import.libs[lib]) return PL.import.libs[lib];
         throw new Error("ライブラリ "+lib+" はインポートできません．(サーバで実行すると動作する可能性があります)");
@@ -127,7 +135,7 @@ define(function (require,exports,module) {
         //  s==false
         if (s!=null && s.__str__) {
             const res=s.__str__();
-            if (typeof res!=="string") throw new Error("__str__の戻り値は文字列である必要があります．");
+            if (PL.typeof(res)!=="string") throw new Error("__str__の戻り値は文字列である必要があります．");
             return res;// __OP__
         }
         return "None";
@@ -161,7 +169,7 @@ define(function (require,exports,module) {
         throw e;
     };
     PL.type=function (s) {
-        switch (typeof u(s)) {
+        switch (PL.typeof(u(s))) {
             case "number":
                 if (Math.floor(s)==s) return PL.int;
                 return PL.float;
@@ -184,11 +192,11 @@ define(function (require,exports,module) {
             return klass===PL.NoneType;
         }
         if (klass===PL.int) {
-            return (typeof u(obj)==="number" && Math.floor(obj)===obj);
+            return (PL.typeof(obj)==="number" && Math.floor(obj)===obj);
         } else if (klass===PL.float || klass===Number) {
-            return (typeof u(obj)==="number");
+            return (PL.typeof(obj)==="number");
         } else if (klass===PL.str || klass===String) {
-            return (typeof u(obj)==="string");
+            return (PL.typeof(obj)==="string");
         }
         const ocl=obj && obj.__class__;
         if (!ocl) return false;
@@ -406,7 +414,7 @@ define(function (require,exports,module) {
     PL.int=function (s) {
         const v=s-0;
         if (v!==v) throw new Error(`${s} は intに変換できません`);
-        if (typeof s==="string") {
+        if (PL.typeof(s)==="string") {
             if (s.match(/\./)) throw new Error(`${s} は小数点を含んでいるのでintに変換できません`);
         }
         return v;
@@ -434,7 +442,7 @@ define(function (require,exports,module) {
         //console.log("superprot",superprot.CLASSNAME);
         const res={};
         for (var meth of klass.__methodnames__) {
-            if (typeof superprot[meth]!=="function") continue;
+            if (PL.typeof(superprot[meth])!=="function") continue;
             Object.defineProperty(res,meth,{value:superprot[meth].bind(self)});
         }
         return res;
@@ -614,9 +622,9 @@ define(function (require,exports,module) {
         }
         if (!o || typeof o!=="object") return false;*/
         //console.log("typeof_field", o, field, type);
-        if (typeof field==="object") {
+        if (PL.typeof(field)==="object") {
             for (let k in field) {
-                if (typeof field[k] instanceof String) {
+                if (PL.typeof(field[k]) instanceof String) {
                     console.log(field, k ,field[k]);
                     throw new Error("Invalid field spec");
                 }
@@ -630,7 +638,7 @@ define(function (require,exports,module) {
         if (!PL.hasattr_js(o, field)) {
             return "undefined";
         }
-        return typeof o[field]; 
+        return PL.typeof(o[field]); 
     };
     PL.isArray=(v)=>{
         if (!v) return false;
@@ -640,10 +648,10 @@ define(function (require,exports,module) {
     };
     PL.isArrayLike=(v)=> {
         if (!v) return false;
-        if (typeof v==="string" || v instanceof String) return false;
+        if (PL.typeof(v)==="string" || v instanceof String) return false;
         v=v.__unproxy__();
         return PL.isArray(v) || (
-            typeof v==="object" && PL.typeof_field(v,{length:"number"}) &&(
+            PL.typeof(v)==="object" && PL.typeof_field(v,{length:"number"}) &&(
                 v.length===0 ||
                 (0 in v && v.length-1 in v)
             )
@@ -662,7 +670,7 @@ define(function (require,exports,module) {
     });
     PL.invoke=function (self,name,args) {
         var m=self[name];
-        if (typeof m==="function") return m.apply(self, args);
+        if (PL.typeof(m)==="function") return m.apply(self, args);
         return m.__call__.apply(m,args);
     };
     PL.moduleScope=(parent, useJSRoot)=> {
@@ -674,10 +682,10 @@ define(function (require,exports,module) {
                 if (prop in target) return target[prop];
                 if (useJSRoot && prop in root) {
                     const r=root[prop];
-                    if (typeof r==="function") return r.bind(root);
+                    if (PL.typeof(r)==="function") return r.bind(root);
                     return r;
                 }
-                if (prop==="then" || typeof prop!=="string" ) {
+                if (prop==="then" || PL.typeof(prop)!=="string" ) {
                     // 'then' will be checked on return of async function
                     // Symbol(Symbol.toStringTag) is also
                     return undefined;
@@ -719,10 +727,6 @@ define(function (require,exports,module) {
         function typestr(val) {
             if (val==PL.None) return "None";
             return val && PL.type(val).__name__;
-            /*const res=(typeof u(val));
-            if (res!=="object") return res;
-            if (val && val.__getTypeName__) return val.__getTypeName__();
-            return res;*/
         }
         throw new Error(`unsupported operand type(s) for ${op}: '${typestr(left)}' and '${typestr(right)}'`);
     };
@@ -765,7 +769,7 @@ define(function (require,exports,module) {
         //__getTypeName__: function (){return "<class object>";},
         __call__: function (self,...a) {
             //var a=Array.prototype.slice.call(arguments,1);
-            if (typeof self==="function") return self.apply(self, a);
+            if (PL.typeof(self)==="function") return self.apply(self, a);
             console.log("Cannot call", self);
             throw new Error("この値は関数呼び出しできません");
         },
@@ -803,7 +807,7 @@ define(function (require,exports,module) {
             if (name===Symbol.iterator) {
                 throw new PL.AttributeError(`このオブジェクトは繰り返し可能ではありません．`);
             }
-            if (name==="then" || typeof name!=="string" ) {
+            if (name==="then" || PL.typeof(name)!=="string" ) {
                 // 'then' will be checked on return of async function
                 // Symbol(Symbol.toStringTag) is also
                 return undefined;
@@ -816,7 +820,7 @@ define(function (require,exports,module) {
                 return self.__getattr__(name);
             }
             const r=self[name];
-            if (typeof r==="function" && !PL.isinstance(r, PL.type)) {
+            if (PL.typeof(r)==="function" && !PL.isinstance(r, PL.type)) {
                 return r.bind(self);
             }
             return r;
@@ -882,7 +886,7 @@ define(function (require,exports,module) {
         __str__(self){return self+"";},
         //__getTypeName__: function (){return "str";},
         __mul__: function (self,other) {
-            switch (typeof other) {
+            switch (PL.typeof(other)) {
             case "number":
                 let res="";
                 for (;other;other--) res+=self;
@@ -901,7 +905,7 @@ define(function (require,exports,module) {
             return sprintfJS(self,...args);
         },
         __add__: function (self,other) {
-            if (typeof u(other)!=="string") {
+            if (PL.typeof(other)!=="string") {
                 throw new Error("文字列に文字列以外の値を+で追加できません．str()関数を使って変換してください．");
             }
             return Object.prototype.__add__.call(self,other);
@@ -938,17 +942,19 @@ define(function (require,exports,module) {
     PL.addMonkeyPatch(Number, {
         __class__: Number,
         __add__(self,other) {
-            if (typeof u(other)==="string") {
+            other=PL.unproxy(other);
+            if (typeof (other)==="string") {
                 throw new Error("数値に文字列を追加できません．左辺をstr()で変換するか，右辺をint()またはfloat()で変換する必要があります．");
             }
             return self+other;
         },
         __mul__(self,other) {
-            switch (typeof other) {
+            const _other=PL.unproxy(other);
+            switch (typeof (_other)) {
             case "number":
-                return self*other;
+                return self*_other;
             case "boolean":
-                return other ? self-0 :0;
+                return _other ? self-0 :0;
             case "string":
                 return other.__mul__(self);
             default:
@@ -959,7 +965,7 @@ define(function (require,exports,module) {
     });
     function otherShouldString(k) {
         return function (self,other) {
-            if (typeof u(other)!=="string") {
+            if (PL.typeof(other)!=="string") {
                 PL.invalidOP(self, k,other);
             }
             return Object.prototype[k].call(self,other);
@@ -973,7 +979,7 @@ define(function (require,exports,module) {
             return self==true?"True":"False";
         },
         __mul__(self, other) {
-            switch (typeof other) {
+            switch (PL.typeof(other)) {
                 case "number":
                 case "string":
                     return other.__mul__(self);
@@ -1028,7 +1034,7 @@ define(function (require,exports,module) {
         },
         __str__(self) {
             return "["+self.map((e)=>
-                typeof e==="string" ? JSON.stringify(e).replace(/^"/,"'").replace(/"$/,"'") : PL.str(e)
+                PL.typeof(e)==="string" ? JSON.stringify(e).replace(/^"/,"'").replace(/"$/,"'") : PL.str(e)
             ).join(", ")+"]";
         },
         __getitem__:function (self, key) {
@@ -1069,11 +1075,11 @@ define(function (require,exports,module) {
             comp=comp||nat;
             if (comp instanceof PL.Option) {
                 let key=comp.key;
-                if (typeof key==="string") {
+                if (PL.typeof(key)==="string") {
                     const ks=key;
                     key=(o)=>o[ks];
                 } 
-                if (typeof key==="function") {
+                if (PL.typeof(key)==="function") {
                     const sorted=self.map((val,idx)=>({val,idx}) ).sort((a,b)=>{
                         const va=key(a.val);
                         const vb=key(b.val);
@@ -1126,7 +1132,7 @@ define(function (require,exports,module) {
     		if (arg && arg.IS_POINTER) {
     			return arg.addr||0;
     		}
-    		switch(typeof arg){
+    		switch(PL.typeof(arg)){
     		case "number":
                 res=arg-0;
                 break;
@@ -1161,7 +1167,7 @@ define(function (require,exports,module) {
           case "x": v = parseInt2(getArg()); if (!isNaN(v)) { v = (sign ? "0x" : "") + unsign(v).toString(16); } break;
           case "X": v = parseInt2(getArg()); if (!isNaN(v)) { v = (sign ? "0X" : "") + unsign(v).toString(16).toUpperCase(); } break;
           case "f": v = parseFloat(getArg()).toFixed(precision||6); break;
-          case "c": width = 0; v = getArg(); v = (typeof v === "number") ? String.fromCharCode(v) : NaN; break;
+          case "c": width = 0; v = getArg(); v = (PL.typeof(v) === "number") ? String.fromCharCode(v) : NaN; break;
           case "s": width = 0; v = getArg(); if (precision) { v = v.substring(0, precision); } break;
           case "%": width = 0; v = s[i]; break;
           default:  width = 0; v = "%" + ((width) ? width.toString() : "") + s[i].toString(); break;
