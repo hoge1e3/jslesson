@@ -99,7 +99,7 @@ define(function (require,exports,module) {
         if (s) PL.print(s,PL.Option({end:""}));
         var r=PL.STDIN ? PL.STDIN.shift() : prompt(PL.lineBuf);
         if (r==null) r="";
-        PL.LoopChecker.reset();
+        if (!PL.STDIN) PL.LoopChecker.reset();
         PL.print(r);
         return r;
     };
