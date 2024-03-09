@@ -1,0 +1,15 @@
+class Player:
+    def __init__(self, name, hp, mp, ap):
+        self.name=name
+        self.hp=hp
+        self.mp=mp
+        self.ap=ap
+def status(p):
+    print ("Name: {}".format(p.name))
+    print ("Hit Point: {}".format(p.hp))
+    print ("Magic Point: {}".format(p.mp))
+    print ("Attack Point: {}".format(p.ap))
+y=Player("yamada", 20, 15, 5)
+t=Player("tanaka", 30, 10, 8)
+status(y)
+status(t)
