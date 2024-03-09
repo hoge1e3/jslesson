@@ -13,7 +13,12 @@ for (var k of f) {
     if (k.match(/mugen/)) continue;
     await wait(0);
     frm=$("<iframe>").attr({src:"index.html?file="+k}).appendTo("body");
-    for (let i=0;i< 5;i++) {//>
+    let i=0;
+    frm[0].contentWindow.onerror=(...e)=>{
+        console.log("ERA-",e);
+        i=100;
+    };
+    for (i=0;i< 5;i++) {//>
          await wait(100);
          res[k]=frm[0].contentWindow.document.querySelector("#output").innerText.replace(/\s*$/,"");
          if (res[k].replace(/\s/g,"").length) break;
