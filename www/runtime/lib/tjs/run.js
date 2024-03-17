@@ -38,6 +38,7 @@ function run(className) {
     });
     requirejs(["user.js"],_run);
    function _run() {
+    const TError=Tonyu.TError;
         var bootClass=Tonyu.getClass(className);
         if (!bootClass) throw TError( klass+" というクラスはありません", "不明" ,0);
         Tonyu.runMode=true;
