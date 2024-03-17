@@ -25,6 +25,7 @@ class LogElem {
         $this->user=$l["user"];
         $this->time=$l["time"];
         $this->filename=$l["filename"];
+        
     }
 }
 function getCode($code) {
@@ -34,6 +35,17 @@ function getCode($code) {
     }
 }
 class LogCluster {
+    function addRaw($n) {
+        if (count($this->raws)>0) {
+            $last=$this->raws[count($this->raws)-1];
+            if ($last->id===$n->id) {
+                throw new Exception("Same ID! ".$last->id);
+            }
+        }
+        if (!isset($this->raws)) $this->raws=[];
+        $this->raws[]=$n;
+        return true;
+    }
     function collectOther($attr, $n) {
         if (!isset($n->{$attr})) {
             throw new Exception("invalid data ".json_encode($n));
@@ -95,10 +107,13 @@ class LogCluster {
         if (!($n instanceof LogElem)) {
             $n=new LogElem($n);
         }
-        return $this->collectOthers($n) &&
+        $r= $this->collectOthers($n) &&
         $this->collectTime($n) &&
         $this->collectCode($n) &&
         $this->collectResultDetail($n);
+        //for debug
+        //if ($r) $this->addRaw($n);
+        return $r;
     }
     function withRaw() {
         $res=new stdClass;
