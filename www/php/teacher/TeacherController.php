@@ -156,7 +156,7 @@ class TeacherController {
         <?php } ?>
         <script src="js/lib/jquery-1.12.1.js" type="text/javascript"></script>
         <script>
-            $.get("a.php?Login/news").then((r)=>$("#news").html(r));
+            $.get("a.php?Login/news",{at:"newClass"}).then((r)=>$("#news").html(r));
         </script>
         <?php
         if ($teacher->isSysAd()) {

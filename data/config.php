@@ -33,6 +33,7 @@ define("TEACHER_BAUTH_URL","https://bitarrow.eplang.jp/beta2204/");
 define("LOG_VIEWER_ONLY","https://bitarrow.eplang.jp/beta2204/");
 //---
 
+define("NEWS",["default"=>"このサーバは<b>古い</b>です","newClass"=>"クラスを作らないでくだしあ"]);
 //define("NEWS","<a href='https://bitarrow.eplang.jp/'>NEWS: KOWARETA</a>");
 //define("MAINTENANCE","KOWARETEIMASU");
 //$ba_top_url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
