@@ -109,16 +109,16 @@ Tonyu.klass.define({
         "use strict";
         var _this=this;
         var f;
-        var _it_161;
+        var _it_1;
         
         if (! window.Plotly) {
           window.setTimeout(Tonyu.bindFunc(_this,_this.waitLoadLib),100);
           
         } else {
           _this.Plotly=window.Plotly;
-          _it_161=Tonyu.iterator(_this.loadLibHandlers,1);
-          while(_it_161.next()) {
-            f=_it_161[0];
+          _it_1=Tonyu.iterator(_this.loadLibHandlers,1);
+          while(_it_1.next()) {
+            f=_it_1[0];
             
             f(_this.Plotly);
           }
@@ -131,16 +131,16 @@ Tonyu.klass.define({
         //var _arguments=Tonyu.A(arguments);
         var __pc=0;
         var f;
-        var _it_161;
+        var _it_1;
         
         if (! window.Plotly) {
           window.setTimeout(Tonyu.bindFunc(_this,_this.waitLoadLib),100);
           
         } else {
           _this.Plotly=window.Plotly;
-          _it_161=Tonyu.iterator(_this.loadLibHandlers,1);
-          while(_it_161.next()) {
-            f=_it_161[0];
+          _it_1=Tonyu.iterator(_this.loadLibHandlers,1);
+          while(_it_1.next()) {
+            f=_it_1[0];
             
             f(_this.Plotly);
           }
@@ -753,13 +753,13 @@ Tonyu.klass.define({
         var _this=this;
         var ret;
         var o;
-        var _it_183;
+        var _it_23;
         
         ret = [];
         
-        _it_183=Tonyu.iterator(_this.vec(k),1);
-        while(_it_183.next()) {
-          o=_it_183[0];
+        _it_23=Tonyu.iterator(_this.vec(k),1);
+        while(_it_23.next()) {
+          o=_it_23[0];
           
           if (ret[o[k]]) {
             ret[o[k]]++;
@@ -779,13 +779,13 @@ Tonyu.klass.define({
         var __pc=0;
         var ret;
         var o;
-        var _it_183;
+        var _it_23;
         
         ret = [];
         
-        _it_183=Tonyu.iterator(_this.vec(k),1);
-        while(_it_183.next()) {
-          o=_it_183[0];
+        _it_23=Tonyu.iterator(_this.vec(k),1);
+        while(_it_23.next()) {
+          o=_it_23[0];
           
           if (ret[o[k]]) {
             ret[o[k]]++;
@@ -1259,7 +1259,7 @@ Tonyu.klass.define({
         var _this=this;
         var s;
         var v;
-        var _it_199;
+        var _it_39;
         
         s = 0;
         
@@ -1272,9 +1272,9 @@ Tonyu.klass.define({
           }
           
         } else {
-          _it_199=Tonyu.iterator(_this.vec(k),1);
-          while(_it_199.next()) {
-            v=_it_199[0];
+          _it_39=Tonyu.iterator(_this.vec(k),1);
+          while(_it_39.next()) {
+            v=_it_39[0];
             
             s+=v-0;
             
@@ -1290,7 +1290,7 @@ Tonyu.klass.define({
         var __pc=0;
         var s;
         var v;
-        var _it_199;
+        var _it_39;
         
         s = 0;
         
@@ -1303,9 +1303,9 @@ Tonyu.klass.define({
           }
           
         } else {
-          _it_199=Tonyu.iterator(_this.vec(k),1);
-          while(_it_199.next()) {
-            v=_it_199[0];
+          _it_39=Tonyu.iterator(_this.vec(k),1);
+          while(_it_39.next()) {
+            v=_it_39[0];
             
             s+=v-0;
             
@@ -1361,7 +1361,7 @@ Tonyu.klass.define({
         var a;
         var i;
         var v;
-        var _it_204;
+        var _it_44;
         
         d = [];
         a = 0;
@@ -1378,9 +1378,9 @@ Tonyu.klass.define({
           
         } else {
           a=_this.mean(k);
-          _it_204=Tonyu.iterator(_this.vec(k),1);
-          while(_it_204.next()) {
-            v=_it_204[0];
+          _it_44=Tonyu.iterator(_this.vec(k),1);
+          while(_it_44.next()) {
+            v=_it_44[0];
             
             d.push(v-a);
             
@@ -1398,7 +1398,7 @@ Tonyu.klass.define({
         var a;
         var i;
         var v;
-        var _it_204;
+        var _it_44;
         
         d = [];
         a = 0;
@@ -1429,9 +1429,9 @@ Tonyu.klass.define({
             case 3:
               a=_thread.retVal;
               
-              _it_204=Tonyu.iterator(_this.vec(k),1);
-              while(_it_204.next()) {
-                v=_it_204[0];
+              _it_44=Tonyu.iterator(_this.vec(k),1);
+              while(_it_44.next()) {
+                v=_it_44[0];
                 
                 d.push(v-a);
                 
@@ -1579,7 +1579,7 @@ Tonyu.klass.define({
         var dataCov;
         var k;
         var v;
-        var _it_214;
+        var _it_54;
         
         dev1 = _this.dev(k1);
         
@@ -1587,10 +1587,10 @@ Tonyu.klass.define({
         
         dataCov = 0;
         
-        _it_214=Tonyu.iterator(dev1,2);
-        while(_it_214.next()) {
-          k=_it_214[0];
-          v=_it_214[1];
+        _it_54=Tonyu.iterator(dev1,2);
+        while(_it_54.next()) {
+          k=_it_54[0];
+          v=_it_54[1];
           
           dataCov+=dev1[k]*dev2[k];
           
@@ -1608,7 +1608,7 @@ Tonyu.klass.define({
         var dataCov;
         var k;
         var v;
-        var _it_214;
+        var _it_54;
         
         
         _thread.enter(function _trc_Graph_ent_cov(_thread) {
@@ -1628,10 +1628,10 @@ Tonyu.klass.define({
               
               dataCov = 0;
               
-              _it_214=Tonyu.iterator(dev1,2);
-              while(_it_214.next()) {
-                k=_it_214[0];
-                v=_it_214[1];
+              _it_54=Tonyu.iterator(dev1,2);
+              while(_it_54.next()) {
+                k=_it_54[0];
+                v=_it_54[1];
                 
                 dataCov+=dev1[k]*dev2[k];
                 
@@ -2555,7 +2555,7 @@ Tonyu.klass.define({
         var _this=this;
         
         if (! (newsrc+"").match(/^http/)) {
-          newsrc=window.runtimePath+newsrc;
+          newsrc=_this.slashify(_this.getRuntimePath())+newsrc;
           
         }
         _this.findElement(elem).attr("src",newsrc);
@@ -2567,7 +2567,7 @@ Tonyu.klass.define({
         var __pc=0;
         
         if (! (newsrc+"").match(/^http/)) {
-          newsrc=window.runtimePath+newsrc;
+          newsrc=_this.slashify(_this.getRuntimePath())+newsrc;
           
         }
         _this.findElement(elem).attr("src",newsrc);
@@ -2671,7 +2671,7 @@ Tonyu.klass.define({
         time=time||100;
         t = null;
         
-        runThread = _this.catchException((function anonymous_5638() {
+        runThread = _this.catchException((function anonymous_5646() {
           
           t.steps();
           if (t.preempted) {
@@ -2700,7 +2700,7 @@ Tonyu.klass.define({
           for(var __cnt=100 ; __cnt--;) {
             switch (__pc) {
             case 0:
-              _this.fiber$catchException(_thread, (function anonymous_5638() {
+              _this.fiber$catchException(_thread, (function anonymous_5646() {
                 
                 t.steps();
                 if (t.preempted) {
@@ -2760,7 +2760,7 @@ Tonyu.klass.define({
         var after;
         var k;
         var v;
-        var _it_243;
+        var _it_83;
         
         e = _this.document.createElement(elem);
         
@@ -2784,10 +2784,10 @@ Tonyu.klass.define({
             delete n.onClick;
             
           }
-          _it_243=Tonyu.iterator(n,2);
-          while(_it_243.next()) {
-            k=_it_243[0];
-            v=_it_243[1];
+          _it_83=Tonyu.iterator(n,2);
+          while(_it_83.next()) {
+            k=_it_83[0];
+            v=_it_83[1];
             
             e.setAttribute(k,v);
             
@@ -2815,7 +2815,7 @@ Tonyu.klass.define({
         var after;
         var k;
         var v;
-        var _it_243;
+        var _it_83;
         
         e = _this.document.createElement(elem);
         
@@ -2851,10 +2851,10 @@ Tonyu.klass.define({
                 delete n.onClick;
                 
               }
-              _it_243=Tonyu.iterator(n,2);
-              while(_it_243.next()) {
-                k=_it_243[0];
-                v=_it_243[1];
+              _it_83=Tonyu.iterator(n,2);
+              while(_it_83.next()) {
+                k=_it_83[0];
+                v=_it_83[1];
                 
                 e.setAttribute(k,v);
                 
@@ -2999,7 +2999,7 @@ Tonyu.klass.define({
         
         _this.activityGroup=_this.activityGroup||"default";
         _this.keyData=[];
-        _this.document.onkeydown=(function anonymous_7522(e) {
+        _this.document.onkeydown=(function anonymous_7530(e) {
           var key_code;
           var key_char;
           
@@ -3042,7 +3042,7 @@ Tonyu.klass.define({
             }
           }
         });
-        _this.document.onkeyup=(function anonymous_8599(e) {
+        _this.document.onkeyup=(function anonymous_8607(e) {
           var key_code;
           var key_char;
           
@@ -3270,7 +3270,7 @@ Tonyu.klass.define({
         
         clicked = 0;
         
-        _func = (function anonymous_9860() {
+        _func = (function anonymous_9868() {
           
           clicked=1;
         });
@@ -3293,7 +3293,7 @@ Tonyu.klass.define({
         
         clicked = 0;
         
-        _func = (function anonymous_9860() {
+        _func = (function anonymous_9868() {
           
           clicked=1;
         });
@@ -3331,7 +3331,7 @@ Tonyu.klass.define({
         
         t = null;
         
-        runThread = _this.catchException((function anonymous_10101() {
+        runThread = _this.catchException((function anonymous_10109() {
           
           t.steps();
           if (t.preempted) {
@@ -3342,11 +3342,11 @@ Tonyu.klass.define({
         
         t.suspend();
         _this._err=null;
-        promise.then((function anonymous_10261(r) {
+        promise.then((function anonymous_10269(r) {
           
           _this._res=r;
           runThread();
-        }),(function anonymous_10314(e) {
+        }),(function anonymous_10322(e) {
           
           _this._err=(e instanceof window.Error?e:new Error(e.responseText||e+""));
           runThread();
@@ -3368,7 +3368,7 @@ Tonyu.klass.define({
           for(var __cnt=100 ; __cnt--;) {
             switch (__pc) {
             case 0:
-              _this.fiber$catchException(_thread, (function anonymous_10101() {
+              _this.fiber$catchException(_thread, (function anonymous_10109() {
                 
                 t.steps();
                 if (t.preempted) {
@@ -3382,11 +3382,11 @@ Tonyu.klass.define({
               
               t.suspend();
               _this._err=null;
-              promise.then((function anonymous_10261(r) {
+              promise.then((function anonymous_10269(r) {
                 
                 _this._res=r;
                 runThread();
-              }),(function anonymous_10314(e) {
+              }),(function anonymous_10322(e) {
                 
                 _this._err=(e instanceof window.Error?e:new Error(e.responseText||e+""));
                 runThread();
@@ -3433,6 +3433,98 @@ Tonyu.klass.define({
           }
         });
       },
+      selHosts :function _trc_Parent_selHosts() {
+        "use strict";
+        var _this=this;
+        var hosts;
+        var k;
+        var v;
+        var _it_105;
+        var u;
+        
+        hosts = window.BitArrow.hosts;
+        
+        _it_105=Tonyu.iterator(hosts,2);
+        while(_it_105.next()) {
+          k=_it_105[0];
+          v=_it_105[1];
+          
+          u = new window.URL(v.runtime);
+          
+          if (u.host===window.location.hostname) {
+            return v;
+            
+          }
+          
+        }
+        return hosts.ide;
+      },
+      fiber$selHosts :function _trc_Parent_f_selHosts(_thread) {
+        "use strict";
+        var _this=this;
+        //var _arguments=Tonyu.A(arguments);
+        var __pc=0;
+        var hosts;
+        var k;
+        var v;
+        var _it_105;
+        var u;
+        
+        hosts = window.BitArrow.hosts;
+        
+        _it_105=Tonyu.iterator(hosts,2);
+        while(_it_105.next()) {
+          k=_it_105[0];
+          v=_it_105[1];
+          
+          u = new window.URL(v.runtime);
+          
+          if (u.host===window.location.hostname) {
+            _thread.retVal=v;return;
+            
+            
+          }
+          
+        }
+        _thread.retVal=hosts.ide;return;
+        
+        
+        _thread.retVal=_this;return;
+      },
+      slashify :function _trc_Parent_slashify(p) {
+        "use strict";
+        var _this=this;
+        
+        return p.match(/\/$/)?p:p+"/";
+      },
+      fiber$slashify :function _trc_Parent_f_slashify(_thread,p) {
+        "use strict";
+        var _this=this;
+        //var _arguments=Tonyu.A(arguments);
+        var __pc=0;
+        
+        _thread.retVal=p.match(/\/$/)?p:p+"/";return;
+        
+        
+        _thread.retVal=_this;return;
+      },
+      getRuntimePath :function _trc_Parent_getRuntimePath() {
+        "use strict";
+        var _this=this;
+        
+        return _this.selHosts().runtime;
+      },
+      fiber$getRuntimePath :function _trc_Parent_f_getRuntimePath(_thread) {
+        "use strict";
+        var _this=this;
+        //var _arguments=Tonyu.A(arguments);
+        var __pc=0;
+        
+        _thread.retVal=_this.selHosts().runtime;return;
+        
+        
+        _thread.retVal=_this;return;
+      },
       putToServer :function _trc_Parent_putToServer(key,value) {
         "use strict";
         var _this=this;
@@ -3442,7 +3534,7 @@ Tonyu.klass.define({
         
         url = window.location.href;
         
-        p = window.$.ajax({url: window.runtimePath+"a.php?KeyValue/put",type: 'POST',data: {key: key,value: value,url: url,group: _this.activityGroup}});
+        p = window.$.ajax({url: _this.slashify(_this.getRuntimePath())+"a.php?KeyValue/put",type: 'POST',data: {key: key,value: value,url: url,group: _this.activityGroup}});
         
         
         r=_this.waitFor(p);
@@ -3459,7 +3551,7 @@ Tonyu.klass.define({
         
         url = window.location.href;
         
-        p = window.$.ajax({url: window.runtimePath+"a.php?KeyValue/put",type: 'POST',data: {key: key,value: value,url: url,group: _this.activityGroup}});
+        p = window.$.ajax({url: _this.slashify(_this.getRuntimePath())+"a.php?KeyValue/put",type: 'POST',data: {key: key,value: value,url: url,group: _this.activityGroup}});
         
         
         
@@ -3504,7 +3596,7 @@ Tonyu.klass.define({
         
         url = window.location.href;
         
-        p = window.$.ajax(window.runtimePath+"a.php?KeyValue/get"+"&key="+key+"&url="+url+"&group="+_this.activityGroup);
+        p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?KeyValue/get"+"&key="+key+"&url="+url+"&group="+_this.activityGroup);
         
         
         r=_this.waitFor(p);
@@ -3521,7 +3613,7 @@ Tonyu.klass.define({
         
         url = window.location.href;
         
-        p = window.$.ajax(window.runtimePath+"a.php?KeyValue/get"+"&key="+key+"&url="+url+"&group="+_this.activityGroup);
+        p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?KeyValue/get"+"&key="+key+"&url="+url+"&group="+_this.activityGroup);
         
         
         
@@ -3550,7 +3642,7 @@ Tonyu.klass.define({
         
         url = window.location.href;
         
-        p = window.$.ajax(window.runtimePath+"a.php?KeyValue/ls"+"&url="+url+"&group="+_this.activityGroup);
+        p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?KeyValue/ls"+"&url="+url+"&group="+_this.activityGroup);
         
         
         r=_this.waitFor(p);
@@ -3567,7 +3659,7 @@ Tonyu.klass.define({
         
         url = window.location.href;
         
-        p = window.$.ajax(window.runtimePath+"a.php?KeyValue/ls"+"&url="+url+"&group="+_this.activityGroup);
+        p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?KeyValue/ls"+"&url="+url+"&group="+_this.activityGroup);
         
         
         
@@ -3612,7 +3704,7 @@ Tonyu.klass.define({
         if (d4!=null) {
           params+="&data4="+d4;
         }
-        p = window.$.ajax(window.runtimePath+"a.php?BigData/add"+params);
+        p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?BigData/add"+params);
         
         
         r=_this.waitFor(p);
@@ -3645,7 +3737,7 @@ Tonyu.klass.define({
         if (d4!=null) {
           params+="&data4="+d4;
         }
-        p = window.$.ajax(window.runtimePath+"a.php?BigData/add"+params);
+        p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?BigData/add"+params);
         
         
         
@@ -3690,7 +3782,7 @@ Tonyu.klass.define({
         if (d4!=null) {
           params+="&data4="+d4;
         }
-        p = window.$.ajax(window.runtimePath+"a.php?BigData/find"+params);
+        p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?BigData/find"+params);
         
         
         r=_this.waitFor(p);
@@ -3723,7 +3815,7 @@ Tonyu.klass.define({
         if (d4!=null) {
           params+="&data4="+d4;
         }
-        p = window.$.ajax(window.runtimePath+"a.php?BigData/find"+params);
+        p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?BigData/find"+params);
         
         
         
@@ -3761,7 +3853,7 @@ Tonyu.klass.define({
         }
         params = "&url="+url;
         
-        p = window.$.ajax(window.runtimePath+"a.php?KeyValue/info"+params);
+        p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?KeyValue/info"+params);
         
         
         r=_this.waitFor(p);
@@ -3787,7 +3879,7 @@ Tonyu.klass.define({
         }
         params = "&url="+url;
         
-        p = window.$.ajax(window.runtimePath+"a.php?KeyValue/info"+params);
+        p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?KeyValue/info"+params);
         
         
         
@@ -3870,7 +3962,7 @@ Tonyu.klass.define({
         context = a[0];
         filename = a[1];
         
-        p = window.$.ajax({url: window.runtimePath+"a.php?Asset/download",data: {context: context,filename: filename}});
+        p = window.$.ajax({url: _this.slashify(_this.getRuntimePath())+"a.php?Asset/download",data: {context: context,filename: filename}});
         
         
         r=_this.waitFor(p);
@@ -3892,7 +3984,7 @@ Tonyu.klass.define({
         context = a[0];
         filename = a[1];
         
-        p = window.$.ajax({url: window.runtimePath+"a.php?Asset/download",data: {context: context,filename: filename}});
+        p = window.$.ajax({url: _this.slashify(_this.getRuntimePath())+"a.php?Asset/download",data: {context: context,filename: filename}});
         
         
         
@@ -3926,7 +4018,7 @@ Tonyu.klass.define({
         context = a[0];
         filename = a[1];
         
-        p = window.$.ajax({url: window.runtimePath+"a.php?Asset/upload",data: {context: context,filename: filename,content: content}});
+        p = window.$.ajax({url: _this.slashify(_this.getRuntimePath())+"a.php?Asset/upload",data: {context: context,filename: filename,content: content}});
         
         
         r=_this.waitFor(p);
@@ -3948,7 +4040,7 @@ Tonyu.klass.define({
         context = a[0];
         filename = a[1];
         
-        p = window.$.ajax({url: window.runtimePath+"a.php?Asset/upload",data: {context: context,filename: filename,content: content}});
+        p = window.$.ajax({url: _this.slashify(_this.getRuntimePath())+"a.php?Asset/upload",data: {context: context,filename: filename,content: content}});
         
         
         
@@ -3973,7 +4065,7 @@ Tonyu.klass.define({
         var _this=this;
         var ppath;
         
-        ppath = BitArrow.runtimePath+"lib/python/";
+        ppath = _this.slashify(_this.getRuntimePath())+"lib/python/";
         
         _this.waitFor($.getScript(ppath+"SerialControl.js"));
         _this.waitFor($.getScript(ppath+"raspi_repl.js"));
@@ -3985,7 +4077,7 @@ Tonyu.klass.define({
         var __pc=0;
         var ppath;
         
-        ppath = BitArrow.runtimePath+"lib/python/";
+        ppath = _this.slashify(_this.getRuntimePath())+"lib/python/";
         
         
         _thread.enter(function _trc_Parent_ent_loadRaspiScript(_thread) {
@@ -4185,7 +4277,7 @@ Tonyu.klass.define({
         var p;
         var r;
         
-        p = window.$.post(window.runtimePath+"a.php?CDB/post",{key: key,data: window.JSON.stringify(data)});
+        p = window.$.post(_this.slashify(_this.getRuntimePath())+"a.php?CDB/post",{key: key,data: window.JSON.stringify(data)});
         
         
         r=_this.waitFor(p);
@@ -4199,7 +4291,7 @@ Tonyu.klass.define({
         var p;
         var r;
         
-        p = window.$.post(window.runtimePath+"a.php?CDB/post",{key: key,data: window.JSON.stringify(data)});
+        p = window.$.post(_this.slashify(_this.getRuntimePath())+"a.php?CDB/post",{key: key,data: window.JSON.stringify(data)});
         
         
         
@@ -4225,7 +4317,7 @@ Tonyu.klass.define({
         var p;
         var r;
         
-        p = window.$.get(window.runtimePath+"a.php?CDB/get&key="+key);
+        p = window.$.get(_this.slashify(_this.getRuntimePath())+"a.php?CDB/get&key="+key);
         
         
         r=_this.waitFor(p);
@@ -4239,7 +4331,7 @@ Tonyu.klass.define({
         var p;
         var r;
         
-        p = window.$.get(window.runtimePath+"a.php?CDB/get&key="+key);
+        p = window.$.get(_this.slashify(_this.getRuntimePath())+"a.php?CDB/get&key="+key);
         
         
         
@@ -4274,7 +4366,7 @@ Tonyu.klass.define({
         }
         
         
-        p = new window.Promise((function anonymous_15092(_s) {
+        p = new window.Promise((function anonymous_15639(_s) {
           var s;
           var fullURL;
           var ifrm;
@@ -4286,19 +4378,19 @@ Tonyu.klass.define({
               timeout.remove();
             }
           }
-          s = (function anonymous_15115(str) {
+          s = (function anonymous_15662(str) {
             
             str=str.replace(/\s*$/,"");
             _s(str);
           });
           
           
-          window.sendResult=(function anonymous_15374(r) {
+          window.sendResult=(function anonymous_15921(r) {
             
             clean();
             s(r);
           });
-          window.onmessage=(function anonymous_15460(e) {
+          window.onmessage=(function anonymous_16007(e) {
             
             clean();
             s(e.data.result);
@@ -4307,7 +4399,7 @@ Tonyu.klass.define({
           
           ifrm = window.$("<iframe>").attr({src: fullURL,width: 1,height: 1}).appendTo("body");
           
-          t=window.setTimeout((function anonymous_15727() {
+          t=window.setTimeout((function anonymous_16274() {
             
             ifrm.attr({width: 600,height: 300});
             timeout=window.$("<div>").append("サーバからの応答に時間がかかっています．").append(window.$("<a>").attr({target: "debug",href: fullURL}).text("処理を確認..."));
@@ -4336,7 +4428,7 @@ Tonyu.klass.define({
         }
         
         
-        p = new window.Promise((function anonymous_15092(_s) {
+        p = new window.Promise((function anonymous_15639(_s) {
           var s;
           var fullURL;
           var ifrm;
@@ -4348,19 +4440,19 @@ Tonyu.klass.define({
               timeout.remove();
             }
           }
-          s = (function anonymous_15115(str) {
+          s = (function anonymous_15662(str) {
             
             str=str.replace(/\s*$/,"");
             _s(str);
           });
           
           
-          window.sendResult=(function anonymous_15374(r) {
+          window.sendResult=(function anonymous_15921(r) {
             
             clean();
             s(r);
           });
-          window.onmessage=(function anonymous_15460(e) {
+          window.onmessage=(function anonymous_16007(e) {
             
             clean();
             s(e.data.result);
@@ -4369,7 +4461,7 @@ Tonyu.klass.define({
           
           ifrm = window.$("<iframe>").attr({src: fullURL,width: 1,height: 1}).appendTo("body");
           
-          t=window.setTimeout((function anonymous_15727() {
+          t=window.setTimeout((function anonymous_16274() {
             
             ifrm.attr({width: 600,height: 300});
             timeout=window.$("<div>").append("サーバからの応答に時間がかかっています．").append(window.$("<a>").attr({target: "debug",href: fullURL}).text("処理を確認..."));
@@ -4397,7 +4489,7 @@ Tonyu.klass.define({
       __dummy: false
     };
   },
-  decls: {"methods":{"main":{"nowait":false},"__getter__Math":{"nowait":true},"__getter__document":{"nowait":true},"setInterval":{"nowait":false},"setTimeout":{"nowait":false},"catchException":{"nowait":false},"findElement":{"nowait":false},"isFormElement":{"nowait":false},"clearContent":{"nowait":false},"addText":{"nowait":false},"setText":{"nowait":false},"getNumber":{"nowait":false},"getText":{"nowait":false},"setNumber":{"nowait":false},"arrayLike":{"nowait":false},"getAttr":{"nowait":false},"setAttr":{"nowait":false},"onClick":{"nowait":false},"onTouch":{"nowait":false},"setCanvas":{"nowait":false},"searchCanvas":{"nowait":false},"setColor":{"nowait":false},"fillRect":{"nowait":false},"changeImage":{"nowait":false},"move":{"nowait":false},"transform":{"nowait":false},"rotate":{"nowait":false},"resize":{"nowait":false},"wait":{"nowait":false},"rnd":{"nowait":false},"setBGColor":{"nowait":false},"newElement":{"nowait":false},"fillOval":{"nowait":false},"drawLine":{"nowait":false},"clearRect":{"nowait":false},"fillText":{"nowait":false},"new":{"nowait":false},"getkey":{"nowait":false},"dist":{"nowait":false},"angle":{"nowait":false},"rad":{"nowait":true},"deg":{"nowait":true},"sqrt":{"nowait":false},"sin":{"nowait":false},"cos":{"nowait":false},"tan":{"nowait":false},"parallel":{"nowait":false},"waitClick":{"nowait":false},"_waitFor":{"nowait":false},"waitFor":{"nowait":false},"putToServer":{"nowait":false},"setGroup":{"nowait":false},"getFromServer":{"nowait":false},"getListFromServer":{"nowait":false},"addLog":{"nowait":false},"findLog":{"nowait":false},"curProject":{"nowait":false},"createGraph":{"nowait":false},"readFile":{"nowait":false},"writeFile":{"nowait":false},"loadRaspiScript":{"nowait":false},"startRaspi":{"nowait":false},"execRaspi":{"nowait":false},"readADC":{"nowait":false},"getTemperature":{"nowait":false},"addCDB":{"nowait":false},"findCDB":{"nowait":false},"callServer":{"nowait":false}},"fields":{"down":{},"_canvas":{},"ctx":{},"activityGroup":{},"keyData":{},"_err":{},"_res":{},"group":{},"raspiStarted":{},"raspiREPL":{}}}
+  decls: {"methods":{"main":{"nowait":false},"__getter__Math":{"nowait":true},"__getter__document":{"nowait":true},"setInterval":{"nowait":false},"setTimeout":{"nowait":false},"catchException":{"nowait":false},"findElement":{"nowait":false},"isFormElement":{"nowait":false},"clearContent":{"nowait":false},"addText":{"nowait":false},"setText":{"nowait":false},"getNumber":{"nowait":false},"getText":{"nowait":false},"setNumber":{"nowait":false},"arrayLike":{"nowait":false},"getAttr":{"nowait":false},"setAttr":{"nowait":false},"onClick":{"nowait":false},"onTouch":{"nowait":false},"setCanvas":{"nowait":false},"searchCanvas":{"nowait":false},"setColor":{"nowait":false},"fillRect":{"nowait":false},"changeImage":{"nowait":false},"move":{"nowait":false},"transform":{"nowait":false},"rotate":{"nowait":false},"resize":{"nowait":false},"wait":{"nowait":false},"rnd":{"nowait":false},"setBGColor":{"nowait":false},"newElement":{"nowait":false},"fillOval":{"nowait":false},"drawLine":{"nowait":false},"clearRect":{"nowait":false},"fillText":{"nowait":false},"new":{"nowait":false},"getkey":{"nowait":false},"dist":{"nowait":false},"angle":{"nowait":false},"rad":{"nowait":true},"deg":{"nowait":true},"sqrt":{"nowait":false},"sin":{"nowait":false},"cos":{"nowait":false},"tan":{"nowait":false},"parallel":{"nowait":false},"waitClick":{"nowait":false},"_waitFor":{"nowait":false},"waitFor":{"nowait":false},"selHosts":{"nowait":false},"slashify":{"nowait":false},"getRuntimePath":{"nowait":false},"putToServer":{"nowait":false},"setGroup":{"nowait":false},"getFromServer":{"nowait":false},"getListFromServer":{"nowait":false},"addLog":{"nowait":false},"findLog":{"nowait":false},"curProject":{"nowait":false},"createGraph":{"nowait":false},"readFile":{"nowait":false},"writeFile":{"nowait":false},"loadRaspiScript":{"nowait":false},"startRaspi":{"nowait":false},"execRaspi":{"nowait":false},"readADC":{"nowait":false},"getTemperature":{"nowait":false},"addCDB":{"nowait":false},"findCDB":{"nowait":false},"callServer":{"nowait":false}},"fields":{"down":{},"_canvas":{},"ctx":{},"activityGroup":{},"keyData":{},"_err":{},"_res":{},"group":{},"raspiStarted":{},"raspiREPL":{}}}
 });
 
 //# sourceMappingURL=concat.js.map
