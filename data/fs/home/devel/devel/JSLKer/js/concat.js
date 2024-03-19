@@ -1796,7 +1796,7 @@ Tonyu.klass.define({
         var _this=this;
         
         if (! (newsrc+"").match(/^http/)) {
-          newsrc=window.runtimePath+newsrc;
+          newsrc=_this.slashify(_this.getRuntimePath())+newsrc;
           
         }
         _this.findElement(elem).attr("src",newsrc);
@@ -1805,7 +1805,7 @@ Tonyu.klass.define({
         var _this=this;
         
         if (! (newsrc+"").match(/^http/)) {
-          newsrc=window.runtimePath+newsrc;
+          newsrc=_this.slashify(_this.getRuntimePath())+newsrc;
           
         }
         _this.findElement(elem).attr("src",newsrc);
@@ -2116,7 +2116,7 @@ Tonyu.klass.define({
         
         _this.activityGroup=_this.activityGroup||"default";
         _this.keyData=[];
-        _this.document.onkeydown=(function anonymous_7387(e) {
+        _this.document.onkeydown=(function anonymous_7395(e) {
           var key_code;
           var key_char;
           
@@ -2159,7 +2159,7 @@ Tonyu.klass.define({
             }
           }
         });
-        _this.document.onkeyup=(function anonymous_8464(e) {
+        _this.document.onkeyup=(function anonymous_8472(e) {
           var key_code;
           var key_char;
           
@@ -2324,26 +2324,26 @@ Tonyu.klass.define({
       runThread :function _trc_Parent_runThread(th) {
         var _this=this;
         
-        _this.catchException((function anonymous_9720() {
+        (_this.catchException((function anonymous_9729() {
           
           th.steps();
           if (th.preempted) {
             setTimeout((()=>(_this.runThread(th))),0);
             
           }
-        }));
+        })))();
       },
       fiber$runThread :function* _trc_Parent_f_runThread(_thread,th) {
         var _this=this;
         
-        (yield* _this.fiber$catchException(_thread, (function anonymous_9720() {
+        (_this.catchException((function anonymous_9729() {
           
           th.steps();
           if (th.preempted) {
             setTimeout((()=>(_this.runThread(th))),0);
             
           }
-        })));
+        })))();
         
       },
       waitClick :function _trc_Parent_waitClick(elem) {
@@ -2353,7 +2353,7 @@ Tonyu.klass.define({
         
         clicked = 0;
         
-        _func = (function anonymous_9895() {
+        _func = (function anonymous_9907() {
           
           clicked=1;
         });
@@ -2373,7 +2373,7 @@ Tonyu.klass.define({
         
         clicked = 0;
         
-        _func = (function anonymous_9895() {
+        _func = (function anonymous_9907() {
           
           clicked=1;
         });
@@ -2391,10 +2391,10 @@ Tonyu.klass.define({
         var _this=this;
         
         _this._err=null;
-        promise.then((function anonymous_10124(r) {
+        promise.then((function anonymous_10136(r) {
           
           _this._res=r;
-        }),(function anonymous_10155(e) {
+        }),(function anonymous_10167(e) {
           
           _this._err=(e instanceof window.Error?e:new Error(e.responseText||e+""));
         }));
@@ -2403,10 +2403,10 @@ Tonyu.klass.define({
         var _this=this;
         
         _this._err=null;
-        (yield* _thread.await(promise.then((function anonymous_10124(r) {
+        (yield* _thread.await(promise.then((function anonymous_10136(r) {
           
           _this._res=r;
-        }),(function anonymous_10155(e) {
+        }),(function anonymous_10167(e) {
           
           _this._err=(e instanceof window.Error?e:new Error(e.responseText||e+""));
         }))));
@@ -2433,6 +2433,69 @@ Tonyu.klass.define({
         return _this._res;
         
       },
+      selHosts :function _trc_Parent_selHosts() {
+        var _this=this;
+        var hosts;
+        var k;
+        var v;
+        var u;
+        
+        hosts = window.BitArrow.hosts;
+        
+        for ([k, v] of Tonyu.iterator2(hosts,2)) {
+          u = new window.URL(v.runtime);
+          
+          if (u.host===window.location.hostname) {
+            return v;
+            
+          }
+          
+        }
+        return hosts.ide;
+      },
+      fiber$selHosts :function* _trc_Parent_f_selHosts(_thread) {
+        var _this=this;
+        var hosts;
+        var k;
+        var v;
+        var u;
+        
+        hosts = window.BitArrow.hosts;
+        
+        for ([k, v] of Tonyu.iterator2(hosts,2)) {
+          u = new window.URL(v.runtime);
+          
+          if (u.host===window.location.hostname) {
+            return v;
+            
+          }
+          
+        }
+        return hosts.ide;
+        
+      },
+      slashify :function _trc_Parent_slashify(p) {
+        var _this=this;
+        
+        return p.match(/\/$/)?p:p+"/";
+      },
+      fiber$slashify :function* _trc_Parent_f_slashify(_thread,p) {
+        var _this=this;
+        
+        return p.match(/\/$/)?p:p+"/";
+        
+      },
+      getRuntimePath :function _trc_Parent_getRuntimePath() {
+        var _this=this;
+        
+        return _this.selHosts().runtime;
+      },
+      fiber$getRuntimePath :function* _trc_Parent_f_getRuntimePath(_thread) {
+        var _this=this;
+        
+        return _this.selHosts().runtime;
+        
+      },
       putToServer :function _trc_Parent_putToServer(key,value) {
         var _this=this;
         var url;
@@ -2441,7 +2504,7 @@ Tonyu.klass.define({
         
         url = window.location.href;
         
-        p = window.$.ajax({url: window.runtimePath+"a.php?KeyValue/put",type: 'POST',data: {key: key,value: value,url: url,group: _this.activityGroup}});
+        p = window.$.ajax({url: _this.slashify(_this.getRuntimePath())+"a.php?KeyValue/put",type: 'POST',data: {key: key,value: value,url: url,group: _this.activityGroup}});
         
         
         r=_this.waitFor(p);
@@ -2455,7 +2518,7 @@ Tonyu.klass.define({
         
         url = window.location.href;
         
-        p = window.$.ajax({url: window.runtimePath+"a.php?KeyValue/put",type: 'POST',data: {key: key,value: value,url: url,group: _this.activityGroup}});
+        p = window.$.ajax({url: _this.slashify(_this.getRuntimePath())+"a.php?KeyValue/put",type: 'POST',data: {key: key,value: value,url: url,group: _this.activityGroup}});
         
         
         r=(yield* _this.fiber$waitFor(_thread, p));
@@ -2481,7 +2544,7 @@ Tonyu.klass.define({
         
         url = window.location.href;
         
-        p = window.$.ajax(window.runtimePath+"a.php?KeyValue/get"+"&key="+key+"&url="+url+"&group="+_this.activityGroup);
+        p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?KeyValue/get"+"&key="+key+"&url="+url+"&group="+_this.activityGroup);
         
         
         r=_this.waitFor(p);
@@ -2495,7 +2558,7 @@ Tonyu.klass.define({
         
         url = window.location.href;
         
-        p = window.$.ajax(window.runtimePath+"a.php?KeyValue/get"+"&key="+key+"&url="+url+"&group="+_this.activityGroup);
+        p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?KeyValue/get"+"&key="+key+"&url="+url+"&group="+_this.activityGroup);
         
         
         r=(yield* _this.fiber$waitFor(_thread, p));
@@ -2510,7 +2573,7 @@ Tonyu.klass.define({
         
         url = window.location.href;
         
-        p = window.$.ajax(window.runtimePath+"a.php?KeyValue/ls"+"&url="+url+"&group="+_this.activityGroup);
+        p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?KeyValue/ls"+"&url="+url+"&group="+_this.activityGroup);
         
         
         r=_this.waitFor(p);
@@ -2524,7 +2587,7 @@ Tonyu.klass.define({
         
         url = window.location.href;
         
-        p = window.$.ajax(window.runtimePath+"a.php?KeyValue/ls"+"&url="+url+"&group="+_this.activityGroup);
+        p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?KeyValue/ls"+"&url="+url+"&group="+_this.activityGroup);
         
         
         r=(yield* _this.fiber$waitFor(_thread, p));
@@ -2555,7 +2618,7 @@ Tonyu.klass.define({
         if (d4!=null) {
           params+="&data4="+d4;
         }
-        p = window.$.ajax(window.runtimePath+"a.php?BigData/add"+params);
+        p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?BigData/add"+params);
         
         
         r=_this.waitFor(p);
@@ -2585,7 +2648,7 @@ Tonyu.klass.define({
         if (d4!=null) {
           params+="&data4="+d4;
         }
-        p = window.$.ajax(window.runtimePath+"a.php?BigData/add"+params);
+        p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?BigData/add"+params);
         
         
         r=(yield* _this.fiber$waitFor(_thread, p));
@@ -2616,7 +2679,7 @@ Tonyu.klass.define({
         if (d4!=null) {
           params+="&data4="+d4;
         }
-        p = window.$.ajax(window.runtimePath+"a.php?BigData/find"+params);
+        p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?BigData/find"+params);
         
         
         r=_this.waitFor(p);
@@ -2646,7 +2709,7 @@ Tonyu.klass.define({
         if (d4!=null) {
           params+="&data4="+d4;
         }
-        p = window.$.ajax(window.runtimePath+"a.php?BigData/find"+params);
+        p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?BigData/find"+params);
         
         
         r=(yield* _this.fiber$waitFor(_thread, p));
@@ -2670,7 +2733,7 @@ Tonyu.klass.define({
         }
         params = "&url="+url;
         
-        p = window.$.ajax(window.runtimePath+"a.php?KeyValue/info"+params);
+        p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?KeyValue/info"+params);
         
         
         r=_this.waitFor(p);
@@ -2693,7 +2756,7 @@ Tonyu.klass.define({
         }
         params = "&url="+url;
         
-        p = window.$.ajax(window.runtimePath+"a.php?KeyValue/info"+params);
+        p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?KeyValue/info"+params);
         
         
         r=(yield* _this.fiber$waitFor(_thread, p));
@@ -2746,7 +2809,7 @@ Tonyu.klass.define({
         context = a[0];
         filename = a[1];
         
-        p = window.$.ajax({url: window.runtimePath+"a.php?Asset/download",data: {context: context,filename: filename}});
+        p = window.$.ajax({url: _this.slashify(_this.getRuntimePath())+"a.php?Asset/download",data: {context: context,filename: filename}});
         
         
         r=_this.waitFor(p);
@@ -2765,7 +2828,7 @@ Tonyu.klass.define({
         context = a[0];
         filename = a[1];
         
-        p = window.$.ajax({url: window.runtimePath+"a.php?Asset/download",data: {context: context,filename: filename}});
+        p = window.$.ajax({url: _this.slashify(_this.getRuntimePath())+"a.php?Asset/download",data: {context: context,filename: filename}});
         
         
         r=(yield* _this.fiber$waitFor(_thread, p));
@@ -2785,7 +2848,7 @@ Tonyu.klass.define({
         context = a[0];
         filename = a[1];
         
-        p = window.$.ajax({url: window.runtimePath+"a.php?Asset/upload",data: {context: context,filename: filename,content: content}});
+        p = window.$.ajax({url: _this.slashify(_this.getRuntimePath())+"a.php?Asset/upload",data: {context: context,filename: filename,content: content}});
         
         
         r=_this.waitFor(p);
@@ -2804,7 +2867,7 @@ Tonyu.klass.define({
         context = a[0];
         filename = a[1];
         
-        p = window.$.ajax({url: window.runtimePath+"a.php?Asset/upload",data: {context: context,filename: filename,content: content}});
+        p = window.$.ajax({url: _this.slashify(_this.getRuntimePath())+"a.php?Asset/upload",data: {context: context,filename: filename,content: content}});
         
         
         r=(yield* _this.fiber$waitFor(_thread, p));
@@ -2815,7 +2878,7 @@ Tonyu.klass.define({
         var _this=this;
         var ppath;
         
-        ppath = BitArrow.runtimePath+"lib/python/";
+        ppath = _this.slashify(_this.getRuntimePath())+"lib/python/";
         
         _this.waitFor($.getScript(ppath+"SerialControl.js"));
         _this.waitFor($.getScript(ppath+"raspi_repl.js"));
@@ -2824,7 +2887,7 @@ Tonyu.klass.define({
         var _this=this;
         var ppath;
         
-        ppath = BitArrow.runtimePath+"lib/python/";
+        ppath = _this.slashify(_this.getRuntimePath())+"lib/python/";
         
         (yield* _this.fiber$waitFor(_thread, $.getScript(ppath+"SerialControl.js")));
         (yield* _this.fiber$waitFor(_thread, $.getScript(ppath+"raspi_repl.js")));
@@ -2931,7 +2994,7 @@ Tonyu.klass.define({
         var p;
         var r;
         
-        p = window.$.post(window.runtimePath+"a.php?CDB/post",{key: key,data: window.JSON.stringify(data)});
+        p = window.$.post(_this.slashify(_this.getRuntimePath())+"a.php?CDB/post",{key: key,data: window.JSON.stringify(data)});
         
         
         r=_this.waitFor(p);
@@ -2942,7 +3005,7 @@ Tonyu.klass.define({
         var p;
         var r;
         
-        p = window.$.post(window.runtimePath+"a.php?CDB/post",{key: key,data: window.JSON.stringify(data)});
+        p = window.$.post(_this.slashify(_this.getRuntimePath())+"a.php?CDB/post",{key: key,data: window.JSON.stringify(data)});
         
         
         r=(yield* _this.fiber$waitFor(_thread, p));
@@ -2954,7 +3017,7 @@ Tonyu.klass.define({
         var p;
         var r;
         
-        p = window.$.get(window.runtimePath+"a.php?CDB/get&key="+key);
+        p = window.$.get(_this.slashify(_this.getRuntimePath())+"a.php?CDB/get&key="+key);
         
         
         r=_this.waitFor(p);
@@ -2965,7 +3028,7 @@ Tonyu.klass.define({
         var p;
         var r;
         
-        p = window.$.get(window.runtimePath+"a.php?CDB/get&key="+key);
+        p = window.$.get(_this.slashify(_this.getRuntimePath())+"a.php?CDB/get&key="+key);
         
         
         r=(yield* _this.fiber$waitFor(_thread, p));
@@ -2986,7 +3049,7 @@ Tonyu.klass.define({
         }
         
         
-        p = new window.Promise((function anonymous_14911(_s) {
+        p = new window.Promise((function anonymous_15462(_s) {
           var s;
           var fullURL;
           var ifrm;
@@ -2998,19 +3061,19 @@ Tonyu.klass.define({
               timeout.remove();
             }
           }
-          s = (function anonymous_14934(str) {
+          s = (function anonymous_15485(str) {
             
             str=str.replace(/\s*$/,"");
             _s(str);
           });
           
           
-          window.sendResult=(function anonymous_15193(r) {
+          window.sendResult=(function anonymous_15744(r) {
             
             clean();
             s(r);
           });
-          window.onmessage=(function anonymous_15279(e) {
+          window.onmessage=(function anonymous_15830(e) {
             
             clean();
             s(e.data.result);
@@ -3019,7 +3082,7 @@ Tonyu.klass.define({
           
           ifrm = window.$("<iframe>").attr({src: fullURL,width: 1,height: 1}).appendTo("body");
           
-          t=window.setTimeout((function anonymous_15546() {
+          t=window.setTimeout((function anonymous_16097() {
             
             ifrm.attr({width: 600,height: 300});
             timeout=window.$("<div>").append("サーバからの応答に時間がかかっています．").append(window.$("<a>").attr({target: "debug",href: fullURL}).text("処理を確認..."));
@@ -3045,7 +3108,7 @@ Tonyu.klass.define({
         }
         
         
-        p = new window.Promise((function anonymous_14911(_s) {
+        p = new window.Promise((function anonymous_15462(_s) {
           var s;
           var fullURL;
           var ifrm;
@@ -3057,19 +3120,19 @@ Tonyu.klass.define({
               timeout.remove();
             }
           }
-          s = (function anonymous_14934(str) {
+          s = (function anonymous_15485(str) {
             
             str=str.replace(/\s*$/,"");
             _s(str);
           });
           
           
-          window.sendResult=(function anonymous_15193(r) {
+          window.sendResult=(function anonymous_15744(r) {
             
             clean();
             s(r);
           });
-          window.onmessage=(function anonymous_15279(e) {
+          window.onmessage=(function anonymous_15830(e) {
             
             clean();
             s(e.data.result);
@@ -3078,7 +3141,7 @@ Tonyu.klass.define({
           
           ifrm = window.$("<iframe>").attr({src: fullURL,width: 1,height: 1}).appendTo("body");
           
-          t=window.setTimeout((function anonymous_15546() {
+          t=window.setTimeout((function anonymous_16097() {
             
             ifrm.attr({width: 600,height: 300});
             timeout=window.$("<div>").append("サーバからの応答に時間がかかっています．").append(window.$("<a>").attr({target: "debug",href: fullURL}).text("処理を確認..."));
@@ -3094,7 +3157,7 @@ Tonyu.klass.define({
       __dummy: false
     };
   },
-  decls: {"methods":{"main":{"nowait":false,"isMain":true,"vtype":{"params":[],"returnValue":null}},"__getter__Math":{"nowait":true,"isMain":false,"vtype":{"params":[],"returnValue":null}},"__getter__document":{"nowait":true,"isMain":false,"vtype":{"params":[],"returnValue":null}},"setInterval":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setTimeout":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"catchException":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"findElement":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"isFormElement":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"clearContent":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"addText":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setText":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"getNumber":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getText":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"setNumber":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"arrayLike":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getAttr":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setAttr":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"onClick":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"onTouch":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"setCanvas":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"searchCanvas":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"setColor":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"fillRect":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"changeImage":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"move":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"transform":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"rotate":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"resize":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"wait":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"rnd":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"setBGColor":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"newElement":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"fillOval":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"drawLine":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"clearRect":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"fillText":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"new":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"getkey":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"dist":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"angle":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"rad":{"nowait":true,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"deg":{"nowait":true,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"sqrt":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"sin":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"cos":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"tan":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"parallel":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"runThread":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"waitClick":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"_waitFor":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"waitFor":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"putToServer":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setGroup":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getFromServer":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getListFromServer":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"addLog":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null,null],"returnValue":null}},"findLog":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null,null],"returnValue":null}},"curProject":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"createGraph":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"readFile":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"writeFile":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"loadRaspiScript":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"startRaspi":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"execRaspi":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"readADC":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"getTemperature":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"addCDB":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"findCDB":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"callServer":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}}},"fields":{"down":{},"_canvas":{},"ctx":{},"activityGroup":{},"keyData":{},"_err":{},"_res":{},"group":{},"raspiStarted":{},"raspiREPL":{}}}
+  decls: {"methods":{"main":{"nowait":false,"isMain":true,"vtype":{"params":[],"returnValue":null}},"__getter__Math":{"nowait":true,"isMain":false,"vtype":{"params":[],"returnValue":null}},"__getter__document":{"nowait":true,"isMain":false,"vtype":{"params":[],"returnValue":null}},"setInterval":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setTimeout":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"catchException":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"findElement":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"isFormElement":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"clearContent":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"addText":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setText":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"getNumber":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getText":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"setNumber":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"arrayLike":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getAttr":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setAttr":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"onClick":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"onTouch":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"setCanvas":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"searchCanvas":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"setColor":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"fillRect":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"changeImage":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"move":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"transform":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"rotate":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"resize":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"wait":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"rnd":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"setBGColor":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"newElement":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"fillOval":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"drawLine":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"clearRect":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"fillText":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"new":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"getkey":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"dist":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"angle":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"rad":{"nowait":true,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"deg":{"nowait":true,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"sqrt":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"sin":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"cos":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"tan":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"parallel":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"runThread":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"waitClick":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"_waitFor":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"waitFor":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"selHosts":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"slashify":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getRuntimePath":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"putToServer":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setGroup":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getFromServer":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getListFromServer":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"addLog":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null,null],"returnValue":null}},"findLog":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null,null],"returnValue":null}},"curProject":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"createGraph":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"readFile":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"writeFile":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"loadRaspiScript":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"startRaspi":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"execRaspi":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"readADC":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"getTemperature":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"addCDB":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"findCDB":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"callServer":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}}},"fields":{"down":{},"_canvas":{},"ctx":{},"activityGroup":{},"keyData":{},"_err":{},"_res":{},"group":{},"raspiStarted":{},"raspiREPL":{}}}
 });
 
 });

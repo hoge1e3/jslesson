@@ -372,12 +372,12 @@ nowait \deg(d) {
     runThread(t);
 }
 function runThread(th) {
-    catchException \{
+    (catchException \{
         th.steps();
         if (th.preempted) {
             setTimeout(()=>runThread(th),0);
         }
-    };
+    })();
 }
 \waitClick(elem){
     var clicked=0;
