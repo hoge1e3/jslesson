@@ -1882,42 +1882,22 @@ Tonyu.klass.define({
       wait :function _trc_Parent_wait(time) {
         var _this=this;
         var t;
-        var runThread;
         
         time=time||100;
         t = null;
         
-        runThread = _this.catchException((function anonymous_5638() {
-          
-          t.steps();
-          if (t.preempted) {
-            setTimeout(runThread,0);
-            
-          }
-        }));
-        
         t.suspend();
-        setTimeout(runThread,time);
+        setTimeout((()=>(_this.runThread(t))),time);
       },
       fiber$wait :function* _trc_Parent_f_wait(_thread,time) {
         var _this=this;
         var t;
-        var runThread;
         
         time=time||100;
         t = _thread;
         
-        runThread=yield* _this.fiber$catchException(_thread, (function anonymous_5638() {
-          
-          t.steps();
-          if (t.preempted) {
-            setTimeout(runThread,0);
-            
-          }
-        }));
-        
         t.suspend();
-        setTimeout(runThread,time);
+        setTimeout((()=>(_this.runThread(t))),time);
         
       },
       rnd :function _trc_Parent_rnd(max) {
@@ -2136,7 +2116,7 @@ Tonyu.klass.define({
         
         _this.activityGroup=_this.activityGroup||"default";
         _this.keyData=[];
-        _this.document.onkeydown=(function anonymous_7522(e) {
+        _this.document.onkeydown=(function anonymous_7387(e) {
           var key_code;
           var key_char;
           
@@ -2179,7 +2159,7 @@ Tonyu.klass.define({
             }
           }
         });
-        _this.document.onkeyup=(function anonymous_8599(e) {
+        _this.document.onkeyup=(function anonymous_8464(e) {
           var key_code;
           var key_char;
           
@@ -2322,7 +2302,7 @@ Tonyu.klass.define({
         t = Tonyu.thread();
         
         t.apply(_this,methodName,a);
-        t.steps();
+        _this.runThread(t);
       },
       fiber$parallel :function* _trc_Parent_f_parallel(_thread) {
         var _this=this;
@@ -2338,7 +2318,32 @@ Tonyu.klass.define({
         t = Tonyu.thread();
         
         t.apply(_this,methodName,a);
-        t.steps();
+        (yield* _this.fiber$runThread(_thread, t));
+        
+      },
+      runThread :function _trc_Parent_runThread(th) {
+        var _this=this;
+        
+        _this.catchException((function anonymous_9720() {
+          
+          th.steps();
+          if (th.preempted) {
+            setTimeout((()=>(_this.runThread(th))),0);
+            
+          }
+        }));
+      },
+      fiber$runThread :function* _trc_Parent_f_runThread(_thread,th) {
+        var _this=this;
+        
+        (yield* _this.fiber$catchException(_thread, (function anonymous_9720() {
+          
+          th.steps();
+          if (th.preempted) {
+            setTimeout((()=>(_this.runThread(th))),0);
+            
+          }
+        })));
         
       },
       waitClick :function _trc_Parent_waitClick(elem) {
@@ -2348,7 +2353,7 @@ Tonyu.klass.define({
         
         clicked = 0;
         
-        _func = (function anonymous_9860() {
+        _func = (function anonymous_9895() {
           
           clicked=1;
         });
@@ -2368,7 +2373,7 @@ Tonyu.klass.define({
         
         clicked = 0;
         
-        _func = (function anonymous_9860() {
+        _func = (function anonymous_9895() {
           
           clicked=1;
         });
@@ -2384,59 +2389,27 @@ Tonyu.klass.define({
       },
       _waitFor :function _trc_Parent__waitFor(promise) {
         var _this=this;
-        var t;
-        var runThread;
         
-        t = null;
-        
-        runThread = _this.catchException((function anonymous_10101() {
-          
-          t.steps();
-          if (t.preempted) {
-            setTimeout(runThread,0);
-            
-          }
-        }));
-        
-        t.suspend();
         _this._err=null;
-        promise.then((function anonymous_10261(r) {
+        promise.then((function anonymous_10124(r) {
           
           _this._res=r;
-          runThread();
-        }),(function anonymous_10314(e) {
+        }),(function anonymous_10155(e) {
           
           _this._err=(e instanceof window.Error?e:new Error(e.responseText||e+""));
-          runThread();
         }));
       },
       fiber$_waitFor :function* _trc_Parent_f__waitFor(_thread,promise) {
         var _this=this;
-        var t;
-        var runThread;
         
-        t = _thread;
-        
-        runThread=yield* _this.fiber$catchException(_thread, (function anonymous_10101() {
-          
-          t.steps();
-          if (t.preempted) {
-            setTimeout(runThread,0);
-            
-          }
-        }));
-        
-        t.suspend();
         _this._err=null;
-        promise.then((function anonymous_10261(r) {
+        (yield* _thread.await(promise.then((function anonymous_10124(r) {
           
           _this._res=r;
-          runThread();
-        }),(function anonymous_10314(e) {
+        }),(function anonymous_10155(e) {
           
           _this._err=(e instanceof window.Error?e:new Error(e.responseText||e+""));
-          runThread();
-        }));
+        }))));
         
       },
       waitFor :function _trc_Parent_waitFor(promise) {
@@ -3013,7 +2986,7 @@ Tonyu.klass.define({
         }
         
         
-        p = new window.Promise((function anonymous_15092(_s) {
+        p = new window.Promise((function anonymous_14911(_s) {
           var s;
           var fullURL;
           var ifrm;
@@ -3025,19 +2998,19 @@ Tonyu.klass.define({
               timeout.remove();
             }
           }
-          s = (function anonymous_15115(str) {
+          s = (function anonymous_14934(str) {
             
             str=str.replace(/\s*$/,"");
             _s(str);
           });
           
           
-          window.sendResult=(function anonymous_15374(r) {
+          window.sendResult=(function anonymous_15193(r) {
             
             clean();
             s(r);
           });
-          window.onmessage=(function anonymous_15460(e) {
+          window.onmessage=(function anonymous_15279(e) {
             
             clean();
             s(e.data.result);
@@ -3046,7 +3019,7 @@ Tonyu.klass.define({
           
           ifrm = window.$("<iframe>").attr({src: fullURL,width: 1,height: 1}).appendTo("body");
           
-          t=window.setTimeout((function anonymous_15727() {
+          t=window.setTimeout((function anonymous_15546() {
             
             ifrm.attr({width: 600,height: 300});
             timeout=window.$("<div>").append("サーバからの応答に時間がかかっています．").append(window.$("<a>").attr({target: "debug",href: fullURL}).text("処理を確認..."));
@@ -3072,7 +3045,7 @@ Tonyu.klass.define({
         }
         
         
-        p = new window.Promise((function anonymous_15092(_s) {
+        p = new window.Promise((function anonymous_14911(_s) {
           var s;
           var fullURL;
           var ifrm;
@@ -3084,19 +3057,19 @@ Tonyu.klass.define({
               timeout.remove();
             }
           }
-          s = (function anonymous_15115(str) {
+          s = (function anonymous_14934(str) {
             
             str=str.replace(/\s*$/,"");
             _s(str);
           });
           
           
-          window.sendResult=(function anonymous_15374(r) {
+          window.sendResult=(function anonymous_15193(r) {
             
             clean();
             s(r);
           });
-          window.onmessage=(function anonymous_15460(e) {
+          window.onmessage=(function anonymous_15279(e) {
             
             clean();
             s(e.data.result);
@@ -3105,7 +3078,7 @@ Tonyu.klass.define({
           
           ifrm = window.$("<iframe>").attr({src: fullURL,width: 1,height: 1}).appendTo("body");
           
-          t=window.setTimeout((function anonymous_15727() {
+          t=window.setTimeout((function anonymous_15546() {
             
             ifrm.attr({width: 600,height: 300});
             timeout=window.$("<div>").append("サーバからの応答に時間がかかっています．").append(window.$("<a>").attr({target: "debug",href: fullURL}).text("処理を確認..."));
@@ -3121,7 +3094,7 @@ Tonyu.klass.define({
       __dummy: false
     };
   },
-  decls: {"methods":{"main":{"nowait":false,"isMain":true,"vtype":{"params":[],"returnValue":null}},"__getter__Math":{"nowait":true,"isMain":false,"vtype":{"params":[],"returnValue":null}},"__getter__document":{"nowait":true,"isMain":false,"vtype":{"params":[],"returnValue":null}},"setInterval":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setTimeout":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"catchException":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"findElement":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"isFormElement":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"clearContent":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"addText":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setText":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"getNumber":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getText":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"setNumber":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"arrayLike":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getAttr":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setAttr":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"onClick":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"onTouch":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"setCanvas":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"searchCanvas":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"setColor":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"fillRect":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"changeImage":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"move":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"transform":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"rotate":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"resize":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"wait":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"rnd":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"setBGColor":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"newElement":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"fillOval":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"drawLine":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"clearRect":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"fillText":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"new":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"getkey":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"dist":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"angle":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"rad":{"nowait":true,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"deg":{"nowait":true,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"sqrt":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"sin":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"cos":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"tan":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"parallel":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"waitClick":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"_waitFor":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"waitFor":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"putToServer":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setGroup":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getFromServer":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getListFromServer":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"addLog":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null,null],"returnValue":null}},"findLog":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null,null],"returnValue":null}},"curProject":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"createGraph":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"readFile":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"writeFile":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"loadRaspiScript":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"startRaspi":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"execRaspi":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"readADC":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"getTemperature":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"addCDB":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"findCDB":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"callServer":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}}},"fields":{"down":{},"_canvas":{},"ctx":{},"activityGroup":{},"keyData":{},"_err":{},"_res":{},"group":{},"raspiStarted":{},"raspiREPL":{}}}
+  decls: {"methods":{"main":{"nowait":false,"isMain":true,"vtype":{"params":[],"returnValue":null}},"__getter__Math":{"nowait":true,"isMain":false,"vtype":{"params":[],"returnValue":null}},"__getter__document":{"nowait":true,"isMain":false,"vtype":{"params":[],"returnValue":null}},"setInterval":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setTimeout":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"catchException":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"findElement":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"isFormElement":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"clearContent":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"addText":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setText":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"getNumber":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getText":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"setNumber":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"arrayLike":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getAttr":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setAttr":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"onClick":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"onTouch":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"setCanvas":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"searchCanvas":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"setColor":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"fillRect":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"changeImage":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"move":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"transform":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"rotate":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"resize":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"wait":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"rnd":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"setBGColor":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"newElement":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"fillOval":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"drawLine":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"clearRect":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"fillText":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"new":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"getkey":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"dist":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"angle":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"rad":{"nowait":true,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"deg":{"nowait":true,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"sqrt":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"sin":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"cos":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"tan":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"parallel":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"runThread":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"waitClick":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"_waitFor":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"waitFor":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"putToServer":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setGroup":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getFromServer":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getListFromServer":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"addLog":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null,null],"returnValue":null}},"findLog":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null,null],"returnValue":null}},"curProject":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"createGraph":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"readFile":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"writeFile":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"loadRaspiScript":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"startRaspi":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"execRaspi":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"readADC":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"getTemperature":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"addCDB":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"findCDB":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"callServer":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}}},"fields":{"down":{},"_canvas":{},"ctx":{},"activityGroup":{},"keyData":{},"_err":{},"_res":{},"group":{},"raspiStarted":{},"raspiREPL":{}}}
 });
 
 });

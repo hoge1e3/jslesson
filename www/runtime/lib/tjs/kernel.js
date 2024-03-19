@@ -2442,22 +2442,12 @@ Tonyu.klass.define({
       waitFor :function _trc_Parent_waitFor(promise) {
         var _this=this;
         
-        _this._waitFor(promise);
-        if (_this._err) {
-          throw _this._err;
-          
-        }
-        return _this._res;
+        return promise;
       },
       fiber$waitFor :function* _trc_Parent_f_waitFor(_thread,promise) {
         var _this=this;
         
-        (yield* _this.fiber$_waitFor(_thread, promise));
-        if (_this._err) {
-          throw _this._err;
-          
-        }
-        return _this._res;
+        return (yield* _thread.await(promise));
         
       },
       putToServer :function _trc_Parent_putToServer(key,value) {
@@ -3013,7 +3003,7 @@ Tonyu.klass.define({
         }
         
         
-        p = new window.Promise((function anonymous_15092(_s) {
+        p = new window.Promise((function anonymous_15131(_s) {
           var s;
           var fullURL;
           var ifrm;
@@ -3025,19 +3015,19 @@ Tonyu.klass.define({
               timeout.remove();
             }
           }
-          s = (function anonymous_15115(str) {
+          s = (function anonymous_15154(str) {
             
             str=str.replace(/\s*$/,"");
             _s(str);
           });
           
           
-          window.sendResult=(function anonymous_15374(r) {
+          window.sendResult=(function anonymous_15413(r) {
             
             clean();
             s(r);
           });
-          window.onmessage=(function anonymous_15460(e) {
+          window.onmessage=(function anonymous_15499(e) {
             
             clean();
             s(e.data.result);
@@ -3046,7 +3036,7 @@ Tonyu.klass.define({
           
           ifrm = window.$("<iframe>").attr({src: fullURL,width: 1,height: 1}).appendTo("body");
           
-          t=window.setTimeout((function anonymous_15727() {
+          t=window.setTimeout((function anonymous_15766() {
             
             ifrm.attr({width: 600,height: 300});
             timeout=window.$("<div>").append("サーバからの応答に時間がかかっています．").append(window.$("<a>").attr({target: "debug",href: fullURL}).text("処理を確認..."));
@@ -3072,7 +3062,7 @@ Tonyu.klass.define({
         }
         
         
-        p = new window.Promise((function anonymous_15092(_s) {
+        p = new window.Promise((function anonymous_15131(_s) {
           var s;
           var fullURL;
           var ifrm;
@@ -3084,19 +3074,19 @@ Tonyu.klass.define({
               timeout.remove();
             }
           }
-          s = (function anonymous_15115(str) {
+          s = (function anonymous_15154(str) {
             
             str=str.replace(/\s*$/,"");
             _s(str);
           });
           
           
-          window.sendResult=(function anonymous_15374(r) {
+          window.sendResult=(function anonymous_15413(r) {
             
             clean();
             s(r);
           });
-          window.onmessage=(function anonymous_15460(e) {
+          window.onmessage=(function anonymous_15499(e) {
             
             clean();
             s(e.data.result);
@@ -3105,7 +3095,7 @@ Tonyu.klass.define({
           
           ifrm = window.$("<iframe>").attr({src: fullURL,width: 1,height: 1}).appendTo("body");
           
-          t=window.setTimeout((function anonymous_15727() {
+          t=window.setTimeout((function anonymous_15766() {
             
             ifrm.attr({width: 600,height: 300});
             timeout=window.$("<div>").append("サーバからの応答に時間がかかっています．").append(window.$("<a>").attr({target: "debug",href: fullURL}).text("処理を確認..."));
