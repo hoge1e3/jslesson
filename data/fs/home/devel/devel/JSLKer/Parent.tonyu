@@ -189,7 +189,7 @@ native URL;
 
 \changeImage(elem,newsrc){
     if (!(newsrc+"").match(/^http/)) {
-        newsrc=window.runtimePath+newsrc;
+        newsrc=slashify(getRuntimePath())+newsrc;
     }
     findElement(elem).attr("src",newsrc);
 }
@@ -405,7 +405,7 @@ function runThread(th) {
 }
 /*\putToServer(key,value) {
     var url=window.location.href;
-    var p=window.$.ajax(window.runtimePath+"a.php?KeyValue/put"+
+    var p=window.$.ajax(slashify(getRuntimePath())+"a.php?KeyValue/put"+
     "&key="+key+
     "&value="+value+
     "&url="+url+
@@ -415,10 +415,28 @@ function runThread(th) {
     r=waitFor(p);
     return r;
 }*/
+\selHosts() {
+    var hosts=window.BitArrow.hosts;
+    for (var k,v in hosts) {
+        var u=new window.URL(v.runtime);
+        //window.console.log(hosts, k, v, u, window.location.hostname);
+        if (u.host===window.location.hostname) {
+            return v;
+        }
+    }
+    //about:blank
+    return hosts.ide;
+}
+\slashify(p) {
+    return p.match(/\/$/)?p:p+"/";
+}
+\getRuntimePath() {
+    return selHosts().runtime;
+}
 \putToServer(key,value) {
     var url=window.location.href;
     var p=window.$.ajax({
-        url: window.runtimePath+"a.php?KeyValue/put",
+        url: slashify(getRuntimePath())+"a.php?KeyValue/put",
         type:'POST',
         data : {key : key, value : value, url : url, group : activityGroup}
     });
@@ -431,7 +449,7 @@ function runThread(th) {
 }
 \getFromServer(key) {
     var url=window.location.href;
-    var p=window.$.ajax(window.runtimePath+"a.php?KeyValue/get"+
+    var p=window.$.ajax(slashify(getRuntimePath())+"a.php?KeyValue/get"+
     "&key="+key+
     "&url="+url+
     "&group="+activityGroup
@@ -442,7 +460,7 @@ function runThread(th) {
 }
 \getListFromServer() {
     var url=window.location.href;
-    var p=window.$.ajax(window.runtimePath+"a.php?KeyValue/ls"+
+    var p=window.$.ajax(slashify(getRuntimePath())+"a.php?KeyValue/ls"+
     "&url="+url+
     "&group="+activityGroup
     );
@@ -459,7 +477,7 @@ function runThread(th) {
     if (d2!=null) params+="&data2="+d2;
     if (d3!=null) params+="&data3="+d3;
     if (d4!=null) params+="&data4="+d4;
-    var p=window.$.ajax(window.runtimePath+"a.php?BigData/add"+params);
+    var p=window.$.ajax(slashify(getRuntimePath())+"a.php?BigData/add"+params);
     var r;
     r=waitFor(p);
     return r;
@@ -472,7 +490,7 @@ function runThread(th) {
     if (d2!=null) params+="&data2="+d2;
     if (d3!=null) params+="&data3="+d3;
     if (d4!=null) params+="&data4="+d4;
-    var p=window.$.ajax(window.runtimePath+"a.php?BigData/find"+params);
+    var p=window.$.ajax(slashify(getRuntimePath())+"a.php?BigData/find"+params);
     var r;
     r=waitFor(p);
     return r;
@@ -485,7 +503,7 @@ function runThread(th) {
         url=window.location.href;
     }
     var params="&url="+url;
-    var p=window.$.ajax(window.runtimePath+"a.php?KeyValue/info"+params);
+    var p=window.$.ajax(slashify(getRuntimePath())+"a.php?KeyValue/info"+params);
     var r;
     r=waitFor(p);
     return r;
@@ -504,7 +522,7 @@ function runThread(th) {
     var a=path.split("/");
     var context=a[0], filename=a[1];
     var p=window.$.ajax{
-        url: window.runtimePath+"a.php?Asset/download",
+        url: slashify(getRuntimePath())+"a.php?Asset/download",
         data: {
             context, filename
         }
@@ -518,7 +536,7 @@ function runThread(th) {
     var a=path.split("/");
     var context=a[0], filename=a[1];
     var p=window.$.ajax{
-        url: window.runtimePath+"a.php?Asset/upload",
+        url: slashify(getRuntimePath())+"a.php?Asset/upload",
         data: {
             context, filename, content
         }
@@ -531,7 +549,7 @@ function runThread(th) {
 
 
 \loadRaspiScript() {
-    var ppath=BitArrow.runtimePath+"lib/python/";
+    var ppath=slashify(getRuntimePath())+"lib/python/";
     waitFor( $.getScript( ppath+"SerialControl.js") );
     waitFor( $.getScript( ppath+"raspi_repl.js") );
 }
@@ -564,7 +582,7 @@ function runThread(th) {
     
 }
 \addCDB(key, data ){
-    var p=window.$.post(window.runtimePath+"a.php?CDB/post") {
+    var p=window.$.post(slashify(getRuntimePath())+"a.php?CDB/post") {
         key, data: window.JSON.stringify(data)
     };
     var r;
@@ -572,7 +590,7 @@ function runThread(th) {
     return r;
 }
 \findCDB(key) {
-    var p=window.$.get(window.runtimePath+"a.php?CDB/get&key="+key);
+    var p=window.$.get(slashify(getRuntimePath())+"a.php?CDB/get&key="+key);
     var r;
     r=waitFor(p);
     return r;
