@@ -71,6 +71,10 @@ define([], function () {
 			"images/ecl.png":WS.runtime+"images/ecl.png"
 	};
 	WS.compiledKernel=WS.runtime+"/lib/tonyu/kernel.js";
+	WS.ns2depspec=[
+		{namespace:"kernel", url: WebSite.compiledKernel},
+		//{namespace:"mapEditor2", url: WebSite.compiledTools.mapEditor2},
+	];
 	/*if (WS.isNW) {
 		if (process.env.TONYU_HOME) {
 			WS.tonyuHome=process.env.TONYU_HOME.replace(/\\/g,"/");
