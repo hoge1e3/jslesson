@@ -228,15 +228,9 @@ native URL;
 
 \wait(time) {
     time=time||100;
-    var t=_thread;
-    var runThread=catchException \{
-        t.steps();
-        if (t.preempted) {
-            setTimeout(runThread,0);
-        }
-    };
-    t.suspend();
-    setTimeout(runThread,time);
+    waitFor(new Promise\(s) {
+        setTimeout(s,time);
+    });
 }
 \rnd(max) {
     return Math.floor(Math.random()*max);
@@ -375,7 +369,15 @@ nowait \deg(d) {
     var methodName=a.shift();
     var t=Tonyu.thread();
     t.apply(this,methodName,a);
-    t.steps();
+    runThread(t);
+}
+function runThread(th) {
+    (catchException \{
+        th.steps();
+        if (th.preempted) {
+            setTimeout(()=>runThread(th),0);
+        }
+    })();
 }
 \waitClick(elem){
     var clicked=0;
@@ -389,21 +391,11 @@ nowait \deg(d) {
     findElement(elem).off("click","",_func);
 }
 \_waitFor(promise) {
-    var t=_thread;
-    var runThread=catchException \{
-        t.steps();
-        if (t.preempted) {
-            setTimeout(runThread,0);
-        }
-    };
-    t.suspend();
     _err=null;
-    promise.then(\(r) {
+    __await promise.then(\(r) {
         _res=r;
-        runThread();
     },\(e) {
         _err=(e instanceof window.Error ? e : new Error(e.responseText || e+""));
-        runThread();
     });
 }
 \waitFor(promise) {
@@ -535,8 +527,10 @@ nowait \deg(d) {
             context, filename
         }
     };
+    //p.then((r)=>window.console.log("readFile1",r));
     var r;
     r=waitFor(p);
+    //window.console.log("readFile2",r);
     return r;
 }
 

@@ -7,9 +7,15 @@ cp $Tonyu2/www/js/lang/BuilderClient4Sys.js js/lang/BuilderClient.js
 cp $Tonyu2/www/Kernel/js/concat.js runtime/lib/tonyu/kernel.js
 cp $Tonyu2/www/Kernel/js/concat.js.map runtime/lib/tonyu/kernel.js.map
 cp $Tonyu2/www/BuilderWorker.js .
+cp $Tonyu2/www/js/runtime/TonyuRuntime.js js/runtime/
+cp $Tonyu2/www/js/runtime/TonyuRuntime.js runtime/lib/tjs/
 
-babel BuilderWorker.js --out-file BuilderWorker.es5.temp.js
+#compile devel/devel/Parent
+# run scripts/copyKer_js.sh
+
+####deprecated
+#babel BuilderWorker.js --out-file BuilderWorker.es5.temp.js
 # insert importScripts("polyfill.js"); into 1st line of BuilderWorker.es5.js
-echo 'importScripts("polyfill.js");' > BuilderWorker.es5.js
-cat BuilderWorker.es5.temp.js >> BuilderWorker.es5.js
-rm BuilderWorker.es5.temp.js
+#echo 'importScripts("polyfill.js");' > BuilderWorker.es5.js
+#cat BuilderWorker.es5.temp.js >> BuilderWorker.es5.js
+#rm BuilderWorker.es5.temp.js
