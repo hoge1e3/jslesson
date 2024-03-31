@@ -228,9 +228,9 @@ native URL;
 
 \wait(time) {
     time=time||100;
-    var t=_thread;
-    t.suspend();
-    setTimeout(()=>runThread(t),time);
+    waitFor(new Promise\(s) {
+        setTimeout(s,time);
+    });
 }
 \rnd(max) {
     return Math.floor(Math.random()*max);
@@ -527,8 +527,10 @@ function runThread(th) {
             context, filename
         }
     };
+    //p.then((r)=>window.console.log("readFile1",r));
     var r;
     r=waitFor(p);
+    //window.console.log("readFile2",r);
     return r;
 }
 

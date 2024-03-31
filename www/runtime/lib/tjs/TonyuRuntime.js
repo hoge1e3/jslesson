@@ -1293,12 +1293,15 @@ class TonyuThread {
         if (p instanceof TonyuThread)
             p = p.promise();
         return Promise.resolve(p).then(function (r) {
+            //console.log("RESOLVE!!",r);
             fb.retVal = r;
             fb.lastEx = null;
+            fb._isWaiting = false;
             fb.stepsLoop();
         }).then(e => e, function (e) {
             e = fb.wrapError(e);
             fb.lastEx = e;
+            fb._isWaiting = false;
             fb.stepsLoop();
         });
     }
@@ -1315,6 +1318,10 @@ class TonyuThread {
     }
     steps() {
         const fb = this;
+        if(fb.isWaiting()) {
+            throw new Error("Illegal state: waiting!");
+        }
+        //console.log("STEPS!!");
         if (fb.isDead())
             return;
         const sv = this.Tonyu.currentThread;
