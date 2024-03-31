@@ -1,3 +1,5 @@
+if(!Tonyu.load)Tonyu.load=(_,f)=>f();
+Tonyu.load({"compiler":{"namespace":"jslker","outputFile":"js/concat.js","dependingProjects":[]}}, ()=>{
 Tonyu.klass.define({
   fullName: 'jslker.Graph',
   shortName: 'Graph',
@@ -6,21 +8,15 @@ Tonyu.klass.define({
   methods: function (__superClass) {
     return {
       main :function _trc_Graph_main() {
-        "use strict";
         var _this=this;
         
       },
-      fiber$main :function _trc_Graph_f_main(_thread) {
-        "use strict";
+      fiber$main :function* _trc_Graph_f_main(_thread) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         
-        _thread.retVal=_this;return;
       },
       initialize :function _trc_Graph_initialize(div) {
-        "use strict";
         var _this=this;
         
         _this._place=div;
@@ -38,23 +34,17 @@ Tonyu.klass.define({
         _this._typemap={};
       },
       setData :function _trc_Graph_setData(data) {
-        "use strict";
         var _this=this;
         
         _this.src=data;
       },
-      fiber$setData :function _trc_Graph_f_setData(_thread,data) {
-        "use strict";
+      fiber$setData :function* _trc_Graph_f_setData(_thread,data) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         _this.src=data;
         
-        _thread.retVal=_this;return;
       },
       addData :function _trc_Graph_addData(d) {
-        "use strict";
         var _this=this;
         
         if (typeof  d==="object") {
@@ -65,11 +55,9 @@ Tonyu.klass.define({
           
         }
       },
-      fiber$addData :function _trc_Graph_f_addData(_thread,d) {
-        "use strict";
+      fiber$addData :function* _trc_Graph_f_addData(_thread,d) {
         var _this=this;
         var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         if (typeof  d==="object") {
           _this.src.push(d);
@@ -79,10 +67,8 @@ Tonyu.klass.define({
           
         }
         
-        _thread.retVal=_this;return;
       },
       onLoadLib :function _trc_Graph_onLoadLib(f) {
-        "use strict";
         var _this=this;
         
         if (_this.Plotly) {
@@ -91,11 +77,8 @@ Tonyu.klass.define({
           _this.loadLibHandlers.push(f);
         }
       },
-      fiber$onLoadLib :function _trc_Graph_f_onLoadLib(_thread,f) {
-        "use strict";
+      fiber$onLoadLib :function* _trc_Graph_f_onLoadLib(_thread,f) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         if (_this.Plotly) {
           f(_this.Plotly);
@@ -103,54 +86,39 @@ Tonyu.klass.define({
           _this.loadLibHandlers.push(f);
         }
         
-        _thread.retVal=_this;return;
       },
       waitLoadLib :function _trc_Graph_waitLoadLib() {
-        "use strict";
         var _this=this;
         var f;
-        var _it_1;
         
         if (! window.Plotly) {
           window.setTimeout(Tonyu.bindFunc(_this,_this.waitLoadLib),100);
           
         } else {
           _this.Plotly=window.Plotly;
-          _it_1=Tonyu.iterator(_this.loadLibHandlers,1);
-          while(_it_1.next()) {
-            f=_it_1[0];
-            
+          for ([f] of Tonyu.iterator2(_this.loadLibHandlers,1)) {
             f(_this.Plotly);
           }
           
         }
       },
-      fiber$waitLoadLib :function _trc_Graph_f_waitLoadLib(_thread) {
-        "use strict";
+      fiber$waitLoadLib :function* _trc_Graph_f_waitLoadLib(_thread) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var f;
-        var _it_1;
         
         if (! window.Plotly) {
           window.setTimeout(Tonyu.bindFunc(_this,_this.waitLoadLib),100);
           
         } else {
           _this.Plotly=window.Plotly;
-          _it_1=Tonyu.iterator(_this.loadLibHandlers,1);
-          while(_it_1.next()) {
-            f=_it_1[0];
-            
+          for ([f] of Tonyu.iterator2(_this.loadLibHandlers,1)) {
             f(_this.Plotly);
           }
           
         }
         
-        _thread.retVal=_this;return;
       },
       _setCorrelation :function _trc_Graph__setCorrelation(x,y,min,max,interval) {
-        "use strict";
         var _this=this;
         
         if ((min>max&&interval>0)||(min<=max&&interval<0)||interval==0) {
@@ -161,133 +129,67 @@ Tonyu.klass.define({
         _this._corObj=_this._correlation(x,y,min,max,interval);
         _this._isDrawCor=true;
       },
-      fiber$_setCorrelation :function _trc_Graph_f__setCorrelation(_thread,x,y,min,max,interval) {
-        "use strict";
+      fiber$_setCorrelation :function* _trc_Graph_f__setCorrelation(_thread,x,y,min,max,interval) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         if ((min>max&&interval>0)||(min<=max&&interval<0)||interval==0) {
-          _thread.retVal=_this;return;
-          
+          return _this;
           
         }
         console.log(min,max,interval);
+        _this._corObj=(yield* _this.fiber$_correlation(_thread, x, y, min, max, interval));
+        _this._isDrawCor=true;
         
-        _thread.enter(function _trc_Graph_ent__setCorrelation(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$_correlation(_thread, x, y, min, max, interval);
-              __pc=1;return;
-            case 1:
-              _this._corObj=_thread.retVal;
-              
-              _this._isDrawCor=true;
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       setAxisText :function _trc_Graph_setAxisText(x,y) {
-        "use strict";
         var _this=this;
         
         _this.setXAxisText(x);
         _this.setYAxisText(y);
       },
-      fiber$setAxisText :function _trc_Graph_f_setAxisText(_thread,x,y) {
-        "use strict";
+      fiber$setAxisText :function* _trc_Graph_f_setAxisText(_thread,x,y) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
+        (yield* _this.fiber$setXAxisText(_thread, x));
+        (yield* _this.fiber$setYAxisText(_thread, y));
         
-        _thread.enter(function _trc_Graph_ent_setAxisText(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$setXAxisText(_thread, x);
-              __pc=1;return;
-            case 1:
-              
-              _this.fiber$setYAxisText(_thread, y);
-              __pc=2;return;
-            case 2:
-              
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       setXAxisText :function _trc_Graph_setXAxisText(x) {
-        "use strict";
         var _this=this;
         
         _this._xaxname=x;
       },
-      fiber$setXAxisText :function _trc_Graph_f_setXAxisText(_thread,x) {
-        "use strict";
+      fiber$setXAxisText :function* _trc_Graph_f_setXAxisText(_thread,x) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         _this._xaxname=x;
         
-        _thread.retVal=_this;return;
       },
       setYAxisText :function _trc_Graph_setYAxisText(y) {
-        "use strict";
         var _this=this;
         
         _this._yaxname=y;
       },
-      fiber$setYAxisText :function _trc_Graph_f_setYAxisText(_thread,y) {
-        "use strict";
+      fiber$setYAxisText :function* _trc_Graph_f_setYAxisText(_thread,y) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         _this._yaxname=y;
         
-        _thread.retVal=_this;return;
       },
       setAxisType :function _trc_Graph_setAxisType(xtype,ytype) {
-        "use strict";
         var _this=this;
         
         _this.setXAxisType(xtype);
         _this.setXAxisType(ytype);
       },
-      fiber$setAxisType :function _trc_Graph_f_setAxisType(_thread,xtype,ytype) {
-        "use strict";
+      fiber$setAxisType :function* _trc_Graph_f_setAxisType(_thread,xtype,ytype) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
+        (yield* _this.fiber$setXAxisType(_thread, xtype));
+        (yield* _this.fiber$setXAxisType(_thread, ytype));
         
-        _thread.enter(function _trc_Graph_ent_setAxisType(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$setXAxisType(_thread, xtype);
-              __pc=1;return;
-            case 1:
-              
-              _this.fiber$setXAxisType(_thread, ytype);
-              __pc=2;return;
-            case 2:
-              
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       setXAxisType :function _trc_Graph_setXAxisType(xtype) {
-        "use strict";
         var _this=this;
         
         if (xtype=="time") {
@@ -295,21 +197,16 @@ Tonyu.klass.define({
         }
         _this._xaxtype=xtype;
       },
-      fiber$setXAxisType :function _trc_Graph_f_setXAxisType(_thread,xtype) {
-        "use strict";
+      fiber$setXAxisType :function* _trc_Graph_f_setXAxisType(_thread,xtype) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         if (xtype=="time") {
           xtype="date";
         }
         _this._xaxtype=xtype;
         
-        _thread.retVal=_this;return;
       },
       setYAxisType :function _trc_Graph_setYAxisType(ytype) {
-        "use strict";
         var _this=this;
         
         if (ytype=="time") {
@@ -317,131 +214,79 @@ Tonyu.klass.define({
         }
         _this._yaxtype=ytype;
       },
-      fiber$setYAxisType :function _trc_Graph_f_setYAxisType(_thread,ytype) {
-        "use strict";
+      fiber$setYAxisType :function* _trc_Graph_f_setYAxisType(_thread,ytype) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         if (ytype=="time") {
           ytype="date";
         }
         _this._yaxtype=ytype;
         
-        _thread.retVal=_this;return;
       },
       bindType :function _trc_Graph_bindType(name,type) {
-        "use strict";
         var _this=this;
         
         if (type) {
           _this._typemap[name]=type;
         }
       },
-      fiber$bindType :function _trc_Graph_f_bindType(_thread,name,type) {
-        "use strict";
+      fiber$bindType :function* _trc_Graph_f_bindType(_thread,name,type) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         if (type) {
           _this._typemap[name]=type;
         }
         
-        _thread.retVal=_this;return;
       },
       setXRange :function _trc_Graph_setXRange(min,max,logScale) {
-        "use strict";
         var _this=this;
         
         _this._xrange=[min,max];
         _this._xrange.logScale=logScale;
       },
-      fiber$setXRange :function _trc_Graph_f_setXRange(_thread,min,max,logScale) {
-        "use strict";
+      fiber$setXRange :function* _trc_Graph_f_setXRange(_thread,min,max,logScale) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         _this._xrange=[min,max];
         _this._xrange.logScale=logScale;
         
-        _thread.retVal=_this;return;
       },
       setYRange :function _trc_Graph_setYRange(min,max,logScale) {
-        "use strict";
         var _this=this;
         
         _this._yrange=[min,max];
         _this._yrange.logScale=logScale;
       },
-      fiber$setYRange :function _trc_Graph_f_setYRange(_thread,min,max,logScale) {
-        "use strict";
+      fiber$setYRange :function* _trc_Graph_f_setYRange(_thread,min,max,logScale) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         _this._yrange=[min,max];
         _this._yrange.logScale=logScale;
         
-        _thread.retVal=_this;return;
       },
       line :function _trc_Graph_line(xaxis,yaxis) {
-        "use strict";
         var _this=this;
         
         _this._drawGraph("line",xaxis,yaxis);
       },
-      fiber$line :function _trc_Graph_f_line(_thread,xaxis,yaxis) {
-        "use strict";
+      fiber$line :function* _trc_Graph_f_line(_thread,xaxis,yaxis) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
+        (yield* _this.fiber$_drawGraph(_thread, "line", xaxis, yaxis));
         
-        _thread.enter(function _trc_Graph_ent_line(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$_drawGraph(_thread, "line", xaxis, yaxis);
-              __pc=1;return;
-            case 1:
-              
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       bar :function _trc_Graph_bar(xaxis,yaxis) {
-        "use strict";
         var _this=this;
         
         _this._drawGraph("bar",xaxis,yaxis);
       },
-      fiber$bar :function _trc_Graph_f_bar(_thread,xaxis,yaxis) {
-        "use strict";
+      fiber$bar :function* _trc_Graph_f_bar(_thread,xaxis,yaxis) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
+        (yield* _this.fiber$_drawGraph(_thread, "bar", xaxis, yaxis));
         
-        _thread.enter(function _trc_Graph_ent_bar(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$_drawGraph(_thread, "bar", xaxis, yaxis);
-              __pc=1;return;
-            case 1:
-              
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       vec :function _trc_Graph_vec(k) {
-        "use strict";
         var _this=this;
         
         return _this.src.map((function anonymous_2298(rec) {
@@ -449,29 +294,16 @@ Tonyu.klass.define({
           return _this.getValue(rec,k);
         }));
       },
-      fiber$vec :function _trc_Graph_f_vec(_thread,k) {
-        "use strict";
+      fiber$vec :function* _trc_Graph_f_vec(_thread,k) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
+        return _this.src.map((function anonymous_2298(rec) {
+          
+          return _this.getValue(rec,k);
+        }));
         
-        _thread.enter(function _trc_Graph_ent_vec(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _thread.exit(_this.src.map((function anonymous_2298(rec) {
-                
-                return _this.getValue(rec,k);
-              })));return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       min :function _trc_Graph_min(k) {
-        "use strict";
         var _this=this;
         var ary;
         
@@ -483,36 +315,20 @@ Tonyu.klass.define({
         }));
         return ary[0];
       },
-      fiber$min :function _trc_Graph_f_min(_thread,k) {
-        "use strict";
+      fiber$min :function* _trc_Graph_f_min(_thread,k) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var ary;
         
+        ary=yield* _this.fiber$vec(_thread, k);
         
-        _thread.enter(function _trc_Graph_ent_min(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$vec(_thread, k);
-              __pc=1;return;
-            case 1:
-              ary=_thread.retVal;
-              
-              ary.sort((function anonymous_2404(a,b) {
-                
-                return a-b;
-              }));
-              _thread.exit(ary[0]);return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
+        ary.sort((function anonymous_2404(a,b) {
+          
+          return a-b;
+        }));
+        return ary[0];
+        
       },
       max :function _trc_Graph_max(k) {
-        "use strict";
         var _this=this;
         var ary;
         
@@ -524,36 +340,20 @@ Tonyu.klass.define({
         }));
         return ary[0];
       },
-      fiber$max :function _trc_Graph_f_max(_thread,k) {
-        "use strict";
+      fiber$max :function* _trc_Graph_f_max(_thread,k) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var ary;
         
+        ary=yield* _this.fiber$vec(_thread, k);
         
-        _thread.enter(function _trc_Graph_ent_max(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$vec(_thread, k);
-              __pc=1;return;
-            case 1:
-              ary=_thread.retVal;
-              
-              ary.sort((function anonymous_2509(a,b) {
-                
-                return b-a;
-              }));
-              _thread.exit(ary[0]);return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
+        ary.sort((function anonymous_2509(a,b) {
+          
+          return b-a;
+        }));
+        return ary[0];
+        
       },
       med :function _trc_Graph_med(k) {
-        "use strict";
         var _this=this;
         var half;
         var temp;
@@ -577,11 +377,8 @@ Tonyu.klass.define({
         }
         return ((temp[half-1][k]-0)+(temp[half][k]-0))/2;
       },
-      fiber$med :function _trc_Graph_f_med(_thread,k) {
-        "use strict";
+      fiber$med :function* _trc_Graph_f_med(_thread,k) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var half;
         var temp;
         
@@ -599,17 +396,13 @@ Tonyu.klass.define({
         }));
         
         if (temp.length%2) {
-          _thread.retVal=temp[half][k];return;
-          
+          return temp[half][k];
           
         }
-        _thread.retVal=((temp[half-1][k]-0)+(temp[half][k]-0))/2;return;
+        return ((temp[half-1][k]-0)+(temp[half][k]-0))/2;
         
-        
-        _thread.retVal=_this;return;
       },
       mode :function _trc_Graph_mode(k) {
-        "use strict";
         var _this=this;
         var counter;
         var nativeValues;
@@ -628,8 +421,8 @@ Tonyu.klass.define({
         
         maxValue = null;
         
-        i = 0;
-        for (; i<_this.src.length ; i++) {
+        for (i = 0;
+         i<_this.src.length ; i++) {
           Tonyu.checkLoop();
           {
             value = _this.getValue(_this.src[i],k);
@@ -642,8 +435,8 @@ Tonyu.klass.define({
             nativeValues[value]=value;
           }
         }
-        j = 0;
-        for (; j<Object.keys(counter).length ; j++) {
+        for (j = 0;
+         j<Object.keys(counter).length ; j++) {
           Tonyu.checkLoop();
           {
             _this.key=Object.keys(counter)[j];
@@ -656,8 +449,8 @@ Tonyu.klass.define({
         }
         ret = [];
         
-        j = 0;
-        for (; j<Object.keys(counter).length ; j++) {
+        for (j = 0;
+         j<Object.keys(counter).length ; j++) {
           Tonyu.checkLoop();
           {
             _this.key=Object.keys(counter)[j];
@@ -669,11 +462,8 @@ Tonyu.klass.define({
         }
         return {"mode": maxCounter,"nums": ret};
       },
-      fiber$mode :function _trc_Graph_f_mode(_thread,k) {
-        "use strict";
+      fiber$mode :function* _trc_Graph_f_mode(_thread,k) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var counter;
         var nativeValues;
         var maxCounter;
@@ -691,76 +481,56 @@ Tonyu.klass.define({
         
         maxValue = null;
         
-        
-        _thread.enter(function _trc_Graph_ent_mode(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              i = 0;
+        for (i = 0;
+         i<_this.src.length ; i++) {
+          yield null;
+          {
+            value=yield* _this.fiber$getValue(_thread, _this.src[i], k);
+            
+            if (! counter[value]) {
+              counter[value]=0;
               
-            case 1:
-              if (!(i<_this.src.length)) { __pc=4     ; break; }
-              _this.fiber$getValue(_thread, _this.src[i], k);
-              __pc=2;return;
-            case 2:
-              value=_thread.retVal;
+            }
+            counter[value]++;
+            nativeValues[value]=value;
+          }
+        }
+        for (j = 0;
+         j<Object.keys(counter).length ; j++) {
+          yield null;
+          {
+            _this.key=Object.keys(counter)[j];
+            if (counter[_this.key]>maxCounter) {
+              maxCounter=counter[_this.key];
+              maxValue=nativeValues[_this.key];
               
-              if (! counter[value]) {
-                counter[value]=0;
-                
-              }
-              counter[value]++;
-              nativeValues[value]=value;
-            case 3     :
-              i++;
-              __pc=1;break;
-            case 4     :
-              
-              j = 0;
-              for (; j<Object.keys(counter).length ; j++) {
-                Tonyu.checkLoop();
-                {
-                  _this.key=Object.keys(counter)[j];
-                  if (counter[_this.key]>maxCounter) {
-                    maxCounter=counter[_this.key];
-                    maxValue=nativeValues[_this.key];
-                    
-                  }
-                }
-              }
-              ret = [];
-              
-              j = 0;
-              for (; j<Object.keys(counter).length ; j++) {
-                Tonyu.checkLoop();
-                {
-                  _this.key=Object.keys(counter)[j];
-                  if (counter[_this.key]==maxCounter) {
-                    ret.push(nativeValues[_this.key]);
-                    
-                  }
-                }
-              }
-              _thread.exit({"mode": maxCounter,"nums": ret});return;
-              _thread.exit(_this);return;
             }
           }
-        });
+        }
+        ret = [];
+        
+        for (j = 0;
+         j<Object.keys(counter).length ; j++) {
+          yield null;
+          {
+            _this.key=Object.keys(counter)[j];
+            if (counter[_this.key]==maxCounter) {
+              ret.push(nativeValues[_this.key]);
+              
+            }
+          }
+        }
+        return {"mode": maxCounter,"nums": ret};
+        
       },
       freq :function _trc_Graph_freq(k) {
-        "use strict";
         var _this=this;
         var ret;
         var o;
-        var _it_23;
         
         ret = [];
         
-        _it_23=Tonyu.iterator(_this.vec(k),1);
-        while(_it_23.next()) {
-          o=_it_23[0];
-          
+        for ([o] of Tonyu.iterator2(_this.vec(k),1)) {
           if (ret[o[k]]) {
             ret[o[k]]++;
             
@@ -772,21 +542,14 @@ Tonyu.klass.define({
         }
         return ret;
       },
-      fiber$freq :function _trc_Graph_f_freq(_thread,k) {
-        "use strict";
+      fiber$freq :function* _trc_Graph_f_freq(_thread,k) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var ret;
         var o;
-        var _it_23;
         
         ret = [];
         
-        _it_23=Tonyu.iterator(_this.vec(k),1);
-        while(_it_23.next()) {
-          o=_it_23[0];
-          
+        for ([o] of Tonyu.iterator2(_this.vec(k),1)) {
           if (ret[o[k]]) {
             ret[o[k]]++;
             
@@ -796,13 +559,10 @@ Tonyu.klass.define({
           }
           
         }
-        _thread.retVal=ret;return;
+        return ret;
         
-        
-        _thread.retVal=_this;return;
       },
       scatter :function _trc_Graph_scatter(xaxis,yaxis,isCor) {
-        "use strict";
         var _this=this;
         
         if (typeof  xaxis==="boolean") {
@@ -820,11 +580,8 @@ Tonyu.klass.define({
         }
         _this._drawGraph("scatter",xaxis,yaxis);
       },
-      fiber$scatter :function _trc_Graph_f_scatter(_thread,xaxis,yaxis,isCor) {
-        "use strict";
+      fiber$scatter :function* _trc_Graph_f_scatter(_thread,xaxis,yaxis,isCor) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         if (typeof  xaxis==="boolean") {
           isCor=xaxis;
@@ -834,65 +591,26 @@ Tonyu.klass.define({
         }
         xaxis=xaxis||"x";
         yaxis=yaxis||"y";
+        (yield* _this.fiber$bindType(_thread, xaxis, _this._xaxtype));
+        (yield* _this.fiber$bindType(_thread, yaxis, _this._yaxtype));
+        if (isCor==true) {
+          (yield* _this.fiber$_setCorrelation(_thread, xaxis, yaxis, parseFloat(_this.min(xaxis)), parseFloat(_this.max(xaxis)), parseFloat((_this.max(xaxis)-_this.min(xaxis))/10)));
+        }
+        (yield* _this.fiber$_drawGraph(_thread, "scatter", xaxis, yaxis));
         
-        _thread.enter(function _trc_Graph_ent_scatter(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$bindType(_thread, xaxis, _this._xaxtype);
-              __pc=1;return;
-            case 1:
-              
-              _this.fiber$bindType(_thread, yaxis, _this._yaxtype);
-              __pc=2;return;
-            case 2:
-              
-              if (!(isCor==true)) { __pc=4     ; break; }
-              _this.fiber$_setCorrelation(_thread, xaxis, yaxis, parseFloat(_this.min(xaxis)), parseFloat(_this.max(xaxis)), parseFloat((_this.max(xaxis)-_this.min(xaxis))/10));
-              __pc=3;return;
-            case 3:
-              
-            case 4     :
-              
-              _this.fiber$_drawGraph(_thread, "scatter", xaxis, yaxis);
-              __pc=5;return;
-            case 5:
-              
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       pie :function _trc_Graph_pie(xaxis,yaxis) {
-        "use strict";
         var _this=this;
         
         _this._drawGraph("pie",xaxis,yaxis);
       },
-      fiber$pie :function _trc_Graph_f_pie(_thread,xaxis,yaxis) {
-        "use strict";
+      fiber$pie :function* _trc_Graph_f_pie(_thread,xaxis,yaxis) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
+        (yield* _this.fiber$_drawGraph(_thread, "pie", xaxis, yaxis));
         
-        _thread.enter(function _trc_Graph_ent_pie(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$_drawGraph(_thread, "pie", xaxis, yaxis);
-              __pc=1;return;
-            case 1:
-              
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       _drawGraph :function _trc_Graph__drawGraph(type,xaxis,yaxis) {
-        "use strict";
         var _this=this;
         var x;
         var y;
@@ -955,11 +673,8 @@ Tonyu.klass.define({
           Plotly.newPlot(_this._place,data,options);
         }));
       },
-      fiber$_drawGraph :function _trc_Graph_f__drawGraph(_thread,type,xaxis,yaxis) {
-        "use strict";
+      fiber$_drawGraph :function* _trc_Graph_f__drawGraph(_thread,type,xaxis,yaxis) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var x;
         var y;
         var xaxopt;
@@ -972,90 +687,57 @@ Tonyu.klass.define({
         
         xaxis=xaxis||"x";
         yaxis=yaxis||"y";
+        (yield* _this.fiber$bindType(_thread, xaxis, _this._xaxtype));
+        (yield* _this.fiber$bindType(_thread, yaxis, _this._yaxtype));
+        x = [];
         
-        _thread.enter(function _trc_Graph_ent__drawGraph(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$bindType(_thread, xaxis, _this._xaxtype);
-              __pc=1;return;
-            case 1:
-              
-              _this.fiber$bindType(_thread, yaxis, _this._yaxtype);
-              __pc=2;return;
-            case 2:
-              
-              x = [];
-              
-              y = [];
-              
-              xaxopt = {autotick: true,ticks: 'outside',tick0: 0,dtick: 0.25,ticklen: 8,tickwidth: 4,tickcolor: '#000',range: _this._xrange};
-              
-              yaxopt = {autotick: true,ticks: 'outside',tick0: 0,dtick: 0.25,ticklen: 8,tickwidth: 4,tickcolor: '#000',range: _this._yrange};
-              
-              console.log("range",_this._xrange,_this._yrange);
-              _this.fiber$detectType(_thread, xaxis);
-              __pc=3;return;
-            case 3:
-              xt=_thread.retVal;
-              
-              _this.fiber$detectType(_thread, yaxis);
-              __pc=4;return;
-            case 4:
-              yt=_thread.retVal;
-              
-              if (xt=="date"||xt=="time"||xt=="msec") {
-                xaxopt["type"]='date';
-                
-              }
-              if (yt=="date"||yt=="time"||yt=="msec") {
-                yaxopt["type"]='date';
-                
-              }
-              _this.fiber$vec(_thread, xaxis);
-              __pc=5;return;
-            case 5:
-              x=_thread.retVal;
-              
-              _this.fiber$vec(_thread, yaxis);
-              __pc=6;return;
-            case 6:
-              y=_thread.retVal;
-              
-              if (type=="scatter") {
-                mode = "markers";
-                
-                
-              } else {
-                mode = "lines";
-                
-                
-              }
-              data = [{x: x,y: y,type: type,mode: mode}];
-              
-              if (_this._isDrawCor===true) {
-                _this._corObj.mode='lines';
-                _this._corObj.line={dash: 'dot',width: 4};
-                data.push(_this._corObj);
-                
-              }
-              options = {xaxis: xaxopt,yaxis: yaxopt,annotations: [{xref: 'paper',yref: 'paper',x: 0,xanchor: 'right',y: 1,yanchor: 'bottom',text: _this._yaxname,showarrow: false},{xref: 'paper',yref: 'paper',x: 1,xanchor: 'left',y: 0,yanchor: 'top',text: _this._xaxname,showarrow: false}]};
-              
-              _this.fiber$onLoadLib(_thread, (function anonymous_6686(Plotly) {
-                
-                Plotly.newPlot(_this._place,data,options);
-              }));
-              __pc=7;return;
-            case 7:
-              
-              _thread.exit(_this);return;
-            }
-          }
-        });
+        y = [];
+        
+        xaxopt = {autotick: true,ticks: 'outside',tick0: 0,dtick: 0.25,ticklen: 8,tickwidth: 4,tickcolor: '#000',range: _this._xrange};
+        
+        yaxopt = {autotick: true,ticks: 'outside',tick0: 0,dtick: 0.25,ticklen: 8,tickwidth: 4,tickcolor: '#000',range: _this._yrange};
+        
+        console.log("range",_this._xrange,_this._yrange);
+        xt=yield* _this.fiber$detectType(_thread, xaxis);
+        
+        yt=yield* _this.fiber$detectType(_thread, yaxis);
+        
+        if (xt=="date"||xt=="time"||xt=="msec") {
+          xaxopt["type"]='date';
+          
+        }
+        if (yt=="date"||yt=="time"||yt=="msec") {
+          yaxopt["type"]='date';
+          
+        }
+        x=(yield* _this.fiber$vec(_thread, xaxis));
+        y=(yield* _this.fiber$vec(_thread, yaxis));
+        if (type=="scatter") {
+          mode = "markers";
+          
+          
+        } else {
+          mode = "lines";
+          
+          
+        }
+        data = [{x: x,y: y,type: type,mode: mode}];
+        
+        if (_this._isDrawCor===true) {
+          _this._corObj.mode='lines';
+          _this._corObj.line={dash: 'dot',width: 4};
+          data.push(_this._corObj);
+          
+        }
+        options = {xaxis: xaxopt,yaxis: yaxopt,annotations: [{xref: 'paper',yref: 'paper',x: 0,xanchor: 'right',y: 1,yanchor: 'bottom',text: _this._yaxname,showarrow: false},{xref: 'paper',yref: 'paper',x: 1,xanchor: 'left',y: 0,yanchor: 'top',text: _this._xaxname,showarrow: false}]};
+        
+        (yield* _this.fiber$onLoadLib(_thread, (function anonymous_6686(Plotly) {
+          
+          Plotly.newPlot(_this._place,data,options);
+        })));
+        
       },
       getValue :function _trc_Graph_getValue(record,name) {
-        "use strict";
         var _this=this;
         var type;
         
@@ -1063,36 +745,17 @@ Tonyu.klass.define({
         
         return _this.convertValue(record[name],type);
       },
-      fiber$getValue :function _trc_Graph_f_getValue(_thread,record,name) {
-        "use strict";
+      fiber$getValue :function* _trc_Graph_f_getValue(_thread,record,name) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var type;
         
+        type=yield* _this.fiber$detectType(_thread, name);
         
-        _thread.enter(function _trc_Graph_ent_getValue(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$detectType(_thread, name);
-              __pc=1;return;
-            case 1:
-              type=_thread.retVal;
-              
-              _this.fiber$convertValue(_thread, record[name], type);
-              __pc=2;return;
-            case 2:
-              _thread.exit(_thread.retVal);return;
-              
-              _thread.exit(_this);return;
-            }
-          }
-        });
+        return yield* _this.fiber$convertValue(_thread, record[name], type);
+        
+        
       },
       detectType :function _trc_Graph_detectType(name) {
-        "use strict";
         var _this=this;
         
         if (_this._typemap[name]) {
@@ -1100,23 +763,16 @@ Tonyu.klass.define({
         }
         return (name=="time"||name=="date"?"date":"number");
       },
-      fiber$detectType :function _trc_Graph_f_detectType(_thread,name) {
-        "use strict";
+      fiber$detectType :function* _trc_Graph_f_detectType(_thread,name) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         if (_this._typemap[name]) {
-          _thread.retVal=_this._typemap[name];return;
-          
+          return _this._typemap[name];
         }
-        _thread.retVal=(name=="time"||name=="date"?"date":"number");return;
+        return (name=="time"||name=="date"?"date":"number");
         
-        
-        _thread.retVal=_this;return;
       },
       convertValue :function _trc_Graph_convertValue(val,type) {
-        "use strict";
         var _this=this;
         
         if (type=="msec"||type=="sec"||type=="date"||type=="time") {
@@ -1128,38 +784,21 @@ Tonyu.klass.define({
         }
         return val;
       },
-      fiber$convertValue :function _trc_Graph_f_convertValue(_thread,val,type) {
-        "use strict";
+      fiber$convertValue :function* _trc_Graph_f_convertValue(_thread,val,type) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
+        if (type=="msec"||type=="sec"||type=="date"||type=="time") {
+          return yield* _this.fiber$convertTime(_thread, val, type);
+          
+          
+        }
+        if (type=="number") {
+          return val-0;
+        }
+        return val;
         
-        _thread.enter(function _trc_Graph_ent_convertValue(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              if (!(type=="msec"||type=="sec"||type=="date"||type=="time")) { __pc=2     ; break; }
-              _this.fiber$convertTime(_thread, val, type);
-              __pc=1;return;
-            case 1:
-              _thread.exit(_thread.retVal);return;
-              
-            case 2     :
-              
-              if (!(type=="number")) { __pc=3     ; break; }
-              _thread.exit(val-0);return;
-            case 3     :
-              
-              _thread.exit(val);return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       convertTime :function _trc_Graph_convertTime(t,to) {
-        "use strict";
         var _this=this;
         var n;
         
@@ -1179,44 +818,28 @@ Tonyu.klass.define({
         }
         return t;
       },
-      fiber$convertTime :function _trc_Graph_f_convertTime(_thread,t,to) {
-        "use strict";
+      fiber$convertTime :function* _trc_Graph_f_convertTime(_thread,t,to) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var n;
         
         to=to||"msec";
+        n=yield* _this.fiber$looksLikeNumber(_thread, t);
         
-        _thread.enter(function _trc_Graph_ent_convertTime(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$looksLikeNumber(_thread, t);
-              __pc=1;return;
-            case 1:
-              n=_thread.retVal;
-              
-              if (!(n)) { __pc=2     ; break; }
-              if (n<3000000000) {
-                n*=1000;
-                
-              }
-              if (to==="sec") {
-                n/=1000;
-              }
-              _thread.exit(n);return;
-            case 2     :
-              
-              _thread.exit(t);return;
-              _thread.exit(_this);return;
-            }
+        if (n) {
+          if (n<3000000000) {
+            n*=1000;
+            
           }
-        });
+          if (to==="sec") {
+            n/=1000;
+          }
+          return n;
+          
+        }
+        return t;
+        
       },
       looksLikeNumber :function _trc_Graph_looksLikeNumber(n) {
-        "use strict";
         var _this=this;
         
         if (typeof  n=="number") {
@@ -1231,40 +854,31 @@ Tonyu.klass.define({
         }
         return false;
       },
-      fiber$looksLikeNumber :function _trc_Graph_f_looksLikeNumber(_thread,n) {
-        "use strict";
+      fiber$looksLikeNumber :function* _trc_Graph_f_looksLikeNumber(_thread,n) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         if (typeof  n=="number") {
-          _thread.retVal=n;return;
-          
+          return n;
         }
         if (typeof  n=="string") {
           n-=0;
           if (n===n) {
-            _thread.retVal=n;return;
-            
+            return n;
           }
           
         }
-        _thread.retVal=false;return;
+        return false;
         
-        
-        _thread.retVal=_this;return;
       },
       sum :function _trc_Graph_sum(k) {
-        "use strict";
         var _this=this;
         var s;
         var v;
-        var _it_39;
         
         s = 0;
         
         if (typeof  (k)==="object") {
-          _this.i=0;for (; _this.i<k.length ; _this.i++) {
+          for (_this.i=0; _this.i<k.length ; _this.i++) {
             Tonyu.checkLoop();
             {
               s+=k[_this.i]-0;
@@ -1272,10 +886,7 @@ Tonyu.klass.define({
           }
           
         } else {
-          _it_39=Tonyu.iterator(_this.vec(k),1);
-          while(_it_39.next()) {
-            v=_it_39[0];
-            
+          for ([v] of Tonyu.iterator2(_this.vec(k),1)) {
             s+=v-0;
             
           }
@@ -1283,42 +894,32 @@ Tonyu.klass.define({
         }
         return s;
       },
-      fiber$sum :function _trc_Graph_f_sum(_thread,k) {
-        "use strict";
+      fiber$sum :function* _trc_Graph_f_sum(_thread,k) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var s;
         var v;
-        var _it_39;
         
         s = 0;
         
         if (typeof  (k)==="object") {
-          _this.i=0;for (; _this.i<k.length ; _this.i++) {
-            Tonyu.checkLoop();
+          for (_this.i=0; _this.i<k.length ; _this.i++) {
+            yield null;
             {
               s+=k[_this.i]-0;
             }
           }
           
         } else {
-          _it_39=Tonyu.iterator(_this.vec(k),1);
-          while(_it_39.next()) {
-            v=_it_39[0];
-            
+          for ([v] of Tonyu.iterator2(_this.vec(k),1)) {
             s+=v-0;
             
           }
           
         }
-        _thread.retVal=s;return;
+        return s;
         
-        
-        _thread.retVal=_this;return;
       },
       mean :function _trc_Graph_mean(k) {
-        "use strict";
         var _this=this;
         var a;
         
@@ -1333,11 +934,8 @@ Tonyu.klass.define({
         }
         return a;
       },
-      fiber$mean :function _trc_Graph_f_mean(_thread,k) {
-        "use strict";
+      fiber$mean :function* _trc_Graph_f_mean(_thread,k) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var a;
         
         a = 0;
@@ -1349,27 +947,23 @@ Tonyu.klass.define({
           a=_this.sum(k)/_this.src.length;
           
         }
-        _thread.retVal=a;return;
+        return a;
         
-        
-        _thread.retVal=_this;return;
       },
       dev :function _trc_Graph_dev(k) {
-        "use strict";
         var _this=this;
         var d;
         var a;
         var i;
         var v;
-        var _it_44;
         
         d = [];
         a = 0;
         
         if (k===undefined) {
           a=_this.mean(_this.src);
-          i = 0;
-          for (; i<_this.src.length ; i++) {
+          for (i = 0;
+           i<_this.src.length ; i++) {
             Tonyu.checkLoop();
             {
               d.push(_this.src[i]-a);
@@ -1378,10 +972,7 @@ Tonyu.klass.define({
           
         } else {
           a=_this.mean(k);
-          _it_44=Tonyu.iterator(_this.vec(k),1);
-          while(_it_44.next()) {
-            v=_it_44[0];
-            
+          for ([v] of Tonyu.iterator2(_this.vec(k),1)) {
             d.push(v-a);
             
           }
@@ -1389,63 +980,38 @@ Tonyu.klass.define({
         }
         return d;
       },
-      fiber$dev :function _trc_Graph_f_dev(_thread,k) {
-        "use strict";
+      fiber$dev :function* _trc_Graph_f_dev(_thread,k) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var d;
         var a;
         var i;
         var v;
-        var _it_44;
         
         d = [];
         a = 0;
         
-        
-        _thread.enter(function _trc_Graph_ent_dev(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              if (!(k===undefined)) { __pc=2     ; break; }
-              _this.fiber$mean(_thread, _this.src);
-              __pc=1;return;
-            case 1:
-              a=_thread.retVal;
-              
-              i = 0;
-              for (; i<_this.src.length ; i++) {
-                Tonyu.checkLoop();
-                {
-                  d.push(_this.src[i]-a);
-                }
-              }
-              __pc=4     ;break;
-            case 2     :
-              _this.fiber$mean(_thread, k);
-              __pc=3;return;
-            case 3:
-              a=_thread.retVal;
-              
-              _it_44=Tonyu.iterator(_this.vec(k),1);
-              while(_it_44.next()) {
-                v=_it_44[0];
-                
-                d.push(v-a);
-                
-              }
-            case 4     :
-              
-              _thread.exit(d);return;
-              _thread.exit(_this);return;
+        if (k===undefined) {
+          a=(yield* _this.fiber$mean(_thread, _this.src));
+          for (i = 0;
+           i<_this.src.length ; i++) {
+            yield null;
+            {
+              d.push(_this.src[i]-a);
             }
           }
-        });
+          
+        } else {
+          a=(yield* _this.fiber$mean(_thread, k));
+          for ([v] of Tonyu.iterator2(_this.vec(k),1)) {
+            d.push(v-a);
+            
+          }
+          
+        }
+        return d;
+        
       },
       vari :function _trc_Graph_vari(k) {
-        "use strict";
         var _this=this;
         var ary;
         var deved;
@@ -1456,8 +1022,8 @@ Tonyu.klass.define({
         if (k===undefined) {
           deved = _this.dev(_this.src);
           
-          i = 0;
-          for (; i<deved.length ; i++) {
+          for (i = 0;
+           i<deved.length ; i++) {
             Tonyu.checkLoop();
             {
               ary.push(Math.pow(deved[i],2));
@@ -1468,8 +1034,8 @@ Tonyu.klass.define({
           deved = _this.dev(k);
           
           console.log(deved);
-          i = 0;
-          for (; i<deved.length ; i++) {
+          for (i = 0;
+           i<deved.length ; i++) {
             Tonyu.checkLoop();
             {
               ary.push(Math.pow(deved[i],2));
@@ -1480,66 +1046,44 @@ Tonyu.klass.define({
         console.log("arrry",ary);
         return _this.mean(ary);
       },
-      fiber$vari :function _trc_Graph_f_vari(_thread,k) {
-        "use strict";
+      fiber$vari :function* _trc_Graph_f_vari(_thread,k) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var ary;
         var deved;
         var i;
         
         ary = [];
         
-        
-        _thread.enter(function _trc_Graph_ent_vari(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              if (!(k===undefined)) { __pc=2     ; break; }
-              _this.fiber$dev(_thread, _this.src);
-              __pc=1;return;
-            case 1:
-              deved=_thread.retVal;
-              
-              i = 0;
-              for (; i<deved.length ; i++) {
-                Tonyu.checkLoop();
-                {
-                  ary.push(Math.pow(deved[i],2));
-                }
-              }
-              __pc=4     ;break;
-            case 2     :
-              _this.fiber$dev(_thread, k);
-              __pc=3;return;
-            case 3:
-              deved=_thread.retVal;
-              
-              console.log(deved);
-              i = 0;
-              for (; i<deved.length ; i++) {
-                Tonyu.checkLoop();
-                {
-                  ary.push(Math.pow(deved[i],2));
-                }
-              }
-            case 4     :
-              
-              console.log("arrry",ary);
-              _this.fiber$mean(_thread, ary);
-              __pc=5;return;
-            case 5:
-              _thread.exit(_thread.retVal);return;
-              
-              _thread.exit(_this);return;
+        if (k===undefined) {
+          deved=yield* _this.fiber$dev(_thread, _this.src);
+          
+          for (i = 0;
+           i<deved.length ; i++) {
+            yield null;
+            {
+              ary.push(Math.pow(deved[i],2));
             }
           }
-        });
+          
+        } else {
+          deved=yield* _this.fiber$dev(_thread, k);
+          
+          console.log(deved);
+          for (i = 0;
+           i<deved.length ; i++) {
+            yield null;
+            {
+              ary.push(Math.pow(deved[i],2));
+            }
+          }
+          
+        }
+        console.log("arrry",ary);
+        return yield* _this.fiber$mean(_thread, ary);
+        
+        
       },
       std :function _trc_Graph_std(k) {
-        "use strict";
         var _this=this;
         var disp;
         
@@ -1547,39 +1091,22 @@ Tonyu.klass.define({
         
         return Math.sqrt(disp);
       },
-      fiber$std :function _trc_Graph_f_std(_thread,k) {
-        "use strict";
+      fiber$std :function* _trc_Graph_f_std(_thread,k) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var disp;
         
+        disp=yield* _this.fiber$vari(_thread, k);
         
-        _thread.enter(function _trc_Graph_ent_std(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$vari(_thread, k);
-              __pc=1;return;
-            case 1:
-              disp=_thread.retVal;
-              
-              _thread.exit(Math.sqrt(disp));return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
+        return Math.sqrt(disp);
+        
       },
       cov :function _trc_Graph_cov(k1,k2) {
-        "use strict";
         var _this=this;
         var dev1;
         var dev2;
         var dataCov;
         var k;
         var v;
-        var _it_54;
         
         dev1 = _this.dev(k1);
         
@@ -1587,64 +1114,36 @@ Tonyu.klass.define({
         
         dataCov = 0;
         
-        _it_54=Tonyu.iterator(dev1,2);
-        while(_it_54.next()) {
-          k=_it_54[0];
-          v=_it_54[1];
-          
+        for ([k, v] of Tonyu.iterator2(dev1,2)) {
           dataCov+=dev1[k]*dev2[k];
           
         }
         dataCov=dataCov/dev1.length;
         return dataCov;
       },
-      fiber$cov :function _trc_Graph_f_cov(_thread,k1,k2) {
-        "use strict";
+      fiber$cov :function* _trc_Graph_f_cov(_thread,k1,k2) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var dev1;
         var dev2;
         var dataCov;
         var k;
         var v;
-        var _it_54;
         
+        dev1=yield* _this.fiber$dev(_thread, k1);
         
-        _thread.enter(function _trc_Graph_ent_cov(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$dev(_thread, k1);
-              __pc=1;return;
-            case 1:
-              dev1=_thread.retVal;
-              
-              _this.fiber$dev(_thread, k2);
-              __pc=2;return;
-            case 2:
-              dev2=_thread.retVal;
-              
-              dataCov = 0;
-              
-              _it_54=Tonyu.iterator(dev1,2);
-              while(_it_54.next()) {
-                k=_it_54[0];
-                v=_it_54[1];
-                
-                dataCov+=dev1[k]*dev2[k];
-                
-              }
-              dataCov=dataCov/dev1.length;
-              _thread.exit(dataCov);return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
+        dev2=yield* _this.fiber$dev(_thread, k2);
+        
+        dataCov = 0;
+        
+        for ([k, v] of Tonyu.iterator2(dev1,2)) {
+          dataCov+=dev1[k]*dev2[k];
+          
+        }
+        dataCov=dataCov/dev1.length;
+        return dataCov;
+        
       },
       corrcoef :function _trc_Graph_corrcoef(k1,k2) {
-        "use strict";
         var _this=this;
         var cov1;
         var std1;
@@ -1658,44 +1157,22 @@ Tonyu.klass.define({
         
         return cov1/(std1*std2);
       },
-      fiber$corrcoef :function _trc_Graph_f_corrcoef(_thread,k1,k2) {
-        "use strict";
+      fiber$corrcoef :function* _trc_Graph_f_corrcoef(_thread,k1,k2) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var cov1;
         var std1;
         var std2;
         
+        cov1=yield* _this.fiber$cov(_thread, k1, k2);
         
-        _thread.enter(function _trc_Graph_ent_corrcoef(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$cov(_thread, k1, k2);
-              __pc=1;return;
-            case 1:
-              cov1=_thread.retVal;
-              
-              _this.fiber$std(_thread, k1);
-              __pc=2;return;
-            case 2:
-              std1=_thread.retVal;
-              
-              _this.fiber$std(_thread, k2);
-              __pc=3;return;
-            case 3:
-              std2=_thread.retVal;
-              
-              _thread.exit(cov1/(std1*std2));return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
+        std1=yield* _this.fiber$std(_thread, k1);
+        
+        std2=yield* _this.fiber$std(_thread, k2);
+        
+        return cov1/(std1*std2);
+        
       },
       _correlation :function _trc_Graph__correlation(d1,d2,min,max,interval) {
-        "use strict";
         var _this=this;
         var a;
         var b;
@@ -1711,8 +1188,8 @@ Tonyu.klass.define({
         
         y = [];
         
-        i = min;
-        for (; i<=max+1 ; i=i+interval) {
+        for (i = min;
+         i<=max+1 ; i=i+interval) {
           Tonyu.checkLoop();
           {
             x.push(i);
@@ -1721,11 +1198,8 @@ Tonyu.klass.define({
         }
         return {x: x,y: y};
       },
-      fiber$_correlation :function _trc_Graph_f__correlation(_thread,d1,d2,min,max,interval) {
-        "use strict";
+      fiber$_correlation :function* _trc_Graph_f__correlation(_thread,d1,d2,min,max,interval) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var a;
         var b;
         var x;
@@ -1740,23 +1214,21 @@ Tonyu.klass.define({
         
         y = [];
         
-        i = min;
-        for (; i<=max+1 ; i=i+interval) {
-          Tonyu.checkLoop();
+        for (i = min;
+         i<=max+1 ; i=i+interval) {
+          yield null;
           {
             x.push(i);
             y.push(a*i+b);
           }
         }
-        _thread.retVal={x: x,y: y};return;
+        return {x: x,y: y};
         
-        
-        _thread.retVal=_this;return;
       },
       __dummy: false
     };
   },
-  decls: {"methods":{"main":{"nowait":false},"new":{"nowait":false},"setData":{"nowait":false},"addData":{"nowait":false},"onLoadLib":{"nowait":false},"waitLoadLib":{"nowait":false},"_setCorrelation":{"nowait":false},"setAxisText":{"nowait":false},"setXAxisText":{"nowait":false},"setYAxisText":{"nowait":false},"setAxisType":{"nowait":false},"setXAxisType":{"nowait":false},"setYAxisType":{"nowait":false},"bindType":{"nowait":false},"setXRange":{"nowait":false},"setYRange":{"nowait":false},"line":{"nowait":false},"bar":{"nowait":false},"vec":{"nowait":false},"min":{"nowait":false},"max":{"nowait":false},"med":{"nowait":false},"mode":{"nowait":false},"freq":{"nowait":false},"scatter":{"nowait":false},"pie":{"nowait":false},"_drawGraph":{"nowait":false},"getValue":{"nowait":false},"detectType":{"nowait":false},"convertValue":{"nowait":false},"convertTime":{"nowait":false},"looksLikeNumber":{"nowait":false},"sum":{"nowait":false},"mean":{"nowait":false},"dev":{"nowait":false},"vari":{"nowait":false},"std":{"nowait":false},"cov":{"nowait":false},"corrcoef":{"nowait":false},"_correlation":{"nowait":false}},"fields":{"plotlyURL":{},"loadLibHandlers":{},"src":{},"_typemap":{},"Plotly":{},"_xaxtype":{},"_yaxtype":{},"_xrange":{},"_yrange":{},"key":{},"_isDrawCor":{},"_corObj":{},"_yaxname":{},"_xaxname":{},"_place":{},"i":{}}}
+  decls: {"methods":{"main":{"nowait":false,"isMain":true,"vtype":{"params":[],"returnValue":null}},"new":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"setData":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"addData":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"onLoadLib":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"waitLoadLib":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"_setCorrelation":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null,null],"returnValue":null}},"setAxisText":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setXAxisText":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"setYAxisText":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"setAxisType":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setXAxisType":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"setYAxisType":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"bindType":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setXRange":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"setYRange":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"line":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"bar":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"vec":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"min":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"max":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"med":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"mode":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"freq":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"scatter":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"pie":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"_drawGraph":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"getValue":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"detectType":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"convertValue":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"convertTime":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"looksLikeNumber":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"sum":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"mean":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"dev":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"vari":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"std":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"cov":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"corrcoef":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"_correlation":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null,null],"returnValue":null}}},"fields":{"plotlyURL":{},"loadLibHandlers":{},"src":{},"_typemap":{},"Plotly":{},"_xaxtype":{},"_yaxtype":{},"_xrange":{},"_yrange":{},"key":{},"_isDrawCor":{},"_corObj":{},"_yaxname":{},"_xaxname":{},"_place":{},"i":{}}}
 });
 Tonyu.klass.define({
   fullName: 'jslker.Parent',
@@ -1766,68 +1238,49 @@ Tonyu.klass.define({
   methods: function (__superClass) {
     return {
       main :function _trc_Parent_main() {
-        "use strict";
         var _this=this;
         
       },
-      fiber$main :function _trc_Parent_f_main(_thread) {
-        "use strict";
+      fiber$main :function* _trc_Parent_f_main(_thread) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         
-        _thread.retVal=_this;return;
       },
       __getter__Math :function _trc_Parent___getter__Math() {
-        "use strict";
         var _this=this;
         
         return window.Math;
       },
       __getter__document :function _trc_Parent___getter__document() {
-        "use strict";
         var _this=this;
         
         return window.document;
       },
       setInterval :function _trc_Parent_setInterval(f,t) {
-        "use strict";
         var _this=this;
         
         return window.setInterval(_this.catchException(f),t);
       },
-      fiber$setInterval :function _trc_Parent_f_setInterval(_thread,f,t) {
-        "use strict";
+      fiber$setInterval :function* _trc_Parent_f_setInterval(_thread,f,t) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
-        _thread.retVal=window.setInterval(_this.catchException(f),t);return;
+        return window.setInterval(_this.catchException(f),t);
         
-        
-        _thread.retVal=_this;return;
       },
       setTimeout :function _trc_Parent_setTimeout(f,t) {
-        "use strict";
         var _this=this;
         
         return window.setTimeout(_this.catchException(f),t);
       },
-      fiber$setTimeout :function _trc_Parent_f_setTimeout(_thread,f,t) {
-        "use strict";
+      fiber$setTimeout :function* _trc_Parent_f_setTimeout(_thread,f,t) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
-        _thread.retVal=window.setTimeout(_this.catchException(f),t);return;
+        return window.setTimeout(_this.catchException(f),t);
         
-        
-        _thread.retVal=_this;return;
       },
       catchException :function _trc_Parent_catchException(f) {
-        "use strict";
         var _this=this;
+        var e;
         
         return (function anonymous_560() {
           var e;
@@ -1841,13 +1294,11 @@ Tonyu.klass.define({
           }
         });
       },
-      fiber$catchException :function _trc_Parent_f_catchException(_thread,f) {
-        "use strict";
+      fiber$catchException :function* _trc_Parent_f_catchException(_thread,f) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
+        var e;
         
-        _thread.retVal=(function anonymous_560() {
+        return (function anonymous_560() {
           var e;
           
           try {
@@ -1857,13 +1308,10 @@ Tonyu.klass.define({
             window.onerror("","","","",e);
             
           }
-        });return;
+        });
         
-        
-        _thread.retVal=_this;return;
       },
       findElement :function _trc_Parent_findElement(elem) {
-        "use strict";
         var _this=this;
         var res;
         
@@ -1880,34 +1328,25 @@ Tonyu.klass.define({
         }
         return $("#"+elem);
       },
-      fiber$findElement :function _trc_Parent_f_findElement(_thread,elem) {
-        "use strict";
+      fiber$findElement :function* _trc_Parent_f_findElement(_thread,elem) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var res;
         
         if (elem instanceof $) {
-          _thread.retVal=elem;return;
-          
+          return elem;
         }
         if (elem instanceof window.Node) {
-          _thread.retVal=$(elem);return;
-          
+          return $(elem);
         }
         res = $("[name="+elem+"]");
         
         if (res[0]) {
-          _thread.retVal=res;return;
-          
+          return res;
         }
-        _thread.retVal=$("#"+elem);return;
+        return $("#"+elem);
         
-        
-        _thread.retVal=_this;return;
       },
       isFormElement :function _trc_Parent_isFormElement(elem) {
-        "use strict";
         var _this=this;
         var t;
         
@@ -1919,38 +1358,20 @@ Tonyu.klass.define({
         
         return t==="input"||t==="textarea";
       },
-      fiber$isFormElement :function _trc_Parent_f_isFormElement(_thread,elem) {
-        "use strict";
+      fiber$isFormElement :function* _trc_Parent_f_isFormElement(_thread,elem) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var t;
         
+        elem=(yield* _this.fiber$findElement(_thread, elem));
+        if (! elem[0]) {
+          return false;
+        }
+        t = (""+elem[0].tagName).toLowerCase();
         
-        _thread.enter(function _trc_Parent_ent_isFormElement(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$findElement(_thread, elem);
-              __pc=1;return;
-            case 1:
-              elem=_thread.retVal;
-              
-              if (!(! elem[0])) { __pc=2     ; break; }
-              _thread.exit(false);return;
-            case 2     :
-              
-              t = (""+elem[0].tagName).toLowerCase();
-              
-              _thread.exit(t==="input"||t==="textarea");return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
+        return t==="input"||t==="textarea";
+        
       },
       clearContent :function _trc_Parent_clearContent(elem) {
-        "use strict";
         var _this=this;
         
         elem=_this.findElement(elem);
@@ -1962,37 +1383,20 @@ Tonyu.klass.define({
           
         }
       },
-      fiber$clearContent :function _trc_Parent_f_clearContent(_thread,elem) {
-        "use strict";
+      fiber$clearContent :function* _trc_Parent_f_clearContent(_thread,elem) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
+        elem=(yield* _this.fiber$findElement(_thread, elem));
+        if (_this.isFormElement(elem)) {
+          elem.val("");
+          
+        } else {
+          elem.empty();
+          
+        }
         
-        _thread.enter(function _trc_Parent_ent_clearContent(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$findElement(_thread, elem);
-              __pc=1;return;
-            case 1:
-              elem=_thread.retVal;
-              
-              if (_this.isFormElement(elem)) {
-                elem.val("");
-                
-              } else {
-                elem.empty();
-                
-              }
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       addText :function _trc_Parent_addText(elem,val) {
-        "use strict";
         var _this=this;
         var dst;
         
@@ -2015,97 +1419,55 @@ Tonyu.klass.define({
           
         }
       },
-      fiber$addText :function _trc_Parent_f_addText(_thread,elem,val) {
-        "use strict";
+      fiber$addText :function* _trc_Parent_f_addText(_thread,elem,val) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var dst;
         
-        
-        _thread.enter(function _trc_Parent_ent_addText(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$findElement(_thread, elem);
-              __pc=1;return;
-            case 1:
-              elem=_thread.retVal;
-              
-              if (_this.isFormElement(elem)) {
-                elem.val(elem.val()+val);
-                
-              } else {
-                if (_this.document.baWriteTo) {
-                  dst = elem[0];
-                  
-                  if (dst) {
-                    _this.document.baWriteTo(dst,val);
-                  }
-                  
-                } else {
-                  elem.append(val);
-                  
-                }
-                
-              }
-              _thread.exit(_this);return;
+        elem=(yield* _this.fiber$findElement(_thread, elem));
+        if (_this.isFormElement(elem)) {
+          elem.val(elem.val()+val);
+          
+        } else {
+          if (_this.document.baWriteTo) {
+            dst = elem[0];
+            
+            if (dst) {
+              _this.document.baWriteTo(dst,val);
             }
+            
+          } else {
+            elem.append(val);
+            
           }
-        });
+          
+        }
+        
       },
       setText :function _trc_Parent_setText(elem,val) {
-        "use strict";
         var _this=this;
         
         _this.clearContent(elem);
         _this.addText(elem,val);
       },
-      fiber$setText :function _trc_Parent_f_setText(_thread,elem,val) {
-        "use strict";
+      fiber$setText :function* _trc_Parent_f_setText(_thread,elem,val) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
+        (yield* _this.fiber$clearContent(_thread, elem));
+        (yield* _this.fiber$addText(_thread, elem, val));
         
-        _thread.enter(function _trc_Parent_ent_setText(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$clearContent(_thread, elem);
-              __pc=1;return;
-            case 1:
-              
-              _this.fiber$addText(_thread, elem, val);
-              __pc=2;return;
-            case 2:
-              
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       getNumber :function _trc_Parent_getNumber(elem) {
-        "use strict";
         var _this=this;
         
         return _this.getText(elem)-0;
       },
-      fiber$getNumber :function _trc_Parent_f_getNumber(_thread,elem) {
-        "use strict";
+      fiber$getNumber :function* _trc_Parent_f_getNumber(_thread,elem) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
-        _thread.retVal=_this.getText(elem)-0;return;
+        return _this.getText(elem)-0;
         
-        
-        _thread.retVal=_this;return;
       },
       getText :function _trc_Parent_getText(elem) {
-        "use strict";
         var _this=this;
         
         elem=_this.findElement(elem);
@@ -2117,64 +1479,31 @@ Tonyu.klass.define({
           
         }
       },
-      fiber$getText :function _trc_Parent_f_getText(_thread,elem) {
-        "use strict";
+      fiber$getText :function* _trc_Parent_f_getText(_thread,elem) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
+        elem=(yield* _this.fiber$findElement(_thread, elem));
+        if (_this.isFormElement(elem)) {
+          return elem.val();
+          
+        } else {
+          return elem[0]&&elem[0].innerHTML;
+          
+        }
         
-        _thread.enter(function _trc_Parent_ent_getText(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$findElement(_thread, elem);
-              __pc=1;return;
-            case 1:
-              elem=_thread.retVal;
-              
-              if (!(_this.isFormElement(elem))) { __pc=2     ; break; }
-              _thread.exit(elem.val());return;
-              __pc=3     ;break;
-            case 2     :
-              _thread.exit(elem[0]&&elem[0].innerHTML);return;
-            case 3     :
-              
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       setNumber :function _trc_Parent_setNumber(elem,num) {
-        "use strict";
         var _this=this;
         
         _this.setText(elem,num);
       },
-      fiber$setNumber :function _trc_Parent_f_setNumber(_thread,elem,num) {
-        "use strict";
+      fiber$setNumber :function* _trc_Parent_f_setNumber(_thread,elem,num) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
+        (yield* _this.fiber$setText(_thread, elem, num));
         
-        _thread.enter(function _trc_Parent_ent_setNumber(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$setText(_thread, elem, num);
-              __pc=1;return;
-            case 1:
-              
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       arrayLike :function _trc_Parent_arrayLike(a) {
-        "use strict";
         var _this=this;
         
         if (typeof  a.length!=="number") {
@@ -2185,87 +1514,45 @@ Tonyu.klass.define({
         }
         return a[a.length-1]!==undefined;
       },
-      fiber$arrayLike :function _trc_Parent_f_arrayLike(_thread,a) {
-        "use strict";
+      fiber$arrayLike :function* _trc_Parent_f_arrayLike(_thread,a) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         if (typeof  a.length!=="number") {
-          _thread.retVal=false;return;
-          
+          return false;
         }
         if (a.length==0) {
-          _thread.retVal=true;return;
-          
+          return true;
         }
-        _thread.retVal=a[a.length-1]!==undefined;return;
+        return a[a.length-1]!==undefined;
         
-        
-        _thread.retVal=_this;return;
       },
       getAttr :function _trc_Parent_getAttr(elem,name) {
-        "use strict";
         var _this=this;
         
         elem=_this.findElement(elem);
         return elem.attr(name);
       },
-      fiber$getAttr :function _trc_Parent_f_getAttr(_thread,elem,name) {
-        "use strict";
+      fiber$getAttr :function* _trc_Parent_f_getAttr(_thread,elem,name) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
+        elem=(yield* _this.fiber$findElement(_thread, elem));
+        return elem.attr(name);
         
-        _thread.enter(function _trc_Parent_ent_getAttr(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$findElement(_thread, elem);
-              __pc=1;return;
-            case 1:
-              elem=_thread.retVal;
-              
-              _thread.exit(elem.attr(name));return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       setAttr :function _trc_Parent_setAttr(elem,name,value) {
-        "use strict";
         var _this=this;
         
         elem=_this.findElement(elem);
         return elem.attr(name,value);
       },
-      fiber$setAttr :function _trc_Parent_f_setAttr(_thread,elem,name,value) {
-        "use strict";
+      fiber$setAttr :function* _trc_Parent_f_setAttr(_thread,elem,name,value) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
+        elem=(yield* _this.fiber$findElement(_thread, elem));
+        return elem.attr(name,value);
         
-        _thread.enter(function _trc_Parent_ent_setAttr(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$findElement(_thread, elem);
-              __pc=1;return;
-            case 1:
-              elem=_thread.retVal;
-              
-              _thread.exit(elem.attr(name,value));return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       onClick :function _trc_Parent_onClick(elem,func,args) {
-        "use strict";
         var _this=this;
         var usepara;
         var fname;
@@ -2312,74 +1599,55 @@ Tonyu.klass.define({
           
         }
       },
-      fiber$onClick :function _trc_Parent_f_onClick(_thread,elem,func,args) {
-        "use strict";
+      fiber$onClick :function* _trc_Parent_f_onClick(_thread,elem,func,args) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var usepara;
         var fname;
         
         
-        
-        _thread.enter(function _trc_Parent_ent_onClick(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$findElement(_thread, elem);
-              __pc=1;return;
-            case 1:
-              elem=_thread.retVal;
-              
-              if (args!=null&&! _this.arrayLike(args)) {
-                args=[args];
-                
-              }
-              args=args||[elem];
-              if (typeof  func=='function') {
-                if (func.methodInfo) {
-                  fname=func.methodInfo.name;
-                  
-                }
-                
-              } else {
-                fname=func+"";
-                
-              }
-              if (typeof  fname=="string") {
-                if (! _this[fname]) {
-                  throw new Error("メソッド"+func+"が存在しません");
-                  
-                }
-                if (_this["fiber$"+fname]) {
-                  usepara=true;
-                  
-                }
-                
-              }
-              if (!(usepara)) { __pc=2     ; break; }
-              {
-                elem.click(_this.catchException((function anonymous_2878() {
-                  
-                  Tonyu.bindFunc(_this,_this.parallel).apply(_this,[fname].concat(args));
-                })));
-              }
-              __pc=3     ;break;
-            case 2     :
-              elem.click(_this.catchException((function anonymous_3062() {
-                
-                return func.apply(_this,args);
-              })));
-            case 3     :
-              
-              _thread.exit(_this);return;
-            }
+        elem=(yield* _this.fiber$findElement(_thread, elem));
+        if (args!=null&&! _this.arrayLike(args)) {
+          args=[args];
+          
+        }
+        args=args||[elem];
+        if (typeof  func=='function') {
+          if (func.methodInfo) {
+            fname=func.methodInfo.name;
+            
           }
-        });
+          
+        } else {
+          fname=func+"";
+          
+        }
+        if (typeof  fname=="string") {
+          if (! _this[fname]) {
+            throw new Error("メソッド"+func+"が存在しません");
+            
+          }
+          if (_this["fiber$"+fname]) {
+            usepara=true;
+            
+          }
+          
+        }
+        if (usepara) {
+          elem.click(_this.catchException((function anonymous_2878() {
+            
+            Tonyu.bindFunc(_this,_this.parallel).apply(_this,[fname].concat(args));
+          })));
+          
+        } else {
+          elem.click(_this.catchException((function anonymous_3062() {
+            
+            return func.apply(_this,args);
+          })));
+          
+        }
+        
       },
       onTouch :function _trc_Parent_onTouch(func) {
-        "use strict";
         var _this=this;
         
         if (typeof  func=="function") {
@@ -2414,11 +1682,8 @@ Tonyu.klass.define({
           
         }
       },
-      fiber$onTouch :function _trc_Parent_f_onTouch(_thread,func) {
-        "use strict";
+      fiber$onTouch :function* _trc_Parent_f_onTouch(_thread,func) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         if (typeof  func=="function") {
           $("body").on("touchstart",(function anonymous_3218(e) {
@@ -2452,26 +1717,19 @@ Tonyu.klass.define({
           
         }
         
-        _thread.retVal=_this;return;
       },
       setCanvas :function _trc_Parent_setCanvas(canv) {
-        "use strict";
         var _this=this;
         
         _this._canvas=_this.findElement(canv)[0];
       },
-      fiber$setCanvas :function _trc_Parent_f_setCanvas(_thread,canv) {
-        "use strict";
+      fiber$setCanvas :function* _trc_Parent_f_setCanvas(_thread,canv) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         _this._canvas=_this.findElement(canv)[0];
         
-        _thread.retVal=_this;return;
       },
       searchCanvas :function _trc_Parent_searchCanvas() {
-        "use strict";
         var _this=this;
         
         if (! _this._canvas) {
@@ -2482,26 +1740,19 @@ Tonyu.klass.define({
           
         }
       },
-      fiber$searchCanvas :function _trc_Parent_f_searchCanvas(_thread) {
-        "use strict";
+      fiber$searchCanvas :function* _trc_Parent_f_searchCanvas(_thread) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         if (! _this._canvas) {
-          _thread.retVal=_this._canvas=$("canvas")[0];return;
-          
+          return _this._canvas=$("canvas")[0];
           
         } else {
-          _thread.retVal=_this._canvas;return;
-          
+          return _this._canvas;
           
         }
         
-        _thread.retVal=_this;return;
       },
       setColor :function _trc_Parent_setColor(r,g,b) {
-        "use strict";
         var _this=this;
         
         if (_this.searchCanvas()) {
@@ -2511,11 +1762,8 @@ Tonyu.klass.define({
           
         }
       },
-      fiber$setColor :function _trc_Parent_f_setColor(_thread,r,g,b) {
-        "use strict";
+      fiber$setColor :function* _trc_Parent_f_setColor(_thread,r,g,b) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         if (_this.searchCanvas()) {
           _this.ctx=_this._canvas.getContext("2d");
@@ -2524,10 +1772,8 @@ Tonyu.klass.define({
           
         }
         
-        _thread.retVal=_this;return;
       },
       fillRect :function _trc_Parent_fillRect(x,y,w,h) {
-        "use strict";
         var _this=this;
         
         if (_this.searchCanvas()) {
@@ -2536,11 +1782,8 @@ Tonyu.klass.define({
           
         }
       },
-      fiber$fillRect :function _trc_Parent_f_fillRect(_thread,x,y,w,h) {
-        "use strict";
+      fiber$fillRect :function* _trc_Parent_f_fillRect(_thread,x,y,w,h) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         if (_this.searchCanvas()) {
           _this.ctx=_this._canvas.getContext("2d");
@@ -2548,10 +1791,8 @@ Tonyu.klass.define({
           
         }
         
-        _thread.retVal=_this;return;
       },
       changeImage :function _trc_Parent_changeImage(elem,newsrc) {
-        "use strict";
         var _this=this;
         
         if (! (newsrc+"").match(/^http/)) {
@@ -2560,11 +1801,8 @@ Tonyu.klass.define({
         }
         _this.findElement(elem).attr("src",newsrc);
       },
-      fiber$changeImage :function _trc_Parent_f_changeImage(_thread,elem,newsrc) {
-        "use strict";
+      fiber$changeImage :function* _trc_Parent_f_changeImage(_thread,elem,newsrc) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         if (! (newsrc+"").match(/^http/)) {
           newsrc=_this.slashify(_this.getRuntimePath())+newsrc;
@@ -2572,26 +1810,19 @@ Tonyu.klass.define({
         }
         _this.findElement(elem).attr("src",newsrc);
         
-        _thread.retVal=_this;return;
       },
       move :function _trc_Parent_move(elem,x,y) {
-        "use strict";
         var _this=this;
         
         _this.findElement(elem).css({position: "absolute",left: x,top: y});
       },
-      fiber$move :function _trc_Parent_f_move(_thread,elem,x,y) {
-        "use strict";
+      fiber$move :function* _trc_Parent_f_move(_thread,elem,x,y) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         _this.findElement(elem).css({position: "absolute",left: x,top: y});
         
-        _thread.retVal=_this;return;
       },
       transform :function _trc_Parent_transform(elem,angle,scaleX,scaleY) {
-        "use strict";
         var _this=this;
         
         console.log(scaleX,scaleY);
@@ -2608,11 +1839,8 @@ Tonyu.klass.define({
         console.log(scaleX,scaleY);
         _this.findElement(elem).css({position: "absolute",transform: "rotate("+angle+"deg) scale("+scaleX+","+scaleY+")"});
       },
-      fiber$transform :function _trc_Parent_f_transform(_thread,elem,angle,scaleX,scaleY) {
-        "use strict";
+      fiber$transform :function* _trc_Parent_f_transform(_thread,elem,angle,scaleX,scaleY) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         console.log(scaleX,scaleY);
         if (! scaleX) {
@@ -2628,139 +1856,77 @@ Tonyu.klass.define({
         console.log(scaleX,scaleY);
         _this.findElement(elem).css({position: "absolute",transform: "rotate("+angle+"deg) scale("+scaleX+","+scaleY+")"});
         
-        _thread.retVal=_this;return;
       },
       rotate :function _trc_Parent_rotate(elem,angle) {
-        "use strict";
         var _this=this;
         
         _this.findElement(elem).css({position: "absolute",transform: "rotate("+angle+"deg)"});
       },
-      fiber$rotate :function _trc_Parent_f_rotate(_thread,elem,angle) {
-        "use strict";
+      fiber$rotate :function* _trc_Parent_f_rotate(_thread,elem,angle) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         _this.findElement(elem).css({position: "absolute",transform: "rotate("+angle+"deg)"});
         
-        _thread.retVal=_this;return;
       },
       resize :function _trc_Parent_resize(elem,w,h) {
-        "use strict";
         var _this=this;
         
         _this.findElement(elem).css({position: "absolute",transform: "scale("+w+","+h+")"});
       },
-      fiber$resize :function _trc_Parent_f_resize(_thread,elem,w,h) {
-        "use strict";
+      fiber$resize :function* _trc_Parent_f_resize(_thread,elem,w,h) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         _this.findElement(elem).css({position: "absolute",transform: "scale("+w+","+h+")"});
         
-        _thread.retVal=_this;return;
       },
       wait :function _trc_Parent_wait(time) {
-        "use strict";
         var _this=this;
-        var t;
-        var runThread;
         
         time=time||100;
-        t = null;
-        
-        runThread = _this.catchException((function anonymous_5646() {
+        _this.waitFor(new Promise((function anonymous_5616(s) {
           
-          t.steps();
-          if (t.preempted) {
-            setTimeout(runThread,0);
-            
-          }
-        }));
-        
-        t.suspend();
-        setTimeout(runThread,time);
+          setTimeout(s,time);
+        })));
       },
-      fiber$wait :function _trc_Parent_f_wait(_thread,time) {
-        "use strict";
+      fiber$wait :function* _trc_Parent_f_wait(_thread,time) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
-        var t;
-        var runThread;
         
         time=time||100;
-        t = _thread;
+        (yield* _this.fiber$waitFor(_thread, new Promise((function anonymous_5616(s) {
+          
+          setTimeout(s,time);
+        }))));
         
-        
-        _thread.enter(function _trc_Parent_ent_wait(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$catchException(_thread, (function anonymous_5646() {
-                
-                t.steps();
-                if (t.preempted) {
-                  setTimeout(runThread,0);
-                  
-                }
-              }));
-              __pc=1;return;
-            case 1:
-              runThread=_thread.retVal;
-              
-              t.suspend();
-              setTimeout(runThread,time);
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       rnd :function _trc_Parent_rnd(max) {
-        "use strict";
         var _this=this;
         
         return _this.Math.floor(_this.Math.random()*max);
       },
-      fiber$rnd :function _trc_Parent_f_rnd(_thread,max) {
-        "use strict";
+      fiber$rnd :function* _trc_Parent_f_rnd(_thread,max) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
-        _thread.retVal=_this.Math.floor(_this.Math.random()*max);return;
+        return _this.Math.floor(_this.Math.random()*max);
         
-        
-        _thread.retVal=_this;return;
       },
       setBGColor :function _trc_Parent_setBGColor(c) {
-        "use strict";
         var _this=this;
         
         $("body").attr("bgcolor",c);
       },
-      fiber$setBGColor :function _trc_Parent_f_setBGColor(_thread,c) {
-        "use strict";
+      fiber$setBGColor :function* _trc_Parent_f_setBGColor(_thread,c) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         $("body").attr("bgcolor",c);
         
-        _thread.retVal=_this;return;
       },
       newElement :function _trc_Parent_newElement(elem,n,innerHTML) {
-        "use strict";
         var _this=this;
         var e;
         var parent;
         var after;
         var k;
         var v;
-        var _it_83;
         
         e = _this.document.createElement(elem);
         
@@ -2784,11 +1950,7 @@ Tonyu.klass.define({
             delete n.onClick;
             
           }
-          _it_83=Tonyu.iterator(n,2);
-          while(_it_83.next()) {
-            k=_it_83[0];
-            v=_it_83[1];
-            
+          for ([k, v] of Tonyu.iterator2(n,2)) {
             e.setAttribute(k,v);
             
           }
@@ -2805,17 +1967,13 @@ Tonyu.klass.define({
         }
         return $(e);
       },
-      fiber$newElement :function _trc_Parent_f_newElement(_thread,elem,n,innerHTML) {
-        "use strict";
+      fiber$newElement :function* _trc_Parent_f_newElement(_thread,elem,n,innerHTML) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var e;
         var parent;
         var after;
         var k;
         var v;
-        var _it_83;
         
         e = _this.document.createElement(elem);
         
@@ -2823,64 +1981,41 @@ Tonyu.klass.define({
         
         after = {};
         
-        
-        _thread.enter(function _trc_Parent_ent_newElement(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              if (!(typeof  n==="string")) { __pc=1     ; break; }
-              {
-                e.setAttribute("name",n);
-              }
-              __pc=4     ;break;
-            case 1     :
-              if (!(n.parent)) { __pc=3     ; break; }
-              _this.fiber$findElement(_thread, n.parent);
-              __pc=2;return;
-            case 2:
-              parent=_thread.retVal;
-              
-              if (typeof  n.parent!=="string") {
-                delete n.parent;
-              }
-            case 3     :
-              
-              if (n.onClick) {
-                after.onClick=n.onClick;
-                delete n.onClick;
-                
-              }
-              _it_83=Tonyu.iterator(n,2);
-              while(_it_83.next()) {
-                k=_it_83[0];
-                v=_it_83[1];
-                
-                e.setAttribute(k,v);
-                
-              }
-            case 4     :
-              
-              if (innerHTML) {
-                e.innerHTML=innerHTML;
-                
-              }
-              parent.append(e);
-              if (!(after.onClick)) { __pc=6     ; break; }
-              _this.fiber$onClick(_thread, e, after.onClick);
-              __pc=5;return;
-            case 5:
-              
-            case 6     :
-              
-              _thread.exit($(e));return;
-              _thread.exit(_this);return;
+        if (typeof  n==="string") {
+          e.setAttribute("name",n);
+          
+        } else {
+          if (n.parent) {
+            parent=(yield* _this.fiber$findElement(_thread, n.parent));
+            if (typeof  n.parent!=="string") {
+              delete n.parent;
             }
+            
           }
-        });
+          if (n.onClick) {
+            after.onClick=n.onClick;
+            delete n.onClick;
+            
+          }
+          for ([k, v] of Tonyu.iterator2(n,2)) {
+            e.setAttribute(k,v);
+            
+          }
+          
+        }
+        if (innerHTML) {
+          e.innerHTML=innerHTML;
+          
+        }
+        parent.append(e);
+        if (after.onClick) {
+          (yield* _this.fiber$onClick(_thread, e, after.onClick));
+          
+        }
+        return $(e);
+        
       },
       fillOval :function _trc_Parent_fillOval(x,y,w,h) {
-        "use strict";
         var _this=this;
         
         if (_this.searchCanvas()) {
@@ -2895,11 +2030,8 @@ Tonyu.klass.define({
           
         }
       },
-      fiber$fillOval :function _trc_Parent_f_fillOval(_thread,x,y,w,h) {
-        "use strict";
+      fiber$fillOval :function* _trc_Parent_f_fillOval(_thread,x,y,w,h) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         if (_this.searchCanvas()) {
           _this.ctx=_this._canvas.getContext("2d");
@@ -2913,10 +2045,8 @@ Tonyu.klass.define({
           
         }
         
-        _thread.retVal=_this;return;
       },
       drawLine :function _trc_Parent_drawLine(x1,y1,x2,y2) {
-        "use strict";
         var _this=this;
         
         if (_this.searchCanvas()) {
@@ -2928,11 +2058,8 @@ Tonyu.klass.define({
           
         }
       },
-      fiber$drawLine :function _trc_Parent_f_drawLine(_thread,x1,y1,x2,y2) {
-        "use strict";
+      fiber$drawLine :function* _trc_Parent_f_drawLine(_thread,x1,y1,x2,y2) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         if (_this.searchCanvas()) {
           _this.ctx=_this._canvas.getContext("2d");
@@ -2943,10 +2070,8 @@ Tonyu.klass.define({
           
         }
         
-        _thread.retVal=_this;return;
       },
       clearRect :function _trc_Parent_clearRect(x,y,w,h) {
-        "use strict";
         var _this=this;
         
         if (_this.searchCanvas()) {
@@ -2955,11 +2080,8 @@ Tonyu.klass.define({
           
         }
       },
-      fiber$clearRect :function _trc_Parent_f_clearRect(_thread,x,y,w,h) {
-        "use strict";
+      fiber$clearRect :function* _trc_Parent_f_clearRect(_thread,x,y,w,h) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         if (_this.searchCanvas()) {
           _this.ctx=_this._canvas.getContext("2d");
@@ -2967,10 +2089,8 @@ Tonyu.klass.define({
           
         }
         
-        _thread.retVal=_this;return;
       },
       fillText :function _trc_Parent_fillText(t,x,y) {
-        "use strict";
         var _this=this;
         
         if (_this.searchCanvas()) {
@@ -2979,11 +2099,8 @@ Tonyu.klass.define({
           
         }
       },
-      fiber$fillText :function _trc_Parent_f_fillText(_thread,t,x,y) {
-        "use strict";
+      fiber$fillText :function* _trc_Parent_f_fillText(_thread,t,x,y) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         if (_this.searchCanvas()) {
           _this.ctx=_this._canvas.getContext("2d");
@@ -2991,15 +2108,13 @@ Tonyu.klass.define({
           
         }
         
-        _thread.retVal=_this;return;
       },
       initialize :function _trc_Parent_initialize() {
-        "use strict";
         var _this=this;
         
         _this.activityGroup=_this.activityGroup||"default";
         _this.keyData=[];
-        _this.document.onkeydown=(function anonymous_7530(e) {
+        _this.document.onkeydown=(function anonymous_7386(e) {
           var key_code;
           var key_char;
           
@@ -3042,7 +2157,7 @@ Tonyu.klass.define({
             }
           }
         });
-        _this.document.onkeyup=(function anonymous_8607(e) {
+        _this.document.onkeyup=(function anonymous_8463(e) {
           var key_code;
           var key_char;
           
@@ -3085,149 +2200,94 @@ Tonyu.klass.define({
         });
       },
       getkey :function _trc_Parent_getkey(k) {
-        "use strict";
         var _this=this;
         
         return _this.keyData[k.toLowerCase()]||0;
       },
-      fiber$getkey :function _trc_Parent_f_getkey(_thread,k) {
-        "use strict";
+      fiber$getkey :function* _trc_Parent_f_getkey(_thread,k) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
-        _thread.retVal=_this.keyData[k.toLowerCase()]||0;return;
+        return _this.keyData[k.toLowerCase()]||0;
         
-        
-        _thread.retVal=_this;return;
       },
       dist :function _trc_Parent_dist(x,y) {
-        "use strict";
         var _this=this;
         
         return _this.sqrt(x*x+y*y);
       },
-      fiber$dist :function _trc_Parent_f_dist(_thread,x,y) {
-        "use strict";
+      fiber$dist :function* _trc_Parent_f_dist(_thread,x,y) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
+        
+        return yield* _this.fiber$sqrt(_thread, x*x+y*y);
         
         
-        _thread.enter(function _trc_Parent_ent_dist(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$sqrt(_thread, x*x+y*y);
-              __pc=1;return;
-            case 1:
-              _thread.exit(_thread.retVal);return;
-              
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       angle :function _trc_Parent_angle(x,y) {
-        "use strict";
         var _this=this;
         
         return _this.deg(_this.Math.atan2(y,x));
       },
-      fiber$angle :function _trc_Parent_f_angle(_thread,x,y) {
-        "use strict";
+      fiber$angle :function* _trc_Parent_f_angle(_thread,x,y) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
-        _thread.retVal=_this.deg(_this.Math.atan2(y,x));return;
+        return _this.deg(_this.Math.atan2(y,x));
         
-        
-        _thread.retVal=_this;return;
       },
       rad :function _trc_Parent_rad(d) {
-        "use strict";
         var _this=this;
         
         return d/180*_this.Math.PI;
       },
       deg :function _trc_Parent_deg(d) {
-        "use strict";
         var _this=this;
         
         return d/_this.Math.PI*180;
       },
       sqrt :function _trc_Parent_sqrt(x) {
-        "use strict";
         var _this=this;
         
         return _this.Math.sqrt(x);
       },
-      fiber$sqrt :function _trc_Parent_f_sqrt(_thread,x) {
-        "use strict";
+      fiber$sqrt :function* _trc_Parent_f_sqrt(_thread,x) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
-        _thread.retVal=_this.Math.sqrt(x);return;
+        return _this.Math.sqrt(x);
         
-        
-        _thread.retVal=_this;return;
       },
       sin :function _trc_Parent_sin(x) {
-        "use strict";
         var _this=this;
         
         return _this.Math.sin(_this.rad(x));
       },
-      fiber$sin :function _trc_Parent_f_sin(_thread,x) {
-        "use strict";
+      fiber$sin :function* _trc_Parent_f_sin(_thread,x) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
-        _thread.retVal=_this.Math.sin(_this.rad(x));return;
+        return _this.Math.sin(_this.rad(x));
         
-        
-        _thread.retVal=_this;return;
       },
       cos :function _trc_Parent_cos(x) {
-        "use strict";
         var _this=this;
         
         return _this.Math.cos(_this.rad(x));
       },
-      fiber$cos :function _trc_Parent_f_cos(_thread,x) {
-        "use strict";
+      fiber$cos :function* _trc_Parent_f_cos(_thread,x) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
-        _thread.retVal=_this.Math.cos(_this.rad(x));return;
+        return _this.Math.cos(_this.rad(x));
         
-        
-        _thread.retVal=_this;return;
       },
       tan :function _trc_Parent_tan(x) {
-        "use strict";
         var _this=this;
         
         return _this.Math.tan(_this.rad(x));
       },
-      fiber$tan :function _trc_Parent_f_tan(_thread,x) {
-        "use strict";
+      fiber$tan :function* _trc_Parent_f_tan(_thread,x) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
-        _thread.retVal=_this.Math.tan(_this.rad(x));return;
+        return _this.Math.tan(_this.rad(x));
         
-        
-        _thread.retVal=_this;return;
       },
       parallel :function _trc_Parent_parallel() {
-        "use strict";
         var _this=this;
         var a;
         var methodName;
@@ -3240,13 +2300,11 @@ Tonyu.klass.define({
         t = Tonyu.thread();
         
         t.apply(_this,methodName,a);
-        t.steps();
+        _this.runThread(t);
       },
-      fiber$parallel :function _trc_Parent_f_parallel(_thread) {
-        "use strict";
+      fiber$parallel :function* _trc_Parent_f_parallel(_thread) {
         var _this=this;
         var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var a;
         var methodName;
         var t;
@@ -3258,19 +2316,42 @@ Tonyu.klass.define({
         t = Tonyu.thread();
         
         t.apply(_this,methodName,a);
-        t.steps();
+        (yield* _this.fiber$runThread(_thread, t));
         
-        _thread.retVal=_this;return;
+      },
+      runThread :function _trc_Parent_runThread(th) {
+        var _this=this;
+        
+        (_this.catchException((function anonymous_9720() {
+          
+          th.steps();
+          if (th.preempted) {
+            setTimeout((()=>(_this.runThread(th))),0);
+            
+          }
+        })))();
+      },
+      fiber$runThread :function* _trc_Parent_f_runThread(_thread,th) {
+        var _this=this;
+        
+        (_this.catchException((function anonymous_9720() {
+          
+          th.steps();
+          if (th.preempted) {
+            setTimeout((()=>(_this.runThread(th))),0);
+            
+          }
+        })))();
+        
       },
       waitClick :function _trc_Parent_waitClick(elem) {
-        "use strict";
         var _this=this;
         var clicked;
         var _func;
         
         clicked = 0;
         
-        _func = (function anonymous_9868() {
+        _func = (function anonymous_9898() {
           
           clicked=1;
         });
@@ -3283,121 +2364,53 @@ Tonyu.klass.define({
         }
         _this.findElement(elem).off("click","",_func);
       },
-      fiber$waitClick :function _trc_Parent_f_waitClick(_thread,elem) {
-        "use strict";
+      fiber$waitClick :function* _trc_Parent_f_waitClick(_thread,elem) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var clicked;
         var _func;
         
         clicked = 0;
         
-        _func = (function anonymous_9868() {
+        _func = (function anonymous_9898() {
           
           clicked=1;
         });
         
+        (yield* _this.fiber$onClick(_thread, elem, _func));
+        while (clicked==0) {
+          yield null;
+          (yield* _this.fiber$wait(_thread, 10));
+          
+        }
+        _this.findElement(elem).off("click","",_func);
         
-        _thread.enter(function _trc_Parent_ent_waitClick(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$onClick(_thread, elem, _func);
-              __pc=1;return;
-            case 1:
-              
-            case 2:
-              if (!(clicked==0)) { __pc=4     ; break; }
-              _this.fiber$wait(_thread, 10);
-              __pc=3;return;
-            case 3:
-              
-              __pc=2;break;
-            case 4     :
-              
-              _this.findElement(elem).off("click","",_func);
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       _waitFor :function _trc_Parent__waitFor(promise) {
-        "use strict";
         var _this=this;
-        var t;
-        var runThread;
         
-        t = null;
-        
-        runThread = _this.catchException((function anonymous_10109() {
-          
-          t.steps();
-          if (t.preempted) {
-            setTimeout(runThread,0);
-            
-          }
-        }));
-        
-        t.suspend();
         _this._err=null;
-        promise.then((function anonymous_10269(r) {
+        promise.then((function anonymous_10127(r) {
           
           _this._res=r;
-          runThread();
-        }),(function anonymous_10322(e) {
+        }),(function anonymous_10158(e) {
           
           _this._err=(e instanceof window.Error?e:new Error(e.responseText||e+""));
-          runThread();
         }));
       },
-      fiber$_waitFor :function _trc_Parent_f__waitFor(_thread,promise) {
-        "use strict";
+      fiber$_waitFor :function* _trc_Parent_f__waitFor(_thread,promise) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
-        var t;
-        var runThread;
         
-        t = _thread;
+        _this._err=null;
+        (yield* _thread.await(promise.then((function anonymous_10127(r) {
+          
+          _this._res=r;
+        }),(function anonymous_10158(e) {
+          
+          _this._err=(e instanceof window.Error?e:new Error(e.responseText||e+""));
+        }))));
         
-        
-        _thread.enter(function _trc_Parent_ent__waitFor(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$catchException(_thread, (function anonymous_10109() {
-                
-                t.steps();
-                if (t.preempted) {
-                  setTimeout(runThread,0);
-                  
-                }
-              }));
-              __pc=1;return;
-            case 1:
-              runThread=_thread.retVal;
-              
-              t.suspend();
-              _this._err=null;
-              promise.then((function anonymous_10269(r) {
-                
-                _this._res=r;
-                runThread();
-              }),(function anonymous_10322(e) {
-                
-                _this._err=(e instanceof window.Error?e:new Error(e.responseText||e+""));
-                runThread();
-              }));
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       waitFor :function _trc_Parent_waitFor(promise) {
-        "use strict";
         var _this=this;
         
         _this._waitFor(promise);
@@ -3407,48 +2420,27 @@ Tonyu.klass.define({
         }
         return _this._res;
       },
-      fiber$waitFor :function _trc_Parent_f_waitFor(_thread,promise) {
-        "use strict";
+      fiber$waitFor :function* _trc_Parent_f_waitFor(_thread,promise) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
+        (yield* _this.fiber$_waitFor(_thread, promise));
+        if (_this._err) {
+          throw _this._err;
+          
+        }
+        return _this._res;
         
-        _thread.enter(function _trc_Parent_ent_waitFor(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$_waitFor(_thread, promise);
-              __pc=1;return;
-            case 1:
-              
-              if (_this._err) {
-                throw _this._err;
-                
-              }
-              _thread.exit(_this._res);return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       selHosts :function _trc_Parent_selHosts() {
-        "use strict";
         var _this=this;
         var hosts;
         var k;
         var v;
-        var _it_105;
         var u;
         
         hosts = window.BitArrow.hosts;
         
-        _it_105=Tonyu.iterator(hosts,2);
-        while(_it_105.next()) {
-          k=_it_105[0];
-          v=_it_105[1];
-          
+        for ([k, v] of Tonyu.iterator2(hosts,2)) {
           u = new window.URL(v.runtime);
           
           if (u.host===window.location.hostname) {
@@ -3459,74 +2451,50 @@ Tonyu.klass.define({
         }
         return hosts.ide;
       },
-      fiber$selHosts :function _trc_Parent_f_selHosts(_thread) {
-        "use strict";
+      fiber$selHosts :function* _trc_Parent_f_selHosts(_thread) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var hosts;
         var k;
         var v;
-        var _it_105;
         var u;
         
         hosts = window.BitArrow.hosts;
         
-        _it_105=Tonyu.iterator(hosts,2);
-        while(_it_105.next()) {
-          k=_it_105[0];
-          v=_it_105[1];
-          
+        for ([k, v] of Tonyu.iterator2(hosts,2)) {
           u = new window.URL(v.runtime);
           
           if (u.host===window.location.hostname) {
-            _thread.retVal=v;return;
-            
+            return v;
             
           }
           
         }
-        _thread.retVal=hosts.ide;return;
+        return hosts.ide;
         
-        
-        _thread.retVal=_this;return;
       },
       slashify :function _trc_Parent_slashify(p) {
-        "use strict";
         var _this=this;
         
         return p.match(/\/$/)?p:p+"/";
       },
-      fiber$slashify :function _trc_Parent_f_slashify(_thread,p) {
-        "use strict";
+      fiber$slashify :function* _trc_Parent_f_slashify(_thread,p) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
-        _thread.retVal=p.match(/\/$/)?p:p+"/";return;
+        return p.match(/\/$/)?p:p+"/";
         
-        
-        _thread.retVal=_this;return;
       },
       getRuntimePath :function _trc_Parent_getRuntimePath() {
-        "use strict";
         var _this=this;
         
         return _this.selHosts().runtime;
       },
-      fiber$getRuntimePath :function _trc_Parent_f_getRuntimePath(_thread) {
-        "use strict";
+      fiber$getRuntimePath :function* _trc_Parent_f_getRuntimePath(_thread) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
-        _thread.retVal=_this.selHosts().runtime;return;
+        return _this.selHosts().runtime;
         
-        
-        _thread.retVal=_this;return;
       },
       putToServer :function _trc_Parent_putToServer(key,value) {
-        "use strict";
         var _this=this;
         var url;
         var p;
@@ -3540,11 +2508,8 @@ Tonyu.klass.define({
         r=_this.waitFor(p);
         return r;
       },
-      fiber$putToServer :function _trc_Parent_f_putToServer(_thread,key,value) {
-        "use strict";
+      fiber$putToServer :function* _trc_Parent_f_putToServer(_thread,key,value) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var url;
         var p;
         var r;
@@ -3554,41 +2519,22 @@ Tonyu.klass.define({
         p = window.$.ajax({url: _this.slashify(_this.getRuntimePath())+"a.php?KeyValue/put",type: 'POST',data: {key: key,value: value,url: url,group: _this.activityGroup}});
         
         
+        r=(yield* _this.fiber$waitFor(_thread, p));
+        return r;
         
-        _thread.enter(function _trc_Parent_ent_putToServer(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$waitFor(_thread, p);
-              __pc=1;return;
-            case 1:
-              r=_thread.retVal;
-              
-              _thread.exit(r);return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       setGroup :function _trc_Parent_setGroup(g) {
-        "use strict";
         var _this=this;
         
         _this.activityGroup=g||"default";
       },
-      fiber$setGroup :function _trc_Parent_f_setGroup(_thread,g) {
-        "use strict";
+      fiber$setGroup :function* _trc_Parent_f_setGroup(_thread,g) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         _this.activityGroup=g||"default";
         
-        _thread.retVal=_this;return;
       },
       getFromServer :function _trc_Parent_getFromServer(key) {
-        "use strict";
         var _this=this;
         var url;
         var p;
@@ -3602,11 +2548,8 @@ Tonyu.klass.define({
         r=_this.waitFor(p);
         return r;
       },
-      fiber$getFromServer :function _trc_Parent_f_getFromServer(_thread,key) {
-        "use strict";
+      fiber$getFromServer :function* _trc_Parent_f_getFromServer(_thread,key) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var url;
         var p;
         var r;
@@ -3616,25 +2559,11 @@ Tonyu.klass.define({
         p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?KeyValue/get"+"&key="+key+"&url="+url+"&group="+_this.activityGroup);
         
         
+        r=(yield* _this.fiber$waitFor(_thread, p));
+        return r;
         
-        _thread.enter(function _trc_Parent_ent_getFromServer(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$waitFor(_thread, p);
-              __pc=1;return;
-            case 1:
-              r=_thread.retVal;
-              
-              _thread.exit(r);return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       getListFromServer :function _trc_Parent_getListFromServer() {
-        "use strict";
         var _this=this;
         var url;
         var p;
@@ -3648,11 +2577,8 @@ Tonyu.klass.define({
         r=_this.waitFor(p);
         return Object.keys(r.data);
       },
-      fiber$getListFromServer :function _trc_Parent_f_getListFromServer(_thread) {
-        "use strict";
+      fiber$getListFromServer :function* _trc_Parent_f_getListFromServer(_thread) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var url;
         var p;
         var r;
@@ -3662,25 +2588,11 @@ Tonyu.klass.define({
         p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?KeyValue/ls"+"&url="+url+"&group="+_this.activityGroup);
         
         
+        r=(yield* _this.fiber$waitFor(_thread, p));
+        return Object.keys(r.data);
         
-        _thread.enter(function _trc_Parent_ent_getListFromServer(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$waitFor(_thread, p);
-              __pc=1;return;
-            case 1:
-              r=_thread.retVal;
-              
-              _thread.exit(Object.keys(r.data));return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       addLog :function _trc_Parent_addLog(practice,d1,d2,d3,d4) {
-        "use strict";
         var _this=this;
         var url;
         var params;
@@ -3710,11 +2622,8 @@ Tonyu.klass.define({
         r=_this.waitFor(p);
         return r;
       },
-      fiber$addLog :function _trc_Parent_f_addLog(_thread,practice,d1,d2,d3,d4) {
-        "use strict";
+      fiber$addLog :function* _trc_Parent_f_addLog(_thread,practice,d1,d2,d3,d4) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var url;
         var params;
         var p;
@@ -3740,25 +2649,11 @@ Tonyu.klass.define({
         p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?BigData/add"+params);
         
         
+        r=(yield* _this.fiber$waitFor(_thread, p));
+        return r;
         
-        _thread.enter(function _trc_Parent_ent_addLog(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$waitFor(_thread, p);
-              __pc=1;return;
-            case 1:
-              r=_thread.retVal;
-              
-              _thread.exit(r);return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       findLog :function _trc_Parent_findLog(practice,d1,d2,d3,d4) {
-        "use strict";
         var _this=this;
         var url;
         var params;
@@ -3788,11 +2683,8 @@ Tonyu.klass.define({
         r=_this.waitFor(p);
         return r;
       },
-      fiber$findLog :function _trc_Parent_f_findLog(_thread,practice,d1,d2,d3,d4) {
-        "use strict";
+      fiber$findLog :function* _trc_Parent_f_findLog(_thread,practice,d1,d2,d3,d4) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var url;
         var params;
         var p;
@@ -3818,25 +2710,11 @@ Tonyu.klass.define({
         p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?BigData/find"+params);
         
         
+        r=(yield* _this.fiber$waitFor(_thread, p));
+        return r;
         
-        _thread.enter(function _trc_Parent_ent_findLog(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$waitFor(_thread, p);
-              __pc=1;return;
-            case 1:
-              r=_thread.retVal;
-              
-              _thread.exit(r);return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       curProject :function _trc_Parent_curProject() {
-        "use strict";
         var _this=this;
         var url;
         var params;
@@ -3859,11 +2737,8 @@ Tonyu.klass.define({
         r=_this.waitFor(p);
         return r;
       },
-      fiber$curProject :function _trc_Parent_f_curProject(_thread) {
-        "use strict";
+      fiber$curProject :function* _trc_Parent_f_curProject(_thread) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var url;
         var params;
         var p;
@@ -3882,25 +2757,11 @@ Tonyu.klass.define({
         p = window.$.ajax(_this.slashify(_this.getRuntimePath())+"a.php?KeyValue/info"+params);
         
         
+        r=(yield* _this.fiber$waitFor(_thread, p));
+        return r;
         
-        _thread.enter(function _trc_Parent_ent_curProject(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$waitFor(_thread, p);
-              __pc=1;return;
-            case 1:
-              r=_thread.retVal;
-              
-              _thread.exit(r);return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       createGraph :function _trc_Parent_createGraph(target,src) {
-        "use strict";
         var _this=this;
         var e;
         var g;
@@ -3916,40 +2777,24 @@ Tonyu.klass.define({
         g.src=src||[];
         return g;
       },
-      fiber$createGraph :function _trc_Parent_f_createGraph(_thread,target,src) {
-        "use strict";
+      fiber$createGraph :function* _trc_Parent_f_createGraph(_thread,target,src) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var e;
         var g;
         
+        e=yield* _this.fiber$findElement(_thread, target);
         
-        _thread.enter(function _trc_Parent_ent_createGraph(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$findElement(_thread, target);
-              __pc=1;return;
-            case 1:
-              e=_thread.retVal;
-              
-              if (! e[0]) {
-                e=$("<div>").appendTo("body");
-                
-              }
-              g = new Tonyu.classes.jslker.Graph(e[0]);
-              
-              g.src=src||[];
-              _thread.exit(g);return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
+        if (! e[0]) {
+          e=$("<div>").appendTo("body");
+          
+        }
+        g = new Tonyu.classes.jslker.Graph(e[0]);
+        
+        g.src=src||[];
+        return g;
+        
       },
       readFile :function _trc_Parent_readFile(path) {
-        "use strict";
         var _this=this;
         var a;
         var context;
@@ -3968,11 +2813,8 @@ Tonyu.klass.define({
         r=_this.waitFor(p);
         return r;
       },
-      fiber$readFile :function _trc_Parent_f_readFile(_thread,path) {
-        "use strict";
+      fiber$readFile :function* _trc_Parent_f_readFile(_thread,path) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var a;
         var context;
         var filename;
@@ -3987,25 +2829,11 @@ Tonyu.klass.define({
         p = window.$.ajax({url: _this.slashify(_this.getRuntimePath())+"a.php?Asset/download",data: {context: context,filename: filename}});
         
         
+        r=(yield* _this.fiber$waitFor(_thread, p));
+        return r;
         
-        _thread.enter(function _trc_Parent_ent_readFile(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$waitFor(_thread, p);
-              __pc=1;return;
-            case 1:
-              r=_thread.retVal;
-              
-              _thread.exit(r);return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       writeFile :function _trc_Parent_writeFile(path,content) {
-        "use strict";
         var _this=this;
         var a;
         var context;
@@ -4024,11 +2852,8 @@ Tonyu.klass.define({
         r=_this.waitFor(p);
         return r;
       },
-      fiber$writeFile :function _trc_Parent_f_writeFile(_thread,path,content) {
-        "use strict";
+      fiber$writeFile :function* _trc_Parent_f_writeFile(_thread,path,content) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var a;
         var context;
         var filename;
@@ -4043,25 +2868,11 @@ Tonyu.klass.define({
         p = window.$.ajax({url: _this.slashify(_this.getRuntimePath())+"a.php?Asset/upload",data: {context: context,filename: filename,content: content}});
         
         
+        r=(yield* _this.fiber$waitFor(_thread, p));
+        return r;
         
-        _thread.enter(function _trc_Parent_ent_writeFile(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$waitFor(_thread, p);
-              __pc=1;return;
-            case 1:
-              r=_thread.retVal;
-              
-              _thread.exit(r);return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       loadRaspiScript :function _trc_Parent_loadRaspiScript() {
-        "use strict";
         var _this=this;
         var ppath;
         
@@ -4070,36 +2881,17 @@ Tonyu.klass.define({
         _this.waitFor($.getScript(ppath+"SerialControl.js"));
         _this.waitFor($.getScript(ppath+"raspi_repl.js"));
       },
-      fiber$loadRaspiScript :function _trc_Parent_f_loadRaspiScript(_thread) {
-        "use strict";
+      fiber$loadRaspiScript :function* _trc_Parent_f_loadRaspiScript(_thread) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var ppath;
         
         ppath = _this.slashify(_this.getRuntimePath())+"lib/python/";
         
+        (yield* _this.fiber$waitFor(_thread, $.getScript(ppath+"SerialControl.js")));
+        (yield* _this.fiber$waitFor(_thread, $.getScript(ppath+"raspi_repl.js")));
         
-        _thread.enter(function _trc_Parent_ent_loadRaspiScript(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$waitFor(_thread, $.getScript(ppath+"SerialControl.js"));
-              __pc=1;return;
-            case 1:
-              
-              _this.fiber$waitFor(_thread, $.getScript(ppath+"raspi_repl.js"));
-              __pc=2;return;
-            case 2:
-              
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       startRaspi :function _trc_Parent_startRaspi() {
-        "use strict";
         var _this=this;
         
         if (_this.raspiStarted) {
@@ -4111,43 +2903,20 @@ Tonyu.klass.define({
         _this.execRaspi("import machine");
         _this.raspiStarted=true;
       },
-      fiber$startRaspi :function _trc_Parent_f_startRaspi(_thread) {
-        "use strict";
+      fiber$startRaspi :function* _trc_Parent_f_startRaspi(_thread) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         
         if (_this.raspiStarted) {
-          _thread.retVal=_this;return;
-          
+          return _this;
         }
+        (yield* _this.fiber$loadRaspiScript(_thread));
+        _this.raspiREPL=new RaspiREPL();
+        (yield* _this.fiber$waitFor(_thread, _this.raspiREPL.waitReady()));
+        (yield* _this.fiber$execRaspi(_thread, "import machine"));
+        _this.raspiStarted=true;
         
-        _thread.enter(function _trc_Parent_ent_startRaspi(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$loadRaspiScript(_thread);
-              __pc=1;return;
-            case 1:
-              
-              _this.raspiREPL=new RaspiREPL();
-              _this.fiber$waitFor(_thread, _this.raspiREPL.waitReady());
-              __pc=2;return;
-            case 2:
-              
-              _this.fiber$execRaspi(_thread, "import machine");
-              __pc=3;return;
-            case 3:
-              
-              _this.raspiStarted=true;
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       execRaspi :function _trc_Parent_execRaspi(script) {
-        "use strict";
         var _this=this;
         var r;
         
@@ -4155,33 +2924,16 @@ Tonyu.klass.define({
         r=_this.waitFor(_this.raspiREPL.runCmd(script));
         return r;
       },
-      fiber$execRaspi :function _trc_Parent_f_execRaspi(_thread,script) {
-        "use strict";
+      fiber$execRaspi :function* _trc_Parent_f_execRaspi(_thread,script) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var r;
         
         
+        r=(yield* _this.fiber$waitFor(_thread, _this.raspiREPL.runCmd(script)));
+        return r;
         
-        _thread.enter(function _trc_Parent_ent_execRaspi(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$waitFor(_thread, _this.raspiREPL.runCmd(script));
-              __pc=1;return;
-            case 1:
-              r=_thread.retVal;
-              
-              _thread.exit(r);return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       readADC :function _trc_Parent_readADC(port,bytes) {
-        "use strict";
         var _this=this;
         var r;
         
@@ -4190,37 +2942,17 @@ Tonyu.klass.define({
         r=_this.execRaspi("print(machine.ADC("+port+").read_u16())");
         return r;
       },
-      fiber$readADC :function _trc_Parent_f_readADC(_thread,port,bytes) {
-        "use strict";
+      fiber$readADC :function* _trc_Parent_f_readADC(_thread,port,bytes) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var r;
         
         
+        (yield* _this.fiber$startRaspi(_thread));
+        r=(yield* _this.fiber$execRaspi(_thread, "print(machine.ADC("+port+").read_u16())"));
+        return r;
         
-        _thread.enter(function _trc_Parent_ent_readADC(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$startRaspi(_thread);
-              __pc=1;return;
-            case 1:
-              
-              _this.fiber$execRaspi(_thread, "print(machine.ADC("+port+").read_u16())");
-              __pc=2;return;
-            case 2:
-              r=_thread.retVal;
-              
-              _thread.exit(r);return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       getTemperature :function _trc_Parent_getTemperature() {
-        "use strict";
         var _this=this;
         var t;
         var conversion_factor;
@@ -4237,42 +2969,25 @@ Tonyu.klass.define({
         
         return temperature;
       },
-      fiber$getTemperature :function _trc_Parent_f_getTemperature(_thread) {
-        "use strict";
+      fiber$getTemperature :function* _trc_Parent_f_getTemperature(_thread) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var t;
         var conversion_factor;
         var reading;
         var temperature;
         
         
+        t=(yield* _this.fiber$readADC(_thread, 4));
+        conversion_factor = 3.3/(65535);
         
-        _thread.enter(function _trc_Parent_ent_getTemperature(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$readADC(_thread, 4);
-              __pc=1;return;
-            case 1:
-              t=_thread.retVal;
-              
-              conversion_factor = 3.3/(65535);
-              
-              reading = t*conversion_factor;
-              
-              temperature = 27-(reading-0.706)/0.001721;
-              
-              _thread.exit(temperature);return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
+        reading = t*conversion_factor;
+        
+        temperature = 27-(reading-0.706)/0.001721;
+        
+        return temperature;
+        
       },
       addCDB :function _trc_Parent_addCDB(key,data) {
-        "use strict";
         var _this=this;
         var p;
         var r;
@@ -4283,36 +2998,19 @@ Tonyu.klass.define({
         r=_this.waitFor(p);
         return r;
       },
-      fiber$addCDB :function _trc_Parent_f_addCDB(_thread,key,data) {
-        "use strict";
+      fiber$addCDB :function* _trc_Parent_f_addCDB(_thread,key,data) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var p;
         var r;
         
         p = window.$.post(_this.slashify(_this.getRuntimePath())+"a.php?CDB/post",{key: key,data: window.JSON.stringify(data)});
         
         
+        r=(yield* _this.fiber$waitFor(_thread, p));
+        return r;
         
-        _thread.enter(function _trc_Parent_ent_addCDB(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$waitFor(_thread, p);
-              __pc=1;return;
-            case 1:
-              r=_thread.retVal;
-              
-              _thread.exit(r);return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       findCDB :function _trc_Parent_findCDB(key) {
-        "use strict";
         var _this=this;
         var p;
         var r;
@@ -4323,36 +3021,19 @@ Tonyu.klass.define({
         r=_this.waitFor(p);
         return r;
       },
-      fiber$findCDB :function _trc_Parent_f_findCDB(_thread,key) {
-        "use strict";
+      fiber$findCDB :function* _trc_Parent_f_findCDB(_thread,key) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var p;
         var r;
         
         p = window.$.get(_this.slashify(_this.getRuntimePath())+"a.php?CDB/get&key="+key);
         
         
+        r=(yield* _this.fiber$waitFor(_thread, p));
+        return r;
         
-        _thread.enter(function _trc_Parent_ent_findCDB(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$waitFor(_thread, p);
-              __pc=1;return;
-            case 1:
-              r=_thread.retVal;
-              
-              _thread.exit(r);return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
       },
       callServer :function _trc_Parent_callServer(url,stdin) {
-        "use strict";
         var _this=this;
         var t;
         var timeout;
@@ -4366,7 +3047,7 @@ Tonyu.klass.define({
         }
         
         
-        p = new window.Promise((function anonymous_15639(_s) {
+        p = new window.Promise((function anonymous_15550(_s) {
           var s;
           var fullURL;
           var ifrm;
@@ -4378,19 +3059,19 @@ Tonyu.klass.define({
               timeout.remove();
             }
           }
-          s = (function anonymous_15662(str) {
+          s = (function anonymous_15573(str) {
             
             str=str.replace(/\s*$/,"");
             _s(str);
           });
           
           
-          window.sendResult=(function anonymous_15921(r) {
+          window.sendResult=(function anonymous_15832(r) {
             
             clean();
             s(r);
           });
-          window.onmessage=(function anonymous_16007(e) {
+          window.onmessage=(function anonymous_15918(e) {
             
             clean();
             s(e.data.result);
@@ -4399,7 +3080,7 @@ Tonyu.klass.define({
           
           ifrm = window.$("<iframe>").attr({src: fullURL,width: 1,height: 1}).appendTo("body");
           
-          t=window.setTimeout((function anonymous_16274() {
+          t=window.setTimeout((function anonymous_16185() {
             
             ifrm.attr({width: 600,height: 300});
             timeout=window.$("<div>").append("サーバからの応答に時間がかかっています．").append(window.$("<a>").attr({target: "debug",href: fullURL}).text("処理を確認..."));
@@ -4411,11 +3092,8 @@ Tonyu.klass.define({
         
         return r;
       },
-      fiber$callServer :function _trc_Parent_f_callServer(_thread,url,stdin) {
-        "use strict";
+      fiber$callServer :function* _trc_Parent_f_callServer(_thread,url,stdin) {
         var _this=this;
-        //var _arguments=Tonyu.A(arguments);
-        var __pc=0;
         var t;
         var timeout;
         var p;
@@ -4428,7 +3106,7 @@ Tonyu.klass.define({
         }
         
         
-        p = new window.Promise((function anonymous_15639(_s) {
+        p = new window.Promise((function anonymous_15550(_s) {
           var s;
           var fullURL;
           var ifrm;
@@ -4440,19 +3118,19 @@ Tonyu.klass.define({
               timeout.remove();
             }
           }
-          s = (function anonymous_15662(str) {
+          s = (function anonymous_15573(str) {
             
             str=str.replace(/\s*$/,"");
             _s(str);
           });
           
           
-          window.sendResult=(function anonymous_15921(r) {
+          window.sendResult=(function anonymous_15832(r) {
             
             clean();
             s(r);
           });
-          window.onmessage=(function anonymous_16007(e) {
+          window.onmessage=(function anonymous_15918(e) {
             
             clean();
             s(e.data.result);
@@ -4461,7 +3139,7 @@ Tonyu.klass.define({
           
           ifrm = window.$("<iframe>").attr({src: fullURL,width: 1,height: 1}).appendTo("body");
           
-          t=window.setTimeout((function anonymous_16274() {
+          t=window.setTimeout((function anonymous_16185() {
             
             ifrm.attr({width: 600,height: 300});
             timeout=window.$("<div>").append("サーバからの応答に時間がかかっています．").append(window.$("<a>").attr({target: "debug",href: fullURL}).text("処理を確認..."));
@@ -4469,27 +3147,17 @@ Tonyu.klass.define({
           }),5000);
         }));
         
+        r=yield* _this.fiber$waitFor(_thread, p);
         
-        _thread.enter(function _trc_Parent_ent_callServer(_thread) {
-          if (_thread.lastEx) __pc=_thread.catchPC;
-          for(var __cnt=100 ; __cnt--;) {
-            switch (__pc) {
-            case 0:
-              _this.fiber$waitFor(_thread, p);
-              __pc=1;return;
-            case 1:
-              r=_thread.retVal;
-              
-              _thread.exit(r);return;
-              _thread.exit(_this);return;
-            }
-          }
-        });
+        return r;
+        
       },
       __dummy: false
     };
   },
-  decls: {"methods":{"main":{"nowait":false},"__getter__Math":{"nowait":true},"__getter__document":{"nowait":true},"setInterval":{"nowait":false},"setTimeout":{"nowait":false},"catchException":{"nowait":false},"findElement":{"nowait":false},"isFormElement":{"nowait":false},"clearContent":{"nowait":false},"addText":{"nowait":false},"setText":{"nowait":false},"getNumber":{"nowait":false},"getText":{"nowait":false},"setNumber":{"nowait":false},"arrayLike":{"nowait":false},"getAttr":{"nowait":false},"setAttr":{"nowait":false},"onClick":{"nowait":false},"onTouch":{"nowait":false},"setCanvas":{"nowait":false},"searchCanvas":{"nowait":false},"setColor":{"nowait":false},"fillRect":{"nowait":false},"changeImage":{"nowait":false},"move":{"nowait":false},"transform":{"nowait":false},"rotate":{"nowait":false},"resize":{"nowait":false},"wait":{"nowait":false},"rnd":{"nowait":false},"setBGColor":{"nowait":false},"newElement":{"nowait":false},"fillOval":{"nowait":false},"drawLine":{"nowait":false},"clearRect":{"nowait":false},"fillText":{"nowait":false},"new":{"nowait":false},"getkey":{"nowait":false},"dist":{"nowait":false},"angle":{"nowait":false},"rad":{"nowait":true},"deg":{"nowait":true},"sqrt":{"nowait":false},"sin":{"nowait":false},"cos":{"nowait":false},"tan":{"nowait":false},"parallel":{"nowait":false},"waitClick":{"nowait":false},"_waitFor":{"nowait":false},"waitFor":{"nowait":false},"selHosts":{"nowait":false},"slashify":{"nowait":false},"getRuntimePath":{"nowait":false},"putToServer":{"nowait":false},"setGroup":{"nowait":false},"getFromServer":{"nowait":false},"getListFromServer":{"nowait":false},"addLog":{"nowait":false},"findLog":{"nowait":false},"curProject":{"nowait":false},"createGraph":{"nowait":false},"readFile":{"nowait":false},"writeFile":{"nowait":false},"loadRaspiScript":{"nowait":false},"startRaspi":{"nowait":false},"execRaspi":{"nowait":false},"readADC":{"nowait":false},"getTemperature":{"nowait":false},"addCDB":{"nowait":false},"findCDB":{"nowait":false},"callServer":{"nowait":false}},"fields":{"down":{},"_canvas":{},"ctx":{},"activityGroup":{},"keyData":{},"_err":{},"_res":{},"group":{},"raspiStarted":{},"raspiREPL":{}}}
+  decls: {"methods":{"main":{"nowait":false,"isMain":true,"vtype":{"params":[],"returnValue":null}},"__getter__Math":{"nowait":true,"isMain":false,"vtype":{"params":[],"returnValue":null}},"__getter__document":{"nowait":true,"isMain":false,"vtype":{"params":[],"returnValue":null}},"setInterval":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setTimeout":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"catchException":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"findElement":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"isFormElement":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"clearContent":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"addText":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setText":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"getNumber":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getText":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"setNumber":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"arrayLike":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getAttr":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setAttr":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"onClick":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"onTouch":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"setCanvas":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"searchCanvas":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"setColor":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"fillRect":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"changeImage":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"move":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"transform":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"rotate":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"resize":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"wait":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"rnd":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"setBGColor":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"newElement":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"fillOval":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"drawLine":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"clearRect":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null],"returnValue":null}},"fillText":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"new":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"getkey":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"dist":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"angle":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"rad":{"nowait":true,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"deg":{"nowait":true,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"sqrt":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"sin":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"cos":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"tan":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"parallel":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"runThread":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"waitClick":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"_waitFor":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"waitFor":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"selHosts":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"slashify":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getRuntimePath":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"putToServer":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setGroup":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getFromServer":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"getListFromServer":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"addLog":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null,null],"returnValue":null}},"findLog":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null,null],"returnValue":null}},"curProject":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"createGraph":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"readFile":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"writeFile":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"loadRaspiScript":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"startRaspi":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"execRaspi":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"readADC":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"getTemperature":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"addCDB":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"findCDB":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"callServer":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}}},"fields":{"down":{},"_canvas":{},"ctx":{},"activityGroup":{},"keyData":{},"_err":{},"_res":{},"group":{},"raspiStarted":{},"raspiREPL":{}}}
+});
+
 });
 
 //# sourceMappingURL=concat.js.map
