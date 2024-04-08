@@ -6,6 +6,7 @@ define([], function () {
 	}
 	var loc=document.location.href;
 	var WS=window.WebSite={};
+	WS.runAtServerDefault=loc.match(/meisei-u/);
 	WS.builtinAssetNames={
 		"base.png":{name:"$pat_base", url: "${runtime}images/base.png", pwidth:32, pheight:32},
 		"Sample.png":{name:"$pat_sample", url: "${runtime}images/Sample.png"},
