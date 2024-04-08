@@ -290,15 +290,19 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
             await t.ide.run({runAt:"browser"});
         };
         let runAts=[runAtBrowser, runAtServer];
+        let menus=[
+            {label:`ブラウザで実行`,id:"runBrowser",action: runAtBrowser} ,
+            {label:`サーバで実行`,id:"runServer",action: runAtServer},
+        ];
         if (WebSite.runAtServerDefault){
             runAts=[runAtServer, runAtBrowser];
+            menus=[menus[1],menus[0]];
         }
+        menus[0].label+="(F9)";
+        menus[1].label+="(Ctrl+F9)";
         Menu.appendMain(
-            {label:"実行",id:"runPython",after:$("#fileMenu"),sub:
-            [
-                {label:`ブラウザで実行(${runAts[0]!==runAtBrowser?"Ctrl+":""}F9)`,id:"runBrowser",action: runAtBrowser} ,
-                {label:`サーバで実行(${runAts[0]!==runAtServer?"Ctrl+":""}F9)`,id:"runServer",action: runAtServer},
-            ]}
+            {label:"実行",id:"runPython",after:$("#fileMenu"),sub:menus
+            }
         );
         KeyEventChecker.down(document,"ctrl+F9",runAts[1]);
         Menu.appendSub(
