@@ -172,7 +172,7 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
     }
     p.build=function (options) {
         options=options||{};
-        let runAt=(options.runAt)||"browser";
+        let runAt=(options.runAt)||(WebSite.runAtServerDefault?"server":"browser");
         if (options.fullScr) runAt=(this.prevRunAt);
         else this.prevRunAt=runAt;
         var mainFilePath=options.mainFile && options.mainFile.path();
@@ -286,16 +286,21 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         const runAtServer=async ()=>{
             await t.ide.run({runAt:"server"});
         };
+        const runAtBrowser=async ()=>{
+            await t.ide.run({runAt:"browser"});
+        };
+        let runAts=[runAtBrowser, runAtServer];
+        if (WebSite.runAtServerDefault){
+            runAts=[runAtServer, runAtBrowser];
+        }
         Menu.appendMain(
             {label:"実行",id:"runPython",after:$("#fileMenu"),sub:
             [
-                {label:"ブラウザで実行(F9)",id:"runBrowser",action: async ()=>{
-                    await t.ide.run({runAt:"browser"});
-                } } ,
-                {label:"サーバで実行(Ctrl+F9)",id:"runServer",action: runAtServer}
+                {label:`ブラウザで実行(${runAts[0]!==runAtBrowser?"Ctrl+":""}F9)`,id:"runBrowser",action: runAtBrowser} ,
+                {label:`サーバで実行(${runAts[0]!==runAtServer?"Ctrl+":""}F9)`,id:"runServer",action: runAtServer},
             ]}
         );
-        KeyEventChecker.down(document,"ctrl+F9",runAtServer);
+        KeyEventChecker.down(document,"ctrl+F9",runAts[1]);
         Menu.appendSub(
             {label:"ツール",id:"tool",after:$("#config")},
             //{label:"Raspi-pico接続",id:"raspiPanel",action:this.showRaspiPanel.bind(this)}
