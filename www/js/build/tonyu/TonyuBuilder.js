@@ -222,8 +222,8 @@ reqConf={
             var kerjs=tonyuLibDir.rel("kernel.js");
             //var runScr2=tonyuLibDir.rel("gen/runScript2_concat.js");
             return $.when(
-                usrjs.copyTo(dest.rel("js/concat.js")),
-                usrjsmap.copyTo(dest.rel("js/concat.js.map"))
+                usrjs.copyTo(dest.rel("js/user.js")),
+                usrjsmap.copyTo(dest.rel("js/user.js.map"))
                 //kerjs.copyTo(dest.rel("js/kernel.js"))//,
                 //runScr2.copyTo(dest.rel("js/runScript2_concat.js"))
             );
