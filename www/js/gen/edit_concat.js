@@ -4077,6 +4077,10 @@ define('WebSite',[], function () {
 			"images/ecl.png":WS.runtime+"images/ecl.png"
 	};
 	WS.compiledKernel=WS.runtime+"/lib/tonyu/kernel.js";
+	WS.ns2depspec=[
+		{namespace:"kernel", url: WebSite.compiledKernel},
+		//{namespace:"mapEditor2", url: WebSite.compiledTools.mapEditor2},
+	];
 	/*if (WS.isNW) {
 		if (process.env.TONYU_HOME) {
 			WS.tonyuHome=process.env.TONYU_HOME.replace(/\\/g,"/");
@@ -11384,8 +11388,10 @@ define('CommentDialog2',["UI","Klass","root","WebSite"],function (UI,Klass,root,
 const root=require("../lib/root");
 const Worker=root.Worker;
 const WS=require("../lib/WorkerServiceB");
-const SourceFiles=require("../lang/SourceFiles");
+const {sourceFiles}=require("../lang/SourceFiles");
 const FileMap=require("../lib/FileMap");
+const NS2DepSpec=require("../project/NS2DepSpec");
+const { P } = require("../lang/ObjectMatcher");
 //const FS=(root.parent && root.parent.FS) || root.FS;
 const FS=root.FS;// TODO
 
@@ -11420,36 +11426,48 @@ class BuilderClient {
         console.log("exported",exported);
         return exported;
     }
+    exportWithDependingFiles() {
+        const ns2depspec=new NS2DepSpec(this.config.worker.ns2depspec);
+        const exported=this.exportFiles();
+        const deps=this.prj.getDependingProjects();//TODO recursive
+        const outputDir=this.prj.getOutputFile().up();
+        const newDep=[];
+        for (let dep of deps) {
+            const ns=dep.getNamespace();
+            if (ns2depspec.has(ns)) {
+                newDep.push({namespace:ns});
+                continue;
+            }
+            const out=dep.getOutputFile();
+            const dstOut=outputDir.rel(`${ns}.js`);
+            const relOfOut=dstOut.relPath(this.prj.getDir());
+            newDep.push({namespace:ns, outputFile: relOfOut});
+            exported.data[relOfOut]=out.text();
+        }
+        const opt=JSON.parse(exported.data["options.json"]);
+        opt.compiler.dependingProjects=newDep;
+        exported.data["options.json"]=JSON.stringify(opt);
+        console.log("opt changed", opt);
+        return exported;
+    }
     async init() {
         if (this.inited) return;
         const fileMap=this.fileMap;
         const localPrjDir=this.getDir();
-        const files=this.exportFiles();
         const ns2depspec=this.config.worker.ns2depspec;
+        const files=this.exportWithDependingFiles();
         const {prjDir:remotePrjDir}=await this.w.run("compiler/init",{
             namespace:this.prj.getNamespace(),
             files, ns2depspec, locale: this.config.locale
         });
         fileMap.add({local:localPrjDir, remote: remotePrjDir});
         const deps=this.prj.getDependingProjects();//TODO recursive
-        for (let dep of deps) {
-            const ns=dep.getNamespace();
-            if (!ns2depspec[ns]) {
-                const localPrjDir=dep.getDir();
-                const files=localPrjDir.exportAsObject({
-                    excludesF: f=>f.ext()!==".tonyu" && f.name()!=="options.json"
-                });
-                const {prjDir:remotePrjDir}=await this.w.run("compiler/addDependingProject",{
-                    namespace:ns, files
-                });
-                fileMap.add({local:localPrjDir, remote: remotePrjDir});
-            }
-        }
         this.inited=true;
     }
     resetFiles() {
         if (!this.inited) return this.init();
-        const files=this.exportFiles();
+        const files=this.exportWithDependingFiles();
+        this.partialCompilable=false;
         return this.w.run("compiler/resetFiles",{
             //namespace:this.prj.getNamespace(),
             files
@@ -11472,8 +11490,8 @@ class BuilderClient {
             this.partialCompilable=false;
             await this.init();
             const compres=await this.w.run("compiler/fullCompile");
-            console.log(compres);
-            const sf=SourceFiles.add(compres);
+            //console.log(compres);
+            const sf=sourceFiles.add(compres);
             await sf.saveAs(this.getOutputFile());
             await this.exec(compres);
             this.partialCompilable=true;
@@ -11482,16 +11500,27 @@ class BuilderClient {
             throw this.convertError(e);
         }
     }
-    async partialCompile(f) {
+    async partialCompile(f, {content, noexec}={}) {
         if (!this.partialCompilable) {
-            return await this.clean();
+            if (typeof content!=="string") {
+                content=f.text();
+            }
+            const files={};files[f.relPath(this.getDir())]=content;
+            await this.w.run("compiler/uploadFiles",{files});
+            return await this.fullCompile();
         }
         try {
-            const files={};files[f.relPath(this.getDir())]=f.text();
+            if (typeof content!=="string") {
+                content=f.text();
+                if (noexec==null) noexec=false;
+            } else {
+                if (noexec==null) noexec=true;
+            }
+            const files={};files[f.relPath(this.getDir())]=content;
             await this.init();
             const compres=await this.w.run("compiler/postChange",{files});
-            console.log(compres);
-            await this.exec(compres);
+            //console.log(compres);
+            if (!noexec) await this.exec(compres);
             return compres;
         } catch(e) {
             throw this.convertError(e);
@@ -11512,6 +11541,58 @@ class BuilderClient {
             }
             return changed;
         } catch(e) {
+            throw this.convertError(e);
+        }
+    }
+    async serializeAnnotatedNodes() {
+        try {
+            const REF="REF",FUNC="FUNC";
+            await this.init();
+            let objs=await this.w.run("compiler/serializeAnnotatedNodes",{});
+            root.temp1=objs;
+            //console.log(objs);
+            const sfiles={};
+            const pre=new Preemption();
+            for(let k of Object.keys(objs)) {
+                pre.should() && await pre.wait();
+                if (isSFile(objs[k])) {
+                    let n=this.convertFromWorkerPath(objs[k].path);
+                    objs[k]=FS.get(n);
+                    sfiles[k]=1;
+                }
+            }
+            for(let k of Object.keys(objs)) {
+                pre.should() && await pre.wait();
+                conv(objs[k]);
+            }
+            //console.log(objs);
+            function conv(r) {
+                if (FS.isFile(r)) return;
+                if (r&&typeof r==="object") {
+                    for (let k of Object.keys(r)) {                        
+                        if (isRef(r[k])) {
+                            r[k]=objs[r[k][REF]];
+                        } else if (isFunc(r[k])) {
+                            let n=r[k][FUNC];
+                            if (root[n] && typeof root[n]==="function") {
+                                r[k]=root[n];
+                            }
+                        } else conv(r[k]);
+                    }
+                }  
+            }
+            function isFunc(r) {
+                return (r&& typeof r[FUNC]==="string");
+            }
+            function isSFile(o){
+                return o && o.isSFile && o.path;
+            }
+            function isRef(r) {
+                return (r&& typeof r[REF]==="number");
+            }
+            return objs[1];
+        } catch(e) {
+            console.error(e);
             throw this.convertError(e);
         }
     }
@@ -11539,23 +11620,40 @@ class BuilderClient {
         });
     }
 }
-BuilderClient.SourceFiles=SourceFiles;
+class Preemption {
+    constructor(duration) {
+        this.lastChecked=performance.now();
+        this.duration=duration || 10;
+    }
+    should() {
+        return (performance.now()-this.lastChecked)>=this.duration;
+    }
+    wait() {
+        return new Promise(s=>setTimeout(s,0)).then(()=>{
+            this.lastChecked=performance.now();
+        });
+    }
+}
+BuilderClient.sourceFiles=sourceFiles;
+BuilderClient.SourceFiles=sourceFiles;// deprecated
+BuilderClient.NS2DepSpec=NS2DepSpec;
 //root.TonyuBuilderClient=BuilderClient;
 module.exports=BuilderClient;
 
-},{"../lang/SourceFiles":4,"../lib/FileMap":9,"../lib/WorkerServiceB":10,"../lib/root":11}],2:[function(require,module,exports){
+},{"../lang/ObjectMatcher":4,"../lang/SourceFiles":5,"../lib/FileMap":10,"../lib/WorkerServiceB":11,"../lib/root":12,"../project/NS2DepSpec":14}],2:[function(require,module,exports){
 // Add extra libraries for Tonyu System IDE
 //const root=require("../lib/root");
 const BuilderClient=require("./BuilderClient");
 
-const SourceFiles=require("../lang/SourceFiles");
+const {sourceFiles}=require("../lang/SourceFiles");
 const ProjectFactory=require("../project/ProjectFactory");
 const CompiledProject=require("../project/CompiledProject");
 const langMod=require("../lang/langMod");
 const StackDecoder=require("../lang/StackDecoder");
 const SourceMap=require("../lang/source-map");
 const DebuggerCore=require("../browser/DebuggerCore");
-BuilderClient.SourceFiles=SourceFiles;
+BuilderClient.sourceFiles=sourceFiles;
+BuilderClient.SourceFiles=sourceFiles;// deprecated
 BuilderClient.ProjectFactory=ProjectFactory;
 BuilderClient.CompiledProject=CompiledProject;
 BuilderClient.langMod=langMod;
@@ -11565,10 +11663,10 @@ BuilderClient.DebuggerCore=DebuggerCore;
 module.exports=BuilderClient;
 //root.TonyuBuilderClient=BuilderClient;
 
-},{"../browser/DebuggerCore":3,"../lang/SourceFiles":4,"../lang/StackDecoder":5,"../lang/langMod":6,"../lang/source-map":7,"../project/CompiledProject":12,"../project/ProjectFactory":13,"./BuilderClient":1}],3:[function(require,module,exports){
+},{"../browser/DebuggerCore":3,"../lang/SourceFiles":5,"../lang/StackDecoder":6,"../lang/langMod":7,"../lang/source-map":8,"../project/CompiledProject":13,"../project/ProjectFactory":15,"./BuilderClient":1}],3:[function(require,module,exports){
 //define(function (require,exports,module) {
 // module.exports:: DI_container -> Debugger
-const SourceFiles=require("../lang/SourceFiles");
+const {sourceFiles}=require("../lang/SourceFiles");
 //const ProjectFactory=require("../project/ProjectFactory");
 const CompiledProject=require("../project/CompiledProject");
 const langMod=require("../lang/langMod");
@@ -11622,7 +11720,7 @@ root.Debugger={
         console.log("Loading classes COMPLETE",Tonyu.ID,Tonyu.classes);
     },
     exec: async function (srcraw) {
-        await SourceFiles.add(srcraw).exec();
+        await sourceFiles.add(srcraw).exec();
         Events.fire("classChanged");
     },
     create: function (className) {
@@ -11638,188 +11736,324 @@ root.Debugger={
     on:Events.on.bind(Events),
     fire:Events.fire.bind(Events)
 };
-try {
+/*try {
     //if (root.parent && root.parent.onTonyuDebuggerReady) <- fails CORS
     root.parent.onTonyuDebuggerReady(root.Debugger);
 } catch(e) {
     console.log(e);
-}
+}*/
 return root.Debugger;
 };//--------
 //});//--- end of define
 
-},{"../lang/SourceFiles":4,"../lang/StackDecoder":5,"../lang/langMod":6,"../lib/root":11,"../project/CompiledProject":12}],4:[function(require,module,exports){
+},{"../lang/SourceFiles":5,"../lang/StackDecoder":6,"../lang/langMod":7,"../lib/root":12,"../project/CompiledProject":13}],4:[function(require,module,exports){
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.match = exports.isVar = exports.Z = exports.Y = exports.X = exports.W = exports.V = exports.U = exports.T = exports.S = exports.R = exports.Q = exports.P = exports.O = exports.N = exports.M = exports.L = exports.K = exports.J = exports.I = exports.H = exports.G = exports.F = exports.E = exports.D = exports.C = exports.B = exports.A = exports.v = void 0;
+//var OM:any={};
+const VAR = Symbol("$var"); //,THIZ="$this";
+function v(name, cond = {}) {
+    const res = function (cond2) {
+        const cond3 = Object.assign({}, cond);
+        Object.assign(cond3, cond2);
+        return v(name, cond3);
+    };
+    res.vname = name;
+    res.cond = cond;
+    res[VAR] = true;
+    //if (cond) res[THIZ]=cond;
+    return res;
+}
+exports.v = v;
+function isVariable(a) {
+    return a[VAR];
+}
+//OM.isVar=isVar;
+exports.A = v("A");
+exports.B = v("B");
+exports.C = v("C");
+exports.D = v("D");
+exports.E = v("E");
+exports.F = v("F");
+exports.G = v("G");
+exports.H = v("H");
+exports.I = v("I");
+exports.J = v("J");
+exports.K = v("K");
+exports.L = v("L");
+exports.M = v("M");
+exports.N = v("N");
+exports.O = v("O");
+exports.P = v("P");
+exports.Q = v("Q");
+exports.R = v("R");
+exports.S = v("S");
+exports.T = v("T");
+exports.U = v("U");
+exports.V = v("V");
+exports.W = v("W");
+exports.X = v("X");
+exports.Y = v("Y");
+exports.Z = v("Z");
+/*var names="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+for (var i =0 ; i<names.length ; i++) {
+    var c=names.substring(i,i+1);
+    OM[c]=v(c);
+}*/
+function isVar(o) {
+    return o && o[VAR];
+}
+exports.isVar = isVar;
+function match(obj, tmpl) {
+    var res = {};
+    if (m(obj, tmpl, res))
+        return res;
+    return null;
+}
+exports.match = match;
+;
+function m(obj, tmpl, res) {
+    if (obj === tmpl)
+        return true;
+    else if (obj == null)
+        return false;
+    else if (isVariable(tmpl)) {
+        if (!m(obj, tmpl.cond, res))
+            return false;
+        res[tmpl.vname] = obj;
+        return true;
+    }
+    else if (typeof obj == "string" && tmpl instanceof RegExp) {
+        return obj.match(tmpl);
+    }
+    else if (typeof tmpl == "function") {
+        return tmpl(obj, res);
+    }
+    else if (typeof tmpl == "object") {
+        //if (typeof obj!="object") obj={$this:obj};
+        for (var i in tmpl) {
+            //if (i==VAR) continue;
+            var oe = obj[i]; //(i==THIZ? obj :  obj[i] );
+            var te = tmpl[i];
+            if (!m(oe, te, res))
+                return false;
+        }
+        /*if (tmpl[VAR]) {
+            res[tmpl[VAR]]=obj;
+        }*/
+        return true;
+    }
+    return false;
+}
+//export= OM;
+
+},{}],5:[function(require,module,exports){
+
 //define(function (require,exports,module) {
 /*const root=require("root");*/
-const root=require("../lib/root");
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sourceFiles = exports.SourceFiles = exports.SourceFile = void 0;
+const root_1 = __importDefault(require("../lib/root"));
 function timeout(t) {
-    return new Promise(s=>setTimeout(s,t));
+    return new Promise(s => setTimeout(s, t));
 }
 let vm;
 /*global global*/
-if (typeof global!=="undefined" && global.require && global.require.name!=="requirejs") {
-    vm=global.require("vm");
+if (typeof global !== "undefined" && global.require && global.require.name !== "requirejs") {
+    vm = global.require("vm");
 }
 class SourceFile {
     // var text, sourceMap:S.Sourcemap;
     constructor(text, sourceMap) {
-        if (typeof text==="object") {
-            const params=text;
-            sourceMap=params.sourceMap;
+        if (typeof text === "object") {
+            const params = text;
+            sourceMap = params.sourceMap;
             //functions=params.functions;
-            text=params.text;
+            if (params.file) {
+                this.file = params.file;
+                text = this.file.text();
+            }
+            else {
+                text = params.text;
+            }
             if (params.url) {
-                this.url=params.url;
+                this.url = params.url;
             }
         }
-        this.text=text;
-        this.sourceMap=sourceMap && sourceMap.toString();
+        this.text = text;
+        this.sourceMap = sourceMap && sourceMap.toString();
         //this.functions=functions;
     }
     async saveAs(outf) {
-        const mapFile=outf.sibling(outf.name()+".map");
-        let text=this.text;
+        const mapFile = outf.sibling(outf.name() + ".map");
+        let text = this.text;
         //text+="\n//# traceFunctions="+JSON.stringify(this.functions);
         if (this.sourceMap) {
             await mapFile.text(this.sourceMap);
-            text+="\n//# sourceMappingURL="+mapFile.name();
+            text += "\n//# sourceMappingURL=" + mapFile.name();
         }
         await outf.text(text);
         //return Promise.resolve();
     }
     exec(options) {
-        return new Promise((resolve, reject)=>{
-            if (root.window) {
-                const document=root.document;
+        return new Promise((resolve, reject) => {
+            if (root_1.default.window) {
+                const document = root_1.default.document;
                 let u;
                 if (this.url) {
-                    u=this.url;
-                } else {
-                    const b=new root.Blob([this.text], {type: 'text/plain'});
-                    u=root.URL.createObjectURL(b);
+                    u = this.url;
                 }
-                const s=document.createElement("script");
-                console.log("load script",u);
-                s.setAttribute("src",u);
-                s.addEventListener("load",e=>{
+                else {
+                    const b = new root_1.default.Blob([this.text], { type: 'text/plain' });
+                    u = root_1.default.URL.createObjectURL(b);
+                }
+                const s = document.createElement("script");
+                console.log("load script", u);
+                s.setAttribute("src", u);
+                s.addEventListener("load", e => {
                     resolve(e);
                 });
-                this.parent.url2SourceFile[u]=this;
+                this.parent.url2SourceFile[u] = this;
                 document.body.appendChild(s);
-            } else if (options && options.tmpdir){
-                const tmpdir=options.tmpdir;
-                const uniqFile=tmpdir.rel(Math.random()+".js");
-                const mapFile=uniqFile.sibling(uniqFile.name()+".map");
-                let text=this.text;
-                text+="\n//# sourceMappingURL="+mapFile.name();
+            }
+            else if (options && options.tmpdir) {
+                const tmpdir = options.tmpdir;
+                const uniqFile = tmpdir.rel(Math.random() + ".js");
+                const mapFile = uniqFile.sibling(uniqFile.name() + ".map");
+                let text = this.text;
+                text += "\n//# sourceMappingURL=" + mapFile.name();
                 uniqFile.text(text);
                 mapFile.text(this.sourceMap);
                 //console.log("EX",uniqFile.exists());
                 require(uniqFile.path());
                 uniqFile.rm();
                 mapFile.rm();
-                resolve();
-            } else if (root.importScripts && this.url){
-                root.importScripts(this.url);
-                resolve();
-            } else {
-                const F=Function;
-                const f=(vm? vm.compileFunction(this.text) : new F(this.text));
+                resolve(void (0));
+            }
+            else if (this.file && typeof require === "function") {
+                require(this.file.path());
+                resolve(void (0));
+            }
+            else if (root_1.default.importScripts && this.url) {
+                root_1.default.importScripts(this.url);
+                resolve(void (0));
+            }
+            else {
+                const F = Function;
+                const f = (vm ? vm.compileFunction(this.text) : new F(this.text));
                 resolve(f());
             }
         });
     }
     export() {
-        return {text:this.text, sourceMap:this.sourceMap, functions:this.functions};
+        return { text: this.text, sourceMap: this.sourceMap, functions: this.functions };
     }
 }
+exports.SourceFile = SourceFile;
 class SourceFiles {
     constructor() {
-        this.url2SourceFile={};
+        this.url2SourceFile = {};
     }
     add(text, sourceMap) {
-        const sourceFile=new SourceFile(text, sourceMap);
+        const sourceFile = new SourceFile(text, sourceMap);
         /*if (sourceFile.functions) for (let k in sourceFile.functions) {
             this.functions[k]=sourceFile;
         }*/
-        sourceFile.parent=this;
+        sourceFile.parent = this;
         return sourceFile;
     }
-
 }
-module.exports=new SourceFiles();
+exports.SourceFiles = SourceFiles;
+exports.sourceFiles = new SourceFiles();
 //});/*--end of define--*/
 
-},{"../lib/root":11}],5:[function(require,module,exports){
-const S=require("./source-map");
-const StackTrace=require("./stacktrace");
-const SourceFiles=require("./SourceFiles");
-module.exports={
+},{"../lib/root":12}],6:[function(require,module,exports){
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+const source_map_1 = __importDefault(require("./source-map"));
+const SourceFiles_1 = require("./SourceFiles");
+const stacktrace_1 = __importDefault(require("./stacktrace"));
+module.exports = {
     async decode(e) {
-        try{
-            const tr=await StackTrace.fromError(e,{offline:true});
-            tr.forEach(t=>{
+        try {
+            const tr = await stacktrace_1.default.fromError(e, { offline: true });
+            tr.forEach(t => {
                 try {
-                    const sf=SourceFiles.url2SourceFile[t.fileName];
+                    const sf = SourceFiles_1.sourceFiles.url2SourceFile[t.fileName];
                     //console.log("sf", t.fileName, sf, SourceFiles.url2SourceFile);
                     if (sf) {
-                        const opt={
-                            line: t.lineNumber, column:t.columnNumber,
-                            bias:S.SourceMapConsumer.GREATEST_LOWER_BOUND
+                        const opt = {
+                            line: t.lineNumber, column: t.columnNumber,
+                            bias: source_map_1.default.SourceMapConsumer.GREATEST_LOWER_BOUND
                         };
-                        const pos=this.originalPositionFor(sf,opt);
-                        console.log("pos",opt,pos);
-                        if (pos.source) t.fileName=pos.source;
-                        if (pos.line) t.lineNumber=pos.line;
-                        if (pos.column) t.columnNumber=pos.column;
+                        const pos = this.originalPositionFor(sf, opt);
+                        console.log("pos", opt, pos);
+                        if (pos.source)
+                            t.fileName = pos.source;
+                        if (pos.line)
+                            t.lineNumber = pos.line;
+                        if (pos.column)
+                            t.columnNumber = pos.column;
                     }
-                }catch(ex) {
-                    console.log("Sourcemap error",ex);
+                }
+                catch (ex) {
+                    console.log("Sourcemap error", ex);
                 }
             });
-            console.log("Converted: ",tr);
+            console.log("Converted: ", tr);
             return tr;
-        } catch(ex) {
-            console.log("StackTrace error",ex);
+        }
+        catch (ex) {
+            console.log("StackTrace error", ex);
             if (!e || !e.stack) {
-                console.log("HennaError",e);
+                console.log("HennaError", e);
                 return [];
             }
             return e.stack.split("\n");
         }
     },
-    originalPositionFor(sf,opt) {
-        const s=this.getSourceMapConsumer(sf);
-        if (!s) return opt;
+    originalPositionFor(sf, opt) {
+        const s = this.getSourceMapConsumer(sf);
+        if (!s)
+            return opt;
         return s.originalPositionFor(opt);
     },
     getSourceMapConsumer(sf) {
-        if (sf.sourceMapConsumer) return sf.sourceMapConsumer;
-        sf.sourceMapConsumer=new S.SourceMapConsumer(JSON.parse(sf.sourceMap));
+        if (sf.sourceMapConsumer)
+            return sf.sourceMapConsumer;
+        sf.sourceMapConsumer = new source_map_1.default.SourceMapConsumer(JSON.parse(sf.sourceMap));
         //console.log(this.sourceMapConsumer);
         return sf.sourceMapConsumer;
     }
 };
 
-},{"./SourceFiles":4,"./source-map":7,"./stacktrace":8}],6:[function(require,module,exports){
-    module.exports={
-        getNamespace: function () {//override
-            var opt=this.getOptions();
-            if (opt.compiler && opt.compiler.namespace) return opt.compiler.namespace;
-            throw new Error("Namespace is not set");
-        },
-        async loadDependingClasses() {
-            const myNsp=this.getNamespace();
-            for (let p of this.getDependingProjects()) {
-                if (p.getNamespace()===myNsp) continue;
-                await p.loadClasses();
-            }
-        },
-        getEXT() {return ".tonyu";}
-        // loadClasses: stub
-    };
+},{"./SourceFiles":5,"./source-map":8,"./stacktrace":9}],7:[function(require,module,exports){
 
-},{}],7:[function(require,module,exports){
+module.exports = {
+    getNamespace: function () {
+        var opt = this.getOptions();
+        if (opt.compiler && opt.compiler.namespace)
+            return opt.compiler.namespace;
+        throw new Error("Namespace is not set");
+    },
+    async loadDependingClasses() {
+        const myNsp = this.getNamespace();
+        for (let p of this.getDependingProjects()) {
+            if (p.getNamespace() === myNsp)
+                continue;
+            await p.loadClasses();
+        }
+    },
+    getEXT() { return ".tonyu"; }
+    // loadClasses: stub
+};
+
+},{}],8:[function(require,module,exports){
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -14875,110 +15109,120 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ ])
 });
 ;
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var n;n="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this,n.StackTrace=e()}}(function(){var e;return function n(e,r,t){function o(a,s){if(!r[a]){if(!e[a]){var u="function"==typeof require&&require;if(!s&&u)return u(a,!0);if(i)return i(a,!0);var c=new Error("Cannot find module '"+a+"'");throw c.code="MODULE_NOT_FOUND",c}var l=r[a]={exports:{}};e[a][0].call(l.exports,function(n){var r=e[a][1][n];return o(r?r:n)},l,l.exports,n,e,r,t)}return r[a].exports}for(var i="function"==typeof require&&require,a=0;a<t.length;a++)o(t[a]);return o}({1:[function(n,r,t){!function(o,i){"use strict";"function"==typeof e&&e.amd?e("error-stack-parser",["stackframe"],i):"object"==typeof t?r.exports=i(n("stackframe")):o.ErrorStackParser=i(o.StackFrame)}(this,function(e){"use strict";var n=/(^|@)\S+\:\d+/,r=/^\s*at .*(\S+\:\d+|\(native\))/m,t=/^(eval@)?(\[native code\])?$/;return{parse:function(e){if("undefined"!=typeof e.stacktrace||"undefined"!=typeof e["opera#sourceloc"])return this.parseOpera(e);if(e.stack&&e.stack.match(r))return this.parseV8OrIE(e);if(e.stack)return this.parseFFOrSafari(e);throw new Error("Cannot parse given Error object")},extractLocation:function(e){if(e.indexOf(":")===-1)return[e];var n=/(.+?)(?:\:(\d+))?(?:\:(\d+))?$/,r=n.exec(e.replace(/[\(\)]/g,""));return[r[1],r[2]||void 0,r[3]||void 0]},parseV8OrIE:function(n){var t=n.stack.split("\n").filter(function(e){return!!e.match(r)},this);return t.map(function(n){n.indexOf("(eval ")>-1&&(n=n.replace(/eval code/g,"eval").replace(/(\(eval at [^\()]*)|(\)\,.*$)/g,""));var r=n.replace(/^\s+/,"").replace(/\(eval code/g,"(").split(/\s+/).slice(1),t=this.extractLocation(r.pop()),o=r.join(" ")||void 0,i=["eval","<anonymous>"].indexOf(t[0])>-1?void 0:t[0];return new e({functionName:o,fileName:i,lineNumber:t[1],columnNumber:t[2],source:n})},this)},parseFFOrSafari:function(n){var r=n.stack.split("\n").filter(function(e){return!e.match(t)},this);return r.map(function(n){if(n.indexOf(" > eval")>-1&&(n=n.replace(/ line (\d+)(?: > eval line \d+)* > eval\:\d+\:\d+/g,":$1")),n.indexOf("@")===-1&&n.indexOf(":")===-1)return new e({functionName:n});var r=/((.*".+"[^@]*)?[^@]*)(?:@)/,t=n.match(r),o=t&&t[1]?t[1]:void 0,i=this.extractLocation(n.replace(r,""));return new e({functionName:o,fileName:i[0],lineNumber:i[1],columnNumber:i[2],source:n})},this)},parseOpera:function(e){return!e.stacktrace||e.message.indexOf("\n")>-1&&e.message.split("\n").length>e.stacktrace.split("\n").length?this.parseOpera9(e):e.stack?this.parseOpera11(e):this.parseOpera10(e)},parseOpera9:function(n){for(var r=/Line (\d+).*script (?:in )?(\S+)/i,t=n.message.split("\n"),o=[],i=2,a=t.length;i<a;i+=2){var s=r.exec(t[i]);s&&o.push(new e({fileName:s[2],lineNumber:s[1],source:t[i]}))}return o},parseOpera10:function(n){for(var r=/Line (\d+).*script (?:in )?(\S+)(?:: In function (\S+))?$/i,t=n.stacktrace.split("\n"),o=[],i=0,a=t.length;i<a;i+=2){var s=r.exec(t[i]);s&&o.push(new e({functionName:s[3]||void 0,fileName:s[2],lineNumber:s[1],source:t[i]}))}return o},parseOpera11:function(r){var t=r.stack.split("\n").filter(function(e){return!!e.match(n)&&!e.match(/^Error created at/)},this);return t.map(function(n){var r,t=n.split("@"),o=this.extractLocation(t.pop()),i=t.shift()||"",a=i.replace(/<anonymous function(: (\w+))?>/,"$2").replace(/\([^\)]*\)/g,"")||void 0;i.match(/\(([^\)]*)\)/)&&(r=i.replace(/^[^\(]+\(([^\)]*)\)$/,"$1"));var s=void 0===r||"[arguments not available]"===r?void 0:r.split(",");return new e({functionName:a,args:s,fileName:o[0],lineNumber:o[1],columnNumber:o[2],source:n})},this)}}})},{stackframe:3}],2:[function(n,r,t){!function(o,i){"use strict";"function"==typeof e&&e.amd?e("stack-generator",["stackframe"],i):"object"==typeof t?r.exports=i(n("stackframe")):o.StackGenerator=i(o.StackFrame)}(this,function(e){return{backtrace:function(n){var r=[],t=10;"object"==typeof n&&"number"==typeof n.maxStackSize&&(t=n.maxStackSize);for(var o=arguments.callee;o&&r.length<t&&o.arguments;){for(var i=new Array(o.arguments.length),a=0;a<i.length;++a)i[a]=o.arguments[a];/function(?:\s+([\w$]+))+\s*\(/.test(o.toString())?r.push(new e({functionName:RegExp.$1||void 0,args:i})):r.push(new e({args:i}));try{o=o.caller}catch(s){break}}return r}}})},{stackframe:3}],3:[function(n,r,t){!function(n,o){"use strict";"function"==typeof e&&e.amd?e("stackframe",[],o):"object"==typeof t?r.exports=o():n.StackFrame=o()}(this,function(){"use strict";function e(e){return!isNaN(parseFloat(e))&&isFinite(e)}function n(e){return e.charAt(0).toUpperCase()+e.substring(1)}function r(e){return function(){return this[e]}}function t(e){if(e instanceof Object)for(var r=0;r<u.length;r++)e.hasOwnProperty(u[r])&&void 0!==e[u[r]]&&this["set"+n(u[r])](e[u[r]])}var o=["isConstructor","isEval","isNative","isToplevel"],i=["columnNumber","lineNumber"],a=["fileName","functionName","source"],s=["args"],u=o.concat(i,a,s);t.prototype={getArgs:function(){return this.args},setArgs:function(e){if("[object Array]"!==Object.prototype.toString.call(e))throw new TypeError("Args must be an Array");this.args=e},getEvalOrigin:function(){return this.evalOrigin},setEvalOrigin:function(e){if(e instanceof t)this.evalOrigin=e;else{if(!(e instanceof Object))throw new TypeError("Eval Origin must be an Object or StackFrame");this.evalOrigin=new t(e)}},toString:function(){var n=this.getFunctionName()||"{anonymous}",r="("+(this.getArgs()||[]).join(",")+")",t=this.getFileName()?"@"+this.getFileName():"",o=e(this.getLineNumber())?":"+this.getLineNumber():"",i=e(this.getColumnNumber())?":"+this.getColumnNumber():"";return n+r+t+o+i}};for(var c=0;c<o.length;c++)t.prototype["get"+n(o[c])]=r(o[c]),t.prototype["set"+n(o[c])]=function(e){return function(n){this[e]=Boolean(n)}}(o[c]);for(var l=0;l<i.length;l++)t.prototype["get"+n(i[l])]=r(i[l]),t.prototype["set"+n(i[l])]=function(n){return function(r){if(!e(r))throw new TypeError(n+" must be a Number");this[n]=Number(r)}}(i[l]);for(var f=0;f<a.length;f++)t.prototype["get"+n(a[f])]=r(a[f]),t.prototype["set"+n(a[f])]=function(e){return function(n){this[e]=String(n)}}(a[f]);return t})},{}],4:[function(e,n,r){function t(){this._array=[],this._set=Object.create(null)}var o=e("./util"),i=Object.prototype.hasOwnProperty;t.fromArray=function(e,n){for(var r=new t,o=0,i=e.length;o<i;o++)r.add(e[o],n);return r},t.prototype.size=function(){return Object.getOwnPropertyNames(this._set).length},t.prototype.add=function(e,n){var r=o.toSetString(e),t=i.call(this._set,r),a=this._array.length;t&&!n||this._array.push(e),t||(this._set[r]=a)},t.prototype.has=function(e){var n=o.toSetString(e);return i.call(this._set,n)},t.prototype.indexOf=function(e){var n=o.toSetString(e);if(i.call(this._set,n))return this._set[n];throw new Error('"'+e+'" is not in the set.')},t.prototype.at=function(e){if(e>=0&&e<this._array.length)return this._array[e];throw new Error("No element indexed by "+e)},t.prototype.toArray=function(){return this._array.slice()},r.ArraySet=t},{"./util":10}],5:[function(e,n,r){function t(e){return e<0?(-e<<1)+1:(e<<1)+0}function o(e){var n=1===(1&e),r=e>>1;return n?-r:r}var i=e("./base64"),a=5,s=1<<a,u=s-1,c=s;r.encode=function(e){var n,r="",o=t(e);do n=o&u,o>>>=a,o>0&&(n|=c),r+=i.encode(n);while(o>0);return r},r.decode=function(e,n,r){var t,s,l=e.length,f=0,p=0;do{if(n>=l)throw new Error("Expected more digits in base 64 VLQ value.");if(s=i.decode(e.charCodeAt(n++)),s===-1)throw new Error("Invalid base64 digit: "+e.charAt(n-1));t=!!(s&c),s&=u,f+=s<<p,p+=a}while(t);r.value=o(f),r.rest=n}},{"./base64":6}],6:[function(e,n,r){var t="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".split("");r.encode=function(e){if(0<=e&&e<t.length)return t[e];throw new TypeError("Must be between 0 and 63: "+e)},r.decode=function(e){var n=65,r=90,t=97,o=122,i=48,a=57,s=43,u=47,c=26,l=52;return n<=e&&e<=r?e-n:t<=e&&e<=o?e-t+c:i<=e&&e<=a?e-i+l:e==s?62:e==u?63:-1}},{}],7:[function(e,n,r){function t(e,n,o,i,a,s){var u=Math.floor((n-e)/2)+e,c=a(o,i[u],!0);return 0===c?u:c>0?n-u>1?t(u,n,o,i,a,s):s==r.LEAST_UPPER_BOUND?n<i.length?n:-1:u:u-e>1?t(e,u,o,i,a,s):s==r.LEAST_UPPER_BOUND?u:e<0?-1:e}r.GREATEST_LOWER_BOUND=1,r.LEAST_UPPER_BOUND=2,r.search=function(e,n,o,i){if(0===n.length)return-1;var a=t(-1,n.length,e,n,o,i||r.GREATEST_LOWER_BOUND);if(a<0)return-1;for(;a-1>=0&&0===o(n[a],n[a-1],!0);)--a;return a}},{}],8:[function(e,n,r){function t(e,n,r){var t=e[n];e[n]=e[r],e[r]=t}function o(e,n){return Math.round(e+Math.random()*(n-e))}function i(e,n,r,a){if(r<a){var s=o(r,a),u=r-1;t(e,s,a);for(var c=e[a],l=r;l<a;l++)n(e[l],c)<=0&&(u+=1,t(e,u,l));t(e,u+1,l);var f=u+1;i(e,n,r,f-1),i(e,n,f+1,a)}}r.quickSort=function(e,n){i(e,n,0,e.length-1)}},{}],9:[function(e,n,r){function t(e){var n=e;return"string"==typeof e&&(n=JSON.parse(e.replace(/^\)\]\}'/,""))),null!=n.sections?new a(n):new o(n)}function o(e){var n=e;"string"==typeof e&&(n=JSON.parse(e.replace(/^\)\]\}'/,"")));var r=s.getArg(n,"version"),t=s.getArg(n,"sources"),o=s.getArg(n,"names",[]),i=s.getArg(n,"sourceRoot",null),a=s.getArg(n,"sourcesContent",null),u=s.getArg(n,"mappings"),l=s.getArg(n,"file",null);if(r!=this._version)throw new Error("Unsupported version: "+r);t=t.map(String).map(s.normalize).map(function(e){return i&&s.isAbsolute(i)&&s.isAbsolute(e)?s.relative(i,e):e}),this._names=c.fromArray(o.map(String),!0),this._sources=c.fromArray(t,!0),this.sourceRoot=i,this.sourcesContent=a,this._mappings=u,this.file=l}function i(){this.generatedLine=0,this.generatedColumn=0,this.source=null,this.originalLine=null,this.originalColumn=null,this.name=null}function a(e){var n=e;"string"==typeof e&&(n=JSON.parse(e.replace(/^\)\]\}'/,"")));var r=s.getArg(n,"version"),o=s.getArg(n,"sections");if(r!=this._version)throw new Error("Unsupported version: "+r);this._sources=new c,this._names=new c;var i={line:-1,column:0};this._sections=o.map(function(e){if(e.url)throw new Error("Support for url field in sections not implemented.");var n=s.getArg(e,"offset"),r=s.getArg(n,"line"),o=s.getArg(n,"column");if(r<i.line||r===i.line&&o<i.column)throw new Error("Section offsets must be ordered and non-overlapping.");return i=n,{generatedOffset:{generatedLine:r+1,generatedColumn:o+1},consumer:new t(s.getArg(e,"map"))}})}var s=e("./util"),u=e("./binary-search"),c=e("./array-set").ArraySet,l=e("./base64-vlq"),f=e("./quick-sort").quickSort;t.fromSourceMap=function(e){return o.fromSourceMap(e)},t.prototype._version=3,t.prototype.__generatedMappings=null,Object.defineProperty(t.prototype,"_generatedMappings",{get:function(){return this.__generatedMappings||this._parseMappings(this._mappings,this.sourceRoot),this.__generatedMappings}}),t.prototype.__originalMappings=null,Object.defineProperty(t.prototype,"_originalMappings",{get:function(){return this.__originalMappings||this._parseMappings(this._mappings,this.sourceRoot),this.__originalMappings}}),t.prototype._charIsMappingSeparator=function(e,n){var r=e.charAt(n);return";"===r||","===r},t.prototype._parseMappings=function(e,n){throw new Error("Subclasses must implement _parseMappings")},t.GENERATED_ORDER=1,t.ORIGINAL_ORDER=2,t.GREATEST_LOWER_BOUND=1,t.LEAST_UPPER_BOUND=2,t.prototype.eachMapping=function(e,n,r){var o,i=n||null,a=r||t.GENERATED_ORDER;switch(a){case t.GENERATED_ORDER:o=this._generatedMappings;break;case t.ORIGINAL_ORDER:o=this._originalMappings;break;default:throw new Error("Unknown order of iteration.")}var u=this.sourceRoot;o.map(function(e){var n=null===e.source?null:this._sources.at(e.source);return null!=n&&null!=u&&(n=s.join(u,n)),{source:n,generatedLine:e.generatedLine,generatedColumn:e.generatedColumn,originalLine:e.originalLine,originalColumn:e.originalColumn,name:null===e.name?null:this._names.at(e.name)}},this).forEach(e,i)},t.prototype.allGeneratedPositionsFor=function(e){var n=s.getArg(e,"line"),r={source:s.getArg(e,"source"),originalLine:n,originalColumn:s.getArg(e,"column",0)};if(null!=this.sourceRoot&&(r.source=s.relative(this.sourceRoot,r.source)),!this._sources.has(r.source))return[];r.source=this._sources.indexOf(r.source);var t=[],o=this._findMapping(r,this._originalMappings,"originalLine","originalColumn",s.compareByOriginalPositions,u.LEAST_UPPER_BOUND);if(o>=0){var i=this._originalMappings[o];if(void 0===e.column)for(var a=i.originalLine;i&&i.originalLine===a;)t.push({line:s.getArg(i,"generatedLine",null),column:s.getArg(i,"generatedColumn",null),lastColumn:s.getArg(i,"lastGeneratedColumn",null)}),i=this._originalMappings[++o];else for(var c=i.originalColumn;i&&i.originalLine===n&&i.originalColumn==c;)t.push({line:s.getArg(i,"generatedLine",null),column:s.getArg(i,"generatedColumn",null),lastColumn:s.getArg(i,"lastGeneratedColumn",null)}),i=this._originalMappings[++o]}return t},r.SourceMapConsumer=t,o.prototype=Object.create(t.prototype),o.prototype.consumer=t,o.fromSourceMap=function(e){var n=Object.create(o.prototype),r=n._names=c.fromArray(e._names.toArray(),!0),t=n._sources=c.fromArray(e._sources.toArray(),!0);n.sourceRoot=e._sourceRoot,n.sourcesContent=e._generateSourcesContent(n._sources.toArray(),n.sourceRoot),n.file=e._file;for(var a=e._mappings.toArray().slice(),u=n.__generatedMappings=[],l=n.__originalMappings=[],p=0,g=a.length;p<g;p++){var h=a[p],m=new i;m.generatedLine=h.generatedLine,m.generatedColumn=h.generatedColumn,h.source&&(m.source=t.indexOf(h.source),m.originalLine=h.originalLine,m.originalColumn=h.originalColumn,h.name&&(m.name=r.indexOf(h.name)),l.push(m)),u.push(m)}return f(n.__originalMappings,s.compareByOriginalPositions),n},o.prototype._version=3,Object.defineProperty(o.prototype,"sources",{get:function(){return this._sources.toArray().map(function(e){return null!=this.sourceRoot?s.join(this.sourceRoot,e):e},this)}}),o.prototype._parseMappings=function(e,n){for(var r,t,o,a,u,c=1,p=0,g=0,h=0,m=0,d=0,v=e.length,_=0,y={},w={},b=[],C=[];_<v;)if(";"===e.charAt(_))c++,_++,p=0;else if(","===e.charAt(_))_++;else{for(r=new i,r.generatedLine=c,a=_;a<v&&!this._charIsMappingSeparator(e,a);a++);if(t=e.slice(_,a),o=y[t])_+=t.length;else{for(o=[];_<a;)l.decode(e,_,w),u=w.value,_=w.rest,o.push(u);if(2===o.length)throw new Error("Found a source, but no line and column");if(3===o.length)throw new Error("Found a source and line, but no column");y[t]=o}r.generatedColumn=p+o[0],p=r.generatedColumn,o.length>1&&(r.source=m+o[1],m+=o[1],r.originalLine=g+o[2],g=r.originalLine,r.originalLine+=1,r.originalColumn=h+o[3],h=r.originalColumn,o.length>4&&(r.name=d+o[4],d+=o[4])),C.push(r),"number"==typeof r.originalLine&&b.push(r)}f(C,s.compareByGeneratedPositionsDeflated),this.__generatedMappings=C,f(b,s.compareByOriginalPositions),this.__originalMappings=b},o.prototype._findMapping=function(e,n,r,t,o,i){if(e[r]<=0)throw new TypeError("Line must be greater than or equal to 1, got "+e[r]);if(e[t]<0)throw new TypeError("Column must be greater than or equal to 0, got "+e[t]);return u.search(e,n,o,i)},o.prototype.computeColumnSpans=function(){for(var e=0;e<this._generatedMappings.length;++e){var n=this._generatedMappings[e];if(e+1<this._generatedMappings.length){var r=this._generatedMappings[e+1];if(n.generatedLine===r.generatedLine){n.lastGeneratedColumn=r.generatedColumn-1;continue}}n.lastGeneratedColumn=1/0}},o.prototype.originalPositionFor=function(e){var n={generatedLine:s.getArg(e,"line"),generatedColumn:s.getArg(e,"column")},r=this._findMapping(n,this._generatedMappings,"generatedLine","generatedColumn",s.compareByGeneratedPositionsDeflated,s.getArg(e,"bias",t.GREATEST_LOWER_BOUND));if(r>=0){var o=this._generatedMappings[r];if(o.generatedLine===n.generatedLine){var i=s.getArg(o,"source",null);null!==i&&(i=this._sources.at(i),null!=this.sourceRoot&&(i=s.join(this.sourceRoot,i)));var a=s.getArg(o,"name",null);return null!==a&&(a=this._names.at(a)),{source:i,line:s.getArg(o,"originalLine",null),column:s.getArg(o,"originalColumn",null),name:a}}}return{source:null,line:null,column:null,name:null}},o.prototype.hasContentsOfAllSources=function(){return!!this.sourcesContent&&(this.sourcesContent.length>=this._sources.size()&&!this.sourcesContent.some(function(e){return null==e}))},o.prototype.sourceContentFor=function(e,n){if(!this.sourcesContent)return null;if(null!=this.sourceRoot&&(e=s.relative(this.sourceRoot,e)),this._sources.has(e))return this.sourcesContent[this._sources.indexOf(e)];var r;if(null!=this.sourceRoot&&(r=s.urlParse(this.sourceRoot))){var t=e.replace(/^file:\/\//,"");if("file"==r.scheme&&this._sources.has(t))return this.sourcesContent[this._sources.indexOf(t)];if((!r.path||"/"==r.path)&&this._sources.has("/"+e))return this.sourcesContent[this._sources.indexOf("/"+e)]}if(n)return null;throw new Error('"'+e+'" is not in the SourceMap.')},o.prototype.generatedPositionFor=function(e){var n=s.getArg(e,"source");if(null!=this.sourceRoot&&(n=s.relative(this.sourceRoot,n)),!this._sources.has(n))return{line:null,column:null,lastColumn:null};n=this._sources.indexOf(n);var r={source:n,originalLine:s.getArg(e,"line"),originalColumn:s.getArg(e,"column")},o=this._findMapping(r,this._originalMappings,"originalLine","originalColumn",s.compareByOriginalPositions,s.getArg(e,"bias",t.GREATEST_LOWER_BOUND));if(o>=0){var i=this._originalMappings[o];if(i.source===r.source)return{line:s.getArg(i,"generatedLine",null),column:s.getArg(i,"generatedColumn",null),lastColumn:s.getArg(i,"lastGeneratedColumn",null)}}return{line:null,column:null,lastColumn:null}},r.BasicSourceMapConsumer=o,a.prototype=Object.create(t.prototype),a.prototype.constructor=t,a.prototype._version=3,Object.defineProperty(a.prototype,"sources",{get:function(){for(var e=[],n=0;n<this._sections.length;n++)for(var r=0;r<this._sections[n].consumer.sources.length;r++)e.push(this._sections[n].consumer.sources[r]);return e}}),a.prototype.originalPositionFor=function(e){var n={generatedLine:s.getArg(e,"line"),generatedColumn:s.getArg(e,"column")},r=u.search(n,this._sections,function(e,n){var r=e.generatedLine-n.generatedOffset.generatedLine;return r?r:e.generatedColumn-n.generatedOffset.generatedColumn}),t=this._sections[r];return t?t.consumer.originalPositionFor({line:n.generatedLine-(t.generatedOffset.generatedLine-1),column:n.generatedColumn-(t.generatedOffset.generatedLine===n.generatedLine?t.generatedOffset.generatedColumn-1:0),bias:e.bias}):{source:null,line:null,column:null,name:null}},a.prototype.hasContentsOfAllSources=function(){return this._sections.every(function(e){return e.consumer.hasContentsOfAllSources()})},a.prototype.sourceContentFor=function(e,n){for(var r=0;r<this._sections.length;r++){var t=this._sections[r],o=t.consumer.sourceContentFor(e,!0);if(o)return o}if(n)return null;throw new Error('"'+e+'" is not in the SourceMap.')},a.prototype.generatedPositionFor=function(e){for(var n=0;n<this._sections.length;n++){var r=this._sections[n];if(r.consumer.sources.indexOf(s.getArg(e,"source"))!==-1){var t=r.consumer.generatedPositionFor(e);if(t){var o={line:t.line+(r.generatedOffset.generatedLine-1),column:t.column+(r.generatedOffset.generatedLine===t.line?r.generatedOffset.generatedColumn-1:0)};return o}}}return{line:null,column:null}},a.prototype._parseMappings=function(e,n){this.__generatedMappings=[],this.__originalMappings=[];for(var r=0;r<this._sections.length;r++)for(var t=this._sections[r],o=t.consumer._generatedMappings,i=0;i<o.length;i++){var a=o[i],u=t.consumer._sources.at(a.source);null!==t.consumer.sourceRoot&&(u=s.join(t.consumer.sourceRoot,u)),this._sources.add(u),u=this._sources.indexOf(u);var c=t.consumer._names.at(a.name);this._names.add(c),c=this._names.indexOf(c);var l={source:u,generatedLine:a.generatedLine+(t.generatedOffset.generatedLine-1),generatedColumn:a.generatedColumn+(t.generatedOffset.generatedLine===a.generatedLine?t.generatedOffset.generatedColumn-1:0),originalLine:a.originalLine,originalColumn:a.originalColumn,name:c};this.__generatedMappings.push(l),"number"==typeof l.originalLine&&this.__originalMappings.push(l)}f(this.__generatedMappings,s.compareByGeneratedPositionsDeflated),f(this.__originalMappings,s.compareByOriginalPositions)},r.IndexedSourceMapConsumer=a},{"./array-set":4,"./base64-vlq":5,"./binary-search":7,"./quick-sort":8,"./util":10}],10:[function(e,n,r){function t(e,n,r){if(n in e)return e[n];if(3===arguments.length)return r;throw new Error('"'+n+'" is a required argument.')}function o(e){var n=e.match(v);return n?{scheme:n[1],auth:n[2],host:n[3],port:n[4],path:n[5]}:null}function i(e){var n="";return e.scheme&&(n+=e.scheme+":"),n+="//",e.auth&&(n+=e.auth+"@"),e.host&&(n+=e.host),e.port&&(n+=":"+e.port),e.path&&(n+=e.path),n}function a(e){var n=e,t=o(e);if(t){if(!t.path)return e;n=t.path}for(var a,s=r.isAbsolute(n),u=n.split(/\/+/),c=0,l=u.length-1;l>=0;l--)a=u[l],"."===a?u.splice(l,1):".."===a?c++:c>0&&(""===a?(u.splice(l+1,c),c=0):(u.splice(l,2),c--));return n=u.join("/"),""===n&&(n=s?"/":"."),t?(t.path=n,i(t)):n}function s(e,n){""===e&&(e="."),""===n&&(n=".");var r=o(n),t=o(e);if(t&&(e=t.path||"/"),r&&!r.scheme)return t&&(r.scheme=t.scheme),i(r);if(r||n.match(_))return n;if(t&&!t.host&&!t.path)return t.host=n,i(t);var s="/"===n.charAt(0)?n:a(e.replace(/\/+$/,"")+"/"+n);return t?(t.path=s,i(t)):s}function u(e,n){""===e&&(e="."),e=e.replace(/\/$/,"");for(var r=0;0!==n.indexOf(e+"/");){var t=e.lastIndexOf("/");if(t<0)return n;if(e=e.slice(0,t),e.match(/^([^\/]+:\/)?\/*$/))return n;++r}return Array(r+1).join("../")+n.substr(e.length+1)}function c(e){return e}function l(e){return p(e)?"$"+e:e}function f(e){return p(e)?e.slice(1):e}function p(e){if(!e)return!1;var n=e.length;if(n<9)return!1;if(95!==e.charCodeAt(n-1)||95!==e.charCodeAt(n-2)||111!==e.charCodeAt(n-3)||116!==e.charCodeAt(n-4)||111!==e.charCodeAt(n-5)||114!==e.charCodeAt(n-6)||112!==e.charCodeAt(n-7)||95!==e.charCodeAt(n-8)||95!==e.charCodeAt(n-9))return!1;for(var r=n-10;r>=0;r--)if(36!==e.charCodeAt(r))return!1;return!0}function g(e,n,r){var t=e.source-n.source;return 0!==t?t:(t=e.originalLine-n.originalLine,0!==t?t:(t=e.originalColumn-n.originalColumn,0!==t||r?t:(t=e.generatedColumn-n.generatedColumn,0!==t?t:(t=e.generatedLine-n.generatedLine,0!==t?t:e.name-n.name))))}function h(e,n,r){var t=e.generatedLine-n.generatedLine;return 0!==t?t:(t=e.generatedColumn-n.generatedColumn,0!==t||r?t:(t=e.source-n.source,0!==t?t:(t=e.originalLine-n.originalLine,0!==t?t:(t=e.originalColumn-n.originalColumn,0!==t?t:e.name-n.name))))}function m(e,n){return e===n?0:e>n?1:-1}function d(e,n){var r=e.generatedLine-n.generatedLine;return 0!==r?r:(r=e.generatedColumn-n.generatedColumn,0!==r?r:(r=m(e.source,n.source),0!==r?r:(r=e.originalLine-n.originalLine,0!==r?r:(r=e.originalColumn-n.originalColumn,0!==r?r:m(e.name,n.name)))))}r.getArg=t;var v=/^(?:([\w+\-.]+):)?\/\/(?:(\w+:\w+)@)?([\w.]*)(?::(\d+))?(\S*)$/,_=/^data:.+\,.+$/;r.urlParse=o,r.urlGenerate=i,r.normalize=a,r.join=s,r.isAbsolute=function(e){return"/"===e.charAt(0)||!!e.match(v)},r.relative=u;var y=function(){var e=Object.create(null);return!("__proto__"in e)}();r.toSetString=y?c:l,r.fromSetString=y?c:f,r.compareByOriginalPositions=g,r.compareByGeneratedPositionsDeflated=h,r.compareByGeneratedPositionsInflated=d},{}],11:[function(n,r,t){!function(o,i){"use strict";"function"==typeof e&&e.amd?e("stacktrace-gps",["source-map","stackframe"],i):"object"==typeof t?r.exports=i(n("source-map/lib/source-map-consumer"),n("stackframe")):o.StackTraceGPS=i(o.SourceMap||o.sourceMap,o.StackFrame)}(this,function(e,n){"use strict";function r(e){return new Promise(function(n,r){var t=new XMLHttpRequest;t.open("get",e),t.onerror=r,t.onreadystatechange=function(){4===t.readyState&&(t.status>=200&&t.status<300||"file://"===e.substr(0,7)&&t.responseText?n(t.responseText):r(new Error("HTTP status: "+t.status+" retrieving "+e)))},t.send()})}function t(e){if("undefined"!=typeof window&&window.atob)return window.atob(e);throw new Error("You must supply a polyfill for window.atob in this environment")}function o(e){if("undefined"!=typeof JSON&&JSON.parse)return JSON.parse(e);throw new Error("You must supply a polyfill for JSON.parse in this environment")}function i(e,n){for(var r=[/['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*function\b/,/function\s+([^('"`]*?)\s*\(([^)]*)\)/,/['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*(?:eval|new Function)\b/,/\b(?!(?:if|for|switch|while|with|catch)\b)(?:(?:static)\s+)?(\S+)\s*\(.*?\)\s*\{/,/['"]?([$_A-Za-z][$_A-Za-z0-9]*)['"]?\s*[:=]\s*\(.*?\)\s*=>/],t=e.split("\n"),o="",i=Math.min(n,20),a=0;a<i;++a){var s=t[n-a-1],u=s.indexOf("//");if(u>=0&&(s=s.substr(0,u)),s){o=s+o;for(var c=r.length,l=0;l<c;l++){var f=r[l].exec(o);if(f&&f[1])return f[1]}}}}function a(){if("function"!=typeof Object.defineProperty||"function"!=typeof Object.create)throw new Error("Unable to consume source maps in older browsers")}function s(e){if("object"!=typeof e)throw new TypeError("Given StackFrame is not an object");if("string"!=typeof e.fileName)throw new TypeError("Given file name is not a String");if("number"!=typeof e.lineNumber||e.lineNumber%1!==0||e.lineNumber<1)throw new TypeError("Given line number must be a positive integer");if("number"!=typeof e.columnNumber||e.columnNumber%1!==0||e.columnNumber<0)throw new TypeError("Given column number must be a non-negative integer");return!0}function u(e){for(var n,r,t=/\/\/[#@] ?sourceMappingURL=([^\s'"]+)\s*$/gm;r=t.exec(e);)n=r[1];if(n)return n;throw new Error("sourceMappingURL not found")}function c(e,r,t){return new Promise(function(o,i){var a=r.originalPositionFor({line:e.lineNumber,column:e.columnNumber});if(a.source){var s=r.sourceContentFor(a.source);s&&(t[a.source]=s),o(new n({functionName:a.name||e.functionName,args:e.args,fileName:a.source,lineNumber:a.line,columnNumber:a.column}))}else i(new Error("Could not get original source for given stackframe and source map"))})}return function l(f){return this instanceof l?(f=f||{},this.sourceCache=f.sourceCache||{},this.sourceMapConsumerCache=f.sourceMapConsumerCache||{},this.ajax=f.ajax||r,this._atob=f.atob||t,this._get=function(e){return new Promise(function(n,r){var t="data:"===e.substr(0,5);if(this.sourceCache[e])n(this.sourceCache[e]);else if(f.offline&&!t)r(new Error("Cannot make network requests in offline mode"));else if(t){var o=/^data:application\/json;([\w=:"-]+;)*base64,/,i=e.match(o);if(i){var a=i[0].length,s=e.substr(a),u=this._atob(s);this.sourceCache[e]=u,n(u)}else r(new Error("The encoding of the inline sourcemap is not supported"))}else{var c=this.ajax(e,{method:"get"});this.sourceCache[e]=c,c.then(n,r)}}.bind(this))},this._getSourceMapConsumer=function(n,r){return new Promise(function(t,i){if(this.sourceMapConsumerCache[n])t(this.sourceMapConsumerCache[n]);else{var a=new Promise(function(t,i){return this._get(n).then(function(n){"string"==typeof n&&(n=o(n.replace(/^\)\]\}'/,""))),"undefined"==typeof n.sourceRoot&&(n.sourceRoot=r),t(new e.SourceMapConsumer(n))},i)}.bind(this));this.sourceMapConsumerCache[n]=a,t(a)}}.bind(this))},this.pinpoint=function(e){return new Promise(function(n,r){this.getMappedLocation(e).then(function(e){function r(){n(e)}this.findFunctionName(e).then(n,r)["catch"](r)}.bind(this),r)}.bind(this))},this.findFunctionName=function(e){return new Promise(function(r,t){s(e),this._get(e.fileName).then(function(t){var o=e.lineNumber,a=e.columnNumber,s=i(t,o,a);r(s?new n({functionName:s,args:e.args,fileName:e.fileName,lineNumber:o,columnNumber:a}):e)},t)["catch"](t)}.bind(this))},void(this.getMappedLocation=function(e){return new Promise(function(n,r){a(),s(e);var t=this.sourceCache,o=e.fileName;this._get(o).then(function(r){var i=u(r),a="data:"===i.substr(0,5),s=o.substring(0,o.lastIndexOf("/")+1);return"/"===i[0]||a||/^https?:\/\/|^\/\//i.test(i)||(i=s+i),this._getSourceMapConsumer(i,s).then(function(r){return c(e,r,t).then(n)["catch"](function(){n(e)})})}.bind(this),r)["catch"](r)}.bind(this))})):new l(f)}})},{"source-map/lib/source-map-consumer":9,stackframe:3}],12:[function(n,r,t){!function(o,i){"use strict";"function"==typeof e&&e.amd?e("stacktrace",["error-stack-parser","stack-generator","stacktrace-gps"],i):"object"==typeof t?r.exports=i(n("error-stack-parser"),n("stack-generator"),n("stacktrace-gps")):o.StackTrace=i(o.ErrorStackParser,o.StackGenerator,o.StackTraceGPS)}(this,function(e,n,r){function t(e,n){var r={};return[e,n].forEach(function(e){for(var n in e)e.hasOwnProperty(n)&&(r[n]=e[n]);return r}),r}function o(e){return e.stack||e["opera#sourceloc"]}function i(e,n){return"function"==typeof n?e.filter(n):e}var a={filter:function(e){return(e.functionName||"").indexOf("StackTrace$$")===-1&&(e.functionName||"").indexOf("ErrorStackParser$$")===-1&&(e.functionName||"").indexOf("StackTraceGPS$$")===-1&&(e.functionName||"").indexOf("StackGenerator$$")===-1},sourceCache:{}},s=function(){try{throw new Error}catch(e){return e}};return{get:function(e){var n=s();return o(n)?this.fromError(n,e):this.generateArtificially(e)},getSync:function(r){r=t(a,r);var u=s(),c=o(u)?e.parse(u):n.backtrace(r);return i(c,r.filter)},fromError:function(n,o){o=t(a,o);var s=new r(o);return new Promise(function(r){var t=i(e.parse(n),o.filter);r(Promise.all(t.map(function(e){return new Promise(function(n){function r(){n(e)}s.pinpoint(e).then(n,r)["catch"](r)})})))}.bind(this))},generateArtificially:function(e){e=t(a,e);var r=n.backtrace(e);return"function"==typeof e.filter&&(r=r.filter(e.filter)),Promise.resolve(r)},instrument:function(e,n,r,t){if("function"!=typeof e)throw new Error("Cannot instrument non-function object");if("function"==typeof e.__stacktraceOriginalFn)return e;var i=function(){try{return this.get().then(n,r)["catch"](r),e.apply(t||this,arguments)}catch(i){throw o(i)&&this.fromError(i).then(n,r)["catch"](r),i}}.bind(this);return i.__stacktraceOriginalFn=e,i},deinstrument:function(e){if("function"!=typeof e)throw new Error("Cannot de-instrument non-function object");return"function"==typeof e.__stacktraceOriginalFn?e.__stacktraceOriginalFn:e},report:function(e,n,r,t){return new Promise(function(o,i){var a=new XMLHttpRequest;if(a.onerror=i,a.onreadystatechange=function(){4===a.readyState&&(a.status>=200&&a.status<400?o(a.responseText):i(new Error("POST to "+n+" failed with status: "+a.status)))},a.open("post",n),a.setRequestHeader("Content-Type","application/json"),t&&"object"==typeof t.headers){var s=t.headers;for(var u in s)s.hasOwnProperty(u)&&a.setRequestHeader(u,s[u])}var c={stack:e};void 0!==r&&null!==r&&(c.message=r),a.send(JSON.stringify(c))})}}})},{"error-stack-parser":1,"stack-generator":2,"stacktrace-gps":11}]},{},[12])(12)});
 
 
-},{}],9:[function(require,module,exports){
-class FileMap {
-    constructor(){this.sidesList=[];}
-    add(sides) {// {sideA:path, sideB:path}
+},{}],10:[function(require,module,exports){
+
+module.exports = class FileMap {
+    constructor() { this.sidesList = []; }
+    add(sides) {
         this.sidesList.push(sides);
     }
     convert(path, fromSide, toSide) {
         for (let sides of this.sidesList) {
             if (path.startsWith(sides[fromSide])) {
-                return sides[toSide]+path.substring(sides[fromSide].length);
+                return sides[toSide] + path.substring(sides[fromSide].length);
             }
         }
         return path;
     }
-}
-module.exports=FileMap;
+};
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
+
 /*global Worker*/
 // Browser Side
-let idseq=0;
+let idseq = 0;
 class Wrapper {
     constructor(worker) {
-        const t=this;
-        t.idseq=1;
-        t.queue={};
-        t.worker=worker;
-        t.readyQueue=[];
-        worker.addEventListener("message",function (e) {
-            var d=e.data;
+        this.isReady = false;
+        const t = this;
+        t.idseq = 1;
+        t.queue = {};
+        t.worker = worker;
+        t.readyQueue = [];
+        worker.addEventListener("message", function (e) {
+            var d = e.data;
             if (d.reverse) {
                 t.procReverse(e);
-            } else if (d.ready) {
+            }
+            else if (d.ready) {
                 t.ready();
-            } else if (d.id) {
+            }
+            else if (d.id) {
                 t.queue[d.id](d);
                 delete t.queue[d.id];
             }
         });
         t.run("WorkerService/isReady").then(function (r) {
-            if (r) t.ready();
+            if (r)
+                t.ready();
         });
     }
     procReverse(e) {
-        const t=this;
-        var d=e.data;
-        var id=d.id;
-        var path=d.path;
-        var params=d.params;
+        const t = this;
+        var d = e.data;
+        var id = d.id;
+        var path = d.path;
+        var params = d.params;
         try {
             Promise.resolve(paths[path](params)).then(function (r) {
                 t.worker.postMessage({
-                    reverse:true,
-                    status:"ok",
-                    id:id,
+                    reverse: true,
+                    status: "ok",
+                    id: id,
                     result: r
                 });
-            },sendError);
-        } catch(err) {
+            }, sendError);
+        }
+        catch (err) {
             sendError(err);
         }
         function sendError(e) {
-            e=Object.assign({name:e.name, message:e.message, stack:e.stack},e||{});
+            e = Object.assign({ name: e.name, message: e.message, stack: e.stack }, e || {});
             try {
-                const j=JSON.stringify(e);
-                e=JSON.parse(j);
-            } catch(je) {
-                e=e ? e.message || e+"" : "unknown";
+                const j = JSON.stringify(e);
+                e = JSON.parse(j);
+            }
+            catch (je) {
+                e = e ? e.message || e + "" : "unknown";
                 console.log("WorkerServiceW", je, e);
             }
             t.worker.postMessage({
                 reverse: true,
-                id:id, error:e, status:"error"
+                id: id, error: e, status: "error"
             });
         }
     }
     ready() {
-        const t=this;
-        if (t.isReady) return;
-        t.isReady=true;
+        const t = this;
+        if (t.isReady)
+            return;
+        t.isReady = true;
         console.log("Worker is ready!");
-        t.readyQueue.forEach(function (f){ f();});
+        t.readyQueue.forEach(function (f) { f(); });
     }
     readyPromise() {
-        const t=this;
+        const t = this;
         return new Promise(function (succ) {
-            if (t.isReady) return succ();
+            if (t.isReady)
+                return succ(undefined);
             t.readyQueue.push(succ);
         });
     }
-    run(path, params) {
-        const t=this;
-        return t.readyPromise().then(function() {
-            return new Promise(function (succ,err) {
-                var id=t.idseq++;
-                t.queue[id]=function (e) {
+    run(path, params = {}) {
+        const t = this;
+        return t.readyPromise().then(function () {
+            return new Promise(function (succ, err) {
+                var id = t.idseq++;
+                t.queue[id] = function (e) {
                     //console.log("Status",e);
-                    if (e.status=="ok") {
+                    if (e.status == "ok") {
                         succ(e.result);
-                    } else {
+                    }
+                    else {
                         err(e.error);
                     }
                 };
@@ -14991,55 +15235,53 @@ class Wrapper {
         });
     }
     terminate() {
-        const t=this;
+        const t = this;
         t.worker.terminate();
     }
 }
-var paths={};
-const WorkerService={
-    Wrapper:Wrapper,
+var paths = {};
+const WorkerService = {
+    Wrapper: Wrapper,
     load: function (src) {
-        var w=new Worker(src);
+        var w = new Worker(src);
         return new Wrapper(w);
     },
     install: function (path, func) {
-        paths[path]=func;
+        paths[path] = func;
     },
-    serv: function (path,func) {
-        this.install(path,func);
+    serv: function (path, func) {
+        this.install(path, func);
     }
 };
-WorkerService.serv("console/log", function (params){
-    console.log.apply(console,params);
+WorkerService.serv("console/log", function (params) {
+    console.log.apply(console, params);
 });
-module.exports=WorkerService;
-
-},{}],11:[function(require,module,exports){
-/*global window,self,global*/
-(function (deps, factory) {
-    module.exports=factory();
-})([],function (){
-    if (typeof window!=="undefined") return window;
-    if (typeof self!=="undefined") return self;
-    if (typeof global!=="undefined") return global;
-    return (function (){return this;})();
-});
+module.exports = WorkerService;
 
 },{}],12:[function(require,module,exports){
-/*define(function (require,exports,module) {
-    const F=require("ProjectFactory");
-    const root=require("root");
-    const SourceFiles=require("SourceFiles");
-    const langMod=require("langMod");
-    */
+
+const root = (function () {
+    if (typeof window !== "undefined")
+        return window;
+    if (typeof self !== "undefined")
+        return self;
+    if (typeof global !== "undefined")
+        return global;
+    return (function () { return this; })();
+})();
+module.exports = root;
+
+},{}],13:[function(require,module,exports){
+
     const F=require("./ProjectFactory");
     const root=require("../lib/root");
-    const SourceFiles=require("../lang/SourceFiles");
+    const {sourceFiles}=require("../lang/SourceFiles");
     //const A=require("../lib/assert");
     const langMod=require("../lang/langMod");
 
     F.addType("compiled",params=> {
         if (params.namespace && params.url) return urlBased(params);
+        if (params.namespace && params.outputFile) return outputFileBased(params);
         if (params.dir) return dirBased(params);
         console.error("Invalid compiled project", params);
         throw new Error("Invalid compiled project");
@@ -15050,10 +15292,13 @@ module.exports=WorkerService;
         const res=F.createCore();
         return res.include(langMod).include({
             getNamespace:function () {return ns;},
+            getOutputURL() {
+                return url;
+            },
             loadClasses: async function (ctx) {
                 console.log("Loading compiled classes ns=",ns,"url=",url);
                 await this.loadDependingClasses();
-                const s=SourceFiles.add({url});
+                const s=sourceFiles.add({url});
                 await s.exec();
                 console.log("Loaded compiled classes ns=",ns,"url=",url);
             },
@@ -15067,13 +15312,37 @@ module.exports=WorkerService;
                 await this.loadDependingClasses();
                 const outJS=this.getOutputFile();
                 const map=outJS.sibling(outJS.name()+".map");
-                const sf=SourceFiles.add({
-                    text:outJS.text(),
+                const sf=sourceFiles.add({
+                    //text:outJS.text(),
+                    file: outJS,
                     sourceMap:map.exists() && map.text(),
                 });
                 await sf.exec();
                 console.log("Loaded compiled classes params=",params);
             }
+        });
+    }
+    function outputFileBased(params) {
+        const ns=params.namespace;
+        const outputFile=params.outputFile;
+        const res=F.createCore();
+        return res.include(langMod).include({
+            getNamespace:function () {return ns;},
+            getOutputFile() {
+                return outputFile;
+            },
+            loadClasses: async function (ctx) {
+                console.log("Loading compiled classes ns=",ns,"outputFile=",outputFile);
+                await this.loadDependingClasses();
+                const outJS=outputFile;
+                const map=outJS.sibling(outJS.name()+".map");
+                const sf=sourceFiles.add({
+                    text:outJS.text(),
+                    sourceMap:map.exists() && map.text(),
+                });
+                await sf.exec();
+                console.log("Loaded compiled classes ns=",ns,"outputFile=",outputFile);
+            },
         });
     }
     exports.create=params=>F.create("compiled",params);
@@ -15084,15 +15353,46 @@ module.exports=WorkerService;
         if (spec.namespace && spec.url) {
             return F.create("compiled",spec);
         }
+        if (spec.namespace && spec.outputFile && prj.resolve) {
+            return F.create("compiled",{
+                namespace: spec.namespace,
+                outputFile: prj.resolve(spec.outputFile)
+            });
+        }
     });
 //});/*--end of define--*/
 
-},{"../lang/SourceFiles":4,"../lang/langMod":6,"../lib/root":11,"./ProjectFactory":13}],13:[function(require,module,exports){
+},{"../lang/SourceFiles":5,"../lang/langMod":7,"../lib/root":12,"./ProjectFactory":15}],14:[function(require,module,exports){
+
+class NS2DepSpec {
+    constructor(hashOrArray) {
+        if (isArray(hashOrArray)) {
+            this.array=hashOrArray;
+        } else {
+            this.array=Object.keys(hashOrArray).map(n=>hashOrArray[n]);
+        }
+    }
+    has(ns) {
+        return this.array.filter(e=>e.namespace===ns)[0];
+    }
+    specs() {
+        return this.array;
+    }
+    [Symbol.iterator]() {
+        return this.array[Symbol.iterator]();
+    }
+}
+function isArray(o) {
+    return (o && typeof o.slice==="function");
+}
+module.exports=NS2DepSpec;
+
+},{}],15:[function(require,module,exports){
 //define(function (require,exports,module) {
     // This factory will be widely used, even BitArrow.
 
 
-    let Compiler, SourceFiles,sysMod,run2Mod;
+    let Compiler, /*SourceFiles,*/sysMod,run2Mod;
     const  resolvers=[],types={};
     exports.addDependencyResolver=(f)=>{
         //f: (prj, spec) => prj
@@ -15213,6 +15513,7 @@ module.exports=WorkerService;
     exports.createDirBasedCore=function (params) {
         const res=this.createCore();
         res.dir=params.dir;
+        if (!res.dir.exists()) throw new Error(res.dir.path()+" Does not exist.");
         return res.include(dirBasedMod);
     };
 //});/*--end of define--*/

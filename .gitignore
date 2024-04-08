@@ -129,3 +129,5 @@ www/node/pyres_babel.txt
 www/node/diff_pyres_babel_pymod.txt
 www/node/diff_jsres_babel_pymod.txt
 www/node/diff_jsres_pyres_pymod.txt
+www/node/test/gen
+www/node/test

@@ -3,7 +3,18 @@ req("auth", "DateUtil");
 class LoginController {
     static $mesg;
     static function news() {
-        if (defined("NEWS")) echo NEWS;
+        $at=param("at","default");
+        if (defined("NEWS")) {
+            if (is_array(NEWS)) {
+                if (isset(NEWS[$at])) {
+                    echo NEWS[$at];
+                } else {
+                    echo NEWS["default"];
+                }
+            } else {
+                echo NEWS;
+            }
+        }
     }
     static function form() {
         redirectFromServiceDomain();

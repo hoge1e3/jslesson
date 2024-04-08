@@ -1,3 +1,0 @@
-from bawrapper import *
-
-cards={}
