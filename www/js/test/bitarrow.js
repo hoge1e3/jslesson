@@ -15,11 +15,11 @@ class BATest extends BATestRunner {
 
         await this.sleep(1000);
         await this.testC(await this.openProjectSel());
-        /*await this.testJS(await this.openProjectSel());
+        await this.testJS(await this.openProjectSel());
         await this.testDtl(await this.openProjectSel());
-        //await this.testCompileError_C(await this.openProjectSel());
+        await this.testCompileError_C(await this.openProjectSel());
         await this.testRuntimeError_TJS(await this.openProjectSel());
-        */
+        
         await this.openProjectSel();
         console.log("SUCCESS");
     }
