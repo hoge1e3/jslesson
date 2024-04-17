@@ -11,6 +11,7 @@ async function addActualTime2(){
     if (!f || !u) return;
     header.append($("<th>").attr({"data-attr":"at_complete"}).text("at_complete"));
     header.append($("<th>").attr({"data-attr":"at_full"}).text("at_full"));
+    header.append($("<th>").attr({"data-attr":"error"}).text("error"));
     header.append($("<th>").attr({"data-attr":"ok"}).text("ok"));
     const rows=[...$("tr.record")].map((row)=>$(row));
     const rowsByFile={};
@@ -35,6 +36,7 @@ async function addActualTime2(){
                 const row=batch[i][SYM_ROW];
                 row.append($("<td>").attr({"data-attr":"at_complete"}).text(e[0]));  
                 row.append($("<td>").attr({"data-attr":"at_full"}).text(e[1]));  
+                row.append($("<td>").attr({"data-attr":"error"}).text(e[2]));  
                 row.append($("<td>").attr({"data-attr":"ok"}).append(
                     $("<a>").attr({
                         target:"ok",

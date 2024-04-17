@@ -523,8 +523,10 @@ class TeacherLogController {
         if (!defined("IDLE_TIME")) define("IDLE_TIME",300);
         $actTime2=0;
         $actTime_complete=false;
+        $err=0;
         foreach ($it as $log) {
             if (!$prev) { $prev=$log; continue; }
+            
             $elapsedFromLast=$log->time-$prev->time;
             if ($elapsedFromLast>=IDLE_TIME) {
                 $actTime2+=IDLE_TIME;
@@ -536,6 +538,11 @@ class TeacherLogController {
                 if ($lastCode && $code===$lastCode && $actTime_complete===false) {
                     $actTime_complete=$actTime2;
                 }    
+                if (isset($log->result)) {
+                    if(strpos($log->result,'Error') !== false){
+                        $err++;
+                    }
+                }
             }
             $prev=$log;
         }
@@ -546,7 +553,7 @@ class TeacherLogController {
             } else {print $actTime2;}
         }
         if ($complete) {
-            $res=[$actTime_complete, $actTime2];
+            $res=[$actTime_complete, $actTime2, $err];
             if ($ok) {
                 $res[]=$ok->value;
                 $res[]=$ok->detail;
