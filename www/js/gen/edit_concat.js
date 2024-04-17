@@ -17608,7 +17608,7 @@ function ready() {
     ls();
     console.log("listing", curProjectDir.path(),"done");
     function ls(){
-        fl.ls(curProjectDir, desktopEnv.fileList || "latest");
+        fl.ls(curProjectDir, desktopEnv.fileList || "name");
     }
     function dispNameFL(name) {
         A.is(name,String);
