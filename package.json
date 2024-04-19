@@ -10,7 +10,5 @@
   },
   "nodejs": true,
   "dependencies": {
-    "babel-preset-es2015": "^6.24.1",
-    "babel-preset-stage-3": "^6.24.1"
   }
 }
