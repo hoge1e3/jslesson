@@ -479,7 +479,8 @@ class TeacherLogController {
         return pdo_select1("select * from logtag where log=?",$log->id);
     }
     static function getActualtime2($user=null,$file=null, $dateMax=null, $complete=false) {
-        // complete: return [complate_actTime, all_actTime]
+        // complete: return [complate_actTime, all_actTime, error]
+        // complete&&ok: return [complate_actTime, all_actTime, error,ok,detail]
         $class=Auth::curClass2();
         $isCtrl=false;
         if ($user===null) {

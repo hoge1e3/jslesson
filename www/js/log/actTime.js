@@ -41,7 +41,7 @@ async function addActualTime2(){
                     $("<a>").attr({
                         target:"ok",
                         href: `?GetLastFiles/index&file=${batch[i][1]}#${batch[i][0]}`
-                    }).text(e[2]==1?"OK":e[2]==0?"NG":"未採点")
+                    }).text(e[3]==1?"OK":e[3]==0?"NG":"未採点")
                 ));  
                 row[SYM_AT]=e[0]-0;  
                 i++;
