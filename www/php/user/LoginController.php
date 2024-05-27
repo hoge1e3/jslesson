@@ -119,9 +119,9 @@ class LoginController {
         if (defined("BAUTH_SALT")) {
             $res=statusHash($res);
         }
-        $res["otp"]=OTP::create($res);
         $callback=param("callback",null);
         if ($callback) {
+            $res["otp"]=OTP::create($res);
             // TODO check callback domains
             header("Location: $callback&code=".json_encode($res));
             return;
