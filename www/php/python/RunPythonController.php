@@ -64,6 +64,9 @@ class RunPythonController {
                 $user=Auth::curUser2();
             }
         //}
+        if (!$user) {
+            throw new Exception("Error: no user ".MySession::$id);
+        }
         $projectName=param("prj");
         self::runInDocker_withClassUser($user, $projectName, false);
     }
