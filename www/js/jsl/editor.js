@@ -211,9 +211,9 @@ function ready() {
         setupBuilder(_);
     });
     helpURL=langInfo.helpURL;
-    if (navigator.userAgent.match(/Firefox/) && lang==="tonyu") {
+    if (navigator.userAgent.match(/Firefox/) /*&& lang==="tonyu"*/) {
         ALWAYS_UPLOAD=true;
-        console.log("Firefox tonyu ALWAYS_UPLOAD");
+        console.log("Firefox ALWAYS_UPLOAD");
     }
     function setupBuilder(BuilderClass) {
         $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
