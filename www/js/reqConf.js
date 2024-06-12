@@ -302,6 +302,7 @@ var reqConf={
             PythonGen:"build/python/PythonGen",
             Python2JS:"build/python/Python2JS",
             pyRun:"build/python/pyRun",
+            pyTest:"build/python/pyTest",
             PyLib: "../runtime/lib/python/PyLib",
             PyX: "../runtime/lib/python/PyX",
             PHPBuilder:"build/php/PHPBuilder",
