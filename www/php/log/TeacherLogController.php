@@ -480,7 +480,8 @@ class TeacherLogController {
         return pdo_select1("select * from logtag where log=?",$log->id);
     }
     static function getActualtime2($user=null,$file=null, $dateMax=null, $complete=false) {
-        // complete: return [complate_actTime, all_actTime]
+        // complete: return [complate_actTime, all_actTime, error]
+        // complete&&ok: return [complate_actTime, all_actTime, error,ok,detail]
         $class=Auth::curClass2();
         $isCtrl=false;
         if ($user===null) {
@@ -524,8 +525,10 @@ class TeacherLogController {
         if (!defined("IDLE_TIME")) define("IDLE_TIME",300);
         $actTime2=0;
         $actTime_complete=false;
+        $err=0;
         foreach ($it as $log) {
             if (!$prev) { $prev=$log; continue; }
+            
             $elapsedFromLast=$log->time-$prev->time;
             if ($elapsedFromLast>=IDLE_TIME) {
                 $actTime2+=IDLE_TIME;
@@ -537,6 +540,11 @@ class TeacherLogController {
                 if ($lastCode && $code===$lastCode && $actTime_complete===false) {
                     $actTime_complete=$actTime2;
                 }    
+                if (isset($log->result)) {
+                    if(strpos($log->result,'Error') !== false){
+                        $err++;
+                    }
+                }
             }
             $prev=$log;
         }
@@ -547,7 +555,7 @@ class TeacherLogController {
             } else {print $actTime2;}
         }
         if ($complete) {
-            $res=[$actTime_complete, $actTime2];
+            $res=[$actTime_complete, $actTime2, $err];
             if ($ok) {
                 $res[]=$ok->value;
                 $res[]=$ok->detail;

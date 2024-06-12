@@ -115,6 +115,7 @@ $mod_aliases=array(
     'Auth' => 'php/auth.php',
     "config"=>"config/config.php",
     "dbconf"=>"db/config.php",
+    "OTP"=>"php/user/OTP.php",
     'foo' =>'bar'
 );
 function req() {

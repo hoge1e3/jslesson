@@ -144,7 +144,7 @@ CREATE TABLE `submission` (
 CREATE TABLE `teacher` (
   `name` varchar(255) DEFAULT NULL,
   `pass` varchar(255) DEFAULT NULL,
-  `options` varchar(255) DEFAULT NULL
+  `options` varchar(255) DEFAULT NULL,
   `shadow` text
 ) DEFAULT CHARSET=utf8;
 
@@ -158,3 +158,9 @@ CREATE TABLE `user` (
 ) DEFAULT CHARSET=utf8;
 
 create index log_by_class_user_file on log(class,user,filename);
+
+create table `otp` (
+  `id` varchar(255),
+  `content` text,
+  `expires` int(11)
+) DEFAULT CHARSET=utf8;

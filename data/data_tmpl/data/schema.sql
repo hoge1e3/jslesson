@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.28, for Linux (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.36, for Linux (x86_64)
 --
 -- Host: localhost    Database: bitarrow
 -- ------------------------------------------------------
--- Server version	8.0.28-0ubuntu0.20.04.3
+-- Server version	8.0.36-0ubuntu0.22.04.1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -19,10 +19,9 @@
 -- Table structure for table `accessToken`
 --
 
-DROP TABLE IF EXISTS `accessToken`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `accessToken` (
+CREATE TABLE IF NOT EXISTS `accessToken` (
   `class` varchar(32) DEFAULT NULL,
   `user` varchar(32) DEFAULT NULL,
   `token` varchar(32) DEFAULT NULL
@@ -33,10 +32,9 @@ CREATE TABLE `accessToken` (
 -- Table structure for table `assignment`
 --
 
-DROP TABLE IF EXISTS `assignment`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `assignment` (
+CREATE TABLE IF NOT EXISTS `assignment` (
   `id` int NOT NULL AUTO_INCREMENT,
   `class` varchar(32) DEFAULT NULL,
   `name` varchar(32) DEFAULT NULL,
@@ -46,17 +44,16 @@ CREATE TABLE `assignment` (
   `time` int DEFAULT NULL,
   `deadline` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=431 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=435 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `bigdata`
 --
 
-DROP TABLE IF EXISTS `bigdata`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `bigdata` (
+CREATE TABLE IF NOT EXISTS `bigdata` (
   `id` int NOT NULL AUTO_INCREMENT,
   `time` int DEFAULT NULL,
   `class` varchar(32) DEFAULT NULL,
@@ -83,10 +80,9 @@ CREATE TABLE `bigdata` (
 -- Table structure for table `class`
 --
 
-DROP TABLE IF EXISTS `class`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `class` (
+CREATE TABLE IF NOT EXISTS `class` (
   `id` varchar(255) CHARACTER SET latin1 COLLATE latin1_bin DEFAULT NULL,
   `pass` varchar(255) CHARACTER SET latin1 COLLATE latin1_bin DEFAULT NULL,
   `options` text,
@@ -98,10 +94,9 @@ CREATE TABLE `class` (
 -- Table structure for table `errorSeq`
 --
 
-DROP TABLE IF EXISTS `errorSeq`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `errorSeq` (
+CREATE TABLE IF NOT EXISTS `errorSeq` (
   `id` int NOT NULL AUTO_INCREMENT,
   `head` int DEFAULT NULL,
   `tail` int DEFAULT NULL,
@@ -114,10 +109,9 @@ CREATE TABLE `errorSeq` (
 -- Table structure for table `keyvalue`
 --
 
-DROP TABLE IF EXISTS `keyvalue`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `keyvalue` (
+CREATE TABLE IF NOT EXISTS `keyvalue` (
   `id` int NOT NULL AUTO_INCREMENT,
   `class` varchar(32) DEFAULT NULL,
   `user` varchar(32) DEFAULT NULL,
@@ -133,10 +127,9 @@ CREATE TABLE `keyvalue` (
 -- Table structure for table `log`
 --
 
-DROP TABLE IF EXISTS `log`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `log` (
+CREATE TABLE IF NOT EXISTS `log` (
   `id` int NOT NULL AUTO_INCREMENT,
   `time` int DEFAULT NULL,
   `class` varchar(32) DEFAULT NULL,
@@ -151,17 +144,16 @@ CREATE TABLE `log` (
   PRIMARY KEY (`id`),
   KEY `log_by_class_time` (`class`,`time`),
   KEY `log_by_class_user_file` (`class`,`user`,`filename`)
-) ENGINE=InnoDB AUTO_INCREMENT=9849436 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=10404434 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `logtag`
 --
 
-DROP TABLE IF EXISTS `logtag`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `logtag` (
+CREATE TABLE IF NOT EXISTS `logtag` (
   `id` int NOT NULL AUTO_INCREMENT,
   `log` int DEFAULT NULL,
   `name` varchar(32) DEFAULT NULL,
@@ -170,17 +162,16 @@ CREATE TABLE `logtag` (
   `options` text,
   `detail` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=314094 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=314099 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `mailToken`
 --
 
-DROP TABLE IF EXISTS `mailToken`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `mailToken` (
+CREATE TABLE IF NOT EXISTS `mailToken` (
   `token` varchar(50) DEFAULT NULL,
   `mail` text,
   `class` varchar(50) DEFAULT NULL,
@@ -193,10 +184,9 @@ CREATE TABLE `mailToken` (
 -- Table structure for table `mark`
 --
 
-DROP TABLE IF EXISTS `mark`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `mark` (
+CREATE TABLE IF NOT EXISTS `mark` (
   `id` int NOT NULL AUTO_INCREMENT,
   `time` int DEFAULT NULL,
   `submission` int DEFAULT NULL,
@@ -212,10 +202,9 @@ CREATE TABLE `mark` (
 -- Table structure for table `mysession`
 --
 
-DROP TABLE IF EXISTS `mysession`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `mysession` (
+CREATE TABLE IF NOT EXISTS `mysession` (
   `id` varchar(50) DEFAULT NULL,
   `time` int DEFAULT NULL,
   `data` text
@@ -223,13 +212,25 @@ CREATE TABLE `mysession` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `otp`
+--
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE IF NOT EXISTS `otp` (
+  `id` varchar(255) DEFAULT NULL,
+  `content` text,
+  `expires` int DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `pub_class`
 --
 
-DROP TABLE IF EXISTS `pub_class`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `pub_class` (
+CREATE TABLE IF NOT EXISTS `pub_class` (
   `url` varchar(32) DEFAULT NULL,
   `class` varchar(32) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
@@ -239,10 +240,9 @@ CREATE TABLE `pub_class` (
 -- Table structure for table `pub_user`
 --
 
-DROP TABLE IF EXISTS `pub_user`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `pub_user` (
+CREATE TABLE IF NOT EXISTS `pub_user` (
   `url` varchar(32) DEFAULT NULL,
   `class` varchar(32) DEFAULT NULL,
   `user` varchar(32) DEFAULT NULL,
@@ -254,10 +254,9 @@ CREATE TABLE `pub_user` (
 -- Table structure for table `published`
 --
 
-DROP TABLE IF EXISTS `published`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `published` (
+CREATE TABLE IF NOT EXISTS `published` (
   `url` varchar(32) DEFAULT NULL,
   `class` varchar(32) DEFAULT NULL,
   `user` varchar(50) DEFAULT NULL,
@@ -269,10 +268,9 @@ CREATE TABLE `published` (
 -- Table structure for table `role`
 --
 
-DROP TABLE IF EXISTS `role`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `role` (
+CREATE TABLE IF NOT EXISTS `role` (
   `user` varchar(255) DEFAULT NULL,
   `class` varchar(255) DEFAULT NULL,
   `type` varchar(255) DEFAULT NULL,
@@ -284,10 +282,9 @@ CREATE TABLE `role` (
 -- Table structure for table `submission`
 --
 
-DROP TABLE IF EXISTS `submission`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `submission` (
+CREATE TABLE IF NOT EXISTS `submission` (
   `id` int NOT NULL AUTO_INCREMENT,
   `time` int DEFAULT NULL,
   `assignment` int DEFAULT NULL,
@@ -296,17 +293,16 @@ CREATE TABLE `submission` (
   `source` varchar(32) DEFAULT NULL,
   `output` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11759 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=11771 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `teacher`
 --
 
-DROP TABLE IF EXISTS `teacher`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `teacher` (
+CREATE TABLE IF NOT EXISTS `teacher` (
   `name` varchar(255) DEFAULT NULL,
   `pass` varchar(255) DEFAULT NULL,
   `options` varchar(255) DEFAULT NULL,
@@ -318,10 +314,9 @@ CREATE TABLE `teacher` (
 -- Table structure for table `test`
 --
 
-DROP TABLE IF EXISTS `test`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `test` (
+CREATE TABLE IF NOT EXISTS `test` (
   `class` varchar(255) DEFAULT NULL,
   `name` varchar(255) DEFAULT NULL,
   `pass` varchar(255) DEFAULT NULL,
@@ -333,10 +328,9 @@ CREATE TABLE `test` (
 -- Table structure for table `user`
 --
 
-DROP TABLE IF EXISTS `user`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `user` (
+CREATE TABLE IF NOT EXISTS `user` (
   `class` varchar(255) CHARACTER SET latin1 COLLATE latin1_bin DEFAULT NULL,
   `name` varchar(255) CHARACTER SET latin1 COLLATE latin1_bin DEFAULT NULL,
   `pass` varchar(255) CHARACTER SET latin1 COLLATE latin1_bin DEFAULT NULL,
@@ -355,4 +349,4 @@ CREATE TABLE `user` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-04-26 11:01:38
+-- Dump completed on 2024-06-01 14:31:32

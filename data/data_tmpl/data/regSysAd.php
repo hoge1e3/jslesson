@@ -1,14 +1,14 @@
 <?php
 // Set the value to the www directory
-define("BA_WWW","../www");
+//define("BA_WWW","../www");
 
-require(BA_WWW."/config/config.php");
-require(BA_WWW."/php/Modules.php");
+require("../www/config/config.php");
+require("../www/php/Modules.php");
 
 req("TeacherController");
 
 if (count($argv)<3) {
-   print "Usage: $argv[0] mailaddr password";
+   print "Usage: $argv[0] mailaddr password\n";
    exit;
 }
 TeacherController::regSysAd($argv[1], $argv[2]);

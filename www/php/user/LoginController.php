@@ -1,5 +1,5 @@
 <?php
-req("auth", "DateUtil");
+req("auth", "DateUtil","OTP");
 class LoginController {
     static $mesg;
     static function news() {
@@ -73,14 +73,33 @@ class LoginController {
         // return whether status is valid
         $status=param("status");
         $status=json_decode($status,true);
-        $status2=statusHash($status);
+        $status2=json_decode(OTP::get($status["otp"]),true);
+        if (!$status2) {
+            echo "NG";
+            return false;
+        }
+        $keys=["user","class","teacher","time","oauthed_id","hash"];
+        foreach($keys as $key) {
+            $s1=isset($status[$key]);
+            $s2=isset($status2[$key]);
+            if ($s1!==$s2 ||
+                ($s1 && $status[$key]!==$status2[$key])
+            ) {
+                echo "NG";
+                return false;                    
+            }
+        }
+        echo "OK";
+        return true;
+        //$status2=statusHash($status);
         //echo ($status2["hash"]."<>".$status["hash"]."<BR>\n");
         //echo (DateUtil::now()-$status["time"]."<BR>\n");
-        if (DateUtil::now()-$status["time"]<30 && $status2["hash"]===$status["hash"]) {
+        /*if ($status2 && DateUtil::now()-$status["time"]<30 && 
+        $status2["hash"]===$status["hash"]) {
             echo "OK";
         } else {
             echo "NG";
-        }
+        }*/
     }
     static function curStatus() {
         $u=Auth::curUser2();
@@ -102,6 +121,7 @@ class LoginController {
         }
         $callback=param("callback",null);
         if ($callback) {
+            $res["otp"]=OTP::create($res);
             // TODO check callback domains
             header("Location: $callback&code=".json_encode($res));
             return;
