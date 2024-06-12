@@ -1,0 +1,25 @@
+<html>
+<script src="../js/lib/jquery-1.12.1.js"></script>
+<script>
+async function init() {
+    let r=await navigator.serviceWorker.getRegistrations();//.then(registrations => {
+    for (const registration of r) {
+        console.log("unreg",r);
+        registration.unregister();
+    } 
+    if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("serviceWorker.js");
+    }
+}
+async function go() {
+    let r=$.get("sw.html");
+    console.log(r);
+    document.querySelector("iframe").setAttribute("src","hoge.html");
+    document.body.innerHTML+=`<img src="images/neko1.png"/>`;
+}
+init();
+</script>
+<button onclick="go()"></button>
+<a href="hoge.html" target="hoge">hoge</a>
+<iframe id="fuga"></iframe>
+</html>
