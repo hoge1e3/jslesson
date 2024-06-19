@@ -1564,7 +1564,7 @@ extern char* strstr(char *h,char *n);
   extern int getkey(char *n);
   extern void setLineWidth(double w);
   extern void wait(void);
-  extern void startPolygon();
+  extern void startPolygon(double x,double y);
   extern void fillPolygon();
   */}
   };

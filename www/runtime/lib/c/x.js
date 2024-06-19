@@ -138,9 +138,6 @@
         var ctx = initX()[0].getContext("2d");
         setPen.sx = x;
         setPen.sy = y;
-        if (lib.startPolygon.mode) {
-            ctx.moveTo(setPen.sx, setPen.sy);
-        }
         writeGraphicsLog("setPen(" + [x, y].join(",") + ");\n");
     };
     var setPen = lib.setPen;
@@ -160,8 +157,12 @@
         }
         writeGraphicsLog("movePen(" + [dx, dy].join(",") + ");\n");
     };
-    lib.startPolygon= function(){
+    lib.startPolygon= function(x,y){
+        var ctx = initX()[0].getContext("2d");
         lib.startPolygon.mode=true;
+        setPen.sx = x;
+        setPen.sy = y;
+        ctx.moveTo(setPen.sx, setPen.sy);
     };
     lib.fillPolygon=function () {
         var ctx = initX()[0].getContext("2d");
