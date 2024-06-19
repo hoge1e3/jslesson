@@ -25,6 +25,9 @@ define(function (require, exports, module) {
         }
         var data={date:d.getFullYear()+"/"+dataPadding(d.getMonth()+1)+"/"+dataPadding(d.getDate()),time:dataPadding(d.getHours())+":"+dataPadding(d.getMinutes())+":"+dataPadding(d.getSeconds()),lang:lang,filename:filePath,result:result,detail:detail,code:code};
         console.log("logged to server DATA",data);
+        try {
+            window.BitArrow.onLogToServer({data});
+        }catch(e){}
 		return $.post(".?dump2",{data:JSON.stringify(data)}).then(function (r) {
 			console.log(r);
 		}).fail(function(e){
