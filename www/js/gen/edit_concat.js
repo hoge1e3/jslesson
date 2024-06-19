@@ -4012,6 +4012,7 @@ define('WebSite',[], function () {
 	}
 	var loc=document.location.href;
 	var WS=window.WebSite={};
+	WS.runAtServerDefault=loc.match(/meisei-u/);
 	WS.builtinAssetNames={
 		"base.png":{name:"$pat_base", url: "${runtime}images/base.png", pwidth:32, pheight:32},
 		"Sample.png":{name:"$pat_sample", url: "${runtime}images/Sample.png"},
@@ -10152,6 +10153,9 @@ define('logToServer2',['require','exports','module','stringifyError'],function (
         }
         var data={date:d.getFullYear()+"/"+dataPadding(d.getMonth()+1)+"/"+dataPadding(d.getDate()),time:dataPadding(d.getHours())+":"+dataPadding(d.getMinutes())+":"+dataPadding(d.getSeconds()),lang:lang,filename:filePath,result:result,detail:detail,code:code};
         console.log("logged to server DATA",data);
+        try {
+            window.BitArrow.onLogToServer({data});
+        }catch(e){}
 		return $.post(".?dump2",{data:JSON.stringify(data)}).then(function (r) {
 			console.log(r);
 		}).fail(function(e){
@@ -17130,9 +17134,9 @@ function ready() {
         setupBuilder(_);
     });
     helpURL=langInfo.helpURL;
-    if (navigator.userAgent.match(/Firefox/) && lang==="tonyu") {
+    if (navigator.userAgent.match(/Firefox/) /*&& lang==="tonyu"*/) {
         ALWAYS_UPLOAD=true;
-        console.log("Firefox tonyu ALWAYS_UPLOAD");
+        console.log("Firefox ALWAYS_UPLOAD");
     }
     function setupBuilder(BuilderClass) {
         $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
