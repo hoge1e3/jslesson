@@ -145,13 +145,30 @@
     setPen.sy = 0;
     lib.movePen = function (dx, dy) {
         var ctx = initX()[0].getContext("2d");
-        ctx.beginPath();
-        ctx.moveTo(setPen.sx, setPen.sy);
+        if (!lib.startPolygon.mode) {
+            ctx.beginPath();
+            ctx.moveTo(setPen.sx, setPen.sy);
+        }
         setPen.sx += dx;
         setPen.sy += dy;
         ctx.lineTo(setPen.sx, setPen.sy);
-        ctx.stroke();
+        if (!lib.startPolygon.mode) {
+            ctx.stroke();
+        }
         writeGraphicsLog("movePen(" + [dx, dy].join(",") + ");\n");
+    };
+    lib.startPolygon= function(x,y){
+        var ctx = initX()[0].getContext("2d");
+        lib.startPolygon.mode=true;
+        setPen.sx = x;
+        setPen.sy = y;
+        ctx.moveTo(setPen.sx, setPen.sy);
+    };
+    lib.fillPolygon=function () {
+        var ctx = initX()[0].getContext("2d");
+        lib.startPolygon.mode=false;
+        ctx.closePath();
+        ctx.fill();
     };
     lib.setTextSize = function (s) {
         var ctx = initX()[0].getContext("2d");
