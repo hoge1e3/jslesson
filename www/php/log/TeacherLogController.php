@@ -248,7 +248,7 @@ class TeacherLogController {
             $userName=$targetUser->name;
         }
         $all=param("all",false);
-        $teacherObj=Auth::curTeacher();
+        $teacherObj=$p["teacher"];
         if ($teacherObj) {
             $teacherID=$teacherObj->id;
         } else {
@@ -329,8 +329,8 @@ class TeacherLogController {
             return;   
         }
         $teacherObj=Auth::curTeacher();
-        if($teacherObj) {
-            $teacher=Auth::curTeacher()->id;
+        if($teacherObj && $teacherObj->isTeacherOf($class)) {
+            $teacher=$teacherObj->id;
             $user=param("user",null);
             if (!$user) {
                 $targetUser=Auth::curUser2();
@@ -966,7 +966,7 @@ class TeacherLogController {
             }
         }
         $teacherObj=Auth::curTeacher();
-        if ($teacherObj) {
+        if ($teacherObj && $teacherObj->isTeacherOf($class)) {
             $teacher=$teacherObj->id;
         } else {
             $teacher="";
@@ -1380,7 +1380,7 @@ class TeacherLogController {
     }
     static function activityMatrix() {
         Auth::assertTeacher();
-        $teacherObj=Auth::curTeacher();
+        //$teacherObj=Auth::curTeacher();
         $class=Auth::curClass2();
         $base=param("base");
         req("DateUtil");
