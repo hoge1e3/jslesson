@@ -5,6 +5,7 @@ require_once __DIR__."/php/auth.php";
 require_once __DIR__."/php/fs/NativeFS.php";
 require_once __DIR__."/php/json.php";
 require_once __DIR__."/php/analysis/LogUtil.php";
+Auth::assertTeacher();
 if (!Auth::isTeacher2()) {
     echo ("Study more!");
     exit(0);
@@ -17,7 +18,7 @@ if (isset($_GET["around"])) {
     $around=$_GET["around"];
 }
 $class=Auth::curClass();
-if (strpos($file,$class)===FALSE) {
+if (!$class || strpos($file,$class)===FALSE) {
     echo ("Research more! $file $class");
     exit(0);
 }

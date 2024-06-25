@@ -14,6 +14,7 @@ require_once __DIR__."/php/auth.php";
 require_once __DIR__."/php/fs/NativeFS.php";
 require_once __DIR__."/php/fs/PathUtil.php";
 require_once __DIR__."/php/analysis/LogUtil.php";
+Auth::assertTeacher();
 if (!Auth::isTeacher2()) {
     echo ("<script>alert('study more!');</script>");
     exit(0);
@@ -29,6 +30,10 @@ if (isset($_GET["max"])) {
     $max=$_GET["max"];
 }
 $class=Auth::curClass();
+if (!$class) {
+    echo ("<script>alert('refactor more!');</script>");
+    exit(0);
+}
 echo "<script>setRange('$min','$max');\n</script>";
 $fs=new NativeFS(BA_LOG."/");
 foreach ($fs->ls("/") as $n) {
