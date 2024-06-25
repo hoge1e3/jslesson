@@ -93,7 +93,7 @@ class LoginController {
             $res=array();
         }
         $t=Auth::curTeacher();
-        if ($t) $res["teacher"]=$t->name;
+        if ($t && (!$u || $t->isTeacherOf($u->_class))) $res["teacher"]=$t->name;
         $res["time"]=DateUtil::now();
         $oa=MySession::get("oauthed_id",null);
         if ($oa) $res["oauthed_id"]=$oa;
@@ -116,10 +116,10 @@ class LoginController {
         $u=Auth::curUser2();
         if ($u)	print $u->name;
     }
-    static function curTeacher(){
+    /*static function curTeacher(){
         $t=Auth::curTeacher();
         if ($t)	print $t->name;
-    }
+    }*/
     static function check() {
         if (!isset($_POST["class"]) || !isset($_POST["user"])) {
             self::$mesg="クラス名，ユーザ名が入力されていません";
