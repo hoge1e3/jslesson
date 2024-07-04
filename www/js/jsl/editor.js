@@ -211,7 +211,7 @@ function ready() {
         setupBuilder(_);
     });
     helpURL=langInfo.helpURL;
-    if (navigator.userAgent.match(/Firefox/) /*&& lang==="tonyu"*/) {
+    if (navigator.userAgent.match(/Firefox/) && lang!=="php") {
         ALWAYS_UPLOAD=true;
         console.log("Firefox ALWAYS_UPLOAD");
     }
