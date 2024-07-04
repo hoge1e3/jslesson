@@ -94,6 +94,21 @@ class TeacherController {
             <a href='?Teacher/home'>教員トップに戻る</a>
 	    <?php }
     }
+    static function hasTeacher() {
+        if (!defined("HAS_TEACHER_PASS")) {
+            die("Set HAS_TEACHER_PASS");
+        }   
+        if (param("pass")!==HAS_TEACHER_PASS) {
+            echo 0;
+            return;
+        }
+        $t=new BATeacher(param("name"));
+        if ($t->exists()) {
+            echo 1;
+        } else {
+            echo 0;
+        }
+    }
     static function changePassCheck(){
         $teacher=Auth::isTeacher2();
         $nowPass=$_POST["nowpass"];
