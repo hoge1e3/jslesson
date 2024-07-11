@@ -30,8 +30,8 @@ define("BA_MIGRATION", BA_DATA."/migration");
 
 //--- set to bitarrow3.eplang.jp/logview
 define("HAS_TEACHER_PASS","somepassword");
-define("TEACHER_BAUTH_URL","https://bitarrow.eplang.jp/beta2204/");
-define("LOG_VIEWER_ONLY","https://bitarrow.eplang.jp/beta2204/");
+//define("TEACHER_BAUTH_URL","https://bitarrow.eplang.jp/beta2204/");
+//define("LOG_VIEWER_ONLY","https://bitarrow.eplang.jp/beta2204/");
 //---
 
 define("NEWS",["default"=>"このサーバは<b>古い</b>です","newClass"=>"クラスを作らないでくだしあ"]);
