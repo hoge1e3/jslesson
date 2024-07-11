@@ -83,6 +83,13 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","Bui
     p.build=async function (options) {
         const c=this.builderClient;
         await c.clean();
+        const opt=this.prj.getOptions();
+        console.log("OPTOPT",opt, options);
+        if (options.mainClass && opt.run && opt.run.mainClass!==options.mainClass) {
+            opt.run.mainClass=options.mainClass;
+            console.log("OPTSET",opt);
+            this.prj.setOptions(opt);
+        }
         if (options.upload) {
             await this.mkrun(options);
             const pubd=options.publishedDir;
@@ -91,13 +98,6 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","Bui
             const r=await Sync.sync(this.dst,pubd,{excludes:["images/","sounds/"]});
             console.log("Tonyu upload syncres",r);
             return {publishedURL:pubu};
-        }
-        const opt=this.prj.getOptions();
-        console.log("OPTOPT",opt, options);
-        if (options.mainClass && opt.run && opt.run.mainClass!==options.mainClass) {
-            opt.run.mainClass=options.mainClass;
-            console.log("OPTSET",opt);
-            this.prj.setOptions(opt);
         }
         //const main=opt.run.mainClass;
         this.removeThumbnail();
