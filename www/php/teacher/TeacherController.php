@@ -489,6 +489,70 @@ class TeacherController {
         $ml=array_key_last($overall);
         return is_null($ml)? 'none' : ($overall[$ml]/array_sum($overall)>0.8 ? $ml : 'mix');
     }
+    static function export() {
+        $teacher=Auth::isTeacher2();
+        if (!$teacher || !$teacher->isSysAd()) {
+            header("Location: a.php?Teacher/login");
+            return;
+        }
+        $expfile=BA_DATA."/teacher/teacher.json";
+        $records=pdo_select("select * from teacher;");
+        $records_json=json_encode($records);
+        file_put_contents($expfile,$records_json);
+        echo "Exported to somewhere";
+    }
+    static function import() {
+        $teacher=Auth::isTeacher2();
+        if (!$teacher || !$teacher->isSysAd()) {
+            header("Location: a.php?Teacher/login");
+            return;
+        }
+        $expfile=BA_DATA."/teacher/teacher.json";
+        $records_json=file_get_contents($expfile);
+        $records=json_decode($records_json);
+        foreach ($records as $record) {
+            $dst=new BATeacher($record->name);
+            echo $record->name." ";
+            $dstlast=0; 
+            $dstex=0; // 0 notexists 1 no-timestamp 2 has-timestamp
+            if ($dst->exists()) {
+                $dstex=1;
+                $opt=$dst->getOptions();
+                if (isset($opt->lastUpdate)) {
+                    $dstex=2;
+                    $dstlast=$opt->lastUpdate;
+                }    
+            }
+            echo "$dstex $dstlast ";
+            $srclast=0; 
+            $srcex=0;// 0 notexists 1 no-timestamp 2 has-timestamp
+            if (isset($record->options)) {
+                $srcex=1;
+                $opt=json_decode($record->options);
+                if (isset($opt->lastUpdate)) {
+                    $srcex=2;
+                    $srclast=$opt->lastUpdate;
+                }    
+            }
+            echo "$srcex $srclast ";
+            if ($dstex==0) {
+                echo "inserted";
+                pdo_insert("teacher",$record);
+            } else if ($dstex==1) {
+                if ($srcex==2){
+                    echo "updated";
+                    pdo_update2("teacher",["name"=>$dst->id],$record);
+                }
+            } else {
+                if ($srcex==2 && $srclast>$dstlast ){
+                    echo "updated";
+                    pdo_update2("teacher",["name"=>$dst->id],$record);
+                }
+            }
+            echo "<BR>\n";
+        }
+    }
+    
 }
 if (! function_exists("array_key_last")) {
     function array_key_last($array) {
