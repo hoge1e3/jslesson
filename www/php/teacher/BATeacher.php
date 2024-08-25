@@ -45,6 +45,7 @@ class BATeacher {
     	if ($sth->rowCount()==0){
 	        return false;
     	}else{
+            $this->touch();
     	    return true;
     	}
     }
@@ -56,6 +57,28 @@ class BATeacher {
             return ($r==1);
         }
         return pdo_select1("select * from teacher where name=?", $this->id);
+    }
+    function touch() {
+        $opt=$this->getOptions();
+        $opt->lastUpdate=time();
+        $this->setOptions($opt);
+    }
+    function getOptions(){
+        $result=pdo_select1("select * from teacher where name=?", $this->id);
+        $options=$result->options;
+        if (is_string($options)) {
+            $options=json_decode($options);
+        }
+        if (!is_object($options)) {
+            $options=new stdClass;
+        }
+        return $options;
+    }
+    function setOptions($options){
+        $options_json=json_encode($options);
+        pdo_update2("teacher", 
+        ["name"=>$this->id],
+        ["options"=>$options_json]);
     }
     static function pass2shadow($pass) {
         return hash(SHADOW_ALGO,SHADOW_SALT.$pass);
