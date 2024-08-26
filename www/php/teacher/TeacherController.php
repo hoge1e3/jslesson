@@ -76,6 +76,7 @@ class TeacherController {
             header("Location: ".PathUtil::truncSep(TEACHER_BAUTH_URL)."/a.php?Teacher/changePass&batop=".BA_TOP_URL);
             return;
         }
+        $batop=self::parseBatop();
         ?>
     	<title><?= $teacher->id ?> - 教員パスワード変更</title>
     	<h1><?= $teacher->id ?> - 教員パスワード変更</h1>
@@ -88,11 +89,8 @@ class TeacherController {
     	    <input type="submit" value="変更"/>
 	    </form>
 	    <br>
-        <?php if (param("batop","")) { ?>
-            <a href='<?= param("batop") ?>/?Teacher/home'>教員トップに戻る</a>
-        <?php } else { ?>
-            <a href='?Teacher/home'>教員トップに戻る</a>
-	    <?php }
+        <a href='<?= $batop ?>?Teacher/home'>教員トップに戻る</a>
+	    <?php 
     }
     static function hasTeacher() {
         if (!defined("HAS_TEACHER_PASS")) {
@@ -109,18 +107,22 @@ class TeacherController {
             echo 0;
         }
     }
+    static function parseBatop(){
+        $batop=param("batop","");
+        if ($batop) {
+            $batop=PathUtil::truncSep($batop)."/";
+        }
+        return htmlspecialchars($batop);
+    }
     static function changePassCheck(){
         $teacher=Auth::isTeacher2();
         $nowPass=$_POST["nowpass"];
         $newPass1=$_POST["newpass1"];
         $newPass2=$_POST["newpass2"];
-        $batop=param("batop","");
-        if ($batop) {
-            $batop=PathUtil::truncSep($batop)."/";
-        }
+        $batop=self::parseBatop();
         if(Auth::loginTeacher2($teacher->name,$nowPass)!==true){
             echo "パスワードが違います";
-            echo "<br><a href='?Teacher/changePass'>変更画面に戻る</a>";
+            echo "<br><a href='$batop?Teacher/changePass'>変更画面に戻る</a>";
         }else{
             if(($newPass1==$newPass2) && ($newPass1 !="")){
                 $teacher->changePass($newPass1);
@@ -129,7 +131,7 @@ class TeacherController {
             }else{
                 echo "新しいパスワードが一致しません";
                 //redirect("Teacher/changePass");
-                echo "<br><a href='?Teacher/changePass'>変更画面に戻る</a>";
+                echo "<br><a href='$batop?Teacher/changePass'>変更画面に戻る</a>";
             }
         }
         echo "<br><a href='$batop?Teacher/home'>教員トップに戻る</a>";
