@@ -111,10 +111,11 @@ EOF
         $user=self::theUser($mail);
         if ($user->exists()) {
             $token=MailToken::publish($mail,"personal",$mail,"reset");
+            $ba_top_url=BA_TOP_URL;
             Mail::send($mail, "BitArrowパスワード再発行", <<<EOF
 次のページからパスワード再発行を完了してください．
 
-https://bitarrow.eplang.jp/bitarrow/?Personal/resetForm&token=$token
+$ba_top_url?Personal/resetForm&token=$token
 EOF
 ,array("From"=>MAIL_FROM));
         }
