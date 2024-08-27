@@ -26,10 +26,11 @@ class PersonalController {
             return;
         }
         $token=MailToken::publish($mail,"personal",$mail,"new");
+        $ba_top_url=BA_TOP_URL;
         Mail::send($mail, "BitArrowユーザ登録", <<<EOF
 次のページからユーザ登録を完了してください．
 
-https://bitarrow.eplang.jp/bitarrow/?Personal/regForm&token=$token
+$ba_top_url?Personal/regForm&token=$token
 EOF
 ,array("From"=>MAIL_FROM)
 );
