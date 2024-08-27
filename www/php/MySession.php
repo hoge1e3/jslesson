@@ -50,6 +50,12 @@ class MySession {
         self::$data->{$key}=$value;
         self::save();
     }
+    public static function del($key) {
+        self::start();
+        unset(self::$data->{$key});
+        self::save();
+    }
+    
     public static function load() {
         self::session_start_once();
         if (isset($_SESSION[MYSESSION_DATA]) && $_SESSION[MYSESSION_DATA]) {
