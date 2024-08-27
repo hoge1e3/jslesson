@@ -261,6 +261,8 @@ class TeacherController {
             pdo_insert("teacher",array("name"=>$name, "shadow"=>$shadow));
             echo "$name を登録しました．";
         }
+        $t=new BATeacher($name);
+        $t->touch();
         if (defined("BA_MESG_FOR_TEACHER") && $cname!=="") {
             $mesg=BA_MESG_FOR_TEACHER;
             $mesg=preg_replace("/<NAME>/", $cname,$mesg);
