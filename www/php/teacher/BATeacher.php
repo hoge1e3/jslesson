@@ -49,8 +49,9 @@ class BATeacher {
     	    return true;
     	}
     }
-    function exists() {
-        if (defined("HAS_TEACHER_PASS") && defined("TEACHER_BAUTH_URL")) {
+    function exists($forceRefDB=false) {
+        if ((!$forceRefDB) &&
+            defined("HAS_TEACHER_PASS") && defined("TEACHER_BAUTH_URL")) {
             $r=file_get_contents(TEACHER_BAUTH_URL."?Teacher/hasTeacher".
             "&pass=".HAS_TEACHER_PASS.
             "&name=".$this->id);

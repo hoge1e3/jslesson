@@ -519,7 +519,7 @@ class TeacherController {
             echo $record->name." ";
             $dstlast=0; 
             $dstex=0; // 0 notexists 1 no-timestamp 2 has-timestamp
-            if ($dst->exists()) {
+            if ($dst->exists(true)) {
                 $dstex=1;
                 $opt=$dst->getOptions();
                 if (isset($opt->lastUpdate)) {
