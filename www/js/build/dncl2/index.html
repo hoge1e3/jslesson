@@ -1,0 +1,79 @@
+<html lang="ja">
+  <head>
+    <meta http-equiv="content-language" content="ja">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>どんくり２</title>
+		<link rel="stylesheet" type="text/css" href="./css/bootstrap.css?180314">
+		<link rel="stylesheet" type="text/css" href="./css/jquery-ui.min.css?180314">
+		<link rel="stylesheet" type="text/css" href="./css/style.css?180314">
+  </head>
+  <body>
+		<!-- Global site tag (gtag.js) - Google Analytics -->
+    <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=UA-387901-17"></script> -->
+    <!-- <script> -->
+    <!--   window.dataLayer = window.dataLayer || []; -->
+    <!--   function gtag(){dataLayer.push(arguments);} -->
+    <!--   gtag('js', new Date()); -->
+    <!--   gtag('config', 'UA-387901-17'); -->
+    <!-- </script> -->
+		<script charset="utf-8" src="./js/util/jquery-2.1.0.js?180314"></script>
+		<script charset="utf-8" src="./js/util/bootstrap.js?180314"></script>
+		<script charset="utf-8" src="./js/util/jquery-ui.min.js?180314"></script>
+    <script charset="utf-8" src="./js/util/encoding.js?20180328"></script>
+    <script charset="utf-8" src="./js/util/getParams.js?180314"></script>
+    <script charset="utf-8" src="./js/util/js.cookie.min.js?180314"></script>
+    <script charset="utf-8" src="./js/editor/ace/ace.js"></script>
+    <!-- <script charset="utf-8" src="./js/editor/ace/mode-javascript.js"></script> -->
+    <script charset="utf-8" src="./js/editor/editor.js?180314"></script>
+    <!-- <script charset="utf-8" src="./js/editor/beautify.js?180314"></script> -->
+    <script charset="utf-8" src="./js/ide/fileLoad.js?180314"></script>
+    <script charset="utf-8" src="./js/fs/fs.js?180314"></script>
+    <script charset="utf-8" src="./js/util/stringConverter.js?180314"></script>
+    <script charset="utf-8" src="./js/ide/fileUpLoader.js?180314"></script>
+    <script charset="utf-8" src="./js/ide/server.js?180314"></script>
+    <script charset="utf-8" src="./js/ide/browserJudge.js"></script>
+
+		<div class="allWrapper">
+			<div class="leftPart" style="z-index:0;">
+				<div class="btnPannel">
+					<button id=run class="btn btn-default">実行</button>
+					<button id=save class="btn btn-default">保存</button>
+					<button id=load class="btn btn-default">読込</button>
+					<button id=genURL class="btn btn-default devel">URL生成</button>
+					<button id=ast class="btn btn-default devel">AST表示</button>
+					<button id=toPretty class="btn btn-default devel">整形</button>
+					<button id=toPython class="btn btn-default devel">Pythonに変換</button>
+				</div>
+				<div id="editorWrapper" class="editorWrapper">
+					<div id="editor"></div>
+				</div>
+			</div>
+			<div class="rightPart">
+				<!-- <span>開発：四天王寺大学 本多研究室、大阪電気通信大学 兼宗研究室</span> -->
+				<iframe id="exe_window"></iframe>
+			</div>
+		</div>
+
+		<div id="saveWindowBg" class="windowBg">
+      <div id="saveWindow" class="well">
+        読み込むファイルを選択してください。
+        <div id="saveWindowContainer" class="container" style="width:100%;">
+					<div class="input-group fileLoadDiv form_inline">
+						<input type="file" id="fileSelect" class="form-control"/>
+						<span class="input-group-btn">
+							<button id="loadSelectBtn" class="btn btn-default">読み込み</button>
+						</span>
+					</div>
+				</div>
+        <button id="fileloadCancelBtn" class="btn btn-default cancelBtn">キャンセル</button>
+      </div>
+    </div>
+
+		<div id='errDialog'>
+			<span>エラーが発生しました。<br>以下の★マーク付近を確認してみてください。</span>
+			<pre id='errSrc'> </pre>
+		</div>
+		<script charset="utf-8" src="./js/index.js?180314"></script>
+    <!-- <script charset="utf-8" src="./js/devel.js?180314"></script> -->
+  </body>
+</html>

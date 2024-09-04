@@ -1,0 +1,19 @@
+<head>
+	<script src="./js/jquery-1.12.1.js"></script>
+	<script type="module" src="./js/index.js"></script>
+	<script>
+			let prePre = undefined;
+			window.write=(str,isNotBR)=>{
+				const tag = prePre || document.createElement('pre');
+				prePre = undefined;
+				if(isNotBR)prePre = tag;
+				tag.textContent += str;
+				document.body.appendChild(tag);
+				document.body.scrollTop = document.body.scrollHeight;
+			};
+			window.displayClear=()=>{
+				document.body.innerHTML = '';
+			};
+	</script>
+</head>
+<body> </body>

@@ -112,7 +112,10 @@ var reqConf={
             },
             AsyncByGenerator: {
                 exports: "AsyncByGenerator"
-            }/*,
+            },
+            importModule: {
+                exports: "importModule",  
+            },/*,
             cCompiler: {
                 deps: [
                     "ctrans/beautify",
