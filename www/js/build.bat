@@ -13,10 +13,6 @@ call r_js -o build_BATestRunner.js
 node updateBAVer.js
 
 cd ..\..
-rem call babel www\js\gen\edit_concat.js --out-file www\es5\gen\edit_concat.js
-rem call babel www\js\gen\selPrj_concat.js --out-file www\es5\gen\selPrj_concat.js
-rem call babel www\js\gen\pyRun_concat.js --out-file www\es5\gen\pyRun_concat.js
-rem call babel www\js\ --out-dir www\es5\
 rem copy www\js\build\python\PyLib.js www\runtime\lib\python\
 
 copy www\js\ctrans\ctype.js www\runtime\lib\c\
@@ -27,9 +23,5 @@ rem copy www\build\c\.js www\runtime\lib\c\
 rem copy www\build\c\.js www\runtime\lib\c\
 
 cd www\js
-rem cd ..
-rem call babel BuilderWorker.js --out-file BuilderWorker.es5.js
-rem insert importScripts("polyfill.js"); into 1st line of BuilderWorker.es5.js
-rem cd js
 pause
 goto loop
