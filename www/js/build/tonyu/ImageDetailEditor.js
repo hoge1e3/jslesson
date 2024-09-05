@@ -254,12 +254,12 @@ define(["UI","ImageList","ImageRect","PatternParser","WebSite","Assets"],
         if (onclose) onclose();
         return false;
     }
-    function copyToClipboard(value) {
+    /*function copyToClipboard(value) {
         if (!WebSite.isNW) return;
         var gui = require('nw.gui');
         var clipboard = gui.Clipboard.get();
         clipboard.set(value, 'text');
-    }
+    }*/
 
     return IMD;
 });
