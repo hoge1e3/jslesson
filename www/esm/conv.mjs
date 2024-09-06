@@ -2,6 +2,27 @@ import * as esprima from 'esprima';
 import * as escodegen from 'escodegen';
 import * as estraverse from 'estraverse';
 import FS from "@hoge1e3/fs-nw";
+function convertUMDtoESM(file) {
+  const src=file.text();
+  return `
+const require=()=>{throw new Error("require not supported.");};
+const exports={};
+const module={exports};
+function define(...args) {
+  const factory=args[args.length-1];
+  module.exports=factory(require, exports, module) || module.exports;
+}
+define.amd=true;
+${src}
+export default module.exports;
+`;
+}
+function convertGlobalToESM(file, varName) {
+  const src=file.text();
+  return `${src};
+export default globalThis.${varName};
+`;
+}
 function convertAMDtoESM(file) {
   const ast = esprima.parseModule(file.text());
 
@@ -88,14 +109,21 @@ function convertAMDtoESM(file) {
 
   ast.body = [...requireImports, ...ast.body];
 
+  let post="";
+  let pre=`
+const exports={};
+const module={exports};
+`;
   if (exports) {
     ast.body.push({
       type: 'ExportDefaultDeclaration',
       declaration: exports.argument
     });
+  } else {
+    post=`export default module.exports;`;
   }
 
-  return escodegen.generate(ast);
+  return pre+escodegen.generate(ast)+post;
 }
 
 // Example usage
@@ -124,6 +152,7 @@ for (let k in reqConf.paths) {
   const v=reqConf.paths[k];
   const file=js.rel(v+".js");
   if (!file.exists()) continue;
+  let esModule;
   if (file.name().match(/_concat/)||
       file.name().match(/\.min\.js/)||
       file.name().match(/source-map/)||
@@ -134,12 +163,17 @@ for (let k in reqConf.paths) {
       file.path().match(/stacktrace/)||
       false
     ){
-        console.log("skip", file.path(), reqConf.shim[k]);
-        continue;
+        if (reqConf.shim[k]) {
+          esModule=convertGlobalToESM(file, reqConf.shim[k].exports);
+        } else {
+          esModule=convertUMDtoESM(file);
+        }
+  } else{
+    esModule = convertAMDtoESM(file);
   }
-  console.log(file.path());
-  const esModule = convertAMDtoESM(file);
+  //console.log(file.path());
   const dst=esm.rel(v+".js");
-  console.log(dst.path());
+  if (!esm.contains(dst)) continue;
+  console.log("dest",dst.path());
 }
 //console.log(esModule);
