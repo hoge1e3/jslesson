@@ -4,23 +4,40 @@ import * as estraverse from 'estraverse';
 import FS from "@hoge1e3/fs-nw";
 function convertUMDtoESM(file) {
   const src=file.text();
-  return `
+  /*
 const require=()=>{throw new Error("require not supported.");};
-const exports={};
-const module={exports};
 function define(...args) {
   const factory=args[args.length-1];
   module.exports=factory(require, exports, module) || module.exports;
 }
 define.amd=true;
+  */
+  return `
+const exports={};
+const module={exports};
 ${src}
 export default module.exports;
 `;
 }
 function convertGlobalToESM(file, varName) {
   const src=file.text();
-  return `${src};
+  return `${src}
 export default globalThis.${varName};
+`;
+}
+function nc(v,name) {
+  if (!v) throw new Error("Null :"+name);
+  return v;
+}
+function convertFSJS(file) {
+  const src=file.text();
+  return `
+let FS;
+function define(d,factory) {
+  FS=factory();
+}
+${src}
+export default FS;
 `;
 }
 function convertAMDtoESM(file) {
@@ -40,13 +57,17 @@ function convertAMDtoESM(file) {
     }],
     source: {
       type: 'Literal',
-      value: reqConf.paths[moduleName],
+      value: "./"+js.rel(nc(reqConf.paths[moduleName], moduleName)).relPath(file.up()),
     }
   });
-
+  let newAst;
   estraverse.replace(ast, {
     enter: function (node) {
-      if (node.type === 'CallExpression' && node.callee.name === 'define') {
+      if (node.type === 'CallExpression' && 
+        (node.callee.name === 'define'||node.callee.name==="requirejs") ) {
+          if (newAst) {
+            throw new Error(node.callee.name+" already defined ");
+          }
         const args = node.arguments;
         let dependencies;
         let factory;
@@ -59,31 +80,54 @@ function convertAMDtoESM(file) {
           console.log(node);
           throw new Error("Arg length not match " + args.length);
         }
+        let argNames;
+        if (factory.type === 'FunctionExpression') {
+          exports = factory.body.body.find(node =>
+            node.type === 'ReturnStatement'
+          );
+          argNames=factory.params.map(e=>e.name);
+        } else {
+          throw new Error("factory function not found");
+        }
         if (dependencies && dependencies.type === 'ArrayExpression') {
-          imports = dependencies.elements.map((dep, index) => ({
+          if (argNames.length!==dependencies.elements.length){
+            console.log(node);
+            throw new Error("Not match deps and factory arity");
+          }
+          imports = dependencies.elements.map((dep, index) => 
+            importStmt({
+              moduleName: nc(dep.value,"dep"), 
+              variableName: nc(argNames[index],"arg "+index)})
+          );
+           /* ({
             type: 'ImportDeclaration',
             specifiers: [{
               type: 'ImportDefaultSpecifier',
               local: {
                 type: 'Identifier',
-                name: `dep${index}`
+                name: argNames[index],
               }
             }],
             source: dep
-          }));
+          }));*/
         }
-
-        if (factory.type === 'FunctionExpression') {
-          exports = factory.body.body.find(node =>
-            node.type === 'ReturnStatement'
-          );
-        }
-        return {
+        /*if (exports){
+          console.log(factory.body.body[factory.body.body.length-1]);
+        }*/
+        newAst={
           type: 'Program',
-          body: [...imports, ...factory.body.body.filter(node => node !== exports)]
+          body: [...imports, ...factory.body.body.filter(
+            node => node !== exports )]
         };
-
-
+        return newAst;
+      } else if (node.type === 'CallExpression' && node.callee.name === 'require') {
+        if (node.arguments.length==1 && 
+          node.arguments[0].value=="nw.gui"
+        ){
+          return;
+        }
+        console.log(node);
+        throw new Error("Invalid require usage");
       } else if (node.type === "VariableDeclaration") {
         //console.log("var", node);
         const decls = node.declarations;
@@ -114,16 +158,19 @@ function convertAMDtoESM(file) {
 const exports={};
 const module={exports};
 `;
+  if (!newAst) {
+    throw new Error("No define found");
+  }
   if (exports) {
-    ast.body.push({
+    newAst.body.push({
       type: 'ExportDefaultDeclaration',
       declaration: exports.argument
     });
   } else {
-    post=`export default module.exports;`;
+    post=`\nexport default module.exports;`;
   }
 
-  return pre+escodegen.generate(ast)+post;
+  return pre+escodegen.generate(newAst)+post;
 }
 
 // Example usage
@@ -138,8 +185,8 @@ define(['dep1', 'dep2'], function(dep1, dep2) {
   };
 });
 `;
-const esm = FS.get(import.meta.url.replace(/^file:\/\/\//, "")).up();
-const www = esm.up();
+const www = FS.get(import.meta.url.replace(/^file:\/\/\//, "")).up();
+const esm = www.rel("esm/");
 const js = www.rel("js/");
 const reqConff = js.rel("reqConf.js");
 const reqConf = new Function(`
@@ -152,28 +199,41 @@ for (let k in reqConf.paths) {
   const v=reqConf.paths[k];
   const file=js.rel(v+".js");
   if (!file.exists()) continue;
+  if (file.name()==="reqConf.js") continue;
+  if (file.path().match(/www\/runtime/)) continue;
   let esModule;
-  if (file.name().match(/_concat/)||
+  console.log("src", file.path());
+  if (file.name()=="FS.js") {
+    esModule = convertFSJS(file);
+  } else if (reqConf.shim[k]) {
+    if (!reqConf.shim[k].exports) {
+      throw new Error("Does not export "+ k );
+    }
+    esModule=convertGlobalToESM(file, reqConf.shim[k].exports);
+  } else if (file.name().match(/_concat/)||
       file.name().match(/\.min\.js/)||
       file.name().match(/source-map/)||
       file.name().match(/TonyuRuntime/)||
       file.path().match(/ace-nocon/)||
-      file.path().match(/FS\.js/)||
       file.path().match(/BuilderClient/)||
       file.path().match(/stacktrace/)||
+      file.path().match(/lib\/jquery/)||
       false
     ){
-        if (reqConf.shim[k]) {
+        /*if (reqConf.shim[k]) {
+          if (!reqConf.shim[k].exports) {
+            throw new Error("Does not export "+ k );
+          }
           esModule=convertGlobalToESM(file, reqConf.shim[k].exports);
-        } else {
+        } else {*/
           esModule=convertUMDtoESM(file);
-        }
+        //}
   } else{
     esModule = convertAMDtoESM(file);
   }
   //console.log(file.path());
   const dst=esm.rel(v+".js");
   if (!esm.contains(dst)) continue;
-  console.log("dest",dst.path());
+  dst.text(esModule);
 }
 //console.log(esModule);

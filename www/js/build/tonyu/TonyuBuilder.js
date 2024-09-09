@@ -1,6 +1,6 @@
 /*global requirejs*/
-define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","BuilderClient","ProjectFactory","sysMod","root","exceptionCatcher"],
-        function (FS,Util,WebSite,plugins,sh,Tonyu,Sync,ResEditors,BuilderClient,F,sysMod,root,EC) {
+define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","BuilderClient","ProjectFactory","sysMod","root","exceptionCatcher","DeferredUtil"],
+        function (FS,Util,WebSite,plugins,sh,Tonyu,Sync,ResEditors,BuilderClient,F,sysMod,root,EC,DU) {
     const langMod=BuilderClient.langMod;
     const runtimeDir=FS.get(WebSite.runtime);
     const tonyuLibDir=runtimeDir.rel("lib/tonyu/");
@@ -310,7 +310,7 @@ reqConf={
         this.refreshRunMenu();
     };
     p.exportHTML=function () {
-        requirejs(["ExportHTMLDialog"],E=>{
+        DU.requirejs(["ExportHTMLDialog"]).then(E=>{
             this.exportHTMLDialog=this.exportHTMLDialog||new E(this.prj);
             this.exportHTMLDialog.show({includeJSScript:true});
         });

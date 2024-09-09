@@ -142,8 +142,7 @@ function (A,DU,wget,compile,IndentBuffer,Sync,
                     err(new Error("Timeout"));
                 },options.timeout);
             }
-            var requirejs=root.requirejs;
-            requirejs(["LocalBrowser"],function (LocalBrowser) {
+            DU.requirejs(["LocalBrowser"]).then(function (LocalBrowser) {
                 var hidden=$("<div>").hide().appendTo("body");
                 root.dialogClosed=false;
                 var b=new LocalBrowser(hidden);

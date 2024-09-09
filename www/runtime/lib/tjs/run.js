@@ -39,6 +39,14 @@ function run(className) {
     requirejs(["user.js"],_run);
    function _run() {
     const TError=Tonyu.TError;
+    Tonyu.onRuntimeError=(e)=>{
+        try {
+            parent.onerror(0,0,0,0,e);
+        } catch(ex) {
+            alert(e);
+            console.log(e);
+        }
+    };
         var bootClass=Tonyu.getClass(className);
         if (!bootClass) throw TError( klass+" というクラスはありません", "不明" ,0);
         Tonyu.runMode=true;

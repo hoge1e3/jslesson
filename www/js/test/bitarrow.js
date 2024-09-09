@@ -14,6 +14,7 @@ class BATest extends BATestRunner {
         this.createdCCode="";
 
         await this.sleep(1000);
+        
         await this.testC(await this.openProjectSel());
         await this.testJS(await this.openProjectSel());
         await this.testDtl(await this.openProjectSel());
@@ -47,7 +48,7 @@ int main(){
         const ec=await ic.openFile("Era");
         await ec.input({
             HTML: "<span id='test'></span>",
-            JavaScript:"a.b.c;"
+            JavaScript:"wait(1000);\na.b.c;"
         });
         let theError;
         const h=ic.on("error",info=> {
@@ -55,7 +56,9 @@ int main(){
             console.log("Error ocurred successfully",info);
         });
         const r=await ec.run();
+        console.log("waitTrue");
         await this.waitTrue(()=>theError);
+        console.log("waitTrue end");
         h.remove();
     }
 
