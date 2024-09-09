@@ -270,6 +270,13 @@ var reqConf={
             TypeChecker:"lang/TypeChecker",
             typeCheck:"lang/typeCheck",
             zip: "fs/zip",
+            "ctrans/ctrans": "ctrans/ctrans",
+            "ctrans/ctype": "ctrans/ctype",
+            "ctrans/beautify": "ctrans/beautify",
+            "ctrans/jsgen": "ctrans/jsgen",
+            "dolittle/minimal": "dolittle/minimal",
+            "dncl/dncl2js": "dncl/dncl2js",
+            "importModule": "importModule",
             ctype: "ctrans/ctype",
             AsyncByGeneratorRaw: "ctrans/AsyncByGeneratorRaw",
             AsyncByGenerator: "ctrans/AsyncByGenerator",
@@ -354,10 +361,5 @@ var reqConf={
 (function(){
     for (var k in reqConf.paths)
     if (reqConf.paths[k].match(/\/$/)) reqConf.paths[k]+=k;
-    try {
-        new Function("const {x,y}={x:3,y:5};return x;")();
-    } catch(e) {
-        reqConf.baseUrl="es5";
-    }
 })();
 if (typeof exports!=="undefined") exports.conf=reqConf;

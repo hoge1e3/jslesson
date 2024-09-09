@@ -13,9 +13,3 @@ cp $Tonyu2/www/js/runtime/TonyuRuntime.js runtime/lib/tjs/
 #compile devel/devel/Parent
 # run scripts/copyKer_js.sh
 
-####deprecated
-#babel BuilderWorker.js --out-file BuilderWorker.es5.temp.js
-# insert importScripts("polyfill.js"); into 1st line of BuilderWorker.es5.js
-#echo 'importScripts("polyfill.js");' > BuilderWorker.es5.js
-#cat BuilderWorker.es5.temp.js >> BuilderWorker.es5.js
-#rm BuilderWorker.es5.temp.js

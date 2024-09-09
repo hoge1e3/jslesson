@@ -1,8 +1,9 @@
 requirejs(["FS","Tonyu.Project","Shell","KeyEventChecker","ScriptTagFS",
-			"runtime","WebSite","LSFS"],
-		function (FS,  Tonyu_Project, sh,      KeyEventChecker, ScriptTagFS,
-				rt,WebSite,LSFS) {
+			"runtime","WebSite"],
+  function (FS,  Tonyu_Project, sh,      KeyEventChecker, ScriptTagFS,
+			rt,        WebSite) {
 	$(function () {
+		const LSFS=FS.LSFS;
 		var home=FS.get(WebSite.tonyuHome);
 		var ramHome=FS.get("/ram/");
 		FS.mount(ramHome.path(), LSFS.ramDisk() );

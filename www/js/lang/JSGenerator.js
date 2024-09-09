@@ -1,9 +1,9 @@
 /*if (typeof define!=="function") {//B
 	define=require("requirejs").define;
 }*/
-define(["Tonyu", "Tonyu.Iterator", "TonyuLang", "ObjectMatcher", "TError", "IndentBuffer",
+define(["Tonyu", "TonyuLang", "ObjectMatcher", "TError", "IndentBuffer",
 		"context", "Visitor","Tonyu.Compiler","assert"],
-function(Tonyu, Tonyu_iterator, TonyuLang, ObjectMatcher, TError, IndentBuffer,
+function(Tonyu, TonyuLang, ObjectMatcher, TError, IndentBuffer,
 		context, Visitor,cu,A) {
 cu.JSGenerator=(function () {
 // TonyuソースファイルをJavascriptに変換する

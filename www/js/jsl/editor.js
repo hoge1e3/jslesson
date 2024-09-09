@@ -187,7 +187,7 @@ function ready() {
     var mobile=WebSite.mobile  || localStorage.mobile;
     let ace_language_tools;
     if (mobile) {
-        requirejs(["ace-langtool"],()=>{ 
+        DU.requirejs(["ace-langtool"]).then(()=>{ 
             ace_language_tools=root.ace.require("ace/ext/language_tools");
         });
     }
@@ -208,9 +208,7 @@ function ready() {
     if (!langInfo) {
         throw new Error(`Undefined language: ${lang}`);
     }
-    requirejs([langInfo.builder], function(_){
-        setupBuilder(_);
-    });
+    DU.requirejs([langInfo.builder]).then((B)=>setupBuilder(B));
     helpURL=langInfo.helpURL;
     if (navigator.userAgent.match(/Firefox/) /*&& lang==="tonyu"*/) {
         ALWAYS_UPLOAD=true;
