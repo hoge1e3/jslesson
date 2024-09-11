@@ -10,7 +10,7 @@ function run(className) {
             },
             "user.js": {
                 deps:["kernel"]
-            }
+            },
         },
         paths: {
           "Klass": R+"lib/Klass",
@@ -21,6 +21,7 @@ function run(className) {
           //"Tonyu.Thread": R+"lib/tjs/TonyuThread",
           //"Tonyu.Iterator": R+"lib/tjs/TonyuIterator",
           "kernel": R+"lib/tjs/kernel",
+          "stacktrace": R+"lib/stacktrace",
       },
       urlArgs: requirejs.version=="2.1.9"? "": function (id,url) {
             //console.log("URLARGS",id,url);
@@ -36,12 +37,15 @@ function run(className) {
             }
        }
     });
-    requirejs(["user.js"],_run);
-   function _run() {
+    requirejs(["user.js","stacktrace"],_run);
+   function _run(_u, stacktrace) {
     const TError=Tonyu.TError;
-    Tonyu.onRuntimeError=(e)=>{
+    Tonyu.onRuntimeError=async (e)=>{
         try {
-            parent.onerror(0,0,0,0,e);
+            //parent.onerror(0,0,0,0,e);
+            const st=await stacktrace.fromError(e);
+            console.log("stacktrace",st);
+            parent.onerror(0,0,0,0,{message:e.message, stack:st});
         } catch(ex) {
             alert(e);
             console.log(e);
