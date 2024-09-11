@@ -4012,6 +4012,7 @@ define('WebSite',[], function () {
 	}
 	var loc=document.location.href;
 	var WS=window.WebSite={};
+	WS.runAtServerDefault=loc.match(/meisei-u/);
 	WS.builtinAssetNames={
 		"base.png":{name:"$pat_base", url: "${runtime}images/base.png", pwidth:32, pheight:32},
 		"Sample.png":{name:"$pat_sample", url: "${runtime}images/Sample.png"},
@@ -9270,7 +9271,11 @@ define('LocalBrowserInfoClass',["FS","Klass","source-map","DeferredUtil"], funct
 			if (FS.PathUtil.isRelativePath(urlHead)) {
 				file=base.rel(urlHead);
 				if (file.exists()) {
-					blobUrl=this.file2blobURL(file);
+					if (file.ext()===".js") {
+						blobUrl=this.js2blobURL(file);
+					} else {
+						blobUrl=this.file2blobURL(file);
+					}
 				}
 			} else {
 				file=FS.get(urlHead);
@@ -9349,6 +9354,25 @@ define('LocalBrowserInfoClass',["FS","Klass","source-map","DeferredUtil"], funct
 				blob = new iwin.Blob([sfile.bytes()], {type: sfile.contentType()});
 			}
 			var url = iwin.URL.createObjectURL(blob);
+			return url;
+		},
+		js2blobURL(sfile) {
+			const iwin=this.window;
+			const src1=sfile.text();
+			const src2=src1.replace(/\/\/[#@] ?sourceMappingURL=([^\s'"]+)\s*$/gm,(_,url)=>{
+				try {
+					console.log("js2blobURL url",url);
+					const smf=this.file.up().rel(url);
+					console.log("js2blobURL smf",smf);
+					const surl=smf.dataURL().replace("text/plain","application/json");
+					return `//# sourceMappingURL=${surl}`;
+				} catch(e) {
+					console.error(e);
+					return _;
+				}
+			});
+			const blob = new iwin.Blob([src2], {type: sfile.contentType()});
+			const url = iwin.URL.createObjectURL(blob);
 			return url;
 		},
 		wrapErrorHandler: function (onerror){
@@ -10105,6 +10129,16 @@ function (UI, LocalBrowser,LocalBrowserWindow,DA,ExportOutputDialog) {
 define('stringifyError',['require','exports','module'],function (require, exports, module) {
     module.exports=function (e) {
         var eobj={stack:e.stack,message:e.message, strMesg:e+""};
+        //console.log("strerr",e);
+        if (Array.isArray(e.stack)) {
+            for (let stack of e.stack) {
+                //console.log("Stack!",stack);
+                if (typeof stack.file==="object" && 
+                    typeof stack.file.path==="function") {
+                    stack.file=stack.file.path();
+                }
+            }    
+        }
         for (let k in e) {
             const v=e[k];
             if (v && typeof v.text==="function" && typeof v.name==="function") {
