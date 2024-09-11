@@ -26,7 +26,7 @@ define(function (require, exports, module) {
                     const f=document.getElementById("frame");
                     const u=document.getElementById("url");
                     f.src=u.value;
-                    prevURL=u.value;
+                    //prevURL=u.value;
                 }
                 function showHTML() {
                     const f=document.getElementById("frame");
@@ -61,10 +61,10 @@ define(function (require, exports, module) {
                         if (src!=="about:blank" && src!==prevURL) {
                             u.value=src;
                             prevURL=src;
-                            sendResult(f.contentWindow.document.body.innerHTML);
+                            sendResult(f.contentWindow.location.href+"<BR>\\n"+f.contentWindow.document.body.innerHTML);
                         }
                     } catch(e) {
-
+                        console.log(e);
                     }
                 }
                 function attachEnterKey() {
