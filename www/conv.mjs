@@ -15,6 +15,12 @@ define.amd=true;
   return `
 const exports={};
 const module={exports};
+function define(...args) {
+  const require=()=>{throw new Error("require not supported.");};
+  const factory=args[args.length-1];
+  module.exports=factory(require, exports, module) || module.exports;
+}
+define.amd=true;
 ${src}
 export default module.exports;
 `;
@@ -57,7 +63,7 @@ function convertAMDtoESM(file) {
     }],
     source: {
       type: 'Literal',
-      value: "./"+js.rel(nc(reqConf.paths[moduleName], moduleName)).relPath(file.up()),
+      value: "./"+js.rel(nc(reqConf.paths[moduleName], moduleName)+".js").relPath(file.up()),
     }
   });
   let newAst;
@@ -211,6 +217,7 @@ for (let k in reqConf.paths) {
     }
     esModule=convertGlobalToESM(file, reqConf.shim[k].exports);
   } else if (file.name().match(/_concat/)||
+      file.name()==="md5.js"||
       file.name().match(/\.min\.js/)||
       file.name().match(/source-map/)||
       file.name().match(/TonyuRuntime/)||

@@ -1,7 +1,8 @@
+/*global JSZip, saveAs*/
 define(["FS","Shell","Util"],function (FS,sh,Util) {
-    if (typeof JSZip=="undefined") return {};
     var zip={};
     zip.zip=function (dir,options) {
+        if (typeof JSZip==="undefined") throw new Error("JSZip is not loaded");
         var zip = new JSZip();
         function loop(dst, dir) {
             dir.each(function (f) {
@@ -31,6 +32,7 @@ define(["FS","Shell","Util"],function (FS,sh,Util) {
     var binMap={".png": "image/png", ".jpg":"image/jpg", ".gif": "image/gif", ".jpeg":"image/jpg",
             ".mp3":"audio/mp3", ".ogg":"audio/ogg"};
     zip.unzip=function (arrayBuf,destDir) {
+        if (typeof JSZip==="undefined") throw new Error("JSZip is not loaded");
         var zip=new JSZip(arrayBuf);
         for (var i in zip.files) {
             var zipEntry=zip.files[i];

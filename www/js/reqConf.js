@@ -49,10 +49,10 @@ var reqConf={
             "fs/ROMs": {
                 "deps": ["FS","WebSite"]
             },
-            "FileList": {
+            /*"FileList": {
                 "deps": ["FS"],
                 "exports": "FileList"
-            },
+            },*/
             "HttpHelper": {
                 "exports": "HttpHelper"
             },

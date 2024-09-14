@@ -51,7 +51,8 @@ define(function (require) {
     if (!dir) {
         alert("dir is not specified");
         location.href="index.html";
-        return;
+        throw new Error("Dir is not specified");
+        //return;
     }
     var curProjectDir=FS.get(dir);
     /*
