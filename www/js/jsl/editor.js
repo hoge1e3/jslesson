@@ -39,6 +39,7 @@ define(function (require) {
     const ctrl=require("ctrl");
     const DesktopSettingDialog=require("DesktopSettingDialog");
     const languageList=require("LanguageList");
+    const importModule=require("importModule");
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
         A.setMode(A.MODE_STRICT);
@@ -209,7 +210,11 @@ function ready() {
     if (!langInfo) {
         throw new Error(`Undefined language: ${lang}`);
     }
-    DU.requirejs([langInfo.builder]).then((B)=>setupBuilder(B));
+    if (root.BitArrow.esm) {
+        importModule(langInfo.builder).then((B)=>setupBuilder(B.default));
+    } else {
+        DU.requirejs([langInfo.builder]).then((B)=>setupBuilder(B));
+    }
     helpURL=langInfo.helpURL;
     if (navigator.userAgent.match(/Firefox/) /*&& lang==="tonyu"*/) {
         ALWAYS_UPLOAD=true;

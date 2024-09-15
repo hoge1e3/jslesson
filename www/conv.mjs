@@ -25,10 +25,11 @@ ${src}
 export default module.exports;
 `;
 }
-function convertGlobalToESM(file, varName) {
+function convertGlobalToESM(file, varName, deps) {
   const src=file.text();
-  return `${src}
-export default globalThis.${varName};
+  return `${deps.map((dep)=>`import "${path(dep, file)}";`).join("\n")}
+${src}
+export default ${varName};
 `;
 }
 function nc(v,name) {
@@ -45,6 +46,9 @@ function define(d,factory) {
 ${src}
 export default FS;
 `;
+}
+function path(moduleName, base) {
+  return "./"+js.rel(nc(reqConf.paths[moduleName], moduleName)+".js").relPath(base.up());
 }
 function convertAMDtoESM(file) {
   const ast = esprima.parseModule(file.text());
@@ -63,7 +67,7 @@ function convertAMDtoESM(file) {
     }],
     source: {
       type: 'Literal',
-      value: "./"+js.rel(nc(reqConf.paths[moduleName], moduleName)+".js").relPath(file.up()),
+      value: path(moduleName, file)//"./"+js.rel(nc(reqConf.paths[moduleName], moduleName)+".js").relPath(file.up()),
     }
   });
   let newAst;
@@ -215,11 +219,12 @@ for (let k in reqConf.paths) {
     if (!reqConf.shim[k].exports) {
       throw new Error("Does not export "+ k );
     }
-    esModule=convertGlobalToESM(file, reqConf.shim[k].exports);
+    esModule=convertGlobalToESM(file, reqConf.shim[k].exports, reqConf.shim[k].deps||[] );
   } else if (file.name().match(/_concat/)||
       file.name()==="md5.js"||
       file.name().match(/\.min\.js/)||
       file.name().match(/source-map/)||
+      file.name().match(/beautify/)||
       file.name().match(/TonyuRuntime/)||
       file.path().match(/ace-nocon/)||
       file.path().match(/BuilderClient/)||
@@ -237,6 +242,9 @@ for (let k in reqConf.paths) {
         //}
   } else{
     esModule = convertAMDtoESM(file);
+  }
+  if (esModule.length<file.text().length/2) {
+    throw new Error(file+" is too small");
   }
   //console.log(file.path());
   const dst=esm.rel(v+".js");
