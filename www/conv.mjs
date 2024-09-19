@@ -2,6 +2,7 @@ import * as esprima from 'esprima';
 import * as escodegen from 'escodegen';
 import * as estraverse from 'estraverse';
 import FS from "@hoge1e3/fs-nw";
+import {Buffer} from "dynamic-text-range";
 function convertUMDtoESM(file) {
   const src=file.text();
   /*
@@ -51,25 +52,69 @@ function path(moduleName, base) {
   return "./"+js.rel(nc(reqConf.paths[moduleName], moduleName)+".js").relPath(base.up());
 }
 function convertAMDtoESM(file) {
-  const ast = esprima.parseModule(file.text());
-
-  let imports = [];
+  const ast = esprima.parseModule(file.text(),{comment:false,range:true});
+  const buf = new Buffer(file.text());
+  const trans = buf.transaction();
+  let factoryRange;
+  let imports = [], importsStr=[];
   let exports = null;
   let requireCalls = new Set();
-  const importStmt = ({ moduleName, variableName }) => ({
-    type: 'ImportDeclaration',
-    specifiers: [{
-      type: 'ImportDefaultSpecifier',
-      local: {
-        type: 'Identifier',
-        name: variableName
-      }
-    }],
-    source: {
-      type: 'Literal',
-      value: path(moduleName, file)//"./"+js.rel(nc(reqConf.paths[moduleName], moduleName)+".js").relPath(file.up()),
+  let hasRuntime = false;
+  let hasExports = file.text().match(/\bexports\b/);
+  const reqPolyfill=({moduleName, variableName})=>(
+    {
+      "type": "VariableDeclaration",
+      "declarations": [{
+          "type": "VariableDeclarator",
+          "id": {
+            "type": "Identifier",
+            "name": variableName,
+          },
+          "init": {
+            "type": "AwaitExpression",
+            "argument": {
+              "type": "CallExpression",
+              "callee": {
+                "type": "Identifier",
+                "name": "_require"
+              },
+              "arguments": [{
+                  "type": "Literal",
+                  "value": moduleName,
+              }],
+            }
+          }
+      }],
+      "kind": "const"
     }
-  });
+  );
+  const importStmtStr = ({ moduleName, variableName }) => {
+    if (reqConf.paths[moduleName].match(/\.\.\/runtime/)) {
+      hasRuntime=true;
+      return `const ${variableName}=await _require("${moduleName}");`;
+    }
+    return `import ${variableName} from "${path(moduleName, file)}";`;
+  };
+  const importStmt = ({ moduleName, variableName }) => {
+    if (reqConf.paths[moduleName].match(/\.\.\/runtime/)) {
+      hasRuntime=true;
+      return reqPolyfill({moduleName, variableName});
+    }
+    return {
+      type: 'ImportDeclaration',
+      specifiers: [{
+        type: 'ImportDefaultSpecifier',
+        local: {
+          type: 'Identifier',
+          name: variableName
+        }
+      }],
+      source: {
+        type: 'Literal',
+        value: path(moduleName, file)//"./"+js.rel(nc(reqConf.paths[moduleName], moduleName)+".js").relPath(file.up()),
+      }
+    };
+  };
   let newAst;
   estraverse.replace(ast, {
     enter: function (node) {
@@ -95,6 +140,10 @@ function convertAMDtoESM(file) {
           exports = factory.body.body.find(node =>
             node.type === 'ReturnStatement'
           );
+          if (exports) {
+            const r=buf.addRange(exports.range[0], exports.range[0]+"return".length );
+            trans.replace(r, `export default`);
+          }
           argNames=factory.params.map(e=>e.name);
         } else {
           throw new Error("factory function not found");
@@ -109,6 +158,12 @@ function convertAMDtoESM(file) {
               moduleName: nc(dep.value,"dep"), 
               variableName: nc(argNames[index],"arg "+index)})
           );
+          importsStr = dependencies.elements.map((dep, index) => 
+            importStmtStr({
+              moduleName: nc(dep.value,"dep"), 
+              variableName: nc(argNames[index],"arg "+index)})
+          ).join("\n");
+          
            /* ({
             type: 'ImportDeclaration',
             specifiers: [{
@@ -124,6 +179,9 @@ function convertAMDtoESM(file) {
         /*if (exports){
           console.log(factory.body.body[factory.body.body.length-1]);
         }*/
+        //console.log(factory.body.range);
+        factoryRange=buf.addRange(factory.body.range[0]+1, factory.body.range[1]-1 );
+        //throw new Error("ERA");
         newAst={
           type: 'Program',
           body: [...imports, ...factory.body.body.filter(
@@ -152,6 +210,8 @@ function convertAMDtoESM(file) {
           const moduleName = init.arguments[0].value;
           const variableName = decl.id.name;
           //requireCalls.add({ moduleName, variableName });
+          const rg=buf.addRange(...node.range);
+          trans.replace(rg, importStmtStr({ moduleName, variableName }));
           return importStmt({ moduleName, variableName });
         }
       }
@@ -164,10 +224,10 @@ function convertAMDtoESM(file) {
   ast.body = [...requireImports, ...ast.body];
 
   let post="";
-  let pre=`
-const exports={};
+  let pre=(hasRuntime&&`const _require=(mod)=>new Promise((s)=>requirejs([mod],s));
+` ||"")+(hasExports&&`const exports={};
 const module={exports};
-`;
+`||"");
   if (!newAst) {
     throw new Error("No define found");
   }
@@ -177,10 +237,16 @@ const module={exports};
       declaration: exports.argument
     });
   } else {
-    post=`\nexport default module.exports;`;
+    if (hasExports) {
+      //throw new Error("Has exports??");
+      post=`\nexport default module.exports;`;
+    }
   }
-
-  return pre+escodegen.generate(newAst)+post;
+  trans.commit();
+  const newsrc=pre+importsStr+factoryRange+post;
+  return newsrc;
+  newAst  = escodegen.attachComments(newAst, newAst.comments, newAst.tokens);
+  return pre+escodegen.generate(newAst,{comment:true})+post;
 }
 
 // Example usage
