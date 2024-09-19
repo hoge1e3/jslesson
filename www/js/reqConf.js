@@ -37,9 +37,9 @@ var reqConf={
             "Key": {
                 "exports": "Key"
             },
-            "TError": {
+            /*"TError": {
                 "exports": "TError"
-            },
+            },*/
             "fs/ROMk": {
                 "deps": ["FS","WebSite"]
             },

@@ -1334,7 +1334,9 @@ function ready() {
     function goHome(){
         console.log("goHome");
         unsynced=false;
-        location.href="index.html";
+        location.href=(globalThis&&
+            globalThis.BitArrow&&
+            globalThis.BitArrow.esm?"esm.html":"index.html");
     }
     $("#openHelp").click(function(){
         window.open(helpURL,"helpTab");

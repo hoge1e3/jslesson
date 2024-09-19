@@ -199,4 +199,5 @@ define(["Shell","DeferredUtil"],function (sh,DU) {
             t.echo(e);    
         });
     };
+    return sh;
 });
