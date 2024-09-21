@@ -1,5 +1,5 @@
 import * as esprima from 'esprima';
-import * as escodegen from 'escodegen';
+//import * as escodegen from 'escodegen';
 import * as estraverse from 'estraverse';
 import FS from "@hoge1e3/fs-nw";
 import {Buffer} from "dynamic-text-range";
@@ -56,12 +56,12 @@ function convertAMDtoESM(file) {
   const buf = new Buffer(file.text());
   const trans = buf.transaction();
   let factoryRange;
-  let imports = [], importsStr=[];
+  let /*imports = [], */importsStr=[];
   let exports = null;
-  let requireCalls = new Set();
+  //let requireCalls = new Set();
   let hasRuntime = false;
   let hasExports = file.text().match(/\bexports\b/);
-  const reqPolyfill=({moduleName, variableName})=>(
+  /*const reqPolyfill=({moduleName, variableName})=>(
     {
       "type": "VariableDeclaration",
       "declarations": [{
@@ -87,7 +87,7 @@ function convertAMDtoESM(file) {
       }],
       "kind": "const"
     }
-  );
+  );*/
   const importStmtStr = ({ moduleName, variableName }) => {
     if (reqConf.paths[moduleName].match(/\.\.\/runtime/)) {
       hasRuntime=true;
@@ -95,7 +95,7 @@ function convertAMDtoESM(file) {
     }
     return `import ${variableName} from "${path(moduleName, file)}";`;
   };
-  const importStmt = ({ moduleName, variableName }) => {
+  /*const importStmt = ({ moduleName, variableName }) => {
     if (reqConf.paths[moduleName].match(/\.\.\/runtime/)) {
       hasRuntime=true;
       return reqPolyfill({moduleName, variableName});
@@ -114,13 +114,13 @@ function convertAMDtoESM(file) {
         value: path(moduleName, file)//"./"+js.rel(nc(reqConf.paths[moduleName], moduleName)+".js").relPath(file.up()),
       }
     };
-  };
-  let newAst;
+  };*/
+  //let newAst;
   estraverse.replace(ast, {
     enter: function (node) {
       if (node.type === 'CallExpression' && 
         (node.callee.name === 'define'||node.callee.name==="requirejs") ) {
-          if (newAst) {
+          if (factoryRange) {
             throw new Error(node.callee.name+" already defined ");
           }
         const args = node.arguments;
@@ -153,11 +153,11 @@ function convertAMDtoESM(file) {
             console.log(node);
             throw new Error("Not match deps and factory arity");
           }
-          imports = dependencies.elements.map((dep, index) => 
+          /*imports = dependencies.elements.map((dep, index) => 
             importStmt({
               moduleName: nc(dep.value,"dep"), 
               variableName: nc(argNames[index],"arg "+index)})
-          );
+          );*/
           importsStr = dependencies.elements.map((dep, index) => 
             importStmtStr({
               moduleName: nc(dep.value,"dep"), 
@@ -182,12 +182,12 @@ function convertAMDtoESM(file) {
         //console.log(factory.body.range);
         factoryRange=buf.addRange(factory.body.range[0]+1, factory.body.range[1]-1 );
         //throw new Error("ERA");
-        newAst={
+        /*newAst={
           type: 'Program',
           body: [...imports, ...factory.body.body.filter(
             node => node !== exports )]
         };
-        return newAst;
+        return newAst;*/
       } else if (node.type === 'CallExpression' && node.callee.name === 'require') {
         if (node.arguments.length==1 && 
           node.arguments[0].value=="nw.gui"
@@ -212,41 +212,42 @@ function convertAMDtoESM(file) {
           //requireCalls.add({ moduleName, variableName });
           const rg=buf.addRange(...node.range);
           trans.replace(rg, importStmtStr({ moduleName, variableName }));
-          return importStmt({ moduleName, variableName });
+          return estraverse.VisitorOption.Skip;
+          //return importStmt({ moduleName, variableName });
         }
       }
     }
   });
 
   // Add imports for require calls
-  const requireImports = Array.from(requireCalls).map(importStmt);
+  /*const requireImports = Array.from(requireCalls).map(importStmt);
 
-  ast.body = [...requireImports, ...ast.body];
+  ast.body = [...requireImports, ...ast.body];*/
 
   let post="";
   let pre=(hasRuntime&&`const _require=(mod)=>new Promise((s)=>requirejs([mod],s));
 ` ||"")+(hasExports&&`const exports={};
 const module={exports};
 `||"");
-  if (!newAst) {
+  if (!factoryRange) {
     throw new Error("No define found");
   }
-  if (exports) {
+  /*if (exports) {
     newAst.body.push({
       type: 'ExportDefaultDeclaration',
       declaration: exports.argument
     });
-  } else {
-    if (hasExports) {
+  } else {*/
+    if (!exports && hasExports) {
       //throw new Error("Has exports??");
       post=`\nexport default module.exports;`;
     }
-  }
+  //}
   trans.commit();
   const newsrc=pre+importsStr+factoryRange+post;
   return newsrc;
-  newAst  = escodegen.attachComments(newAst, newAst.comments, newAst.tokens);
-  return pre+escodegen.generate(newAst,{comment:true})+post;
+  /*newAst  = escodegen.attachComments(newAst, newAst.comments, newAst.tokens);
+  return pre+escodegen.generate(newAst,{comment:true})+post;*/
 }
 
 // Example usage
