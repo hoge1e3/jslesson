@@ -347,6 +347,9 @@ var reqConf={
             CAndDtlTokenizer: "build/CAndDtlTokenizer",
             stacktrace:"lang/",
             SerialControl: "../runtime/lib/python/SerialControl",
+            "test/TestRunner":"test/TestRunner",
+            "test/BATestRunner":"test/BATestRunner",
+            "test/bitarrow":"test/bitarrow",
 
             "foo":"bar"
         },

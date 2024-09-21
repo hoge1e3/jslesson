@@ -334,6 +334,10 @@ define(function (require,exports,module) {
         async run() {
             super.run();
             this.projectSelURL=this.options.bitarrowTop||WebSite.serverTop;//'http://localhost/';
+            
+            if (window.BitArrow&&window.BitArrow.esm) {
+                this.projectSelURL+="esm.html";
+            }
             this.loginURL=this.projectSelURL+'?Login/';
             //var projectSelURL='http://klab.eplang.jp/jslesson/'
             this.loggedin=false;
