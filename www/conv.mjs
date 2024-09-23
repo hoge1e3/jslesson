@@ -43,6 +43,21 @@ export default FS;
 function path(moduleName, base) {
   return "./"+js.rel(nc(reqConf.paths[moduleName], moduleName)+".js").relPath(base.up());
 }
+function removeIndent(buf, trans,  masks) {
+  const c=new Buffer(buf.text);
+  for (let m of masks) {
+    const r=c.addRange(m[0],m[1]);
+    r.replace("#".repeat(r.length()));
+  }
+  const p=/^    /gm;
+  const str=c.text;
+  while(true ){
+    const m=p.exec(str);
+    if (!m) break;
+    const r=buf.addRange(m.index, m.index+m[0]);
+    trans.replace(r,"");
+  }
+}
 function convertAMDtoESM(file) {
   const ast = esprima.parseModule(file.text(),{comment:false,range:true});
   const buf = new Buffer(file.text());
@@ -60,9 +75,19 @@ function convertAMDtoESM(file) {
     }
     return `import ${variableName} from "${path(moduleName, file)}";`;
   };
-  
+  const masks=new Set();
   estraverse.replace(ast, {
     enter: function (node) {
+      if (node.type==="TemplateLiteral") {
+        const r=node.range;
+        masks.add(r);
+      }
+      if (node.trailingComments) {
+        for (let c of node.trailingComments) {
+          const r=node.range;
+          masks.add(r);
+        }
+      }
       if (node.type === 'CallExpression' && 
         (node.callee.name === 'define'||node.callee.name==="requirejs") ) {
           if (factoryRange) {
@@ -152,7 +177,7 @@ const module={exports};
   if (!exports && hasExports) {
     post=`\nexport default module.exports;`;
   }
-
+  removeIndent(buf, trans, masks);
   trans.commit();
   const newsrc=pre+importsStr+factoryRange+post;
   return newsrc;
