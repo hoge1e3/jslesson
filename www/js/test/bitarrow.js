@@ -15,6 +15,7 @@ class BATest extends BATestRunner {
 
         await this.sleep(1000);
         
+        await this.testPy(await this.openProjectSel());
         await this.testC(await this.openProjectSel());
         await this.testJS(await this.openProjectSel());
         await this.testDtl(await this.openProjectSel());
@@ -77,7 +78,7 @@ int main(void) {
 }
 `);
         const rc=await ec.run({fullScr:true});
-        $("body").append($("<a>").attr({href:rc.url}).text("GO!QR!"));
+        $("body").append($("<a>").attr({href:rc.url,target:"qr"}).text("GO!QR!"));
         console.log("RUNCQR",rc);
 
         // - open existing File 'Test2' and run
@@ -108,6 +109,35 @@ int main(void) {
         '}'
         ].join("\n");
         return {fileName:"C_Tes2",content, expect:""+num*2};
+    }
+    async testPy(pc) {
+        await pc.sleep(1000);
+        const ic=await pc.prepareEmpty("Pytes","py");
+        const c=this.genPyTestCase();
+        const tc=ic.testcase(c);
+        await tc.run({runAt:"browser"});
+        await tc.run({runAt:"server"});
+
+        /*const ec=await ic.openFile("QRTest");
+        await ec.input(`
+print("QRPy")
+`);
+        const rc=await ec.run({fullScr:true});
+        $("body").append($("<a>").attr({href:rc.url,target:"qr"}).text("GO!QR!PY!"));
+        console.log("RUNPYQR",rc);
+        */
+        
+    }
+    genPyTestCase() {
+        var num=Math.floor(Math.random()*99999);
+        var content=`
+sum=0
+num=${num}
+for i in range(5):
+    sum+=num
+print(sum,end="") 
+`;
+        return {fileName:"Py_Tes2",content, expect:new RegExp(`^\\s*${num*5}\\s*$`)};
     }
     async testJS(pc) {
         await this.sleep(3000);
