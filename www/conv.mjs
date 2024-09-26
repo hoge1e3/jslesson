@@ -54,12 +54,13 @@ function removeIndent(buf, trans,  masks) {
   while(true ){
     const m=p.exec(str);
     if (!m) break;
-    const r=buf.addRange(m.index, m.index+m[0]);
+    const r=buf.addRange(m.index, m.index+m[0].length);
+    //console.log(m.index, m.index+m[0].length);
     trans.replace(r,"");
   }
 }
 function convertAMDtoESM(file) {
-  const ast = esprima.parseModule(file.text(),{comment:false,range:true});
+  const ast = esprima.parseModule(file.text(),{comment:true,range:true});
   const buf = new Buffer(file.text());
   const trans = buf.transaction();
   let factoryRange;
@@ -76,18 +77,20 @@ function convertAMDtoESM(file) {
     return `import ${variableName} from "${path(moduleName, file)}";`;
   };
   const masks=new Set();
+  if (ast.comments) {
+    for (let c of ast.comments) {
+      const r=c.range;
+      masks.add(r);
+      //console.log("cmt", buf.text.substring(...r));
+    }
+  }
   estraverse.replace(ast, {
     enter: function (node) {
       if (node.type==="TemplateLiteral") {
         const r=node.range;
         masks.add(r);
       }
-      if (node.trailingComments) {
-        for (let c of node.trailingComments) {
-          const r=node.range;
-          masks.add(r);
-        }
-      }
+      
       if (node.type === 'CallExpression' && 
         (node.callee.name === 'define'||node.callee.name==="requirejs") ) {
           if (factoryRange) {
