@@ -49,6 +49,19 @@ define([],function () {
             __init__: function (self) {
                 self._position=Vec(0,0);
                 self._heading=0;
+                self._penIsDown=true;
+            },
+            pendown(self){
+                self._penIsDown=true;
+            },
+            pd(self){
+                self.pendown();
+            },
+            penup(self){
+                self._penIsDown=false;
+            },
+            pu(self){
+                self.penup();
             },
             init: function(self) {
                 if (self.inited) return;
@@ -65,8 +78,13 @@ define([],function () {
             ctx: function (self) {
                 return self.screen[0].getContext("2d");
             },
-            forward: function (self ,by ){
+            forward: function (self ,by){
                 self.init();
+                const np=self._position.__add__(
+                    self.vec().__mul__(by)
+                );
+                self.goto(np);
+                /*self.init();
                 const ctx=self.ctx();
                 let cv=conv(self._position);
                 console.log(cv,self._position);
@@ -77,7 +95,7 @@ define([],function () {
                 cv=conv(self._position);
                 console.log(cv,self._position);
                 ctx.lineTo(cv.x,cv.y);
-                ctx.stroke();
+                ctx.stroke();*/
             },
             right: function (self,by) {
                 self.init();
@@ -98,20 +116,40 @@ define([],function () {
                 return PL.Tuple([self._position.x, self._position.y]);
             },
             goto(self, x,y) {
+                self.init();
+                if (x!=null && x.x!=null && x.y!=null) {
+                    const p=x;
+                    x=p.x;y=p.y;
+                }
+                const ctx=self.ctx();
+                if (self._penIsDown) {
+                    let cv=conv(self._position);
+                    console.log(cv,self._position);
+                    ctx.moveTo(cv.x,cv.y);    
+                }
                 self._position=Vec(x,y);
+                if (self._penIsDown) {
+                    let cv=conv(self._position);
+                    console.log(cv,self._position);
+                    ctx.lineTo(cv.x,cv.y);
+                    ctx.stroke();
+                }
             },
             setx(self, x) {
-                self._position=Vec(x, self._position.y);
+                self.init();
+                self.goto(x, self._position.y);
             },
             sety(self, y) {
-                self._position=Vec(self._position.x, y);
+                self.init();
+                self.goto(self._position.x, y);
             },
             getx(self) {
+                self.init();
                 return self._position.x;
             },
             gety(self) {
+                self.init();
                 return self._position.y;
-
             },
             
         });
