@@ -96,7 +96,24 @@ define([],function () {
             },
             position: function (self) {
                 return PL.Tuple([self._position.x, self._position.y]);
-            }
+            },
+            goto(self, x,y) {
+                self._position=Vec(x,y);
+            },
+            setx(self, x) {
+                self._position=Vec(x, self._position.y);
+            },
+            sety(self, y) {
+                self._position=Vec(self._position.x, y);
+            },
+            getx(self) {
+                return self._position.x;
+            },
+            gety(self) {
+                return self._position.y;
+
+            },
+            
         });
         const Turtle=PL.class(tdef);
         function r(dir) {
