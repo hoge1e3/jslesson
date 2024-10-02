@@ -309,6 +309,7 @@ var reqConf={
             PHPBuilder:"build/php/PHPBuilder",
             P5Builder:"build/p5/P5Builder",
             p5pyBuilder:"build/python/p5pyBuilder",
+            WebBuilder:"build/web/WebBuilder",
             BrythonBuilder:"build/brython/BrythonBuilder",
             raspiBuilder:"build/python/raspiBuilder",
             SysDebugger_concat:"../runtime/lib/tonyu/SysDebugger_concat.min",

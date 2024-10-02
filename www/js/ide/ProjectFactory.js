@@ -5,6 +5,7 @@ define(function (require, exports, module) {
     const DU=require("DeferredUtil");
     const WebSite=require("WebSite");
     const FS=require("FS");
+    const languageList=require("LanguageList");
     const HEXT=".html";
     function getName(file) {
         if (typeof file.name==="function") file=file.name();
@@ -25,16 +26,23 @@ define(function (require, exports, module) {
         		TPR.fixOptions(options);
         		return options;
         	},
-        	getEXT: function(){
-                const TPR=this;
-        		var opt=TPR.getOptions();
-        		if(!opt.language || opt.language=="js") TPR.EXT=".tonyu";
-        		else TPR.EXT="."+opt.language;
-        		return TPR.EXT;
+            getLanguage() {
+                const opt=this.getOptions();
+                return opt.language||"js";
+            },
+            getLangInfo() {
+                return languageList[this.getLanguage()];
+            },
+        	getEXT(){
+                const info=this.getLangInfo();
+                if ("ext" in info) this.EXT=(info.ext?".":"")+info.ext;
+        		else this.EXT="."+this.getLanguage();
+        		return this.EXT;
         	},
             truncEXT: function (file) {
                 file=getName(file);
                 const EXT=this.getEXT();
+                if (EXT==="") return file;
                 if (file.endsWith(HEXT)) return file.substring(0,file.length-HEXT.length);
                 if (file.endsWith(EXT)) return file.substring(0,file.length-EXT.length);
                 throw new Error(`truncEXT: '${file}' ends with neither ${HEXT} nor ${EXT}.`);
@@ -42,10 +50,13 @@ define(function (require, exports, module) {
             isLogicFile: function (file) {
                 file=getName(file);
                 const EXT=this.getEXT();
+                if (EXT==="") return true;
                 return file.endsWith(EXT);
             },
             isHTMLFile: function (file) {
                 file=getName(file);
+                const EXT=this.getEXT();
+                if (EXT==="") return false;
                 return file.endsWith(HEXT);
             },
         	fixOptions: function (opt) {

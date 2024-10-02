@@ -14,6 +14,25 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         return "lib/"+n+".js";
     });
     var p=PythonBuilder.prototype;//<-dtl
+    p.fixName=function (name, {curDir}) {
+        // curDir is not always project dir(if subdir is used)
+        const EXT=this.prj.getEXT();
+        const pat={
+            reg:/^[A-Za-z_][a-zA-Z0-9_]*$/, 
+            error:"名前は，半角英数字とアンダースコア(_)のみが使えます．"
+        };
+        if (S.importable[name]) {
+            return {ok:false, reason:`${name}はPythonのライブラリ名と同じなので使えません．`};
+        }
+        if (name.match(pat.reg)) {
+            const file=curDir.rel(name+EXT);
+            if (file.exists()) {
+                return {ok:false, reason:name+"は存在します"};
+            }
+            return {ok:true, file};
+        }
+        return {ok:false, reason:pat.error};
+    };
     p.progress=function (m) {
         if (window.SplashScreen) window.SplashScreen.progress(m);
     };

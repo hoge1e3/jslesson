@@ -1,6 +1,6 @@
 define(function (require, exports, module) {
     module.exports={
-        "js":{en:"JavaScript",ja:"JavaScript",builder:"TJSBuilder",
+        "js":{en:"JavaScript",ja:"JavaScript",builder:"TJSBuilder",ext:"tonyu",
             helpURL:"http://bitarrow.eplang.jp/index.php?javascript",mode:"ace/mode/tonyu"},
         "dtl":{en:"Dolittle", ja:"ドリトル",builder:"DtlBuilder",
             helpURL:"http://bitarrow.eplang.jp/index.php?dolittle_use"},
@@ -21,9 +21,10 @@ define(function (require, exports, module) {
             // lang <= 10
         "p5.py":{en:"p5Python", ja:"p5 Python mode",builder:"p5pyBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/python"},
-        "bry":{//ext:"py",// not working now
+        "web":{en:"Advanced JavaScript",ja:"JavaScript(中級)",builder:"WebBuilder",ext:""},
+        /*"bry":{//ext:"py",// not working now
             en:"brython(Beta)", ja:"Brython(試験運用中)",builder:"BrythonBuilder",manualIndent:true,
-            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
+            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},*/
         /*"ras.py": {//ext:"py",// not working now
             en: "Raspi-Pico(Beta)", ja:"Raspi-Pico(試験運用中)",builder:"raspiBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},*/
