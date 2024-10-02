@@ -221,6 +221,7 @@ function ready() {
         FS.mount(ram.path(),"ram");
         builder=new BuilderClass(curPrj, ram, ide);
         window.BABuilder=builder;
+        if (builder.ALWAYS_UPLOAD) ALWAYS_UPLOAD=true;
         builderReady();
     }
     function builderReady() {
@@ -414,16 +415,19 @@ function ready() {
         DistributeDialog.show(curFile.text(),function(text,overwrite,{next}){
             console.log(text,overwrite);
             DistributeDialog.setDisabled(true);
+            const hf=fileSet(curFile)[0];
             $.ajax({
                 type:"POST",
                 url:WebSite.controller+"?Class/distribute",
                 data:{
                     "prj":curPrjName,
                     "file":curFile.name(),
-                    "htmlText":fileSet(curFile)[0].text(),
-                    "html":fileSet(curFile)[0].name(),
+                    ...(hf?{
+                        "htmlText":hf.text(),
+                        "html":hf.name(),    
+                    }:{}),
                     "cont":text,
-                    "over":overwrite
+                    "over":overwrite,
                 }
             }).then(
                 function(d){
@@ -573,8 +577,8 @@ function ready() {
         var oldName=curPrj.truncEXT(old);//old.truncExt();//.p5.js
         FM.dialogOpt({title:"コピー", name:oldName, action:"cp", onend:function (_new) {
             if (!_new) return;
-            var olds=fileSet(old);
-            var news=fileSet(_new);
+            var olds=fileSet(old, true);
+            var news=fileSet(_new, true);
             A(olds.length==news.length,"olds.length==news.length");
             var ci;
             for (var i=0;i<olds.length;i++) {
@@ -599,13 +603,13 @@ function ready() {
             return;
         }
         var f=inf.file;
-        var s=fileSet(f);
+        var s=fileSet(f,true);
         s.forEach(function (e) {
             close(e);
         });
     }
     FM.on.close=function (f) {
-        var s=fileSet(f);
+        var s=fileSet(f,true);
         var shouldRemove=false;
         s.forEach(function (e) {
             if (!e.exists()) shouldRemove=true;
@@ -623,7 +627,7 @@ function ready() {
         //console.log("FM.on.createContent", f, f.ext(), EXT, HEXT);
         if (curPrj.isHTMLFile(f) || curPrj.isLogicFile(f)) {
             //console.log("FM.on.createContent fileSet",fileSet(f));
-            fileSet(f).forEach(function (e) {
+            fileSet(f, true).forEach(function (e) {
                 if (curPrj.isLogicFile(e) && !e.exists()) {
                     //e.text((lang=="py"?"# ":"// ")+langInfo.en+"\n");
                     if(lang=="js") e.text(/*"// "+langInfo.en+"\n*/
@@ -650,7 +654,7 @@ function ready() {
         return f;
     };
     FM.on.rm=function (f) {
-        var fs=fileSet(f);
+        var fs=fileSet(f, true);
         for (var i=0;i<fs.length;i++) {
             if (fs[i].exists()) {
                 fs[i].rm();
@@ -662,8 +666,8 @@ function ready() {
         return false;
     };
     FM.on.mv=function (old,_new) {
-        var olds=fileSet(old);
-        var news=fileSet(_new);
+        var olds=fileSet(old, true);
+        var news=fileSet(_new, true);
         A(olds.length==news.length,"olds.length==news.length");
         var ci;
         for (var i=0;i<olds.length;i++) {
@@ -827,7 +831,7 @@ function ready() {
                 //const _u=await Auth.publishedURL(curPrj.getName()+"/");
                 var cv=$("<div>");
                 cv.dialog();
-                var runURL=buildStatus.publishedURL;//_u+(lang=="tonyu"?"index.html":curHTMLFile.name());
+                var runURL=buildStatus.publishedURL;
                 ide.fire("publishedURL",{url:runURL, dialog:cv});
                 cv.append($("<div>").append(
                     $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
@@ -867,10 +871,18 @@ function ready() {
         }
     }
     async function build(options) {
-        if (!options.curLogicFile || !options.curHTMLFile) {
-            throw new Error("options should be set: curLogicFile, curHTMLFile");// Mandatory "options" :-)
+        if (!options.curLogicFile /*|| !options.curHTMLFile*/) {
+            throw new Error("options should be set: curLogicFile");// Mandatory "options" :-)
         }
         const {curLogicFile, curHTMLFile}=options;
+        let indexFile=curHTMLFile;
+        if (!indexFile) {
+            if (curLogicFile.endsWith(HEXT)) {
+                indexFile=curLogicFile;
+            } else {
+                throw new Error("htmlファイルを選択してください");
+            }
+        }
         options.mainFile=options.curLogicFile;
         if (options.upload) {
             const pubd=await Auth.publishedDir(curProjectDir.name());
@@ -884,15 +896,16 @@ function ready() {
             if (buildStatus.publishedURL) {
                 options.publishedURL=buildStatus.publishedURL;
             } else {
-                buildStatus.publishedURL=options.publishedURL+curHTMLFile.name();
+                buildStatus.publishedURL=options.publishedURL+indexFile.name();
             }
             if (buildStatus.publishedDir) {
                 options.publishedDir=buildStatus.publishedDir;
             }
             await builder.upload(options.publishedDir);
+            console.log("Upload done", curLogicFile.exists());
         }
-        logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Build","ビルドしました",langInfo.en);
-        buildStatus.indexFile=buildStatus.indexFile|| ram.rel(curHTMLFile.name());
+        logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile?curHTMLFile.text():"",langInfo.en+" Build","ビルドしました",langInfo.en);
+        buildStatus.indexFile=buildStatus.indexFile|| ram.rel(indexFile.name());
         return buildStatus;
     }
     //\run
@@ -925,7 +938,7 @@ function ready() {
             if (result==="Run" && resCon(resDetail).match(/Traceback.*most recent call last/)) {
                 result="Runtime Error";
             }
-            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),(langInfo.en||lang)+" "+result, resDetail,langInfo.en);
+            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile?curHTMLFile.text():"",(langInfo.en||lang)+" "+result, resDetail,langInfo.en);
         };
         window.onmessage=(e)=>{
             console.log("MESG",e);
@@ -945,20 +958,19 @@ function ready() {
             options.upload=ALWAYS_UPLOAD;
             const buildStatus=await build(options);
             console.log("built", options, buildStatus);
-            //logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Run","実行しました",langInfo.en);
             if (ALWAYS_UPLOAD) {
                 /*const pubd=await Auth.publishedDir(curProjectDir.name());
                 console.log("Upload comp",pubd);
                 await builder.upload(pubd);
                 const pub=await Auth.publishedURL(curProjectDir.name());*/
-                var runURL=buildStatus.publishedURL;//pub+(lang=="tonyu"?"index.html": curHTMLFile.name());
+                var runURL=buildStatus.publishedURL;
                 if (options.sendURL) {
                     options.sendURL(runURL, location.href);
                     return;
                 }
                 return IframeDialog.show(runURL,{width:600,height:400});
             } else {
-                var indexF=buildStatus.indexFile;// ram.rel(lang=="tonyu"?"index.html":curHTMLFile.name());
+                var indexF=buildStatus.indexFile;
                 const params=options.stdin?{stdin:options.stdin}:{};
                 if (isSplit()) {
                     return RunDialog2.embed(indexF, {
@@ -985,7 +997,7 @@ function ready() {
             }
             if (e.isTError) {
                 errorDialog.show(e);//showErrorPos($("#errorPos"),e);
-                logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Compile Error",/*e.src+":"+e.pos+"\n"+e.mesg*/e,langInfo.en);
+                logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile?curHTMLFile.text():"",langInfo.en+" Compile Error",/*e.src+":"+e.pos+"\n"+e.mesg*/e,langInfo.en);
             } else {
                 EC.handleException(e);
             }
@@ -1053,7 +1065,7 @@ function ready() {
         if (curJSFile) {
             var posinfo="";
             //if (e.srcPath && e.pos) posinfo="("+e.srcPath+":"+e.pos+")";
-            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langInfo.en+" Runtime Error",e/*posinfo+(e.stack || e)*/,langInfo.en);
+            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile?curHTMLFile.text():"",langInfo.en+" Runtime Error",e/*posinfo+(e.stack || e)*/,langInfo.en);
         }
     };
     function close(rm) { // rm or mv
@@ -1121,7 +1133,7 @@ function ready() {
             if (old!=nw) {
                 curFile.text(nw);
                 inf.lastTimeStamp=curFile.lastUpdate();
-                logToServer2(curFile.path(),curFile.text(),/*curHTMLFile.text()*/"HTML","Save","保存しました",langInfo.en);
+                logToServer2(curFile.path(),curFile.text(),"HTML","Save","保存しました",langInfo.en);
             }
         }
         fl.setModified(false);
@@ -1165,10 +1177,11 @@ function ready() {
             console.log(e);
         }
     }
-    function fileSet(c) {
+    function fileSet(c, skipEmpty=false) {
         A.is(c,"SFile");
         var n=curPrj.truncEXT(c);//c.truncExt();//.p5.js
         if (EXT==="") {
+            if (skipEmpty) return [c.sibling(n)];
             return [null, c.sibling(n)];
         }
         return [c.up().rel(n+HEXT), c.up().rel(n+EXT)];
