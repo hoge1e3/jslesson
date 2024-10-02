@@ -43,7 +43,16 @@
     }
     load(0);
     function done() {
-        window.onerror=window.onerror||function (e) {alert(e);};
+        window.onerror=window.onerror||function (...args) {
+            if (args.length>1) {
+                console.log(...args);
+                alert(args.join(" "));
+            } else {
+                const e=args[0];
+                console.error(e);
+                alert(e);
+            }
+        };
         const orge=window.onerror;
         let hsend=setTimeout(()=>{
             if (typeof window!=="undefined" && window.parent && window.parent.sendResult) {
