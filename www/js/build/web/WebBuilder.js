@@ -1,5 +1,10 @@
 define(function (require,exports,module) {
+    const Sync=require("Sync");
     class WebBuidler{
+        constructor(prj, dst) {
+            this.prj=prj;// TPRC
+            this.dst=dst;// SFile in ramdisk
+        }
         fixName(name,{curDir}){
             const pat={
                 reg:/^[^\\\/:\*\?<>\|]+\/?$/, 
@@ -20,12 +25,20 @@ define(function (require,exports,module) {
             }
             return {ok:false, reason:pat.error};
         }
-        build(){
-            alert("Do not build!");
+        async upload(publishedDir){
+            //alert("Do not build!");
+            await Sync.sync(this.dst, publishedDir, {v:1});
         }
-        upload(){
-            alert("Do not upload!");
+        async build(){
+            const dir=this.prj.getDir();
+            dir.recursive((f)=>{
+                const rel=f.relPath(dir);
+                if(rel.match(/.sync\//)) return;
+                console.log(rel);
+                this.dst.rel(rel).copyFrom(f);
+            });
         }
     }
+    WebBuidler.prototype.ALWAYS_UPLOAD=true;
     return WebBuidler;
 });

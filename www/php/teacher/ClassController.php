@@ -402,8 +402,8 @@ class ClassController {
         $file=$_POST["file"];
         $cont=$_POST["cont"];
         $over=$_POST["over"];
-        $html=$_POST["html"];
-        $htmlText=$_POST["htmlText"];
+        $html=(isset($_POST["html"])?$_POST["html"]:null);
+        $htmlText=(isset($_POST["htmlText"])?$_POST["htmlText"]:null);
         /*
         $cmttmp=explode(".",$file);
         $cmttmp[1]=".cmt.txt";
@@ -425,7 +425,7 @@ class ClassController {
                 if(!$f->exists() || $over=="true"){
                     $f->text($cont);
                 }
-                if(!$p->rel($html)->exists() || $over=="true"){
+                if($html && (!$p->rel($html)->exists() || $over=="true")) {
                     $p->rel($html)->text($htmlText);
                 }
         /*        if(!$p->rel($cmt)->exists()){

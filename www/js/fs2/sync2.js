@@ -24,6 +24,7 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
     };
     Sync.NOT_LOGGED_IN="Not logged in.";
     Sync.sync=function () {
+        const syncID=Math.random();
         // sync dir:file options:o local=remote=dir
         // sync local:file remote:file options:o
         var local,remote,options;
@@ -40,9 +41,9 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
             }
         }
         function getLocalDirInfo() {
-            console.log("gerLCD");
+            status("getLocalDirInfo");
             var res2=local.getDirTree({style:"flat-relative",excludes});
-            console.log("gerLCD done",res2);
+            status("getLocalDirInfo done",res2);
             return res2;
         }
         function unionKeys() {
@@ -94,7 +95,7 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
             return res;
         }
         function status(name, param) {
-            sh.echo("Status: "+name+" param:",param);
+            sh.echo("Sync"+syncID+" Status: "+name+" param:",param);
             if (options.onstatus) {
                 options.onstatus(name, param);
             }
@@ -126,7 +127,7 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
         var remoteDirInfoFile=syncInfoDir.rel("remote.json");
         var lastLocalDirInfo=localDirInfoFile.exists()?localDirInfoFile.obj():{};
         var lastRemoteDirInfo=remoteDirInfoFile.exists()?remoteDirInfoFile.obj():{};
-        status("getLocalDirInfo", req);
+        
         var curLocalDirInfo=getLocalDirInfo();
         var curRemoteDirInfo;
         if (options.v) sh.echo("last/cur LocalDirInfo",lastLocalDirInfo, curLocalDirInfo);
@@ -238,6 +239,7 @@ define(["FS","Shell","WebSite","assert","DeferredUtil"],
             var upds=[];
             for (var i in uploads) upds.push(i);
             res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};
+            status("done",res);
             return res;
         });
     };
