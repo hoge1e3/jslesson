@@ -724,10 +724,16 @@ function ready() {
             name= name.substring(0,1).toUpperCase()+name.substring(1);
             upcased=true;
         }*/
+        if (builder.fixName) {
+            return builder.fixName(name,{
+                sourceFiles,
+                curDir:curProjectDir,
+                EXT});
+        }
         var pat={
             reg:/^[A-Za-z_][a-zA-Z0-9_]*$/, error:"名前は，半角英数字とアンダースコア(_)のみが使えます．"
         };
-        if (lang==="c") {
+        /*if (lang==="c") {
             pat={
                 reg:/^[A-Za-z_][\-a-zA-Z0-9_]*$/, error:"名前は，半角英数字とアンダースコア(_)，ハイフン(-)のみが使えます．"
             };
@@ -736,7 +742,7 @@ function ready() {
             if (builder.Semantics.importable[name]) {
                 return {ok:false, reason:`${name}はPythonのライブラリ名と同じなので使えません．`};
             }
-        }
+        }*/
         if (name.match(pat.reg)) {
             if (sourceFiles[name]) {
                 return {ok:false, reason:name+"は存在します"};
@@ -1167,6 +1173,9 @@ function ready() {
     function fileSet(c) {
         A.is(c,"SFile");
         var n=curPrj.truncEXT(c);//c.truncExt();//.p5.js
+        if (EXT==="") {
+            return [null, c.sibling(n)];
+        }
         return [c.up().rel(n+HEXT), c.up().rel(n+EXT)];
     }
     $(".selTab").click(function () {
@@ -1251,7 +1260,7 @@ function ready() {
             //else inf.editor.setKeyboardHandler(defaultKeyboard);
         }
         const [curHTMLFile, curLogicFile]=fileSet(inf.file);
-        logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Open","開きました",langInfo.en);
+        logToServer2(curLogicFile.path(),curLogicFile.text(),(curHTMLFile?curHTMLFile.text():""),langInfo.en+" Open","開きました",langInfo.en);
 
         commentDialog.getComment(f).then(function (c) {
             $("#commentLink").empty();
