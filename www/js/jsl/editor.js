@@ -575,7 +575,7 @@ function ready() {
         }
         var old=inf.file;
         var oldName=curPrj.truncEXT(old);//old.truncExt();//.p5.js
-        FM.dialogOpt({title:"コピー", name:oldName, action:"cp", onend:function (_new) {
+        FM.dialogOpt({title:"コピー", name:oldName, action:"cp", curFile: old, onend:function (_new) {
             if (!_new) return;
             var olds=fileSet(old, true);
             var news=fileSet(_new, true);
@@ -625,7 +625,9 @@ function ready() {
     FM.on.validateName=fixName;
     FM.on.createContent=function (f) {
         //console.log("FM.on.createContent", f, f.ext(), EXT, HEXT);
-        if (curPrj.isHTMLFile(f) || curPrj.isLogicFile(f)) {
+        if (f.isDir()) {
+            f.mkdir();  
+        } else if (curPrj.isHTMLFile(f) || curPrj.isLogicFile(f)) {
             //console.log("FM.on.createContent fileSet",fileSet(f));
             fileSet(f, true).forEach(function (e) {
                 if (curPrj.isLogicFile(e) && !e.exists()) {
@@ -718,6 +720,7 @@ function ready() {
     function fixName(name, options) {
         A.is(arguments,[String]);
         options=options||{};
+        const {action,curFile}=options;
         var upcased=false;
         /*if (name.match(/^[a-z]/)) {
             name= name.substring(0,1).toUpperCase()+name.substring(1);
@@ -725,8 +728,8 @@ function ready() {
         }*/
         if (builder.fixName) {
             return builder.fixName(name,{
-                sourceFiles,
-                curDir:curProjectDir,
+                sourceFiles, action, curFile,
+                curDir:fl.curDir(),
                 EXT});
         }
         var pat={

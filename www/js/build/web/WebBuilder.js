@@ -5,7 +5,7 @@ define(function (require,exports,module) {
             this.prj=prj;// TPRC
             this.dst=dst;// SFile in ramdisk
         }
-        fixName(name,{curDir}){
+        fixName(name,{curDir, curFile, action}){
             const pat={
                 reg:/^[^\\\/:\*\?<>\|]+\/?$/, 
                 error:"\\ / : * ? < > | は使えません",
@@ -14,11 +14,32 @@ define(function (require,exports,module) {
                 return {ok:false, reason:"ファイル名を入力してください"};
             }
             if (name.match(pat.reg)) {
-                const file=curDir.rel(name);
+                let file=curDir.rel(name);
+                if (curFile && file.isDir()) {
+                    if (!this.prj.getDir().contains(file)) {
+                        return {ok:false, reason:"プロジェクト外のフォルダは指定できません．"};
+                    }
+                    if (!file.exists()) {
+                        return {ok:false, reason:name+"は存在しません"};
+                    }
+                    file=file.rel(curFile.name());
+                    if (!file.exists()) {
+                        return {
+                            ok:true, 
+                            file,
+                            note:`フォルダ${name}に移動します．`,
+                        };
+                    } else {
+                        return {ok:false, reason:`移動先のフォルダに${name}が存在します`};
+                    }
+                }
                 if (file.exists()) {
                     return {ok:false, reason:name+"は存在します"};
                 }
                 if (name.match(/\/$/)) {
+                    if (!this.prj.getDir().contains(file)) {
+                        return {ok:false, reason:"プロジェクト外のフォルダは指定できません．"};
+                    }
                     return {ok:true, file, note:"フォルダを作成します．"};
                 }
                 return {ok:true, file};
