@@ -118,7 +118,7 @@ var FileMenu=function () {
         /*var oldName,  mode;
         if (typeof oldNameD=="string") oldName=oldNameD;
         else { oldName=oldNameD.name; mode=oldNameD.mode;}*/
-        FM.dialogOpt({title:"名前変更", name:oldName, action:"mv", extraUI:FM.on.mvExtraUI, onend:function (nf) {
+        FM.dialogOpt({title:"名前変更", name:oldName, action:"mv", curFile, extraUI:FM.on.mvExtraUI, onend:function (nf) {
             if (!nf) return;
             if (FM.on.mv && FM.on.mv(curFile,nf)===false) {
                 return;
