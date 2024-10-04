@@ -312,7 +312,7 @@ class ClassController {
                 $pass=$s->getPass();
                 echo "<div style='padding:30px;'>";
                 echo "BitArrow アカウント情報<BR>";
-                echo "https://bitarrow.eplang.jp/bitarrow/<BR>";
+                echo "https://bitarrow.eplang.jp/ →「Bit Arrowを起動！」<BR>";
                 echo "クラス名: ".$class->id."<BR>";
                 echo "ユーザ名: ".$s->name."<BR>";
                 echo "パスワード: ".($pass?$pass:"（空欄）")."<BR>";
