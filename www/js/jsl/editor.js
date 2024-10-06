@@ -40,6 +40,7 @@ define(function (require) {
     const DesktopSettingDialog=require("DesktopSettingDialog");
     const globalDesktopSetting=require("globalDesktopSetting");
     const languageList=require("LanguageList");
+    const ModeList=require("ModeList");
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
         A.setMode(A.MODE_STRICT);
@@ -67,16 +68,6 @@ define(function (require) {
     var ALWAYS_UPLOAD=(localStorage.ALWAYS_UPLOAD==="true") || Util.getQueryString("ALWAYS_UPLOAD",false);
     console.log("ALWAYS_UPLOAD",ALWAYS_UPLOAD);
     if (root.BitArrow) root.BitArrow.curProjectDir=curProjectDir.path();
-    /*var langList={
-        "js":"JavaScript",
-        "c":"C",
-        "dtl":"Dolittle",
-        "tonyu":"Tonyu",
-        "dncl":"DNCL",
-        "py":"Python",
-        "php":"PHP",
-    };*/
-
     var helpURL;
     var unsaved=false;
     var unsynced=false;
@@ -453,9 +444,6 @@ function ready() {
         },{ide});
 
     }
-    /*function distributePrj() {
-        alert("distributePrj!");
-    }*/
     function checkPublishedURL() {
         Auth.publishedURL(curPrj.getName()+"/").then(function (u) {
             if (window.BitArrow) window.BitArrow.publishedURL=u;
@@ -788,15 +776,6 @@ function ready() {
         }
     }
     function stop() {
-        /*if(curth){
-            try {
-                curth.kill();
-            }catch(e) {
-                //IE shows error "解放されたスクリプトからコードを実行できません。";
-                console.log(e);
-            }
-            curth=null;
-        }*/
         displayMode("edit");
     }
     //var curName,runURL;
@@ -1250,7 +1229,8 @@ function ready() {
             //defaultKeyboard=prog.getKeyboardHandler();
             //if(desktopEnv.editorMode=="emacs") prog.setKeyboardHandler("ace/keyboard/emacs");
             //prog.setKeyboardHandler(defaultKeyboard);
-            const isLogicFile=curPrj.isLogicFile(f);
+            prog.getSession().setMode(ModeList.getMode(f));
+            /*const isLogicFile=curPrj.isLogicFile(f);
             if (isLogicFile) {
                 const mode=langInfo.mode || "ace/mode/tonyu";
                 //console.log("mode/c/set");
@@ -1258,7 +1238,7 @@ function ready() {
             } else if (curPrj.isHTMLFile(f)) {
                 //console.log("mode/html/set");
                 prog.getSession().setMode("ace/mode/html");
-            }
+            }*/
             prog.getSession().setUseWrapMode(true);
             if (ace_language_tools) {
                 const completers=[ace_language_tools.textCompleter];
@@ -1351,27 +1331,6 @@ function ready() {
         desktopSettingDialog=desktopSettingDialog||new DesktopSettingDialog(ide);
         desktopSettingDialog.show(ide);
     }
-    /*function textSize() {
-        var prog=getCurrentEditor();
-        var s=prompt("エディタの文字の大きさ", desktopEnv.editorFontSize||18);
-        if(s==null) return;
-        desktopEnv.editorFontSize=parseInt(s);
-        if (prog) prog.setFontSize(desktopEnv.editorFontSize||18);
-        saveDesktopEnv();
-        window.editorTextSize=desktopEnv.editorFontSize||18;
-    }*/
-    /*function editorType() {
-        var prog=getCurrentEditor();
-        if(prog.getKeyboardHandler()==defaultKeyboard){
-            prog.setKeyboardHandler("ace/keyboard/emacs");
-            desktopEnv.editorMode="emacs";
-        }else{
-            prog.setKeyboardHandler(defaultKeyboard);
-            desktopEnv.editorMode="ace-default";
-        }
-        saveDesktopEnv();
-        focusToEditor();
-    }*/
     $("#home").click(F(function () {
         save();
         goHome();
