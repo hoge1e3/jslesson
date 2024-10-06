@@ -138,6 +138,7 @@ var reqConf={
             jsl_edit_concat: 'gen/edit_concat',
             cleanup: "jsl/cleanup",
             ProjectFactory: "ide/ProjectFactory",
+            ModeList: "ide/ModeList",
             Sync: "fs2/sync2",
             root:"lib/root",
             EventHandler: "lib/EventHandler",
