@@ -415,16 +415,15 @@ function ready() {
             $.ajax({
                 type:"POST",
                 url:WebSite.controller+"?Class/distribute",
-                data:{
+                data:Object.assign({
                     "prj":curPrjName,
                     "file":curFile.name(),
-                    ...(hf?{
-                        "htmlText":hf.text(),
-                        "html":hf.name(),    
-                    }:{}),
                     "cont":text,
                     "over":overwrite,
-                }
+                },hf?{
+                    "htmlText":hf.text(),
+                    "html":hf.name(),    
+                }:{}),
             }).then(
                 function(d){
                     if (!next) {
