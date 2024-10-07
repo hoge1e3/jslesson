@@ -1239,7 +1239,15 @@ function ready() {
             progDOM.click(F(function () {
                 displayMode("edit");
             }));
-            prog.setReadOnly(false);
+            if (FS.Content.looksLikeDataURL(f.text())){
+                if (confirm("このファイルはエディタでは編集しないことをおすすめします．\nOK → 読み取り専用で開く\nキャンセル → それでも編集する")){
+                    prog.setReadOnly(true);
+                } else {
+                    prog.setReadOnly(false);
+                }
+            } else {
+                prog.setReadOnly(false);
+            }
             prog.clearSelection();
             prog.focus();
             curDOM=progDOM;
