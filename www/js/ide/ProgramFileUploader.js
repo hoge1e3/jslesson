@@ -39,23 +39,28 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
                     for (var k in status) {
                         if (status[k].status==="uploaded") {
                             var srcFile=status[k].file;
-                            var srcDir=srcFile.up();
-                            var name=truncExt(srcFile,acext);//.p5.js
-                            var srcPfile=srcDir.rel(name+EXT);
-                            var dstPfile=dstDir.rel(name+EXT);
-                            var srcHfile=srcDir.rel(name+HEXT);
-                            var dstHfile=dstDir.rel(name+HEXT);
-                            if (!srcPfile.exists()) {
-                                srcPfile.text("");
-                            }
-                            if (EXT!=="" && !srcHfile.exists()) {
-                                srcHfile.text("");
-                            }
-                            if (!dstPfile.exists()) {
-                                dstPfile.copyFrom(srcPfile);
-                            }
-                            if (EXT!=="" && !dstHfile.exists()) {
-                                dstHfile.copyFrom(srcHfile);
+                            if (EXT==="") {
+                                const dstFile=dstDir.rel(srcFile.name());
+                                dstFile.copyFrom(srcFile);
+                            } else {
+                                var srcDir=srcFile.up();
+                                var name=truncExt(srcFile,acext);
+                                var srcPfile=srcDir.rel(name+EXT);
+                                var dstPfile=dstDir.rel(name+EXT);
+                                var srcHfile=srcDir.rel(name+HEXT);
+                                var dstHfile=dstDir.rel(name+HEXT);
+                                if (!srcPfile.exists()) {
+                                    srcPfile.text("");
+                                }
+                                if (!srcHfile.exists()) {
+                                    srcHfile.text("");
+                                }
+                                if (!dstPfile.exists()) {
+                                    dstPfile.copyFrom(srcPfile);
+                                }
+                                if (!dstHfile.exists()) {
+                                    dstHfile.copyFrom(srcHfile);
+                                }   
                             }
                         }
                     }
@@ -68,7 +73,7 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
         addMissingFiles(prj, options) {
             const fileNames=prj.sourceFiles();
             const EXT=prj.getEXT(), HEXT=".html";
-
+            if (EXT==="") return;
             for (let name in fileNames) {
                 const file=fileNames[name];
                 const pfile=file.sibling(name+EXT);
