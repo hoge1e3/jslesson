@@ -1327,7 +1327,7 @@ function ready() {
         unsynced=false;
         location.href=(globalThis&&
             globalThis.BitArrow&&
-            globalThis.BitArrow.esm?"esm.html":"index.html");
+            globalThis.BitArrow.esm?"index.html":"amd.html");
     }
     $("#openHelp").click(function(){
         window.open(helpURL,"helpTab");

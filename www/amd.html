@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<script>/*Object.defineProperty(window,"global",{
+    set: ()=>{throw new Error("DAREDA!");}
+});*/</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Bit Arrow (online programming environment)">
+<meta name="author" content="hoge1e3">
+<link rel="shortcut icon" type="image/x-icon" href="images/bitarrow-3_360.png">
+
+<title>Bit Arrow</title>
+
+<!-- Bootstrap core CSS -->
+<link href="css/bootstrap.css" rel="stylesheet">
+
+<!-- Custom styles for this template -->
+<link href="css/tonyu.css" rel="stylesheet">
+<link href="css/jquery-ui.css" rel="stylesheet">
+</head>
+
+<body>
+    <script id="BAVersion">
+var BitArrow={version:"20240905143211",//VERSION_STRING
+checkVer:function () {
+    if (!localStorage.BAVer || localStorage.BAVer<this.version) {
+        console.log("Version up ",localStorage.BAVer," to ",this.version);
+        localStorage.BAVer=this.version;
+        localStorage.BAUrlArgs=String.fromCharCode(
+            Math.floor(Math.random()*26)+
+            Math.floor(Math.random()*2)*32+65)+
+            String.fromCharCode(
+                Math.floor(Math.random()*26)+
+                Math.floor(Math.random()*2)*32+65);
+    }
+    this.urlArgs=localStorage.BAUrlArgs;
+}};BitArrow.checkVer();
+    </script>
+<script src="polyfill.js"></script>
+<script src="js/lib/jquery-1.12.1.js" type="text/javascript"></script>
+<script src="js/lib/SplashScreen.js" type="text/javascript"></script>
+<script>SplashScreen.show();</script>
+<script src="js/lib/jquery.tmpl.js" type="text/javascript"></script>
+<script src="js/lib/jquery.hotkeys.js" type="text/javascript"></script>
+<script src="js/lib/jquery-ui.js" type="text/javascript"></script>
+<script src="js/lib/jquery.qrcode.min.js" type="text/javascript"></script>
+<script src="css/bootstrap.min.js" type="text/javascript"></script>
+<script src="js/lib/jszip.min.js" type="text/javascript"></script>
+<!--script src="js/lib/FileSaver.min.js" type="text/javascript"></script-->
+
+<script src="js/reqConf.js?B"></script>
+<script src="js/lib/require.js"></script>
+<script>
+//$("body").empty();
+requirejs.config(reqConf);
+requirejs(["Util"],function (Util){
+    var run=Util.getQueryString("r");
+    if (!run) run="jsl_selProject";
+    var noconcat=Util.getQueryString("noconcat","emp");
+    if (noconcat=="emp" ) {
+    	var isNode=!!(typeof process=="object" && process.__node_webkit);
+    	if (isNode) noconcat=true;
+    	else noconcat=(localStorage.noconcat==="true");
+    } else {
+        noconcat=(noconcat==="true");
+        localStorage.noconcat=noconcat+"";
+    }
+    console.log("noconcat",noconcat);
+    var alu=Util.getQueryString("SET_ALWAYS_UPLOAD","emp");
+    if (alu!=="emp") localStorage.ALWAYS_UPLOAD=(alu==="true");
+    if (!noconcat) {
+        console.log(reqConf.paths[run+"_concat"]);
+        if (reqConf.paths[run+"_concat"]) {
+            reqConf.paths[run]=reqConf.paths[run+"_concat"];
+            requirejs.config(reqConf);
+            //run+="_concat";
+        }
+    } else {
+        if (!localStorage.enableBreakpoint) {
+            delete localStorage.BAVer;
+        }
+    }
+    if (Util.getQueryString("clearLocalStorage","false")==="true") {
+        for (var k in localStorage) {
+            if (k !=="noconcat") delete localStorage[k];
+        }
+    }
+    try {
+        if (window.parent.TESTING) {
+            window.alert=function (m) {console.log(m);};
+        }
+    }catch(e){
+        
+    }
+    requirejs([run], function(){
+        //SplashScreen.hide();
+    });
+});
+</script>
+</body>
+</html>
