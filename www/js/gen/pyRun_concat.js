@@ -2490,6 +2490,9 @@ define('PyLib',['require','exports','module'],function (require,exports,module) 
         return v;
     };
     PL.int=function (s) {
+        if (typeof s==="number") {
+            return ~~s;
+        }
         const v=s-0;
         if (v!==v) throw new Error(`${s} は intに変換できません`);
         if (PL.typeof(s)==="string") {

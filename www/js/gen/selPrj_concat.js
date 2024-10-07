@@ -10946,6 +10946,12 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
         a.shift();
         return "."+a.join(".");
     }
+    function truncExt(f, acext) {
+        for (let ext in acext) {
+            if (f.endsWith(ext)) return f.truncExt(ext);
+        }
+        return f.truncExt();
+    }
     var ProgramFileUploader={
         acceptingEXT(prj) {
             const acext={".html":1};
@@ -10959,7 +10965,7 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
             const EXT=prj.getEXT(), HEXT=".html";
             DragDrop.accept(fileList.elem, {
                 onCheckFile: function (dst,file) {
-                    if (!acext[getExt(file.name)]) {
+                    if (EXT!=="" && !acext[getExt(file.name)]) {
                         return DragDrop.CancelReason(file.name+": このファイルは追加できません");
                     }
                     if (dst.exists()) {
@@ -10973,7 +10979,7 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
                         if (status[k].status==="uploaded") {
                             var srcFile=status[k].file;
                             var srcDir=srcFile.up();
-                            var name=srcFile.truncExt();//.p5.js
+                            var name=truncExt(srcFile,acext);//.p5.js
                             var srcPfile=srcDir.rel(name+EXT);
                             var dstPfile=dstDir.rel(name+EXT);
                             var srcHfile=srcDir.rel(name+HEXT);
@@ -10981,13 +10987,13 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
                             if (!srcPfile.exists()) {
                                 srcPfile.text("");
                             }
-                            if (!srcHfile.exists()) {
+                            if (EXT!=="" && !srcHfile.exists()) {
                                 srcHfile.text("");
                             }
                             if (!dstPfile.exists()) {
                                 dstPfile.copyFrom(srcPfile);
                             }
-                            if (!dstHfile.exists()) {
+                            if (EXT!=="" && !dstHfile.exists()) {
                                 dstHfile.copyFrom(srcHfile);
                             }
                         }
