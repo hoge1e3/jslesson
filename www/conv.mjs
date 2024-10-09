@@ -199,10 +199,13 @@ define(['dep1', 'dep2'], function(dep1, dep2) {
   };
 });
 `;
-const urlPattern = /^file:\/\/\/((?:[A-Za-z]:[\\/]|\/)[^ ]*)/;
+const urlPattern_dos   = /^file:\/\/\/([A-Za-z]:[\\/][^ ]*)/;
+const urlPattern_posix = /^file:\/\/(\/[^ ]*)/;
 function extractAbsolutePath(url) {
-    const match = url.match(urlPattern);
-    return match ? match[1] : null;
+    const match_dos = url.match(urlPattern_dos);
+    if (match_dos) return match_dos[1];
+    const match_posix = url.match(urlPattern_posix);
+    if (match_posix) return match_posix[1];
 }
 const www = FS.get(extractAbsolutePath(import.meta.url)).up();
 const esm = www.rel("esm/");
