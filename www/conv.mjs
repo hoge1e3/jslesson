@@ -217,6 +217,7 @@ return reqConf;
 `)();
 //console.log(reqConf);
 //const edtf = js.rel("jsl/editor.js");
+let ignore="";
 for (let k in reqConf.paths) {
   const v=reqConf.paths[k];
   const dst=esm.rel(v+".js");
@@ -263,5 +264,7 @@ for (let k in reqConf.paths) {
   //console.log(file.path());
   if (!esm.contains(dst)) continue;
   dst.text(AUTO+"\n"+esModule);
+  ignore+=dst.relPath(esm)+"\n";
 }
+esm.rel(".gitignore").text(ignore);
 //console.log(esModule);
