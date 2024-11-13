@@ -219,29 +219,31 @@ return reqConf;
 //const edtf = js.rel("jsl/editor.js");
 for (let k in reqConf.paths) {
   const v=reqConf.paths[k];
-  const file=js.rel(v+".js");
-  if (!file.exists()) continue;
-  if (file.name()==="reqConf.js") continue;
-  if (file.path().match(/www\/runtime/)) continue;
+  const dst=esm.rel(v+".js");
+  const src=js.rel(v+".js");
+  if (dst.exists()&&!dst.text().includes(AUTO)) continue;
+  if (!src.exists()) continue;
+  if (src.name()==="reqConf.js") continue;
+  if (src.path().match(/www\/runtime/)) continue;
   let esModule;
-  console.log("src", file.path());
-  if (file.name()=="FS.js") {
-    esModule = convertFSJS(file);
+  console.log("src", src.path());
+  if (src.name()=="FS.js") {
+    esModule = convertFSJS(src);
   } else if (reqConf.shim[k]) {
     if (!reqConf.shim[k].exports) {
       throw new Error("Does not export "+ k );
     }
-    esModule=convertGlobalToESM(file, reqConf.shim[k].exports, reqConf.shim[k].deps||[] );
-  } else if (file.name().match(/_concat/)||
-      file.name()==="md5.js"||
-      file.name().match(/\.min\.js/)||
-      file.name().match(/source-map/)||
-      file.name().match(/beautify/)||
-      file.name().match(/TonyuRuntime/)||
-      file.path().match(/ace-nocon/)||
-      file.path().match(/BuilderClient/)||
-      file.path().match(/stacktrace/)||
-      file.path().match(/lib\/jquery/)||
+    esModule=convertGlobalToESM(src, reqConf.shim[k].exports, reqConf.shim[k].deps||[] );
+  } else if (src.name().match(/_concat/)||
+      src.name()==="md5.js"||
+      src.name().match(/\.min\.js/)||
+      src.name().match(/source-map/)||
+      src.name().match(/beautify/)||
+      src.name().match(/TonyuRuntime/)||
+      src.path().match(/ace-nocon/)||
+      src.path().match(/BuilderClient/)||
+      src.path().match(/stacktrace/)||
+      src.path().match(/lib\/jquery/)||
       false
     ){
         /*if (reqConf.shim[k]) {
@@ -250,17 +252,16 @@ for (let k in reqConf.paths) {
           }
           esModule=convertGlobalToESM(file, reqConf.shim[k].exports);
         } else {*/
-          esModule=convertUMDtoESM(file);
+          esModule=convertUMDtoESM(src);
         //}
   } else{
-    esModule = convertAMDtoESM(file);
+    esModule = convertAMDtoESM(src);
   }
-  if (esModule.length<file.text().length/2) {
-    throw new Error(file+" is too small");
+  if (esModule.length<src.text().length/2) {
+    throw new Error(src+" is too small");
   }
   //console.log(file.path());
-  const dst=esm.rel(v+".js");
   if (!esm.contains(dst)) continue;
-  dst.text(esModule);
+  dst.text(AUTO+"\n"+esModule);
 }
 //console.log(esModule);
