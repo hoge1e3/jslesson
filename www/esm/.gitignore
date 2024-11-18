@@ -131,7 +131,6 @@ build/tjs/TJSBuilder.js
 build/dolittle/DtlBuilder.js
 build/dncl/DnclBuilder.js
 build/dncl2/Dncl2Builder.js
-build/python/PythonBuilder.js
 build/python/PythonParser.js
 build/python/PythonSemantics.js
 build/python/PythonGen.js

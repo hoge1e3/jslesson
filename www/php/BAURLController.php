@@ -1,7 +1,7 @@
 <?php
 class BAURLController {
     static function show() {
-        $vars=["BA_TOP_URL","BA_SERVICE_URL","BA_PUB_URL","BA_PUB_URL_IN_TOP"];
+        $vars=["BA_TOP_URL","BA_SERVICE_URL","BA_PUB_URL","BA_PUB_URL_IN_TOP","TERM_URL"];
         $res=[];
         foreach ($vars as $var) {
             if (defined($var)) {

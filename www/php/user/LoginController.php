@@ -123,8 +123,10 @@ class LoginController {
         if ($callback) {
             $res["otp"]=OTP::create($res);
             // TODO check callback domains
-            header("Location: $callback&code=".json_encode($res));
-            return;
+            if ($callback!=="callback") {
+                header("Location: $callback&code=".json_encode($res));
+                return;   
+            }
         }
         print json_encode($res);
     }
