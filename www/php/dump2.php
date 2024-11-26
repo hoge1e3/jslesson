@@ -4,6 +4,8 @@ require_once "php/auth.php";
 date_default_timezone_set('Asia/Tokyo');
 $user=Auth::curUser();
 $class=Auth::curClass();
+if (!$user) $user="nobody";
+if (!$class) $class="noclass";
 $data=$_POST["data"];
 $fp=fopen(BA_LOG."/$class-$user-data.log","a");
 if (isset( $_SERVER["REMOTE_ADDR"] )) {
