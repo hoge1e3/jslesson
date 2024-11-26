@@ -4846,7 +4846,7 @@ var FileMenu=function () {
         /*var oldName,  mode;
         if (typeof oldNameD=="string") oldName=oldNameD;
         else { oldName=oldNameD.name; mode=oldNameD.mode;}*/
-        FM.dialogOpt({title:"名前変更", name:oldName, action:"mv", extraUI:FM.on.mvExtraUI, onend:function (nf) {
+        FM.dialogOpt({title:"名前変更", name:oldName, action:"mv", curFile, extraUI:FM.on.mvExtraUI, onend:function (nf) {
             if (!nf) return;
             if (FM.on.mv && FM.on.mv(curFile,nf)===false) {
                 return;
@@ -5748,6 +5748,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
     };
     Sync.NOT_LOGGED_IN="Not logged in.";
     Sync.sync=function () {
+        const syncID=Math.random();
         // sync dir:file options:o local=remote=dir
         // sync local:file remote:file options:o
         var local,remote,options;
@@ -5764,9 +5765,9 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             }
         }
         function getLocalDirInfo() {
-            console.log("gerLCD");
+            status("getLocalDirInfo");
             var res2=local.getDirTree({style:"flat-relative",excludes});
-            console.log("gerLCD done",res2);
+            status("getLocalDirInfo done",res2);
             return res2;
         }
         function unionKeys() {
@@ -5818,7 +5819,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             return res;
         }
         function status(name, param) {
-            sh.echo("Status: "+name+" param:",param);
+            sh.echo("Sync"+syncID+" Status: "+name+" param:",param);
             if (options.onstatus) {
                 options.onstatus(name, param);
             }
@@ -5850,7 +5851,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
         var remoteDirInfoFile=syncInfoDir.rel("remote.json");
         var lastLocalDirInfo=localDirInfoFile.exists()?localDirInfoFile.obj():{};
         var lastRemoteDirInfo=remoteDirInfoFile.exists()?remoteDirInfoFile.obj():{};
-        status("getLocalDirInfo", req);
+        
         var curLocalDirInfo=getLocalDirInfo();
         var curRemoteDirInfo;
         if (options.v) sh.echo("last/cur LocalDirInfo",lastLocalDirInfo, curLocalDirInfo);
@@ -5962,6 +5963,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             var upds=[];
             for (var i in uploads) upds.push(i);
             res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};
+            status("done",res);
             return res;
         });
     };
@@ -15525,13 +15527,47 @@ module.exports=NS2DepSpec;
 },{}]},{},[2])(2)
 });
 
-define('ProjectFactory',['require','exports','module','BuilderClient','Util','DeferredUtil','WebSite','FS'],function (require, exports, module) {
+define('LanguageList',['require','exports','module'],function (require, exports, module) {
+    module.exports={
+        "js":{en:"JavaScript",ja:"JavaScript",builder:"TJSBuilder",ext:"tonyu",
+            helpURL:"http://bitarrow.eplang.jp/index.php?javascript",mode:"ace/mode/tonyu"},
+        "dtl":{en:"Dolittle", ja:"ドリトル",builder:"DtlBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?dolittle_use"},
+        "c":{en:"C", ja:"C",builder:"CBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?c_use", mode:"ace/mode/c_cpp"},
+        "dncl":{en:"DNCL", ja:"DNCL(どんくり)",builder:"DnclBuilder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?dncl_use"},
+        "dncl2":{en:"DNCL2", ja:"DNCL2(どんくり2)",builder:"Dncl2Builder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?dncl2_use"},
+        "py": {en:"Python", ja:"Python",builder:"PythonBuilder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
+        "tonyu":{en:"Tonyu", ja:"Tonyu",builder:"TonyuBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?tonyu",mode:"ace/mode/tonyu"},
+        "php":{en:"PHP", ja:"PHP",builder:"PHPBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?php",mode:"ace/mode/php"},
+        "p5.js":{en:"p5.js", ja:"p5.js",builder:"P5Builder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/javascript"},
+            // lang <= 10
+        "p5.py":{en:"p5Python", ja:"p5 Python mode",builder:"p5pyBuilder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/python"},
+        "web":{en:"Advanced JavaScript",ja:"JavaScript(中級)",builder:"WebBuilder",ext:""},
+        /*"bry":{//ext:"py",// not working now
+            en:"brython(Beta)", ja:"Brython(試験運用中)",builder:"BrythonBuilder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},*/
+        /*"ras.py": {//ext:"py",// not working now
+            en: "Raspi-Pico(Beta)", ja:"Raspi-Pico(試験運用中)",builder:"raspiBuilder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},*/
+    };
+});
+
+define('ProjectFactory',['require','exports','module','BuilderClient','Util','DeferredUtil','WebSite','FS','LanguageList'],function (require, exports, module) {
     const BuilderClient=require("BuilderClient");
     const F=BuilderClient.ProjectFactory;
     const Util=require("Util");
     const DU=require("DeferredUtil");
     const WebSite=require("WebSite");
     const FS=require("FS");
+    const languageList=require("LanguageList");
     const HEXT=".html";
     function getName(file) {
         if (typeof file.name==="function") file=file.name();
@@ -15552,16 +15588,23 @@ define('ProjectFactory',['require','exports','module','BuilderClient','Util','De
         		TPR.fixOptions(options);
         		return options;
         	},
-        	getEXT: function(){
-                const TPR=this;
-        		var opt=TPR.getOptions();
-        		if(!opt.language || opt.language=="js") TPR.EXT=".tonyu";
-        		else TPR.EXT="."+opt.language;
-        		return TPR.EXT;
+            getLanguage() {
+                const opt=this.getOptions();
+                return opt.language||"js";
+            },
+            getLangInfo() {
+                return languageList[this.getLanguage()];
+            },
+        	getEXT(){
+                const info=this.getLangInfo();
+                if ("ext" in info) this.EXT=(info.ext?".":"")+info.ext;
+        		else this.EXT="."+this.getLanguage();
+        		return this.EXT;
         	},
             truncEXT: function (file) {
                 file=getName(file);
                 const EXT=this.getEXT();
+                if (EXT==="") return file;
                 if (file.endsWith(HEXT)) return file.substring(0,file.length-HEXT.length);
                 if (file.endsWith(EXT)) return file.substring(0,file.length-EXT.length);
                 throw new Error(`truncEXT: '${file}' ends with neither ${HEXT} nor ${EXT}.`);
@@ -15569,10 +15612,13 @@ define('ProjectFactory',['require','exports','module','BuilderClient','Util','De
             isLogicFile: function (file) {
                 file=getName(file);
                 const EXT=this.getEXT();
+                if (EXT==="") return true;
                 return file.endsWith(EXT);
             },
             isHTMLFile: function (file) {
                 file=getName(file);
+                const EXT=this.getEXT();
+                if (EXT==="") return false;
                 return file.endsWith(HEXT);
             },
         	fixOptions: function (opt) {
@@ -15611,38 +15657,6 @@ define('ProjectFactory',['require','exports','module','BuilderClient','Util','De
         return res;
     });
     module.exports=F;
-});
-
-define('LanguageList',['require','exports','module'],function (require, exports, module) {
-    module.exports={
-        "js":{en:"JavaScript",ja:"JavaScript",builder:"TJSBuilder",
-            helpURL:"http://bitarrow.eplang.jp/index.php?javascript",mode:"ace/mode/tonyu"},
-        "dtl":{en:"Dolittle", ja:"ドリトル",builder:"DtlBuilder",
-            helpURL:"http://bitarrow.eplang.jp/index.php?dolittle_use"},
-        "c":{en:"C", ja:"C",builder:"CBuilder",
-            helpURL:"http://bitarrow.eplang.jp/index.php?c_use", mode:"ace/mode/c_cpp"},
-        "dncl":{en:"DNCL", ja:"DNCL(どんくり)",builder:"DnclBuilder",manualIndent:true,
-            helpURL:"http://bitarrow.eplang.jp/index.php?dncl_use"},
-        "dncl2":{en:"DNCL2", ja:"DNCL2(どんくり2)",builder:"Dncl2Builder",manualIndent:true,
-            helpURL:"http://bitarrow.eplang.jp/index.php?dncl2_use"},
-        "py": {en:"Python", ja:"Python",builder:"PythonBuilder",manualIndent:true,
-            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
-        "tonyu":{en:"Tonyu", ja:"Tonyu",builder:"TonyuBuilder",
-            helpURL:"http://bitarrow.eplang.jp/index.php?tonyu",mode:"ace/mode/tonyu"},
-        "php":{en:"PHP", ja:"PHP",builder:"PHPBuilder",
-            helpURL:"http://bitarrow.eplang.jp/index.php?php",mode:"ace/mode/php"},
-        "p5.js":{en:"p5.js", ja:"p5.js",builder:"P5Builder",
-            helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/javascript"},
-            // lang <= 10
-        "p5.py":{en:"p5Python", ja:"p5 Python mode",builder:"p5pyBuilder",manualIndent:true,
-            helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/python"},
-        "bry":{//ext:"py",// not working now
-            en:"brython(Beta)", ja:"Brython(試験運用中)",builder:"BrythonBuilder",manualIndent:true,
-            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
-        /*"ras.py": {//ext:"py",// not working now
-            en: "Raspi-Pico(Beta)", ja:"Raspi-Pico(試験運用中)",builder:"raspiBuilder",manualIndent:true,
-            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},*/
-    };
 });
 
 define('NewProjectDialog',["UI","FS","ProjectFactory","LanguageList"], function (UI,FS,F,languageList) {
@@ -15894,6 +15908,12 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
         a.shift();
         return "."+a.join(".");
     }
+    function truncExt(f, acext) {
+        for (let ext in acext) {
+            if (f.endsWith(ext)) return f.truncExt(ext);
+        }
+        return f.truncExt();
+    }
     var ProgramFileUploader={
         acceptingEXT(prj) {
             const acext={".html":1};
@@ -15907,7 +15927,7 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
             const EXT=prj.getEXT(), HEXT=".html";
             DragDrop.accept(fileList.elem, {
                 onCheckFile: function (dst,file) {
-                    if (!acext[getExt(file.name)]) {
+                    if (EXT!=="" && !acext[getExt(file.name)]) {
                         return DragDrop.CancelReason(file.name+": このファイルは追加できません");
                     }
                     if (dst.exists()) {
@@ -15920,23 +15940,28 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
                     for (var k in status) {
                         if (status[k].status==="uploaded") {
                             var srcFile=status[k].file;
-                            var srcDir=srcFile.up();
-                            var name=srcFile.truncExt();//.p5.js
-                            var srcPfile=srcDir.rel(name+EXT);
-                            var dstPfile=dstDir.rel(name+EXT);
-                            var srcHfile=srcDir.rel(name+HEXT);
-                            var dstHfile=dstDir.rel(name+HEXT);
-                            if (!srcPfile.exists()) {
-                                srcPfile.text("");
-                            }
-                            if (!srcHfile.exists()) {
-                                srcHfile.text("");
-                            }
-                            if (!dstPfile.exists()) {
-                                dstPfile.copyFrom(srcPfile);
-                            }
-                            if (!dstHfile.exists()) {
-                                dstHfile.copyFrom(srcHfile);
+                            if (EXT==="") {
+                                const dstFile=dstDir.rel(srcFile.name());
+                                dstFile.copyFrom(srcFile);
+                            } else {
+                                var srcDir=srcFile.up();
+                                var name=truncExt(srcFile,acext);
+                                var srcPfile=srcDir.rel(name+EXT);
+                                var dstPfile=dstDir.rel(name+EXT);
+                                var srcHfile=srcDir.rel(name+HEXT);
+                                var dstHfile=dstDir.rel(name+HEXT);
+                                if (!srcPfile.exists()) {
+                                    srcPfile.text("");
+                                }
+                                if (!srcHfile.exists()) {
+                                    srcHfile.text("");
+                                }
+                                if (!dstPfile.exists()) {
+                                    dstPfile.copyFrom(srcPfile);
+                                }
+                                if (!dstHfile.exists()) {
+                                    dstHfile.copyFrom(srcHfile);
+                                }   
                             }
                         }
                     }
@@ -15949,7 +15974,7 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
         addMissingFiles(prj, options) {
             const fileNames=prj.sourceFiles();
             const EXT=prj.getEXT(), HEXT=".html";
-
+            if (EXT==="") return;
             for (let name in fileNames) {
                 const file=fileNames[name];
                 const pfile=file.sibling(name+EXT);
@@ -16972,8 +16997,29 @@ define('globalDesktopSetting',['require','exports','module','DesktopSettingDialo
     };
 });
 
+define('ModeList',['require','exports','module'],function (require, exports, module) {
+    const ModeList={
+        list:{
+            ".tonyu":"ace/mode/tonyu",
+            ".py": "ace/mode/python",
+            ".c": "ace/mode/c_cpp",
+            ".p5.js":"ace/mode/javascript",
+            ".p5.py": "ace/mode/python",
+            ".html": "ace/mode/html",
+        },
+        getMode(f){
+            for (let k in ModeList.list) {
+                if (f.endsWith(k)) {
+                    return ModeList.list[k];
+                }
+            }
+            return "ace/mode/tonyu";
+        },
+    };
+    return ModeList;
+});
 /*global requirejs*/
-define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shell','KeyEventChecker','UIDiag','WebSite','exceptionCatcher','Columns','assert','Menu','DeferredUtil','Sync','RunDialog2','logToServer2','SplashScreen','Auth','DistributeDialog','NotificationDialog','IframeDialog','AssignmentDialog','SubmitDialog','CommentDialog2','NewProjectDialog','ProgramFileUploader','AssetDialog','root','ErrorDialog','ProjectFactory','UserAgent','SocializeDialog','EventHandler','UI','ctrl','DesktopSettingDialog','globalDesktopSetting','LanguageList'],function (require) {
+define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shell','KeyEventChecker','UIDiag','WebSite','exceptionCatcher','Columns','assert','Menu','DeferredUtil','Sync','RunDialog2','logToServer2','SplashScreen','Auth','DistributeDialog','NotificationDialog','IframeDialog','AssignmentDialog','SubmitDialog','CommentDialog2','NewProjectDialog','ProgramFileUploader','AssetDialog','root','ErrorDialog','ProjectFactory','UserAgent','SocializeDialog','EventHandler','UI','ctrl','DesktopSettingDialog','globalDesktopSetting','LanguageList','ModeList'],function (require) {
     var Util=require("Util");
     var FS=require("FS");
     var FileList=require("FileList");
@@ -17014,6 +17060,7 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
     const DesktopSettingDialog=require("DesktopSettingDialog");
     const globalDesktopSetting=require("globalDesktopSetting");
     const languageList=require("LanguageList");
+    const ModeList=require("ModeList");
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
         A.setMode(A.MODE_STRICT);
@@ -17041,16 +17088,6 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
     var ALWAYS_UPLOAD=(localStorage.ALWAYS_UPLOAD==="true") || Util.getQueryString("ALWAYS_UPLOAD",false);
     console.log("ALWAYS_UPLOAD",ALWAYS_UPLOAD);
     if (root.BitArrow) root.BitArrow.curProjectDir=curProjectDir.path();
-    /*var langList={
-        "js":"JavaScript",
-        "c":"C",
-        "dtl":"Dolittle",
-        "tonyu":"Tonyu",
-        "dncl":"DNCL",
-        "py":"Python",
-        "php":"PHP",
-    };*/
-
     var helpURL;
     var unsaved=false;
     var unsynced=false;
@@ -17195,6 +17232,7 @@ function ready() {
         FS.mount(ram.path(),"ram");
         builder=new BuilderClass(curPrj, ram, ide);
         window.BABuilder=builder;
+        if (builder.ALWAYS_UPLOAD) ALWAYS_UPLOAD=true;
         builderReady();
     }
     function builderReady() {
@@ -17388,17 +17426,19 @@ function ready() {
         DistributeDialog.show(curFile.text(),function(text,overwrite,{next}){
             console.log(text,overwrite);
             DistributeDialog.setDisabled(true);
+            const hf=fileSet(curFile)[0];
             $.ajax({
                 type:"POST",
                 url:WebSite.controller+"?Class/distribute",
-                data:{
+                data:Object.assign({
                     "prj":curPrjName,
                     "file":curFile.name(),
-                    "htmlText":fileSet(curFile)[0].text(),
-                    "html":fileSet(curFile)[0].name(),
                     "cont":text,
-                    "over":overwrite
-                }
+                    "over":overwrite,
+                },hf?{
+                    "htmlText":hf.text(),
+                    "html":hf.name(),    
+                }:{}),
             }).then(
                 function(d){
                     if (!next) {
@@ -17423,9 +17463,6 @@ function ready() {
         },{ide});
 
     }
-    /*function distributePrj() {
-        alert("distributePrj!");
-    }*/
     function checkPublishedURL() {
         Auth.publishedURL(curPrj.getName()+"/").then(function (u) {
             if (window.BitArrow) window.BitArrow.publishedURL=u;
@@ -17545,10 +17582,10 @@ function ready() {
         }
         var old=inf.file;
         var oldName=curPrj.truncEXT(old);//old.truncExt();//.p5.js
-        FM.dialogOpt({title:"コピー", name:oldName, action:"cp", onend:function (_new) {
+        FM.dialogOpt({title:"コピー", name:oldName, action:"cp", curFile: old, onend:function (_new) {
             if (!_new) return;
-            var olds=fileSet(old);
-            var news=fileSet(_new);
+            var olds=fileSet(old, true);
+            var news=fileSet(_new, true);
             A(olds.length==news.length,"olds.length==news.length");
             var ci;
             for (var i=0;i<olds.length;i++) {
@@ -17573,13 +17610,13 @@ function ready() {
             return;
         }
         var f=inf.file;
-        var s=fileSet(f);
+        var s=fileSet(f,true);
         s.forEach(function (e) {
             close(e);
         });
     }
     FM.on.close=function (f) {
-        var s=fileSet(f);
+        var s=fileSet(f,true);
         var shouldRemove=false;
         s.forEach(function (e) {
             if (!e.exists()) shouldRemove=true;
@@ -17595,9 +17632,11 @@ function ready() {
     FM.on.validateName=fixName;
     FM.on.createContent=function (f) {
         //console.log("FM.on.createContent", f, f.ext(), EXT, HEXT);
-        if (curPrj.isHTMLFile(f) || curPrj.isLogicFile(f)) {
+        if (f.isDir()) {
+            f.mkdir();  
+        } else if (curPrj.isHTMLFile(f) || curPrj.isLogicFile(f)) {
             //console.log("FM.on.createContent fileSet",fileSet(f));
-            fileSet(f).forEach(function (e) {
+            fileSet(f, true).forEach(function (e) {
                 if (curPrj.isLogicFile(e) && !e.exists()) {
                     //e.text((lang=="py"?"# ":"// ")+langInfo.en+"\n");
                     if(lang=="js") e.text(/*"// "+langInfo.en+"\n*/
@@ -17624,7 +17663,7 @@ function ready() {
         return f;
     };
     FM.on.rm=function (f) {
-        var fs=fileSet(f);
+        var fs=fileSet(f, true);
         for (var i=0;i<fs.length;i++) {
             if (fs[i].exists()) {
                 fs[i].rm();
@@ -17636,8 +17675,8 @@ function ready() {
         return false;
     };
     FM.on.mv=function (old,_new) {
-        var olds=fileSet(old);
-        var news=fileSet(_new);
+        var olds=fileSet(old, true);
+        var news=fileSet(_new, true);
         A(olds.length==news.length,"olds.length==news.length");
         var ci;
         for (var i=0;i<olds.length;i++) {
@@ -17688,15 +17727,22 @@ function ready() {
     function fixName(name, options) {
         A.is(arguments,[String]);
         options=options||{};
+        const {action,curFile}=options;
         var upcased=false;
         /*if (name.match(/^[a-z]/)) {
             name= name.substring(0,1).toUpperCase()+name.substring(1);
             upcased=true;
         }*/
+        if (builder.fixName) {
+            return builder.fixName(name,{
+                sourceFiles, action, curFile,
+                curDir:fl.curDir(),
+                EXT});
+        }
         var pat={
             reg:/^[A-Za-z_][a-zA-Z0-9_]*$/, error:"名前は，半角英数字とアンダースコア(_)のみが使えます．"
         };
-        if (lang==="c") {
+        /*if (lang==="c") {
             pat={
                 reg:/^[A-Za-z_][\-a-zA-Z0-9_]*$/, error:"名前は，半角英数字とアンダースコア(_)，ハイフン(-)のみが使えます．"
             };
@@ -17705,7 +17751,7 @@ function ready() {
             if (builder.Semantics.importable[name]) {
                 return {ok:false, reason:`${name}はPythonのライブラリ名と同じなので使えません．`};
             }
-        }
+        }*/
         if (name.match(pat.reg)) {
             if (sourceFiles[name]) {
                 return {ok:false, reason:name+"は存在します"};
@@ -17749,15 +17795,6 @@ function ready() {
         }
     }
     function stop() {
-        /*if(curth){
-            try {
-                curth.kill();
-            }catch(e) {
-                //IE shows error "解放されたスクリプトからコードを実行できません。";
-                console.log(e);
-            }
-            curth=null;
-        }*/
         displayMode("edit");
     }
     //var curName,runURL;
@@ -17795,7 +17832,7 @@ function ready() {
                 //const _u=await Auth.publishedURL(curPrj.getName()+"/");
                 var cv=$("<div>");
                 cv.dialog();
-                var runURL=buildStatus.publishedURL;//_u+(lang=="tonyu"?"index.html":curHTMLFile.name());
+                var runURL=buildStatus.publishedURL;
                 ide.fire("publishedURL",{url:runURL, dialog:cv});
                 cv.append($("<div>").append(
                     $("<a>").attr({target:"runit",href:runURL}).text("別ページで開く")
@@ -17835,10 +17872,18 @@ function ready() {
         }
     }
     async function build(options) {
-        if (!options.curLogicFile || !options.curHTMLFile) {
-            throw new Error("options should be set: curLogicFile, curHTMLFile");// Mandatory "options" :-)
+        if (!options.curLogicFile /*|| !options.curHTMLFile*/) {
+            throw new Error("options should be set: curLogicFile");// Mandatory "options" :-)
         }
         const {curLogicFile, curHTMLFile}=options;
+        let indexFile=curHTMLFile;
+        if (!indexFile) {
+            if (curLogicFile.endsWith(HEXT)) {
+                indexFile=curLogicFile;
+            } else {
+                throw new Error("htmlファイルを選択してください");
+            }
+        }
         options.mainFile=options.curLogicFile;
         if (options.upload) {
             const pubd=await Auth.publishedDir(curProjectDir.name());
@@ -17852,15 +17897,16 @@ function ready() {
             if (buildStatus.publishedURL) {
                 options.publishedURL=buildStatus.publishedURL;
             } else {
-                buildStatus.publishedURL=options.publishedURL+curHTMLFile.name();
+                buildStatus.publishedURL=options.publishedURL+indexFile.name();
             }
             if (buildStatus.publishedDir) {
                 options.publishedDir=buildStatus.publishedDir;
             }
             await builder.upload(options.publishedDir);
+            console.log("Upload done", curLogicFile.exists());
         }
-        logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Build","ビルドしました",langInfo.en);
-        buildStatus.indexFile=buildStatus.indexFile|| ram.rel(curHTMLFile.name());
+        logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile?curHTMLFile.text():"",langInfo.en+" Build","ビルドしました",langInfo.en);
+        buildStatus.indexFile=buildStatus.indexFile|| ram.rel(indexFile.name());
         return buildStatus;
     }
     //\run
@@ -17893,7 +17939,7 @@ function ready() {
             if (result==="Run" && resCon(resDetail).match(/Traceback.*most recent call last/)) {
                 result="Runtime Error";
             }
-            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),(langInfo.en||lang)+" "+result, resDetail,langInfo.en);
+            logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile?curHTMLFile.text():"",(langInfo.en||lang)+" "+result, resDetail,langInfo.en);
         };
         window.onmessage=(e)=>{
             console.log("MESG",e);
@@ -17913,20 +17959,19 @@ function ready() {
             options.upload=ALWAYS_UPLOAD;
             const buildStatus=await build(options);
             console.log("built", options, buildStatus);
-            //logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Run","実行しました",langInfo.en);
             if (ALWAYS_UPLOAD) {
                 /*const pubd=await Auth.publishedDir(curProjectDir.name());
                 console.log("Upload comp",pubd);
                 await builder.upload(pubd);
                 const pub=await Auth.publishedURL(curProjectDir.name());*/
-                var runURL=buildStatus.publishedURL;//pub+(lang=="tonyu"?"index.html": curHTMLFile.name());
+                var runURL=buildStatus.publishedURL;
                 if (options.sendURL) {
                     options.sendURL(runURL, location.href);
                     return;
                 }
                 return IframeDialog.show(runURL,{width:600,height:400});
             } else {
-                var indexF=buildStatus.indexFile;// ram.rel(lang=="tonyu"?"index.html":curHTMLFile.name());
+                var indexF=buildStatus.indexFile;
                 const params=options.stdin?{stdin:options.stdin}:{};
                 if (isSplit()) {
                     return RunDialog2.embed(indexF, {
@@ -17953,7 +17998,7 @@ function ready() {
             }
             if (e.isTError) {
                 errorDialog.show(e);//showErrorPos($("#errorPos"),e);
-                logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Compile Error",/*e.src+":"+e.pos+"\n"+e.mesg*/e,langInfo.en);
+                logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile?curHTMLFile.text():"",langInfo.en+" Compile Error",/*e.src+":"+e.pos+"\n"+e.mesg*/e,langInfo.en);
             } else {
                 EC.handleException(e);
             }
@@ -18021,7 +18066,7 @@ function ready() {
         if (curJSFile) {
             var posinfo="";
             //if (e.srcPath && e.pos) posinfo="("+e.srcPath+":"+e.pos+")";
-            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile.text(),langInfo.en+" Runtime Error",e/*posinfo+(e.stack || e)*/,langInfo.en);
+            logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile?curHTMLFile.text():"",langInfo.en+" Runtime Error",e/*posinfo+(e.stack || e)*/,langInfo.en);
         }
     };
     function close(rm) { // rm or mv
@@ -18089,7 +18134,7 @@ function ready() {
             if (old!=nw) {
                 curFile.text(nw);
                 inf.lastTimeStamp=curFile.lastUpdate();
-                logToServer2(curFile.path(),curFile.text(),/*curHTMLFile.text()*/"HTML","Save","保存しました",langInfo.en);
+                logToServer2(curFile.path(),curFile.text(),"HTML","Save","保存しました",langInfo.en);
             }
         }
         fl.setModified(false);
@@ -18133,9 +18178,13 @@ function ready() {
             console.log(e);
         }
     }
-    function fileSet(c) {
+    function fileSet(c, skipEmpty=false) {
         A.is(c,"SFile");
         var n=curPrj.truncEXT(c);//c.truncExt();//.p5.js
+        if (EXT==="") {
+            if (skipEmpty) return [c.sibling(n)];
+            return [null, c.sibling(n)];
+        }
         return [c.up().rel(n+HEXT), c.up().rel(n+EXT)];
     }
     const hjsel={};
@@ -18199,7 +18248,8 @@ function ready() {
             //defaultKeyboard=prog.getKeyboardHandler();
             //if(desktopEnv.editorMode=="emacs") prog.setKeyboardHandler("ace/keyboard/emacs");
             //prog.setKeyboardHandler(defaultKeyboard);
-            const isLogicFile=curPrj.isLogicFile(f);
+            prog.getSession().setMode(ModeList.getMode(f));
+            /*const isLogicFile=curPrj.isLogicFile(f);
             if (isLogicFile) {
                 const mode=langInfo.mode || "ace/mode/tonyu";
                 //console.log("mode/c/set");
@@ -18207,7 +18257,7 @@ function ready() {
             } else if (curPrj.isHTMLFile(f)) {
                 //console.log("mode/html/set");
                 prog.getSession().setMode("ace/mode/html");
-            }
+            }*/
             prog.getSession().setUseWrapMode(true);
             if (ace_language_tools) {
                 const completers=[ace_language_tools.textCompleter];
@@ -18218,7 +18268,15 @@ function ready() {
             progDOM.click(F(function () {
                 displayMode("edit");
             }));
-            prog.setReadOnly(false);
+            if (FS.Content.looksLikeDataURL(f.text())){
+                if (confirm("このファイルはエディタでは編集しないことをおすすめします．\nOK → 読み取り専用で開く\nキャンセル → それでも編集する")){
+                    prog.setReadOnly(true);
+                } else {
+                    prog.setReadOnly(false);
+                }
+            } else {
+                prog.setReadOnly(false);
+            }
             prog.clearSelection();
             prog.focus();
             curDOM=progDOM;
@@ -18235,7 +18293,7 @@ function ready() {
             //else inf.editor.setKeyboardHandler(defaultKeyboard);
         }
         const [curHTMLFile, curLogicFile]=fileSet(inf.file);
-        logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile.text(),langInfo.en+" Open","開きました",langInfo.en);
+        logToServer2(curLogicFile.path(),curLogicFile.text(),(curHTMLFile?curHTMLFile.text():""),langInfo.en+" Open","開きました",langInfo.en);
 
         commentDialog.getComment(f).then(function (c) {
             $("#commentLink").empty();
@@ -18300,27 +18358,6 @@ function ready() {
         desktopSettingDialog=desktopSettingDialog||new DesktopSettingDialog(ide);
         desktopSettingDialog.show(ide);
     }
-    /*function textSize() {
-        var prog=getCurrentEditor();
-        var s=prompt("エディタの文字の大きさ", desktopEnv.editorFontSize||18);
-        if(s==null) return;
-        desktopEnv.editorFontSize=parseInt(s);
-        if (prog) prog.setFontSize(desktopEnv.editorFontSize||18);
-        saveDesktopEnv();
-        window.editorTextSize=desktopEnv.editorFontSize||18;
-    }*/
-    /*function editorType() {
-        var prog=getCurrentEditor();
-        if(prog.getKeyboardHandler()==defaultKeyboard){
-            prog.setKeyboardHandler("ace/keyboard/emacs");
-            desktopEnv.editorMode="emacs";
-        }else{
-            prog.setKeyboardHandler(defaultKeyboard);
-            desktopEnv.editorMode="ace-default";
-        }
-        saveDesktopEnv();
-        focusToEditor();
-    }*/
     $("#home").click(F(function () {
         save();
         goHome();

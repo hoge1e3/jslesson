@@ -9575,13 +9575,47 @@ module.exports=NS2DepSpec;
 },{}]},{},[2])(2)
 });
 
-define('ProjectFactory',['require','exports','module','BuilderClient','Util','DeferredUtil','WebSite','FS'],function (require, exports, module) {
+define('LanguageList',['require','exports','module'],function (require, exports, module) {
+    module.exports={
+        "js":{en:"JavaScript",ja:"JavaScript",builder:"TJSBuilder",ext:"tonyu",
+            helpURL:"http://bitarrow.eplang.jp/index.php?javascript",mode:"ace/mode/tonyu"},
+        "dtl":{en:"Dolittle", ja:"ドリトル",builder:"DtlBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?dolittle_use"},
+        "c":{en:"C", ja:"C",builder:"CBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?c_use", mode:"ace/mode/c_cpp"},
+        "dncl":{en:"DNCL", ja:"DNCL(どんくり)",builder:"DnclBuilder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?dncl_use"},
+        "dncl2":{en:"DNCL2", ja:"DNCL2(どんくり2)",builder:"Dncl2Builder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?dncl2_use"},
+        "py": {en:"Python", ja:"Python",builder:"PythonBuilder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
+        "tonyu":{en:"Tonyu", ja:"Tonyu",builder:"TonyuBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?tonyu",mode:"ace/mode/tonyu"},
+        "php":{en:"PHP", ja:"PHP",builder:"PHPBuilder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?php",mode:"ace/mode/php"},
+        "p5.js":{en:"p5.js", ja:"p5.js",builder:"P5Builder",
+            helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/javascript"},
+            // lang <= 10
+        "p5.py":{en:"p5Python", ja:"p5 Python mode",builder:"p5pyBuilder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/python"},
+        "web":{en:"Advanced JavaScript",ja:"JavaScript(中級)",builder:"WebBuilder",ext:""},
+        /*"bry":{//ext:"py",// not working now
+            en:"brython(Beta)", ja:"Brython(試験運用中)",builder:"BrythonBuilder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},*/
+        /*"ras.py": {//ext:"py",// not working now
+            en: "Raspi-Pico(Beta)", ja:"Raspi-Pico(試験運用中)",builder:"raspiBuilder",manualIndent:true,
+            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},*/
+    };
+});
+
+define('ProjectFactory',['require','exports','module','BuilderClient','Util','DeferredUtil','WebSite','FS','LanguageList'],function (require, exports, module) {
     const BuilderClient=require("BuilderClient");
     const F=BuilderClient.ProjectFactory;
     const Util=require("Util");
     const DU=require("DeferredUtil");
     const WebSite=require("WebSite");
     const FS=require("FS");
+    const languageList=require("LanguageList");
     const HEXT=".html";
     function getName(file) {
         if (typeof file.name==="function") file=file.name();
@@ -9602,16 +9636,23 @@ define('ProjectFactory',['require','exports','module','BuilderClient','Util','De
         		TPR.fixOptions(options);
         		return options;
         	},
-        	getEXT: function(){
-                const TPR=this;
-        		var opt=TPR.getOptions();
-        		if(!opt.language || opt.language=="js") TPR.EXT=".tonyu";
-        		else TPR.EXT="."+opt.language;
-        		return TPR.EXT;
+            getLanguage() {
+                const opt=this.getOptions();
+                return opt.language||"js";
+            },
+            getLangInfo() {
+                return languageList[this.getLanguage()];
+            },
+        	getEXT(){
+                const info=this.getLangInfo();
+                if ("ext" in info) this.EXT=(info.ext?".":"")+info.ext;
+        		else this.EXT="."+this.getLanguage();
+        		return this.EXT;
         	},
             truncEXT: function (file) {
                 file=getName(file);
                 const EXT=this.getEXT();
+                if (EXT==="") return file;
                 if (file.endsWith(HEXT)) return file.substring(0,file.length-HEXT.length);
                 if (file.endsWith(EXT)) return file.substring(0,file.length-EXT.length);
                 throw new Error(`truncEXT: '${file}' ends with neither ${HEXT} nor ${EXT}.`);
@@ -9619,10 +9660,13 @@ define('ProjectFactory',['require','exports','module','BuilderClient','Util','De
             isLogicFile: function (file) {
                 file=getName(file);
                 const EXT=this.getEXT();
+                if (EXT==="") return true;
                 return file.endsWith(EXT);
             },
             isHTMLFile: function (file) {
                 file=getName(file);
+                const EXT=this.getEXT();
+                if (EXT==="") return false;
                 return file.endsWith(HEXT);
             },
         	fixOptions: function (opt) {
@@ -9661,38 +9705,6 @@ define('ProjectFactory',['require','exports','module','BuilderClient','Util','De
         return res;
     });
     module.exports=F;
-});
-
-define('LanguageList',['require','exports','module'],function (require, exports, module) {
-    module.exports={
-        "js":{en:"JavaScript",ja:"JavaScript",builder:"TJSBuilder",
-            helpURL:"http://bitarrow.eplang.jp/index.php?javascript",mode:"ace/mode/tonyu"},
-        "dtl":{en:"Dolittle", ja:"ドリトル",builder:"DtlBuilder",
-            helpURL:"http://bitarrow.eplang.jp/index.php?dolittle_use"},
-        "c":{en:"C", ja:"C",builder:"CBuilder",
-            helpURL:"http://bitarrow.eplang.jp/index.php?c_use", mode:"ace/mode/c_cpp"},
-        "dncl":{en:"DNCL", ja:"DNCL(どんくり)",builder:"DnclBuilder",manualIndent:true,
-            helpURL:"http://bitarrow.eplang.jp/index.php?dncl_use"},
-        "dncl2":{en:"DNCL2", ja:"DNCL2(どんくり2)",builder:"Dncl2Builder",manualIndent:true,
-            helpURL:"http://bitarrow.eplang.jp/index.php?dncl2_use"},
-        "py": {en:"Python", ja:"Python",builder:"PythonBuilder",manualIndent:true,
-            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
-        "tonyu":{en:"Tonyu", ja:"Tonyu",builder:"TonyuBuilder",
-            helpURL:"http://bitarrow.eplang.jp/index.php?tonyu",mode:"ace/mode/tonyu"},
-        "php":{en:"PHP", ja:"PHP",builder:"PHPBuilder",
-            helpURL:"http://bitarrow.eplang.jp/index.php?php",mode:"ace/mode/php"},
-        "p5.js":{en:"p5.js", ja:"p5.js",builder:"P5Builder",
-            helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/javascript"},
-            // lang <= 10
-        "p5.py":{en:"p5Python", ja:"p5 Python mode",builder:"p5pyBuilder",manualIndent:true,
-            helpURL:"http://bitarrow.eplang.jp/index.php?p5",mode:"ace/mode/python"},
-        "bry":{//ext:"py",// not working now
-            en:"brython(Beta)", ja:"Brython(試験運用中)",builder:"BrythonBuilder",manualIndent:true,
-            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
-        /*"ras.py": {//ext:"py",// not working now
-            en: "Raspi-Pico(Beta)", ja:"Raspi-Pico(試験運用中)",builder:"raspiBuilder",manualIndent:true,
-            helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},*/
-    };
 });
 
 define('NewProjectDialog',["UI","FS","ProjectFactory","LanguageList"], function (UI,FS,F,languageList) {
@@ -10268,6 +10280,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
     };
     Sync.NOT_LOGGED_IN="Not logged in.";
     Sync.sync=function () {
+        const syncID=Math.random();
         // sync dir:file options:o local=remote=dir
         // sync local:file remote:file options:o
         var local,remote,options;
@@ -10284,9 +10297,9 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             }
         }
         function getLocalDirInfo() {
-            console.log("gerLCD");
+            status("getLocalDirInfo");
             var res2=local.getDirTree({style:"flat-relative",excludes});
-            console.log("gerLCD done",res2);
+            status("getLocalDirInfo done",res2);
             return res2;
         }
         function unionKeys() {
@@ -10338,7 +10351,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             return res;
         }
         function status(name, param) {
-            sh.echo("Status: "+name+" param:",param);
+            sh.echo("Sync"+syncID+" Status: "+name+" param:",param);
             if (options.onstatus) {
                 options.onstatus(name, param);
             }
@@ -10370,7 +10383,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
         var remoteDirInfoFile=syncInfoDir.rel("remote.json");
         var lastLocalDirInfo=localDirInfoFile.exists()?localDirInfoFile.obj():{};
         var lastRemoteDirInfo=remoteDirInfoFile.exists()?remoteDirInfoFile.obj():{};
-        status("getLocalDirInfo", req);
+        
         var curLocalDirInfo=getLocalDirInfo();
         var curRemoteDirInfo;
         if (options.v) sh.echo("last/cur LocalDirInfo",lastLocalDirInfo, curLocalDirInfo);
@@ -10482,6 +10495,7 @@ define('Sync',["FS","Shell","WebSite","assert","DeferredUtil"],
             var upds=[];
             for (var i in uploads) upds.push(i);
             res={msg:res,uploads:upds,downloads: downloads,user:user,classid:classid};
+            status("done",res);
             return res;
         });
     };
@@ -10946,6 +10960,12 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
         a.shift();
         return "."+a.join(".");
     }
+    function truncExt(f, acext) {
+        for (let ext in acext) {
+            if (f.endsWith(ext)) return f.truncExt(ext);
+        }
+        return f.truncExt();
+    }
     var ProgramFileUploader={
         acceptingEXT(prj) {
             const acext={".html":1};
@@ -10959,7 +10979,7 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
             const EXT=prj.getEXT(), HEXT=".html";
             DragDrop.accept(fileList.elem, {
                 onCheckFile: function (dst,file) {
-                    if (!acext[getExt(file.name)]) {
+                    if (EXT!=="" && !acext[getExt(file.name)]) {
                         return DragDrop.CancelReason(file.name+": このファイルは追加できません");
                     }
                     if (dst.exists()) {
@@ -10972,23 +10992,28 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
                     for (var k in status) {
                         if (status[k].status==="uploaded") {
                             var srcFile=status[k].file;
-                            var srcDir=srcFile.up();
-                            var name=srcFile.truncExt();//.p5.js
-                            var srcPfile=srcDir.rel(name+EXT);
-                            var dstPfile=dstDir.rel(name+EXT);
-                            var srcHfile=srcDir.rel(name+HEXT);
-                            var dstHfile=dstDir.rel(name+HEXT);
-                            if (!srcPfile.exists()) {
-                                srcPfile.text("");
-                            }
-                            if (!srcHfile.exists()) {
-                                srcHfile.text("");
-                            }
-                            if (!dstPfile.exists()) {
-                                dstPfile.copyFrom(srcPfile);
-                            }
-                            if (!dstHfile.exists()) {
-                                dstHfile.copyFrom(srcHfile);
+                            if (EXT==="") {
+                                const dstFile=dstDir.rel(srcFile.name());
+                                dstFile.copyFrom(srcFile);
+                            } else {
+                                var srcDir=srcFile.up();
+                                var name=truncExt(srcFile,acext);
+                                var srcPfile=srcDir.rel(name+EXT);
+                                var dstPfile=dstDir.rel(name+EXT);
+                                var srcHfile=srcDir.rel(name+HEXT);
+                                var dstHfile=dstDir.rel(name+HEXT);
+                                if (!srcPfile.exists()) {
+                                    srcPfile.text("");
+                                }
+                                if (!srcHfile.exists()) {
+                                    srcHfile.text("");
+                                }
+                                if (!dstPfile.exists()) {
+                                    dstPfile.copyFrom(srcPfile);
+                                }
+                                if (!dstHfile.exists()) {
+                                    dstHfile.copyFrom(srcHfile);
+                                }   
                             }
                         }
                     }
@@ -11001,7 +11026,7 @@ function (FS,DragDrop,root,UI,LL,Sync,PF) {
         addMissingFiles(prj, options) {
             const fileNames=prj.sourceFiles();
             const EXT=prj.getEXT(), HEXT=".html";
-
+            if (EXT==="") return;
             for (let name in fileNames) {
                 const file=fileNames[name];
                 const pfile=file.sibling(name+EXT);
