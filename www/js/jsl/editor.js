@@ -327,6 +327,9 @@ function ready() {
     }
     makeUI();
     let fileMenuTemplate="";
+    function templateOnlyOnce() {
+        return fileMenuTemplate.match(/^<!--ONCE-->/);    
+    }
     function makeMenu() {
         Menu.make({label:"Bit Arrow",id:"home",sub:
                 [
@@ -354,6 +357,9 @@ function ready() {
                 $("#hintLink").remove();
             }
             fileMenuTemplate=r.fileMenuTemplate||"";
+            if (templateOnlyOnce()) {
+                $("#customLink").html(fileMenuTemplate.replaceAll("${USER}",Auth.user).replaceAll("${CLASS}",Auth.class));
+            }
             disableNote=!!r.disableNote;
         });
         showDistMenu();
@@ -1291,7 +1297,9 @@ function ready() {
             "ヒントを見る")
         );
         try {
-            $("#customLink").html(fileMenuTemplate.replaceAll("${PATH}",f.path()).replaceAll("${USER}",Auth.user).replaceAll("${CLASS}",Auth.class));
+            if(!templateOnlyOnce()) {
+                $("#customLink").html(fileMenuTemplate.replaceAll("${PATH}",f.path()).replaceAll("${USER}",Auth.user).replaceAll("${CLASS}",Auth.class));
+            }
         } catch(e) {
 
         }
