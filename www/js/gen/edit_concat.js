@@ -17143,6 +17143,8 @@ define('jsl_edit',['require','Util','FS','FileList','FileMenu','fixIndent','Shel
         if (info.BA_SERVICE_URL) {
             WebSite.controller_in_service=info.BA_SERVICE_URL;
             WebSite.runtime_in_service=FS.PathUtil.truncSEP(info.BA_SERVICE_URL)+"/runtime/";
+        } else {
+            WebSite.runtime_in_service=WebSite.runtime;
         }
         if (info.BA_PUB_URL) {
             // BitArrow.publishedURL: URL of THIS project.

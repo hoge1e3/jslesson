@@ -6,6 +6,8 @@ define(function (require, exports, module) {
             helpURL:"http://bitarrow.eplang.jp/index.php?dolittle_use"},
         "c":{en:"C", ja:"C",builder:"CBuilder",
             helpURL:"http://bitarrow.eplang.jp/index.php?c_use", mode:"ace/mode/c_cpp"},
+        //"php":{en:"PHP", ja:"PHP",builder:"PHPBuilder",
+        //    helpURL:"http://bitarrow.eplang.jp/index.php?php",mode:"ace/mode/php"},
         "dncl":{en:"DNCL", ja:"DNCL(どんくり)",builder:"DnclBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?dncl_use"},
         "dncl2":{en:"DNCL2", ja:"DNCL2(どんくり2)",builder:"Dncl2Builder",manualIndent:true,

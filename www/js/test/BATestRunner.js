@@ -180,18 +180,20 @@ define(function (require,exports,module) {
             this.runner=this.ideCtx.runner;
             Object.assign(this,params);
         }
-        async run() {
+        async run(options) {
             const r=this.runner;
             const ec=await this.ideCtx.openFile(this.fileName);
             await ec.input(this.content);
             await r.sleep();
-            const rc=await ec.run();
+            const rc=await ec.run(options);
             const expect=this.expect;
             const ef=(typeof expect==="function") ? expect : window=>{
                 const tx=rc.getOutputBodyText();
                 console.log("The output", tx);
                 console.log(tx,expect);
-                if (tx!==expect) throw new Error("Asserion failed"+tx+"!="+expect);
+                if (typeof expect==="string" && tx!==expect ||
+                    typeof expect.exec==="function" && !expect.exec(tx)
+                ) throw new Error("Asserion failed"+tx+"!="+expect);
             };
             await r.retry(()=>ef(rc.getOutputWindow()));
             await rc.close();
@@ -334,6 +336,10 @@ define(function (require,exports,module) {
         async run() {
             super.run();
             this.projectSelURL=this.options.bitarrowTop||WebSite.serverTop;//'http://localhost/';
+            
+            if (window.BitArrow&& !window.BitArrow.esm) {
+                this.projectSelURL+="amd.html";
+            }
             this.loginURL=this.projectSelURL+'?Login/';
             //var projectSelURL='http://klab.eplang.jp/jslesson/'
             this.loggedin=false;

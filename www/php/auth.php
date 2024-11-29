@@ -126,6 +126,16 @@ class Auth {
 	        MySession::set("teacher",$name);
 	        //MySession::set("class",self::TEACHER);
 	        MySession::set("user",$name);
+            // remove class info unless the class is its teacher's class
+
+            $class=self::curClass2();
+            if ($class) {
+                $teacher=new BATeacher($name);
+                if (!$teacher->isTeacherOf($class)) {
+                    MySession::del("class");
+                }    
+            }
+
 	        //setcookie("class",$class, time()+60*60*24*30);
 	        return true;
 	    }

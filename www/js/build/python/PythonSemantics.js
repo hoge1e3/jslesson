@@ -1,8 +1,29 @@
 // MINIJAVA
-define (["Visitor","context","PyLib","Annotation","root"],
-function (Visitor,context,PyLib,Annotation,root) {
-const builtins=PyLib.builtins;//["print","range","int","str","float","input","len"];
-builtins.push("open");
+define (["Visitor","context","Annotation","root"],
+function (Visitor,context,Annotation,root) {
+const builtins=["range","input","str","int","sum","float","object","len","type","quit","exit","sorted","abs",
+    "min","max","list","isinstance","zip",
+    "fillRect","setColor","setTimeout","clearRect","clear","StopIteration","open"];
+const ops={
+    "+":"add",
+    "-":"sub",
+    "*":"mul",
+    "/":"div",
+    "//":"floordiv",
+    "%":"mod",
+    ">":"gt",
+    "<":"lt",
+    ">=":"ge",
+    "<=":"le",
+    "!=":"ne",
+    "==":"eq",
+    "**":"pow",
+};
+const iops={};
+for (let k in ops) {
+    if (k.match(/=/)) continue;
+    iops[k+"="]="i"+ops[k];
+}
 const importable={
     datetime:{server:true},
     dateutil:{server:true},
@@ -582,7 +603,7 @@ const Semantics= {
         v.enter({scope:v.rootScope}, ()=>v.visit(node));
         return v;
     },
-    importable
+    importable, builtins, ops, iops,
 };
 return Semantics;
 });

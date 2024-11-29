@@ -1,5 +1,5 @@
-define(["Visitor","IndentBuffer","context","PyLib","PythonSemantics"],
-function (Visitor,IndentBuffer,context,PL,S) {
+define(["Visitor","IndentBuffer","context","PythonSemantics"],
+function (Visitor,IndentBuffer,context,S) {
     var PYLIB="PYLIB";
     const TOP="__top";
     const vdef={
@@ -163,7 +163,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
             }*/
             //console.log("NODEL",node.left);//lvallist
             const firstBody=node.left.body && node.left.body[0];
-            const io=PL.iops[node.op+""];
+            const io=S.iops[node.op+""];
             const value=node.right;
             const matchPostfix=firstBody && firstBody.type==="postfix" && firstBody;
             if (matchPostfix &&
@@ -343,7 +343,7 @@ function (Visitor,IndentBuffer,context,PL,S) {
                 this.printf("%v || %v",node.left,node.right);
                 return;
             }
-            var o=PL.ops[node.op+""],io=PL.iops[node.op+""];
+            var o=S.ops[node.op+""],io=S.iops[node.op+""];
             if (o) {
                 this.printf("(%v).__%s__(%v)", node.left,o, node.right);
             } else if (io) {

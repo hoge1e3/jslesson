@@ -45,11 +45,41 @@ class BATeacher {
     	if ($sth->rowCount()==0){
 	        return false;
     	}else{
+            $this->touch();
     	    return true;
     	}
     }
-    function exists() {
+    function exists($forceRefDB=false) {
+        if ((!$forceRefDB) &&
+            defined("HAS_TEACHER_PASS") && defined("TEACHER_BAUTH_URL")) {
+            $r=file_get_contents(TEACHER_BAUTH_URL."?Teacher/hasTeacher".
+            "&pass=".HAS_TEACHER_PASS.
+            "&name=".$this->id);
+            return ($r==1);
+        }
         return pdo_select1("select * from teacher where name=?", $this->id);
+    }
+    function touch() {
+        $opt=$this->getOptions();
+        $opt->lastUpdate=time();
+        $this->setOptions($opt);
+    }
+    function getOptions(){
+        $result=pdo_select1("select * from teacher where name=?", $this->id);
+        $options=$result->options;
+        if (is_string($options)) {
+            $options=json_decode($options);
+        }
+        if (!is_object($options)) {
+            $options=new stdClass;
+        }
+        return $options;
+    }
+    function setOptions($options){
+        $options_json=json_encode($options);
+        pdo_update2("teacher", 
+        ["name"=>$this->id],
+        ["options"=>$options_json]);
     }
     static function pass2shadow($pass) {
         return hash(SHADOW_ALGO,SHADOW_SALT.$pass);

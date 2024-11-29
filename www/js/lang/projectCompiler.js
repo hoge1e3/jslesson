@@ -436,7 +436,7 @@ var TPRC=function (dir) {
 		TPR.env.amdPaths=paths;
 	};
 	TPR.genXML=function (cname) {//"user.Main"
-		requirejs(["XMLBuffer"],function (x) {
+		DU.requirejs(["XMLBuffer"]).then(function (x) {
 			var c=TPR.env.classes[cname];
 			if (!c) throw new Error("Class "+cname+" not found");
 			if (!c.node) throw new Error("Node not found compile it");

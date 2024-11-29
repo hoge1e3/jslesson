@@ -1,0 +1,25 @@
+{
+  "name": "dncl2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "js/minimal.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kanemunelab/dncl2.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kanemunelab/dncl2/issues"
+  },
+  "homepage": "https://github.com/kanemunelab/dncl2#readme",
+  "dependencies": {
+    "webpack": "^5.75.0"
+  },
+  "devDependencies": {
+    "webpack-cli": "^4.10.0"
+  }
+}

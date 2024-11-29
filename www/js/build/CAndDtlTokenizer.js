@@ -1,5 +1,6 @@
 define(function (require,exports,module) {
-    const TokenizerDef=require("GenericTokenizer").TokenizerDef;
+    const GenericTokenizer=require("GenericTokenizer");
+    const TokenizerDef=GenericTokenizer.TokenizerDef;
     const d=new TokenizerDef();
     d.setSpace(/^(\s*(\/\*\/?([^\/]*([^*]\/)*[\r\n]*)*\*\/)*(\/\/.*\r?\n)*)*/);
     //d.addToken(/^hoge/,"hoge");

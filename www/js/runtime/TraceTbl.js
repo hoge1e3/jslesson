@@ -1,4 +1,4 @@
-define(["Tonyu", "FS", "TError","StackTrace"],
+define(["Tonyu", "FS", "TError","stacktrace"],
 function(Tonyu, FS, TError,trc) {
 Tonyu.TraceTbl=(function () {
 	var TTB={};

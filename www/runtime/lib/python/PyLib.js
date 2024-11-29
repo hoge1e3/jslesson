@@ -412,6 +412,9 @@ define(function (require,exports,module) {
         return v;
     };
     PL.int=function (s) {
+        if (typeof s==="number") {
+            return ~~s;
+        }
         const v=s-0;
         if (v!==v) throw new Error(`${s} は intに変換できません`);
         if (PL.typeof(s)==="string") {
@@ -697,6 +700,7 @@ define(function (require,exports,module) {
     PL.Object=PL.class(Object, {
         __init__: function () {},
     });
+    /* move to PythonSemantics
     PL.ops={
         "+":"add",
         "-":"sub",
@@ -717,7 +721,7 @@ define(function (require,exports,module) {
     for (k in PL.ops) {
         if (k.match(/=/)) continue;
         PL.iops[k+"="]="i"+PL.ops[k];
-    }
+    }*/
     function u(v) {
         return v;
     }
@@ -1112,9 +1116,11 @@ define(function (require,exports,module) {
     });
 
     //---
+    /* moved to PythonSemantics
     PL.builtins=["range","input","str","int","sum","float","object","len","type","quit","exit","sorted","abs",
     "min","max","list","isinstance","zip",
     "fillRect","setColor","setTimeout","clearRect","clear","StopIteration"];
+    */
     root.PYLIB=PL;
     PL.root=root;
 

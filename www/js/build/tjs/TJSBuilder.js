@@ -32,8 +32,7 @@ function (A,DU,wget,Sync,WebSite,Tonyu,BuilderClient,Util,FS,F,root) {
             if (opt.compiler.outputFile) return FS.resolve(opt.compiler.outputFile,dir.path());
             return dir.rel("js/concat.js");
         };
-        const workerURL=(root.reqConf.baseUrl.match(/es5/)?
-        	"BuilderWorker.es5.js":"BuilderWorker.js");
+        const workerURL=("BuilderWorker.js");
         const builder=new BuilderClient(prj ,{
             worker: {ns2depspec, url: workerURL},locale:"ja",
         });//PRC(prj.getDir());// Tonyu-lang dependent

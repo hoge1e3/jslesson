@@ -1,6 +1,6 @@
 /*global requirejs*/
-define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","BuilderClient","ProjectFactory","sysMod","root","exceptionCatcher"],
-        function (FS,Util,WebSite,plugins,sh,Tonyu,Sync,ResEditors,BuilderClient,F,sysMod,root,EC) {
+define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","BuilderClient","ProjectFactory","sysMod","root","exceptionCatcher","DeferredUtil"],
+        function (FS,Util,WebSite,plugins,sh,Tonyu,Sync,ResEditors,BuilderClient,F,sysMod,root,EC,DU) {
     const langMod=BuilderClient.langMod;
     const runtimeDir=FS.get(WebSite.runtime);
     const tonyuLibDir=runtimeDir.rel("lib/tonyu/");
@@ -50,8 +50,7 @@ define(["FS","Util","WebSite","plugins","Shell","Tonyu","Sync","ResEditors","Bui
             prj.setOptions(Tonyu.defaultOptions);
         }
         this.dst=dst;// SFile in ramdisk
-        const workerURL=(root.reqConf.baseUrl.match(/es5/)?
-        	"BuilderWorker.es5.js":"BuilderWorker.js");
+        const workerURL=("BuilderWorker.js");
         const builder=new BuilderClient(prj ,{
             worker: {ns2depspec, url: workerURL},locale:"ja",
         });
@@ -311,7 +310,7 @@ reqConf={
         this.refreshRunMenu();
     };
     p.exportHTML=function () {
-        requirejs(["ExportHTMLDialog"],E=>{
+        DU.requirejs(["ExportHTMLDialog"]).then(E=>{
             this.exportHTMLDialog=this.exportHTMLDialog||new E(this.prj);
             this.exportHTMLDialog.show({includeJSScript:true});
         });

@@ -1,1 +1,1 @@
-{"version":3,"sources":["/prj/user/Test.tonyu"],"names":[],"mappings":";;;;;;;;;;;;;QACA,SAAG,CAAC;QACJ,KAAI,OAAC,CAAC,GAAE,OAAC,EAAE,KAAG,OAAC;;UAAI;YACf,SAAG,EAAE;YACL;YACA,qBAAe;;;;;;;QAJnB,SAAG,CAAC;QACJ,KAAI,OAAC,CAAC,GAAE,OAAC,EAAE,KAAG,OAAC;;UAAI;YACf,SAAG,EAAE;;yDAEU","sourcesContent":["\nsum=0;\nfor(i=1;i<=10;i++) {\n    sum+=i;\n    wait(10);\n    setText('test',sum);\n}"]}
+{"version":3,"sources":["/prj/user/Era.tonyu"],"names":[],"mappings":";;;;;;;;;;;;;QAAA;QACA,OAAC,CAAC,CAAC,CAAC;;;;;QADJ;QACA,OAAC,CAAC,CAAC,CAAC","sourcesContent":["wait(1000);\na.b.c;"]}

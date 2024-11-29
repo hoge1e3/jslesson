@@ -41,6 +41,7 @@ define(function (require) {
     const globalDesktopSetting=require("globalDesktopSetting");
     const languageList=require("LanguageList");
     const ModeList=require("ModeList");
+    const importModule=require("importModule");
     if (location.href.match(/localhost/)) {
         console.log("assertion mode strict");
         A.setMode(A.MODE_STRICT);
@@ -53,7 +54,8 @@ define(function (require) {
     if (!dir) {
         alert("dir is not specified");
         location.href="index.html";
-        return;
+        throw new Error("Dir is not specified");
+        //return;
     }
     var curProjectDir=FS.get(dir);
     /*
@@ -123,6 +125,8 @@ define(function (require) {
         if (info.BA_SERVICE_URL) {
             WebSite.controller_in_service=info.BA_SERVICE_URL;
             WebSite.runtime_in_service=FS.PathUtil.truncSEP(info.BA_SERVICE_URL)+"/runtime/";
+        } else {
+            WebSite.runtime_in_service=WebSite.runtime;
         }
         if (info.BA_PUB_URL) {
             // BitArrow.publishedURL: URL of THIS project.
@@ -177,7 +181,7 @@ function ready() {
     var mobile=WebSite.mobile  || localStorage.mobile;
     let ace_language_tools;
     if (mobile) {
-        requirejs(["ace-langtool"],()=>{ 
+        DU.requirejs(["ace-langtool"]).then(()=>{ 
             ace_language_tools=root.ace.require("ace/ext/language_tools");
         });
     }
@@ -198,9 +202,11 @@ function ready() {
     if (!langInfo) {
         throw new Error(`Undefined language: ${lang}`);
     }
-    requirejs([langInfo.builder], function(_){
-        setupBuilder(_);
-    });
+    if (root.BitArrow.esm) {
+        importModule(langInfo.builder).then((B)=>setupBuilder(B.default));
+    } else {
+        DU.requirejs([langInfo.builder]).then((B)=>setupBuilder(B));
+    }
     helpURL=langInfo.helpURL;
     if (navigator.userAgent.match(/Firefox/) && lang!=="php") {
         ALWAYS_UPLOAD=true;
@@ -1354,7 +1360,9 @@ function ready() {
     function goHome(){
         console.log("goHome");
         unsynced=false;
-        location.href="index.html";
+        location.href=(globalThis&&
+            globalThis.BitArrow&&
+            globalThis.BitArrow.esm?"index.html":"amd.html");
     }
     $("#openHelp").click(function(){
         window.open(helpURL,"helpTab");

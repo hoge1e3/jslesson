@@ -48,7 +48,11 @@ define(["FS","Klass","source-map","DeferredUtil"], function (FS,Klass,S,DU) {
 			if (FS.PathUtil.isRelativePath(urlHead)) {
 				file=base.rel(urlHead);
 				if (file.exists()) {
-					blobUrl=this.file2blobURL(file);
+					if (file.ext()===".js") {
+						blobUrl=this.js2blobURL(file);
+					} else {
+						blobUrl=this.file2blobURL(file);
+					}
 				}
 			} else {
 				file=FS.get(urlHead);
@@ -127,6 +131,25 @@ define(["FS","Klass","source-map","DeferredUtil"], function (FS,Klass,S,DU) {
 				blob = new iwin.Blob([sfile.bytes()], {type: sfile.contentType()});
 			}
 			var url = iwin.URL.createObjectURL(blob);
+			return url;
+		},
+		js2blobURL(sfile) {
+			const iwin=this.window;
+			const src1=sfile.text();
+			const src2=src1.replace(/\/\/[#@] ?sourceMappingURL=([^\s'"]+)\s*$/gm,(_,url)=>{
+				try {
+					console.log("js2blobURL url",url);
+					const smf=this.file.up().rel(url);
+					console.log("js2blobURL smf",smf);
+					const surl=smf.dataURL().replace("text/plain","application/json");
+					return `//# sourceMappingURL=${surl}`;
+				} catch(e) {
+					console.error(e);
+					return _;
+				}
+			});
+			const blob = new iwin.Blob([src2], {type: sfile.contentType()});
+			const url = iwin.URL.createObjectURL(blob);
 			return url;
 		},
 		wrapErrorHandler: function (onerror){

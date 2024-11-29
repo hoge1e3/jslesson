@@ -37,9 +37,9 @@ var reqConf={
             "Key": {
                 "exports": "Key"
             },
-            "TError": {
+            /*"TError": {
                 "exports": "TError"
-            },
+            },*/
             "fs/ROMk": {
                 "deps": ["FS","WebSite"]
             },
@@ -49,10 +49,10 @@ var reqConf={
             "fs/ROMs": {
                 "deps": ["FS","WebSite"]
             },
-            "FileList": {
+            /*"FileList": {
                 "deps": ["FS"],
                 "exports": "FileList"
-            },
+            },*/
             "HttpHelper": {
                 "exports": "HttpHelper"
             },
@@ -112,7 +112,10 @@ var reqConf={
             },
             AsyncByGenerator: {
                 exports: "AsyncByGenerator"
-            }/*,
+            },
+            importModule: {
+                exports: "importModule",  
+            },/*,
             cCompiler: {
                 deps: [
                     "ctrans/beautify",
@@ -269,6 +272,13 @@ var reqConf={
             TypeChecker:"lang/TypeChecker",
             typeCheck:"lang/typeCheck",
             zip: "fs/zip",
+            "ctrans/ctrans": "ctrans/ctrans",
+            "ctrans/ctype": "ctrans/ctype",
+            "ctrans/beautify": "ctrans/beautify",
+            "ctrans/jsgen": "ctrans/jsgen",
+            "dolittle/minimal": "dolittle/minimal",
+            "dncl/dncl2js": "dncl/dncl2js",
+            "importModule": "importModule",
             ctype: "ctrans/ctype",
             AsyncByGeneratorRaw: "ctrans/AsyncByGeneratorRaw",
             AsyncByGenerator: "ctrans/AsyncByGenerator",
@@ -340,6 +350,9 @@ var reqConf={
             CAndDtlTokenizer: "build/CAndDtlTokenizer",
             stacktrace:"lang/",
             SerialControl: "../runtime/lib/python/SerialControl",
+            "test/TestRunner":"test/TestRunner",
+            "test/BATestRunner":"test/BATestRunner",
+            "test/bitarrow":"test/bitarrow",
 
             "foo":"bar"
         },
@@ -354,10 +367,5 @@ var reqConf={
 (function(){
     for (var k in reqConf.paths)
     if (reqConf.paths[k].match(/\/$/)) reqConf.paths[k]+=k;
-    try {
-        new Function("const {x,y}={x:3,y:5};return x;")();
-    } catch(e) {
-        reqConf.baseUrl="es5";
-    }
 })();
 if (typeof exports!=="undefined") exports.conf=reqConf;

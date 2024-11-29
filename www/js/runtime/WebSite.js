@@ -1,11 +1,10 @@
 /*global process*/
 define([], function () {
-	if (typeof document==="undefined") {
-		// node?;
-		return {};
+	let loc="";
+	if (globalThis.location) {
+		loc=globalThis.location.href;
 	}
-	var loc=document.location.href;
-	var WS=window.WebSite={};
+	var WS=globalThis.WebSite={};
 	WS.runAtServerDefault=loc.match(/meisei-u/);
 	WS.builtinAssetNames={
 		"base.png":{name:"$pat_base", url: "${runtime}images/base.png", pwidth:32, pheight:32},
@@ -14,7 +13,10 @@ define([], function () {
 		"mapchip.png":{name:"$pat_mapchip", url: "${runtime}images/mapchip.png", pwidth:32, pheight:32}
 	};
 	// from https://w3g.jp/blog/js_browser_sniffing2015
-	var u=window.navigator.userAgent.toLowerCase();
+	let u="";
+	if (globalThis.navigator) {
+		u=globalThis.navigator.userAgent.toLowerCase();
+	}
 	WS.tablet=(u.indexOf("windows") != -1 && u.indexOf("touch") != -1)
 	|| u.indexOf("ipad") != -1
 	|| (u.indexOf("android") != -1 && u.indexOf("mobile") == -1)
@@ -40,7 +42,7 @@ define([], function () {
 	WS.tonyuHome="/Tonyu/";//changeHOME
 	WS.JSLKer="runtime/lib/tjs/kernel.js";
 	//WS.JSLKer="fs/Tonyu/Projects/JSLKer";
-	WS.serverTop=location.href.replace(/\?.*$/,"").replace(/[^\/]*$/,"");//"."; // includes /
+	WS.serverTop=loc.replace(/\?.*$/,"").replace(/[^\/]*$/,"");//"."; // includes /
 	WS.phpTop=WS.serverTop+"";//php/";
 	WS.url={
 		getDirInfo:WS.serverTop+"?getDirInfo",
@@ -73,7 +75,7 @@ define([], function () {
 	};
 	WS.compiledKernel=WS.runtime+"/lib/tonyu/kernel.js";
 	WS.ns2depspec=[
-		{namespace:"kernel", url: WebSite.compiledKernel},
+		{namespace:"kernel", url: WS.compiledKernel},
 		//{namespace:"mapEditor2", url: WebSite.compiledTools.mapEditor2},
 	];
 	/*if (WS.isNW) {
