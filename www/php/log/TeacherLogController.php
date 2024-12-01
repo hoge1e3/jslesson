@@ -1035,7 +1035,7 @@ class TeacherLogController {
         </script>
         <?php
         $logs=$class->getAllLogs($min,$max);     
-        //
+        //$logs=self::getLogClusters();
         foreach($logs as $log){
             if(!isset($runcount[$log['user']])){
                 $runcount[$log['user']]=0;
@@ -1054,11 +1054,12 @@ class TeacherLogController {
                 }
                 $runhistory[$log['user']]='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));"><font color="red">E</font></span>'.$runhistory[$log['user']];
             }else if(strpos($log['result'],'Run')!==false){
-				$runcount[$log['user']]++;
+				//$runcount[$log['user']]++;
                 $runhistory[$log['user']]='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">R</span>'.$runhistory[$log['user']];
             }else if(strpos($log['result'],'Save')!==false){
                 $runhistory[$log['user']]='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">S</span>'.$runhistory[$log['user']];
             }else if(strpos($log['result'],'Build')!==false){
+				$runcount[$log['user']]++;
                 $runhistory[$log['user']]='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">B</span>'.$runhistory[$log['user']];
             }else if(strpos($log['result'],'Unsaved')!==false){
                 $runhistory[$log['user']]='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">U</span>'.$runhistory[$log['user']];
@@ -1162,9 +1163,9 @@ class TeacherLogController {
             <tbody>
         <?php
         //<th>実行時刻</th><th>実行ファイル</th><th>実行結果</th><th>実行詳細</th><th>プログラム</th>
-        foreach($runcount as $k => $v){
-            $time=self::calcTime($latestrun[$k]);
-            $rate=$v!=0?floor($errcount[$k]/$v*100):'--';
+        foreach($runcount as $u => $r){
+            $time=self::calcTime($latestrun[$u]);
+            $rate=$r!=0?floor($errcount[$u]/$r*100):'--';
             if($rate<40){
                 $errcaution="white";
             }else if($rate<60){
@@ -1184,17 +1185,19 @@ class TeacherLogController {
                 $timecaution="white";
             }
             ?>
-            <tr class="userrow"><td><a href="a.php?TeacherLog/view1new&user=<?=$k?>&day=<?=$max?>" target="view1"><?=$k?></a></td>
-            <td><?= isset($name2disp[$k]) ? subtractSubstring( $name2disp[$k],$k)  : "" ?></td>
-            <?php if ($rate!="--") { ?>
-                <td data-rate="<?=$rate?>" bgcolor=<?=$errcaution?>><?=$errcount[$k]?>/<?=$v?>(<?=$rate?>%)</td>
-            <?php } else {  print "<td></td>"; } ?>
+            <tr class="userrow"><td><a href="a.php?TeacherLog/view1new&user=<?=$u?>&day=<?=$max?>" target="view1"><?=$u?></a></td>
+            <td><?= isset($name2disp[$u]) ? subtractSubstring( $name2disp[$u],$u)  : "" ?></td>
+            <?php if ($rate!=="--") { ?>
+                <td data-rate="<?=$rate?>" bgcolor=<?=$errcaution?>><?=$errcount[$u]?>/<?=$r?>(<?=$rate?>%)</td>
+            <?php } else {?>
+                <td>--</td>
+            <?php } ?>
             <td bgcolor=<?=$timecaution?>><?=str_pad($time['h'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['m'],2,0,STR_PAD_LEFT)?>:<?=str_pad($time['s'],2,0,STR_PAD_LEFT)?></td>
-            <?php if (isset($latestfile[$k])) {  ?>
-                <td><?=$latestfile[$k]?></td>
-                <td><?= $latestfile[$k]? self::getActualtime2($class->getUser("$k"),$latestfile[$k],$max) : "" ?></td>
+            <?php if (isset($latestfile[$u])) {  ?>
+                <td><?=$latestfile[$u]?></td>
+                <td><?= $latestfile[$u]? self::getActualtime2($class->getUser("$u"),$latestfile[$u],$max) : "" ?></td>
             <?php } else {  print "<td></td><td></td>"; } ?>
-            <td><?=$runhistory[$k]?></td>
+            <td><?=$runhistory[$u]?></td>
             </tr>
 
             <?php
