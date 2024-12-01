@@ -490,11 +490,12 @@ const Semantics= {
             return this.curScope()[name];
         };
         v.curScope=function () {return this.ctx.scope;};
-        v.error=function (mesg,node) {
+        v.error=function (mesg,node, fallback) {
             if (options.srcFile) mesg+=":"+options.srcFile.name();
             if (node.row && node.col) mesg+=":"+node.row+":"+node.col;
             var e=new Error(mesg);
             e.node=node;
+            e.fallback=fallback;
             //e.noTrace=true;
             throw e;
         };
@@ -516,10 +517,17 @@ const Semantics= {
             }
             if (this.options.runAt && !importable[nameHead][this.options.runAt]) {
                 let hint="．";
+                let fallback=undefined;
                 //console.log("IMP",node);
-                if (importable[nameHead].browser) hint="(「ブラウザで実行」するとインポートできます)．";
-                if (importable[nameHead].server) hint="(「サーバで実行」するとインポートできます)．";
-                this.error(nameHead+" はインポートできません"+hint,nameHead);
+                if (importable[nameHead].browser) {
+                    hint="(「ブラウザで実行」するとインポートできます)．";
+                    fallback="browser";
+                }
+                if (importable[nameHead].server) {
+                    hint="(「サーバで実行」するとインポートできます)．";
+                    fallback="server";
+                }
+                this.error(nameHead+" はインポートできません"+hint,nameHead,fallback);
             }
         };
         v.preScanDefs=function (stmtList) {
