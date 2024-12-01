@@ -14,6 +14,7 @@ import WebSite from "./../../runtime/WebSite.js";
 import DelayedCompileError from "./../DelayedCompileError.js";
 import KeyEventChecker from "./../../lib/KeyEventChecker.js";//<-dtl
 import TermDialog from "../../ide/TermDialog.js";
+import auth from "../../jsl/auth.js";
 var PythonBuilder=function (prj, dst,ide) {//<-Dtl
     this.prj=prj;// TPRC
     this.dst=dst;// SFile in ramdisk
@@ -317,19 +318,30 @@ p.addMenu=async function (Menu) {
         await t.ide.run({runAt:"browser"});
     };
     const runAtDocker=async ()=>{
-        
-        await TermDialog.show();
+        /*const params={
+            user: auth.user,
+            file: this.prj.getDir().name()+this.ide.getCurrentEditorInfo().file.name(),
+            runcode:1,
+        };
+        console.log("params",params);*/
+        await this.ide.save();
+        await this.ide.sync();
+        const otps=await ctrl.get("Login/curStatus",{callback:"callback"});
+        const otp=typeof otps==="string"?JSON.parse(otps):otps;
+        otp.file=this.prj.getDir().name()+this.ide.getCurrentEditorInfo().file.name()
+        console.log("otp",otp);
+        await TermDialog.show({otp:JSON.stringify(otp)});
         
     };
     let runAts=[runAtBrowser, runAtServer];
     let menus=[
         {label:`ブラウザで実行`,id:"runBrowser",action: runAtBrowser} ,
         {label:`サーバで実行`,id:"runServer",action: runAtServer},
-        {label:`Dockerで実行`,id:"runServer",action: runAtDocker},
+        {label:`Dockerで実行`,id:"runDocker",action: runAtDocker},
     ];
     if (WebSite.runAtServerDefault){
         runAts=[runAtServer, runAtBrowser];
-        menus=[menus[1],menus[0]];
+        menus=[menus[1],menus[0],menus[2]];
     }
     menus[0].label+="(F9)";
     menus[1].label+="(Ctrl+F9)";

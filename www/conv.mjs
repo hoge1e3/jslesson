@@ -245,6 +245,7 @@ for (let k in reqConf.paths) {
       src.path().match(/BuilderClient/)||
       src.path().match(/stacktrace/)||
       src.path().match(/lib\/jquery/)||
+      src.path().match(/lib\/url-parse/)||
       false
     ){
         /*if (reqConf.shim[k]) {

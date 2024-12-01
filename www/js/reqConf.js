@@ -256,6 +256,7 @@ var reqConf={
             "ace-langtool": "lib/ace-noconflict/ext-language_tools",
             copyToKernel: "fs/copyToKernel",
             JSONCol: "lib/JSONCol",
+            URLParse: "lib/url-parse",
             genROM: "build/genROM",
             Log:"ide/log",
             //StackTrace:"runtime/StackTrace",

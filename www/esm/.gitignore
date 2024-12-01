@@ -2,7 +2,6 @@ ui/Tab.js
 ide/ExportOutputDialog.js
 jsl/selProject.js
 gen/selPrj_concat.js
-jsl/editor.js
 gen/edit_concat.js
 jsl/cleanup.js
 ide/ProjectFactory.js
@@ -91,6 +90,7 @@ fsui/FileUploadDialog.js
 lib/ace-noconflict/ace.js
 lib/ace-noconflict/ext-language_tools.js
 lib/JSONCol.js
+lib/url-parse.js
 ide/log.js
 fsui/ShellUI.js
 fsui/ShellUI.js
