@@ -786,7 +786,13 @@ function stop() {
 }
 //var curName,runURL;
 $("#fullScr").click(runFullScr);
+let auto_upload=false;
+/*          auto_upload      vs ALWAYS_UPLOAD
+    set when:   After runFullScr    Specific (project | parameter | browser)
+    RunDialog:  LocalBrowser        the published URL
+    */
 async function runFullScr(options) {
+    auto_upload=true;
     options=options||{};
     options.fullScr=true;
     var inf=getCurrentEditorInfo();
@@ -943,7 +949,7 @@ async function run(options) {//run!!
         SplashScreen.show();
 	    $("#fullScr").attr("href",JS_NOP).text("別ページで表示");
         //options.mainFile=curLogicFile;
-        options.upload=ALWAYS_UPLOAD;
+        options.upload=ALWAYS_UPLOAD || auto_upload;
         const buildStatus=await build(options);
         console.log("built", options, buildStatus);
         if (ALWAYS_UPLOAD) {
