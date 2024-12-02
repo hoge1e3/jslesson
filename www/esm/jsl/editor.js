@@ -191,7 +191,7 @@ var EXT=curPrj.getEXT();
 var HEXT=".html";
 var opt=curPrj.getOptions();
 var lang=opt.language || "js";
-const ide={run, prj:curPrj, getCurrentEditorInfo, saveDesktopEnv, sync, ls,
+const ide={run, prj:curPrj, getCurrentEditorInfo, saveDesktopEnv, save, sync, ls,
     handler: new EventHandler(),
     on(...args){return this.handler.on(...args);},
     fire(...args){return this.handler.fire(...args);}
@@ -799,7 +799,7 @@ async function runFullScr(options) {
         return;
     }
     save();
-    sync();
+    await sync();
     if (builder && inf) {
         try {
             var curFile=inf ? inf.file : options.mainFile;
@@ -995,7 +995,7 @@ async function run(options) {//run!!
         }
     } finally {
         SplashScreen.hide();
-        return syncBefore ? true : sync();
+        return syncBefore ? true : await sync();
     }
 }
 window.moveFromFrame=function (name) {
