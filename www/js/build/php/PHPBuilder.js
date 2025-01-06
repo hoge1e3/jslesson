@@ -102,6 +102,7 @@ define(function (require, exports, module) {
                 var php=f.up().rel(name+".php");
                 //console.log(name, html.path(), php.path());
                 if (!php.exists()) continue;
+                replace(php);
                 const url=await this.genHTML(html);
                 if (php.name()===options.curLogicFile.name()) {
                     publishedURL=url;
@@ -117,5 +118,13 @@ define(function (require, exports, module) {
             return Sync.sync(this.dst,pub);
         }
     };
-
+    function replace(f) {
+        let src=f.text();
+        const org=src;
+        src=src.replace(/file/g,"f_ile");
+        src=src.replace(/File/g,"F_ile");
+        src=src.replace(/open/g,"o_pen");
+        src=src.replace(/eval/g,"e_val");
+        if (org!==src) f.text(src);
+    }
 });
