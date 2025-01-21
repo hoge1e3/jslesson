@@ -1036,6 +1036,18 @@ define(function (require,exports,module) {
         append(self, ...args) {
             return self.push(...args);
         },
+        insert(self, index, element) {
+            if (index < 0) {
+              index = self.length + index;
+            }
+            index = Math.max(0, Math.min(self.length, index));
+            self.splice(index, 0, element);
+        },
+        extend(self, iterable) {
+            for (let item of iterable) {
+                self.push(item);
+            }
+        },  
         __add__(self,...args) {
             return self.concat(...args);
         },
