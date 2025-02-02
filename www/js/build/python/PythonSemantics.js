@@ -2,7 +2,7 @@
 define (["Visitor","context","Annotation","root"],
 function (Visitor,context,Annotation,root) {
 const builtins=["range","input","str","int","sum","float","object","len","type","quit","exit","sorted","abs",
-    "min","max","list","isinstance","zip",
+    "min","max","list","isinstance","zip","ord","chr",
     "fillRect","setColor","setTimeout","clearRect","clear","StopIteration","open"];
 const ops={
     "+":"add",

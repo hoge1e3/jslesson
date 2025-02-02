@@ -140,6 +140,12 @@ define(function (require,exports,module) {
         }
         return "None";
     };
+    PL.ord=function (s) {
+        return s.charCodeAt(0);
+    };
+    PL.chr=function (s) {
+        return String.fromCharCode(s);
+    };
     PL.sum=function (s,init=0) {
         for (let e of s) {
             init=init.__add__(e); // __OP__
@@ -1030,6 +1036,18 @@ define(function (require,exports,module) {
         append(self, ...args) {
             return self.push(...args);
         },
+        insert(self, index, element) {
+            if (index < 0) {
+              index = self.length + index;
+            }
+            index = Math.max(0, Math.min(self.length, index));
+            self.splice(index, 0, element);
+        },
+        extend(self, iterable) {
+            for (let item of iterable) {
+                self.push(item);
+            }
+        },  
         __add__(self,...args) {
             return self.concat(...args);
         },
@@ -1118,7 +1136,7 @@ define(function (require,exports,module) {
     //---
     /* moved to PythonSemantics
     PL.builtins=["range","input","str","int","sum","float","object","len","type","quit","exit","sorted","abs",
-    "min","max","list","isinstance","zip",
+    "min","max","list","isinstance","zip","ord","chr",
     "fillRect","setColor","setTimeout","clearRect","clear","StopIteration"];
     */
     root.PYLIB=PL;
