@@ -862,6 +862,7 @@ async function runFullScr(options) {
         }
     }
 }
+let lastIndexFile;
 async function build(options) {
     if (!options.curLogicFile /*|| !options.curHTMLFile*/) {
         throw new Error("options should be set: curLogicFile");// Mandatory "options" :-)
@@ -871,10 +872,13 @@ async function build(options) {
     if (!indexFile) {
         if (curLogicFile.endsWith(HEXT)) {
             indexFile=curLogicFile;
+        } else if (lastIndexFile) {
+            indexFile=lastIndexFile;
         } else {
             throw new Error("htmlファイルを選択してください");
         }
     }
+    lastIndexFile=indexFile;
     options.mainFile=options.curLogicFile;
     if (options.upload) {
         const pubd=await Auth.publishedDir(curProjectDir.name());
