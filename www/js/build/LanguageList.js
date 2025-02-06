@@ -22,6 +22,7 @@ define(function (require, exports, module) {
         "tonyu":{en:"Tonyu", ja:"Tonyu",builder:"TonyuBuilder",
             helpURL:"http://bitarrow.eplang.jp/index.php?tonyu",mode:"ace/mode/tonyu"},
         "web":{en:"Advanced JavaScript",ja:"JavaScript(中級)",builder:"WebBuilder",ext:""},
+        "java":{en:"Java", ja:"Java", builder: "JavaBuilder", ext:".java"},
         /*"bry":{//ext:"py",// not working now
             en:"brython(Beta)", ja:"Brython(試験運用中)",builder:"BrythonBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},*/

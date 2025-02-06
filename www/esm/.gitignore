@@ -42,7 +42,6 @@ runtime/WebSite.js
 ui/UI.js
 ui/UIDiag.js
 ui/DiagAdjuster.js
-build/LanguageList.js
 build/DelayedCompileError.js
 build/stringifyError.js
 build/tonyu/ResEditor.js
@@ -137,13 +136,11 @@ build/python/PythonGen.js
 build/python/Python2JS.js
 build/python/pyRun.js
 build/python/pyTest.js
-build/php/PHPBuilder.js
 build/p5/P5Builder.js
 build/python/p5pyBuilder.js
 build/web/WebBuilder.js
 build/brython/BrythonBuilder.js
 build/python/raspiBuilder.js
-build/c/CBuilder.js
 build/tonyu/TonyuBuilder.js
 build/tonyu/exportHTML/exportAsScriptTags.js
 build/tonyu/exportHTML/ExportHTMLDialog.js
