@@ -3,6 +3,7 @@ define (["Visitor","context","PyLib","Annotation","root"],
 function (Visitor,context,PyLib,Annotation,root) {
 const builtins=PyLib.builtins;//["print","range","int","str","float","input","len"];
 builtins.push("open");
+const unallowMembers=["__getattribute__","__getattr__","__dict__"]
 const importable={
     datetime:{server:true},
     dateutil:{server:true},
@@ -358,6 +359,9 @@ const vdef={
     },
     memberRef: function (node) {
         // node.name
+        if (unallowMembers[node.name]) {
+            throw new Error("この属性値は使えません。");
+        }
         //console.log("memberRef", args);
     },
     "number": function (node) {
@@ -420,6 +424,7 @@ for (let t of thru) {
     vdef[t]=()=>{};
 }
 const Semantics= {
+    unallowMembers,
     check: function (node,options) {
         options=options||{};
         const v=Visitor(vdef);
