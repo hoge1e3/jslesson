@@ -4,7 +4,7 @@ function (Visitor,context,Annotation,root) {
 const builtins=["range","input","str","int","sum","float","object","len","type","quit","exit","sorted","abs",
     "min","max","list","isinstance","zip","ord","chr",
     "fillRect","setColor","setTimeout","clearRect","clear","StopIteration","open"];
-const unallowMembers=["__dict__","__getattribute__","__getattr__"]
+const unallowMembers={"__getattribute__":1,"__getattr__":1,"__dict__":1}
 const ops={
     "+":"add",
     "-":"sub",
@@ -380,8 +380,8 @@ const vdef={
     },
     memberRef: function (node) {
         // node.name
-        if (unallowMembers[node.name]) {
-            throw new Error("この属性値は使えません。");
+        if (unallowMembers.hasOwnProperty(node.name)) {
+            throw new Error("この属性値"+node.name+"は使えません。");
         }
         //console.log("memberRef", args);
     },
