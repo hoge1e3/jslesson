@@ -3,7 +3,7 @@ define (["Visitor","context","PyLib","Annotation","root"],
 function (Visitor,context,PyLib,Annotation,root) {
 const builtins=PyLib.builtins;//["print","range","int","str","float","input","len"];
 builtins.push("open");
-const unallowMembers={"__getattribute__":1,"__getattr__":1,"__dict__":1}
+const unallowMembers={"__getattribute__":1,"__getattr__":1,"__dict__":1,"__builtins__":1}
 const importable={
     datetime:{server:true},
     dateutil:{server:true},
