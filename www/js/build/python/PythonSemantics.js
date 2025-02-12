@@ -4,7 +4,7 @@ function (Visitor,context,Annotation,root) {
 const builtins=["range","input","str","int","sum","float","object","len","type","quit","exit","sorted","abs",
     "min","max","list","isinstance","zip","ord","chr",
     "fillRect","setColor","setTimeout","clearRect","clear","StopIteration","open"];
-const unallowMembers={"__getattribute__":1,"__getattr__":1,"__dict__":1}
+const unallowMembers={"__getattribute__":1,"__getattr__":1,"__dict__":1,"__builtins__":1}
 const ops={
     "+":"add",
     "-":"sub",
