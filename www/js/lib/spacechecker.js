@@ -14,4 +14,18 @@ window.addEventListener("load",function () {
             }
         });
     }
+    for (let ee of document.querySelectorAll("input.zenkakucheck")) {
+        const e=ee;
+        console.log(e);
+        let warn=document.createElement("span");
+        warn.style="color: orange;";
+        e.parentNode.insertBefore(warn, e.nextSibling);
+        e.addEventListener("input", function () {
+            if (e.value.match(/[^\x01-\x7E\uFF61-\uFF9F]/)) {
+                warn.innerHTML="全角文字が入っています";
+            } else {
+                warn.innerHTML="";
+            }
+        });
+    }
 });
