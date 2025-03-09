@@ -1,3 +1,4 @@
+// DO NOT REMOVE IT, used from PHP. (Check other same stuff!!)
 window.addEventListener("load",function () {
     //alert(3);
     for (let ee of document.querySelectorAll("input.spacecheck")) {
