@@ -381,7 +381,7 @@ const vdef={
     memberRef: function (node) {
         // node.name
         if (unallowMembers.hasOwnProperty(node.name)) {
-            throw new Error("この属性値"+node.name+"は使えません。");
+            throw new Error("属性値"+node.name+"は使えません。");
         }
         //console.log("memberRef", args);
     },
