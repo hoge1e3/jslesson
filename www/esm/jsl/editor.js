@@ -1335,9 +1335,9 @@ $("#home").click(F(function () {
 function goHome(){
     console.log("goHome");
     unsynced=false;
-    location.href=(globalThis&&
+    location.href="index.html";/*(globalThis&&
         globalThis.BitArrow&&
-        globalThis.BitArrow.esm?"index.html":"amd.html");
+        globalThis.BitArrow.esm?"index.html":"amd.html");*/
 }
 $("#openHelp").click(function(){
     window.open(helpURL,"helpTab");
