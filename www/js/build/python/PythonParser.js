@@ -27,7 +27,7 @@ function (Grammar,Pos2RC/*,TError*/) {
     const tdef={
         tokens: [{"this":tokens.rep0("token")}, /^\s*/ ,P.StringParser.eof],
         //token: tokens.or(...reserved.concat(["quote","symbol","number","qsymbol",":"])),
-        token: tokens.or(...["literal3","literal","symbol","number"].concat(puncts)),
+        token: tokens.or(...["literalF","literal3","literal","symbol","number"].concat(puncts)),
         symbol: tokens.toParser(/^[a-zA-Z$_][a-zA-Z$_0-9]*/).ret((r)=>{
             //console.log("RDS",r);
             // resvh[r] <- __getitem__ always true
@@ -35,20 +35,39 @@ function (Grammar,Pos2RC/*,TError*/) {
             return r;
         }),
         number: /^[0-9]+[0-9\.]*(e[\+\-][0-9]+)?/,
-        /*literal: P.StringParser.reg({exec: function (s) {
-            //var
-    		var head=s.substring(0,1);
-    		if (head!=='"' && head!=="'") return false;
-    		for (var i=1 ;i<s.length ; i++) {
-    			var c=s.substring(i,i+1);
-    			if (c===head) {
-    				return [s.substring(0,i+1)];
-    			} else if (c==="\\") {
-    				i++;
-    			}
-    		}
-    		return false;
-    	}}),*/
+        literalF: tokens.toParser(/^f(("([^\\"]*(\\.)*)*")|('([^\\']*(\\.)*)*'))/).ret((r)=>{
+            const {len,pos,row,col}=r;
+            const inner=r[0].substring(2,r[0].length-1);
+            const parts=[{type:"literalF_begin", pos,row,col,len:0}];
+            let i=0, state={type:"literal_in_f",i}; 
+            for (i=0;i<inner.length;i++) {
+                if (inner[i]==="\\") {
+                    i++;
+                } else if (inner[i]==="{") {
+                    const content=inner.substring(state.i,i);
+                    parts.push({type:state.type, content,pos,row,col:col+i,len:content.length});
+                    state={type:"token_in_f",i:i+1};
+                } else if (inner[i]==="}" && state) {
+                    const content=inner.substring(state.i,i);
+                    //parts.push({type:state.type, content});
+                    const t=tokens.get("tokens").parseStr(content);
+                    for (let e of t.result[0]) {
+                        //parts.push({type:"literal_in_f", content});
+                        Object.assign(e,{pos:e.pos,row:e.row,col:e.col+i,len:0});
+                        parts.push(e);
+                    }
+                    state={type:"literal_in_f",i:i+1};
+                }
+            }
+            parts.push({type:state.type, content:inner.substring(state.i),
+                pos,row,col:col+state.i,len:i-state.i});
+            parts.push({type:"literalF_end", pos:pos+len,row,col:col+len,len:0});
+            r.type="literalF";
+            r.parts=parts;
+            //console.log("literalF",r);
+            //tokens.get("tokens").parseStr(line);
+            return r;
+        }),
         literal: /^r?(("([^\\"]*(\\.)*)*")|('([^\\']*(\\.)*)*'))/,
         literal3: /^""".*/,
     };
@@ -160,7 +179,15 @@ function (Grammar,Pos2RC/*,TError*/) {
                 console.log("Tokenize error", r);
                 throw this.error("字句エラー "+(lineNo+1)+":"+(r.src.maxPos+1), r.src.maxPos);
             }
-            //console.log("r",r.result[0]);
+            r.result[0]=r.result[0].reduce((res,elem)=>{
+                if (elem.type==="literalF") {
+                    res.push(...elem.parts);
+                }else{
+                    res.push(elem);
+                }
+                return res;
+            },[]);
+            //console.log("tokenizeLine",r.result[0]);
             return r.result[0];
         }
     }
@@ -320,7 +347,8 @@ function (Grammar,Pos2RC/*,TError*/) {
         slice111: [{start:"expr"},":",{stop:"expr"},":",{step:"expr"}],
         arg: [ {name:opt([{this:"symbol"},"="])}, {value:"expr"}],
         block: or([":",{body:"oneLineStmtList"},"nodentOrEOT"], [":indent",{body:"stmtList"},"dedentOrEOT"]),
-        elem: or("symbol","number","None","bool","listComprehension","array","dict","literal3","literal","paren","superCall","lambdaExpr"),
+        elem: or("symbol","number","None","bool","listComprehension","array","dict","literal3","literal","literalF","paren","superCall","lambdaExpr"),
+        literalF: [tk("literalF_begin"), {parts:rep0(or(tk("literal_in_f"),"expr"))}, tk("literalF_end")],
         lambdaExpr: ["lambda",{params:sep1("param",",")},":",{returns:"expr"}],
         superCall: ["super","(",")"],
         paren: ["(",{body:"exprList"},")"],

@@ -243,6 +243,17 @@ function (Visitor,IndentBuffer,assert) {
         "literal":function (node) {
             this.printf("%s",node+"");
         },
+        literalF(node) {
+            this.printf(`f"`);
+            for (let p of node.parts) {
+                if (p.type!=="literal_in_f") this.printf("{%v}",p);
+                else this.visit(p);
+            }
+            this.printf(`"`);
+        },
+        literal_in_f(node) {
+            this.printf("%s",JSON.stringify(node.content).replace(/^"|"$/g,""));
+        },
         semicolon(node) {
             this.printf(";");
         },

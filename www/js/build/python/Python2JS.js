@@ -410,6 +410,12 @@ function (Visitor,IndentBuffer,context,S) {
             var cont=node.text.substring(3,node.text.length-3);
             this.printf("%s",JSON.stringify(cont));
         },
+        literalF(node) {
+            this.printf(`[%j].join("")`,[",",node.parts]);
+        },
+        literal_in_f(node) {
+            this.printf("%s", JSON.stringify(node.content));
+        },
         True: function () {this.printf("true");},
         False: function () {this.printf("false");},
         None: function () {this.printf("%s.None",PYLIB);},
