@@ -2,8 +2,9 @@
 define (["Visitor","context","Annotation","root"],
 function (Visitor,context,Annotation,root) {
 const builtins=["range","input","str","int","sum","float","object","len","type","quit","exit","sorted","abs",
-    "min","max","list","isinstance","zip",
+    "min","max","list","isinstance","zip","ord","chr",
     "fillRect","setColor","setTimeout","clearRect","clear","StopIteration","open"];
+const unallowMembers={"__getattribute__":1,"__getattr__":1,"__dict__":1,"__builtins__":1}
 const ops={
     "+":"add",
     "-":"sub",
@@ -381,6 +382,9 @@ const vdef={
     },
     memberRef: function (node) {
         // node.name
+        if (unallowMembers.hasOwnProperty(node.name)) {
+            throw new Error("属性値"+node.name+"は使えません。");
+        }
         //console.log("memberRef", args);
     },
     "number": function (node) {
@@ -443,6 +447,7 @@ for (let t of thru) {
     vdef[t]=()=>{};
 }
 const Semantics= {
+    unallowMembers,
     check: function (node,options) {
         options=options||{};
         const v=Visitor(vdef);
@@ -492,11 +497,12 @@ const Semantics= {
             return this.curScope()[name];
         };
         v.curScope=function () {return this.ctx.scope;};
-        v.error=function (mesg,node) {
+        v.error=function (mesg,node, fallback) {
             if (options.srcFile) mesg+=":"+options.srcFile.name();
             if (node.row && node.col) mesg+=":"+node.row+":"+node.col;
             var e=new Error(mesg);
             e.node=node;
+            e.fallback=fallback;
             //e.noTrace=true;
             throw e;
         };
@@ -519,10 +525,17 @@ const Semantics= {
             }
             if (this.options.runAt && !importable[nameHead][this.options.runAt]) {
                 let hint="．";
+                let fallback=undefined;
                 //console.log("IMP",node);
-                if (importable[nameHead].browser) hint="(「ブラウザで実行」するとインポートできます)．";
-                if (importable[nameHead].server) hint="(「サーバで実行」するとインポートできます)．";
-                this.error(nameHead+" はインポートできません"+hint,nameHead);
+                if (importable[nameHead].browser) {
+                    hint="(「ブラウザで実行」するとインポートできます)．";
+                    fallback="browser";
+                }
+                if (importable[nameHead].server) {
+                    hint="(「サーバで実行」するとインポートできます)．";
+                    fallback="server";
+                }
+                this.error(nameHead+" はインポートできません"+hint,nameHead,fallback);
             }
         };
         v.preScanDefs=function (stmtList) {

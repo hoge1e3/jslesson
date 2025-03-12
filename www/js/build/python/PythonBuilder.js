@@ -189,11 +189,25 @@ function (A,DU,wget,IndentBuffer,Sync,FS,SplashScreen,ABG,
         if (!a.exists()) return false;
         return a.lastUpdate()>b.lastUpdate();
     }
-    p.build=function (options) {
+    p.build=async function (options) {
         options=options||{};
         let runAt=(options.runAt)||(WebSite.runAtServerDefault?"server":"browser");
         if (options.fullScr) runAt=(this.prevRunAt);
         else this.prevRunAt=runAt;
+        let res;
+        try {
+            res=await this.buildTrial(options,runAt);
+        } catch (e) {
+            if (e.fallback) {
+                res=await this.buildTrial(options,e.fallback);
+                this.prevRunAt=e.fallback;
+            } else {
+                throw e;
+            }
+        }
+        return res;
+    };
+    p.buildTrial=function (options, runAt) {
         var mainFilePath=options.mainFile && options.mainFile.path();
         var curPrj=this.prj;
         var dst=this.dst;

@@ -2,7 +2,6 @@ ui/Tab.js
 ide/ExportOutputDialog.js
 jsl/selProject.js
 gen/selPrj_concat.js
-jsl/editor.js
 gen/edit_concat.js
 jsl/cleanup.js
 ide/ProjectFactory.js
