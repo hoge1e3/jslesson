@@ -429,6 +429,13 @@ const vdef={
     "literal3": function (node) {
 
     },
+    literal_in_f: function (node) {
+    },
+    literalF(node) {
+        for (let p of node.parts) {
+            this.visit(p);
+        }
+    },
     "returnStmt": function (node) {
         if (node.expr) {
             this.visit(node.expr);
