@@ -5,7 +5,6 @@ gen/selPrj_concat.js
 gen/edit_concat.js
 jsl/cleanup.js
 ide/ProjectFactory.js
-ide/ModeList.js
 fs2/sync2.js
 lib/root.js
 lib/EventHandler.js
