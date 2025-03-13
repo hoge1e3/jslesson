@@ -1228,7 +1228,25 @@ function open(f) {
         //defaultKeyboard=prog.getKeyboardHandler();
         //if(desktopEnv.editorMode=="emacs") prog.setKeyboardHandler("ace/keyboard/emacs");
         //prog.setKeyboardHandler(defaultKeyboard);
-        prog.getSession().setMode(ModeList.getMode(f));
+        const mode=ModeList.getMode(f);
+        const session=prog.getSession();
+        session.setMode(mode);
+        if (mode === "ace/mode/javascript"){
+            setTimeout(()=>{
+                if (session.$worker) {
+                    session.$worker.send(
+                        "changeOptions",
+                        [{
+                            maxerr:10000,
+                            esnext:false,
+                            esversion:11,
+                            undef:true,
+                        }],
+                        (...a)=>console.log(a)
+                    );
+                }    
+            },1000);
+        }
         /*const isLogicFile=curPrj.isLogicFile(f);
             if (isLogicFile) {
                 const mode=langInfo.mode || "ace/mode/tonyu";
