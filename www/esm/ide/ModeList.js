@@ -9,6 +9,8 @@ const ModeList={
         ".c": "ace/mode/c_cpp",
         ".p5.js":"ace/mode/javascript",
         ".js":"ace/mode/javascript",
+        ".css": "ace/mode/css",
+        ".json": "ace/mode/json",
         ".p5.py": "ace/mode/python",
         ".html": "ace/mode/html",
     },
