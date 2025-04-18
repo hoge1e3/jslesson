@@ -1067,8 +1067,8 @@ define(function (require,exports,module) {
                 }
                 return res;
             }
-            if (key<0) key=self.length+key;
-            if (key>=self.length) throw new Error(`添字[${key}]は範囲外です(0...${self.length-1})`);
+            if (key<0 && key>=-self.length) key=self.length+key;
+            if (key>=self.length || key<0) throw new Error(`添字[${key}]は範囲外です(${-self.length}...${self.length-1})`);
             return self[key];
         },
         __setitem__:function (self,key, value) {
