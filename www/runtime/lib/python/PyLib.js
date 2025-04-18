@@ -1067,6 +1067,7 @@ define(function (require,exports,module) {
                 }
                 return res;
             }
+            if (typeof key!=="number") throw new Error("添字は数値にしてください。");
             if (key<0 && key>=-self.length) key=self.length+key;
             if (key>=self.length || key<0) throw new Error(`添字[${key}]は範囲外です(${-self.length}...${self.length-1})`);
             return self[key];
