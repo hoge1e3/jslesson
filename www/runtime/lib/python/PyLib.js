@@ -1052,6 +1052,7 @@ define(function (require,exports,module) {
             return self.concat(...args);
         },
         __delattr__(self,i) {
+            if (typeof i!=="number") throw new Error("添字は数値にしてください。");
             self.splice(i,1);
         },
         __str__(self) {
