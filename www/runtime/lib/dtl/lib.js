@@ -688,6 +688,9 @@ Function.prototype.try=function(){
 	}
 	return res;
 };
+Function.prototype.new=function (...args) {
+    return new this(...args);
+};
 var _jsroot; (function () {_jsroot=this;})();
 function dtlbind(bound, f) {
     f.bound=bound;
@@ -855,5 +858,8 @@ DtlPromise=root.DtlPromise={
         }
         return loop();
     }*/
+};
+root.import=(url)=>{
+    return DtlPromise.new((succ,fail)=>import(url).then(succ,fail));
 };
 })();
