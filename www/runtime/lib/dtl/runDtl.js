@@ -13,7 +13,7 @@
     }
     var dtlPreLibs=["promise","mt","polyk","calibration"].map(mapDtl);
     dtlPreLibs.push("minimal");
-    var dtlLibs=["lib","devicemotion","Dict","Vec2","Actor","Group","UI","Color","Timer",
+    var dtlLibs=["lib","devicemotion","Dict","Vec2","Actor","Group","UI","Color","Timer","Music",
     "Util","Turtle","Figure","DOM","TextFile","Ajax","Assets","Raspi","Japanese2","MicroBit","db"].map(mapDtl).map(function (e) {
         return [e];
     });
