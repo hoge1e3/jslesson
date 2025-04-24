@@ -6,13 +6,18 @@ root:load_mml_mod=[
     ] execute.
     root:mml_mod.
 ].
-musicMelody=!create.
+playable=!create.
+playable:tempo=[|t|
+    _tempo=t. self.
+].
+musicMelody=playable !create.
+
 Melody=musicMelody.
 musicMelody:initialize=[
     queue=Array ! create.   
     //(window:console)! "Q" (self) log.
     
-    tempo=88.
+    _tempo=88.
 ].
 musicMelody:single=[|mml; mod p|
     mod=root! load_mml_mod.
@@ -23,15 +28,42 @@ musicMelody:single=[|mml; mod p|
     //(window:console)! (melody) log.
 ].
 musicMelody:add=[|mml; melody|
-    //(window:console)! "Q2" (self) log.
-    melody=! (mml) single.
-    //(window:console)! "Q" (melody) (queue) log.
-    queue= queue ! (melody) concat.
+    [mml:queue] ! then [
+        (mml:queue) ! [|m| ! (m) add] forEach.
+    ] else [
+        //(window:console)! "Q2" (self) log.
+        melody=! (mml) single.
+        //(window:console)! "Q" (melody) (queue) log.
+        queue= queue ! (melody) concat.
+    ] execute .
     self.
+].
+musicMelody:silent=[|c;str|
+    str="".
+    [str=str+"・"] !(c) repeat.
+    ! (str) add.
 ].
 musicMelody:play=[|;mod src|
     mod=root! load_mml_mod.
     
-    src=mod ! (queue) (tempo) toSource.
+    src=mod ! (queue) (_tempo) toSource.
     playback=src! (root:autio_ctx) play.
 ].
+musicBand=playable ! create.
+musicBand:initialize=[
+    members=Array ! create.
+    _tempo=88.
+].
+musicBand:add=[|m|
+    members ! (m) add.
+    self.
+].
+musicBand:tempo=[|t|
+    members ! [|m| m! (t) tempo.] forEach.
+].
+musicBand:play=[
+    members ! [|m| m! play.] forEach.
+].
+
+
+
