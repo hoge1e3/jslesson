@@ -43,9 +43,9 @@ var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);va
 return AsyncByGenerator.toVal((function*() {return mml['queue'];
 }).apply(this));})['then']()))['else'](dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
-return AsyncByGenerator.toVal((function*() {return (yield* AsyncByGenerator.toGen((mml['queue'])['forEach'](dtlbind(this,function(m){
+return AsyncByGenerator.toVal((function*() {return (yield* AsyncByGenerator.toGen((mml['queue'])['each'](dtlbind(this,function(m){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
-return AsyncByGenerator.toVal((function*() {return (yield* AsyncByGenerator.toGen(this['add']((m))));
+return AsyncByGenerator.toVal((function*() {return (yield* AsyncByGenerator.toGen(this['queue']['add']((m))));
 }).apply(this));}))));
 }).apply(this));}))))['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
@@ -62,7 +62,8 @@ return AsyncByGenerator.toVal((function*() {str="";
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
 return AsyncByGenerator.toVal((function*() {return str=(str+"・");
 }).apply(this));})['repeat']((c))));
-return (yield* AsyncByGenerator.toGen(this['add']((str))));
+(yield* AsyncByGenerator.toGen(this['add']((str))));
+return this;
 }).apply(this));});
 this['musicMelody']['play']=dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
@@ -73,9 +74,14 @@ src=(yield* AsyncByGenerator.toGen(mod['toSource']((this['queue']),(this['_tempo
 return this['playback']=(yield* AsyncByGenerator.toGen(src['play']((this['root']['autio_ctx']))));
 }).apply(this));});
 this['musicBand']=(yield* AsyncByGenerator.toGen(this['playable']['create']()));
+this['Band']=this['musicBand'];
 this['musicBand']['initialize']=dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
 return AsyncByGenerator.toVal((function*() {this['members']=(yield* AsyncByGenerator.toGen(this['Array']['create']()));
+(yield* AsyncByGenerator.toGen(_args['each'](dtlbind(this,function(m){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
+return AsyncByGenerator.toVal((function*() {return (yield* AsyncByGenerator.toGen(this['add']((m))));
+}).apply(this));}))));
 return this['_tempo']=(88);
 }).apply(this));});
 this['musicBand']['add']=dtlbind(this,function(m){
@@ -85,14 +91,14 @@ return this;
 }).apply(this));});
 this['musicBand']['tempo']=dtlbind(this,function(t){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
-return AsyncByGenerator.toVal((function*() {return (yield* AsyncByGenerator.toGen(this['members']['forEach'](dtlbind(this,function(m){
+return AsyncByGenerator.toVal((function*() {return (yield* AsyncByGenerator.toGen(this['members']['each'](dtlbind(this,function(m){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
 return AsyncByGenerator.toVal((function*() {return (yield* AsyncByGenerator.toGen(m['tempo']((t))));
 }).apply(this));}))));
 }).apply(this));});
 return this['musicBand']['play']=dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
-return AsyncByGenerator.toVal((function*() {return (yield* AsyncByGenerator.toGen(this['members']['forEach'](dtlbind(this,function(m){
+return AsyncByGenerator.toVal((function*() {return (yield* AsyncByGenerator.toGen(this['members']['each'](dtlbind(this,function(m){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
 return AsyncByGenerator.toVal((function*() {return (yield* AsyncByGenerator.toGen(m['play']()));
 }).apply(this));}))));

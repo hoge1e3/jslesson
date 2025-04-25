@@ -126,7 +126,6 @@ lang/compiledProject.js
 jsl/selectbox.js
 ctrans/compiler.js
 build/tjs/TJSBuilder.js
-build/dolittle/DtlBuilder.js
 build/dncl/DnclBuilder.js
 build/dncl2/Dncl2Builder.js
 build/python/PythonBuilder.js
