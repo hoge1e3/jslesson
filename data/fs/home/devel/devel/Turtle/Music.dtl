@@ -29,11 +29,13 @@ musicMelody:single=[|mml; mod p|
 ].
 musicMelody:add=[|mml; melody|
     [mml:queue] ! then [
-        (mml:queue) ! [|m| ! (m) add] forEach.
+        (mml:queue) ! [|m| queue ! (m) add] each.
+        //(window:console)! "Q1" (melody) (queue) log.
+        
     ] else [
         //(window:console)! "Q2" (self) log.
         melody=! (mml) single.
-        //(window:console)! "Q" (melody) (queue) log.
+        //(window:console)! "Q2" (melody) (queue) log.
         queue= queue ! (melody) concat.
     ] execute .
     self.
@@ -42,6 +44,7 @@ musicMelody:silent=[|c;str|
     str="".
     [str=str+"・"] !(c) repeat.
     ! (str) add.
+    self.
 ].
 musicMelody:play=[|;mod src|
     mod=root! load_mml_mod.
@@ -50,8 +53,10 @@ musicMelody:play=[|;mod src|
     playback=src! (root:autio_ctx) play.
 ].
 musicBand=playable ! create.
+Band=musicBand.
 musicBand:initialize=[
     members=Array ! create.
+    arguments ! [|m| !(m) add ] each.
     _tempo=88.
 ].
 musicBand:add=[|m|
@@ -59,10 +64,10 @@ musicBand:add=[|m|
     self.
 ].
 musicBand:tempo=[|t|
-    members ! [|m| m! (t) tempo.] forEach.
+    members ! [|m| m! (t) tempo.] each.
 ].
 musicBand:play=[
-    members ! [|m| m! play.] forEach.
+    members ! [|m| m! play.] each.
 ].
 
 

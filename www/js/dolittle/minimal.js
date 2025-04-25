@@ -397,7 +397,7 @@
 		ctx=context();
 		var ABG=root.AsyncByGenerator;
 		ctx.usegen=ABG && ABG.supportsGenerator && input.indexOf("NOGENERATOR")<0;
-
+		//console.log("minimal:parseAsNode",options, ctx.usegen,ctx) ;
 	    //console.log("INP",input,input.length);
 		var result = program.parseStr(input);
 		if(result.success){
