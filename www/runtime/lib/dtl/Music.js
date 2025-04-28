@@ -21,9 +21,47 @@ return this;
 }).apply(this));});
 this['musicMelody']=(yield* AsyncByGenerator.toGen(this['playable']['create']()));
 this['Melody']=this['musicMelody'];
+this['Instrument']=(yield* AsyncByGenerator.toGen(this['create']()));
+this['Instrument']['resolve']=dtlbind(this,function(p){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
+return AsyncByGenerator.toVal((function*() {return (yield* AsyncByGenerator.toGen(this['window']['Promise']['resolve']((p))));
+}).apply(this));});
+this['Instrument']['fetch']=dtlbind(this,function(url){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
+var r;
+return AsyncByGenerator.toVal((function*() {r=(yield* AsyncByGenerator.toGen(this['resolve'](((yield* AsyncByGenerator.toGen(this['window']['fetch']((url))))))));
+return (yield* AsyncByGenerator.toGen(this['resolve'](((yield* AsyncByGenerator.toGen(r['arrayBuffer']()))))));
+}).apply(this));});
+this['Instrument']['initialize']=dtlbind(this,function(name){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
+return AsyncByGenerator.toVal((function*() {return this['url']=name;
+}).apply(this));});
+this['Instrument']['load']=dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+var r;
+var a;
+var mod;
+return AsyncByGenerator.toVal((function*() {return (yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen(dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return AsyncByGenerator.toVal((function*() {return this['waveform'];
+}).apply(this));})['then']()))['else'](dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return AsyncByGenerator.toVal((function*() {return this['waveform'];
+}).apply(this));}))))['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return AsyncByGenerator.toVal((function*() {a=(yield* AsyncByGenerator.toGen(this['fetch']((this['url']))));
+mod=(yield* AsyncByGenerator.toGen(this['root']['load_mml_mod']()));
+return this['waveform']=(yield* AsyncByGenerator.toGen(this['resolve'](((yield* AsyncByGenerator.toGen(mod['oscillator']['bufferedWaveformOfFile']((this['root']['autio_ctx']),(a))))))));
+}).apply(this));}))));
+}).apply(this));});
+this['musicMelody']['set']=dtlbind(this,function(instrument){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
+return AsyncByGenerator.toVal((function*() {return this['waveform']=(yield* AsyncByGenerator.toGen(instrument['load']()));
+}).apply(this));});
 this['musicMelody']['initialize']=dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
 return AsyncByGenerator.toVal((function*() {this['queue']=(yield* AsyncByGenerator.toGen(this['Array']['create']()));
+this['waveform']="square";
 return this['_tempo']=(88);
 }).apply(this));});
 this['musicMelody']['single']=dtlbind(this,function(mml){
@@ -70,7 +108,7 @@ var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);va
 var mod;
 var src;
 return AsyncByGenerator.toVal((function*() {mod=(yield* AsyncByGenerator.toGen(this['root']['load_mml_mod']()));
-src=(yield* AsyncByGenerator.toGen(mod['toSource']((this['queue']),(this['_tempo']))));
+src=(yield* AsyncByGenerator.toGen(mod['toSource']((this['queue']),(this['_tempo']),(this['waveform']))));
 return this['playback']=(yield* AsyncByGenerator.toGen(src['play']((this['root']['autio_ctx']))));
 }).apply(this));});
 this['musicBand']=(yield* AsyncByGenerator.toGen(this['playable']['create']()));
