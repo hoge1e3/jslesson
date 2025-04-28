@@ -13,17 +13,40 @@ playable:tempo=[|t|
 musicMelody=playable !create.
 
 Melody=musicMelody.
+Instrument=!create.
+Instrument:resolve=[|p| 
+    window:Promise ! (p) resolve.
+].
+Instrument:fetch=[|url;r|
+    // fetch instanceof Promise is false...
+    r=! (window!(url) fetch) resolve.
+    ! (r ! arrayBuffer) resolve.
+].
+Instrument:initialize=[|name|
+    url=name.
+].
+Instrument:load=[|;r a mod|
+    [waveform] ! then [waveform] else [
+        a=!(url) fetch.
+        mod=root! load_mml_mod.
+        waveform=!(
+        mod:oscillator! (root:autio_ctx) (a) bufferedWaveformOfFile)
+        resolve.
+    ] execute.
+].
+musicMelody:set=[|instrument|
+    waveform=instrument ! load.
+].
 musicMelody:initialize=[
     queue=Array ! create.   
     //(window:console)! "Q" (self) log.
-    
+    waveform="square".    
     _tempo=88.
 ].
 musicMelody:single=[|mml; mod p|
     mod=root! load_mml_mod.
     p= mod:MelodyParser ! (mod:japaneseLiteralSet) (mml) new.
     melody=p ! parse.
-    
     melody.
     //(window:console)! (melody) log.
 ].
@@ -48,8 +71,7 @@ musicMelody:silent=[|c;str|
 ].
 musicMelody:play=[|;mod src|
     mod=root! load_mml_mod.
-    
-    src=mod ! (queue) (_tempo) toSource.
+    src=mod ! (queue) (_tempo) (waveform) toSource.
     playback=src! (root:autio_ctx) play.
 ].
 musicBand=playable ! create.
