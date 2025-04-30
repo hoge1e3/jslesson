@@ -30,8 +30,9 @@ Instrument:load=[|;r a mod|
         a=!(url) fetch.
         mod=root! load_mml_mod.
         waveform=!(
-        mod:oscillator! (root:autio_ctx) (a) bufferedWaveformOfFile)
-        resolve.
+        // the_result instance of Promise is false...
+        mod:oscillator! (root:autio_ctx) (a) bufferedWaveformOfFile
+        ) resolve.
     ] execute.
 ].
 musicMelody:set=[|instrument|
