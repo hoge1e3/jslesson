@@ -6,8 +6,8 @@ a! 1 2 5 create*/
 //(window:console) ! "AAAA" (window:BitArrow:runtimePath) log.
 url="http://localhost/runtime/sounds/maou_se_inst_piano2_6ra.wav".
 //maou_se_inst_piano2_6ra.wav".
-かえる1＝メロディ！作る。
 ピアノ＝楽器！(url) 作る。
+かえる1＝メロディ！作る。
 かえる1！(ピアノ)  設定。
 window:console !(かえる１)log.
 かえる1！"ドレミファミレド〜ミファソラソファミ〜"  追加。
