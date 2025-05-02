@@ -418,6 +418,13 @@ var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);va
 this['element']['css']("font-size",(((s/(10))+"em")));
 return this;
 });
+this['UI']['execHandler']=dtlbind(this,function(h){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
+return (this['window']['Promise'])['resolve']((h['execute']()))['catch'](dtlbind(this,function(e){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
+return this['root']['system']['handleError']((e));
+}));
+});
 this['Button']=this['UI']['create']();
 this['Button']['action']=dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
@@ -429,7 +436,10 @@ var t;
 t=this;
 return this['element']['click'](dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return t['execHandler'](dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
 return t['action']();
+}));
 }));
 });
 this['Button']['initialize']=dtlbind(this,function(label,key){
@@ -459,7 +469,10 @@ var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);va
 return (k['keyCode']===(root['Button']['keyCodeDict']['read']((((key+""))['toUpperCase']()))));
 })['then']()['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return t['execHandler'](dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
 return t['action']();
+}));
 }));
 }),(root['true']));
 }));

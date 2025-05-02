@@ -242,12 +242,22 @@ Label:fontSize=[|s|
     self:element!"font-size" (s/10+"em")css.
     self
 ].
-
+UI:execHandler=[|h|
+    (window:Promise) ! (h ! execute) resolve [|e|
+        root:system ! (e) handleError.
+    ] catch.
+].
 Button=UI ! create.
 Button:action=[].
 //Button ! "action" addEventType.
 Button:left=0.
-Button:attachEvent=[|;t| t=this. element ! [t ! action] click].
+Button:attachEvent=[|;t| 
+    t=this. 
+    element ! [
+        // when t!action is async, t!action w/o execute does not complete all
+        t ! [t ! action] execHandler.
+    ] click.
+].
 Button:initialize=[|label key;t|
     t=this.
     [label==undef]!then [label=! read] execute.
@@ -262,7 +272,9 @@ Button:initialize=[|label key;t|
     [key]!then[
         :window![:window:document!"keydown"[|k|
                 [k:keyCode==(:Button:keyCodeDict!
-                ((key+"")!toUpperCase)read)]!then[t!action]execute.
+                ((key+"")!toUpperCase)read)]!then[
+                    t![t!action]execHandler.
+                ]execute.
         ](:true)addEventListener.]$.
     ]execute.
     // 以上
