@@ -3,7 +3,8 @@ a:initialize=[
     window:console ! "ARV" (arguments) log.
 ].
 a! 1 2 5 create*/
-url="http://127.0.0.1/runtime/sounds/maou_se_inst_piano2_6ra.wav".
+//(window:console) ! "AAAA" (window:BitArrow:runtimePath) log.
+url="http://localhost/runtime/sounds/maou_se_inst_piano2_6ra.wav".
 //maou_se_inst_piano2_6ra.wav".
 かえる1＝メロディ！作る。
 ピアノ＝楽器！(url) 作る。

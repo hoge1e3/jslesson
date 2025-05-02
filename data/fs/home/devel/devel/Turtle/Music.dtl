@@ -6,12 +6,26 @@ root:load_mml_mod=[
     ] execute.
     root:mml_mod.
 ].
+root:console=window:console.
 musicBase=!create.
 musicBase:resolve=[|p| 
     window:Promise ! (p) resolve.
 ].
+musicBase:getOrigin=[|;o|
+    o=window:location:origin.
+    [o+""!="null"]!then[o] else[
+        [o=window:parent:origin]!try.
+        o.
+    ] execute.
+].
+musicBase:fixOrigin=[|urlStr;url o|
+    url=(window:URL) ! (urlStr) new.
+    o=!getOrigin.
+    o + url:pathname + url:search + url:hash.
+].
 musicBase:fetch=[|url;r|
     // fetch instanceof Promise is false...
+    url=! (url) fixOrigin.
     r=! (window!(url) fetch) resolve.
     ! (r ! arrayBuffer) resolve.
 ].
@@ -79,7 +93,9 @@ musicMelody:silent=[|c;str|
     self.
 ].
 musicMelody:play=[|;mod src|
+    //console ! "musicMelody:play" (queue!サイズ) log.
     !addReserved.
+    //console ! "musicMelody:play2" (queue!サイズ) log.
     mod=root! load_mml_mod.
     src=mod ! (queue) (_tempo) (waveform) toSource.
     playback=src! (root:audio_ctx) play.
@@ -104,7 +120,7 @@ musicDrum:loadLiteralSet=[
         load=[|mml file; a buf pr|
             a=! ("http://127.0.0.1/runtime/sounds/"+file) fetch.
             pr=(mod:oscillator)! (root:audio_ctx) (a) 440 bufferedWaveformOfFile.
-            (window:console) ! "load" (pr) (a) log.
+            //(window:console) ! "load" (pr) (a) log.
             buf=!(pr) resolve.
             map ! (mml) (buf) set.
         ].
@@ -116,7 +132,7 @@ musicDrum:loadLiteralSet=[
         load ! "パ" "maou_se_inst_drum1_cymbal.wav" execute.
         //(window:console) ! "loadLiteralSet1" (map) log.
         literalSet=mod ! (mod:japaneseRhysmLiteralSetBase) (map) createRhysmLiteralSet.
-        (window:console) ! "loadLiteralSet2" (literalSet) log.
+        //(window:console) ! "loadLiteralSet2" (literalSet) log.
         literalSet
     ] execute.
 ].
@@ -163,9 +179,14 @@ musicBand:add=[|m|
 ].
 musicBand:tempo=[|t|
     members ! [|m| m! (t) tempo.] each.
+    self.
 ].
 musicBand:play=[
-    members ! [|m| m! play.] each.
+    //console ! "musicBand:play" (members) log.
+    members ! [|m| 
+        //console ! "musicBand:play2" (m) log.
+        m! play.
+    ] each.
 ].
 
 

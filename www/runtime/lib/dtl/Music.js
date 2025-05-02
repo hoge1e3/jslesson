@@ -13,15 +13,44 @@ return this['root']['mml_mod']=(yield* AsyncByGenerator.toGen(this['root']['impo
 }).apply(this));}))));
 return this['root']['mml_mod'];
 }).apply(this));});
+this['root']['console']=this['window']['console'];
 this['musicBase']=(yield* AsyncByGenerator.toGen(this['create']()));
 this['musicBase']['resolve']=dtlbind(this,function(p){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
 return AsyncByGenerator.toVal((function*() {return (yield* AsyncByGenerator.toGen(this['window']['Promise']['resolve']((p))));
 }).apply(this));});
+this['musicBase']['getOrigin']=dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+var o;
+return AsyncByGenerator.toVal((function*() {o=this['window']['location']['origin'];
+return (yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen(dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return AsyncByGenerator.toVal((function*() {return ((o+"")!=="null");
+}).apply(this));})['then']()))['else'](dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return AsyncByGenerator.toVal((function*() {return o;
+}).apply(this));}))))['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return AsyncByGenerator.toVal((function*() {(yield* AsyncByGenerator.toGen(dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return AsyncByGenerator.toVal((function*() {return o=this['window']['parent']['origin'];
+}).apply(this));})['try']()));
+return o;
+}).apply(this));}))));
+}).apply(this));});
+this['musicBase']['fixOrigin']=dtlbind(this,function(urlStr){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
+var url;
+var o;
+return AsyncByGenerator.toVal((function*() {url=(yield* AsyncByGenerator.toGen((this['window']['URL'])['new']((urlStr))));
+o=(yield* AsyncByGenerator.toGen(this['getOrigin']()));
+return (((o+url['pathname'])+url['search'])+url['hash']);
+}).apply(this));});
 this['musicBase']['fetch']=dtlbind(this,function(url){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
 var r;
-return AsyncByGenerator.toVal((function*() {r=(yield* AsyncByGenerator.toGen(this['resolve'](((yield* AsyncByGenerator.toGen(this['window']['fetch']((url))))))));
+return AsyncByGenerator.toVal((function*() {url=(yield* AsyncByGenerator.toGen(this['fixOrigin']((url))));
+r=(yield* AsyncByGenerator.toGen(this['resolve'](((yield* AsyncByGenerator.toGen(this['window']['fetch']((url))))))));
 return (yield* AsyncByGenerator.toGen(this['resolve'](((yield* AsyncByGenerator.toGen(r['arrayBuffer']()))))));
 }).apply(this));});
 this['playable']=(yield* AsyncByGenerator.toGen(this['musicBase']['create']()));
@@ -166,7 +195,6 @@ var buf;
 var pr;
 return AsyncByGenerator.toVal((function*() {a=(yield* AsyncByGenerator.toGen(this['fetch']((("http://127.0.0.1/runtime/sounds/"+file)))));
 pr=(yield* AsyncByGenerator.toGen((mod['oscillator'])['bufferedWaveformOfFile']((this['root']['audio_ctx']),(a),(440))));
-(yield* AsyncByGenerator.toGen((this['window']['console'])['log']("load",(pr),(a))));
 buf=(yield* AsyncByGenerator.toGen(this['resolve']((pr))));
 return (yield* AsyncByGenerator.toGen(map['set']((mml),(buf))));
 }).apply(this));});
@@ -176,7 +204,6 @@ map=(yield* AsyncByGenerator.toGen((this['window']['Map'])['new']()));
 (yield* AsyncByGenerator.toGen(load['execute']("タ","maou_se_inst_drum2_snare.wav")));
 (yield* AsyncByGenerator.toGen(load['execute']("パ","maou_se_inst_drum1_cymbal.wav")));
 this['literalSet']=(yield* AsyncByGenerator.toGen(mod['createRhysmLiteralSet']((mod['japaneseRhysmLiteralSetBase']),(map))));
-(yield* AsyncByGenerator.toGen((this['window']['console'])['log']("loadLiteralSet2",(this['literalSet']))));
 return this['literalSet'];
 }).apply(this));}))));
 }).apply(this));});
@@ -248,10 +275,11 @@ return this;
 }).apply(this));});
 this['musicBand']['tempo']=dtlbind(this,function(t){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
-return AsyncByGenerator.toVal((function*() {return (yield* AsyncByGenerator.toGen(this['members']['each'](dtlbind(this,function(m){
+return AsyncByGenerator.toVal((function*() {(yield* AsyncByGenerator.toGen(this['members']['each'](dtlbind(this,function(m){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
 return AsyncByGenerator.toVal((function*() {return (yield* AsyncByGenerator.toGen(m['tempo']((t))));
 }).apply(this));}))));
+return this;
 }).apply(this));});
 return this['musicBand']['play']=dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
