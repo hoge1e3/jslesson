@@ -1,0 +1,46 @@
+/*label!"testb" create.
+musicDrum! "b" single.*/
+/*
+test=!create.
+test:load2=[
+    mod=root! load_mml_mod.
+    [0]!then [0] else [|;load|
+        load=[|mml file; a buf pr|
+            pr=(mod:oscillator) ! bufferedWaveformOfFile.
+            buf=(window:Promise) !(pr) resolve.
+            buf.
+        ].
+        a=load ! execute.
+    ] execute. 
+].
+label !( test!load2) create.
+*/
+
+//window ! "a" alert.
+//(window:console) ! "b" log.
+
+/*a=!create.
+a:initialize=[
+    window:console ! "ARV" (arguments) log.
+].
+a! 1 2 5 create*/
+//きらきらぼし＝メロディ!"ドドソソララソ～ファファミミレレド～" 作る。
+
+きらりずむ＝ドラム！ "ドツタツドツタツドツタツドタタツドツタツドツタツドツタツクチパン" 作る。
+//バンド！（きらきらぼし）（きらりずむ）作る 60 テンポ 演奏。
+演奏開始＝ボタン！"開始" "S"  作る  「
+    きらりずむ！演奏。
+」  動作設定．
+
+
+/*
+演奏開始＝ボタン！"開始" "z"  作る  「
+    メロディ！作る "ド"  追加  演奏．
+」  動作設定．
+演奏開始＝ボタン！"開始" "x"  作る  「
+    メロディ！作る "ミ"  追加  演奏．
+」  動作設定．
+演奏開始＝ボタン！"開始" "c"  作る  「
+    メロディ！作る "ソ"  追加  演奏．
+」  動作設定．
+*/

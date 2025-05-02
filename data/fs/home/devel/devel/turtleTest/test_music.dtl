@@ -3,7 +3,7 @@ a:initialize=[
     window:console ! "ARV" (arguments) log.
 ].
 a! 1 2 5 create*/
-url="http://127.0.0.1/runtime/sounds/maou_se_inst_bass02_cut.wav".
+url="http://127.0.0.1/runtime/sounds/maou_se_inst_piano2_6ra.wav".
 //maou_se_inst_piano2_6ra.wav".
 かえる1＝メロディ！作る。
 ピアノ＝楽器！(url) 作る。
@@ -21,6 +21,7 @@ window:console !(かえる２)log.
 」  動作設定．
 
 
+/*
 演奏開始＝ボタン！"開始" "z"  作る  「
     メロディ！作る "ド"  追加  演奏．
 」  動作設定．
@@ -30,3 +31,4 @@ window:console !(かえる２)log.
 演奏開始＝ボタン！"開始" "c"  作る  「
     メロディ！作る "ソ"  追加  演奏．
 」  動作設定．
+*/
