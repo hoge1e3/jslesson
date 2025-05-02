@@ -61,6 +61,7 @@ musicMelody=playable !create.
 Melody=musicMelody.
 musicMelody:set=[|instrument|
     waveform=instrument ! load.
+    self.
 ].
 musicMelody:initialize=[
     _addReserved=arguments.
@@ -99,6 +100,7 @@ musicMelody:play=[|;mod src|
     mod=root! load_mml_mod.
     src=mod ! (queue) (_tempo) (waveform) toSource.
     playback=src! (root:audio_ctx) play.
+    self.
 ].
 musicDrum=playable ! create.
 DrumSet=musicDrum.
@@ -163,6 +165,7 @@ musicDrum:play=[|;mod src|
     mod=root! load_mml_mod.
     src=mod ! (queue) (_tempo) rhysmToSource.
     playback=src! (root:audio_ctx) play.
+    self.
 ].
 
 
@@ -187,6 +190,7 @@ musicBand:play=[
         //console ! "musicBand:play2" (m) log.
         m! play.
     ] each.
+    self.
 ].
 
 
