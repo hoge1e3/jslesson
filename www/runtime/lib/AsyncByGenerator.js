@@ -71,6 +71,9 @@
                     } else {
                         return n.value.then(function () {
                             return t.run(it);
+                        },(e)=>{
+                            console.log("REJECT", e);
+                            return Promise.reject(e);
                         });
                     }
                 } else {
@@ -80,22 +83,28 @@
                 }
             }
         },
-        toGen: F(function (v) {
-            /*---
+        toGen(v) {
             if (this.isPromise(v)) {
-                var res;
-                var p=v.then(function (r) {
+                var res,err;
+                var p=v.then((r)=>{
                     res=r;
-                });
-                return (function*() {yield p;return res;})();
+                });/*,(e)=>{
+                    err=e;
+                });*/
+                return (function*() {
+                    yield p;
+                    if (err) {
+                        console.log("ABG err2",e);
+                        throw err;
+                    }
+                    return res;
+                })();
             } else if (this.isGenerator(v)) {
                 return v;
             }
             return (function*(){return v;})();
-            ---*/
-        }),
-        toVal: F(function (gen) {
-            /*---
+        },
+        toVal(gen) {
             var n=gen.next();
             if (n.done) return n.value;
             return (function*() {
@@ -105,8 +114,7 @@
                     if (n.done) return n.value;
                 }
             })();
-            ---*/
-        })
+        },
     };
     root.AsyncByGenerator.init();
     /*var text="return (function*(){});";

@@ -1,27 +1,35 @@
 root:load_mml_mod=[
     [root:mml_mod] ! then [] else [
-        root:autio_ctx=(window:AudioContext) ! new.
+        root:audio_ctx=(window:AudioContext) ! new.
         url=(window:runtimePath)+"lib/mml.js".
         root:mml_mod=root ! (url) import.
     ] execute.
     root:mml_mod.
 ].
-playable=!create.
-playable:tempo=[|t|
-    _tempo=t. self.
-].
-musicMelody=playable !create.
-
-Melody=musicMelody.
-Instrument=!create.
-Instrument:resolve=[|p| 
+musicBase=!create.
+musicBase:resolve=[|p| 
     window:Promise ! (p) resolve.
 ].
-Instrument:fetch=[|url;r|
+musicBase:fetch=[|url;r|
     // fetch instanceof Promise is false...
     r=! (window!(url) fetch) resolve.
     ! (r ! arrayBuffer) resolve.
 ].
+playable=musicBase !create.
+playable:initialize=[
+    _addReserved=arguments.
+].
+playable:addReserved=[|;tmp|
+    [_addReserved] ! then [
+        tmp=_addReserved.
+        _addReserved=false.
+        tmp ! [|e| ! (e) add] each.
+    ] execute.   
+].
+playable:tempo=[|t|
+    _tempo=t. self.
+].
+Instrument=musicBase!create.
 Instrument:initialize=[|name|
     url=name.
 ].
@@ -31,20 +39,23 @@ Instrument:load=[|;r a mod|
         mod=root! load_mml_mod.
         waveform=!(
         // the_result instance of Promise is false...
-        mod:oscillator! (root:autio_ctx) (a) bufferedWaveformOfFile
+        mod:oscillator! (root:audio_ctx) (a) bufferedWaveformOfFile
         ) resolve.
     ] execute.
 ].
+musicMelody=playable !create.
+Melody=musicMelody.
 musicMelody:set=[|instrument|
     waveform=instrument ! load.
 ].
 musicMelody:initialize=[
+    _addReserved=arguments.
     queue=Array ! create.   
-    //(window:console)! "Q" (self) log.
     waveform="square".    
     _tempo=88.
+    //arguments ! [|m| !(m) add ] each.
 ].
-musicMelody:single=[|mml; mod p|
+musicMelody:single=[|mml; mod p melody|
     mod=root! load_mml_mod.
     p= mod:MelodyParser ! (mod:japaneseLiteralSet) (mml) new.
     melody=p ! parse.
@@ -52,14 +63,11 @@ musicMelody:single=[|mml; mod p|
     //(window:console)! (melody) log.
 ].
 musicMelody:add=[|mml; melody|
+    ! addReserved.
     [mml:queue] ! then [
         (mml:queue) ! [|m| queue ! (m) add] each.
-        //(window:console)! "Q1" (melody) (queue) log.
-        
     ] else [
-        //(window:console)! "Q2" (self) log.
         melody=! (mml) single.
-        //(window:console)! "Q2" (melody) (queue) log.
         queue= queue ! (melody) concat.
     ] execute .
     self.
@@ -71,10 +79,77 @@ musicMelody:silent=[|c;str|
     self.
 ].
 musicMelody:play=[|;mod src|
+    !addReserved.
     mod=root! load_mml_mod.
     src=mod ! (queue) (_tempo) (waveform) toSource.
-    playback=src! (root:autio_ctx) play.
+    playback=src! (root:audio_ctx) play.
 ].
+musicDrum=playable ! create.
+DrumSet=musicDrum.
+musicDrum:initialize=[
+    _addReserved=arguments.
+    queue=Array ! create.   
+    _tempo=88.
+].
+/*
+maou_se_inst_drum1_cymbal.wav
+maou_se_inst_drum1_hat.wav
+maou_se_inst_drum2_kick.wav
+maou_se_inst_drum2_snare.wav
+maou_se_inst_drum2_tom1.wav
+*/
+musicDrum:loadLiteralSet=[
+    [literalSet]!then [literalSet] else[|;load mod map a|
+        mod=root! load_mml_mod.
+        load=[|mml file; a buf pr|
+            a=! ("http://127.0.0.1/runtime/sounds/"+file) fetch.
+            pr=(mod:oscillator)! (root:audio_ctx) (a) 440 bufferedWaveformOfFile.
+            (window:console) ! "load" (pr) (a) log.
+            buf=!(pr) resolve.
+            map ! (mml) (buf) set.
+        ].
+        map=(window:Map) ! new.
+        load ! "ド" "maou_se_inst_drum2_kick.wav" execute.
+        //(window:console)! "a_loadLiteral" (a) log.
+        load ! "ツ" "maou_se_inst_drum1_hat.wav" execute.
+        load ! "タ" "maou_se_inst_drum2_snare.wav" execute.
+        load ! "パ" "maou_se_inst_drum1_cymbal.wav" execute.
+        //(window:console) ! "loadLiteralSet1" (map) log.
+        literalSet=mod ! (mod:japaneseRhysmLiteralSetBase) (map) createRhysmLiteralSet.
+        (window:console) ! "loadLiteralSet2" (literalSet) log.
+        literalSet
+    ] execute.
+].
+musicDrum:single=[|mml; mod p rhysm|
+    mod=root! load_mml_mod.
+    p= mod:RhysmParser ! (! loadLiteralSet) (mml) new.
+    rhysm=p ! parse.
+    rhysm.
+].
+musicDrum:add=[|mml; rhysm|
+    !addReserved.
+    [mml:queue] ! then [
+        (mml:queue) ! [|m| queue ! (m) add] each.
+    ] else [
+        rhysm=! (mml) single.
+        queue= queue ! (rhysm) concat.
+    ] execute .
+    self.
+].
+musicDrum:silent=[|c;str|
+    str="".
+    [str=str+"・"] !(c) repeat.
+    ! (str) add.
+    self.
+].
+musicDrum:play=[|;mod src|
+    !addReserved.
+    mod=root! load_mml_mod.
+    src=mod ! (queue) (_tempo) rhysmToSource.
+    playback=src! (root:audio_ctx) play.
+].
+
+
 musicBand=playable ! create.
 Band=musicBand.
 musicBand:initialize=[
