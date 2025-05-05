@@ -10,6 +10,8 @@ import UI from "./../../ui/UI.js";
 import root from "./../../lib/root.js";
 import WebSite from "./../../runtime/WebSite.js";
 import "./../../ctrans/AsyncByGenerator.js"; // Do not remove this: root.AsyncByGenerator is requied for async compile
+import {filterSameOriginUrls} from "../runtimeDetector.js";
+
 var DtlBuilder=root.DtlBuilder=function (prj, dst) {
     this.prj=prj;// TPRC
     this.dst=dst;// SFile in ramdisk
@@ -18,25 +20,6 @@ var p=DtlBuilder.prototype;
 p.progress=function (m) {
     if (window.SplashScreen) window.SplashScreen.progress(m);
 };
-function filterSameOriginUrls(urls) {
-    let currentOrigin = window.location.origin;
-    if (currentOrigin+""=="null") {// about:blank
-        try{
-            if (currentOrigin+""=="null") currentOrigin=parent.location.origin;
-        }catch(e) {}
-        try{
-            if (currentOrigin+""=="null") currentOrigin=opener.location.origin;
-        }catch(e) {}
-    }
-    return urls.filter((url) => {
-      try {
-        const parsedUrl = new URL(url, window.location.href);
-        return parsedUrl.origin === currentOrigin;
-      } catch (e) {
-        return false;
-      }
-    })[0];
-  }
   
 p.genHTML=function (f) {
     this.progress("generate "+f.src.html.name());
@@ -48,7 +31,6 @@ p.genHTML=function (f) {
     var body=dom.getElementsByTagName("body")[0];
     $(head).append($("<meta>").attr("charset","UTF-8"));
     if (window.BitArrow) {
-        $(head).append($("<script>").text(filterSameOriginUrls+""));
         var BitArrow=window.BitArrow;
         var ba={
             version:BitArrow.version,
@@ -58,6 +40,7 @@ p.genHTML=function (f) {
             serverTop: WebSite.serverTop,
             main:f.name};
         $(head).append($("<script>").text(`
+            ${filterSameOriginUrls}
             window.BitArrow=${JSON.stringify(ba)};
             window.BitArrow.runtimePath=filterSameOriginUrls(window.BitArrow.runtimePath_candidates);
         `));
