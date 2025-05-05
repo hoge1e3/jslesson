@@ -12,6 +12,7 @@ import root from "./../../lib/root.js";
 import WebSite from "./../../runtime/WebSite.js";
 import Tokenizer from "./../CAndDtlTokenizer.js";
 import IndentFixer from "./../../lang/IndentFixer.js";
+import {filterSameOriginUrls} from "../runtimeDetector.js";
 var CBuilder=function (prj, dst) {
     this.prj=prj;// TPRC
     this.dst=dst;// SFile in ramdisk
@@ -40,26 +41,6 @@ p.fixName=function (name, {curDir}) {
 p.progress=function (m) {
     if (window.SplashScreen) window.SplashScreen.progress(m);
 };
-function filterSameOriginUrls(urls) {
-    let currentOrigin = window.location.origin;
-    if (currentOrigin+""=="null") {// about:blank
-        try{
-            if (currentOrigin+""=="null") currentOrigin=parent.location.origin;
-        }catch(e) {}
-        try{
-            if (currentOrigin+""=="null") currentOrigin=opener.location.origin;
-        }catch(e) {}
-    }
-    return urls.filter((url) => {
-      try {
-        const parsedUrl = new URL(url, window.location.href);
-        return parsedUrl.origin === currentOrigin;
-      } catch (e) {
-        return false;
-      }
-    })[0];
-  }
-
 p.genHTML=function (f,options) {
     options=options||{};
     this.progress("generate "+f.src.html.name());
@@ -76,8 +57,8 @@ p.genHTML=function (f,options) {
         runtimePath_candidates:[WebSite.runtime_in_service, WebSite.runtime],
         publishedURL:root.BitArrow.publishedURL,
     };
-    $(head).append($("<script>").text(filterSameOriginUrls+""));
     $(head).append($("<script>").text(`
+        ${filterSameOriginUrls}
         window.BitArrow=${JSON.stringify(ba)};
         window.BitArrow.runtimePath=filterSameOriginUrls(window.BitArrow.runtimePath_candidates);
     `));
