@@ -101,7 +101,6 @@ fsui/ShellParser.js
 lang/TypeChecker.js
 lang/typeCheck.js
 fs/zip.js
-ctrans/ctrans.js
 ctrans/ctype.js
 ctrans/beautify.js
 ctrans/jsgen.js
@@ -142,7 +141,6 @@ build/python/p5pyBuilder.js
 build/web/WebBuilder.js
 build/brython/BrythonBuilder.js
 build/python/raspiBuilder.js
-build/c/CBuilder.js
 build/tonyu/TonyuBuilder.js
 build/tonyu/exportHTML/exportAsScriptTags.js
 build/tonyu/exportHTML/ExportHTMLDialog.js
