@@ -57,9 +57,16 @@ export async function initPlayStatement() {
     playStatement = new mod.PlayStatement(audioCtx, mod.standardLiteralSet, rl, waves);
     return playStatement;
 }
+let playback;
 export async function play(...mmls/*:string[]*/) {
-    const m=await playStatement.play(...mmls);
-    console.log("playStatement", playStatement, m);
+  playback=await playStatement.play(...mmls);
+  console.log("playStatement", playStatement, playback);
+}
+export function playTime() {
+  return playStatement?.remainTime || 0;
+}
+export function playStop() {
+  return playStatement?.stop();
 }
 export async function loadRhysmLiteralSet() {
     if (rhysmLiteralSet)return rhysmLiteralSet;

@@ -1576,6 +1576,8 @@ extern char* strstr(char *h,char *n);
   */},
   "music.h":function () {/*
 	extern void play();
+	extern float play_time(void);
+	extern void play_stop(void);
   */}
   };
   for (var k in include_files) {
