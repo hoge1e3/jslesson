@@ -9,14 +9,27 @@
             return this;
         }();
     }
+    let mod;
+    async function loadMod() {
+        mod=mod||await import(BitArrow.runtimePath+"lib/mml_ba.js");
+        return mod;
+    }
     var root = getRoot();
     var lib = root.BA_C.lib;
     var util = root.BA_C.util;
     lib.play = async function (...args) {
-        const {play, initMML}=await import(BitArrow.runtimePath+"lib/mml_ba.js");
+        const {play, initMML}=await loadMod();
         await initMML();
         const mmls=args.map(s=>util.ch_ptr_to_str(s))
         console.log("play",...mmls);
         return await play(...mmls);
+    };
+    lib.play_time=async ()=>{
+        const {playTime}=await loadMod();
+        return playTime();
+    };
+    lib.play_stop=async ()=>{
+        const {playStop}=await loadMod();
+        playStop();
     };
 })();
