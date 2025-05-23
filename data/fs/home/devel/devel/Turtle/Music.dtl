@@ -1,8 +1,10 @@
 root:load_mml_mod=[
     [root:mml_mod] ! then [] else [
         root:audio_ctx=(window:AudioContext) ! new.
-        url=(window:runtimePath)+"lib/mml.js".
-        root:mml_mod=root ! (url) import.
+        url=(window:runtimePath)+"lib/mml_ba.js".
+        root:mml_ba_mod=root ! (url) import.
+        root:mml_mod=root:mml_ba_mod:mod.
+        (window:Promise) !(root:mml_ba_mod ! initMML) resolve.
     ] execute.
     root:mml_mod.
 ].
@@ -47,6 +49,14 @@ Instrument=musicBase!create.
 Instrument:initialize=[|name|
     url=name.
 ].
+Instrument:loadDefaultSet=[
+    [Instrument:defaultSet]! then[
+        Instrument:defaultSet.
+    ] else [
+        root! load_mml_mod.
+        Instrument:defaultSet=!(root:mml_ba_mod ! loadWaves) resolve.
+    ] execute.
+].
 Instrument:load=[|;r a mod|
     [waveform] ! then [waveform] else [
         a=!(url) fetch.
@@ -59,6 +69,11 @@ Instrument:load=[|;r a mod|
 ].
 musicMelody=playable !create.
 Melody=musicMelody.
+musicMelody:setDefaultInstrument=[
+    waveform=(Instrument ! loadDefaultSet) ! 1 get.
+    console ! "setDefaultInstrument" (waveform) log.
+    self.
+].
 musicMelody:set=[|instrument|
     waveform=instrument ! load.
     self.

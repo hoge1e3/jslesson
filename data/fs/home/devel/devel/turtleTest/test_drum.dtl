@@ -24,19 +24,20 @@ a:initialize=[
     window:console ! "ARV" (arguments) log.
 ].
 a! 1 2 5 create*/
-url="http://localhost/runtime/sounds/maou_se_inst_piano2_6ra.wav".
+//url="http://localhost/runtime/sounds/maou_se_inst_piano2_6ra.wav".
 //maou_se_inst_piano2_6ra.wav".
-ピアノ＝楽器！(url) 作る。
+//ピアノ＝楽器！(url) 作る。
 
-きらきらぼし＝メロディ!"ドドソソララソ～ファファミミレレド～" 作る  （ピアノ）設定。
+きらきらぼし＝メロディ!"ドドソソララソ～ファファミミレレド～" 作る . //（ピアノ）設定。
+きらきらぼし ! setDefaultInstrument.
 きらりずむ＝ドラム！ "ドツタツドツタツドツタツドタタツドツタツドツタツドツタツクチパン" 作る。
-演奏開始＝ボタン！"開始" "S"  作る  「
+//演奏開始＝ボタン！"開始" "S"  作る  「
     (window:console) ! "kira" (きらきらぼし)(きらりずむ)log。
     root:ba=バンド！（きらきらぼし）（きらりずむ）作る.
     root:ba ! 120 テンポ 演奏。
     (window:console) ! "kira2" (きらきらぼし)(きらりずむ)log。
     
-」  動作設定．
+//」  動作設定．
 
 
 /*
