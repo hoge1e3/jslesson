@@ -1,4 +1,5 @@
 import * as mod from "./mml.js";
+export * as mod from "./mml.js";
 export let rhysmLiteralSet/*: RhysmLiteralSet|undefined*/;
 //let mod;
 export let playStatement;
@@ -10,10 +11,15 @@ export default function getUserActivatedAudioContext() {
       button.textContent = 'Play Start!';
       button.style.fontSize = '1.2rem';
       button.style.padding = '10px 20px';
+      button.style.position = 'absolute';
+      button.style.left = '0';
+      button.style.top = '0';
+      button.style["z-index"] = '300000';
+      
       document.body.appendChild(button);
-  
       // Click handler
-      button.addEventListener('click', () => {
+
+      const start=() => {
         try {
           // Create AudioContext
           const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -30,13 +36,16 @@ export default function getUserActivatedAudioContext() {
   
           // Remove the button from DOM
           button.remove();
-  
+          document.body.removeEventListener("keydown", start);
+          
           // Resolve the promise
           resolve(audioContext);
         } catch (err) {
           reject(err);
         }
-      });
+      };
+      button.addEventListener('click', start);
+      document.body.addEventListener("keydown", start);
     });
   }
 globalThis.getUserActivatedAudioContext=getUserActivatedAudioContext;
