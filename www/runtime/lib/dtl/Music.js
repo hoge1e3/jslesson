@@ -86,8 +86,10 @@ this['Instrument']['initialize']=dtlbind(this,function(name){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,1);
 return AsyncByGenerator.toVal((function*() {return this['url']=name;
 }).apply(this));});
+this['Instrument']['name2inst']=(yield* AsyncByGenerator.toGen(this['Dict']['create']()));
 this['Instrument']['loadDefaultSet']=dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+var ds;
 return AsyncByGenerator.toVal((function*() {return (yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen(dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
 return AsyncByGenerator.toVal((function*() {return this['Instrument']['defaultSet'];
@@ -97,7 +99,10 @@ return AsyncByGenerator.toVal((function*() {return this['Instrument']['defaultSe
 }).apply(this));}))))['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
 return AsyncByGenerator.toVal((function*() {(yield* AsyncByGenerator.toGen(this['root']['load_mml_mod']()));
-return this['Instrument']['defaultSet']=(yield* AsyncByGenerator.toGen(this['resolve'](((yield* AsyncByGenerator.toGen(this['root']['mml_ba_mod']['loadWaves']()))))));
+this['Instrument']['defaultSet']=(yield* AsyncByGenerator.toGen(this['resolve'](((yield* AsyncByGenerator.toGen(this['root']['mml_ba_mod']['loadWaves']()))))));
+ds=this['Instrument']['defaultSet'];
+(yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen(this['Instrument']['name2inst']['write']("ピアノ",((yield* AsyncByGenerator.toGen(ds['get']((1))))))))['write']("オルガン",((yield* AsyncByGenerator.toGen(ds['get']((2))))))));
+return ds;
 }).apply(this));}))));
 }).apply(this));});
 this['Instrument']['load']=dtlbind(this,function(){
@@ -113,17 +118,36 @@ var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);va
 return AsyncByGenerator.toVal((function*() {return this['waveform'];
 }).apply(this));}))))['execute'](dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return AsyncByGenerator.toVal((function*() {(yield* AsyncByGenerator.toGen(this['resolve'](((yield* AsyncByGenerator.toGen(this['Instrument']['loadDefaultSet']()))))));
+this['waveform']=(yield* AsyncByGenerator.toGen(this['Instrument']['name2inst']['read']((this['url']))));
+return (yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen(dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return AsyncByGenerator.toVal((function*() {return this['waveform'];
+}).apply(this));})['then']()))['else'](dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return AsyncByGenerator.toVal((function*() {return this['waveform'];
+}).apply(this));}))))['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
 return AsyncByGenerator.toVal((function*() {a=(yield* AsyncByGenerator.toGen(this['fetch']((this['url']))));
 mod=(yield* AsyncByGenerator.toGen(this['root']['load_mml_mod']()));
 return this['waveform']=(yield* AsyncByGenerator.toGen(this['resolve'](((yield* AsyncByGenerator.toGen(mod['oscillator']['bufferedWaveformOfFile']((this['root']['audio_ctx']),(a))))))));
+}).apply(this));}))));
 }).apply(this));}))));
 }).apply(this));});
 this['musicMelody']=(yield* AsyncByGenerator.toGen(this['playable']['create']()));
 this['Melody']=this['musicMelody'];
 this['musicMelody']['setDefaultInstrument']=dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return AsyncByGenerator.toVal((function*() {(yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen(dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return AsyncByGenerator.toVal((function*() {return this['waveform'];
+}).apply(this));})['then']()))['else'](dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
+return AsyncByGenerator.toVal((function*() {return }).apply(this));}))))['execute'](dtlbind(this,function(){
+var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
 return AsyncByGenerator.toVal((function*() {this['waveform']=(yield* AsyncByGenerator.toGen(((yield* AsyncByGenerator.toGen(this['Instrument']['loadDefaultSet']())))['get']((1))));
-(yield* AsyncByGenerator.toGen(this['console']['log']("setDefaultInstrument",(this['waveform']))));
+return (yield* AsyncByGenerator.toGen(this['console']['log']("setDefaultInstrument",(this['waveform']))));
+}).apply(this));}))));
 return this;
 }).apply(this));});
 this['musicMelody']['set']=dtlbind(this,function(instrument){
@@ -135,7 +159,6 @@ this['musicMelody']['initialize']=dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
 return AsyncByGenerator.toVal((function*() {this['_addReserved']=_args;
 this['queue']=(yield* AsyncByGenerator.toGen(this['Array']['create']()));
-this['waveform']="square";
 return this['_tempo']=(88);
 }).apply(this));});
 this['musicMelody']['single']=dtlbind(this,function(mml){
@@ -183,7 +206,8 @@ this['musicMelody']['play']=dtlbind(this,function(){
 var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);var _rest=Array.prototype.slice.call(arguments,0);
 var mod;
 var src;
-return AsyncByGenerator.toVal((function*() {(yield* AsyncByGenerator.toGen(this['addReserved']()));
+return AsyncByGenerator.toVal((function*() {(yield* AsyncByGenerator.toGen(this['resolve'](((yield* AsyncByGenerator.toGen(this['setDefaultInstrument']()))))));
+(yield* AsyncByGenerator.toGen(this['addReserved']()));
 mod=(yield* AsyncByGenerator.toGen(this['root']['load_mml_mod']()));
 src=(yield* AsyncByGenerator.toGen(mod['toSource']((this['queue']),(this['_tempo']),(this['waveform']))));
 this['playback']=(yield* AsyncByGenerator.toGen(src['play']((this['root']['audio_ctx']))));

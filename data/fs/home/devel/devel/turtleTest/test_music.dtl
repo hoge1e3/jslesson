@@ -4,17 +4,18 @@ a:initialize=[
 ].
 a! 1 2 5 create*/
 //(window:console) ! "AAAA" (window:BitArrow:runtimePath) log.
-url="http://localhost/runtime/sounds/maou_se_inst_piano2_6ra.wav".
+//url="http://localhost/runtime/sounds/maou_se_inst_piano2_6ra.wav".
+url="オルガン".
 //maou_se_inst_piano2_6ra.wav".
 ピアノ＝楽器！(url) 作る。
 かえる1＝メロディ！作る。
-かえる1! setDefaultInstrument.
-//かえる1！(ピアノ)  設定。
+//かえる1! setDefaultInstrument.
+かえる1！(ピアノ)  設定。
 window:console !(かえる１)log.
 かえる1！"ドレミファミレド〜ミファソラソファミ〜"  追加。
 かえる1！"ド・ド・ド・ド・ド8ド8レ8レ8ミ8ミ8ファ8ファ8ミレド〜" 追加。
 かえる2＝メロディ！作る  8  無音  （かえる1）追加。
-かえる2! setDefaultInstrument.
+//かえる2! setDefaultInstrument.
 //かえる2！(ピアノ)  設定。
 window:console !(かえる２)log.
 輪唱＝バンド！（かえる1）（かえる2）作る。

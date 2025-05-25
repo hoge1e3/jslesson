@@ -49,29 +49,42 @@ Instrument=musicBase!create.
 Instrument:initialize=[|name|
     url=name.
 ].
-Instrument:loadDefaultSet=[
+Instrument:name2inst=Dict! create.
+Instrument:loadDefaultSet=[|;ds|
     [Instrument:defaultSet]! then[
         Instrument:defaultSet.
     ] else [
         root! load_mml_mod.
         Instrument:defaultSet=!(root:mml_ba_mod ! loadWaves) resolve.
+        ds=Instrument:defaultSet.
+        Instrument:name2inst! 
+        "ピアノ" (ds! 1 get) write
+        "オルガン" (ds! 2 get) write
+        .
+        ds.
     ] execute.
 ].
 Instrument:load=[|;r a mod|
     [waveform] ! then [waveform] else [
-        a=!(url) fetch.
-        mod=root! load_mml_mod.
-        waveform=!(
-        // the_result instance of Promise is false...
-        mod:oscillator! (root:audio_ctx) (a) bufferedWaveformOfFile
-        ) resolve.
+        !(Instrument!loadDefaultSet) resolve.
+        waveform=Instrument:name2inst!(url) read.
+        [waveform] ! then [waveform] else [
+            a=!(url) fetch.
+            mod=root! load_mml_mod.
+            waveform=!(
+            // the_result instance of Promise is false...
+            mod:oscillator! (root:audio_ctx) (a) bufferedWaveformOfFile
+            ) resolve.
+        ] execute.
     ] execute.
 ].
 musicMelody=playable !create.
 Melody=musicMelody.
 musicMelody:setDefaultInstrument=[
-    waveform=(Instrument ! loadDefaultSet) ! 1 get.
-    console ! "setDefaultInstrument" (waveform) log.
+    [waveform]! then [] else [
+        waveform=(Instrument ! loadDefaultSet) ! 1 get.
+        console ! "setDefaultInstrument" (waveform) log.
+    ] execute.
     self.
 ].
 musicMelody:set=[|instrument|
@@ -81,7 +94,7 @@ musicMelody:set=[|instrument|
 musicMelody:initialize=[
     _addReserved=arguments.
     queue=Array ! create.   
-    waveform="square".    
+    //waveform="square".    
     _tempo=88.
     //arguments ! [|m| !(m) add ] each.
 ].
@@ -109,6 +122,7 @@ musicMelody:silent=[|c;str|
     self.
 ].
 musicMelody:play=[|;mod src|
+    ! (! setDefaultInstrument) resolve.
     //console ! "musicMelody:play" (queue!サイズ) log.
     !addReserved.
     //console ! "musicMelody:play2" (queue!サイズ) log.
