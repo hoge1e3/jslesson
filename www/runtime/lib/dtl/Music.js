@@ -101,7 +101,7 @@ var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);va
 return AsyncByGenerator.toVal((function*() {(yield* AsyncByGenerator.toGen(this['root']['load_mml_mod']()));
 this['Instrument']['defaultSet']=(yield* AsyncByGenerator.toGen(this['resolve'](((yield* AsyncByGenerator.toGen(this['root']['mml_ba_mod']['loadWaves']()))))));
 ds=this['Instrument']['defaultSet'];
-(yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen(this['Instrument']['name2inst']['write']("ピアノ",((yield* AsyncByGenerator.toGen(ds['get']((1))))))))['write']("オルガン",((yield* AsyncByGenerator.toGen(ds['get']((2))))))));
+(yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen(this['Instrument']['name2inst']['write']("ピアノ",((yield* AsyncByGenerator.toGen(ds['get']((1))))))))['write']("ギター",((yield* AsyncByGenerator.toGen(ds['get']((2))))))));
 return ds;
 }).apply(this));}))));
 }).apply(this));});

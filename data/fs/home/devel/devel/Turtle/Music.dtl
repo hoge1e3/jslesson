@@ -59,7 +59,7 @@ Instrument:loadDefaultSet=[|;ds|
         ds=Instrument:defaultSet.
         Instrument:name2inst! 
         "ピアノ" (ds! 1 get) write
-        "オルガン" (ds! 2 get) write
+        "ギター" (ds! 2 get) write
         .
         ds.
     ] execute.
