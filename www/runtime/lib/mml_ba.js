@@ -112,13 +112,19 @@ maou_se_inst_piano2_6ra.wav`.split(/\r?\n/);
     */
 }
 export async function loadWaves() {
-    const files=["maou_se_inst_piano2_6ra.wav",
+    const files=[
+        "maou_se_inst_piano2_6ra.wav",
         "maou_se_inst_guitar09.wav",
-        "maou_se_inst_guitar13.wav",
-        "beep-rotmcits-com.wav",
+        "bell.wav",
+        "organ.wav",
+        "violin.wav",
+        "trumpet.wav",
+        "xylophone.wav",
+        
+        //"beep-rotmcits-com.wav",
         "bell-rotmcits-com.wav",
         "cowbell-rotmcits-com.wav",
-        "harp-vsq-cojp.wav",
+        //"harp-vsq-cojp.wav",
         "okehi-rotmcits-com.wav",];
     const wavs=[];
     for (let file of files) {
