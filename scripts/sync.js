@@ -14,7 +14,6 @@ const common=sync=>{
     sync(`${src}/lib/require.js`,dst);
     sync(`${src}/lib/util.js`,dst);
 };
-
 const c=sync=>{
     const src="www/es5/ctrans/";
     const dst="www/runtime/lib/c";
