@@ -60,6 +60,13 @@ Instrument:loadDefaultSet=[|;ds|
         Instrument:name2inst! 
         "ピアノ" (ds! 1 get) write
         "ギター" (ds! 2 get) write
+        "ベル" (ds! 3 get) write
+        "オルガン" (ds! 4 get) write
+        "バイオリン" (ds! 5 get) write
+        "トランペット" (ds! 6 get) write
+        "木琴" (ds! 7 get) write
+        "フルート" (ds! 8 get) write
+        "カウベル" (ds! 9 get) write
         .
         ds.
     ] execute.

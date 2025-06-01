@@ -120,9 +120,10 @@ export async function loadWaves() {
         "violin.wav",
         "trumpet.wav",
         "xylophone.wav",
+        "flute.wav",
         
         //"beep-rotmcits-com.wav",
-        "bell-rotmcits-com.wav",
+        //"bell-rotmcits-com.wav",
         "cowbell-rotmcits-com.wav",
         //"harp-vsq-cojp.wav",
         "okehi-rotmcits-com.wav",];

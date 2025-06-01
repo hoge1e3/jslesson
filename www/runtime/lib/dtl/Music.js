@@ -101,7 +101,7 @@ var self=this;var 自分=self;var _args=Array.prototype.slice.call(arguments);va
 return AsyncByGenerator.toVal((function*() {(yield* AsyncByGenerator.toGen(this['root']['load_mml_mod']()));
 this['Instrument']['defaultSet']=(yield* AsyncByGenerator.toGen(this['resolve'](((yield* AsyncByGenerator.toGen(this['root']['mml_ba_mod']['loadWaves']()))))));
 ds=this['Instrument']['defaultSet'];
-(yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen(this['Instrument']['name2inst']['write']("ピアノ",((yield* AsyncByGenerator.toGen(ds['get']((1))))))))['write']("ギター",((yield* AsyncByGenerator.toGen(ds['get']((2))))))));
+(yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen((yield* AsyncByGenerator.toGen(this['Instrument']['name2inst']['write']("ピアノ",((yield* AsyncByGenerator.toGen(ds['get']((1))))))))['write']("ギター",((yield* AsyncByGenerator.toGen(ds['get']((2))))))))['write']("ベル",((yield* AsyncByGenerator.toGen(ds['get']((3))))))))['write']("オルガン",((yield* AsyncByGenerator.toGen(ds['get']((4))))))))['write']("バイオリン",((yield* AsyncByGenerator.toGen(ds['get']((5))))))))['write']("トランペット",((yield* AsyncByGenerator.toGen(ds['get']((6))))))))['write']("木琴",((yield* AsyncByGenerator.toGen(ds['get']((7))))))))['write']("フルート",((yield* AsyncByGenerator.toGen(ds['get']((8))))))))['write']("カウベル",((yield* AsyncByGenerator.toGen(ds['get']((9))))))));
 return ds;
 }).apply(this));}))));
 }).apply(this));});
