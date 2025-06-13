@@ -135,3 +135,9 @@ export async function loadWaves() {
     }
     return wavs;
 }
+export async function setInstrument(no, url, base=440) {
+  const a=await fetch(url).then(r=>r.arrayBuffer());
+  const buf=await mod.oscillator.bufferedWaveformOfFile(audioCtx, a, base);
+  const p=await initPlayStatement();
+  p.waves[no]=buf;
+}
