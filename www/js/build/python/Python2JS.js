@@ -411,7 +411,7 @@ function (Visitor,IndentBuffer,context,S) {
             this.printf("%s",JSON.stringify(cont));
         },
         literalF(node) {
-            this.printf(`[%j].join("")`,[",",node.parts]);
+            this.printf(`[%j].map(%s.str).join("")`,[",",node.parts],PYLIB);
         },
         literal_in_f(node) {
             this.printf("%s", JSON.stringify(node.content));
