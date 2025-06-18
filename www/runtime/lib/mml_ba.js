@@ -1,6 +1,7 @@
 import * as mod from "./mml.js";
 export * as mod from "./mml.js";
 export let rhysmLiteralSet/*: RhysmLiteralSet|undefined*/;
+export let jp_rhysmLiteralSet/*: RhysmLiteralSet|undefined*/;
 //let mod;
 export let playStatement;
 export let audioCtx;
@@ -101,6 +102,12 @@ maou_se_inst_piano2_6ra.wav`.split(/\r?\n/);
     set.set("m",wavs.get("maou_se_inst_drum2_tom1.wav"));
     set.set("c",wavs.get("maou_se_inst_drum1_cymbal.wav"));
     set.set("h",wavs.get("maou_se_inst_drum1_hat.wav"));
+    /*
+    load ! "ド" "maou_se_inst_drum2_kick.wav" execute.
+    load ! "ツ" "maou_se_inst_drum1_hat.wav" execute.
+    load ! "タ" "maou_se_inst_drum2_snare.wav" execute.
+    load ! "パ" "maou_se_inst_drum1_cymbal.wav" execute.
+    */
     rhysmLiteralSet=mod.createRhysmLiteralSet(mod.standardRhysmLiteralSetBase, set);
     return rhysmLiteralSet;
     /*
@@ -111,6 +118,41 @@ maou_se_inst_piano2_6ra.wav`.split(/\r?\n/);
                 H ハイハット")
     */
 }
+export async function loadJapaneseRhysmLiteralSet() {
+    if (jp_rhysmLiteralSet)return jp_rhysmLiteralSet;
+    const files=`maou_se_inst_bass02.wav
+maou_se_inst_bass02_cut.wav
+maou_se_inst_drum1_cymbal.wav
+maou_se_inst_drum1_hat.wav
+maou_se_inst_drum2_kick.wav
+maou_se_inst_drum2_snare.wav
+maou_se_inst_drum2_tom1.wav
+maou_se_inst_guitar09.wav
+maou_se_inst_guitar13.wav
+maou_se_inst_piano2_6ra.wav`.split(/\r?\n/);
+    const wavs=new Map();
+    for (let file of files) {
+        const a/*:ArrayBuffer*/=await fetch(`${BitArrow.runtimePath}/sounds/${file}`).then(r=>r.arrayBuffer());
+        const buf=await mod.oscillator.bufferedWaveformOfFile(audioCtx, a, 440);
+        wavs.set(file, buf);
+    }
+    const set=new Map/*<string, Waveform>*/();
+    set.set("ド",wavs.get("maou_se_inst_drum2_kick.wav"));
+    set.set("ツ",wavs.get("maou_se_inst_drum1_hat.wav"));
+    set.set("タ",wavs.get("maou_se_inst_drum2_snare.wav"));
+    set.set("パ",wavs.get("maou_se_inst_drum1_cymbal.wav"));
+    
+    jp_rhysmLiteralSet=mod.createRhysmLiteralSet(mod.japaneseRhysmLiteralSetBase, set);
+    return jp_rhysmLiteralSet;
+    /*
+    play("@drum B バスドラム
+                S スネアドラム
+                M タムタム
+                C シンバル
+                H ハイハット")
+    */
+}
+
 export async function loadWaves() {
     const files=[
         "maou_se_inst_piano2_6ra.wav",
