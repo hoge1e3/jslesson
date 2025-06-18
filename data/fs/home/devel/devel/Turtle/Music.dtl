@@ -155,7 +155,7 @@ maou_se_inst_drum2_tom1.wav
 musicDrum:loadLiteralSet=[
     [literalSet]!then [literalSet] else[|;load mod map a|
         mod=root! load_mml_mod.
-        load=[|mml file; a buf pr|
+        /*load=[|mml file; a buf pr|
             a=! ("http://127.0.0.1/runtime/sounds/"+file) fetch.
             pr=(mod:oscillator)! (root:audio_ctx) (a) 440 bufferedWaveformOfFile.
             //(window:console) ! "load" (pr) (a) log.
@@ -169,8 +169,9 @@ musicDrum:loadLiteralSet=[
         load ! "タ" "maou_se_inst_drum2_snare.wav" execute.
         load ! "パ" "maou_se_inst_drum1_cymbal.wav" execute.
         //(window:console) ! "loadLiteralSet1" (map) log.
-        literalSet=mod ! (mod:japaneseRhysmLiteralSetBase) (map) createRhysmLiteralSet.
-        //(window:console) ! "loadLiteralSet2" (literalSet) log.
+        literalSet=mod ! (mod:japaneseRhysmLiteralSetBase) (map) createRhysmLiteralSet.*/
+        literalSet=! ( root:mml_ba_mod ! loadJapaneseRhysmLiteralSet ) resolve.
+        (window:console) ! "loadRhysmLiteral" (literalSet) log.
         literalSet
     ] execute.
 ].
