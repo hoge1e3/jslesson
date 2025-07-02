@@ -57,11 +57,12 @@ async function getLogsByFileName(fn){
 }
 
 function calcDiffLast(ary){
-	//console.log("calcDiffLast",ary);
+	console.log("calcDiffLast",ary);
 	for(var i=0;i<ary.length;i++){
 		let d1;
 		if(i>0) d1=calcDiff(ary[i-1]["code"],ary[i]["code"],null,null,null,false);
 		else d1={"insert":0,"delete":0,"replace":0,"equal":0};
+		console.log("d1", d1);
 		var d=calcDiff(ary[i]["code"],ary[ary.length-1]["code"],null,null,null,false);
 		ary[i].push(ary[i]["time"]);
 		ary[i].push(interval(ary,i));
@@ -112,6 +113,93 @@ function download(ary,k){
     a.download = userId+"_"+fn+'_data.csv';
     a.href = url;
     $('#downloader')[0].click();
+}
+async function generatePrompt() {
+	await getData();
+	const json={};
+	for (var i in array_data){
+		const logs=array_data[i];
+		let old=null;
+		const f1f=[];
+		for (let log of logs) {
+			const code=log.code;
+			if (old!==null) {
+				const oldl=difflib.stringAsLines(old);
+				const newl=difflib.stringAsLines(code);
+				const sm=new difflib.SequenceMatcher(
+					oldl, newl					
+				);
+				const opcs= sm.get_opcodes();
+				const diffRepr=[];
+				for (let opc of opcs) {
+					if (opc[0]==="equal") continue;
+					diffRepr.push({type:opc[0],
+						old:{
+							start:opc[1], end:opc[2],
+							text: oldl.slice(opc[1],opc[2]).join("\n"),
+						} ,
+						new:{
+							start:opc[3], end:opc[4],
+							text: newl.slice(opc[3],opc[4]).join("\n"),
+						}
+				 	});					
+				}
+				if (diffRepr.length==0) continue;
+				
+				f1f.push({
+					"type":"change", 
+					time: log.date+" "+log.time,
+					diffs:diffRepr
+				});
+				//console.log(i, log.date+" "+log.time, diffRepr);
+			} else {
+				f1f.push({
+					type:"initial", 
+					time: log.date+" "+log.time,
+					text:code
+				});
+				//console.log(i, log.date+" "+log.time, code);
+			}
+			old=code;
+		}
+		json[i]=(f1f);
+	}
+	const prompt=`
+次のJSONは，ある学生がプログラミングを行った履歴です．
+書き換えた日時と，変更箇所のdiffを格納しています．この内容から，この学生がどの箇所で苦労していたか分析してください．
+~~~json
+${JSON.stringify(json)}	
+~~~
+`
+/*
+{
+  <file_path>: [
+    {
+      type: "initial" | "change",
+      time: string (format: YYYY/MM/DD hh:mm:ss),
+      text?: string,        # type: initial の場合のみ
+      diffs?: [             # type: change の場合のみ
+        {
+          type: "insert" | "delete" | "replace",
+          old: {
+            start: number,  # 変更前の開始行
+            end: number,    # 変更前の終了行
+            text: string    # 変更前のテキスト
+          },
+          new: {
+            start: number,  # 変更後の開始行
+            end: number,    # 変更後の終了行
+            text: string    # 変更後のテキスト
+          }
+        },
+        ...
+      ]
+    },
+    ...
+  ]
+}
+*/
+	console.log(prompt);
 }
 /*function clearBreak(base){
   var lines=base.split("\n");
