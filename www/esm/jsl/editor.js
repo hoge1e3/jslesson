@@ -1100,6 +1100,9 @@ function fixEditorIndent(prog) {
     if (langInfo.manualIndent) return;
     A.is(prog,"AceEditor");
     var prev=prog.getValue();
+    if (prev.includes("DO-NOT-FIX-INDENT")) {
+        return;
+    }
     let fixed;
     if (builder.getIndentFixer) {
         fixed=builder.getIndentFixer().fix(prev);
