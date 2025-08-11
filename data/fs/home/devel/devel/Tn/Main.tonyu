@@ -1,0 +1,9 @@
+includes PlayMod;
+x=y=100;
+while (true) {
+    if (getkey(32)==1) {
+        pl=play("@1,0 v10 cdedc","@10,2 v15>e<fgdc", "@10,0 rrrrc");        
+    }
+    x++;
+    update();
+}

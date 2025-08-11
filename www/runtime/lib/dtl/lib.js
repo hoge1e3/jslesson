@@ -10,7 +10,14 @@ var localize=function (obj, map) {
 root.create=function () {
     var r=Object.create(this);
     var init=(r.initialize || r["初期化"] || function (){});
-    init.apply(r,arguments);
+    const g=init.apply(r,arguments);
+    /* discussion needed whether allow async in initialize. 
+    if (root.DtlPromise) {
+        const a=root.DtlPromise.hasABG();
+        if (a && a.isGenerator(g)) {
+            return a.run(g).then(()=>r);
+        }
+    }*/
     return r;
 };
 root.initialize=function () {};
@@ -626,8 +633,10 @@ root.system.run=function (func) {
     try {
         var res=func.apply(root,[]);
         var a=DtlPromise.hasABG();
+        //console.log("root.system.run1", res);
         if (a && a.isGenerator(res)) {
             res=a.run(res);
+            //console.log("root.system.run2", res);
             return res.catch(root.system.handleError);
         }
     } catch (e) {
@@ -687,6 +696,9 @@ Function.prototype.try=function(){
 		res.catch=function(f){f.execute(e);return {finally:res.finally};};
 	}
 	return res;
+};
+Function.prototype.new=function (...args) {
+    return new this(...args);
 };
 var _jsroot; (function () {_jsroot=this;})();
 function dtlbind(bound, f) {
@@ -855,5 +867,8 @@ DtlPromise=root.DtlPromise={
         }
         return loop();
     }*/
+};
+root.import=(url)=>{
+    return DtlPromise.new((succ,fail)=>import(url).then(succ,fail));
 };
 })();

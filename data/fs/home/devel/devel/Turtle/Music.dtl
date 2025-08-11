@@ -1,0 +1,234 @@
+root:load_mml_mod=[
+    [root:mml_mod] ! then [] else [
+        root:audio_ctx=(window:AudioContext) ! new.
+        url=(window:runtimePath)+"lib/mml_ba.js".
+        root:mml_ba_mod=root ! (url) import.
+        root:mml_mod=root:mml_ba_mod:mod.
+        (window:Promise) !(root:mml_ba_mod ! initMML) resolve.
+    ] execute.
+    root:mml_mod.
+].
+root:console=window:console.
+musicBase=!create.
+musicBase:resolve=[|p| 
+    window:Promise ! (p) resolve.
+].
+musicBase:getOrigin=[|;o|
+    o=window:location:origin.
+    [o+""!="null"]!then[o] else[
+        [o=window:parent:origin]!try.
+        o.
+    ] execute.
+].
+musicBase:fixOrigin=[|urlStr;url o|
+    url=(window:URL) ! (urlStr) new.
+    o=!getOrigin.
+    o + url:pathname + url:search + url:hash.
+].
+musicBase:fetch=[|url;r|
+    // fetch instanceof Promise is false...
+    url=! (url) fixOrigin.
+    r=! (window!(url) fetch) resolve.
+    ! (r ! arrayBuffer) resolve.
+].
+playable=musicBase !create.
+playable:initialize=[
+    _addReserved=arguments.
+].
+playable:addReserved=[|;tmp|
+    [_addReserved] ! then [
+        tmp=_addReserved.
+        _addReserved=false.
+        tmp ! [|e| ! (e) add] each.
+    ] execute.   
+].
+playable:tempo=[|t|
+    _tempo=t. self.
+].
+Instrument=musicBase!create.
+Instrument:initialize=[|name|
+    url=name.
+].
+Instrument:name2inst=Dict! create.
+Instrument:loadDefaultSet=[|;ds|
+    [Instrument:defaultSet]! then[
+        Instrument:defaultSet.
+    ] else [
+        root! load_mml_mod.
+        Instrument:defaultSet=!(root:mml_ba_mod ! loadWaves) resolve.
+        ds=Instrument:defaultSet.
+        Instrument:name2inst! 
+        "ピアノ" (ds! 1 get) write
+        "ギター" (ds! 2 get) write
+        "ベル" (ds! 3 get) write
+        "オルガン" (ds! 4 get) write
+        "バイオリン" (ds! 5 get) write
+        "トランペット" (ds! 6 get) write
+        "木琴" (ds! 7 get) write
+        "フルート" (ds! 8 get) write
+        "カウベル" (ds! 9 get) write
+        .
+        ds.
+    ] execute.
+].
+Instrument:load=[|;r a mod|
+    [waveform] ! then [waveform] else [
+        !(Instrument!loadDefaultSet) resolve.
+        waveform=Instrument:name2inst!(url) read.
+        [waveform] ! then [waveform] else [
+            a=!(url) fetch.
+            mod=root! load_mml_mod.
+            waveform=!(
+            // the_result instance of Promise is false...
+            mod:oscillator! (root:audio_ctx) (a) bufferedWaveformOfFile
+            ) resolve.
+        ] execute.
+    ] execute.
+].
+musicMelody=playable !create.
+Melody=musicMelody.
+musicMelody:setDefaultInstrument=[
+    [waveform]! then [] else [
+        waveform=(Instrument ! loadDefaultSet) ! 1 get.
+        console ! "setDefaultInstrument" (waveform) log.
+    ] execute.
+    self.
+].
+musicMelody:set=[|instrument|
+    waveform=instrument ! load.
+    self.
+].
+musicMelody:initialize=[
+    _addReserved=arguments.
+    queue=Array ! create.   
+    //waveform="square".    
+    _tempo=88.
+    //arguments ! [|m| !(m) add ] each.
+].
+musicMelody:single=[|mml; mod p melody|
+    mod=root! load_mml_mod.
+    p= mod:MelodyParser ! (mod:japaneseLiteralSet) (mml) new.
+    melody=p ! parse.
+    melody.
+    //(window:console)! (melody) log.
+].
+musicMelody:add=[|mml; melody|
+    ! addReserved.
+    [mml:queue] ! then [
+        (mml:queue) ! [|m| queue ! (m) add] each.
+    ] else [
+        melody=! (mml) single.
+        queue= queue ! (melody) concat.
+    ] execute .
+    self.
+].
+musicMelody:silent=[|c;str|
+    str="".
+    [str=str+"・"] !(c) repeat.
+    ! (str) add.
+    self.
+].
+musicMelody:play=[|;mod src|
+    ! (! setDefaultInstrument) resolve.
+    //console ! "musicMelody:play" (queue!サイズ) log.
+    !addReserved.
+    //console ! "musicMelody:play2" (queue!サイズ) log.
+    mod=root! load_mml_mod.
+    src=mod ! (queue) (_tempo) (waveform) toSource.
+    playback=src! (root:audio_ctx) play.
+    self.
+].
+musicDrum=playable ! create.
+DrumSet=musicDrum.
+musicDrum:initialize=[
+    _addReserved=arguments.
+    queue=Array ! create.   
+    _tempo=88.
+].
+/*
+maou_se_inst_drum1_cymbal.wav
+maou_se_inst_drum1_hat.wav
+maou_se_inst_drum2_kick.wav
+maou_se_inst_drum2_snare.wav
+maou_se_inst_drum2_tom1.wav
+*/
+musicDrum:loadLiteralSet=[
+    [literalSet]!then [literalSet] else[|;load mod map a|
+        mod=root! load_mml_mod.
+        /*load=[|mml file; a buf pr|
+            a=! ("http://127.0.0.1/runtime/sounds/"+file) fetch.
+            pr=(mod:oscillator)! (root:audio_ctx) (a) 440 bufferedWaveformOfFile.
+            //(window:console) ! "load" (pr) (a) log.
+            buf=!(pr) resolve.
+            map ! (mml) (buf) set.
+        ].
+        map=(window:Map) ! new.
+        load ! "ド" "maou_se_inst_drum2_kick.wav" execute.
+        //(window:console)! "a_loadLiteral" (a) log.
+        load ! "ツ" "maou_se_inst_drum1_hat.wav" execute.
+        load ! "タ" "maou_se_inst_drum2_snare.wav" execute.
+        load ! "パ" "maou_se_inst_drum1_cymbal.wav" execute.
+        //(window:console) ! "loadLiteralSet1" (map) log.
+        literalSet=mod ! (mod:japaneseRhysmLiteralSetBase) (map) createRhysmLiteralSet.*/
+        literalSet=! ( root:mml_ba_mod ! loadJapaneseRhysmLiteralSet ) resolve.
+        (window:console) ! "loadRhysmLiteral" (literalSet) log.
+        literalSet
+    ] execute.
+].
+musicDrum:single=[|mml; mod p rhysm|
+    mod=root! load_mml_mod.
+    p= mod:RhysmParser ! (! loadLiteralSet) (mml) new.
+    rhysm=p ! parse.
+    rhysm.
+].
+musicDrum:add=[|mml; rhysm|
+    !addReserved.
+    [mml:queue] ! then [
+        (mml:queue) ! [|m| queue ! (m) add] each.
+    ] else [
+        rhysm=! (mml) single.
+        queue= queue ! (rhysm) concat.
+    ] execute .
+    self.
+].
+musicDrum:silent=[|c;str|
+    str="".
+    [str=str+"・"] !(c) repeat.
+    ! (str) add.
+    self.
+].
+musicDrum:play=[|;mod src|
+    !addReserved.
+    mod=root! load_mml_mod.
+    src=mod ! (queue) (_tempo) rhysmToSource.
+    playback=src! (root:audio_ctx) play.
+    self.
+].
+
+
+musicBand=playable ! create.
+Band=musicBand.
+musicBand:initialize=[
+    members=Array ! create.
+    arguments ! [|m| !(m) add ] each.
+    _tempo=88.
+].
+musicBand:add=[|m|
+    members ! (m) add.
+    self.
+].
+musicBand:tempo=[|t|
+    members ! [|m| m! (t) tempo.] each.
+    self.
+].
+musicBand:play=[
+    //console ! "musicBand:play" (members) log.
+    members ! [|m| 
+        //console ! "musicBand:play2" (m) log.
+        m! play.
+    ] each.
+    self.
+].
+
+
+

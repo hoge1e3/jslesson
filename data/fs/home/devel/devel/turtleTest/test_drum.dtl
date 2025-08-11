@@ -1,0 +1,53 @@
+/*label!"testb" create.
+musicDrum! "b" single.*/
+/*
+test=!create.
+test:load2=[
+    mod=root! load_mml_mod.
+    [0]!then [0] else [|;load|
+        load=[|mml file; a buf pr|
+            pr=(mod:oscillator) ! bufferedWaveformOfFile.
+            buf=(window:Promise) !(pr) resolve.
+            buf.
+        ].
+        a=load ! execute.
+    ] execute. 
+].
+label !( test!load2) create.
+*/
+
+//window ! "a" alert.
+//(window:console) ! "b" log.
+
+/*a=!create.
+a:initialize=[
+    window:console ! "ARV" (arguments) log.
+].
+a! 1 2 5 create*/
+//url="http://localhost/runtime/sounds/maou_se_inst_piano2_6ra.wav".
+//maou_se_inst_piano2_6ra.wav".
+//ピアノ＝楽器！(url) 作る。
+
+きらきらぼし＝メロディ!"ドドソソララソ～ファファミミレレド～" 作る . //（ピアノ）設定。
+きらきらぼし ! setDefaultInstrument.
+きらりずむ＝ドラム！ "ドツタツドツタツドツタツドタタツドツタツドツタツドツタツクチパン" 作る。
+//演奏開始＝ボタン！"開始" "S"  作る  「
+    (window:console) ! "kira" (きらきらぼし)(きらりずむ)log。
+    root:ba=バンド！（きらきらぼし）（きらりずむ）作る.
+    root:ba ! 120 テンポ 演奏。
+    (window:console) ! "kira2" (きらきらぼし)(きらりずむ)log。
+    
+//」  動作設定．
+
+
+/*
+演奏開始＝ボタン！"開始" "z"  作る  「
+    メロディ！作る "ド"  追加  演奏．
+」  動作設定．
+演奏開始＝ボタン！"開始" "x"  作る  「
+    メロディ！作る "ミ"  追加  演奏．
+」  動作設定．
+演奏開始＝ボタン！"開始" "c"  作る  「
+    メロディ！作る "ソ"  追加  演奏．
+」  動作設定．
+*/

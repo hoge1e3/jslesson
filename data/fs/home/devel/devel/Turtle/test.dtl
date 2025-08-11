@@ -1,4 +1,4 @@
-system:jq2promise=[|jq|
+/*system:jq2promise=[|jq|
     DtlPromise ! [|succ err|
         jq ! [|res| succ ! (res) execute] [|e| err !(e)execute] then. 
     ] new.
@@ -10,3 +10,13 @@ system:getScript=[|url|
 label ! "ほげ" create.
 system ! "https://code.jquery.com/jquery-3.6.0.js?a" getScript.
 label ! "ふが" create.
+*/
+module ! "Vec2" "Actor" "UI" "Turtle" "Figure" "DOM" "Music" "Japanese2"  [
+    かえる1＝メロディ！作る。
+    かえる1！"ドレミファミレド〜ミファソラソファミ〜"  追加。
+    かえる1！"ド・ド・ド・ド・ド8ド8レ8レ8ミ8ミ8ファ8ファ8ミレド〜" 追加。
+    かえる2＝メロディ！作る  8  無音  （かえる1）追加。
+    輪唱＝バンド！（かえる1）（かえる2）作る。
+    輪唱！演奏。
+    
+] require.

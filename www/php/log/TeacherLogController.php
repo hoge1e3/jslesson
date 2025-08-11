@@ -1010,6 +1010,7 @@ class TeacherLogController {
             }
         }
         $runcount=Array();
+        $buildcount=[];
         $runhistory=[];
         ?>
         <script>
@@ -1046,20 +1047,22 @@ class TeacherLogController {
             $fnid=str_replace("/","__",$log['filename']);
             $fnid=str_replace(".","__",$fnid);
             if(strpos($log['result'],'Error')!==false){
-				$runcount[$log['user']]++;
-                if(isset($errcount[$log['user']])){
+				if(isset($errcount[$log['user']])){
                     $errcount[$log['user']]++;
                 }else{
                     $errcount[$log['user']]=1;
                 }
                 $runhistory[$log['user']]='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));"><font color="red">E</font></span>'.$runhistory[$log['user']];
             }else if(strpos($log['result'],'Run')!==false){
-				//$runcount[$log['user']]++;
+				$runcount[$log['user']]++;
                 $runhistory[$log['user']]='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">R</span>'.$runhistory[$log['user']];
             }else if(strpos($log['result'],'Save')!==false){
                 $runhistory[$log['user']]='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">S</span>'.$runhistory[$log['user']];
             }else if(strpos($log['result'],'Build')!==false){
-				$runcount[$log['user']]++;
+                if(!isset($buildcount[$log['user']])){
+                    $buildcount[$log['user']]=0;
+                }    
+				$buildcount[$log['user']]++;
                 $runhistory[$log['user']]='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">B</span>'.$runhistory[$log['user']];
             }else if(strpos($log['result'],'Unsaved')!==false){
                 $runhistory[$log['user']]='<span filename=fn'.$fnid.' data-id='.$log['id'].' data-user='.$log['user'].' onClick="getLog(this.getAttribute('."'".'data-id'."'".'),this.getAttribute('."'".'data-user'."'".'));">U</span>'.$runhistory[$log['user']];
@@ -1075,6 +1078,10 @@ class TeacherLogController {
             </script>
             <?php
 
+        }
+        foreach($runcount as $user=> $dummy) {
+            if (isset($buildcount[$user])) $runcount[$user]=$buildcount[$user];
+            if (isset($errcount[$user])) $runcount[$user]+=$errcount[$user];
         }
         foreach($runhistory as $runhistkey => $runhistval){
             $runhistory[$runhistkey].='</span><br id="'.$runhistkey.'ui" style="display:none"><button id="'.$runhistkey.'ui" style="display:none" data-user='.$runhistkey.' onclick="getOneUsersLogId(this.getAttribute('."'".'data-user'."'".'),'."'".'next'."'".')">Next</button>  <button id="'.$runhistkey.'ui" style="display:none" data-user='.$runhistkey.' onclick="getOneUsersLogId(this.getAttribute('."'".'data-user'."'".'),'."'".'prev'."'".')">Prev</button><span id="'.$runhistkey.'res" style="display:none"></span><br><span id="'.$runhistkey.'diff" style="display:none" ></span><textarea rows=10 cols=60 id="'.$runhistkey.'" style="display:none" onclick="this.select(0,this.value.length)">test</textarea>';

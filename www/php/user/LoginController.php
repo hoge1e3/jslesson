@@ -32,10 +32,11 @@ class LoginController {
       <a href="https://bitarrow.eplang.jp/?change1808" target="wikiTab">主な変更点...</a></div-->
       <hr>
         <div><font color=red><?= self::$mesg ?></font></div>
+        <script src="js/lib/spacechecker.js"></script>
     	<form action="a.php?Login/check" method="POST">
-    	  クラスID <input name="class" value="<?= $class ?>"></br>
-    	  <?= $isPersonal ? "メールアドレス" : "ユーザ名" ?> <input name="user"></br>
-    	  パスワード <input name="pass" type="password">
+    	  クラスID <input name="class" class="spacecheck zenkakucheck" value="<?= $class ?>"></br>
+    	  <?= $isPersonal ? "メールアドレス" : "ユーザ名" ?> <input class="spacecheck zenkakucheck" name="user"></br>
+    	  パスワード <input name="pass" class="spacecheck zenkakucheck" type="password">
     	  <br/>
     	  <input type="submit" value="OK"/>
     	</form>

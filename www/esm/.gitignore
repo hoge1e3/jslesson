@@ -5,7 +5,6 @@ gen/selPrj_concat.js
 gen/edit_concat.js
 jsl/cleanup.js
 ide/ProjectFactory.js
-ide/ModeList.js
 fs2/sync2.js
 lib/root.js
 lib/EventHandler.js
@@ -101,7 +100,6 @@ fsui/ShellParser.js
 lang/TypeChecker.js
 lang/typeCheck.js
 fs/zip.js
-ctrans/ctrans.js
 ctrans/ctype.js
 ctrans/beautify.js
 ctrans/jsgen.js
@@ -127,11 +125,9 @@ lang/compiledProject.js
 jsl/selectbox.js
 ctrans/compiler.js
 build/tjs/TJSBuilder.js
-build/dolittle/DtlBuilder.js
 build/dncl/DnclBuilder.js
 build/dncl2/Dncl2Builder.js
 build/python/PythonParser.js
-build/python/PythonSemantics.js
 build/python/PythonGen.js
 build/python/Python2JS.js
 build/python/pyRun.js

@@ -863,11 +863,67 @@ Tonyu.klass.define({
       },
       setFontSize :function _trc_TextRectMod_setFontSize(ctx,sz) {
         var _this=this;
-        var post;
         
-        post = ctx.font.replace(/^[0-9\.]+/,"");
+        ctx.font=_this.fontSizeChanged(ctx.font,sz);
+      },
+      fontSizeChanged :function _trc_TextRectMod_fontSizeChanged(fontString,newSize) {
+        var _this=this;
         
-        ctx.font=sz+post;
+        if ((newSize+"").match(/^\d+$/)) {
+          newSize=[newSize,'px'].join('');
+          
+        }
+        let regex = /^((?:[a-zA-Z0-9-]+\s+)*)?([0-9.-]+[a-z%]+(?:\s*\/\s*[0-9.-]+[a-z%]*)?)(\s+.+)?$/;
+        
+        let match = fontString.match(regex);
+        
+        if (! match) {
+          return newSize+" "+fontString;
+          
+        }
+        let beforeSize = match[1]||"";
+        
+        let currentSizeAndLineHeight = match[2];
+        
+        let afterSize = match[3]||"";
+        
+        let lineHeights = currentSizeAndLineHeight.split('/');
+        
+        let lineHeight = lineHeights[1];
+        
+        let newSizeWithLineHeight = lineHeight?[newSize,'/',lineHeight.trim()].join(''):newSize;
+        
+        return [beforeSize,newSizeWithLineHeight,afterSize].join('').trim();
+      },
+      fiber$fontSizeChanged :function* _trc_TextRectMod_f_fontSizeChanged(_thread,fontString,newSize) {
+        var _this=this;
+        
+        if ((newSize+"").match(/^\d+$/)) {
+          newSize=[newSize,'px'].join('');
+          
+        }
+        let regex = /^((?:[a-zA-Z0-9-]+\s+)*)?([0-9.-]+[a-z%]+(?:\s*\/\s*[0-9.-]+[a-z%]*)?)(\s+.+)?$/;
+        
+        let match = fontString.match(regex);
+        
+        if (! match) {
+          return newSize+" "+fontString;
+          
+        }
+        let beforeSize = match[1]||"";
+        
+        let currentSizeAndLineHeight = match[2];
+        
+        let afterSize = match[3]||"";
+        
+        let lineHeights = currentSizeAndLineHeight.split('/');
+        
+        let lineHeight = lineHeights[1];
+        
+        let newSizeWithLineHeight = lineHeight?[newSize,'/',lineHeight.trim()].join(''):newSize;
+        
+        return [beforeSize,newSizeWithLineHeight,afterSize].join('').trim();
+        
       },
       fukidashi :function _trc_TextRectMod_fukidashi(ctx,text,x,y,sz) {
         var _this=this;
@@ -905,7 +961,7 @@ Tonyu.klass.define({
       __dummy: false
     };
   },
-  decls: {"methods":{"main":{"nowait":false,"isMain":true,"vtype":{"params":[],"returnValue":null}},"drawTextRect":{"nowait":true,"isMain":false,"vtype":{"params":[null,null,null,null,null,"kernel.Align2D",null],"returnValue":null}},"setFontSize":{"nowait":true,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"fukidashi":{"nowait":true,"isMain":false,"vtype":{"params":[null,null,null,null,null],"returnValue":null}}},"fields":{}}
+  decls: {"methods":{"main":{"nowait":false,"isMain":true,"vtype":{"params":[],"returnValue":null}},"drawTextRect":{"nowait":true,"isMain":false,"vtype":{"params":[null,null,null,null,null,"kernel.Align2D",null],"returnValue":null}},"setFontSize":{"nowait":true,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"fontSizeChanged":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"fukidashi":{"nowait":true,"isMain":false,"vtype":{"params":[null,null,null,null,null],"returnValue":null}}},"fields":{}}
 });
 Tonyu.klass.define({
   fullName: 'kernel.TD_P',
@@ -1399,6 +1455,99 @@ Tonyu.klass.define({
     };
   },
   decls: {"methods":{"main":{"nowait":false,"isMain":true,"vtype":{"params":[],"returnValue":null}},"play":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"stop":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"playSE":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"setDelay":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"setVolume":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}}},"fields":{"s":{}}}
+});
+Tonyu.klass.define({
+  fullName: 'kernel.MMLBundle',
+  shortName: 'MMLBundle',
+  namespace: 'kernel',
+  superclass: Tonyu.classes.kernel.EventMod,
+  includes: [],
+  methods: function (__superClass) {
+    return {
+      main :function _trc_MMLBundle_main() {
+        var _this=this;
+        
+        "field strict";
+        
+      },
+      fiber$main :function* _trc_MMLBundle_f_main(_thread) {
+        var _this=this;
+        
+        "field strict";
+        
+        
+      },
+      initialize :function _trc_MMLBundle_initialize(mmls) {
+        var _this=this;
+        
+        _this.mmls=mmls;
+        let c = mmls.length;
+        
+        for (let [mml] of Tonyu.iterator2(mmls,1)) {
+          mml.on("ended",(function anonymous_173() {
+            
+            c--;
+            if (c<=0) {
+              _this.fireEvent("ended");
+            }
+          }));
+          
+        }
+      },
+      __getter__currentTime :function _trc_MMLBundle___getter__currentTime() {
+        var _this=this;
+        
+        return _this.mmls[0].currentTime;
+      },
+      pause :function _trc_MMLBundle_pause() {
+        var _this=this;
+        
+        for (let [mml] of Tonyu.iterator2(_this.mmls,1)) {
+          mml.pause();
+        }
+      },
+      fiber$pause :function* _trc_MMLBundle_f_pause(_thread) {
+        var _this=this;
+        
+        for (let [mml] of Tonyu.iterator2(_this.mmls,1)) {
+          mml.pause();
+        }
+        
+      },
+      stop :function _trc_MMLBundle_stop() {
+        var _this=this;
+        
+        for (let [mml] of Tonyu.iterator2(_this.mmls,1)) {
+          mml.stop();
+        }
+      },
+      fiber$stop :function* _trc_MMLBundle_f_stop(_thread) {
+        var _this=this;
+        
+        for (let [mml] of Tonyu.iterator2(_this.mmls,1)) {
+          mml.stop();
+        }
+        
+      },
+      start :function _trc_MMLBundle_start() {
+        var _this=this;
+        
+        for (let [mml] of Tonyu.iterator2(_this.mmls,1)) {
+          mml.start();
+        }
+      },
+      fiber$start :function* _trc_MMLBundle_f_start(_thread) {
+        var _this=this;
+        
+        for (let [mml] of Tonyu.iterator2(_this.mmls,1)) {
+          mml.start();
+        }
+        
+      },
+      __dummy: false
+    };
+  },
+  decls: {"methods":{"main":{"nowait":false,"isMain":true,"vtype":{"params":[],"returnValue":null}},"new":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"__getter__currentTime":{"nowait":true,"isMain":false,"vtype":{"params":[],"returnValue":null}},"pause":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"stop":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"start":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}}},"fields":{"mmls":{"vtype":"Array"}}}
 });
 Tonyu.klass.define({
   fullName: 'kernel.T1Array',
@@ -10824,7 +10973,7 @@ Tonyu.klass.define({
           _this.fillStyle="white";
         }
         if (_this.font) {
-          ctx.font=_this.size+"px "+_this.font;
+          ctx.font=_this.fontSizeChanged(_this.font,_this.size);
         }
         ctx.fillStyle=_this.fillStyle+"";
         ctx.globalAlpha=_this.alpha/255;
@@ -12958,6 +13107,17 @@ Tonyu.klass.define({
         _this.mmlBuf=[];
         
       },
+      timbre :function _trc_MML_timbre(...args) {
+        var _this=this;
+        
+        return T(...args);
+      },
+      fiber$timbre :function* _trc_MML_f_timbre(_thread,...args) {
+        var _this=this;
+        
+        return T(...args);
+        
+      },
       play :function _trc_MML_play(mmls) {
         var _this=this;
         
@@ -12979,7 +13139,7 @@ Tonyu.klass.define({
       },
       playNext :function _trc_MML_playNext() {
         var _this=this;
-        var mml;
+        var mmlAry;
         
         if (_this.cTimeBase==null) {
           _this.cTimeBase=0;
@@ -12988,23 +13148,45 @@ Tonyu.klass.define({
           _this.cTimeBase+=_this.m.currentTime;
           
         }
-        mml = _this.mmlBuf.shift();
+        mmlAry = _this.mmlBuf.shift();
         
-        if (! mml) {
+        if (! mmlAry) {
           _this.m=null;
           _this.cTimeBase=0;
           return _this;
           
         }
-        _this.mwav=Tonyu.globals.$WaveTable.get(0,0).play();
-        _this.m=T("mml",{mml: mml},_this.mwav);
+        let bundles = [];
+        
+        let patInst = /^\s*@(\d+)(?:\s*,\s*(\d+))?/;
+        
+        for (let [mml] of Tonyu.iterator2(mmlAry,1)) {
+          let m = patInst.exec(mml);
+          
+          let inst = 0;
+          let env = 0;
+          
+          if (m) {
+            mml=mml.substring(m[0].length);
+            inst=m[1]-0;
+            if (m[2]) {
+              env=m[2]-0;
+            }
+            
+          }
+          let mwav = Tonyu.globals.$WaveTable.get(inst,env).play();
+          
+          bundles.push(T("mml",{mml: mml},mwav));
+          
+        }
+        _this.m=new Tonyu.classes.kernel.MMLBundle(bundles);
         _this.m.on("ended",Tonyu.bindFunc(_this,_this.playNext));
         _this.m.start();
         Tonyu.globals.$MMLS[_this.id()]=_this;
       },
       fiber$playNext :function* _trc_MML_f_playNext(_thread) {
         var _this=this;
-        var mml;
+        var mmlAry;
         
         if (_this.cTimeBase==null) {
           _this.cTimeBase=0;
@@ -13013,16 +13195,38 @@ Tonyu.klass.define({
           _this.cTimeBase+=_this.m.currentTime;
           
         }
-        mml = _this.mmlBuf.shift();
+        mmlAry = _this.mmlBuf.shift();
         
-        if (! mml) {
+        if (! mmlAry) {
           _this.m=null;
           _this.cTimeBase=0;
           return _this;
           
         }
-        _this.mwav=Tonyu.globals.$WaveTable.get(0,0).play();
-        _this.m=T("mml",{mml: mml},_this.mwav);
+        let bundles = [];
+        
+        let patInst = /^\s*@(\d+)(?:\s*,\s*(\d+))?/;
+        
+        for (let [mml] of Tonyu.iterator2(mmlAry,1)) {
+          let m = patInst.exec(mml);
+          
+          let inst = 0;
+          let env = 0;
+          
+          if (m) {
+            mml=mml.substring(m[0].length);
+            inst=m[1]-0;
+            if (m[2]) {
+              env=m[2]-0;
+            }
+            
+          }
+          let mwav = Tonyu.globals.$WaveTable.get(inst,env).play();
+          
+          bundles.push(T("mml",{mml: mml},mwav));
+          
+        }
+        _this.m=new Tonyu.classes.kernel.MMLBundle(bundles);
         _this.m.on("ended",Tonyu.bindFunc(_this,_this.playNext));
         _this.m.start();
         Tonyu.globals.$MMLS[_this.id()]=_this;
@@ -13122,7 +13326,7 @@ Tonyu.klass.define({
       __dummy: false
     };
   },
-  decls: {"methods":{"main":{"nowait":false,"isMain":true,"vtype":{"params":[],"returnValue":null}},"play":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"playNext":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"id":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"bufferCount":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"isPlaying":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"currentTime":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"stop":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}}},"fields":{"mmlBuf":{},"cTimeBase":{},"m":{},"mwav":{},"_id":{}}}
+  decls: {"methods":{"main":{"nowait":false,"isMain":true,"vtype":{"params":[],"returnValue":null}},"timbre":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"play":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"playNext":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"id":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"bufferCount":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"isPlaying":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"currentTime":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"stop":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}}},"fields":{"mmlBuf":{},"cTimeBase":{},"m":{},"_id":{},"mwav":{}}}
 });
 Tonyu.klass.define({
   fullName: 'kernel.MMTimer',
@@ -13246,9 +13450,18 @@ Tonyu.klass.define({
         _this.wav={};
         _this.env={};
         if (typeof  T!=="undefined") {
-          _this.env=T("env",{table: [1,[0.6,50],[0,100]],releaseNode: 2});
+          _this.env=T("env",{table: [1,[0.6,50],[0,100]]});
           _this.setEnv(0,_this.env);
+          _this.env=T("env",{table: [1,[0.9,50],[0.8,100]]});
+          _this.setEnv(1,_this.env);
+          _this.env=T("env",{table: [1,[0.6,25],[0,50]]});
+          _this.setEnv(2,_this.env);
           _this.setWav(0,T("pulse"));
+          _this.setWav(1,T("saw"));
+          _this.setWav(2,T("tri"));
+          _this.setWav(3,T("sin"));
+          _this.setWav(10,T("noise"));
+          _this.setWav(11,T("pink"));
           
         }
       },
@@ -13258,9 +13471,18 @@ Tonyu.klass.define({
         _this.wav={};
         _this.env={};
         if (typeof  T!=="undefined") {
-          _this.env=T("env",{table: [1,[0.6,50],[0,100]],releaseNode: 2});
+          _this.env=T("env",{table: [1,[0.6,50],[0,100]]});
           (yield* _this.fiber$setEnv(_thread, 0, _this.env));
+          _this.env=T("env",{table: [1,[0.9,50],[0.8,100]]});
+          (yield* _this.fiber$setEnv(_thread, 1, _this.env));
+          _this.env=T("env",{table: [1,[0.6,25],[0,50]]});
+          (yield* _this.fiber$setEnv(_thread, 2, _this.env));
           (yield* _this.fiber$setWav(_thread, 0, T("pulse")));
+          (yield* _this.fiber$setWav(_thread, 1, T("saw")));
+          (yield* _this.fiber$setWav(_thread, 2, T("tri")));
+          (yield* _this.fiber$setWav(_thread, 3, T("sin")));
+          (yield* _this.fiber$setWav(_thread, 10, T("noise")));
+          (yield* _this.fiber$setWav(_thread, 11, T("pink")));
           
         }
         
@@ -13285,6 +13507,17 @@ Tonyu.klass.define({
         var _this=this;
         
         _this.env[num]=synth;
+        
+      },
+      timbre :function _trc_WaveTable_timbre(...args) {
+        var _this=this;
+        
+        return T(...args);
+      },
+      fiber$timbre :function* _trc_WaveTable_f_timbre(_thread,...args) {
+        var _this=this;
+        
+        return T(...args);
         
       },
       get :function _trc_WaveTable_get(w,e) {
@@ -13316,7 +13549,7 @@ Tonyu.klass.define({
       __dummy: false
     };
   },
-  decls: {"methods":{"main":{"nowait":false,"isMain":true,"vtype":{"params":[],"returnValue":null}},"setWav":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setEnv":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"get":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"stop":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}}},"fields":{"wav":{},"env":{}}}
+  decls: {"methods":{"main":{"nowait":false,"isMain":true,"vtype":{"params":[],"returnValue":null}},"setWav":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"setEnv":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"timbre":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"get":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"stop":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}}},"fields":{"wav":{},"env":{}}}
 });
 Tonyu.klass.define({
   fullName: 'kernel.T1FillPolygon',
@@ -20592,6 +20825,25 @@ Tonyu.klass.define({
         
         
       },
+      T :function _trc_PlayMod_T(...args) {
+        var _this=this;
+        
+        _this._mml4T=_this._mml4T||new Tonyu.classes.kernel.MML;
+        return _this._mml4T.timbre(...args);
+      },
+      fiber$T :function* _trc_PlayMod_f_T(_thread,...args) {
+        var _this=this;
+        
+        _this._mml4T=_this._mml4T||new Tonyu.classes.kernel.MML;
+        return _this._mml4T.timbre(...args);
+        
+      },
+      __getter__waveTable :function _trc_PlayMod___getter__waveTable() {
+        var _this=this;
+        
+        _this.initMML();
+        return Tonyu.globals.$WaveTable;
+      },
       initMML :function _trc_PlayMod_initMML() {
         var _this=this;
         
@@ -20606,7 +20858,7 @@ Tonyu.klass.define({
           Tonyu.globals.$Boot.on("stop",Tonyu.bindFunc(_this,_this.releaseMML));
           
         }
-        _this.on("die",(function anonymous_353() {
+        _this.on("die",(function anonymous_501() {
           
           _this.play().stop();
         }));
@@ -20709,7 +20961,7 @@ Tonyu.klass.define({
       __dummy: false
     };
   },
-  decls: {"methods":{"main":{"nowait":false,"isMain":true,"vtype":{"params":[],"returnValue":null}},"initMML":{"nowait":true,"isMain":false,"vtype":{"params":[],"returnValue":null}},"releaseMML":{"nowait":true,"isMain":false,"vtype":{"params":[],"returnValue":null}},"play":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"playSE":{"nowait":true,"isMain":false,"vtype":{"params":[],"returnValue":null}}},"fields":{"mmlInited":{},"_mml":{}}}
+  decls: {"methods":{"main":{"nowait":false,"isMain":true,"vtype":{"params":[],"returnValue":null}},"T":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"__getter__waveTable":{"nowait":true,"isMain":false,"vtype":{"params":[],"returnValue":null}},"initMML":{"nowait":true,"isMain":false,"vtype":{"params":[],"returnValue":null}},"releaseMML":{"nowait":true,"isMain":false,"vtype":{"params":[],"returnValue":null}},"play":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}},"playSE":{"nowait":true,"isMain":false,"vtype":{"params":[],"returnValue":null}}},"fields":{"mmlInited":{},"_mml":{},"_mml4T":{}}}
 });
 Tonyu.klass.define({
   fullName: 'kernel.InputMod',
@@ -37297,6 +37549,8 @@ Tonyu.klass.define({
             }
           }
         });
+        ;
+        
       },
       fiber$main :function* _trc_WebPage_f_main(_thread) {
         var _this=this;
@@ -37325,6 +37579,8 @@ Tonyu.klass.define({
             }
           }
         });
+        ;
+        
         
       },
       openNewWindow :function _trc_WebPage_openNewWindow(url,options) {
@@ -37616,10 +37872,110 @@ Tonyu.klass.define({
         return Util.getQueryString(name,def);
         
       },
+      openSharePost :function _trc_WebPage_openSharePost() {
+        var _this=this;
+        function copy() {
+          
+          h.copyToClipboard("mesg");
+        }function close() {
+          
+          h.die();
+        }
+        let a = new Tonyu.classes.kernel.ArgParser(arguments);
+        
+        let options = a.shiftOptions("text","url","tag","left","top","width","height","fontsize");
+        
+        options=options||{};
+        let left = (options.left!=null?options.left:options.width!=null?Tonyu.globals.$screenWidth/2-options.width/2:50);
+        
+        let width = (options.width!=null?options.width:options.left!=null?Tonyu.globals.$screenWidth-options.left*2:Tonyu.globals.$screenWidth-100);
+        
+        let top = (options.top!=null?options.top:options.height!=null?Tonyu.globals.$screenHeight/2-options.height/2:50);
+        
+        let height = (options.height!=null?options.height:options.top!=null?Tonyu.globals.$screenHeight-options.top*2:Tonyu.globals.$screenHeight-100);
+        
+        let fontsize = options.fontsize||"12px";
+        
+        if (typeof  fontsize==="number") {
+          fontsize=fontsize+"px";
+        }
+        let tag = options.tag;
+        
+        if (typeof  tag==="string") {
+          tag=tag.split(",");
+        }
+        let m = options.text;
+        
+        if (options.url) {
+          m+=" "+options.url;
+        }
+        if (tag) {
+          let hashify = ((s)=>(s.replace(/^#?/,"#")));
+          
+          m+=" "+tag.map(hashify).join(" ");
+          
+        }
+        let h = new Tonyu.classes.kernel.HTMLUI({content: ["div",{style: "background: white;"},["textarea",{style: ['\r\n            position:absolute;\r\n            top:5%;\r\n            width:90%;height:80%;left:5%;\r\n            font-size:',fontsize,';\r\n            '].join(''),rows: _this.rows,name: "mesg"},m],["div",["button",{style: "width:50%;top:90%;left:0%;height:10%;position:absolute;",onclick: copy},"Copy"],["button",{style: "width:50%;top:90%;left:50%;height:10%;position:absolute;",onclick: close},"Close"]]],left: left,top: top,width: width,height: height});
+        
+        
+        
+        return h;
+      },
+      fiber$openSharePost :function* _trc_WebPage_f_openSharePost(_thread) {
+        var _this=this;
+        var _arguments=Tonyu.A(arguments);
+        function copy() {
+          
+          h.copyToClipboard("mesg");
+        }function close() {
+          
+          h.die();
+        }
+        let a = new Tonyu.classes.kernel.ArgParser(_arguments);
+        
+        let options = a.shiftOptions("text","url","tag","left","top","width","height","fontsize");
+        
+        options=options||{};
+        let left = (options.left!=null?options.left:options.width!=null?Tonyu.globals.$screenWidth/2-options.width/2:50);
+        
+        let width = (options.width!=null?options.width:options.left!=null?Tonyu.globals.$screenWidth-options.left*2:Tonyu.globals.$screenWidth-100);
+        
+        let top = (options.top!=null?options.top:options.height!=null?Tonyu.globals.$screenHeight/2-options.height/2:50);
+        
+        let height = (options.height!=null?options.height:options.top!=null?Tonyu.globals.$screenHeight-options.top*2:Tonyu.globals.$screenHeight-100);
+        
+        let fontsize = options.fontsize||"12px";
+        
+        if (typeof  fontsize==="number") {
+          fontsize=fontsize+"px";
+        }
+        let tag = options.tag;
+        
+        if (typeof  tag==="string") {
+          tag=tag.split(",");
+        }
+        let m = options.text;
+        
+        if (options.url) {
+          m+=" "+options.url;
+        }
+        if (tag) {
+          let hashify = ((s)=>(s.replace(/^#?/,"#")));
+          
+          m+=" "+tag.map(hashify).join(" ");
+          
+        }
+        let h = new Tonyu.classes.kernel.HTMLUI({content: ["div",{style: "background: white;"},["textarea",{style: ['\r\n            position:absolute;\r\n            top:5%;\r\n            width:90%;height:80%;left:5%;\r\n            font-size:',fontsize,';\r\n            '].join(''),rows: _this.rows,name: "mesg"},m],["div",["button",{style: "width:50%;top:90%;left:0%;height:10%;position:absolute;",onclick: copy},"Copy"],["button",{style: "width:50%;top:90%;left:50%;height:10%;position:absolute;",onclick: close},"Close"]]],left: left,top: top,width: width,height: height});
+        
+        
+        
+        return h;
+        
+      },
       __dummy: false
     };
   },
-  decls: {"methods":{"main":{"nowait":false,"isMain":true,"vtype":{"params":[],"returnValue":null}},"openNewWindow":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"openPage":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"openTweet":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null,null,null],"returnValue":null}},"openShareTweet":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null,null,null],"returnValue":null}},"showLink":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"param":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}}},"fields":{"eventWindowOpen":{},"postOptions":{},"postUrl":{},"canvas":{},"listenerExists":{}}}
+  decls: {"methods":{"main":{"nowait":false,"isMain":true,"vtype":{"params":[],"returnValue":null}},"openNewWindow":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"openPage":{"nowait":false,"isMain":false,"vtype":{"params":[null],"returnValue":null}},"openTweet":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null,null,null],"returnValue":null}},"openShareTweet":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null,null,null,null],"returnValue":null}},"showLink":{"nowait":false,"isMain":false,"vtype":{"params":[null,null,null],"returnValue":null}},"param":{"nowait":false,"isMain":false,"vtype":{"params":[null,null],"returnValue":null}},"openSharePost":{"nowait":false,"isMain":false,"vtype":{"params":[],"returnValue":null}}},"fields":{"eventWindowOpen":{},"postOptions":{},"postUrl":{},"canvas":{},"listenerExists":{},"rows":{}}}
 });
 Tonyu.klass.define({
   fullName: 'kernel.Boot',
