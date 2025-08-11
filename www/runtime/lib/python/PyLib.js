@@ -1052,6 +1052,7 @@ define(function (require,exports,module) {
             return self.concat(...args);
         },
         __delattr__(self,i) {
+            if (typeof i!=="number") throw new Error("添字は数値にしてください。");
             self.splice(i,1);
         },
         __str__(self) {
@@ -1067,8 +1068,9 @@ define(function (require,exports,module) {
                 }
                 return res;
             }
-            if (key<0) key=self.length+key;
-            if (key>=self.length) throw new Error(`添字[${key}]は範囲外です(0...${self.length-1})`);
+            if (typeof key!=="number") throw new Error("添字は数値にしてください。");
+            if (key<0 && key>=-self.length) key=self.length+key;
+            if (key>=self.length || key<0) throw new Error(`添字[${key}]は範囲外です(${-self.length}...${self.length-1})`);
             return self[key];
         },
         __setitem__:function (self,key, value) {

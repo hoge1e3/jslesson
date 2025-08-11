@@ -4,6 +4,7 @@ function (Visitor,context,Annotation,root) {
 const builtins=["range","input","str","int","sum","float","object","len","type","quit","exit","sorted","abs",
     "min","max","list","isinstance","zip","ord","chr",
     "fillRect","setColor","setTimeout","clearRect","clear","StopIteration","open"];
+const unallowMembers={"__getattribute__":1,"__getattr__":1,"__dict__":1,"__builtins__":1}
 const ops={
     "+":"add",
     "-":"sub",
@@ -379,6 +380,9 @@ const vdef={
     },
     memberRef: function (node) {
         // node.name
+        if (unallowMembers.hasOwnProperty(node.name)) {
+            throw new Error("属性値"+node.name+"は使えません。");
+        }
         //console.log("memberRef", args);
     },
     "number": function (node) {
@@ -425,6 +429,13 @@ const vdef={
     "literal3": function (node) {
 
     },
+    literal_in_f: function (node) {
+    },
+    literalF(node) {
+        for (let p of node.parts) {
+            this.visit(p);
+        }
+    },
     "returnStmt": function (node) {
         if (node.expr) {
             this.visit(node.expr);
@@ -441,6 +452,7 @@ for (let t of thru) {
     vdef[t]=()=>{};
 }
 const Semantics= {
+    unallowMembers,
     check: function (node,options) {
         options=options||{};
         const v=Visitor(vdef);

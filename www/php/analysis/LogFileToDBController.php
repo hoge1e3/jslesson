@@ -153,7 +153,9 @@ class LogFileToDBController {
         	        );
                     //var_dump($a);
             	    $sth->execute($a);
-                } catch(Exception $e) {}
+                } catch(Exception $e) {
+                    error_log($e);
+                }
     	        //break;
             }
             $file->appendTo($arc->rel($file->name()) );

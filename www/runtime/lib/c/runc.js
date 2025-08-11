@@ -16,7 +16,10 @@
             },
             "x": {
                 deps: ["lib", "util"]
-            }
+            },
+            "music": {
+                deps: ["lib", "util"]
+            },
         },
         paths: {
             "lib": R + "lib/c/lib",
@@ -24,6 +27,7 @@
             "util": R + "lib/c/util",
             "ctype": R + "lib/c/ctype",
             "x": R + "lib/c/x",
+            "music": R + "lib/c/music",
             "AsyncByGenerator": R + "lib/AsyncByGenerator",
             // "AsyncByGeneratorRaw": R+"lib/c/AsyncByGeneratorRaw",
             "assert": R + "lib/assert",
@@ -47,17 +51,17 @@
     });
 })();
 requirejs(["assert", "Klass", "FS", "_Util"], function (assert, Klass, FS, _Util) {
-    requirejs(["scanf", "lib", "util", "ctype", "x", "AsyncByGenerator"], function (_s, lib, u, c, x, ABG) {
+    requirejs(["scanf", "lib", "util", "ctype", "x", "music", "AsyncByGenerator"], function (_s, lib, u, c, x, music, ABG) {
         //  ABG.ready(function(){
         requirejs([window.sourceName], function () {
             try {
                 if ($("#console").length == 0) {
-                    var size;
-                    if (parent && parent.editorTextSize) {
-                        size = parent.editorTextSize + "px";
-                    } else {
-                        size = "";
-                    }
+                    var size="";
+                    try {
+                        if (parent.editorTextSize) {
+                            size = parent.editorTextSize + "px";
+                        }
+                    } catch(e) {}
                     $("<pre>").attr({ id: "console", style: "font-size:" + size + ";" }).appendTo("body");
                 }
                 var s = _Util.getQueryString("stdin", null);
@@ -74,9 +78,13 @@ requirejs(["assert", "Klass", "FS", "_Util"], function (assert, Klass, FS, _Util
                 if (e.suppressHandleError) return;
                 if (window.runc_handleError) return window.runc_handleError(e);
                 console.log(e.stack);
-                if (parent && parent.Tonyu && typeof parent.Tonyu.onRuntimeError === "function") {
-                    parent.Tonyu.onRuntimeError(e);
-                } else {
+                try {
+                    if (typeof parent.Tonyu.onRuntimeError === "function") {
+                        parent.Tonyu.onRuntimeError(e);
+                        return;
+                    }
+                    throw new Error("Error");
+                } catch(_e) {
                     alert(e);
                 }
             }

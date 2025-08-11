@@ -43,6 +43,8 @@ import DesktopSettingDialog from "./../ide/DesktopSettingDialog.js";
 import languageList from "./../build/LanguageList.js";
 import ModeList from "./../ide/ModeList.js";
 import importModule from "./../importModule.js";
+import * as rpc from "../lib/rpc.js";
+
 if (location.href.match(/localhost/)) {
     console.log("assertion mode strict");
     A.setMode(A.MODE_STRICT);
@@ -1066,6 +1068,14 @@ EC.handleException=async function (e) {
         logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile?curHTMLFile.text():"",langInfo.en+" Runtime Error",e/*posinfo+(e.stack || e)*/,langInfo.en);
     }
 };
+function servErrorHandler(){
+    rpc.proxy.server("error",["https://run.eplang.jp"],{
+        show(e) {
+            EC.handleException(e);
+        }
+    });
+}
+try{servErrorHandler();}catch(e){console.error(e);}
 function close(rm) { // rm or mv
     var i=editors[rm.path()]; //getCurrentEditorInfo();
     if (i) {
@@ -1092,6 +1102,9 @@ function fixEditorIndent(prog) {
     if (langInfo.manualIndent) return;
     A.is(prog,"AceEditor");
     var prev=prog.getValue();
+    if (prev.includes("DO-NOT-FIX-INDENT")) {
+        return;
+    }
     let fixed;
     if (builder.getIndentFixer) {
         fixed=builder.getIndentFixer().fix(prev);
@@ -1230,7 +1243,25 @@ function open(f) {
         //defaultKeyboard=prog.getKeyboardHandler();
         //if(desktopEnv.editorMode=="emacs") prog.setKeyboardHandler("ace/keyboard/emacs");
         //prog.setKeyboardHandler(defaultKeyboard);
-        prog.getSession().setMode(ModeList.getMode(f));
+        const mode=ModeList.getMode(f);
+        const session=prog.getSession();
+        session.setMode(mode);
+        if (mode === "ace/mode/javascript"){
+            setTimeout(()=>{
+                if (session.$worker) {
+                    session.$worker.send(
+                        "changeOptions",
+                        [{
+                            maxerr:10000,
+                            esnext:false,
+                            esversion:11,
+                            undef:true,
+                        }],
+                        (...a)=>console.log(a)
+                    );
+                }    
+            },1000);
+        }
         /*const isLogicFile=curPrj.isLogicFile(f);
             if (isLogicFile) {
                 const mode=langInfo.mode || "ace/mode/tonyu";
@@ -1337,9 +1368,9 @@ $("#home").click(F(function () {
 function goHome(){
     console.log("goHome");
     unsynced=false;
-    location.href=(globalThis&&
+    location.href="index.html";/*(globalThis&&
         globalThis.BitArrow&&
-        globalThis.BitArrow.esm?"index.html":"amd.html");
+        globalThis.BitArrow.esm?"index.html":"amd.html");*/
 }
 $("#openHelp").click(function(){
     window.open(helpURL,"helpTab");

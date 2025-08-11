@@ -14,7 +14,10 @@
             },
             "x": {
                 deps:["lib","util"]
-            }
+            },
+            "music": {
+                deps:["lib","util"]
+            },
         },
         paths: {
           "lib": R+"lib/c/lib",
@@ -22,6 +25,7 @@
           "util": R+"lib/c/util",
           "ctype": R+"lib/c/ctype",
           "x": R+"lib/c/x",
+          "music": R+"lib/c/music",
           "AsyncByGenerator": R+"lib/AsyncByGenerator",
          // "AsyncByGeneratorRaw": R+"lib/c/AsyncByGeneratorRaw",
           "assert": R+"lib/assert",
@@ -45,7 +49,7 @@
     });
 })();
 requirejs(["assert","Klass","FS","_Util"],function (assert,Klass,FS,_Util) {
-  requirejs(["scanf","lib","util","ctype","x","AsyncByGenerator"],function (_s,lib,u,c,x,ABG) {
+  requirejs(["scanf","lib","util","ctype","x","music","AsyncByGenerator"],function (_s,lib,u,c,x,music,ABG) {
     //  ABG.ready(function(){
     requirejs([window.sourceName],function () {
         try{
