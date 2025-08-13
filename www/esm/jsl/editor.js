@@ -43,7 +43,6 @@ import DesktopSettingDialog from "./../ide/DesktopSettingDialog.js";
 import languageList from "./../build/LanguageList.js";
 import ModeList from "./../ide/ModeList.js";
 import importModule from "./../importModule.js";
-import * as rpc from "../lib/rpc.js";
 
 if (location.href.match(/localhost/)) {
     console.log("assertion mode strict");
@@ -80,6 +79,13 @@ var typingCheckContent=null, sendUnsavedContentCount=0, lastSentUnsavedContent=n
 //var Builder;
 var builder;
 var ram;
+function rpcLogServer(){
+    rpc.proxy.server(window, "log", [new URL(WebSite.runtime_in_service).origin] , {
+        sendResult(...a) {
+            console.log("rpc sent",...a);
+        }
+    });
+}
 //var scoremsg;
 function showToast(msg){
 	$("#toastArea").html(msg);
@@ -155,6 +161,7 @@ async function getURLInfo() {
     };
     WebSite.hosts.ide.controller=WebSite.hosts.ide.top;
     WebSite.hosts.service.controller=WebSite.hosts.service.top;
+    rpcLogServer();
 }
 $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"]),getURLInfo()).
 then(ready).fail(function (e) {
@@ -967,6 +974,9 @@ async function run(options) {//run!!
             if (options.sendURL) {
                 options.sendURL(runURL, location.href);
                 return;
+            }
+            if (langInfo.useMiniBrowser) {
+                runURL=`${WebSite.controller_in_service}browser.html?url=${encodeURIComponent(runURL)}`;
             }
             return IframeDialog.show(runURL,{width:600,height:400});
         } else {

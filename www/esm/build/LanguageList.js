@@ -11,7 +11,7 @@ module.exports={
         helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
     "c":{en:"C", ja:"C",builder:"CBuilder",
         helpURL:"http://bitarrow.eplang.jp/index.php?c_use", mode:"ace/mode/c_cpp"},
-    "php":{en:"PHP", ja:"PHP",builder:"PHPBuilder",
+    "php":{en:"PHP", ja:"PHP",builder:"PHPBuilder",useMiniBrowser:true,
         helpURL:"http://bitarrow.eplang.jp/index.php?php",mode:"ace/mode/php"},
     "dncl":{en:"DNCL", ja:"DNCL(どんくり)",builder:"DnclBuilder",manualIndent:true,
         helpURL:"http://bitarrow.eplang.jp/index.php?dncl_use"},

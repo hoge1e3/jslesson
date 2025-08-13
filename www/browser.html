@@ -1,0 +1,64 @@
+<html>
+    <head>
+<link rel="stylesheet" href="browser.css"/>
+    </head>
+<body>
+<div class="url">
+<input name="url"><button onclick="go()">Go</button>
+</div>
+<iframe></iframe>
+<script src="https://cdn.jsdelivr.net/npm/url-parse/dist/url-parse.js"></script>
+<script type="module">
+import * as rpc from "https://cdn.jsdelivr.net/npm/@hoge1e3/rpc/dist/index.js";
+const logger=window.parent && window.parent!==window && await rpc.proxy.client(window.parent,"log","https://bitarrow3.eplang.jp");
+function sendResult(url, html) {
+    const res=looksLikeError(html) ? "Runtime Error" : "Run";
+    if (logger) {
+        logger.sendResult(url, html, "PHP", res);
+    }
+}
+function looksLikeError(html) {
+    //<b>Notice</b>
+    //<b>Parse error</b>
+    //<b>Fatal error</b>
+    return html.match(/<b>(notice|[\w\s]*error)<\/b>/i);
+}
+let prevURL;
+function refreshURL() {
+    try {
+        const src=iframe.contentWindow.location.href;
+        if (src!=="about:blank" && src!==prevURL) {
+            url.value=src;
+            prevURL=src;
+            sendResult(src, iframe.contentWindow.document.body.innerHTML);
+        }
+    } catch(e) {
+
+    }
+}
+function attachEnterKey() {
+    url.addEventListener("keydown",e=>{
+        if (e.keyCode===13) {
+            go();
+        }
+    })
+}
+
+
+const params=URLParse.qs.parse(location.search);
+const iframe=document.querySelector("iframe");
+const url=document.querySelector(".url input");
+attachEnterKey();
+if (params.url) {
+    url.value=params.url;
+    iframe.setAttribute("src",params.url);
+}
+function go(){
+    iframe.setAttribute("src",url.value);
+    prevURL=url.value;
+
+}
+setInterval(refreshURL,500);
+window.go=go;
+</script>
+</body></html>
