@@ -146,14 +146,18 @@ class LogFileToDBController {
                     }
                     //echo DateUtil::toString($time);
                     $a=array(
-            	        $time,$c,$user,$lang,substr($filename,0,250),
+            	        $time,$c,$user,
+                        substr($lang,0,9),
+                        substr($filename,0,250),
                         $result,
                         mb_substr($detail,0,20000),
                         mb_substr($raw,0,20000),$errorType,$errorPos
         	        );
                     //var_dump($a);
             	    $sth->execute($a);
-                } catch(Exception $e) {}
+                } catch(Throwable $e) {
+                    error_log($e->getMessage());
+                }
     	        //break;
             }
             $file->appendTo($arc->rel($file->name()) );
