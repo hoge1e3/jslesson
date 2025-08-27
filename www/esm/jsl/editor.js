@@ -976,9 +976,13 @@ async function run(options) {//run!!
                 return;
             }
             if (langInfo.useMiniBrowser) {
-                runURL=`${WebSite.controller_in_service}browser.html?url=${encodeURIComponent(runURL)}`;
+                runURL=`${WebSite.controller_in_service}browser.html?url=${encodeURIComponent(runURL)}&parentOrigin=${encodeURIComponent(location.origin)}`;
             }
-            return IframeDialog.show(runURL,{width:600,height:400});
+            if (isSplit()) {
+                return IframeDialog.embed(runURL,{targetDOM:$("#runEmbed")});
+            } else {
+                return IframeDialog.show(runURL,{width:600,height:400});
+            }
         } else {
             var indexF=buildStatus.indexFile;
             const params=options.stdin?{stdin:options.stdin}:{};

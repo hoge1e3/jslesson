@@ -35,7 +35,6 @@ ide/DistributeDialog.js
 ide/RunDialog.js
 ide/RunDialog2.js
 ide/ErrorDialog.js
-ide/IframeDialog.js
 ide/RemoteProject.js
 runtime/WebSite.js
 ui/UI.js

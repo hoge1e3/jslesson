@@ -123,8 +123,8 @@ class BAUser {
     }
 
     function setOptions($key,$value){
-        if(self::exists()){
-            $this->options=self::getOptions();
+        if($this->exists()){
+            $this->options=$this->getOptions();
         } else {
             $this->options=new stdClass;
         }

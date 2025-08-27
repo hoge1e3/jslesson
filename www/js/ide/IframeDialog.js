@@ -67,6 +67,20 @@ function (UI ,DA) {
                         height:d.height()-res.d.$vars.OKButton.height()});
                 }
             };
+            if (options.targetDOM) {
+                //console.log("targetDOM",res.targetDOM.width(), res.d.height());
+                const td=options.targetDOM;
+                res.d.appendTo(td);
+                res.fitToTarget=()=>{
+                    bsize.width=td.width();
+                    bsize.height=td.height()-res.d.$vars.buttonRow.height();
+                    if (res.b) {
+                        res.b.resize(bsize.width, bsize.height);
+                    }
+                };
+                res.fitToTarget();
+                //res.da.afterResize(res.d);
+            }
         } else {
             try {
                 res.iframe[0].contentWindow.location.href=url;

@@ -610,6 +610,49 @@ class ClassController {
         $lg=$class->getLogByUser($userid);
         print(json_encode($lg));
     }
+    static function assignDockerUserID() {
+        $class=Auth::curClass2();
+        ?><table><tr>
+            <td>User in ba</td>
+            <td>User in docker</td>
+        </tr>
+        <?php
+        $occupied=[];
+        foreach($class->getAllStu() as $bau){
+            $o=$bau->getOptions();
+            if (isset($o->dockerUserID)) {
+                $occupied[$o->dockerUserID]=1;
+            }
+        }
+        $idseq=1;
+        $dockerUser2BAUser=[];
+        foreach($class->getAllStu() as $bau){
+            $o=$bau->getOptions();
+            echo "<tr>";
+            echo "<td>".htmlspecialchars($bau->name)."</td>";
+            if (isset($o->dockerUserID)) {
+                echo "<td>".htmlspecialchars($o->dockerUserID)."</td>";
+                $dockerUser2BAUser[$o->dockerUserID]=$bau->name;
+
+            } else {
+                do {
+                    $idseq++;
+                    $pad="00000$idseq";
+                    $newUserID="user".substr($pad, strlen($pad)-3);
+                }while (isset($occupied[$newUserID]));
+                echo "<td>+".htmlspecialchars($newUserID)."</td>";
+                $bau->setOptions("dockerUserID",$newUserID);
+                $bau->edit();
+                $dockerUser2BAUser[$newUserID]=$bau->name;
+            }
+            
+            echo "</tr>";
+        }
+        echo "</table>";    
+        $home=Auth::homeOfClass($class);
+        $home->rel("dockerUser2BAUser.json")->text(json_encode($dockerUser2BAUser));
+    }
+
 }
 
 ?>

@@ -115,6 +115,10 @@ class LoginController {
         $t=Auth::curTeacher();
         if ($t && (!$u || $t->isTeacherOf($u->_class))) $res["teacher"]=$t->name;
         $res["time"]=DateUtil::now();
+        $uo=$u->getOptions();
+        if (isset($uo->dockerUserID)) {
+            $res["dockerUserID"]=$uo->dockerUserID;
+        }
         $oa=MySession::get("oauthed_id",null);
         if ($oa) $res["oauthed_id"]=$oa;
         if (defined("BAUTH_SALT")) {
@@ -293,6 +297,11 @@ class LoginController {
     static function getPublishedDir() {
         $p=$_GET["project"];
         echo Auth::getPublishedDir($p);
+    }
+    static function getUserOptions(){
+        $o=Auth::curUser2()->getOptions();
+        header("Content-type: text/json");
+        echo json_encode($o);
     }
     static function test() {
         $actual_link = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";

@@ -10,8 +10,44 @@
 <script src="https://cdn.jsdelivr.net/npm/url-parse/dist/url-parse.js"></script>
 <script type="module">
 import * as rpc from "https://cdn.jsdelivr.net/npm/@hoge1e3/rpc/dist/index.js";
-const logger=window.parent && window.parent!==window && await rpc.proxy.client(window.parent,"log","https://bitarrow3.eplang.jp");
+const params=URLParse.qs.parse(location.search);
+function isCrossOrigin(target) {
+    const m=target;
+    try {
+        if (!m) return false;
+        if (!m.location) return false;
+        if (!m.location.href) return false;
+        //(m?.location?.href);
+        return false;
+    } catch(e){
+        return true;
+    }
+}
+function getParent(){
+    const p=window.parent||window.opener;
+    return p!==window && p;
+}
+async function createLogger() {
+    const p=getParent();
+    if (p) {
+        if (isCrossOrigin(p)) {
+            const origin=params.parentOrigin;
+            if (!origin){
+                console.warn("params.origin is not set. logger is not created.");
+                return true;
+            }
+            console.log ("Created logger");
+            return await rpc.proxy.client(p,"log",origin);
+        } else {
+            console.warn("Created: same origin logger");
+            return parent;
+        }
+    }
+    console.warn("No logger created");
+}
+const logger=await createLogger();//.parent && window.parent!==window && await rpc.proxy.client(window.parent,"log","https://bitarrow3.eplang.jp");
 function sendResult(url, html) {
+    if (url.endsWith("term.html")) return;
     const res=looksLikeError(html) ? "Runtime Error" : "Run";
     if (logger) {
         logger.sendResult(url, html, "PHP", res);
@@ -45,7 +81,6 @@ function attachEnterKey() {
 }
 
 
-const params=URLParse.qs.parse(location.search);
 const iframe=document.querySelector("iframe");
 const url=document.querySelector(".url input");
 attachEnterKey();

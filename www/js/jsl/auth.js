@@ -95,6 +95,9 @@ define(["FS","md5","WebSite","DeferredUtil","root"], function (FS,md5,WebSite,DU
         getClassOptions: function () {
             return $.ajax(".?Class/getOptions");
         },
+        getUserOptions(){
+
+        },
     };
     return root.Auth;
 });
