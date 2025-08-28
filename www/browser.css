@@ -9,6 +9,14 @@ iframe {
     top: 30px;
     height: calc(100% - 30px);
 }
+textarea.src {
+    display: none;
+    position: absolute;
+    width: 100%;
+    left: 0px;
+    top: 30px;
+    height: calc(100% - 30px);
+}
 .url {
     position: absolute;
     top: 0px;
@@ -22,9 +30,15 @@ iframe {
     left: 0px;
     right: 100px;    
 }
-.url button {
+.url button.go {
     position: absolute;
     top: 0px;
-    width: 100px;
+    width: 50px;
+    right: 50px;    
+}
+.url button.src {
+    position: absolute;
+    top: 0px;
+    width: 50px;
     right: 0px;    
 }
