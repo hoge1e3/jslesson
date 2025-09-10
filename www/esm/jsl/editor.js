@@ -41,6 +41,8 @@ import DesktopSettingDialog from "./../ide/DesktopSettingDialog.js";
 import languageList from "./../build/LanguageList.js";
 import ModeList from "./../ide/ModeList.js";
 import importModule from "./../importModule.js";
+import * as rpc from "../lib/rpc.js";
+
 if (location.href.match(/localhost/)) {
     console.log("assertion mode strict");
     A.setMode(A.MODE_STRICT);
@@ -1064,6 +1066,14 @@ EC.handleException=async function (e) {
         logToServer2(curJSFile.path(),curJSFile.text(),curHTMLFile?curHTMLFile.text():"",langInfo.en+" Runtime Error",e/*posinfo+(e.stack || e)*/,langInfo.en);
     }
 };
+function servErrorHandler(){
+    rpc.proxy.server("error",["https://run.eplang.jp"],{
+        show(e) {
+            EC.handleException(e);
+        }
+    });
+}
+try{servErrorHandler();}catch(e){console.error(e);}
 function close(rm) { // rm or mv
     var i=editors[rm.path()]; //getCurrentEditorInfo();
     if (i) {

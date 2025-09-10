@@ -120,6 +120,14 @@ class LoginController {
         if (defined("BAUTH_SALT")) {
             $res=statusHash($res);
         }
+        if (defined("REDIRECT_BY_CLASS")) {
+            if (isset(REDIRECT_BY_CLASS[$res["class"]])) {
+                $red=REDIRECT_BY_CLASS[$res["class"]];
+                if ($red!==BA_TOP_URL) {
+                    $res["redirect"]=$red;
+                }
+            }
+        }
         $callback=param("callback",null);
         if ($callback) {
             $res["otp"]=OTP::create($res);
