@@ -115,9 +115,11 @@ class LoginController {
         $t=Auth::curTeacher();
         if ($t && (!$u || $t->isTeacherOf($u->_class))) $res["teacher"]=$t->name;
         $res["time"]=DateUtil::now();
-        $uo=$u->getOptions();
-        if (isset($uo->dockerUserID)) {
-            $res["dockerUserID"]=$uo->dockerUserID;
+        if ($u && $u->exists()) {
+            $uo=$u->getOptions();
+            if (isset($uo->dockerUserID)) {
+                $res["dockerUserID"]=$uo->dockerUserID;
+            }
         }
         $oa=MySession::get("oauthed_id",null);
         if ($oa) $res["oauthed_id"]=$oa;
