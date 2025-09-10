@@ -8,6 +8,9 @@ define(["FS","md5","WebSite","DeferredUtil","root"], function (FS,md5,WebSite,DU
                 if (typeof r==="string") r=JSON.parse(r);
                 console.log(r,r.class,r.user, r.teacher);
                 self.login(r.class,r.user, r.teacher);
+                if (r.redirect) {
+                    location.href=r.redirect;
+                }
                 return self;
             });
 

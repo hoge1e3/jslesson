@@ -89,7 +89,9 @@ EOF
 );
 require(__DIR__."/config.shadow.php");
 define('DEFAULT_CLASS_OPTIONS',array('disableNote'=>true));
-
+define('REDIRECT_BY_CLASS',[
+    "ti-cha-"=>"https://bitarrow3.eplang.jp/bitarrow/"
+])
 /*
 define('CONSUMER_KEY', 'XXX');
 define('CONSUMER_SECRET', 'YYY');
