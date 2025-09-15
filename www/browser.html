@@ -44,7 +44,11 @@ async function createLogger() {
             return await rpc.proxy.client(p,"log",origin);
         } else {
             console.warn("Created: same origin logger");
-            return parent;
+            return {
+                sendResult(url,html,lang, res){
+                    parent.sendResult(html, lang, result);
+                }
+            };
         }
     }
     console.warn("No logger created");
