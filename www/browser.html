@@ -46,7 +46,7 @@ async function createLogger() {
             console.warn("Created: same origin logger");
             return {
                 sendResult(url,html,lang, res){
-                    parent.sendResult(html, lang, result);
+                    parent.sendResult(html, lang, res);
                 }
             };
         }
@@ -79,7 +79,7 @@ function refreshURL() {
         }
         srctxt.value=iframe.contentWindow.document.body.innerHTML;
     } catch(e) {
-
+        console.error(e);
     }
 }
 function attachEnterKey() {
