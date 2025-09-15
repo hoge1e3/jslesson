@@ -121,7 +121,7 @@ class LoginController {
             $res=statusHash($res);
         }
         if (defined("REDIRECT_BY_CLASS")) {
-            if (isset(REDIRECT_BY_CLASS[$res["class"]])) {
+            if (isset($res["class"]) && isset(REDIRECT_BY_CLASS[$res["class"]])) {
                 $red=REDIRECT_BY_CLASS[$res["class"]];
                 if ($red!==BA_TOP_URL) {
                     $res["redirect"]=$red;
