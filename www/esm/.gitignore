@@ -134,7 +134,6 @@ build/python/PythonGen.js
 build/python/Python2JS.js
 build/python/pyRun.js
 build/python/pyTest.js
-build/php/PHPBuilder.js
 build/p5/P5Builder.js
 build/python/p5pyBuilder.js
 build/web/WebBuilder.js
