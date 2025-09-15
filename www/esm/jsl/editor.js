@@ -79,13 +79,6 @@ var typingCheckContent=null, sendUnsavedContentCount=0, lastSentUnsavedContent=n
 //var Builder;
 var builder;
 var ram;
-function rpcLogServer(){
-    rpc.proxy.server(window, "log", [new URL(WebSite.runtime_in_service).origin] , {
-        sendResult(...a) {
-            console.log("rpc sent",...a);
-        }
-    });
-}
 //var scoremsg;
 function showToast(msg){
 	$("#toastArea").html(msg);
@@ -161,7 +154,6 @@ async function getURLInfo() {
     };
     WebSite.hosts.ide.controller=WebSite.hosts.ide.top;
     WebSite.hosts.service.controller=WebSite.hosts.service.top;
-    rpcLogServer();
 }
 $.when(DU.documentReady(),firstSync(), DU.requirejs(["ace"]),getURLInfo()).
 then(ready).fail(function (e) {
@@ -171,6 +163,24 @@ then(ready).fail(function (e) {
 });
 
 function ready() {
+
+
+function rpcLogServer(){
+    rpc.proxy.server(window, "log", [new URL(WebSite.runtime_in_service).origin] , {
+        sendResult(url, output, lang, result) {
+            const urls=url.split("/");
+            const path= urls.slice(urls.length-2).join("/");
+            const file= curProjectDir.up().rel(path);
+            const src=(file.exists()?file.text():"NOT-FOUND:"+file.path());
+            // resDetail=output
+            //logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile?curHTMLFile.text():"",(langInfo.en||lang)+" "+result, resDetail,langInfo.en);
+            //logToServer2(curLogicFile.path(),curLogicFile.text(),curHTMLFile?curHTMLFile.text():"",langInfo.en+" Build","ビルドしました",langInfo.en);
+            logToServer2(file.path(), src, "", lang+" "+result, output, lang );
+            console.log("rpc sent",arguments);
+        }
+    });
+}
+rpcLogServer();
 const curPrj=PF.create("ba",{dir:curProjectDir});
 if (!Auth.teacher) {
     curPrj.getDir().each(function (f) {
