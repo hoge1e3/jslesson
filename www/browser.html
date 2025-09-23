@@ -1,0 +1,123 @@
+<html>
+    <head>
+<mata http-equiv="Content-type" content="text/html; charset=utf8"/>
+<link rel="stylesheet" href="browser.css"/>
+    </head>
+<body>
+<div class="url">
+<input name="url">
+<button class="go" onclick="go()">Go</button>
+<button class="src" onclick="src()">Source</button>
+</div>
+<iframe></iframe>
+<textarea class="src"></textarea>
+<script src="https://cdn.jsdelivr.net/npm/url-parse/dist/url-parse.js"></script>
+<script type="module">
+import * as rpc from "https://cdn.jsdelivr.net/npm/@hoge1e3/rpc/dist/index.js";
+const params=URLParse.qs.parse(location.search);
+function isCrossOrigin(target) {
+    const m=target;
+    try {
+        if (!m) return false;
+        if (!m.location) return false;
+        if (!m.location.href) return false;
+        //(m?.location?.href);
+        return false;
+    } catch(e){
+        return true;
+    }
+}
+function getParent(){
+    const p=window.parent||window.opener;
+    return p!==window && p;
+}
+async function createLogger() {
+    const p=getParent();
+    if (p) {
+        if (isCrossOrigin(p)) {
+            const origin=params.parentOrigin;
+            if (!origin){
+                console.warn("params.origin is not set. logger is not created.");
+                return true;
+            }
+            console.log ("Created logger");
+            return await rpc.proxy.client(p,"log",origin);
+        } else {
+            console.warn("Created: same origin logger");
+            return {
+                sendResult(url,html,lang, res){
+                    parent.sendResult(html, lang, res);
+                }
+            };
+        }
+    }
+    console.warn("No logger created");
+}
+const logger=await createLogger();//.parent && window.parent!==window && await rpc.proxy.client(window.parent,"log","https://bitarrow3.eplang.jp");
+function sendResult(url, html) {
+    if (url.endsWith("term.html")) return;
+    const res=looksLikeError(html) ? "Runtime Error" : "Run";
+    if (logger) {
+        logger.sendResult(url, html, "PHP", res);
+    }
+}
+function looksLikeError(html) {
+    //<b>Notice</b>
+    //<b>Parse error</b>
+    //<b>Fatal error</b>
+    return html.match(/<b>(notice|[\w\s]*error)<\/b>/i);
+}
+const srctxt=document.querySelector("textarea.src");
+let prevURL;
+function refreshURL() {
+    try {
+        const src=iframe.contentWindow.location.href;
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        const fullHtml = doc.documentElement.outerHTML;
+        if (src!=="about:blank" && src!==prevURL) {
+            url.value=src;
+            prevURL=src;
+            sendResult(src, fullHtml/*.contentWindow.document.body.innerHTML*/);
+        }
+        srctxt.value=fullHtml/*.contentWindow.document.body.innerHTML*/;
+    } catch(e) {
+        console.error(e);
+    }
+}
+function attachEnterKey() {
+    url.addEventListener("keydown",e=>{
+        if (e.keyCode===13) {
+            go();
+        }
+    })
+}
+let srcshow=false;
+function src(){
+    if (!srcshow) {
+        srctxt.style.display="block";
+        iframe.style.display="none";
+    } else {
+        srctxt.style.display="none";
+        iframe.style.display="block";
+
+    }
+    srcshow=!srcshow;
+}
+
+const iframe=document.querySelector("iframe");
+const url=document.querySelector(".url input");
+attachEnterKey();
+if (params.url) {
+    url.value=params.url;
+    iframe.setAttribute("src",params.url);
+}
+function go(){
+    iframe.setAttribute("src",url.value);
+    prevURL=url.value;
+
+}
+setInterval(refreshURL,500);
+window.go=go;
+window.src=src;
+</script>
+</body></html>
