@@ -72,12 +72,14 @@ let prevURL;
 function refreshURL() {
     try {
         const src=iframe.contentWindow.location.href;
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        const fullHtml = doc.documentElement.outerHTML;
         if (src!=="about:blank" && src!==prevURL) {
             url.value=src;
             prevURL=src;
-            sendResult(src, iframe.contentWindow.document.body.innerHTML);
+            sendResult(src, fullHtml/*.contentWindow.document.body.innerHTML*/);
         }
-        srctxt.value=iframe.contentWindow.document.body.innerHTML;
+        srctxt.value=fullHtml/*.contentWindow.document.body.innerHTML*/;
     } catch(e) {
         console.error(e);
     }
