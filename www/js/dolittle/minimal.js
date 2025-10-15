@@ -1,4 +1,4 @@
-MinimalParser= function () {
+var MinimalParser= function () {
 	var parser={};
 	var sp=Parser.StringParser; // 文字列を解析するパーサ
 	var ctx;
