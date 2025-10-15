@@ -1,13 +1,4 @@
-/*global Parser, ExpressionParser, context, self,global */
-(function () {
-	// same with root.js
-	function getRoot(){
-		if (typeof window!=="undefined") return window;
-		if (typeof self!=="undefined") return self;
-		if (typeof global!=="undefined") return global;
-		return (function (){return this;})();
-	}
-	var root=getRoot();
+MinimalParser= function () {
 	var parser={};
 	var sp=Parser.StringParser; // 文字列を解析するパーサ
 	var ctx;
@@ -42,13 +33,13 @@
 	            s[k]={type:"self", depth:depth};
 	        });
 	        s["arguments"]={type:"arguments", depth:depth};
-			s._rest={type:"_rest", depth:depth};
+					s["_rest"]={type:"_rest", depth:depth};
 	        return {scope: s ,depth:depth };
 	    },parser);
 	}
-	/*function lit(s) {
+	function lit(s) {
 	    return '"'+s+'"';
-	}*/
+	}
     function extend(arr,obj) {
         var pos;
         for (var k in obj) {
@@ -85,7 +76,7 @@
 						//return this.text+"("+this.pos+")";
 						return this.text;
 					}
-			};
+			}
 		});
 	}
 
@@ -95,19 +86,19 @@
 		_array.forEach(function(e){result+="var "+e+";\n";});
 		return result;
 	};
-	/*var block_trim=function(w){
+	var block_trim=function(w){
 
-	};*/
+	};
     // \lazies
 	var expr,term,block,paren_expr,variable,infix_expr,program,statement_list;
 	var infix_expr_lazy=Parser.lazy(function(){return infix_expr;});
 	var expr_lazy = Parser.lazy(function(){return expr;});
 	var term_lazy = Parser.lazy(function(){return term;});
-	//var variable_lazy = Parser.lazy(function(){return variable;});
+	var variable_lazy = Parser.lazy(function(){return variable;});
 	var block_lazy = Parser.lazy(function(){return block;});
 	var meth_call_lazy = Parser.lazy(function(){return meth_call_lazy;});
-	//var paren_lazy = Parser.lazy(function(){return paren_expr;});
-	//var program_lazy=Parser.lazy(function(){return program;});
+	var paren_lazy = Parser.lazy(function(){return paren_expr;});
+	var program_lazy=Parser.lazy(function(){return program;});
 	var statement_list_lazy=Parser.lazy(function(){return statement_list;});
 	//--------字句要素
 	//名前
@@ -137,7 +128,7 @@
 	var lsb=token(/^[\[「]/).ret(function(){return "[";});
 	var rsb=token(/^[\]」]/).ret(function(){return "]";});
 	var stick=token(/^[|｜]/).ret(function(){return "|";});
-	var period=token(/^[.。．]/).ret(function(){return ".";});
+	var period=token(/^[.。．]/).ret(function(){return "."});
 	var lp=token(/^[(（]/).ret(function(){return "(";});
 	var rp=token(/^[)）]/).ret(function(){return ")";});
 	var excr=token(/^[!！]/).ret(function(){return "!";});
@@ -147,7 +138,7 @@
 	var add=token(/^[+＋]/).ret(function(){return "+";});
 	var sub=token(/^[-−–－]/).ret(function(){return "-";});
 	var mul=token(/^[*×＊∗]/).ret(function(){return "*";});
-	var div=token(/^[\/÷／]/).ret(function(){return "/";});
+	var div=token(/^[/÷／]/).ret(function(){return "/";});
 	var gt=token(/^[>＞]/).ret(function(){return ">";});
 	var ge=token(/^(?:[>＞][=＝])|≧/).ret(function(){return ">=";});
 	var lt=token(/^[<＜]/).ret(function(){return "<";});
@@ -190,7 +181,7 @@
 	});
     //--------------ここから構文
 	//括弧
-	paren_expr = lp.and(expr_lazy).and(rp).
+	var paren_expr = lp.and(expr_lazy).and(rp).
 	ret(function(_lp,_expr,_rp){
 	    return extend([_lp,_expr,_rp], {type:"paren",subnodes:arguments});
 	});
@@ -216,7 +207,7 @@
 		if (useGenerator()) {
 			var sur=function (ex) {
 				return ["(yield* AsyncByGenerator.toGen(",ex,"))"];
-			};
+			}
 			var head=obj||"this";
 			elec.forEach(function (e) {
 				head=sur([head,e]);
@@ -255,7 +246,7 @@
 	infix_expr = expbuild.build();
 	//ブロック := [  [ | 引数リスト  |  文 . *  ]
 	var block_param = stick.and(token_name.rep0()).and(semicolon.opt()).and(token_name.rep0()).and(stick).
-	ret(function(_ls,_param,_semicolon,_local_param/*,_rs*/){
+	ret(function(_ls,_param,_semicolon,_local_param,_rs){
 	    _param.forEach(regParam);
 	    _local_param.forEach(regLocal);
 	    return extend([joinary(_param,","),local_param_trim(_local_param)],
@@ -267,8 +258,8 @@
 	function regLocal(n,i) {
 	    ctx.scope[n+""]={type:"local",depth:ctx.depth,seq:i};
 	}
-	block = lsb.and(block_param.opt()).and(statement_list_lazy).and(rsb).
-	ret(function(_lsb,_param,_progs/*,_rsb*/){
+	var block = lsb.and(block_param.opt()).and(statement_list_lazy).and(rsb).
+	ret(function(_lsb,_param,_progs,_rsb){
 		// console.log(_progs);
 	    _param=_param||["",""];
 	    return extend(["dtlbind(this,function(",_param[0],
@@ -321,7 +312,7 @@
                         vmname: "_rest"
                     });
                 default:
-                    throw new Error("Invalid scope type:"+s.type);
+                    throw new Exception("Invalid scope type:"+s.type);
             }
             //if (s.seq===undefined) throw new Error(s.type);
             /*return extend([n],{
@@ -343,7 +334,7 @@
     varbuild.mkPostfix(mkpost);
 	variable=varbuild.build();
 	//項 := 関数呼出 | 変数
-	term = func_exe.or(variable); //simple.or(func_exe).or(variable);
+	var term = func_exe.or(variable); //simple.or(func_exe).or(variable);
     //文 := [変数  = ] 式
     var statement = variable.and(eq).ret(function (v) {
         return extend([v,"="],{type:"assign",subnodes:arguments});
@@ -377,10 +368,10 @@
 	第2引数が true の 場合，  解析結果は 各parserの解析結果の配列になる
 	第2引数が false の 場合，  {head: parser(1回目) , [ {sep: sep(n回目), value: parser(n+1回目) } ] }
 	*/
-	/*function tap(x) {
+	function tap(x) {
 	    console.log("tap",typeof x,x);
 	    return x;
-	}*/
+	}
 	function joinary(a,s) {
 	    if (a.length<2) return a;
 	    //if (a.length>=2) console.log("JO",a);
@@ -395,15 +386,14 @@
 		var output="";
 		var line=1;
 		ctx=context();
-		var ABG=root.AsyncByGenerator;
-		ctx.usegen=ABG && ABG.supportsGenerator && input.indexOf("NOGENERATOR")<0;
-		//console.log("minimal:parseAsNode",options, ctx.usegen,ctx) ;
+		ctx.usegen=AsyncByGenerator.supportsGenerator && input.indexOf("NOGENERATOR")<0;
+
 	    //console.log("INP",input,input.length);
 		var result = program.parseStr(input);
 		if(result.success){
 			output=result.result[0];
 			if(result.src.maxPos<str.length){
-				line=(str.substr(0,result.src.maxPos)).match(/\n/g);
+				var line=(str.substr(0,result.src.maxPos)).match(/\n/g);
 				line=(line)?line.length:0;
 				//alert("エラーが発生しました。\n"+line+"行目付近を確認してください。");
 				var mesg=de+"エラーが発生しました。\n"+line+"行目付近を確認してください。";
@@ -412,10 +402,7 @@
     				"throw new Error('"+mesg.replace(/\n/g,"\\n")+"');"
     				],{type:"ERROR",message:mesg});
 				} else {
-					var e=new Error(mesg);
-					e.srcPath=options.srcPath;
-					e.pos=result.src.maxPos;
-				    throw e;
+				    throw new Error(mesg);
 				}
 			}
 		}
@@ -456,6 +443,5 @@
     	buf.print("});");
 		return buf.buf;
     };
-	root.MinimalParser=parser;
 	return parser;
-})();
+}();
