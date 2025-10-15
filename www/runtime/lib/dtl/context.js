@@ -15,42 +15,46 @@
    });
  */
 (function () {
-// this workaround is very bad: (Expression)Parser is orignally used define
-// but currently dolittle load all libs by <script> tags
-var define=function (r,f) {window.context=f();};
-define([],function () {
-return context=function () {
-    var c={};
-    c.ovrFunc=function (from , to) {
-        to.parent=from;
+  // this workaround is very bad: (Expression)Parser is orignally used define
+  // but currently dolittle load all libs by <script> tags
+  var define = function (r, f) {
+    window.context = f();
+  };
+  define([], function () {
+    return (context = function () {
+      var c = {};
+      c.ovrFunc = function (from, to) {
+        to.parent = from;
         return to;
-    };
-    c.enter=enter;
-    var builtins={};
-    c.clear=function () {
+      };
+      c.enter = enter;
+      var builtins = {};
+      c.clear = function () {
         for (var k in c) {
-            if (!builtins[k]) delete c[k];
+          if (!builtins[k]) delete c[k];
         }
-    };
-    for (var k in c) { builtins[k]=true };
-    return c;
-    function enter(val, act) {
-        var sv={};
+      };
+      for (var k in c) {
+        builtins[k] = true;
+      }
+      return c;
+      function enter(val, act) {
+        var sv = {};
         for (var k in val) {
-            if (k.match(/^\$/)) {
-                k=RegExp.rightContext;
-                sv[k]=c[k];
-                c[k]=c.ovrFunc(c[k], val[k]);
-            } else {
-                sv[k]=c[k];
-                c[k]=val[k];
-            }
+          if (k.match(/^\$/)) {
+            k = RegExp.rightContext;
+            sv[k] = c[k];
+            c[k] = c.ovrFunc(c[k], val[k]);
+          } else {
+            sv[k] = c[k];
+            c[k] = val[k];
+          }
         }
         act(c);
         for (var k in sv) {
-            c[k]=sv[k];
+          c[k] = sv[k];
         }
-    }
-};
-});
+      }
+    });
+  });
 })();
