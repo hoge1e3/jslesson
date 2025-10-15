@@ -69,11 +69,28 @@ function looksLikeError(html) {
 }
 const srctxt=document.querySelector("textarea.src");
 let prevURL;
+const removes=[`style.darkreader`];
+function removeElementsFromHtml(html, selectors=removes) {
+  try {
+    const doctypeMatch = html.match(/^\s*<!doctype [^>]*>\s*/i);
+    const doctype = doctypeMatch ? doctypeMatch[0] : '';
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    for (let selector of selectors) {
+        doc.querySelectorAll(selector).forEach(el => el.remove());
+    }
+    return doctype + doc.documentElement.outerHTML;
+  }catch(e){
+        console.error(e);
+        return html;
+  }
+}
+
 function refreshURL() {
     try {
         const src=iframe.contentWindow.location.href;
         const doc = iframe.contentDocument || iframe.contentWindow.document;
-        const fullHtml = doc.documentElement.outerHTML;
+        const fullHtml = removeElementsFromHtml(doc.documentElement.outerHTML);
         if (src!=="about:blank" && src!==prevURL) {
             url.value=src;
             prevURL=src;
