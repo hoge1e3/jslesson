@@ -156,21 +156,6 @@ root.accelerationSensor.getZAcceleration = function () {
   if (this.initialized == false) this.init();
   return this.z;
 };
-root.accelerationSensor.getA = function () {
-  if (this.initialized == false) this.init();
-  if (!this.raw) return 0;
-  return this.raw.x || 0;
-};
-root.accelerationSensor.getB = function () {
-  if (this.initialized == false) this.init();
-  if (!this.raw) return 0;
-  return this.raw.y || 0;
-};
-root.accelerationSensor.getC = function () {
-  if (this.initialized == false) this.init();
-  if (!this.raw) return 0;
-  return this.raw.z || 0;
-};
 root.accelerationSensor.setAction = function (f) {
   if (this.initialized == false) this.init();
   if (typeof f != "function") return this;
@@ -475,21 +460,6 @@ root.gyroSensor.getRoll = function () {
 root.gyroSensor.getPitch = function () {
   if (this.initialized == false) this.init();
   return this.y;
-};
-root.gyroSensor.getA = function () {
-  if (this.initialized == false) this.init();
-  if (!this.raw) return 0;
-  return this.raw.alpha || 0;
-};
-root.gyroSensor.getB = function () {
-  if (this.initialized == false) this.init();
-  if (!this.raw) return 0;
-  return this.raw.beta || 0;
-};
-root.gyroSensor.getC = function () {
-  if (this.initialized == false) this.init();
-  if (!this.raw) return 0;
-  return this.raw.gamma || 0;
 };
 root.gyroSensor.setAction = function (f) {
   if (this.initialized == false) this.init();
