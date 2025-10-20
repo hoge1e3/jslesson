@@ -279,20 +279,8 @@
         "head",
       );
     },
-    new: function (obj) {
-      var args = Array.prototype.slice.call(arguments);
-      obj = args.shift();
-      //console.log(args);
-      var creater = function (args) {
-        return obj.apply(this, args);
-      };
-      creater.prototype = obj.prototype;
-      var res;
-      try {
-        res = new creater(args);
-      } catch (e) {
-        res = new obj(args[0]);
-      }
+    new: function (obj, ...args) {
+      const res=new obj(...args);
       return res;
     },
     sleep: function (time) {
