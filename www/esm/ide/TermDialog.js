@@ -4,7 +4,7 @@ import ctrl from "../jsl/ctrl.js";
 import URLParse from "../lib/url-parse.js";
 const TermDialog={
     async getUrl(params) {
-        const {TERM_URL:term_url}=await ctrl.get("BAURL/show");
+        const term_url=await ctrl.get("Class/getTermURL");
         const url=term_url+"?"+URLParse.qs.stringify(params);
         console.log("url",url);
         return url;
