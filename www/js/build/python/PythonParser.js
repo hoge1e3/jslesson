@@ -68,9 +68,51 @@ function (Grammar,Pos2RC/*,TError*/) {
             //tokens.get("tokens").parseStr(line);
             return r;
         }),
-        literal: /^r?(("([^\\"]*(\\.)*)*")|('([^\\']*(\\.)*)*'))/,
+        literal: {
+            exec:matchStringLiteral,
+            toString() {
+                // catastrophic backtracking（壊滅的バックトラッキング）
+                return /^r?(("([^\\"]*(\\.)*)*")|('([^\\']*(\\.)*)*'))/.toString();
+            }
+        },
         literal3: /^""".*/,
     };
+    function matchStringLiteral(input) {
+        let i = 0;
+        // 1. optional prefix "r"
+        const isRaw = input[i] === "r";
+        if (isRaw) i++;
+        // 2. quote type
+        const quote = input[i];
+        if (quote !== '"' && quote !== "'") return null;
+        i++;
+        // 3. main loop
+        let escaped = false;
+        for (; i < input.length; i++) {
+            const ch = input[i];
+            if (!isRaw && escaped) {
+                escaped = false; // skip one escaped char
+                continue;
+            }
+            if (!isRaw && ch === "\\") {
+                escaped = true;
+                continue;
+            }
+            if (ch === quote) {
+                const matched = input.slice(0, i + 1);
+                // === exec 互換の戻り値を生成 ===
+                const result = [matched];
+                result.index = 0;
+                result.input = input;
+                result[1] = isRaw ? "r" : "";
+                result[2] = quote;
+                result[3] = matched.slice(isRaw ? 2 : 1, -1); // 中身
+                return result;
+            }
+        }
+        return null;        // 4. if no closing quote
+    }
+
     for (let p of puncts) tdef[p]="'"+p;
     //for (let r of reserved) tdef[r]="'"+r;
     //console.log("tdef",tdef);
