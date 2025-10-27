@@ -888,12 +888,18 @@
 
     return this.addPathAfterAction(
       dtlbind(this, function () {
-        this.Actor.forward.call(this, by);
+        // 251026_1: Actor.forwardの処理を直接実装（setTransを呼ばないようにするため）
+        // this.Actor.forward.call(this, by);
+        by = this.num(by);
+        this._lastPos = this.pos;
+        this._lastStep = by;
+        this.pos = this.pos.add(this.Vec2.X.rotate(this.dir).mul(by));
 
         // 衝突検出と跳ね返り処理
         var newPos = this.checkCollisionAndBounce(oldPos, this.pos);
         this.pos.x = newPos.x;
         this.pos.y = newPos.y;
+        // 251026_1: setTransは1回だけ呼ぶ（checkCrashの重複実行を防ぐ）
         this.setTrans();
       }),
     );
@@ -907,12 +913,17 @@
     // addPathAfterActionを使って移動し、ペンが下りていれば線を描く
     return this.addPathAfterAction(
       dtlbind(this, function () {
-        this.Actor.moveTo.call(this, x, y);
+        // 251026_1: Actor.moveToの処理を直接実装（setTransを呼ばないようにするため）
+        // this.Actor.moveTo.call(this, x, y);
+        x = this.num(x);
+        y = this.num(y);
+        this.pos = this.Vec2.create(x, y);
 
         // 衝突検出と跳ね返り処理
         var newPos = this.checkCollisionAndBounce(oldPos, this.pos);
         this.pos.x = newPos.x;
         this.pos.y = newPos.y;
+        // 251026_1: setTransは1回だけ呼ぶ（checkCrashの重複実行を防ぐ）
         this.setTrans();
       }),
     );

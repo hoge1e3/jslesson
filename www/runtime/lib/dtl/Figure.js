@@ -813,8 +813,11 @@
   this.Figure.moveTo = dtlbind(this, function (x, y) {
     var oldPos = { x: this.pos.x, y: this.pos.y };
 
-    // 位置を更新
-    this.Actor.moveTo.call(this, x, y);
+    // 251026_2: Actor.moveToの処理を直接実装（setTransを呼ばないようにするため）
+    // this.Actor.moveTo.call(this, x, y);
+    x = this.num(x);
+    y = this.num(y);
+    this.pos = this.Vec2.create(x, y);
 
     // 衝突処理中の場合は衝突検出をスキップ（Step 2で相手を移動させる場合）
     if (this._collisionExecuting) {
@@ -827,6 +830,7 @@
     var newPos = this.checkCollisionAndBounce(oldPos, this.pos);
     this.pos.x = newPos.x;
     this.pos.y = newPos.y;
+    // 251026_2: setTransは1回だけ呼ぶ（checkCollisionAndBounceの重複実行を防ぐ）
     this.setTrans();
 
     return this;
@@ -836,8 +840,11 @@
   this.Figure.moveBy = dtlbind(this, function (dx, dy) {
     var oldPos = { x: this.pos.x, y: this.pos.y };
 
-    // 位置を更新
-    this.Actor.moveBy.call(this, dx, dy);
+    // 251026_2: Actor.moveByの処理を直接実装（setTransを呼ばないようにするため）
+    // this.Actor.moveBy.call(this, dx, dy);
+    dx = this.num(dx);
+    dy = this.num(dy);
+    this.pos = this.Vec2.create(this.pos.x + dx, this.pos.y + dy);
 
     // 衝突処理中の場合は衝突検出をスキップ（Step 2で相手を移動させる場合）
     if (this._collisionExecuting) {
@@ -850,6 +857,7 @@
     var newPos = this.checkCollisionAndBounce(oldPos, this.pos);
     this.pos.x = newPos.x;
     this.pos.y = newPos.y;
+    // 251026_2: setTransは1回だけ呼ぶ（checkCollisionAndBounceの重複実行を防ぐ）
     this.setTrans();
 
     return this;
