@@ -67,9 +67,7 @@ lang/IndentBuffer.js
 lang/IndentBuffer.js
 lang/ExpressionParser2.js
 lang/Grammar.js
-lang/Grammar2.js
 lang/Pos2RC.js
-lang/parser.js
 lang/projectCompiler.js
 lang/parse_tonyu2.js
 lang/Visitor.js
