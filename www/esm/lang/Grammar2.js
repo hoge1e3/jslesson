@@ -82,7 +82,7 @@ get(name) {
         const r=this.defs[name];
         if (!r) throw new Error(`Undefined grammar ${name}`);
         return r;
-    }).setName(`lazy_${name}`);
+    },name).setName(`lazy_${name}`);
 }
 toParser(expr) {
     if (expr instanceof P.Parser) return expr;
@@ -134,6 +134,19 @@ toParser(expr) {
     }
     assert.fail("Invalid expr",expr);
 }
+_or(...exprs) {
+    const parsers=exprs.map(this.toParser.bind(this));
+    return P.create((state)=>{
+        let newstate=state;
+        for (let parser of parsers) {
+            newstate=parser.parse(state);
+            if (newstate.success) {
+                return newstate;
+            }
+        }
+        return newstate;
+    }).setName(parsers.map(p=>p.name).join("|"));
+}
 }
 //const testf=(...{a,b})=>a+b;
 const methods=["opt","rep0","rep1","sep0","sep1","except"];
@@ -152,7 +165,12 @@ Object.defineProperty(p,m,{
     }
 });
 }
-const chainMethods=["and","or"];
+Object.defineProperty(p,"or",{
+    get: function (){
+        return this._or.bind(this);
+    }
+});
+const chainMethods=["and"/*,"or"*/];
 for (let m of chainMethods) {
 Object.defineProperty(p,m,{
     get: function () {

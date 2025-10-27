@@ -261,6 +261,7 @@ var Parser=function () {
 		},
 		setName: function (n) {
 			this.name=n;
+			if (!n) throw new Error("Empty name");
 			if (this._first) {
 				/*var tbl=this._first.tbl;
 				for (var i in tbl) {
@@ -557,12 +558,12 @@ var Parser=function () {
 		}).setName("EOT")
 	};
 	$.TokensParser=TokensParser;
-	$.lazy=function (pf) { //   ( ()->Parser ) ->Parser
+	$.lazy=function (pf, nameAfterResolve) { //   ( ()->Parser ) ->Parser
 		var p=null;
 		return Parser.create(function (st) {
 			if (!p) p=pf();
 			if (!p) throw pf+" returned null!";
-			this.name=pf.name;
+			this.name=nameAfterResolve||pf.name||this.name;
 			return p.parse(st);
 		}).setName("LZ");
 	};
