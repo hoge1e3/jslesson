@@ -136,7 +136,7 @@ class BAClass{
     }
     function make(){
         if ($this->exists()) {
-            throw new Exception("クラス ".$this->id." は存在します");
+            throw new Exception("クラス ".$this->id." はすでに（他の）ユーザが作成しているため作成できません。");
         }
         if (!self::isValidClassName($this->id)) {
             throw new Exception("クラス名 $this->id は適切な名称ではありません．英数字とアンダースコア(_)，ハイフン(-)のみを使用してください．");

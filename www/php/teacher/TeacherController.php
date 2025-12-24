@@ -163,9 +163,14 @@ class TeacherController {
         ?>
         <?php if(!defined("NO_MORE_CLASS")) { ?>
         <form action="a.php?Class/make" method="POST">
-            <font color="red"><?= self::$mesg ?></font><br/>
+        <h2>新規クラス作成</h2>
             <div id="news"></div>
-            クラス名<input name="classname">
+            <ul id="classname-notice">
+                <li>すでに他のユーザが作成したクラス名と同じ名前では作成できません。</li>
+                <li>英数字とアンダースコア(_)，ハイフン(-)のみを使用してください．</li>
+            </ul>
+            <font color="red"><?= self::$mesg ?></font><br/>
+            クラス名<input name="classname" placeholder="校名-年度-科目名">
             <input type="submit" value="新規クラス作成"/>
         </form>
         <?php } else { ?>
