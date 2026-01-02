@@ -67,9 +67,7 @@ lang/IndentBuffer.js
 lang/IndentBuffer.js
 lang/ExpressionParser2.js
 lang/Grammar.js
-lang/Grammar2.js
 lang/Pos2RC.js
-lang/parser.js
 lang/projectCompiler.js
 lang/parse_tonyu2.js
 lang/Visitor.js
@@ -128,7 +126,6 @@ build/tjs/TJSBuilder.js
 build/dncl/DnclBuilder.js
 build/dncl2/Dncl2Builder.js
 build/python/PythonBuilder.js
-build/python/PythonParser.js
 build/python/PythonGen.js
 build/python/Python2JS.js
 build/python/pyRun.js

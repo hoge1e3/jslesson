@@ -23,7 +23,7 @@ class Grammar {
                 this.defs[k]=p.ret((r)=>{
                     if (r && typeof r==="object" && !r.type) r.type=k;
                     return r;
-                });
+                }).setName(k);
                 if (p.names) this.defs[k].names=p.names;
             }
         };
@@ -80,7 +80,7 @@ class Grammar {
             const r=this.defs[name];
             if (!r) throw new Error(`Undefined grammar ${name}`);
             return r;
-        });
+        }).setName(`lazy_${name}`);
     }
     toParser(expr) {
         if (expr instanceof P.Parser) return expr;
