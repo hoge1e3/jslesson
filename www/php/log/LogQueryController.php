@@ -131,6 +131,8 @@ class LogQueryController {
                 print "</tr></thead>\n";
                 $thShown=true;
             }
+            if (isset($rec->filename) && strpos($rec->filename,"?")!==false) continue;
+            if (isset($rec->filename) && strpos($rec->filename,"../")!==false) continue;
             print "<tr class='record'>";
             if (isset($rec->time)) $date=DateUtil::toDayTop($rec->time);
             foreach ($rec as $key=>$val) {
