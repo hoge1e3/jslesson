@@ -118,5 +118,7 @@ define("PYTHON_WORK",BA_DATA."/pythonwork");
 define("PYTHON_PATH","/path/to/pythonjs.sh");
 
 */
-
+define("TERM_URL_BY_CLASS",[
+    "meisei18pro1"=>"https://terminal.example.com/"
+])
 ?>

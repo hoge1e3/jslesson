@@ -49,9 +49,12 @@ class TeacherLogController {
         }
         if ($teacher || showOtherStudentsLogs($class)) {
             ?>
-            <a href=".?TeacherLog/view">他ユーザのログを見る</a>
+            <a href=".?TeacherLog/view">他ユーザのログを見る</a> |
             <?php
         }
+        ?>
+        <a href=".?LogQuery/index">集計</a> |
+        <?php
         // If i can do , i do it.
         /*$class=Auth::curClass2();
         $teacher=Auth::curTeacher();

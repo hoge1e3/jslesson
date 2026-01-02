@@ -652,6 +652,23 @@ class ClassController {
         $home=Auth::homeOfClass($class);
         $home->rel("dockerUser2BAUser.json")->text(json_encode($dockerUser2BAUser));
     }
+    static function getTermURL(){
+        header("Content-type: text/json");
+        if (!defined("TERM_URL_BY_CLASS")) {
+            if (!defined("TERM_URL")) {
+                echo "null";
+                return;
+            }
+            echo json_encode(TERM_URL);
+            return;
+        }
+        $class=Auth::curClass2();
+        if (!isset(TERM_URL_BY_CLASS[$class->id])) {
+            echo "null";
+            return;
+        }
+        echo json_encode(TERM_URL_BY_CLASS[$class->id]);
+    }
 
 }
 
