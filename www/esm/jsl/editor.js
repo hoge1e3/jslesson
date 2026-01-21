@@ -222,7 +222,12 @@ function setupBuilder(BuilderClass) {
     if (builder.ALWAYS_UPLOAD) ALWAYS_UPLOAD=true;
     builderReady();
 }
+function checkBuilderReady(){
+    if (!builder) alert("読み込み中です。しばらくお待ちください。");
+    return builder;
+}
 function builderReady() {
+    const builder=checkBuilderReady();
     window.curPrj=curPrj;
     if (builder.addMenu) builder.addMenu(Menu);
     autoexec();
@@ -570,6 +575,8 @@ $("#cpFile").click(F(function () {
     var old=inf.file;
     var oldName=curPrj.truncEXT(old);//old.truncExt();//.p5.js
     FM.dialogOpt({title:"コピー", name:oldName, action:"cp", curFile: old, onend:function (_new) {
+        const builder=checkBuilderReady();
+        if (!builder) return;
         if (!_new) return;
         var olds=fileSet(old, true);
         var news=fileSet(_new, true);
@@ -618,6 +625,8 @@ FM.on.close=function (f) {
 FM.on.ls=ls;
 FM.on.validateName=fixName;
 FM.on.createContent=function (f) {
+    const builder=checkBuilderReady();
+    if (!builder) return;
     //console.log("FM.on.createContent", f, f.ext(), EXT, HEXT);
     if (f.isDir()) {
         f.mkdir();  
@@ -712,6 +721,8 @@ function dispNameFM(name) {
     return null;
 }
 function fixName(name, options) {
+    const builder=checkBuilderReady();
+    if (!builder) return;
     A.is(arguments,[String]);
     options=options||{};
     const {action,curFile}=options;
@@ -802,6 +813,7 @@ async function runFullScr(options) {
     }
     save();
     await sync();
+    const builder=checkBuilderReady();
     if (builder && inf) {
         try {
             var curFile=inf ? inf.file : options.mainFile;
@@ -866,6 +878,8 @@ async function runFullScr(options) {
 }
 let lastIndexFile;
 async function build(options) {
+    const builder=checkBuilderReady();
+    if (!builder) return;
     if (!options.curLogicFile /*|| !options.curHTMLFile*/) {
         throw new Error("options should be set: curLogicFile");// Mandatory "options" :-)
     }
@@ -1104,7 +1118,7 @@ function fixEditorIndent(prog) {
         return;
     }
     let fixed;
-    if (builder.getIndentFixer) {
+    if (builder && builder.getIndentFixer) {
         fixed=builder.getIndentFixer().fix(prev);
     } else {
         fixed=fixIndent( prev );
