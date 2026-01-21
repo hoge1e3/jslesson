@@ -204,7 +204,9 @@ if (!langInfo) {
     throw new Error(`Undefined language: ${lang}`);
 }
 if (root.BitArrow.esm) {
+    setTimeout(()=>{
     importModule(langInfo.builder).then((B)=>setupBuilder(B.default));
+    },5);
 } else {
     DU.requirejs([langInfo.builder]).then((B)=>setupBuilder(B));
 }
@@ -561,12 +563,16 @@ var FM=FileMenu();
 FM.fileList=fl;
 var sourceFiles={};
 $("#newFile").click(F(function () {
+    const builder=checkBuilderReady();
+    if (!builder) return;
     sourceFiles=curPrj.sourceFiles();
     console.log(sourceFiles);
     FM.create();
 }));
 $("#mvFile").click(F(FM.mv));
 $("#cpFile").click(F(function () {
+    const builder=checkBuilderReady();
+    if (!builder) return;
     var inf=getCurrentEditorInfo();
     if (!inf) {
         alert("コピーしたいファイルを開いてください。");
@@ -575,8 +581,6 @@ $("#cpFile").click(F(function () {
     var old=inf.file;
     var oldName=curPrj.truncEXT(old);//old.truncExt();//.p5.js
     FM.dialogOpt({title:"コピー", name:oldName, action:"cp", curFile: old, onend:function (_new) {
-        const builder=checkBuilderReady();
-        if (!builder) return;
         if (!_new) return;
         var olds=fileSet(old, true);
         var news=fileSet(_new, true);
@@ -722,7 +726,7 @@ function dispNameFM(name) {
 }
 function fixName(name, options) {
     const builder=checkBuilderReady();
-    if (!builder) return;
+    if (!builder) return {ok:false, reason:"読み込み中です。しばらくお待ちください。"};
     A.is(arguments,[String]);
     options=options||{};
     const {action,curFile}=options;
@@ -922,6 +926,8 @@ async function build(options) {
 }
 //\run
 async function run(options) {//run!!
+    const builder=checkBuilderReady();
+    if (!builder) return;
     options=options||{};
     const inf=getCurrentEditorInfo();
     if (!inf && !options.mainFile) {
