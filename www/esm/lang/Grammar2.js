@@ -93,7 +93,9 @@ toParser(expr) {
             return r;
         }
         return this.get(expr);
-    } else if (expr instanceof RegExp) {
+    } else if (expr instanceof RegExp ||
+        (typeof expr==="object" && typeof expr.exec==="function")
+    ) {
         let r=P.StringParser.reg(expr);
         if (this.space) return this.space.and(r).ret((s,b)=>b);
         return r;
