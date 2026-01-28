@@ -218,15 +218,22 @@ class ClassController {
         ?>
         <a href="a.php?Class/show">クラス管理に戻る</a><hr>
         <h1><?=$class->id?> - クラス設定</h1>
+        <style>
+            .hidden{
+                display: none;
+            }
+        </style>
         <?php
         self::optionItems("usePassword");
         self::optionItems("registByUser");
+        self::optionItems("showOtherStudentsLogs");
+        echo "<div class='hidden'>";
         self::optionItems("useAssignment");
         self::optionItems("disableNote");
-        self::optionItems("showOtherStudentsLogs");
         self::optionItems("showHint");
         self::fileMenuTemplate();
         self::botURLForm();
+        echo "</div>";
         ?>
         <hr>
         <?php
@@ -609,6 +616,13 @@ class ClassController {
         }
         $lg=$class->getLogByUser($userid);
         print(json_encode($lg));
+    }
+    static function exists(){
+        $class=param("class");
+        $classo=new BAClass($class);
+        header("Content-type: text/json");
+        if ($classo->exists()) echo "true";
+        else echo "false";
     }
 }
 

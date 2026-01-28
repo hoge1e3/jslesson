@@ -162,16 +162,18 @@ class TeacherController {
 	    }
         ?>
         <?php if(!defined("NO_MORE_CLASS")) { ?>
-        <form action="a.php?Class/make" method="POST">
+        <form id="newclassform" action="a.php?Class/make" method="POST">
         <h2>新規クラス作成</h2>
             <div id="news"></div>
             <ul id="classname-notice">
+                <li>英数字とアンダースコア(_)，ハイフン(-)のみを使用してください。</li>
                 <li>すでに他のユーザが作成したクラス名と同じ名前では作成できません。</li>
-                <li>英数字とアンダースコア(_)，ハイフン(-)のみを使用してください．</li>
+                <li>校名-年度-科目名のように他の学校と重ならないような名前にすることをおすすめします。</li>
             </ul>
-            <font color="red"><?= self::$mesg ?></font><br/>
-            クラス名<input name="classname" placeholder="校名-年度-科目名">
-            <input type="submit" value="新規クラス作成"/>
+            クラス名<input id="classname" name="classname" placeholder="校名-年度-科目名">
+            <font color="red" id="mesg"><?= self::$mesg ?></font><br/>
+            <input id="submit_newclass" type="submit" value="新規クラス作成"/>
+            <script src="../esm/lib/newclass.js"></script>
         </form>
         <?php } else { ?>
             <div id="news"></div>
