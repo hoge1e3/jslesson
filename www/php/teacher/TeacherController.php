@@ -173,7 +173,7 @@ class TeacherController {
             クラス名<input id="classname" name="classname" placeholder="校名-年度-科目名">
             <font color="red" id="mesg"><?= self::$mesg ?></font><br/>
             <input id="submit_newclass" type="submit" value="新規クラス作成"/>
-            <script src="../esm/lib/newclass.js"></script>
+            <script src="./esm/lib/newclass.js"></script>
         </form>
         <?php } else { ?>
             <div id="news"></div>

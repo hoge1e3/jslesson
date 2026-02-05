@@ -44,6 +44,12 @@ class BAClass{
     function passwordRequired() {
         //TODO
         //このクラスのユーザはパスワードを要求されるか？
+        if (defined("DEFAULT_PASSWORD_POLICY") && DEFAULT_PASSWORD_POLICY==="yes"){
+            if(isset($this->getOptions()->passwordPolicy) && $this->getOptions()->passwordPolicy=="nouse"){
+                return false;
+            }
+            return true;
+        }
         if(isset($this->getOptions()->passwordPolicy) && $this->getOptions()->passwordPolicy=="yes"){
             return true;
         }
