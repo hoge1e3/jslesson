@@ -53,9 +53,12 @@ button.selected {
     -moz-box-sizing:content-box!important;
     box-sizing: content-box!important;
 }
-
+#prjItemList{
+	display: flex;
+    flex-wrap: wrap;
+}
 .project {
-	float: left;
+    /*float: left;*/
 	width: 132px;
 	margin: 16px;
     text-align: center;

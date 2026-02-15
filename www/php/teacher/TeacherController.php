@@ -8,6 +8,9 @@ class TeacherController {
     static function bauth() {
         $code=param("code",null);
         $ba_top_url=PathUtil::truncSep(BA_TOP_URL);
+        if (!defined("TEACHER_BAUTH_URL")) {
+            throw new Exception("TEACHER_BAUTH_URL should be set");
+        }
         if (!$code) {
             header("Location: ".TEACHER_BAUTH_URL."?Teacher/login&callback=$ba_top_url/?Teacher/bauth");
             return;
