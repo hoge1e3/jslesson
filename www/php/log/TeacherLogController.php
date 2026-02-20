@@ -231,6 +231,7 @@ class TeacherLogController {
         print json_encode($logs2);
     }
     static function view1new() {
+        $h=function ($t){return htmlspecialchars($t);};
         $p=self::parseUser();
         $logid=param("logid", false);
         //print_r($p);
@@ -264,6 +265,7 @@ class TeacherLogController {
             checkExternal($targetUser->_class);
             return;
         }
+        $userName_h=$h($userName);
         ?>
 <html>
     <head>
@@ -276,11 +278,11 @@ class TeacherLogController {
         <link rel="stylesheet" href="css/diffview.css"></link>
         <link rel="stylesheet" href="css/logViewer.css"></link>
         <script>
-            classID='<?= $targetUser->_class->id ?>';
-            userId='<?= $userName ?>';
-            day=<?= $day ?>;
-            all=<?= ($all?"true":"false") ?>;
-            teacherID='<?= $teacherID ?>';
+            classID='<?= $h($targetUser->_class->id) ?>';
+            userId='<?= $userName_h ?>';
+            day=<?= $h($day) ?>;
+            all=<?= $h($all?"true":"false") ?>;
+            teacherID='<?= $h($teacherID) ?>';
             reloadMode=0;
             logsOfOneUser=[];
             programs=[];
@@ -289,7 +291,7 @@ class TeacherLogController {
         </script>
         <script src="js/log/logViewer.js"></script>
         <script src="js/log/getlog.js"></script>
-        <title><?= $userName ?></title>
+        <title><?= $userName_h ?></title>
     </head>
     <body>
         <div id="fileList" style="float:left; overflow-y:auto; height:100%; width:20%; resize:horizontal;">
@@ -310,13 +312,13 @@ class TeacherLogController {
             -->
         </div>
         <div id="fileDetail" style="float:left; width:30%;">
-            <div id="<?= $userName ?>res"></div><br>
-            <textarea id="<?= $userName ?>" style="width:100%;" onclick="this.select(0,this.value.length)" readonly></textarea>
-            <textarea id="<?= $userName ?>detail" style="width:100%;" readonly></textarea>
+            <div id="<?= $userName_h ?>res"></div><br>
+            <textarea id="<?= $userName_h ?>" style="width:100%;" onclick="this.select(0,this.value.length)" readonly></textarea>
+            <textarea id="<?= $userName_h ?>detail" style="width:100%;" readonly></textarea>
         </div>
         <div id="diffArea" style="float:left;">
-            <span id="<?= $userName ?>diff"></span><br>
-            <span id="<?= $userName ?>diffLast"></span>
+            <span id="<?= $userName_h ?>diff"></span><br>
+            <span id="<?= $userName_h ?>diffLast"></span>
         </div>
     </body>
 </html>
