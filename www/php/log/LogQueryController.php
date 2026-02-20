@@ -2,6 +2,7 @@
 req("auth","param","DateUtil","pdo","TeacherLogController");
 class LogQueryController {
     static function index() {
+        $h=function ($t){return htmlspecialchars($t);};
         $allUsers=(param("user","")==="");
         $p=TeacherLogController::parseUser();
         //TODO $userはBAUserオブジェクトだけど、hoge% みたいなものも許容。存在していないけど。
@@ -34,18 +35,18 @@ class LogQueryController {
         <div class="header">
         クラス：<?= $class->id ?><Br/>
         <form action=".?LogQuery/index" method=POST>
-            日付<input name="date" value="<?= $date ?>"> 例：<?= $dateExample ?><br/>
+            日付<input name="date" value="<?= $h($date) ?>"> 例：<?= $dateExample ?><br/>
             <?php if ($p["canSeeOtherUsersLogs"]) { ?>
-            ユーザ名<input name="user" value="<?= ($user ? $user->name :"") ?>">
+            ユーザ名<input name="user" value="<?= $h($user ? $user->name :"") ?>">
             <input type="checkbox" value="1" name="grp_user" 
                 <?=param("grp_user",false) ?"checked":""?>>集計<br/>
             <?php }  else  { ?>
-                ユーザ名 <?= ($user ? $user->name :"") ?><Br/>
+                ユーザ名 <?= $h($user ? $user->name :"") ?><Br/>
             <?php } ?>
-            ファイル名<input name="file" value="<?= ($file ? $file :"") ?>">
+            ファイル名<input name="file" value="<?= $h($file ? $file :"") ?>">
             <input type="checkbox" value="1" name="grp_file"
                 <?=param("grp_file",false) ?"checked":""?>>集計<br/>
-            件数<input name="limit" value="<?= $limit ?>"><br/>
+            件数<input name="limit" value="<?= $h($limit) ?>"><br/>
             <input type="radio" name="sort" value="desc" <?=$sort==="desc"?"checked":"" ?>/>新しい(多い)順
             <input type="radio" name="sort" value="asc" <?=$sort==="asc"?"checked":"" ?>/>古い(少ない)順<br/>
             <input type="submit">
@@ -115,6 +116,7 @@ class LogQueryController {
         print(json_encode($res));
     }
     static function showTable($it) {
+        $h=function ($t){return htmlspecialchars($t);}
         //print "$datesec ";
         ?>
         <Script src="js/lib/jquery-1.12.1.js"></Script>
@@ -139,17 +141,25 @@ class LogQueryController {
             if (isset($rec->time)) $date=DateUtil::toDayTop($rec->time);
             foreach ($rec as $key=>$val) {
                 if ($key=="raw" || $key=="detail" || $key=="class") continue;
-                if ($key=="time") $val=DateUtil::toString($val);
-                if ($key=="id") {
+                ?><td data-attr='<?=$h($key)?>'><?php
+                if ($key=="time") {
+                    ?><?= $h(DateUtil::toString($val)) ?><?php
+                } else if ($key=="id") {
                     $u=$rec->user;
-                    $val="<a href='.?TeacherLog/view1new&user=$u&day=$date&logid=$val&' target=view1>$val</a>";
+                    ?>
+                    <a href='.?TeacherLog/view1new&user=<?= $h($u)?>&day=<?= $h($date)?>&logid=<?= $h($val)?>&' 
+                        target="view1"><?= $h($val)?></a>
+                    <?php
                 }
-                if ($key=="count") {
-                    if (isset($rec->user) && isset($rec->filename) ) {
-                        $val="<a href='.?TeacherLog/view1new&user=$rec->user&file=$rec->filename' target=view1>$val</a>";
+                else if ($key=="count") {
+                    if (isset($rec->user) && isset($rec->filename) ) {?>
+                        <a href='.?TeacherLog/view1new&user=<?=$h($rec->user)?>&file=<?=$h($rec->filename)?>'
+                         target=view1><?=$h($val)?></a><?php
                     }
+                } else {
+                    print $h($val);
                 }
-                print "<td data-attr='$key'>$val</td>";
+                ?></td><?php
             }
             print "</tr>\n";
         }

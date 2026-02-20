@@ -352,10 +352,10 @@ function goFilePrev(file, skipEq=true) {
 
 function navByFile(file) {
     return `
-        <a href="javascript:;" onclick="goFileTop('${file}')">Top</a> |
-        <a href="javascript:;" onclick="goFilePrev('${file}')">Prev</a> |
-        <a href="javascript:;" onclick="goFileNext('${file}')">Next</a> |
-        <a href="javascript:;" onclick="goFileLast('${file}')">Last</a>
+        <a href="javascript:;" onclick="goFileTop('${h(file)}')">Top</a> |
+        <a href="javascript:;" onclick="goFilePrev('${h(file)}')">Prev</a> |
+        <a href="javascript:;" onclick="goFileNext('${h(file)}')">Next</a> |
+        <a href="javascript:;" onclick="goFileLast('${h(file)}')">Last</a>
     `;
 }
 function cut(time) {
@@ -383,9 +383,9 @@ function openFrame(data){
   var raw=JSON.parse(data.raw);
   var code=getCode(raw);//.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.DNCL || raw.code.Python || "";
   //res=data.filename+"\n"+data.result+"\n-------------\n"+data.code.C;
-  let res=code;
-  res=res.replace(/</g,"&lt;");
-  res=res.replace(/>/g,"&gt;");
+  //let res=code;
+  //res=res.replace(/</g,"&lt;");
+  //res=res.replace(/>/g,"&gt;");
   $("[id='"+displayingId+"ui']").css("display","inline");
   $("[id='"+displayingId+"res']").css("display","inline");
   //http://bitarrow.eplang.jp/bitarrowbeta/
@@ -404,7 +404,7 @@ function openFrame(data){
     location.href.match(/TeacherLog\/view1/) && location.href.match(/user=/) ?
     location.href+"&file="+data.filename :
     `?TeacherLog/view1new&user=${data.user}&file=${data.filename}&logid=${data.id}`;
-  const filehist=`<a class="filename" target="_byfile" href=${filedURL}>${data.filename}</a>`;
+  const filehist=`<a class="filename" target="_byfile" href='${h(filedURL)}'>${h(data.filename)}</a>`;
   //var filehist=data.filename;
   var lang=raw.code.C ?"c" : raw.code.JavaScript ? "js" : raw.code.Dolittle ? "dtl" : raw.code.DNCL ? "dncl" : raw.code.Python ? "py" :"unknown";
   var detail=raw.detail;
@@ -416,26 +416,26 @@ function openFrame(data){
   const rawLink=`?LogQuery/byId&id=${data.id}`;
   $("[id='"+userid+"res']").html(`<Br/>
         <div>
-            <span class="logtime">${logtime}</span>&nbsp;
+            <span class="logtime">${h(logtime)}</span>&nbsp;
             ${cutTime ? `<button onclick="cut()">この日の最後まで表示</button>` :""}&nbsp;
-            <button onclick="cut(${data.time})">この時刻以降非表示</button>&nbsp;
-            <a href="?TeacherLog/view1Dates&user=${userid}">他の日付...</a>
+            <button onclick="cut(${h(data.time)})">この時刻以降非表示</button>&nbsp;
+            <a href="?TeacherLog/view1Dates&user=${h(userid)}">他の日付...</a>
         </div>
-      <div><a target='raw' href="${rawLink}">Raw..</a></div>`+
+      <div><a target='raw' href="${h(rawLink)}">Raw..</a></div>`+
       (runLink ?
-          "<a target='runCheck' href='"+runLink+"'>実行してみる</a><br>":"")+
-      `<span class="userid">${userid}</span>(<span id='userName'></span>)<BR>`+
+          "<a target='runCheck' href='"+h(runLink)+"'>実行してみる</a><br>":"")+
+      `<span class="userid">${h(userid)}</span>(<span id='userName'></span>)<BR>`+
       filehist+ navByFile(data.filename)+
      // `actualTime=<span class='actualTime'>${logDOM.attr("data-actualTime")}</span>`+"<br>"+
-      `actualTime=<span class='actualTime2'>${logDOM.attr("data-actualTime2")}</span>`+"<br>"+
-      data.result);
+      `actualTime=<span class='actualTime2'>${h(logDOM.attr("data-actualTime2"))}</span>`+"<br>"+
+      h(data.result));
   $("[id='"+userid+"']").height(30);
-  $("[id='"+userid+"']").html(res);
+  $("[id='"+userid+"']").text(code);
   $("[id='"+userid+"']").css("display","inline");
   //$("#"+userid).width($("#"+userid).parent().width());
   $("[id='"+userid+"']").height( checknull( $("[id='"+userid+"']").get(0), userid).scrollHeight);
   $("[data-id='"+data.id+"']").css("background-color","orange");
-  $("[id='"+userid+"detail']").html(decodeDetail(detail));
+  $("[id='"+userid+"detail']").text(decodeDetail(detail));
   //alert(logid);
   if(showDiffFlag && typeof prevProgram!=="undefined"/*&& prevProgram!=code*/){
     calcDiff(prevProgram,code,"[id='"+userid+"diff']","Prev","Current",true);
@@ -546,7 +546,7 @@ function showFileEntry(l) {
     e.appendTo(line);
     const r=x=>Math.floor(x*10)/10;
     lastDiffData.equal+=lastDiffData.equalFine;
-    let sameLines=`:${r(lastDiffData.equal)}/${lastDiffData.prevLines}/${lastDiffData.nowLines}`;
+    let sameLines=`:${h(r(lastDiffData.equal))}/${h(lastDiffData.prevLines)}/${h(lastDiffData.nowLines)}`;
     if (prevDiffData.delete+prevDiffData.insert+prevDiffData.replace===0) {
         e.addClass("unchanged");
         line.addClass("unchanged");
@@ -772,4 +772,19 @@ function getQueryString(key, default_)
 }
 function decodeURLComponentEx(s){
     return decodeURIComponent(s.replace(/\+/g, '%20'));
+}
+function h(string) {
+  if(typeof string !== 'string') {
+    return string;
+  }
+  return string.replace(/[&<>]/g, function(match) {
+    return {
+      '&': '&amp;',
+      /*"'": '&#x27;',
+      '`': '&#x60;',
+      '"': '&quot;',*/
+      '<': '&lt;',
+      '>': '&gt;',
+    }[match]
+  });
 }
