@@ -4,8 +4,10 @@ class LogQueryController {
     static function index() {
         $allUsers=(param("user","")==="");
         $p=TeacherLogController::parseUser();
+        //TODO $userはBAUserオブジェクトだけど、hoge% みたいなものも許容。存在していないけど。
         $user=$p["user"];
         $teacherObj=$p["teacher"];
+        //BAUserのclass は現在のクラス情報から渡されるので、ユーザとして存在してなくてもセーフ。
         $class=$user->getClass();
 
         $date=param("date","");
@@ -20,7 +22,7 @@ class LogQueryController {
             if ($allUsers) $user=null;
             if (param("grp_user",false)) {
                 $groupBy[]="user";
-                $user=null;
+                //$user=null;
             }
         }
         if (param("grp_file",false)) {
@@ -71,7 +73,7 @@ class LogQueryController {
             $wheres[]=["time < ?", $dateMax];
         }
         if ($user) {
-            $wheres[]=["user =?", $user->name];
+            $wheres[]=["user like ?", $user->name];
         }
         if ($file) {
             $wheres[]=["filename like ?", $file];
