@@ -134,19 +134,24 @@ function getLog(logid,userid){
   });
 
 }
-function getLogs(user,day,all){
+function jsonlTojson(jsonl){
+    return jsonl.split("\n").filter((e)=>!!e).map((e)=>JSON.parse(e));
+}
+async function getLogs(user,day,all){
     let cmd="getLogClusters";
     if (location.href.match(/nocluster/)) {
         cmd="getLogs";
     }
     const file=getQueryString("file",null);
     if (file) {
-        return $.ajax({
+        const jsonl=await $.ajax({
           type: "POST",
           url: `?LogQuery/index`,
           data: {user,file,output:"json",sort:"asc",limit:10000},
-          dataType: "json",
+          dataType: "text",
         });
+        return jsonlTojson(jsonl);
+
     }
     const days=getQueryString("days",1);
     return $.ajax({

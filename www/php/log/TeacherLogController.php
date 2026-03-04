@@ -163,10 +163,11 @@ class TeacherLogController {
         $all=param("all",false);
         $prevTime=0;
         $prevResult="";
-        $logs2=Array();
+        //$logs2=Array();
         $logs=$targetUser->getAllLogs($baseInt,$baseInt+$days*86400);
         req("LogCluster");
         $c=null;
+        header("Content-type: text/plain");
         foreach($logs as $i=>$l){
             if (!LogUtil::isValidEntry($l)) {
                 continue;
@@ -175,14 +176,15 @@ class TeacherLogController {
                 $c=new LogCluster();
             }
             if (!$c->collect($l)) {
-                $logs2[]=$c->withRaw();
+                //$logs2[]=$c->withRaw();
+                print(json_encode($c->withRaw())."\n");
                 $c=new LogCluster();
                 $c->collect($l);
             }
         }
-        if ($c) $logs2[]=$c->withRaw();
-        header("Content-type: text/json");
-        print json_encode($logs2);
+        if ($c) print(json_encode($c->withRaw())."\n");
+        //$logs2[]=$c->withRaw();
+        //print json_encode($logs2);
     }
     static function getLogs() {
         // ある日のあるユーザの全ログ（all=1のとき）を，JSONで返してくれる．
@@ -197,8 +199,10 @@ class TeacherLogController {
         $all=param("all",false);
         $prevTime=0;
         $prevResult="";
-        $logs2=Array();
+        //$logs2=Array();
         $logs=$targetUser->getAllLogs($baseInt,$baseInt+86400);
+        
+        header("Content-type: text/plain");
         foreach($logs as $i=>$l){
             if(strpos($l['result'],'Save')===false && strpos($l['result'],'rename')===false){
               //if(array_key_exists($i+1,$logs)){
@@ -221,14 +225,14 @@ class TeacherLogController {
                     $l['result']==  $prevResult &&
                     strpos(mb_strtolower($l['result']),'runtime')!==false)
                 ) {
-                    array_push($logs2,$l);
+                    print(json_encode($l)."\n");
+                    //array_push($logs2,$l);
                 }
                 $prevTime=$l['time'];
                 $prevResult=$l['result'];
             }
         }
-        header("Content-type: text/json");
-        print json_encode($logs2);
+        //print json_encode($logs2);
     }
     static function view1new() {
         $h=function ($t){return htmlspecialchars($t);};
