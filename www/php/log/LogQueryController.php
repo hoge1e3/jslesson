@@ -105,15 +105,16 @@ class LogQueryController {
                 $a=TeacherLogController::getActualtime2($user, $file);
                 echo "actualTime2= $a";
             }
-        } else self::showJSON($it);
+        } else self::showJSONL($it);
     }
-    static function showJSON($it) {
-        header("Content-type: text/json");
-        $res=[];
+    static function showJSONL($it) {
+        header("Content-type: text/plain");
+        //$res=[];
         foreach ($it as $rec) {
-            $res[]=$rec;
+            print (json_encode($rec)."\n");
+            //$res[]=$rec;
         }
-        print(json_encode($res));
+        //print(json_encode($res));
     }
     static function showTable($it) {
         $h=function ($t){return htmlspecialchars($t);}
