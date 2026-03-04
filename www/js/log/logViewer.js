@@ -72,6 +72,33 @@ $(document).ready(function() {
         performSort(m[1]-0, m[2]-0);
     }
 });
+function JSON_parse(line) {
+  let lastE = null;
+  for (let i = 0; i < 10; i++) {
+    try {
+      const obj = JSON.parse(line);
+      return obj;
+    } catch (e) {
+      lastE = e;
+    }
+    if (i === 0) {
+      if (/\\$/.test(line)) {
+        line += "n";
+      } else if (/\\u$/.test(line)) {
+        line += "0000";
+      } else if (/\\u[0-9a-f]$/i.test(line)) {
+        line += "000";
+      } else if (/\\u[0-9a-f]{2}$/i.test(line)) {
+        line += "00";
+      } else if (/\\u[0-9a-f]{3}$/i.test(line)) {
+        line += "0";
+      }
+      line += '"';
+    }
+    line += "}";
+  }
+  throw lastE;
+}
 function fold(show) {
     const items = [];
     $(".logItem").each(function () {
@@ -134,29 +161,35 @@ function getLog(logid,userid){
   });
 
 }
-function getLogs(user,day,all){
+function jsonlTojson(jsonl){
+    return jsonl.split("\n").filter((e)=>!!e).map((e)=>JSON_parse(e));
+}
+async function getLogs(user,day,all){
     let cmd="getLogClusters";
     if (location.href.match(/nocluster/)) {
         cmd="getLogs";
     }
     const file=getQueryString("file",null);
     if (file) {
-        return $.ajax({
+        const jsonl=await $.ajax({
           type: "POST",
           url: `?LogQuery/index`,
           data: {user,file,output:"json",sort:"asc",limit:10000},
-          dataType: "json",
+          dataType: "text",
         });
+        return jsonlTojson(jsonl);
+
     }
     const days=getQueryString("days",1);
-    return $.ajax({
+    const jsonl=await $.ajax({
       type: "POST",
       // url: "?Class/getLog",
       //data: "logid="+logid,
       url: `?TeacherLog/${cmd}`,
       data: {user,day,days,all:(all?1:0)},
-      dataType: "json",
+      //dataType: "json",
     });
+    return jsonlTojson(jsonl);
 }
 const IDLE_TIME=300;
 let scrolled=false;
@@ -180,11 +213,11 @@ async function view1new() {
     programs=[];// {filename: [log....]}
     //logs=logs.filter(log=>!(log.result.match(/(Save|Open)/) && !showSave));
     for (let log of logs) {
-        //log.raw=JSON.parse(log.raw);
+        //log.raw=JSON_parse(log.raw);
         const filename=log.filename;
         if(!programs[filename]) programs[filename]=[];
         try {
-            programs[filename].push(JSON.parse(log.raw));
+            programs[filename].push(JSON_parse(log.raw));
         } catch(e) {
             console.log("JSON_ERROR",log.raw);
             console.error(e);
@@ -205,7 +238,7 @@ async function view1new() {
         if (e.keyCode==13) {
             for (let log of logs) {
                 try {
-                    if (getCode(JSON.parse(log.raw)).indexOf(word.val())>=0) {
+                    if (getCode(JSON_parse(log.raw)).indexOf(word.val())>=0) {
                         $("#"+log.id).addClass("found");
                     }
                 }catch(ex){
@@ -380,7 +413,7 @@ function openFrame(data){
   showDiffFlag=(displayingId==data.user);
   currentLogId=data.id;
   displayingId=data.user;
-  var raw=JSON.parse(data.raw);
+  var raw=JSON_parse(data.raw);
   var code=getCode(raw);//.code.C || raw.code.JavaScript || raw.code.Dolittle || raw.code.DNCL || raw.code.Python || "";
   //res=data.filename+"\n"+data.result+"\n-------------\n"+data.code.C;
   //let res=code;
@@ -527,7 +560,7 @@ function showFileEntry(l) {
       //console.log(i-1,pRaw);
     }
     indexList[l.filename]++;
-    var cRaw=JSON.parse(l.raw);
+    var cRaw=JSON_parse(l.raw);
     var lRaw=programs[l.filename][programs[l.filename].length-1];
     //console.log(pRaw,cRaw,lRaw);
     var prevProg=getCode(pRaw);//.code.C || pRaw.code.JavaScript || pRaw.code.Dolittle || pRaw.code.Python || "";
@@ -604,17 +637,17 @@ async function showLogOneUser(logid,userid,fn){
   //return;
     try {
         const r=await getPreviousLog(logsOfOneUser[fn][ind]);//.done(function(r){
-        const curRaw=JSON.parse(r.raw);
+        const curRaw=JSON_parse(r.raw);
         currentProgram=getCode(curRaw);//.code.C || curRaw.code.JavaScript || curRaw.code.Dolittle || curRaw.code.Python;
 
         let code="最初のプログラム";
         if (ind>0) {
             const result=await getPreviousLog(logsOfOneUser[fn][ind-1]);//.done(function(result) {
-            const raw=JSON.parse(result.raw);
+            const raw=JSON_parse(result.raw);
             code=getCode(raw);
         }
         const last=await getPreviousLog(logsOfOneUser[fn][logsOfOneUser[fn].length-1]);//.done(function(last){
-        const lRaw=JSON.parse(last.raw);
+        const lRaw=JSON_parse(last.raw);
         const lastProg=getCode(lRaw);//lRaw.code.C || lRaw.code.JavaScript || lRaw.code.Dolittle || lRaw.code.Python || "";
         const prevDiffData=calcDiff(code,currentProgram,"[id='"+userid+"diff']","Prev","Current",true);
         const lastDiffData=calcDiff(currentProgram,lastProg,"[id='"+userid+"diffLast']","Current","Last",true);
