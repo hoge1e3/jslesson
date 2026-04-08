@@ -821,3 +821,10 @@ function h(string) {
     }[match]
   });
 }
+function diffGraph(){
+    const seq=Array.from($(".diffStat")).
+    map(e=>e.innerText).
+    map(e=>e.replace(/^\D*/,"").replace(/\D*$/,"")).
+    map(e=>e.split("/").map(Number));
+    
+}
