@@ -876,6 +876,9 @@
     }
     return res;
   };
+  Function.prototype.new=function (...args) {
+    return new this(...args);
+  };  
   var _jsroot;
   (function () {
     _jsroot = this;
@@ -1031,6 +1034,9 @@
       };
       f.execute(succ, fail);
     });
+  };
+  root.import=(url)=>{
+    return DtlPromise.new((succ,fail)=>import(url).then(succ,fail));
   };
   DtlPromise = root.DtlPromise = {
     new: function (f) {
