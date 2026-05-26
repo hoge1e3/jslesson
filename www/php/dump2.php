@@ -9,6 +9,7 @@ $fp=fopen(BA_LOG."/$class-$user-data.log","a");
 if (isset( $_SERVER["REMOTE_ADDR"] )) {
     $o=json_decode($data);
     $o->ip=$_SERVER["REMOTE_ADDR"];
+    $o->session=md5(session_id());	
     $data=json_encode($o);
 }
 

@@ -41,7 +41,20 @@ class BAClass{
         //このクラスの再発行リクエスト一覧を取得(arrayで)
 
     }
-    function passwordRequired() {
+    function passwordRequired() {       
+        if(defined("DEFAULT_PASSWORD_NOUSE")){
+            if(isset($this->getOptions()->passwordPolicy) && $this->getOptions()->passwordPolicy=="yes"){
+                return true;
+            }
+            return false;
+        } else {
+            if(isset($this->getOptions()->passwordPolicy) && $this->getOptions()->passwordPolicy=="nouse"){
+                return false;
+            }
+            return true;
+        }
+    }
+    function passwordRequiredold() {
         //TODO
         //このクラスのユーザはパスワードを要求されるか？
         if(isset($this->getOptions()->passwordPolicy) && $this->getOptions()->passwordPolicy=="yes"){
