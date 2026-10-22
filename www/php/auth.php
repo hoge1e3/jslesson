@@ -324,6 +324,9 @@ class Auth {
     }
 }
 class AuthContext {
+    var $userObj, $user, $classObj, $teacher, $userId, $userID,
+     $userName, $_class, $class, $className, $classId, $classID;
+
     function __construct() {
         $this->userObj=$this->user=Auth::curUser2();
         if (!$this->user) {

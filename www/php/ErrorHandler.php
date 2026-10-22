@@ -19,13 +19,13 @@ function setErrStatus($s){
 }
 function h_err($errno, $errstr, $errfile, $errline) {
     global $errStatus;
-    /*if ($errno == E_DEPRECATED || $errno == E_NOTICE) {
+    if ($errno == E_DEPRECATED || $errno == E_NOTICE) {
         error_log(
             date('Y-m-d H:i:s') .
-            " [$errno] $errstr in $errfile:$errline"
+            "ERRH [$errno] $errstr in $errfile:$errline"
         );
         return true;
-    }*/
+    }
     if (!isset($errStatus)) $errStatus=""; 
     http_response_code(500);
     $buf="<BR>\n";

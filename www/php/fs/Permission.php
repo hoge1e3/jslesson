@@ -2,6 +2,7 @@
 require_once __DIR__."/PathUtil.php";
 class Permission {
     const READ=1,WRITE=2,READMETA=4,WRITEMETA=8,LS=16;
+    var $classes;
     public static function opr2str($opr) {
         switch($opr) {
         case self::READ: return "read";

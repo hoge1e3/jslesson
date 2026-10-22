@@ -5,6 +5,7 @@ class Assignment {
     var $_class;
     var $name;
     var $base; // "name"  or "id"
+    var $loaded;
     static function schema() {
         return array(
             "description"=>"string",

@@ -36,7 +36,7 @@ class ErrorSeqController {
 		$user=$res->user;
 		$sth=pdo_exec("select * from log where user=? and time>=? and time<=?",$user,$start,$end);
 		$fst=1;
-		$lastr;
+		$lastr=null;
 		while($r=$sth->fetch(PDO::FETCH_OBJ)) {
 			if ($fst) {
 				echo "<div><a target=prev href='a.php?ErrorSeq/prev&time=".$r->time."&user=$user'>Prev</a></div>\n";
