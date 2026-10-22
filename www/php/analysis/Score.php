@@ -7,7 +7,6 @@ require_once __DIR__."/../ErrorHandler.php";
 
 $scoreDir=new SFile(new NativeFS("./"),"/scoreSheet/score/");*/
 require_once __DIR__."/TagUtil.php";
-require_once __DIR__."/../json.php";
 
 if (isset($_GET["cmd"]) && $_GET["cmd"]=="tags") {
     echo json_encode(TagUtil::tagList($_GET["cmt"]));
@@ -22,7 +21,7 @@ if ($cmd=="write") {
     $o=json_decode($data);
     TagUtil::add($o->com);
 } else {
-    header("Content-type","text/json;charset=utf8");
+    header("Content-type: text/json;charset=utf8");
     if ($f->exists()) echo $f->text();
     else echo "{}";
 }

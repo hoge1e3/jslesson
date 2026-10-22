@@ -9,7 +9,6 @@
 <script src="js/ide/showTimeline.js"></script>
 <?php
 require_once __DIR__."/php/Modules.php";
-require_once __DIR__."/php/json.php";
 require_once __DIR__."/php/auth.php";
 require_once __DIR__."/php/fs/NativeFS.php";
 require_once __DIR__."/php/fs/PathUtil.php";
@@ -76,12 +75,11 @@ function readLog($time, $error) {
 function readJSONLog($file) {
     global $fs,$min,$max;
     $tlines=explode("\n",$fs->getContent($file));
-    $j=new Services_JSON;
     echo ("<script>queue.push(function () {\n");
     echo ("setUser('$file');\n");
     $es=array();
     foreach($tlines as $tline) {
-        $e=$j->decode($tline);
+        $e=json_decode($tline, true);
         if ($e) {
             $e["status"]="NonError";
             if (isset($e["result"]) && strpos($e["result"],"Error")) {

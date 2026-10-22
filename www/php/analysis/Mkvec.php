@@ -1,7 +1,6 @@
 <?php
 
 require_once __DIR__."/../ErrorHandler.php";
-require_once __DIR__."/../json.php";
 require_once __DIR__."/../auth.php";
 require_once __DIR__."/../fs/SFile.php";
 
@@ -9,7 +8,6 @@ $prj=$_GET["project"];
 $fs=Auth::getFS();
 $prjD=(new SFile($fs,Auth::homeDir()))->rel($prj);
 $files=$prjD->listFiles();
-$j=new Services_JSON();
 $vecs=array();
 foreach ($files as $file) {
     $vec=array();
@@ -22,5 +20,5 @@ foreach ($files as $file) {
     },$c);
     $vecs[$file->name()]=$vec;
 }
-print $j->encode($vecs);
+print json_encode($vecs);
 ?>

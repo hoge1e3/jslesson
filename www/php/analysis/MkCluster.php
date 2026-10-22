@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__."/VecUtil.php";
 require_once __DIR__."/LogUtil.php";
-require_once __DIR__."/../json.php";
 require_once __DIR__."/../PQuery.php";
 require_once __DIR__."/../Progress.php";
 require_once __DIR__."/../auth.php";
@@ -40,7 +39,7 @@ if ($get->attrDef("state",0)==0) {
     $c=count($lines);
     showProgress("Read lines");
     foreach ($lines as $i=>$line) {
-        $vecs[]=new Vec(json2array($line));
+        $vecs[]=new Vec(json_decode($line,true));
     }
     showProgress("Starting kmeans");
     VecUtil::$verbose=1;
