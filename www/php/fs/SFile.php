@@ -22,7 +22,7 @@ class SFile{
     public function getPolicy() {
     }
     private function _clone() {
-        return this.resolve(this.path());
+        return $this->resolve($this->path());
     }
     private function resolve($path) {
         return new SFile($this->fs,$path);//,$this->perm);

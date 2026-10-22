@@ -1,5 +1,6 @@
 <?php
 class JSQN {
+    var $whereByConstraint, $rdPrc;
     var $schema;
     function setSchema($s) {
         //{"tableName": {"fieldName":true||["eq",value]}  }
