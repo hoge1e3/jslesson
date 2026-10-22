@@ -1,6 +1,7 @@
 <?php
 class PQuery {
     var $key;
+    var $obj;
     public function __construct($obj) {
         $this->obj=$obj;
         if (func_num_args()==1) {

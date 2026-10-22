@@ -238,7 +238,8 @@ class Auth {
         if (!MySession::has("user")) return null;
         $c=self::curClass2();
         if (!$c) return null;
-        return $c->getUser(MySession::get("user"));
+        $u=$c->getUser(MySession::get("user"));
+        return $u;
     }
     static function curUser() {
         if (!MySession::has("user")) return null;
