@@ -1466,6 +1466,7 @@ class TeacherLogController {
     static function bauth() {        
         $code=param("code",null);
         $ba_top_url=PathUtil::truncSep(BA_TOP_URL);
+        if (!defined("LOG_VIEWER_ONLY")) die("Define LOG_VIEWER_ONLY");
         if (!$code) {
             header("Location: ".LOG_VIEWER_ONLY."?Login/curStatus&callback=$ba_top_url/?TeacherLog/bauth");
             return;

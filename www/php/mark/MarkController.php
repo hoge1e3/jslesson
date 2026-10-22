@@ -20,7 +20,7 @@ class MarkController {
         foreach($_POST as $key=>$value) {
             $data=json_decode($value);
             $data->time=DateUtil::now();
-            $r=pdo_insertOrUpdate("mark",array("submission"=>$key),$data);
+            pdo_insertOrUpdate("mark",array("submission"=>$key),$data);
         }
     }
     static function submit() {
@@ -39,7 +39,7 @@ class MarkController {
                 if (isset($_POST[$mankey])) {
                     $man=$_POST[$mankey];
                 }
-                $r=pdo_insertOrUpdate("mark",
+                pdo_insertOrUpdate("mark",
                 array("submission"=>$key),
                 array("result"=>$result,
                     "comment"=>$value,

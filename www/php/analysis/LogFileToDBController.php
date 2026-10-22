@@ -92,6 +92,7 @@ class LogFileToDBController {
             foreach ($files as $file) {
                 $output=null;
                 $retval=null;
+                if (!defined("SENDLOG")) die("Define SENDLOG");
                 exec(SENDLOG." ".$file->name()."  2>&1 ", $output, $retval);
                 if ($retval) {
                     print_r($output);
