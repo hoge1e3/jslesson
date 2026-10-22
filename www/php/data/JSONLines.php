@@ -79,6 +79,7 @@ class JSONLines implements IteratorAggregate {
         }
         $file->text($buf);
     }
+    #[\ReturnTypeWillChange]
     function getIterator() {
         return new ArrayIterator($this->lines);
     }

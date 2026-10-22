@@ -204,26 +204,31 @@ class RecordIterator implements Iterator
         $this->count++;
     }
 
+    #[\ReturnTypeWillChange]
     public function rewind()
     {
     }
 
+    #[\ReturnTypeWillChange]
     public function next()
     //繰り返し処理を次に進める。各繰り返しの最後に呼び出される。
     {
         $this->fetch();
     }
 
+    #[\ReturnTypeWillChange]
     public function key()
     {
         return $this->count;
     }
 
+    #[\ReturnTypeWillChange]
     public function current()
     {
         return $this->current;
     }
 
+    #[\ReturnTypeWillChange]
     public function valid()
     //次の要素が存在すれば true、存在しなければ false を返す。各繰り返しの前に呼び出される。
     {
