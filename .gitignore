@@ -133,3 +133,6 @@ data/fs/home/hogeclass
 data/fs/home/ti-cha-
 data/teacher/teacher.json
 py_samples
+data/fs/home/lesson_samples/lesson_samples/python_demo/python_symbols.csv
+www/javascript_symbols.csv
+www/python_symbols.csv
