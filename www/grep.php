@@ -3,7 +3,6 @@
 require_once __DIR__."/php/Modules.php";
 require_once __DIR__."/php/auth.php";
 require_once __DIR__."/php/fs/NativeFS.php";
-require_once __DIR__."/php/json.php";
 require_once __DIR__."/php/analysis/LogUtil.php";
 Auth::assertTeacher();
 if (!Auth::isTeacher2()) {
@@ -29,7 +28,7 @@ if ($fs->exists("$file-data.txt")) {
     json($file);
 }
 function plain($file) {
-    global $fs,$word;
+    global $fs,$word,$around;
     $lines=explode("\n",$fs->getContent("$file-data.txt"));
     $a=array();
     $found=FALSE;

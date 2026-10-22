@@ -1,7 +1,6 @@
 <?php
 
 require_once __DIR__."/../ErrorHandler.php";
-require_once __DIR__."/../json.php";
 require_once __DIR__."/../auth.php";
 require_once __DIR__."/../fs/SFile.php";
 require_once __DIR__."/../fs/NativeFS.php";
@@ -12,7 +11,6 @@ require_once __DIR__."/LogUtil.php";
 $fs=new NativeFS(BA_LOG."/");
 $logD=new SFile($fs,"/");
 $files=$logD->listFiles();
-$j=new Services_JSON();
 $class=Auth::curClass();
 #print $class;
 
@@ -28,7 +26,7 @@ foreach ($files as $file) {
     if ($file->startsWith($class) && $file->endsWith("-data.log")) {
         $data=array_map(function ($line) {
             global $count,$cluster;
-            $e=json2array($line);
+            $e=json_decode($line,true);
             $code=LogUtil::detectProgram($e);
             $vec=VecUtil::mkvec($code);
             $a=$cluster->nearest($vec);
