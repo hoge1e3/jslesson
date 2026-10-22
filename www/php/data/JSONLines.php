@@ -1,5 +1,7 @@
 <?php
 class JSONLines implements IteratorAggregate {
+    var $file;
+    var $lines;
     function __construct($file) {
         $this->file=$file;
         if (!$file->exists()) {

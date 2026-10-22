@@ -189,6 +189,7 @@ function pdo_uniqID($table, $column) {
 }
 class RecordIterator implements Iterator
 {
+    private $count;
     private $current;
     private $sth;
     private $type;

@@ -52,7 +52,7 @@ class AssignmentController {
         $res=pdo_select("select * from assignment where class=?",
         $class->id);
         $file=param("file",null);
-        if ($file) $res=self::byFile($res);
+        if ($file) $res=self::byFile($res,$file);
         header("Content-type: text/json");
         echo json_encode($res);
     }
@@ -84,9 +84,9 @@ class AssignmentController {
     static function byFile($res,$file) {
         $res2=array();
         foreach ($res as $a) {
-            $files=json_parse($a->files);
+            $files=json_decode($a->files);
             foreach ($files as $filee=>$t) {
-                if (PathUtil::startWith( $filee, $file)) {
+                if (PathUtil::startsWith( $filee, $file)) {
                     $res2[]=$a;
                     break;
                 }
