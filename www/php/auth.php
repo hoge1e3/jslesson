@@ -317,6 +317,7 @@ class Auth {
     static function getPublishedDir($project) {
         req("Published");
         $user=self::curUser2();
+        if (!$user) die("getPublishedDir: Not logged in");
         return Published::getURL($user->_class->id, $user->name, $project);
     }
     static function context() {

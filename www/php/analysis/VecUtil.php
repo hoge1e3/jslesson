@@ -3,6 +3,7 @@ require_once __DIR__."/../Progress.php";
 
 class VecUtil {
     static $verbose=0;
+
     
     static function mkvec($src) {
         $vec=array();
@@ -118,6 +119,7 @@ class VecUtil {
     }
 }
 class Vec {
+    var $cnt;
     var $ary;
     var $label;
     public function Vec() {
@@ -181,11 +183,12 @@ class Vec {
     }
 }
 class VecCluster2 {
+    var $centroids;
     function VecCluster2($centroids) {//$centroids:[Vec2]
         $this->centroids=$centroids;
     }
     function nearest($vec) {
-        $min=-1;$minC;
+        $min=-1;$minC=null;
         foreach ($this->centroids as $c) {
             $d=$c->dist($vec);
             if ($min<0 || $d<$min) {
@@ -198,11 +201,12 @@ class VecCluster2 {
 }
 
 class VecCluster {
+    var $vecs;
     function VecCluster($vecs) {//$vec:array(name=>$vec)
         $this->vecs=$vecs;
     }
     function nearest($vec) {
-        $min=-1;$minN;
+        $min=-1;$minN=null;
         $vecs=$this->vecs;
         foreach ($vecs as $name=>$cvec) {
             $d=VecUtil::dist($vec,$cvec);

@@ -16,7 +16,7 @@ class DtlThread {
         if (self::$debug) echo count($block->code);
         foreach ($block->code as $c) {
             if (self::$debug) {
-                $len=count($stack);
+                $len=$stack->size();
                 echo " {$c[0]} sp=$len \n";
             }
             switch ($c[0]) {

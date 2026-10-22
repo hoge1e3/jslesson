@@ -35,7 +35,7 @@ class DtlNumber {
         return $this->value!=$a;
     }
     public function __toString() {
-        return $value;
+        return $this->value;
     }
 }
 ?>

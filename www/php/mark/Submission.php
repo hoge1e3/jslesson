@@ -6,6 +6,7 @@ class Submission {
     var $time;
     var $user;
     var $files;
+    var $loaded;
     static function schema() {
         return array(
             "assignment"=>"extkey",

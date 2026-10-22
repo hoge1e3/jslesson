@@ -2,6 +2,8 @@
 class DtlObj {
     private $ID;
     private $IDSeq;
+    var $__proto__;
+    var $Shell;
     public function __construct($proto, $id) {
         $this->__proto__=$proto;
         if (is_null($proto)) $this->ID="ROOT";
