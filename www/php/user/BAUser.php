@@ -139,7 +139,8 @@ class BAUser {
         $j=$u[0]["options"];
         if (!$j) $this->options=new stdClass;
     	else $this->options=json_decode($j);
-        return $this->options;
+        $opt=$this->options;
+        return $opt;
     }
     function isTeacherOf($class) {
         //このユーザは$class の教員roleを持つか？
