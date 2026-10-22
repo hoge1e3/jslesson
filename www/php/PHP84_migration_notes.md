@@ -21,11 +21,22 @@ Done json.phpは削除
 - [LogCluster.php](log/LogCluster.php#L14) の `LogElem` はJSONのキーを無制限にプロパティ化し、`LogCluster` も `class`, `user`, `filename`, `lang`, `time`, `code`, `result`, `detail`, `raws` 等を動的に保持します。ログ形式に合わせて宣言するか、可変データを配列/`stdClass` に保持してください。
 - 同パターンの `$this->{$k}=...` / `$this->name=...` が他にもあるため、全クラスを検索して宣言漏れを確認してください。`#[AllowDynamicProperties]` はPHP 7.4との互換性を考えると第一選択にせず、明示的なプロパティ宣言を推奨します。
 
+→大変！　エラーを出しながら直す？ 
+
 ### 3. エラーを即時終了させるハンドラを調整する
 
 - [ErrorHandler.php](ErrorHandler.php#L20) は `set_error_handler()` でほぼ全エラーを受け取り、[34行](ErrorHandler.php#L34) で `die()` します。
 - そのため、上記の非推奨警告を残したままでは単なるログでは済まず、該当リクエストがHTTP 500で終了します。動的プロパティ等を直した後も、8.4で出る `E_DEPRECATED` を含めて確認してください。
 - ハンドラ側で `error_reporting()` に含まれないレベルや、運用上無視するレベルをどう扱うかを明示してください。非推奨を一括無視する設定だけで移行完了としないでください。
+
+### 4. `RecordIterator` の Iterator 戻り値通知に対応する
+
+- [pdo.php](data/pdo.php#L190) の `RecordIterator` はPHP組み込みの `Iterator` を実装し、`current()`, `key()`, `next()`, `rewind()`, `valid()` の戻り値型を宣言していません。
+- PHP 8.1以降では、Iteratorの仮戻り値型との不一致が `E_DEPRECATED` になります。今回報告された `current()` の警告もこれに該当します。
+- 7.4互換を保つため、該当メソッドに `#[\\ReturnTypeWillChange]` を付けて一時抑制しました。この属性行はPHP 7.4ではコメントとして扱われ、PHP 8.1以降で有効です。
+- 後日PHP 7.4互換を不要にできる場合は、各メソッドに実際の戻り値型（`mixed`, `int|string`, `void`, `bool`）を宣言する方法に置き換えられます。
+
+→ErrorHandler.phpにひねりつぶしオプション追加。実験中はOFF
 
 ## 移行時に全体確認する項目
 
@@ -48,7 +59,8 @@ Done json.phpは削除
 ## 優先順位
 
 1. `json.php` の文字列オフセット記法を修正（8.4での起動阻害）。
-2. `Assignment`, `Testcase`, `Submission`, `LogElem`, `LogCluster` 等の動的プロパティを解消（8.2+の非推奨とエラーハンドラによる500化）。
-3. PHP 8.4で全経路を動かして警告・型エラーを洗い出し、7.4でも構文と主要機能を確認。
+2. `RecordIterator` の `Iterator` メソッドに戻り値通知を追加（今回の警告）。
+3. `Assignment`, `Testcase`, `Submission`, `LogElem`, `LogCluster` 等の動的プロパティを解消（8.2+の非推奨とエラーハンドラによる500化）。
+4. PHP 8.4で全経路を動かして警告・型エラーを洗い出し、7.4でも構文と主要機能を確認。
 
 この文書は静的なコード調査に基づく一覧です。PHP 8.4上での実行確認や全プロジェクトの依存関係確認はまだ行っていません。
