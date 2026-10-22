@@ -47,7 +47,7 @@ class LogUtil {
     }
     static function getLogFiles() {
         $class=Auth::curClass();
-        return self::getLogsFileOf($class);
+        return self::getLogFilesOf($class);
     }
     static function getLogFilesOf($classOrUser) {
         $logD=self::getLogDir();
@@ -78,7 +78,7 @@ class LogUtil {
     static function readJSONLines($file) {
         $res=array();
         foreach ($file->lines() as $line) {
-            if ($line) $res[]=decode_json($line,JSON_OBJECT_AS_ARRAY);
+            if ($line) $res[]=json_decode($line,JSON_OBJECT_AS_ARRAY);
         }
         return $res;//array_map("json2array",$file->lines());
     }
@@ -113,8 +113,8 @@ class LogUtil {
     }
     static function getCode($raw) {
         if (!isset($raw->code)) return "";
-        $code=$raw->code;
-        foreach ($code as $lang=>$code) {
+        $codes=$raw->code;
+        foreach ($codes as $lang=>$code) {
             if ($lang ==="HTML") continue;
             if ($lang ==="html") continue;
             return $code;

@@ -5,6 +5,7 @@ class Testcase {
     var $assignment;
     var $name;
     var $base;
+    var $loaded;
     static function schema() {
         return array(
             "input"=>"string"

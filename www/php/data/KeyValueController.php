@@ -2,9 +2,10 @@
 req("KeyValue","Published");
 class KeyValueController {
     static $group;
+    var $url;
     static function detectShareLevel() {
         $sl=param("shareLevel","");
-        $url=param($url,NULL);
+        $url=param("url",NULL);
         if ($url) {
             KeyValue::selectClassByURL($url);
         }

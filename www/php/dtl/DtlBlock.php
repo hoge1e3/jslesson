@@ -30,6 +30,7 @@ class DtlBlock {
     }
 }
 class DtlWhile {
+    var $block;
     public function DtlWhile($block){
     	$this->block=$block;
     }

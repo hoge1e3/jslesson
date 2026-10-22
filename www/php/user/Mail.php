@@ -20,6 +20,7 @@ class Mail {
     static function send($to, $sub , $body, $options=array()) {
         if (defined("PHPMAILER_PATH")) {
             require_once (PHPMAILER_PATH);
+            // gitレポジトリ管理外にあるので、要確認
             sendmail_PHPMailer($to,$sub,$body,$options);
         } else if (self::available()) {
             $h="";

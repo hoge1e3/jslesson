@@ -1518,6 +1518,7 @@ function showOtherStudentsLogs($class){
 }
 function checkExternal($class){
     if (isExternal($class)) {
+        if (!defined("EXTERNAL_LOG_VIEWER")) die("Define EXTERNAL_LOG_VIEWER");
         header("Location: ".EXTERNAL_LOG_VIEWER."?".$_SERVER["QUERY_STRING"]."&class=".$class->id);
             return true;   
     }
