@@ -48,7 +48,8 @@ class SFile{
         return $this->resolve(PathUtil::up($this->path()));
     }
     public function rel($r) {
-        return $this->resolve(PathUtil::rel($this->path(),$r));
+        $res= $this->resolve(PathUtil::rel($this->path(),$r));
+        return $res;
     }
     /*public function rel2($r) {
     // why distract?    a="/fuga"    a->rel2("hoge")  ->   /hoge/fuga ?  or /hoge   ?
