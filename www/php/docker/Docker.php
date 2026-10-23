@@ -26,6 +26,7 @@ hostAsset:
 
 req("SFile","NativeFS","Process","Published");
 class Docker {
+    var $className;
     static function init($className) {
         return new Docker($className);
     }
