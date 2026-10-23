@@ -5,7 +5,6 @@ req("auth","TeacherController");
 //require_once("php/teacher/classes.php");
 class ClassController {
     static function select() {
-        ?><h1>ユーザ一覧</h1><hr><?php
         if (!isset($_GET["class"])) {
             echo "クラスが指定されていません";
             return;
