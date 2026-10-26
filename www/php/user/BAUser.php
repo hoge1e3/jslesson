@@ -6,9 +6,11 @@ class BAUser {
     var $password;
     var $options;
     static function pass2enc($pass) {
+        $pass = $pass ?? "";
         return openssl_encrypt($pass, 'AES-128-ECB', ENC_KEY);
     }
     static function enc2pass($enc) {
+        $enc = $enc ?? "";
         return openssl_decrypt($enc, 'AES-128-ECB', ENC_KEY);
     }
     static function enc() {

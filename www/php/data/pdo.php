@@ -33,7 +33,11 @@ function pdo_new() {
 }
 function pdo_enableIter() {
     $dbh=pdo();
-    $dbh->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY,false);
+    if (class_exists('Pdo\\Mysql')) {
+        $dbh->setAttribute(\Pdo\Mysql::ATTR_USE_BUFFERED_QUERY, false);
+    } else {
+        $dbh->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, false);
+    }
 }
 function pdo_select1() {
     $rs=call_user_func_array("pdo_select",func_get_args());

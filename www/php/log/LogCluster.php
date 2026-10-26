@@ -12,7 +12,7 @@
 */
 $attrs=[""];
 class LogElem {
-    var $id,$class,$user,$time,$filename;
+    var $id,$class,$user,$time,$filename,$detail,$ip,$code,$date,$lang,$result;
     function __construct($l) {
         $r=json_decode($l["raw"]);
         if (!$r) {
@@ -36,7 +36,7 @@ function getCode($code) {
     }
 }
 class LogCluster {
-    var $raws,$time,$code,$id,$result,$detail;
+    var $raws,$time,$code,$id,$result,$detail,$class,$user,$filename,$lang;
     function addRaw($n) {
         if (count($this->raws)>0) {
             $last=$this->raws[count($this->raws)-1];
