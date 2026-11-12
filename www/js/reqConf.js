@@ -305,6 +305,7 @@ var reqConf={
             cCompiler:"ctrans/compiler",
             TJSBuilder:"build/tjs/TJSBuilder",
             DtlBuilder:"build/dolittle/DtlBuilder",
+            Dtl4Builder:"build/dolittle4/Dtl4Builder",
             DnclBuilder:"build/dncl/DnclBuilder",
             Dncl2Builder:"build/dncl2/Dncl2Builder",
             PythonBuilder:"build/python/PythonBuilder",

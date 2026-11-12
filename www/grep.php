@@ -1,5 +1,5 @@
 <?php
-
+exit();// DISABLED
 require_once __DIR__."/php/Modules.php";
 require_once __DIR__."/php/auth.php";
 require_once __DIR__."/php/fs/NativeFS.php";

@@ -4,6 +4,8 @@ define(function (require, exports, module) {
             helpURL:"http://bitarrow.eplang.jp/index.php?javascript",mode:"ace/mode/tonyu"},
         "dtl":{en:"Dolittle", ja:"ドリトル",builder:"DtlBuilder",
             helpURL:"http://bitarrow.eplang.jp/index.php?dolittle_use"},
+        "dtl4":{en:"DolittleV4", ja:"ドリトルV4", builder:"Dtl4Builder", ext:"dtl",
+            helpURL:"https://dolittle.eplang.jp/doku.php?id=manualjs"},
         "py": {en:"Python", ja:"Python",builder:"PythonBuilder",manualIndent:true,
             helpURL:"http://bitarrow.eplang.jp/index.php?python",mode:"ace/mode/python"},
         "c":{en:"C", ja:"C",builder:"CBuilder",
