@@ -1,0 +1,45 @@
+@font-face{
+  font-family: ‘mono’;
+	src: url(../fonts/NotoSansMonoCJKjp-Regular.woff);
+  format(‘woff’);
+}
+textarea{
+  font-family:‘mono’;
+}
+body{
+	overflow:hidden;
+}
+
+
+button {
+    font-size:1em;
+    min-width:5em;
+    min-height:1em;
+    display: inline-block;
+    text-decoration: none;
+    color: #000;
+    background: #EFEFEF;/*色*/
+    border: solid 1px #000000;/*線色*/
+    border-radius: 4px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+    text-shadow: 0 1px 0 rgba(0,0,0,0.2);
+}
+
+button:active {/*押したとき*/
+    background: #DFDFDF;
+    box-shadow: none;
+    text-shadow: none;
+}
+
+.grid_quarter{
+	position:absolute;
+	background-image:url("../images/grid.png");
+	background-repeat:repeat;
+	z-index:-1;
+}
+
+/* HTML オブジェクト（HtmlDom.js, 2026-10-25）: 本文に置いた要素（<button> 等）を、全面に重なるタートルの SVG 越しに操作できるようにする。
+   タートルと図形（g の中）はこれまでどおりクリックできる */
+#turtle_svg{pointer-events:none;top:0;left:0;}   /* top/left: 本文に HTML が並んでも描画の原点がずれない（無指定だと静的位置＝直前の内容の下になる） */
+#turtle_svg g{pointer-events:visiblePainted;}
+#UI_div{z-index:1;}   /* GUI 部品（ラベル・ボタン…）の層を本文の HTML（#HTML_div）より上に。無指定だと後から作る #HTML_div が上になり、重なった GUI のボタンが押せない（2026-10-26） */
