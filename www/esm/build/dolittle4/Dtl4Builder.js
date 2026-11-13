@@ -3,10 +3,13 @@
      1. トランスパイラ: ./../../dolittle/minimal.js → ./../../dolittle4/minimal.js（djs のものを 1 ファイルにまとめた版）
      2. 実行画面が読む起動スクリプト: lib/dtl/runDtl.js → lib/dtl4/runDtl.js
      3. サーバーで実行する形（RUN_AT_SERVER / dtlvm）と「古い端末で表示する」（NOGENERATOR）は入れていない
+     4. 文法の誤りのとき、djs の編集画面と同じ説明（誤りの種類・行・直し方の例）をエラーの文に入れる（./../../dolittle4/diagnose.js。2026-11-12）。
+        トランスパイラが止まらない「」・"・（）の数の不一致も、djs と同じく実行前に止める
    置き場所: www/esm/build/dolittle4/Dtl4Builder.js */
 
 import DU from "./../../lib/DeferredUtil.js";
 import dtlParser from "./../../dolittle4/minimal.js";
+import dtlDiagnose from "./../../dolittle4/diagnose.js";
 import IndentBuffer from "./../../lang/IndentBuffer.js";
 import Sync from "./../../fs2/sync2.js";
 import FS from "./../../fs/fs2stub.js";
@@ -64,6 +67,19 @@ p.genHTML=function (f) {
     });
     return f.dst.html.text("<!DOCTYPE HTML>\n<html>"+html.innerHTML+"</html>");
 };
+// エラーの窓（js/ide/ErrorDialog.js）は、エラーに src と pos があるとプログラムを表示して、その位置に印を付ける（実行時の誤りと同じ見え方）。
+// 説明の行の、最初の文字の位置を渡す
+function markLine(e, name, srcText, line) {
+    if (!e || !(line>0)) return e;
+    var lines=srcText.split("\n");
+    if (line>lines.length) return e;
+    var pos=0;
+    for (var i=0;i<line-1;i++) pos+=lines[i].length+1;
+    pos+=lines[line-1].length-lines[line-1].replace(/^[ \t\u3000]+/,"").length;
+    e.src={text:srcText, name:name};
+    e.pos=pos;
+    return e;
+}
 function isNewer(a,b) {
     if (!a.exists()) return false;
     return a.lastUpdate()>b.lastUpdate();
@@ -98,12 +114,30 @@ p.build=function (options) {
             if (!isMainFile && isNewer(f.dst.js, f.src.dtl) && isNewer(f.dst.html, f.src.html)) return SplashScreen.waitIfBusy();
             var buf=IndentBuffer({dstFile:f.dst.js,mapFile:f.dst.map});
             buf.setSrcFile(f.src.dtl);
-            dtlParser.parse(f.src.dtl.text(),{
-                indentBuffer:buf,
-                src:f.src.dtl.name(),
-                srcPath: f.src.dtl.path(),
-                throwCompileErrorOnRuntime:!isMainFile
-            });
+            var srcText=f.src.dtl.text();
+            try {
+                dtlParser.parse(srcText,{
+                    indentBuffer:buf,
+                    src:f.src.dtl.name(),
+                    srcPath: f.src.dtl.path(),
+                    throwCompileErrorOnRuntime:!isMainFile
+                });
+            } catch (e) {
+                // 文法の誤り: 「N行目付近を確認してください」だけの文を、誤りの種類・行・直し方の例の入った文に置き換える
+                var ex=null;
+                try { ex=dtlDiagnose.explain(srcText, dtlParser); } catch (de) { console.log("dtl4 diagnose fail", de); }
+                if (ex && ex.text && e && typeof e.message==="string") {
+                    e.message=f.src.dtl.name()+"でエラーが発生しました。 "+ex.text;
+                    markLine(e, f.src.dtl.name(), srcText, ex.line);
+                }
+                throw e;
+            }
+            if (isMainFile) {
+                // トランスパイラは通るが、「」・"・（）の数が合っていない（djs の編集画面が実行前に止めるもの）
+                var pre=null;
+                try { pre=dtlDiagnose.precheck(srcText); } catch (de) { console.log("dtl4 precheck fail", de); }
+                if (pre && pre.text) throw markLine(new Error(f.src.dtl.name()+"でエラーが発生しました。 "+pre.text), f.src.dtl.name(), srcText, pre.line);
+            }
             buf.close();
             t.genHTML(f);
             return SplashScreen.waitIfBusy();

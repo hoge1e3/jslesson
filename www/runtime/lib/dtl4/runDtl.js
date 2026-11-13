@@ -11,7 +11,7 @@
   // djs の実行時ライブラリは window.runtimePath + "images/" から画像を読む。
   // Bit Arrow の runtime/images と 3 枚（apple・car・neko）が違うので、キットに入れた images を使う。
   window.runtimePath = BASE;
-  var urlArgs = "202611112051";          // キットを入れ替えたときにブラウザの古い写しを使わせない
+  var urlArgs = "202611121625";          // キットを入れ替えたときにブラウザの古い写しを使わせない
   function u(n) { return BASE + n + ".js?" + urlArgs; }
   // run.html の <script> と同じ順（require.js と、localStorage から読む起動部 index.js は除く）
   var libs = [ "jquery-1.12.1", "mt", "AsyncByGenerator", "promise", "lib", "polyk", "calibration", "devicemotion", "Dict", "Vec2", "Actor", "Group", "UI", "Color", "Timer", "Util", "Turtle", "Figure", "Image", "webaudio-tinysynth", "Music", "DOM", "Japanese2", "HtmlDom", "dolittle_classify", "dolittle_runtime_error", "MoveSlow", "db", "WebClient", "TextFile", "eval", "server", "webapi", "WebClientFetch", "grid", "startup" ];

@@ -1,4 +1,4 @@
-/* ドリトルV4 のトランスパイラ（オンライン版ドリトル djs V4.06 (2026/10/31)、04bdfae 2026-11-02）。
+/* ドリトルV4 のトランスパイラ（オンライン版ドリトル djs V4.06 (2026/10/31)、211dbfb 2026-11-12）。
    djs の js/transpiler/{ExpressionParser2,parser,context,minimal}.js を tools/bitarrow_kit/build.mjs が 1 つにまとめたもの。
    直接は編集しない（直すのは djs 側）。使い方は Bit Arrow の js/dolittle/minimal.js と同じ:
      MinimalParserV4.parse(src, {indentBuffer, src, srcPath, throwCompileErrorOnRuntime})
