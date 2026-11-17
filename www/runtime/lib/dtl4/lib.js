@@ -1524,6 +1524,40 @@ root.system.readN=function (obj,name){
     }
     return v;
 };
+// ブロックの中の素の名前（「：」も相手も付けない名前）の読み書き（トランスパイラがブロックの中の名前に使う・2026-11-17）。
+// V4 と同じ見え方: 自分（とその親）に利用者が付けたプロパティ → ルートの変数。部品が持つ命令（ネイティブの関数）と
+// HTML 要素の属性・CSS（HtmlDom.js の accessor）は見ない。属性は「自分：値」「入力：値」のように相手を書いて読み書きする。
+// 例: ボタンの動作の中の「名前」「幅」「値」は外の変数（以前は name 属性・幅の命令を読み、代入すると属性や見た目が変わった）。
+// 確かめたケース: class/hcp4_2026/samples/tools/v4cmp/bare.txt（V4.06 と同じ結果）
+root.system.bget=function (self,name){
+    if (self===root || self===undefined || self===null) return root[name];
+    var v=self[name];
+    if (typeof v!=="function" || v.isUserBlock) return v;
+    // 見つかったのが命令か属性: 素の代入で作った変数 → 利用者が付けたプロパティ → ルートの変数 の順に探す
+    var H=Object.prototype.hasOwnProperty;
+    for (var o=self; o && o!==root; o=Object.getPrototypeOf(o)) {
+        if (H.call(o,"__bareVars") && H.call(o.__bareVars,name)) return o.__bareVars[name];
+        var d=Object.getOwnPropertyDescriptor(o,name);
+        if (!d) continue;
+        var val=d.get ? d.get.call(self) : d.value;
+        if (typeof val!=="function" || val.isUserBlock) return val;
+    }
+    return root[name];
+};
+root.system.bset=function (self,name,v){
+    if (self===root || self===undefined || self===null) return root[name]=v;
+    if (typeof v==="function" && v.isDtlBlock) return self[name]=v;   // ブロックの代入は命令・動作の定義
+    var H=Object.prototype.hasOwnProperty;
+    var cur=self[name];
+    var hasBare=false;
+    for (var o=self; o && o!==root; o=Object.getPrototypeOf(o)) { if (H.call(o,"__bareVars") && H.call(o.__bareVars,name)) { hasBare=true; break; } }
+    if (hasBare || (typeof cur==="function" && !cur.isUserBlock)) {
+        // 命令・属性と同じ名前: 部品の命令や属性を壊さないよう、変数として別に持つ
+        if (!H.call(self,"__bareVars")) Object.defineProperty(self,"__bareVars",{value:{},enumerable:false,writable:true,configurable:true});
+        return self.__bareVars[name]=v;
+    }
+    return self[name]=v;
+};
 // 旧名（配列担当の実装名）。トランスパイラは readN を使う
 root.system.readIndexedVar=function(o,name){ return root.system.readN(o,name); };
 Function.prototype.checkerror=function () {
@@ -1581,8 +1615,11 @@ Function.prototype.try=function(){
 	return res;
 };
 var _jsroot; (function () {_jsroot=this;})();
-function dtlbind(bound, f) {
+function dtlbind(bound, f, user) {
     f.bound=bound;
+    // user=1: 利用者のプログラムのブロック（トランスパイラが付ける）。実行時ライブラリの命令も dtlbind で作るので、
+    // 素の名前の読み書き（root.system.bget / bset）はこの印で「利用者が付けた値」と「部品の命令」を分ける
+    if (user) f.isUserBlock=true;
     // 送信境界判定用マーカー（root.system.send）。dtlbind はブロック生成の唯一の通過点なので、
     // ここでタグ付けすると「ドリトル定義のメソッド」だけを関数境界にできる（ネイティブは非タグ）。
     f.isDtlBlock=true;

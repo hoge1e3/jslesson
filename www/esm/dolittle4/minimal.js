@@ -1,4 +1,4 @@
-/* ドリトルV4 のトランスパイラ（オンライン版ドリトル djs V4.06 (2026/10/31)、211dbfb 2026-11-12）。
+/* ドリトルV4 のトランスパイラ（オンライン版ドリトル djs V4.06 (2026/10/31)、29390c0 2026-11-17）。
    djs の js/transpiler/{ExpressionParser2,parser,context,minimal}.js を tools/bitarrow_kit/build.mjs が 1 つにまとめたもの。
    直接は編集しない（直すのは djs 側）。使い方は Bit Arrow の js/dolittle/minimal.js と同じ:
      MinimalParserV4.parse(src, {indentBuffer, src, srcPath, throwCompileErrorOnRuntime})
@@ -1125,7 +1125,7 @@ MinimalParser= function () {
 	    "){\nvar self=this;var 自分=self;"+
 		"var _args=Array.prototype.slice.call(arguments);"+
 		"var _rest=Array.prototype.slice.call(arguments,"+(_param[0].length)+");\n",
-		_param[1],_progs,"})"],
+		_param[1],_progs,"},1)"],
 	    {type:"block",subnodes:arguments,depth:ctx.depth});
 	});
 	block=newScope(block);
@@ -1186,6 +1186,8 @@ MinimalParser= function () {
 			if (/_[0-9]+$/.test(n)) {
 				return extend(["root.system.readN(this,'"+n+"')"],{type:"field",name:n,lhs:"this['"+n+"']"});
 			}
+			// ブロックの中の素の名前: root.system.bget / bset (lib.js)
+			if (ctx.depth>0) return extend(["root.system.bget(this,'"+n+"')"],{type:"field",name:n,bare:true});
 			return extend(["this['"+n+"']"],{type:"field",name:n});
         }
     })).or(colon.and(token_name).ret(function (_,n) {
@@ -1205,9 +1207,10 @@ MinimalParser= function () {
 	var term = func_exe.or(variable); //simple.or(func_exe).or(variable);
     //文 := [変数  = ] 式
     var statement = variable.and(eq).ret(function (v) {
+        if (v&&v.bare) return extend(["root.system.bset(this,'"+v.name+"',"],{type:"assign",subnodes:arguments,bare:true});
         return extend([(v&&v.lhs)?v.lhs:v,"="],{type:"assign",subnodes:arguments});
     }).opt().and(expr).ret(function (v,e) {
-        return extend([(v||""),e,";\n"],{type:"statement",subnodes:arguments});
+        return extend([(v||""),e,(v&&v.bare)?");\n":";\n"],{type:"statement",subnodes:arguments});
     });
     //プログラム := 文 . * (最後の.は省略可能)
 	statement_list = statement.sep0(period.or(tag_period),true).and(period.opt()).
